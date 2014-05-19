@@ -1,0 +1,56 @@
+file 960521-1_false-valid-free.c: Parsing
+Converting
+Type-checking 960521-1_false-valid-free
+Generating GOTO Program
+Pointer Analysis
+Adding Pointer Checks
+Claim 1:
+  file 960521-1_false-valid-free.c line 12 function foo
+  dereference failure: dynamic object lower bound
+  !(POINTER_OFFSET(a) + i < 0) || !(IS_DYNAMIC_OBJECT(a))
+
+Claim 2:
+  file 960521-1_false-valid-free.c line 12 function foo
+  dereference failure: dynamic object upper bound
+  !(POINTER_OFFSET(a) + i >= DYNAMIC_SIZE(a)) || !(IS_DYNAMIC_OBJECT(a))
+
+Claim 3:
+  file 960521-1_false-valid-free.c line 14 function foo
+  dereference failure: dynamic object lower bound
+  !(POINTER_OFFSET(b) + i < 0) || !(IS_DYNAMIC_OBJECT(b))
+
+Claim 4:
+  file 960521-1_false-valid-free.c line 14 function foo
+  dereference failure: dynamic object upper bound
+  !(POINTER_OFFSET(b) + i >= DYNAMIC_SIZE(b)) || !(IS_DYNAMIC_OBJECT(b))
+
+Claim 5:
+  file 960521-1_false-valid-free.c line 24 function main
+  dereference failure: dynamic object lower bound
+  !(-1 + POINTER_OFFSET(b) < 0) || !(IS_DYNAMIC_OBJECT(b))
+
+Claim 6:
+  file 960521-1_false-valid-free.c line 24 function main
+  dereference failure: dynamic object upper bound
+  !(-1 + POINTER_OFFSET(b) >= DYNAMIC_SIZE(b)) || !(IS_DYNAMIC_OBJECT(b))
+
+Claim 7:
+  file 960521-1_false-valid-free.c line 25 function main
+  dereference failure: dynamic object lower bound
+  !(POINTER_OFFSET((void *)b) < 0) || !(IS_DYNAMIC_OBJECT(b))
+
+Claim 8:
+  file 960521-1_false-valid-free.c line 25 function main
+  dereference failure: dynamic object upper bound
+  !(POINTER_OFFSET((void *)b) >= DYNAMIC_SIZE(b)) || !(IS_DYNAMIC_OBJECT(b))
+
+Claim 9:
+  file 960521-1_false-valid-free.c line 27 function main
+  dereference failure: dynamic object lower bound
+  !(POINTER_OFFSET((void *)b) < 0) || !(IS_DYNAMIC_OBJECT(b))
+
+Claim 10:
+  file 960521-1_false-valid-free.c line 27 function main
+  dereference failure: dynamic object upper bound
+  !(POINTER_OFFSET((void *)b) >= DYNAMIC_SIZE(b)) || !(IS_DYNAMIC_OBJECT(b))
+

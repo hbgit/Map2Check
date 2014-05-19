@@ -1,0 +1,3 @@
+25 ; Claim 8.1 ; ?  file code_samples/960521-1_false-valid-deref.c line 25 function main?  dereference failure: dynamic object upper bound ;   !(IS_DYNAMIC_OBJECT(b - 1))
+27 ; Claim 9 ; ?  file code_samples/960521-1_false-valid-deref.c line 27 function main?  dereference failure: dynamic object lower bound ;   !(POINTER_OFFSET((void *)(b - 1)) < 0)
+27 ; Claim 10 ; ?  file code_samples/960521-1_false-valid-deref.c line 27 function main?  dereference failure: dynamic object upper bound ;   !(POINTER_OFFSET((void *)(b - 1)) >= DYNAMIC_SIZE(b - 1)) || !(IS_DYNAMIC_OBJECT(b - 1))

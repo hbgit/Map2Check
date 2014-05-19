@@ -1,0 +1,36 @@
+       LOC ;   Variable ;      Scope ;  Is Global ; Is Dynamic ;    Is Free ;
+------------------------------------------------------------------------------------------
+         4 ;          n ;     Global ;       True ;      False ;      False ; 
+        10 ;          i ;        foo ;      False ;      False ;      False ; 
+        12 ;       a[i] ;     Global ;       True ;      False ;      False ; 
+        14 ;       b[i] ;     Global ;       True ;      False ;      False ; 
+        20 ;          a ;     Global ;       True ;       True ;      False ; 
+        21 ;          b ;     Global ;       True ;       True ;      False ; 
+        22 ;          b ;     Global ;       True ;      False ;      False ; 
+        25 ;          a ;     Global ;       True ;      False ;       True ; 
+        25 ;          b ;     Global ;       True ;      False ;       True ; 
+        27 ;          a ;     Global ;       True ;      False ;       True ; 
+        27 ;          b ;     Global ;       True ;      False ;       True ; 
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+Overview Results:
+------------------------------------------------------------------------------------------
+Total Number of objects mapped:      11
+
+Number of Lines   mapped:       9
+Number of Malloc  mapped:       2
+Number of Free    mapped:       4
+__________________________________________________________________________________________
+
+	 	 Number of ocurrences by variable
+         a -> Decl. or Assig.:     3
+      b[i] -> Decl. or Assig.:     1
+         i -> Decl. or Assig.:     1
+         n -> Decl. or Assig.:     1
+         b -> Decl. or Assig.:     4
+      a[i] -> Decl. or Assig.:     1
+
+Number of VARS    mapped:       6
+Number of GB VARS mapped:       0
+__________________________________________________________________________________________
+------------------------------------------------------------------------------------------

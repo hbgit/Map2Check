@@ -1,0 +1,4 @@
+10 ; Claim 1 ; //  file code_samples/pre_D_CBMC_bound_array.c line 10 function func//  dereference failure: dynamic object lower bound ; !(POINTER_OFFSET(x) + r < 0) || !(IS_DYNAMIC_OBJECT(x))
+10 ; Claim 2 ; //  file code_samples/pre_D_CBMC_bound_array.c line 10 function func//  dereference failure: dynamic object upper bound ; !(POINTER_OFFSET(x) + r >= DYNAMIC_SIZE(x)) || !(IS_DYNAMIC_OBJECT(x))
+17 ; Claim 3 ; //  file code_samples/pre_D_CBMC_bound_array.c line 17 function func//  division by zero ; return_value_func$2 != 0
+17 ; Claim 4 ; //  file code_samples/pre_D_CBMC_bound_array.c line 17 function func//  division by zero ; DRON(q) != 0

@@ -1,3 +1,6 @@
 .idea/**/*
 .pyc
 settings.cfg
+modules/bmc_tool/esbmc_tool/32/bin
+modules/bmc_tool/esbmc_tool/64/bin
+

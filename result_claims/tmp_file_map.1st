@@ -1,0 +1,14 @@
+LOC;Variable;Points to;Scope;Is Global;Is Dynamic;Is Free;Is Union
+8;pdata;pdata;alloc_data;0;0;0;0
+10;pdata->lo;pdata->lo;alloc_data;0;1;0;0
+11;pdata->hi;pdata->hi;alloc_data;0;1;0;0
+13;*pdata->lo;*pdata->lo;alloc_data;0;0;0;0
+14;*pdata->hi;*pdata->hi;alloc_data;0;0;0;0
+17;data;data;free_data;0;0;0;0
+19;lo;lo;free_data;0;0;0;0
+20;hi;hi;free_data;0;0;0;0
+23;lo;lo;free_data;0;0;1;0
+24;hi;hi;free_data;0;0;1;0
+27;data->lo;data->lo;free_data;0;0;0;0
+28;data->hi;data->hi;free_data;0;0;0;0
+32;data;data;main;0;0;0;0

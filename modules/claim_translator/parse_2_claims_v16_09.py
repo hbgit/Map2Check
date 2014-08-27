@@ -741,7 +741,36 @@ def checkIfIsVoidCast( rec_token ):
 def set_cast_intptr_t( rec_token ):    
     mountString = "intptr_t"
     return mountString
-    
+
+
+def checkVarScope( rec_token ):
+    print("HERE!!!!!")
+    for token in rec_token:
+        matchVarRef = re.search(r'(.*)[.-](.*)', token)
+        if matchVarRef:
+            # The number of the line of the claim
+            print(actual_nr_line_CL) # actual line
+            print("REF: "+matchVarRef.group(1))
+
+            # TODO: How analysis only the scope of the variable
+            # Identify the scope, i.e., what function
+            f = open(args.list_function)
+            lines_data_function = f.readlines()
+            f.close()
+
+            list_num_scopetocheck = []
+
+            for eachLine in lines_data_function:
+                data_function = re.split(";",eachLine)
+                #print(actual_nr_line_CL +" >= "+data_function[1]+" AND "+actual_nr_line_CL+"<="+data_function[2])
+                if int(actual_nr_line_CL) >= int(data_function[1]) and int(actual_nr_line_CL) <= int(data_function[2]):
+                    list_num_scopetocheck.append(int(data_function[1]))
+                    list_num_scopetocheck.append(int(data_function[2]))
+                    print(data_function[0])
+
+            # Checking if the variable is inside that scope
+            # TODO: isolate this code text - using maybe a sed '5,15!d' test-0019_true.c
+            #       and then apply a regex to identify the variable declaration
 
 
 # Warnning this should be improved
@@ -1098,15 +1127,19 @@ INVALID-POINTER(job) |
 INVALID-POINTER(i + str) -> (A + B)* | (n + c::replace::patsize::pat)
 INVALID-POINTER(invalid_object7 + (int)(buffer[0]))) 
                                 (int)(buffer[(POINTER_OFFSET(str) + i) - 0])
-Warning: the last rule has only the name of the  function                                                               
+Warning: the last rule has only the name of the  function
+
+DOING: in value check is the variable is the scope of the Function
+
 """
 expression2Calc_IP = expression2Calc.copy()
-funInvalidPoint = Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + invalidObject + rParen ^lParen + value + rParen ^ expression2Calc_IP).setParseAction( setDoubleRef_IP ) ^\
-                  Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + toTypeCast + value + rParen ^ expression2Calc_IP.setParseAction( replacePointerIndex )).setParseAction( setDoubleRef_IP ) ^\
+value_ip = value.copy()
+funInvalidPoint = Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + invalidObject + rParen ^lParen + value_ip + rParen ^ expression2Calc_IP).setParseAction( setDoubleRef_IP ) ^\
+                  Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + toTypeCast + value_ip + rParen ^ expression2Calc_IP.setParseAction( replacePointerIndex )).setParseAction( setDoubleRef_IP ) ^\
                   Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + toTypeCast + expression2Calc_IP + rParen).setParseAction( setDoubleRef_IP ) ^\
                   Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf,")).setResultsName("invalidPointer") + (lParen + invalidObject + sinalToCalc + Suppress(toTypeCast) + lParen + structArrayVar + rParen + rParen).setParseAction( setDoubleRef_IP ) ^\
-                  Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + ( Empty() ^ Suppress(toTypeCast) ) + value + rParen).setParseAction( setDoubleRef_IP ) ^\
-                  Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + ( Suppress(toTypeCast) ) + value + sinalToCalc + value + rParen).setParseAction( setDoubleRef_IP ) ^\
+                  Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + ( Empty() ^ Suppress(toTypeCast) ) + value_ip + rParen).setParseAction( setDoubleRef_IP ) ^\
+                  Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + ( Suppress(toTypeCast) ) + value_ip + sinalToCalc + value_ip.setParseAction( checkVarScope ) + rParen).setParseAction( setDoubleRef_IP ) ^\
                   Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") 
                   
 

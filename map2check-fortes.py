@@ -17,8 +17,8 @@
 #  !(SAME-OBJECT(B, &C))
 #       -> BUG FOUND: When we apply the program directly in a file, ex. ./prog <file.c>
 #
-# CRITICAL BUG: ajustar o mapemento p identificar se uma var global esta fora das fun√ß√µes $$$$$$$$$$$$
-#   HIP: com base nos dados do escopo das fun√ß√µes, verificar se a num da linha esta fora deste escopo
+# CRITICAL BUG: ajustar o mapemento p identificar se uma var global esta fora das funÁıes $$$$$$$$$$$$
+#   HIP: com base nos dados do escopo das funÁıes, verificar se a num da linha esta fora deste escopo
 # -------------------------------------------------
 
 from __future__ import print_function
@@ -56,7 +56,7 @@ if not os.path.isfile(PATH_FILE_SETTINGS):
 
 config = ConfigParser.ConfigParser()
 config.read(PATH_FILE_SETTINGS)
-check_status_esbmc_path = config.get('ESBMC_TOOL', 'esbmc_path', 0)  
+check_status_esbmc_path = config.get('ESBMC_TOOL', 'esbmc_path', 0)
 if check_status_esbmc_path == 'empty' :
     print("Sorry, you need to set up the ESBMC path in settings.cfg file. See REAME file.")
     sys.exit()    
@@ -156,6 +156,10 @@ def get_esbmc_claims(cFile, enClaimByFunc):
         rec_name=rec_name+"_func_"+enClaimByFunc+".cl"
         #Running the ESBMC to get the claims by functions               
         list_claims=commands.getoutput(ESBMC_PATH+' '+set_arch+' --no-library --function '+enClaimByFunc+' --show-claims '+cFile)
+
+        #os.system(ESBMC_PATH+' '+set_arch+' --no-library --function '+enClaimByFunc+' --show-claims '+cFile)
+        #sys.exit()
+
         check_command_exec(list_claims, 0, "Generating esbmc claims",1)   
         
         ressulTextCL=isolate_claim_by_func(list_claims.rsplit('\n'),enClaimByFunc)                        
@@ -168,7 +172,11 @@ def get_esbmc_claims(cFile, enClaimByFunc):
         #Running the ESBMC to get the claims        
         #os.system(ESBMC_PATH+' '+set_arch+' --no-library --show-claims '+cFile)
         #sys.exit()
-        result=commands.getoutput(ESBMC_PATH+' '+set_arch+' --no-library --show-claims '+cFile+' > '+DIR_RESULT_CLAIMS+'/'+rec_name)        
+        result=commands.getoutput(ESBMC_PATH+' '+set_arch+' --no-library --show-claims '+cFile+' > '+DIR_RESULT_CLAIMS+'/'+rec_name)
+
+        #os.system(ESBMC_PATH+' '+set_arch+' --no-library --show-claims '+cFile)
+        #sys.exit()
+
         file_result = DIR_RESULT_CLAIMS+'/'+rec_name
         check_command_exec(result, file_result, "Generating esbmc claims",0)   
         
@@ -337,9 +345,9 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile):
     # Apply claim translator and return the path of the csv file
     name_new_csv_file = csvClaimFile.replace('.1st','.csv')  
     file_from_map_2_cl = DIR_RESULT_CLAIMS+"/aux_file_map_2_translator.csv"  
-    #os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile+" -m "+file_from_map_2_cl+" -d 0")
+    os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile+" -m "+file_from_map_2_cl+" -d 1")
     #os.system("cat "+csvClaimFile)
-    #sys.exit()
+    sys.exit()
     result = commands.getoutput(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile+" -m "+file_from_map_2_cl+" > "+name_new_csv_file)
     check_command_exec(result, name_new_csv_file, "Translating esbmc claims",0)   
     return name_new_csv_file
@@ -462,11 +470,12 @@ def start_generation_cassert(cFile, enSetFunc):
           
                 
         # Adding the result of 2st get claims in the tmp_file_map.map    
-        # TODO: falta verificar a quest√£o do num diff claims 
+        # TODO: falta verificar a quest„o do num diff claims 
         get_final_path_csv_file_CL = add_new_num_lines2csv(getTranslatedCsvClaim, list_lines_CL, 0)      
         
         #os.system("cat "+get_final_path_csv_file_CL)
         #sys.exit()
+
         list_tmp_path.append(get_final_path_csv_file_CL) 
         check_command_exec(0, get_final_path_csv_file_CL, "Gathering esbmc claims",0)
        

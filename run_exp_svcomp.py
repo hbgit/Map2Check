@@ -14,12 +14,31 @@ import shutil
 import time
 from pipes import quote
 
-# TODO: falta definir um timeout
+
+# TODO: measure memory used in each program
 
 
 # DEPENDENCY PARAMETERS
+ABS_PATH_FILE = os.path.dirname(__file__)
+PATH_FILE_SETTINGS = ABS_PATH_FILE+'/settings.cfg'
+if not os.path.isfile(PATH_FILE_SETTINGS):
+    print('Error: unable to find the settings.cfg file')
+    print('Please run ./configure to check the prerequisites to use Map2Check-FORTES tool')
+    sys.exit()
+
+config = ConfigParser.ConfigParser()
+config.read(PATH_FILE_SETTINGS)
+check_status_path = config.get('MAPFORTES_TOOL', 'mapfortes_path', 0)
+if check_status_path == 'empty' :
+    print("Sorry, you need to set up the Map2Check-FORTES path in settings.cfg file. See REAME file.")
+    sys.exit()
+
 OUTPUT_REPORT_FILE="name_report.html"
-PATH_MAP_2_CHECK_FORTES = '/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/FORTES/map2check-fortes.py'
+PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check-fortes.py'
+if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
+    print('Error: unable to find the map2check-fortes.py file')
+    sys.exit()
+
 NUMEBER_OF_RE_EXEC_EXP = 3
 
 list_to_write_in_html = []

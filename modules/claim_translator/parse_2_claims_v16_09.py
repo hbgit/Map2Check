@@ -33,7 +33,8 @@ parser = argparse.ArgumentParser(description='Translator to Claims')
 parser.add_argument('-i','--input', required=True, help='Input claims file')
 parser.add_argument('-c','--code', required=True, help='Input C program')
 parser.add_argument('-f','--list-function', required=True, help='Input function scope')
-parser.add_argument('-m','--data-mapped', required=True, help='Input from data mapping code')
+parser.add_argument('-p','--data-mapped', required=True, help='Input from data mapped of the code')
+parser.add_argument('-m','--data-mapped2cl', required=True, help='Input from data mapping code to claim translator')
 parser.add_argument('-o','--output', required=False, help='Output file')
 parser.add_argument('-b','--bug-test', type=int, default=0, help='Number of test cases failed')
 parser.add_argument("-d", "--debug-mode", type=int, choices=[0, 1], default=0, help="Enable the debug mode")
@@ -744,33 +745,90 @@ def set_cast_intptr_t( rec_token ):
 
 
 def checkVarScope( rec_token ):
-    print("HERE!!!!!")
+    global printFLag
+
+    namevartocheck = ''
+    flagref = False
+
+    #mount string
+    conc_str_token=""
     for token in rec_token:
-        matchVarRef = re.search(r'(.*)[.-](.*)', token)
-        if matchVarRef:
-            # The number of the line of the claim
-            print(actual_nr_line_CL) # actual line
-            print("REF: "+matchVarRef.group(1))
+        conc_str_token = conc_str_token + str(token)
 
-            # TODO: How analysis only the scope of the variable
-            # Identify the scope, i.e., what function
-            f = open(args.list_function)
-            lines_data_function = f.readlines()
-            f.close()
+    matchVarRef = re.search(r'(.*)[.-](.*)', conc_str_token)
+    if matchVarRef:
+        namevartocheck = matchVarRef.group(1)
+        flagref = True
+        #print("REF: "+matchVarRef.group(1))
 
-            list_num_scopetocheck = []
+    # In case the variable is not a ref var
+    if not flagref:
+        namevartocheck = conc_str_token
 
-            for eachLine in lines_data_function:
-                data_function = re.split(";",eachLine)
-                #print(actual_nr_line_CL +" >= "+data_function[1]+" AND "+actual_nr_line_CL+"<="+data_function[2])
-                if int(actual_nr_line_CL) >= int(data_function[1]) and int(actual_nr_line_CL) <= int(data_function[2]):
-                    list_num_scopetocheck.append(int(data_function[1]))
-                    list_num_scopetocheck.append(int(data_function[2]))
-                    print(data_function[0])
+    # TODO: How analysis only the scope of the variable
+    #print(args.data_mapped)
+    csvfilemapped = args.data_mapped
 
-            # Checking if the variable is inside that scope
-            # TODO: isolate this code text - using maybe a sed '5,15!d' test-0019_true.c
-            #       and then apply a regex to identify the variable declaration
+    # Identify the scope, i.e., what function
+    # Reading data csv from mapped code
+    list_numlinemapped = []
+    list_namevarmapped = []
+    try:
+        with open(csvfilemapped, 'r') as fileCsv:
+            reader = csv.DictReader(fileCsv,delimiter=';')
+            for row in reader:
+               list_numlinemapped.append(row['After_Pre_LOC'].strip())
+               list_namevarmapped.append(row['Variable'].strip())
+
+    except IOError:
+            print("Could not read file: %s" % csvfilemapped)
+
+
+    # Identifying the scope in code to reduce the running
+    f = open(args.list_function)
+    lines_data_function = f.readlines()
+    f.close()
+
+    list_num_scopetocheck = []
+
+    for eachLine in lines_data_function:
+        data_function = re.split(";",eachLine)
+        #print(actual_nr_line_CL +" >= "+data_function[1]+" AND "+actual_nr_line_CL+"<="+data_function[2])
+        if int(data_function[1]) <= int(actual_nr_line_CL) <= int(data_function[2]):
+            list_num_scopetocheck.append(data_function[1])
+            list_num_scopetocheck.append(data_function[2])
+
+
+    # Identify the scope based on the variables mapped from the source code
+    flag_stop = False
+    index = 0
+    while index < len(list_numlinemapped) and not flag_stop:
+    #for index, numline in enumerate(list_numlinemapped):
+        # The actual line number is bigger than line that start the function
+        # and the mapped line is less than end line number of the function
+        #print(actual_nr_line_CL+" >= "+str(list_num_scopetocheck[0])+" and "+numline+" <= "+str(list_num_scopetocheck[1]))
+
+        if int(actual_nr_line_CL) >= int(list_num_scopetocheck[0]) and \
+           int(list_numlinemapped[index]) <= int(list_num_scopetocheck[1]):
+            #print(">>>>>>>"+list_namevarmapped[index])
+            # Trying to identify the variable in the mapped code
+            #matchVarM = re.search(r'[]', list_namevarmapped[index])
+            #if matchVarM:
+            #print(">"+namevartocheck+"=="+list_namevarmapped[index]+"<")
+            if namevartocheck == list_namevarmapped[index]:
+               #print(">>>>>>>>>> "+ str(printFLag))
+               #print("STOP")
+               flag_stop = True
+
+            #print(">>>>>>>>>> "+ str(printFLag))
+            #namevartocheck
+
+        index += 1
+
+    if not flag_stop:
+        printFLag = 0
+
+
 
 
 # Warnning this should be improved
@@ -1376,7 +1434,7 @@ if __name__ == "__main__":
     claims_lines_csv = claims_csv_file.readlines()
     claims_csv_file.close()
     
-    gatherDataFromMap(args.data_mapped)
+    gatherDataFromMap(args.data_mapped2cl)
 
     """
     Variables gathing from input file

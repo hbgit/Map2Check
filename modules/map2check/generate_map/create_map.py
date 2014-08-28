@@ -1682,7 +1682,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
                 print()
             
-            # Generate auxiliary file with de first pointer Decl in each function            
+            # Generate auxiliary file with de first pointer Decl in main function
             path_file_write = os.path.join(os.path.dirname(__file__), "../../../result_claims/aux_file_map_2_translator.csv")
             
             aux_file_map_2_translator = open(path_file_write, "w")

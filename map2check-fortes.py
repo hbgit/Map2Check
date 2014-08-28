@@ -341,14 +341,19 @@ def add_new_num_lines2csv(fileMapPath, listNumLinesMap, opName):
     
 
 
-def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile):
+def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromCode):
     # Apply claim translator and return the path of the csv file
     name_new_csv_file = csvClaimFile.replace('.1st','.csv')  
-    file_from_map_2_cl = DIR_RESULT_CLAIMS+"/aux_file_map_2_translator.csv"  
-    os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile+" -m "+file_from_map_2_cl+" -d 1")
+    file_from_map_2_cl = DIR_RESULT_CLAIMS+"/aux_file_map_2_translator.csv"
+
+    #os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
+    #          +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
+
     #os.system("cat "+csvClaimFile)
-    sys.exit()
-    result = commands.getoutput(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile+" -m "+file_from_map_2_cl+" > "+name_new_csv_file)
+    #sys.exit()
+    result = commands.getoutput(CLAIM_TRANSLATOR + " -i " + csvClaimFile + " -c " + cFile
+                                + " -f " + dataFunctionFile + " -m " + file_from_map_2_cl
+                                + " -p " + csvMappedFromCode + " > " + name_new_csv_file)
     check_command_exec(result, name_new_csv_file, "Translating esbmc claims",0)   
     return name_new_csv_file
     
@@ -453,8 +458,8 @@ def start_generation_cassert(cFile, enSetFunc):
         list_tmp_path.append(get_2st_path_fileCl)
         list_tmp_path.append(get_2st_CsvDataCl)
         
-        # >>> Call translate to claims    
-        getTranslatedCsvClaim = apply_claim_translator(getPreCFile, get_2st_CsvDataCl, getDataFunction)    
+        # >>> Call translate to claims
+        getTranslatedCsvClaim = apply_claim_translator(getPreCFile, get_2st_CsvDataCl, getDataFunction, getFinalFileMap)
         list_tmp_path.append(getTranslatedCsvClaim)
         
         # Reading the claim list to add the original number lines in this list                

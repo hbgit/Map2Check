@@ -828,13 +828,14 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         """
         # e.g., static unsigned long <int> <- this item
         
-        # Working here $$$$$$$$$$$$$$
+
 
         if self.flag_is_a_decl and not self.flag_tmp_has_struct:
             
             get_only_type = self.current_var_type[-1]  
             #print("=============================>", get_only_type)          
-            
+
+            # Working here $$$$$$$$$$$$$$ FAIKE POINTER
             
             # [TODO] improve this to do using recursion
             if get_only_type in self.dictionary_of_var_types:                
@@ -897,6 +898,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         @return: NO
         """
 
+        #TODO: BUG -> identify when is a pointer and when has a pointer in a struct
+        # eg., static void free_data(TData data)
+
         # [DONE] Mapping OKAY HERE :)
         # This is necessary to identify decl struct
         
@@ -906,7 +910,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             self.flag_is_a_decl = False
 
         #print("A STRUCT: %s" % self.has_struct_ref)
-        self.resetExpandDeclVar()        
+        self.resetExpandDeclVar()
+        #print(self.expand_decl(nodeVar))
         self.expand_decl(nodeVar)
         #print(self.expand_decl(nodeVar))
         
@@ -920,11 +925,12 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             
             
             # Here we check again if the VAR is a Ptr, this because the VAR type could be defined by a typedef
-            #print("Analyzing: ",nodeVar.coord)
-            
-            #print("IS pointer: ",self.current_is_ptr)
-            #print("TypeCheck: ", self.checkVarType())
-            #print("STRUCT: %s" % self.has_struct_ref)
+            # print("Analyzing: ",nodeVar.coord)
+            #
+            # print("IS pointer: ",self.current_is_ptr )
+            # print("TypeCheck: ", self.checkVarType() )
+            # print("STRUCT: %s" % self.has_struct_ref )
+            # print("STRUCT flag: %s" % self.flag_tmp_has_struct )
             
             # COMMENT last modified
             #if self.checkVarType() and not self.current_is_ptr:
@@ -935,18 +941,18 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 self.checkVarType()
             
                             
-            #print("------- After call -------")
-            #print("IS pointer: ",self.current_is_ptr)
-            #print("IS STRUCT: %s" % self.has_struct_ref)
+            print("------- After call -------")
+            print("IS pointer: ",self.current_is_ptr)
+            print("IS STRUCT: %s" % self.has_struct_ref)
+            print("STRUCT flag: %s" % self.flag_tmp_has_struct)
             
             
             
 
             #identify if is a ptr
             if self.current_is_ptr or self.has_struct_ref:
-                    
-                                
                 # Searching this variable in the program
+
                 if self.current_is_ptr:
                     # First of all, save the identifier PTR to execute the next steps
                     self.tmp_flag_is_ptr = True
@@ -980,8 +986,34 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     # Last check to add into list the data to map
                     if self.checkMapIsComplete(inspect.currentframe().f_back.f_lineno):
                         self.setList2Map()
-                        
-                # Identify it has a Decl with assignment to ptr                
+
+
+                # Is for this case:
+                # int main() {
+                #     TData data;
+                elif not self.hasAssigmentInDeclPtr and self.has_struct_ref:
+                    lineNum = self.getNumberOfLine(nodeVar)
+                    #reset vars to map
+                    self.resetVarsToMap()
+                    self.map_line = lineNum
+                    self.map_var = nodeVar.name
+                    self.map_points_to = "NULL"
+                    self.map_id_function = self.current_funct
+                    self.map_is_global = self.flag_idenitify_global_var
+                    self.map_is_a_free = False
+                    self.map_is_dynamic = False
+
+                    if self.current_is_a_union:
+                        self.map_is_a_union = True
+                    else:
+                        self.map_is_a_union = False
+
+
+                    # Last check to add into list the data to map
+                    if self.checkMapIsComplete(inspect.currentframe().f_back.f_lineno):
+                        self.setList2Map()
+
+                # Identify it has a Decl with assignment to ptr
                 elif self.hasAssigmentInDeclPtr or self.has_struct_ref:                    
                     #sprint("<<< ",self.hasAssigmentInDeclPtr)
                     #print("PTR or STRUCT assig in: %s" % nodeVar.coord) #COM
@@ -1001,7 +1033,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     self.flag_idenitify_global_var = False
                     self.has_ptr_assignment = True
                     self.current_is_a_union = self.tmp_flag_has_union
-                    #print("Keep -> searching by %s %s" % (nodeVar.name, nodeVar.coord))                    
+                    #print("Keep -> searching by %s %s" % (nodeVar.name, nodeVar.coord))
                     #print("Keep Is a Union: ", self.current_is_a_union)
                     #print(self.has_ptr_assignment)
                     #self.searchAssigInCompound(self.current_compund_func, nodeVar)
@@ -1183,15 +1215,15 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 #get all args from the function
                 # (1) Mapping input args from function and all its assigments
                 if len(self.current_args_params_func) > 0:
-                    #print("--------------- Input Args: ---------------")
+                    print("--------------- Input Args: ---------------")
                     self.is_a_input_arg_function = True
                     for eachArg in self.current_args_params_func:
-                        #print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
+                        print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
                         self.current_compund_FLOW = self.current_compund_func
                         self.getDataFromVar(eachArg,0)
                     self.is_a_input_arg_function = False
-                    #print("---------------End Input Args---------------")
-                    #print("")
+                    print("---------------End Input Args---------------")
+                    print("")
 
                 #print("--------------- Decl and Pointer Assigments ---------------")
                 # get Decl and identify if is a pointer
@@ -1214,7 +1246,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                             #self.current_loc_ast = index # BUG
                             #print("---------------------------------------------")
                             #print()
-                            #print("Searching by Decl: %s <> %s | Count Decl = %s" % (item.name, item.coord,self.identifier_first_decl_in_func))
+                            # print("Searching by Decl: %s <> %s | Count Decl = %s" % (item.name, item.coord,self.identifier_first_decl_in_func))
                             
                             
                             # [TOP on STACK] Here we consider all type for first Decl in Function main, 
@@ -1298,7 +1330,6 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 this function
                 self.current_is_a_union
         """
-
         typ = type(decl)
 
         if typ == TypeDecl:
@@ -1313,12 +1344,12 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             return ['ID', decl.name]
         elif typ == FuncDef:
             return ['FuncDef', decl.coord, self.expand_decl(decl.type)]
-        elif typ in [Struct, Union]: 
-            
+        elif typ in [Struct, Union]:
             # Identify if has a Union
             if typ == Union:
                 self.current_is_a_union = True
-                                   
+
+
             self.flag_tmp_has_struct = True
             self.has_struct_ref = True
             # WARNNING: CHECKOUT REGRESSION TESTS

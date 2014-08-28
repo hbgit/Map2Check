@@ -404,8 +404,8 @@ def start_generation_cassert(cFile, enSetFunc):
     tmp_file_map = DIR_RESULT_CLAIMS+"/tmp_file_map.1st"
     
     # Comment this and execute test 
-    #os.system(MAP_2_CHECK_MAP+" "+cFile+" 0")
-    #sys.exit()
+    os.system(MAP_2_CHECK_MAP+" "+cFile+" 0")
+    sys.exit()
     
     result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)
     check_command_exec(result, tmp_file_map, "Generating code map",0)

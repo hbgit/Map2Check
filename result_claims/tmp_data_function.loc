@@ -1,3 +1,3 @@
-alloc_data;8;15
-free_data;18;31
-main;34;41
+alloc_data;8;12
+free_data;15;27
+main;30;37

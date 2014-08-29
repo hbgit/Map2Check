@@ -112,6 +112,70 @@ if __name__ == "__main__":
             print(msg_pyp)
             sys.exit
 
+
+    #-------------------------------------------------------
+    ### Generating Uncrustify
+    msg_pyp = ""
+
+    cwd = os.getcwd()
+
+    print("--- Compiling: uncrustify")
+    extract_file( os.path.abspath("modules/other_tools/uncrustify-0.60.tar.gz"),
+                  os.path.abspath("modules/other_tools/") )
+
+
+    #cd dir
+    os.chdir(os.path.abspath("modules/other_tools/uncrustify-0.60/"))
+
+    msg_conf_unc = commands.getoutput("./configure")
+    #Checking configure
+    if not os.path.isfile("Makefile"):
+        print("Error: Makefile file was not generated. See LOG: ")
+        print(msg_conf_unc)
+        sys.exit()
+
+    msg_make_unc = commands.getoutput("make")
+    #Checking configure
+    if not os.path.isfile("src/uncrustify"):
+        print("Error: uncrustity tool could not be generated. See LOG: ")
+        print(msg_make_unc)
+        sys.exit()
+
+    #Backing to original path
+    os.chdir(cwd)
+
+    print("--- Checking installation for: uncrustify")
+    #Copy tool to correct place
+    # Checking the OS arch
+    if platform.machine() == "x86_64":
+        #64bits
+        try:
+            shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
+                        os.path.abspath("modules/preprocessor/primary_preprocessing/arch_64/") )
+        except shutil.Error as e:
+            print('Error: %s' % e)
+            raise
+            # eg. source or destination doesn't exist
+        except IOError as e:
+            print('Error: %s' % e.strerror)
+            raise
+    else:
+        #32bits
+        try:
+            shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
+                        os.path.abspath("modules/preprocessor/primary_preprocessing/arch_32/") )
+        except shutil.Error as e:
+            print('Error: %s' % e)
+            raise
+            # eg. source or destination doesn't exist
+        except IOError as e:
+            print('Error: %s' % e.strerror)
+            raise
+
+    shutil.rmtree(os.path.abspath("modules/other_tools/uncrustify-0.60"))
+
+
+
     #-------------------------------------------------------
     ### Checking Perl
     try:
@@ -166,6 +230,7 @@ if __name__ == "__main__":
     config.set('MAPFORTES_TOOL', 'MAPFORTES_path', os.path.abspath(''))
     config.set('MAPFORTES_TOOL', 'pyparsing', 'installed')
     config.set('MAPFORTES_TOOL', 'pycparser', 'installed')
+    config.set('MAPFORTES_TOOL', 'uncrustify', 'installed')
     config.set('MAPFORTES_TOOL', 'perl', 'installed')
       
     

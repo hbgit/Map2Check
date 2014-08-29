@@ -223,7 +223,7 @@ def set_codes_to_experiment(pathCPrograms):
                         FINAL_EXECUTION_TIMESTAMP = time.time()
                         
                         # Check if has a TIME OUT
-                        print("DEBUG out exec: "+str(get_OUT_result_exec[0]))
+                        #print("DEBUG out exec: "+str(get_OUT_result_exec[0].readlines()))
                         if not(str(get_OUT_result_exec[0]) == 'TIME OUT'):
                             
                             tmp_list_OUT_STDOUT = get_OUT_result_exec[0].readlines()

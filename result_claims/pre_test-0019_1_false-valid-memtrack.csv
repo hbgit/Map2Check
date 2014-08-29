@@ -1,6 +1,0 @@
-14 ;  Claim 1  ;  ?  file code_samples/pre_test-0019_1_false-valid-memtrack.c line 14 function alloc_data?  dereference failure: invalid pointer  ; (1)
-15 ;  Claim 2  ;  ?  file code_samples/pre_test-0019_1_false-valid-memtrack.c line 15 function alloc_data?  dereference failure: invalid pointer  ; (1)
-24 ;  Claim 3  ;  ?  file code_samples/pre_test-0019_1_false-valid-memtrack.c line 24 function free_data?  dereference failure: invalid pointer  ; !(IS_VALID_POINTER_FORTES( list_LOG_mcf, (void *)&(lo), (void *)(intptr_t)(lo) ))
-24 ;  Claim 4  ;  ?  file code_samples/pre_test-0019_1_false-valid-memtrack.c line 24 function free_data?  dereference failure: invalid pointer  ; !(IS_VALID_POINTER_FORTES( list_LOG_mcf, (void *)&(hi), (void *)(intptr_t)(hi) ))
-26 ;  Claim 5  ;  ?  file code_samples/pre_test-0019_1_false-valid-memtrack.c line 26 function free_data?  dereference failure: invalid pointer  ; !(IS_VALID_POINTER_FORTES( list_LOG_mcf, (void *)&(  lo), (void *)(intptr_t)(  lo) ))
-27 ;  Claim 6  ;  ?  file code_samples/pre_test-0019_1_false-valid-memtrack.c line 27 function free_data?  dereference failure: invalid pointer  ; !(IS_VALID_POINTER_FORTES( list_LOG_mcf, (void *)&(  hi), (void *)(intptr_t)(  hi) ))

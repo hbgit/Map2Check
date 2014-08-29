@@ -927,7 +927,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             # Here we check again if the VAR is a Ptr, this because the VAR type could be defined by a typedef
             # print("Analyzing: ",nodeVar.coord)
             #
-            # print("IS pointer: ",self.current_is_ptr )
+            #print("IS pointer B: ",self.current_is_ptr )
             # print("TypeCheck: ", self.checkVarType() )
             # print("STRUCT: %s" % self.has_struct_ref )
             # print("STRUCT flag: %s" % self.flag_tmp_has_struct )
@@ -941,10 +941,10 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 self.checkVarType()
             
                             
-            print("------- After call -------")
-            print("IS pointer: ",self.current_is_ptr)
-            print("IS STRUCT: %s" % self.has_struct_ref)
-            print("STRUCT flag: %s" % self.flag_tmp_has_struct)
+            # print("------- After call -------")
+            # print("IS pointer: ",self.current_is_ptr)
+            # print("IS STRUCT: %s" % self.has_struct_ref)
+            # print("STRUCT flag: %s" % self.flag_tmp_has_struct)
             
             
             
@@ -1215,15 +1215,15 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 #get all args from the function
                 # (1) Mapping input args from function and all its assigments
                 if len(self.current_args_params_func) > 0:
-                    print("--------------- Input Args: ---------------")
+                    #print("--------------- Input Args: ---------------")
                     self.is_a_input_arg_function = True
                     for eachArg in self.current_args_params_func:
-                        print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
+                        #print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
                         self.current_compund_FLOW = self.current_compund_func
                         self.getDataFromVar(eachArg,0)
                     self.is_a_input_arg_function = False
-                    print("---------------End Input Args---------------")
-                    print("")
+                    #print("---------------End Input Args---------------")
+                    #print("")
 
                 #print("--------------- Decl and Pointer Assigments ---------------")
                 # get Decl and identify if is a pointer
@@ -1538,10 +1538,11 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             nested = []
             #print("==================",data.name)
             
-            if data.decls is not None:                            
-                for decl in data.decls:
-                #   print(decl)
-                    nested.append(self.expand_and_define_typedefs(decl))
+            # TODO: Checkout possibles issues
+            # if data.decls is not None:
+            #     for decl in data.decls:
+            #     #   print(decl)
+            #         nested.append(self.expand_and_define_typedefs(decl))
                     
             return ['Struct',nested]
 

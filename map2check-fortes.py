@@ -36,6 +36,7 @@ import ConfigParser
 import shutil
 from pipes import quote
 from operator import itemgetter
+import pwd
 
 
 # -------------------------------------------------
@@ -83,6 +84,10 @@ ESBMC_PATH = check_status_esbmc_path
 DIR_RESULT_CLAIMS = ABS_PATH_FORTES+"/result_claims"
 if not os.path.exists(DIR_RESULT_CLAIMS):
     os.makedirs(DIR_RESULT_CLAIMS)
+    #save the name of the user logged
+    username = os.getlogin()
+    saveusernameid = pwd.getpwnam(str(username)).pw_uid
+    os.chown(DIR_RESULT_CLAIMS, saveusernameid, saveusernameid)
 
 GET_DATA_CLAIMS = ABS_PATH_FORTES+"/modules/get_and_set_claims/abs_claims.pl"
 CLAIM_TRANSLATOR = ABS_PATH_FORTES+"/modules/claim_translator/parse_2_claims_v16_09.py"

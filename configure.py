@@ -11,6 +11,8 @@ import platform
 import tarfile
 import zipfile
 import shutil
+import pwd
+
 
 VERSION = 'v1'
 
@@ -48,6 +50,10 @@ if __name__ == "__main__":
         print("Sorry about that!")
         print("  >> We need to be root to execute this script")
         sys.exit()
+
+    #save the name of the user logged
+    username = os.getlogin()
+    saveusernameid = pwd.getpwnam(str(username)).pw_uid
         
     print()
     print("Checking prerequisites for installing the Map2Check-FORTES ... ")
@@ -151,6 +157,7 @@ if __name__ == "__main__":
         dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_64")
         if not os.path.exists(dest):
             os.makedirs(dest)
+            os.chown(dest, saveusernameid, saveusernameid)
         #64bits
         try:
             shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
@@ -167,6 +174,7 @@ if __name__ == "__main__":
         dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_32")
         if not os.path.exists(dest):
             os.makedirs(dest)
+            os.chown(dest, saveusernameid, saveusernameid)
         try:
             shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
                         dest )

@@ -408,7 +408,7 @@ def start_generation_cassert(cFile, enSetFunc):
     #sys.exit()
     
     result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)
-    check_command_exec(result, tmp_file_map, "Generating code map",0)
+    check_command_exec(result, tmp_file_map, "Generating code map in original code",0)
     list_tmp_path.append(tmp_file_map)
        
     

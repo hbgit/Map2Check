@@ -148,10 +148,13 @@ if __name__ == "__main__":
     #Copy tool to correct place
     # Checking the OS arch
     if platform.machine() == "x86_64":
+        dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_64")
+        if not os.path.exists(dest):
+            os.makedirs(dest)
         #64bits
         try:
             shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
-                        os.path.abspath("modules/preprocessor/primary_preprocessing/arch_64/") )
+                        dest )
         except shutil.Error as e:
             print('Error: %s' % e)
             raise
@@ -161,9 +164,12 @@ if __name__ == "__main__":
             raise
     else:
         #32bits
+        dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_32")
+        if not os.path.exists(dest):
+            os.makedirs(dest)
         try:
             shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
-                        os.path.abspath("modules/preprocessor/primary_preprocessing/arch_32/") )
+                        dest )
         except shutil.Error as e:
             print('Error: %s' % e)
             raise
@@ -248,6 +254,7 @@ if __name__ == "__main__":
 
     # Finished
     print("Installation finished")
-    print("Futher details use: map2check-fortes.py -h")
+    #print("Futher details use: map2check-fortes.py -h")
     print()
+    os.system("./map2check-fortes.py -h")
 

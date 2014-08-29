@@ -79,7 +79,11 @@ AUX_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/aux_preprocessing/aux_f
 
 ########## settings for get and set claims
 ESBMC_PATH = check_status_esbmc_path
+
 DIR_RESULT_CLAIMS = ABS_PATH_FORTES+"/result_claims"
+if not os.path.exists(DIR_RESULT_CLAIMS):
+    os.makedirs(DIR_RESULT_CLAIMS)
+
 GET_DATA_CLAIMS = ABS_PATH_FORTES+"/modules/get_and_set_claims/abs_claims.pl"
 CLAIM_TRANSLATOR = ABS_PATH_FORTES+"/modules/claim_translator/parse_2_claims_v16_09.py"
 WRITE_NEW_INSTANCE = ABS_PATH_FORTES+"/modules/get_and_set_claims/write_new_instance.py"

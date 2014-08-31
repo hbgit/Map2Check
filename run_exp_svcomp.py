@@ -13,9 +13,12 @@ import ConfigParser
 import shutil
 import time
 from pipes import quote
+import subprocess, datetime, os, time, signal
 
 
-# TODO: measure memory used in each program
+# TODO: Adding to report:
+#     (1) The number of the test cases
+#     (2) Only the execution time
 
 
 # DEPENDENCY PARAMETERS
@@ -45,15 +48,36 @@ list_to_write_in_html = []
 list_csv_generation = []
 id_count = 1
 
+
+
+# Variables to memory usage
+ACTUAL_MEM_USED_EXEC_inMB = 0.0
+ACTUAL_TC_GEN_inMB = 0.0
+TOTAL_TC_GEN_inMB = 0.0
+ACTUAL_TIME_TC_GEN = 0
+TOTAL_TIME_TC_GEN = 0
+
+def get_mem_usage(_listtxtoutput):
+    global ACTUAL_MEM_USED_EXEC_inMB
+    #txt_result = _listtxtoutput.split("\n")
+    #print(_listtxtoutput)
+    ru_maxrss = float(_listtxtoutput[-1].strip())
+    ACTUAL_MEM_USED_EXEC_inMB = ru_maxrss * float(0.0009765625)
+
+tmp_FINAL_TIME = 0
+
 def timeout_command(command, timeout):
     """call shell-command and either return its output or kill it
     if it doesn't normally exit within timeout seconds and return None"""
-    import subprocess, datetime, os, time, signal
+
+    global ACTUAL_MEM_USED_EXEC_inMB
+    global ACTUAL_TC_GEN_inMB
+    global tmp_FINAL_TIME
 
     cmd = command.split(" ")
     start = datetime.datetime.now()
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
+    process = subprocess.Popen(['time', '-f', '%M'] + cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    tmp_FINAL_TIME = time.time()
     list_out_exec = []
 
     while process.poll() is None:
@@ -74,6 +98,8 @@ def set_codes_to_experiment(pathCPrograms):
     global list_csv_generation
     global id_count
     global OUTPUT_REPORT_FILE
+    global ACTUAL_MEM_USED_EXEC_inMB
+    global tmp_FINAL_TIME
     
         
     # Map2Check PARAMS
@@ -99,15 +125,48 @@ def set_codes_to_experiment(pathCPrograms):
     #print(MEM_INFO)
     
     # HTML CONTENT
-    HTML_TABLE_HEADER = "<thead> \n <tr id=\"tool\"><td style=\"width: 60%\">Tool</td><td colspan=\"2\">"+\
-                        MAP2CHECK_VERSION+"</td></tr><tr id=\"limits\"><td>Limits</td><td colspan=\"2\">"+LIMIT_EXP+"</td>"+\
-                        "</tr><tr id=\"os\"><td>OS</td><td colspan=\"2\">"+OS+"</td>"+\
-                        "</tr><tr id=\"system\"><td>System</td><td colspan=\"2\">"+CPU_INFO+" - "+MEM_INFO+\
-                        "</td></tr><tr id=\"date\"><td>Date of run</td><td colspan=\"2\">"+DATE_EXECUTION+\
-                        "</td></tr><tr id=\"options\"><td>Options</td><td colspan=\"2\">"+\
-                        MAP2CHECK_PARAMS+"</td></tr><tr id=\"columnTitles\"><td class=\"clickable\" "+\
-                        "title=\"Click here to toggle visibility of columns\">"+str(pathCPrograms)+\
-                        "</td><td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">status</td><td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">time(s)</td></td></tr></thead> \n <tbody> \n"
+    HTML_TABLE_HEADER = "<thead> \n " \
+                        "<tr id=\"tool\">" \
+                          "<td style=\"width: 60%\">Tool</td>" \
+                          "<td colspan=\"6\">"+MAP2CHECK_VERSION+"</td>" \
+                        "</tr>"\
+                        "<tr id=\"limits\">" \
+                          "<td>Limits</td>" \
+                          "<td colspan=\"6\">"+LIMIT_EXP+"</td>"+\
+                        "</tr>" \
+                        "<tr id=\"os\">" \
+                          "<td>OS</td>" \
+                          "<td colspan=\"6\">"+OS+"</td>"+\
+                        "</tr>" \
+                        "<tr id=\"system\">" \
+                          "<td>System</td>" \
+                          "<td colspan=\"6\">"+CPU_INFO+" - "+MEM_INFO+"</td>" \
+                        "</tr>" \
+                        "<tr id=\"date\">" \
+                          "<td>Date of run</td>" \
+                          "<td colspan=\"6\">"+DATE_EXECUTION+"</td>" \
+                        "</tr>" \
+                        "<tr id=\"options\">" \
+                          "<td>Options</td>" \
+                          "<td colspan=\"6\">"+MAP2CHECK_PARAMS+"</td>" \
+                        "</tr>" \
+                        "<tr id=\"columnTitles\">" \
+                          "<td class=\"clickable\" "+"title=\"Click here to toggle visibility of columns\">"+str(pathCPrograms)+\
+                          "</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "status</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "total time(s)</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "total memory(MB)</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "memory(MB) in EXEC</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "time(s) Test Case Generation</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "memory(MB) Test Case Generation</td>" \
+                        "</tr>" \
+                        "</thead> \n <tbody> \n"
     #print(HTML_TABLE_HEADER)
     #html_report.write(HTML_TABLE_HEADER)
     #list_to_write_in_html.append(HTML_TABLE_HEADER)
@@ -117,11 +176,21 @@ def set_codes_to_experiment(pathCPrograms):
     
     # REPORT CONTROL
     TOTAL_FILES         = 0
+    TOTAL_MEM_IN_EXE    = 0
     CORRECT_RESULTS     = 0
+    TOTAL_MEMO_CORRECT  = 0
+    TIME_TOTAL_CORRECT  = 0
+    TCEXCMB_TOTAL_CORRECT = 0
     CORRECT_TRUES       = 0
     CORRECT_FALSES      = 0
     FALSE_POSITIVES     = 0
+    TCEXCMB_TOTAL_FPOSITI = 0
+    TOTAL_MEMO_FPOSITI  = 0
+    TIME_TOTAL_FPOSITI  = 0
     FALSE_NEGATIVES     = 0
+    TCEXCMB_TOTAL_FNEGATI = 0
+    TIME_TOTAL_FNEGATI  = 0
+    TOTAL_MEMO_FNEGATI  = 0
     NUM_UNKNOW_AND_TO   = 0
     MAX_SCORE           = 0
     TOTAL_POINTS        = 0
@@ -144,7 +213,9 @@ def set_codes_to_experiment(pathCPrograms):
     # run the tool in two phases:
     #   (1) generate the new instance of the program with the tests cases
     #   (2) execute the new program instance generated in phase (1)
-    #--------------------------------------------------------      
+    #--------------------------------------------------------
+
+    # TODO: Mesure the mem for test case generation and the total with exec $$$$$$$$
     print()
     
     total_num_programs = 0
@@ -193,6 +264,7 @@ def set_codes_to_experiment(pathCPrograms):
                 print("(1) Generating test cases and new program instance")
                 INITIAL_EXECUTION_TIMESTAMP = time.time()
                 list_result_gen = only_generate_code(get_path_program)
+                print("\t\t Time: "+str("%1.3f" % ACTUAL_TIME_TC_GEN)+" MEM: "+str("%1.2f" % ACTUAL_TC_GEN_inMB))
                 
                 # >> Run (2) execute the new program instance generated in phase (1)
                 FAILED = False
@@ -214,13 +286,15 @@ def set_codes_to_experiment(pathCPrograms):
                     FINAL_EXECUTION_TIMESTAMP = 0
                     check_exec_status_FAILED = False
                     tmp_last_FAILED = False
-                    tmp_last_time_FAILED = 0                    
+                    tmp_last_time_FAILED = 0
+                    tmp_last_mem_used_FAILED = 0.0
                     while count_exe <= NUMEBER_OF_RE_EXEC_EXP:
                         flag_TIME_OUT = False
                         print("\t Run "+str(count_exe))
                         get_OUT_result_exec = timeout_command(cmd_bin_exec, 900)
                         #get_OUT_result_exec = timeout_command(cmd_bin_exec, 20)
-                        FINAL_EXECUTION_TIMESTAMP = time.time()
+                        FINAL_EXECUTION_TIMESTAMP = tmp_FINAL_TIME #from timeout function
+
                         
                         # Check if has a TIME OUT
                         #print("DEBUG out exec: "+str(get_OUT_result_exec[0].readlines()))
@@ -228,6 +302,11 @@ def set_codes_to_experiment(pathCPrograms):
                             
                             tmp_list_OUT_STDOUT = get_OUT_result_exec[0].readlines()
                             tmp_list_OUT_STDERR = get_OUT_result_exec[1].readlines()
+
+                            get_mem_usage(tmp_list_OUT_STDERR)
+                            #DEBUG
+                            print("\t\t Time: %1.2f" % FINAL_EXECUTION_TIMESTAMP)
+                            print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                             
                             # From this executions we ALWAYS save the failed execution
                             # Check in the result of the bin execution                                                                
@@ -239,10 +318,12 @@ def set_codes_to_experiment(pathCPrograms):
                                 check_exec_status_FAILED = True
                                 tmp_last_FAILED = check_exec_status_FAILED
                                 tmp_last_time_FAILED = FINAL_EXECUTION_TIMESTAMP
+                                tmp_last_mem_used_FAILED = ACTUAL_MEM_USED_EXEC_inMB
                                 
                             if tmp_last_FAILED:
                                 check_exec_status_FAILED = True
                                 FINAL_EXECUTION_TIMESTAMP = tmp_last_time_FAILED
+                                ACTUAL_MEM_USED_EXEC_inMB = tmp_last_mem_used_FAILED
                             
                             #save the execution result
                             outputRun = open(str(name_file_result), "a+b")
@@ -284,9 +365,7 @@ def set_codes_to_experiment(pathCPrograms):
                     FAILED = False
                     SUCCESS = False
                     FINAL_EXECUTION_TIMESTAMP = time.time()
-                   
 
-                # TODO: diminuir o num de casas decimal
                 TIME = FINAL_EXECUTION_TIMESTAMP - INITIAL_EXECUTION_TIMESTAMP
                 
                 #print("DEBUG: EXP_FALSE: "+str(EXPECTED_FAILED_RESULT)+" - FAILED: "+str(FAILED)+" - SUCCESS: "+str(SUCCESS))
@@ -300,15 +379,19 @@ def set_codes_to_experiment(pathCPrograms):
                     CSS_CLASS         = "status error"
                     RESULT_TEXT       = "timeout"
                     NUM_UNKNOW_AND_TO += 1
+                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
                     #echo $(echo -e"\033[0;33munknown\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print("TIMEOUT in "+str(TIME)+" s")
+                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                     
                 if not FAILED and not SUCCESS and not flag_TIME_OUT:
                     CSS_CLASS         = "status unknown"
                     RESULT_TEXT       = "unknown"
                     NUM_UNKNOW_AND_TO += 1
+                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
                     #echo $(echo -e"\033[0;33munknown\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print("unknown in "+str(TIME)+" s")
+                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif EXPECTED_FAILED_RESULT and FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "correctProperty"
@@ -316,25 +399,40 @@ def set_codes_to_experiment(pathCPrograms):
                     RESULT_TEXT       = "false(label)"
                     CORRECT_RESULTS   = CORRECT_RESULTS + 1
                     CORRECT_FALSES    = CORRECT_FALSES + 1
+                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    TCEXCMB_TOTAL_CORRECT += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
+                    TOTAL_MEMO_CORRECT  += ACTUAL_MEM_USED_EXEC_inMB
+
+                    TIME_TOTAL_CORRECT += TIME
                     #echo $(echo -e "\033[0;32mfalse(label)\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print("false(label) in "+str(TIME)+" s")
+                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif EXPECTED_FAILED_RESULT and not FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "wrongProperty"
                     CSS_CLASS         = "status wrong true"
                     RESULT_TEXT       = "true"
                     FALSE_POSITIVES   = FALSE_POSITIVES + 1
+                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    TOTAL_MEMO_FPOSITI += ACTUAL_MEM_USED_EXEC_inMB
+                    TCEXCMB_TOTAL_FPOSITI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
+                    TIME_TOTAL_FPOSITI += TIME
                     #echo $(echo -e "\033[0;31mtrue\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print("Here")
-                    print("true in "+str(TIME)+" s")                  
+                    print("true in "+str(TIME)+" s")
+                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif not EXPECTED_FAILED_RESULT and FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "wrongProperty"
                     CSS_CLASS         = "status wrong false"
                     RESULT_TEXT       = "false(label)"
                     FALSE_NEGATIVES   = FALSE_NEGATIVES + 1
+                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    TOTAL_MEMO_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB
+                    TCEXCMB_TOTAL_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
+                    TIME_TOTAL_FNEGATI += TIME
                     #echo $(echo -e "\033[0;31mfalse(label)\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print("false(label) in "+str(TIME)+" s") 
+                    print("false(label) in "+str(TIME)+" s")
+                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif not EXPECTED_FAILED_RESULT and not FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "correctProperty"
@@ -342,13 +440,22 @@ def set_codes_to_experiment(pathCPrograms):
                     RESULT_TEXT       = "true"
                     CORRECT_RESULTS   = CORRECT_RESULTS + 1
                     CORRECT_TRUES     = CORRECT_TRUES + 1
+                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    TOTAL_MEMO_CORRECT  += ACTUAL_MEM_USED_EXEC_inMB
+                    TCEXCMB_TOTAL_CORRECT += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
+                    TIME_TOTAL_CORRECT += TIME
                     #echo $(echo -e "\033[0;32mtrue\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print("true in "+str(TIME)+" s")
+                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
-                  
-                  
-                HTML_ENTRY="\t <tr><td>"+FILENAME+"</td><td class=\""+CSS_CLASS+"\">"+RESULT_TEXT+"</td><td class=\"unknownValue\">"+\
-                          str(TIME)+"&nbsp;</td></tr> \n"
+
+                HTML_ENTRY="\t <tr><td>"+FILENAME+"</td><td class=\""+CSS_CLASS+"\">"+RESULT_TEXT+"</td>" \
+                           "<td class=\"unknownValue\">" + str(("%1.2f" % TIME)) + "&nbsp;</td>" \
+                           "<td class=\"unknownValue\">" + str(("%1.2f" % (ACTUAL_MEM_USED_EXEC_inMB+ACTUAL_TC_GEN_inMB))) + "&nbsp;</td>" \
+                           "<td class=\"unknownValue\">" + str(("%1.2f" % ACTUAL_MEM_USED_EXEC_inMB)) + "&nbsp;</td>" \
+                           "<td class=\"unknownValue\">" + str(("%1.3f" % ACTUAL_TIME_TC_GEN)) + "&nbsp;</td>" \
+                           "<td class=\"unknownValue\">" + str(("%1.2f" % ACTUAL_TC_GEN_inMB)) + "&nbsp;</td>" \
+                           "</tr> \n"
                 #commands.getoutput("echo \""+HTML_ENTRY+"\" >> "+OUTPUT_REPORT_FILE)              
                 #html_report.write(HTML_ENTRY)
                 
@@ -383,13 +490,54 @@ def set_codes_to_experiment(pathCPrograms):
     TOTAL_EXECUTION_TIME = FINAL_TIMESTAMP - INITIAL_TIMESTAMP
     
     # HTML CONTENT
-    HTML_TABLE_FOOTER="</tbody> \n <tfoot><tr><td>total files</td><td>"+str(TOTAL_FILES)+"</td><td class=\"unknownValue\">"+\
-                    str(TOTAL_EXECUTION_TIME)+"&nbsp;</td></tr><tr><td title=\"(no bug exists + result is SAFE) OR "+\
-                    "(bug exists + result is UNSAFE) OR (property is violated + violation is found)\">correct results</td><td>"+\
-                    str(CORRECT_RESULTS)+"</td><td>-</td></tr><tr><td title=\"bug exists + result is SAFE\">false negatives</td><td>"+\
-                    str(FALSE_NEGATIVES)+"</td><td>-</td></tr><tr><td title=\"no bug exists + result is UNSAFE\">false positives"+\
-                    "</td><td>"+str(FALSE_POSITIVES)+"</td><td>-</td></tr><tr><td title=\"17 safe files, 15 unsafe files\">score ("+\
-                    str(TOTAL_FILES)+" files, max score: "+str(MAX_SCORE)+")</td><td class=\"score\">"+str(TOTAL_POINTS)+"</td><td class=\"score\"></td></tr></tfoot> \n </table></center></body></html> \n"
+    HTML_TABLE_FOOTER="</tbody> \n <tfoot>" \
+                      "<tr>" \
+                        "<td>total files</td>" \
+                        "<td>"+str(TOTAL_FILES)+"</td>" \
+                        "<td class=\"unknownValue\">"+str(("%1.2f" % TOTAL_EXECUTION_TIME))+"&nbsp;</td>" \
+                        "<td class=\"unknownValue\">"+str(("%1.2f" % (TOTAL_MEM_IN_EXE + TOTAL_TC_GEN_inMB)))+"&nbsp;</td>" \
+                        "<td class=\"unknownValue\">"+str(("%1.2f" % TOTAL_MEM_IN_EXE))+"&nbsp;</td> " \
+                        "<td class=\"score\">"+str(("%1.3f" % TOTAL_TIME_TC_GEN))+"&nbsp;</td>" \
+                        "<td class=\"score\">"+str(("%1.2f" % TOTAL_TC_GEN_inMB))+"&nbsp;</td>" \
+                      "</tr>" \
+                      "<tr>" \
+                        "<td title=\"(no bug exists + result is SAFE) OR "+\
+                        "(bug exists + result is UNSAFE) OR (property is violated + violation is found)\">correct results</td>" \
+                        "<td>"+ str(CORRECT_RESULTS)+"</td>" \
+                        "<td>"+str(("%1.2f" % TIME_TOTAL_CORRECT))+"</td>" \
+                        "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_CORRECT))+"</td>" \
+                        "<td>"+str(("%1.2f" % TOTAL_MEMO_CORRECT))+"</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                      "</tr>" \
+                      "<tr>" \
+                        "<td title=\"bug exists + result is SAFE\">false negatives</td>" \
+                        "<td>"+ str(FALSE_NEGATIVES)+"</td>" \
+                        "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_FNEGATI))+"</td>" \
+                        "<td>"+str(("%1.2f" % TIME_TOTAL_FNEGATI))+"</td>" \
+                        "<td>"+str(("%1.2f" % TOTAL_MEMO_FNEGATI))+"</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                      "</tr>" \
+                      "<tr>" \
+                        "<td title=\"no bug exists + result is UNSAFE\">false positives"+"</td>" \
+                        "<td>"+str(FALSE_POSITIVES)+"</td>" \
+                        "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_FPOSITI))+"</td>" \
+                        "<td>"+str(("%1.2f" % TIME_TOTAL_FPOSITI))+"</td>" \
+                        "<td>"+str(("%1.2f" % TOTAL_MEMO_FPOSITI))+"</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                      "</tr>" \
+                      "<tr>" \
+                        "<td title=\"17 safe files, 15 unsafe files\">score ("+\
+                        str(TOTAL_FILES)+" files, max score: "+str(MAX_SCORE)+")</td>" \
+                        "<td class=\"score\">"+str(TOTAL_POINTS)+"</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                      "</tr>" \
+                      "</tfoot> \n </table></center></body></html> \n"
    
     #html_report.write(HTML_TABLE_FOOTER)
     #list_to_write_in_html.append(HTML_TABLE_FOOTER)
@@ -400,6 +548,7 @@ def set_codes_to_experiment(pathCPrograms):
     print()
     print("*** RESULTS *** ")
     print("Total Files: "+str(TOTAL_FILES)+" in "+str(TOTAL_EXECUTION_TIME)+" s")
+    print("Total Memory (MB): "+str(("%1.2f" % TOTAL_MEM_IN_EXE)))
     print("Correct Results: "+str(CORRECT_RESULTS))
     print("False Negatives: "+str(FALSE_NEGATIVES))
     print("False Positives: "+str(FALSE_POSITIVES))
@@ -439,12 +588,45 @@ def only_generate_code(cProgram):
     global list_csv_generation
     global id_count
     global PATH_MAP_2_CHECK_FORTES
+    global ACTUAL_TC_GEN_inMB
+    global ACTUAL_MEM_USED_EXEC_inMB
+    global TOTAL_TC_GEN_inMB
+    global ACTUAL_TIME_TC_GEN
+    global TOTAL_TIME_TC_GEN
     
     result_this_step = [] # 1 True or False; 2 bin name file
        
     new_c_program_name = cProgram.replace(".c","__mcf_new.c")    
     
-    os.system(PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name)
+    # Take time to test case generation
+    #cmd = [PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name]
+    cmd = [PATH_MAP_2_CHECK_FORTES,cProgram]
+    #cmd = ["cat "+PATH_MAP_2_CHECK_FORTES]
+
+    #cmd = cmd.split(" ")
+    tctimeinital = datetime.datetime.now()
+    process = subprocess.Popen(['time', '-f', '%M'] + cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    tctimefinal = datetime.datetime.now()
+    timetcgen = (tctimefinal - tctimeinital).seconds + (tctimefinal - tctimeinital).microseconds * 0.000001
+
+
+    ACTUAL_TIME_TC_GEN = timetcgen
+    TOTAL_TIME_TC_GEN += timetcgen
+
+    #Save result in file
+    #print(process.stdout.readlines())
+    writenewcode = open(new_c_program_name, "w")
+    for line in process.stdout.readlines():
+        writenewcode.write(line)
+    writenewcode.close()
+
+    #print(process.stderr.readlines())
+
+    get_mem_usage(process.stderr.readlines())
+    ACTUAL_TC_GEN_inMB = ACTUAL_MEM_USED_EXEC_inMB
+    TOTAL_TC_GEN_inMB += ACTUAL_TC_GEN_inMB
+    ACTUAL_MEM_USED_EXEC_inMB = 0.0
+    #os.system(PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name)
         
     # Checking if the generation of the code was complete sucessful    
     get_result_compile = only_compile_code(new_c_program_name)

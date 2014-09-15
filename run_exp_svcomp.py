@@ -80,10 +80,14 @@ def timeout_command(command, timeout):
     tmp_FINAL_TIME = time.time()
     list_out_exec = []
 
+    #Save PID from command
+    pid_command_exec = commands.getoutput("pidof \""+command+"\"")
+
     while process.poll() is None:
         #time.sleep(0.1)
         now = datetime.datetime.now()
         if (now - start).seconds > timeout:
+            os.kill(int(pid_command_exec), signal.SIGKILL)
             os.kill(process.pid, signal.SIGKILL)
             os.waitpid(-1, os.WNOHANG)
             return "TIME OUT",[]

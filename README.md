@@ -1,4 +1,4 @@
-<h1>Map2Check-FORTES</h1>
+<h1>Map2Check</h1>
 <h3>Memory Management Test Cases Generation of C Programs</h3>
 
 Author: Herbert O. Rocha <br>

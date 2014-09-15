@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
         print("--- Checking installation for: pycparser")
         try:
-            import pyparsing
+            import pycparser
             os.chdir(cwd)
             shutil.rmtree(os.path.abspath("modules/other_tools/pycparser-master"))
         except ImportError, e:

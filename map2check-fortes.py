@@ -354,6 +354,8 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
     # Apply claim translator and return the path of the csv file
     name_new_csv_file = csvClaimFile.replace('.1st','.csv')  
     file_from_map_2_cl = DIR_RESULT_CLAIMS+"/aux_file_map_2_translator.csv"
+    list_tmp_path.append(file_from_map_2_cl)
+
 
     #os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
     #          +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
@@ -517,7 +519,7 @@ def start_generation_cassert(cFile, enSetFunc):
     where_copied_head = os.path.dirname(getPath2NewInstCFile)+"/check_safety_memory_FORTES.h"
     
     #list_tmp_path.append(where_copied_head)
-    #remove_tmp_files(list_tmp_path)
+    remove_tmp_files(list_tmp_path)
     sys.exit()   
     
     

@@ -14,7 +14,7 @@ then
 
 	#Get the name.o from new C program  
 	rec_program_path_O=$(echo $1 | sed -e 's/.c$/.o/') 	
-	rec_program_path_exec=$(echo $1 | sed -e s'/.c$/_2check/') 
+	rec_program_path_exec=$(echo $1 | sed -e s'/.c$/._mcf2check/') 
 	
 	#$2 -> addtional options to compile
 	$CC $LIBRARY $rec_program_path_O -o $rec_program_path_exec $2

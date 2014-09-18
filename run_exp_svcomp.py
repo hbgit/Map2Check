@@ -16,11 +16,6 @@ from pipes import quote
 import subprocess, datetime, os, time, signal
 
 
-# TODO: Adding to report:
-#     (1) The number of the test cases
-#     (2) Only the execution time
-
-
 # DEPENDENCY PARAMETERS
 ABS_PATH_FILE = os.path.dirname(__file__)
 PATH_FILE_SETTINGS = ABS_PATH_FILE+'/settings.cfg'
@@ -36,19 +31,40 @@ if check_status_path == 'empty' :
     print("Sorry, you need to set up the Map2Check-FORTES path in settings.cfg file. See REAME file.")
     sys.exit()
 
-OUTPUT_REPORT_FILE="name_report.html"
+
+# Name of the final report
+OUTPUT_REPORT_FILE = check_status_path+"/<name_>report.html"
+# Name of the tmp report that is generated according to tests execution
+TMP_REPORT_FILE = check_status_path+'tmp_result.html'
+
+
 PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check-fortes.py'
 if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
     print('Error: unable to find the map2check-fortes.py file')
     sys.exit()
 
-NUMEBER_OF_RE_EXEC_EXP = 3
+
+# HTML Model Report
+PATH_HTML_MODEL_REPORT = check_status_path+'/modules/html_report/report_model.html'
+if not os.path.isfile(PATH_HTML_MODEL_REPORT):
+    print('Error: unable to find the report_model.html file')
+    sys.exit()
+
+# API library location
+PATH_API_LIBRARY = check_status_path+'/modules/map2check/library/'
+if not os.path.isdir(PATH_API_LIBRARY):
+    print('Error: unable to find the path to API library')
+    sys.exit()
 
 list_to_write_in_html = []
 list_csv_generation = []
 id_count = 1
+list_delete_tmp_file = []
 
 
+
+# Number of time that the analyzed program will be executed to perform the analysis
+NUMEBER_OF_RE_EXEC_EXP = 3
 
 # Variables to memory usage
 ACTUAL_MEM_USED_EXEC_inMB = 0.0
@@ -104,6 +120,7 @@ def set_codes_to_experiment(pathCPrograms):
     global OUTPUT_REPORT_FILE
     global ACTUAL_MEM_USED_EXEC_inMB
     global tmp_FINAL_TIME
+    global list_delete_tmp_file
     
         
     # Map2Check PARAMS
@@ -119,9 +136,9 @@ def set_codes_to_experiment(pathCPrograms):
     MEM_INFO = "RAM:"+commands.getoutput("cat /proc/meminfo | grep \"MemTotal\" | cut -d \":\" -f2").strip()
     LIMIT_EXP = "timelimit: 900 s, memlimit: 5120 MB, CPU core limit: 8"
     INITIAL_TIMESTAMP = time.time()
-    
-    OUTPUT_REPORT_FILE = OUTPUT_REPORT_FILE.replace("name_",str(pathCPrograms)+"_")
-            
+
+    OUTPUT_REPORT_FILE = OUTPUT_REPORT_FILE.replace("<name_>",str(os.path.basename(pathCPrograms))+"_")
+
     #print(DATE_EXECUTION)
     #print(INITIAL_TIMESTAMP)
     #print(CPU_CORE_NUMBER)
@@ -174,7 +191,7 @@ def set_codes_to_experiment(pathCPrograms):
     #print(HTML_TABLE_HEADER)
     #html_report.write(HTML_TABLE_HEADER)
     #list_to_write_in_html.append(HTML_TABLE_HEADER)
-    html_tmp_report = open('tmp_result.html', "a+b")
+    html_tmp_report = open(TMP_REPORT_FILE, "a+b")
     html_tmp_report.write(HTML_TABLE_HEADER)                
     html_tmp_report.close()
     
@@ -252,12 +269,12 @@ def set_codes_to_experiment(pathCPrograms):
                 matchRe_FAILED = re.search(r'false-(.[^\.]*)', str(file))                                        
                 EXPECTED_FAILED_RESULT = False
                 if matchRe_FAILED:
-                    print("IS expect FALSE - label: "+matchRe_FAILED.group(1))
+                    print(">> EXPECTED < FALSE > - label: "+matchRe_FAILED.group(1))
                     COUNT_EXP_FALSE += 1
                     EXPECTED_FAILED_RESULT = True
                     MAX_SCORE = MAX_SCORE + 1                    
                 else:
-                    print("IS expect TRUE")
+                    print(">> EXPECTED < TRUE >")
                     COUNT_EXP_TRUE += 1
                     EXPECTED_FAILED_RESULT = False
                     MAX_SCORE = MAX_SCORE + 2
@@ -280,11 +297,13 @@ def set_codes_to_experiment(pathCPrograms):
                 if list_result_gen[0]:
                     print("(2) Run new program instance")                     
                     
-                    name_file_result = list_result_gen[1].replace("._mcf2check","._out")                   
+                    name_file_result = list_result_gen[1].replace("._mcf2check","._out")
+                    #list_delete_tmp_file.append(name_file_result)
                     #print("File result exec: "+name_file_result+"\n")                                        
                     
                     #commands.getoutput("(./"+list_result_gen[1]+") &> "+name_file_result)
-                    cmd_bin_exec = './'+str(list_result_gen[1])
+                    #cmd_bin_exec = './'+str(list_result_gen[1])
+                    cmd_bin_exec = str(list_result_gen[1])
                     
                     count_exe = 1
                     FINAL_EXECUTION_TIMESTAMP = 0
@@ -309,7 +328,7 @@ def set_codes_to_experiment(pathCPrograms):
 
                             get_mem_usage(tmp_list_OUT_STDERR)
                             #DEBUG
-                            print("\t\t Time: %1.2f" % FINAL_EXECUTION_TIMESTAMP)
+                            print("\t\t Time: %1.2f" % (FINAL_EXECUTION_TIMESTAMP - INITIAL_EXECUTION_TIMESTAMP))
                             print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                             
                             # From this executions we ALWAYS save the failed execution
@@ -330,10 +349,18 @@ def set_codes_to_experiment(pathCPrograms):
                                 ACTUAL_MEM_USED_EXEC_inMB = tmp_last_mem_used_FAILED
                             
                             #save the execution result
-                            outputRun = open(str(name_file_result), "a+b")
-                            outputRun.write(str(tmp_list_OUT_STDOUT))                
-                            outputRun.write(str(tmp_list_OUT_STDERR))                
-                            outputRun.close()
+                            if check_exec_status_FAILED:
+                                outputRun = open(str(name_file_result), "a+b")
+                                outputRun.write("-----------------------------------------------------------------------\n")
+                                outputRun.write(">>> "+str(datetime.datetime.now())+"\n")
+                                outputRun.write("\n")
+                                #outputRun.write(str(tmp_list_OUT_STDOUT))
+                                for line in tmp_list_OUT_STDOUT:
+                                    outputRun.write(str(line))
+                                #outputRun.write(str(tmp_list_OUT_STDERR))
+                                for line in tmp_list_OUT_STDERR:
+                                    outputRun.write(str(line))
+                                outputRun.close()
                                 
                             
                         else:
@@ -385,7 +412,7 @@ def set_codes_to_experiment(pathCPrograms):
                     NUM_UNKNOW_AND_TO += 1
                     TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
                     #echo $(echo -e"\033[0;33munknown\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print("TIMEOUT in "+str(TIME)+" s")
+                    print(">> ACTUAL: TIMEOUT in "+str(TIME)+" s")
                     print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                     
                 if not FAILED and not SUCCESS and not flag_TIME_OUT:
@@ -394,7 +421,7 @@ def set_codes_to_experiment(pathCPrograms):
                     NUM_UNKNOW_AND_TO += 1
                     TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
                     #echo $(echo -e"\033[0;33munknown\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print("unknown in "+str(TIME)+" s")
+                    print(">> ACTUAL: UNKNOWN in "+str(TIME)+" s")
                     print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif EXPECTED_FAILED_RESULT and FAILED and not flag_TIME_OUT:
@@ -409,7 +436,7 @@ def set_codes_to_experiment(pathCPrograms):
 
                     TIME_TOTAL_CORRECT += TIME
                     #echo $(echo -e "\033[0;32mfalse(label)\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print("false(label) in "+str(TIME)+" s")
+                    print(">> ACTUAL: false(label) in "+str(TIME)+" s")
                     print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif EXPECTED_FAILED_RESULT and not FAILED and not flag_TIME_OUT:
@@ -422,7 +449,7 @@ def set_codes_to_experiment(pathCPrograms):
                     TCEXCMB_TOTAL_FPOSITI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
                     TIME_TOTAL_FPOSITI += TIME
                     #echo $(echo -e "\033[0;31mtrue\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print("true in "+str(TIME)+" s")
+                    print(">> ACTUAL: true in "+str(TIME)+" s")
                     print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif not EXPECTED_FAILED_RESULT and FAILED and not flag_TIME_OUT:
@@ -435,7 +462,7 @@ def set_codes_to_experiment(pathCPrograms):
                     TCEXCMB_TOTAL_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
                     TIME_TOTAL_FNEGATI += TIME
                     #echo $(echo -e "\033[0;31mfalse(label)\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print("false(label) in "+str(TIME)+" s")
+                    print(">> ACTUAL: false(label) in "+str(TIME)+" s")
                     print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif not EXPECTED_FAILED_RESULT and not FAILED and not flag_TIME_OUT:
@@ -449,7 +476,7 @@ def set_codes_to_experiment(pathCPrograms):
                     TCEXCMB_TOTAL_CORRECT += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
                     TIME_TOTAL_CORRECT += TIME
                     #echo $(echo -e "\033[0;32mtrue\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print("true in "+str(TIME)+" s")
+                    print(">> ACTUAL: true in "+str(TIME)+" s")
                     print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
 
@@ -465,7 +492,7 @@ def set_codes_to_experiment(pathCPrograms):
                 
                 # write in tmp file the results
                 #list_to_write_in_html.append(HTML_ENTRY)
-                html_tmp_report = open('tmp_result.html', "a+b")
+                html_tmp_report = open(TMP_REPORT_FILE, "a+b")
                 html_tmp_report.write(HTML_ENTRY)                
                 html_tmp_report.close()
                 
@@ -545,7 +572,7 @@ def set_codes_to_experiment(pathCPrograms):
    
     #html_report.write(HTML_TABLE_FOOTER)
     #list_to_write_in_html.append(HTML_TABLE_FOOTER)
-    html_tmp_report = open('tmp_result.html', "a+b")
+    html_tmp_report = open(TMP_REPORT_FILE, "a+b")
     html_tmp_report.write(HTML_TABLE_FOOTER)                
     html_tmp_report.close()
     
@@ -561,29 +588,33 @@ def set_codes_to_experiment(pathCPrograms):
     #commands.getoutput("echo \""+HTML_TABLE_FOOTER+"\" >> "+OUTPUT_REPORT_FILE)
     print()
     try:
-        model_report = open("report_model.html", "r")
+        model_report = open(PATH_HTML_MODEL_REPORT, "r")
         model_report_lines = model_report.readlines()
         model_report.close()        
-        
+
+
         html_report = open(OUTPUT_REPORT_FILE, "w")
         for index, line in enumerate(model_report_lines):
             # line to insert the results
             if (index+1) == 1242:
                 #for lineTable in list_to_write_in_html:
-                html_report.write(open("tmp_result.html","rb").read())
+                html_report.write(open(TMP_REPORT_FILE,"rb").read())
             else:
                 html_report.write(line)
                 
         html_report.close()
         
-        #os.remove("tmp_result.html")
+        #os.remove(PATH_HTML_MODEL_REPORT)
+        os.remove(TMP_REPORT_FILE)
+
         
     except IOError:
             print("Could not read file: report_model.html")
             sys.exit()
-    
+
     
     print("Report file generated: "+OUTPUT_REPORT_FILE)
+    remove_tmp_files(list_delete_tmp_file)
     
     
 
@@ -600,7 +631,8 @@ def only_generate_code(cProgram):
     
     result_this_step = [] # 1 True or False; 2 bin name file
        
-    new_c_program_name = cProgram.replace(".c","__mcf_new.c")    
+    new_c_program_name = cProgram.replace(".c","__mcf_new.c")
+    list_delete_tmp_file.append(new_c_program_name)
     
     # Take time to test case generation
     #cmd = [PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name]
@@ -636,6 +668,7 @@ def only_generate_code(cProgram):
     get_result_compile = only_compile_code(new_c_program_name)
         
     bin_name_file = new_c_program_name.replace("__mcf_new.c","__mcf_new._mcf2check")
+    list_delete_tmp_file.append(bin_name_file)
     
     if get_result_compile:
         result_this_step.append(True)
@@ -677,6 +710,41 @@ def only_compile_code(cProgram):
     return has_bin_file
 
 
+def copy_api_library(_dircprograms):
+    global list_delete_tmp_file
+    global PATH_API_LIBRARY
+
+    #The script to compile
+    pathscriptcompile = PATH_API_LIBRARY+'build_2_check.sh'
+    pathheaderapi = PATH_API_LIBRARY+'check_safety_memory_FORTES.h'
+    pathlibapi = PATH_API_LIBRARY+'check_safety_memory_FORTES.o'
+
+    try:
+        shutil.copy2(pathscriptcompile, _dircprograms)
+        list_delete_tmp_file.append(_dircprograms+'/build_2_check.sh')
+
+        shutil.copy2(pathheaderapi, _dircprograms)
+        list_delete_tmp_file.append(_dircprograms+'/check_safety_memory_FORTES.h')
+
+        shutil.copy2(pathlibapi, _dircprograms)
+        list_delete_tmp_file.append(_dircprograms+'/check_safety_memory_FORTES.o')
+
+    except shutil.Error as e:
+        print('Error: %s' % e)
+        raise
+        # eg. source or destination doesn't exist
+    except IOError as e:
+        print('Error: %s' % e.strerror)
+        raise
+
+
+def remove_tmp_files(list_path):
+    for path in list_path:
+        os.remove(path)
+
+
+
+
 
 # -------------------------------------------------
 # Main python program
@@ -707,12 +775,13 @@ if __name__ == "__main__":
             parser.parse_args(['-h'])
             sys.exit()
         else:
-            pathCPrograms = args.dirCPrograms
+            pathCPrograms = os.path.abspath(args.dirCPrograms)
+            copy_api_library(pathCPrograms)
             if not args.setOnlyCode and not args.setOnlyCompile:
                 set_codes_to_experiment(pathCPrograms)
     # improve this - TODO not work
     if args.setOnlyCode:
-        only_generate_code(pathCPrograms)
+        only_generate_code(os.path.abspath(pathCPrograms))
     if args.setOnlyCompile:
-        only_compile_code(pathCPrograms)
+        only_compile_code(os.path.abspath(pathCPrograms))
     

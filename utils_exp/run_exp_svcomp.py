@@ -17,7 +17,7 @@ import subprocess, datetime, os, time, signal
 
 
 # DEPENDENCY PARAMETERS
-ABS_PATH_FILE = os.path.dirname(__file__)
+ABS_PATH_FILE = os.path.dirname(os.path.abspath(__file__))
 PATH_FILE_SETTINGS = ABS_PATH_FILE+'/settings.cfg'
 if not os.path.isfile(PATH_FILE_SETTINGS):
     print('Error: unable to find the settings.cfg file')
@@ -636,7 +636,7 @@ def only_generate_code(cProgram):
     
     # Take time to test case generation
     #cmd = [PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name]
-    cmd = [PATH_MAP_2_CHECK_FORTES,cProgram]
+    cmd = [PATH_MAP_2_CHECK_FORTES, "--only-assert", cProgram]
     #cmd = ["cat "+PATH_MAP_2_CHECK_FORTES]
 
     #cmd = cmd.split(" ")

@@ -44,7 +44,7 @@ import pwd
 # -------------------------------------------------
 ########## Check setup to run the program
 #ABS_PATH_FORTES='/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/FORTES'
-ABS_PATH_FORTES = os.path.dirname(__file__)
+ABS_PATH_FORTES = os.path.dirname(os.path.abspath(__file__))
 
 # TODO: Update this to ESBMC path
 # Checkin is was executed the {configure.py} and if the ESBMC path was added
@@ -61,6 +61,11 @@ check_status_esbmc_path = config.get('ESBMC_TOOL', 'esbmc_path', 0)
 if check_status_esbmc_path == 'empty' :
     print("Sorry, you need to set up the ESBMC path in settings.cfg file. See REAME file.")
     sys.exit()    
+
+
+
+######### settings for auxliary scripts
+COMPLETE_CHECK_SCRIPT = ABS_PATH_FORTES+"/modules/utils/complete_check.py"
 
 
 ########## settings preprocessor and arch flag
@@ -546,17 +551,20 @@ def start_generation_cunit_assert(cFile,enSetFunc):
 if __name__ == "__main__":    
     
     ############# Parse args options
-    parser = argparse.ArgumentParser(description='Run Map2Check-FORTES v3')
+    parser = argparse.ArgumentParser(description='Run Map2Check v3')
     parser.add_argument('-v','--version', action='version' , version="version 3")
-    parser.add_argument(dest='inputCProgram', metavar='file.c', type=str, 
-               help='the C program file to be analyzed')
-    parser.add_argument('-f','--function', type=str , dest='setMainFunction', 
-               help='set main function name')    
+    parser.add_argument(dest='inputCProgram', metavar='file.c', type=str,
+                        help='the C program file to be analyzed')
+    parser.add_argument('-f','--function', type=str , dest='setMainFunction',
+                        help='set main function name')
+    parser.add_argument('-c','--complete-check', type=int, dest='setCompleteCheck',
+                        default=3, help='set the complete verification based on number of the program execution')
+
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('-u','--cunit', action="store_true" , dest='setCunitAssert', 
-               help='create test cases based in assertions from CUnit', default=False)
-    group.add_argument('-a','--only-assert', action="store_true" , dest='setOnlyAssert', 
-               help='create test cases based only in assertions from C language', default=True)
+    group.add_argument('-u','--cunit', action="store_true" , dest='setCunitAssert',
+                       help='create test cases based in assertions from CUnit', default=False)
+    group.add_argument('-a','--only-assert', action="store_true" , dest='setOnlyAssert',
+                       help='create test cases based only in assertions from C language', default=False)
 
     args = parser.parse_args()        
     
@@ -575,7 +583,7 @@ if __name__ == "__main__":
             parser.parse_args(['-h'])
             sys.exit()
         else:
-            inputCFile = args.inputCProgram
+            inputCFile = os.path.abspath(args.inputCProgram)
                 
     if args.setMainFunction:
         #check if the given function there is in the code
@@ -585,10 +593,22 @@ if __name__ == "__main__":
         else:
             print('Error: function { '+args.setMainFunction+' } not found')
             sys.exit()
-    
+
     if args.setOnlyAssert:
         start_generation_cassert(inputCFile,getStartFunction)
-    
+
+    elif args.setCompleteCheck:
+        # Run auxiliary script
+        # The return is as following:
+        #   - Status: [VERIFICATION SUCCESSFUL | VERIFICATION FAILED | TIME OUT | UNKNOW]
+        #   - If UNKNOW -> Output: message
+        #   - If VERIFICATION FAILED -> Output: The trace log is in PATH
+        #   - If TIME OUT -> Output: In {show de time definied}
+        saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                                             " -n " + str(args.setCompleteCheck) +
+                                             " " + inputCFile)
+        print(saveresult_check) # TODO TEST
+
     elif args.setCunitAssert:
         start_generation_cunit_assert(inputCFile,getStartFunction)
         

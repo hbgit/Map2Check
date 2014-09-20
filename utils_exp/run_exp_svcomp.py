@@ -35,7 +35,7 @@ if check_status_path == 'empty' :
 # Name of the final report
 OUTPUT_REPORT_FILE = check_status_path+"/<name_>report.html"
 # Name of the tmp report that is generated according to tests execution
-TMP_REPORT_FILE = check_status_path+'tmp_result.html'
+TMP_REPORT_FILE = check_status_path+'/tmp_result.html'
 
 
 PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check-fortes.py'
@@ -663,7 +663,9 @@ def only_generate_code(cProgram):
     TOTAL_TC_GEN_inMB += ACTUAL_TC_GEN_inMB
     ACTUAL_MEM_USED_EXEC_inMB = 0.0
     #os.system(PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name)
-        
+
+
+
     # Checking if the generation of the code was complete sucessful    
     get_result_compile = only_compile_code(new_c_program_name)
         

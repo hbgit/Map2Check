@@ -46,7 +46,6 @@ import pwd
 #ABS_PATH_FORTES='/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/FORTES'
 ABS_PATH_FORTES = os.path.dirname(os.path.abspath(__file__))
 
-# TODO: Update this to ESBMC path
 # Checkin is was executed the {configure.py} and if the ESBMC path was added
 PATH_FILE_SETTINGS = ABS_PATH_FORTES+'/settings.cfg'
 if not os.path.isfile(PATH_FILE_SETTINGS): 
@@ -240,7 +239,7 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     # Apply hacking to handle with GNU extensions
     # HackGNUext: Generate a copy the analyzed program to a tmp file
     tmpFileGnuSkip_end = "/tmp/tmp_hack_gnu_end.c"
-    commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " &> " + tmpFileGnuSkip_end)
+    commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " 2>&1 > " + tmpFileGnuSkip_end)
     list_tmp_path.append(tmpFileGnuSkip_end)
 
 
@@ -434,7 +433,7 @@ def start_generation_cassert(cFile, enSetFunc):
     # Apply hacking to handle with GNU extensions
     # HackGNUext: Generate a copy the analyzed program to a tmp file
     tmpFileGnuSkip = "/tmp/tmp_hack_gnu.c"
-    commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " &> " + tmpFileGnuSkip)
+    commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " 2>&1 > " + tmpFileGnuSkip)
     list_tmp_path.append(tmpFileGnuSkip)
     
     # Comment this and execute test
@@ -473,7 +472,7 @@ def start_generation_cassert(cFile, enSetFunc):
     # Apply hacking to handle with GNU extensions
     # HackGNUext: Generate a copy the analyzed program to a tmp file
     tmpFileGnuSkip_afterpre = "/tmp/tmp_hack_gnu_ap.c"
-    commands.getoutput(GNU_SKIP_SCRIPT + " " + getPreCFile + " &> " + tmpFileGnuSkip_afterpre)
+    commands.getoutput(GNU_SKIP_SCRIPT + " " + getPreCFile + " 2>&1 > " + tmpFileGnuSkip_afterpre)
     list_tmp_path.append(tmpFileGnuSkip_afterpre)
 
     # HackCode

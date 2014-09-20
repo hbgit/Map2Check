@@ -66,6 +66,8 @@ if check_status_esbmc_path == 'empty' :
 
 ######### settings for auxliary scripts
 COMPLETE_CHECK_SCRIPT = ABS_PATH_FORTES+"/modules/utils/complete_check.py"
+# Hack GNU extensions
+GNU_SKIP_SCRIPT = ABS_PATH_FORTES+"/modules/gnu_extension/hack_extensions.py"
 
 
 ########## settings preprocessor and arch flag
@@ -232,9 +234,19 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     #os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
     #os.system("cat "+absClaimFile)
     #os.system("cat "+mapFile)
-    #sys.exit()
+    #sys.exit
+
+    # 3nd HackCode
+    # Apply hacking to handle with GNU extensions
+    # HackGNUext: Generate a copy the analyzed program to a tmp file
+    tmpFileGnuSkip_end = "/tmp/tmp_hack_gnu_end.c"
+    commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " &> " + tmpFileGnuSkip_end)
+    list_tmp_path.append(tmpFileGnuSkip_end)
+
+
     
-    result = commands.getoutput(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)    
+    #result = commands.getoutput(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
+    result = commands.getoutput(WRITE_NEW_INSTANCE+" "+tmpFileGnuSkip_end+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0) 
     
     return path2NewInstFile
@@ -418,16 +430,26 @@ def start_generation_cassert(cFile, enSetFunc):
         
     # >>> First map to save the original line number    
     tmp_file_map = DIR_RESULT_CLAIMS+"/tmp_file_map.1st"
+
+    # Apply hacking to handle with GNU extensions
+    # HackGNUext: Generate a copy the analyzed program to a tmp file
+    tmpFileGnuSkip = "/tmp/tmp_hack_gnu.c"
+    commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " &> " + tmpFileGnuSkip)
+    list_tmp_path.append(tmpFileGnuSkip)
     
-    # Comment this and execute test 
-    #os.system(MAP_2_CHECK_MAP+" "+cFile+" 0")
+    # Comment this and execute test
+    # Checkout solution to support GNU extensions
+    #os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 0")
     #sys.exit()
-    
-    result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)
+
+    # HackCode
+    #result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)
+    result = commands.getoutput(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 1"+" > "+tmp_file_map)
     check_command_exec(result, tmp_file_map, "Generating code map in original code",0)
     list_tmp_path.append(tmp_file_map)
        
-    
+
+    # OriCode
     # >>> First get claims to save the original line number
     getFisrtTextFileCl = get_esbmc_claims(cFile, enSetFunc) 
     #print(getFisrtTextFileCl)   
@@ -439,17 +461,25 @@ def start_generation_cassert(cFile, enSetFunc):
         list_tmp_path.append(getFisrtCsvDataCl)
         
        
-    
+    # OriCode
     # >>> Preprocessing source code
     getPreCFile = code_preprocessor(cFile)
     
-    
+    # OriCode
     # >>> Gather the data about functions location in the program
     getDataFunction = get_data_functions(getPreCFile)    
-        
-    
+
+    # 2nd HackCode
+    # Apply hacking to handle with GNU extensions
+    # HackGNUext: Generate a copy the analyzed program to a tmp file
+    tmpFileGnuSkip_afterpre = "/tmp/tmp_hack_gnu_ap.c"
+    commands.getoutput(GNU_SKIP_SCRIPT + " " + getPreCFile + " &> " + tmpFileGnuSkip_afterpre)
+    list_tmp_path.append(tmpFileGnuSkip_afterpre)
+
+    # HackCode
     # >>> Call map2check again to get data line number after preprocessing
-    get_2st_map = commands.getoutput(MAP_2_CHECK_MAP+" "+getPreCFile+" 2")
+    #get_2st_map = commands.getoutput(MAP_2_CHECK_MAP+" "+getPreCFile+" 2")
+    get_2st_map = commands.getoutput(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip_afterpre+" 2")
     check_command_exec(get_2st_map, 0, "Generating code map after preprocessing",1)   
     list_lines_map = get_2st_map.split("\n")
     # Adding the result of 2st map in the tmp_file_map.map

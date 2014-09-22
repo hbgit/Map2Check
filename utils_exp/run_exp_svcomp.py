@@ -670,9 +670,12 @@ def only_generate_code(cProgram):
     get_result_compile = only_compile_code(new_c_program_name)
         
     bin_name_file = new_c_program_name.replace("__mcf_new.c","__mcf_new._mcf2check")
-    list_delete_tmp_file.append(bin_name_file)
+
     
     if get_result_compile:
+
+        list_delete_tmp_file.append(bin_name_file)
+
         result_this_step.append(True)
         result_this_step.append(bin_name_file)
     else:

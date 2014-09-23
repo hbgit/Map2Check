@@ -27,6 +27,8 @@ int line_of_the_last_use = 0;
 
 int FLAG_DEBUG = 0;
 
+//Counter-example
+LIST_DYN_OBJ_FORTES *list_CE_trace;
 
 
 /*******************************************************************/
@@ -56,6 +58,39 @@ void print_debug(LIST_DYN_OBJ_FORTES *list)
   
   count_all_list_FORTES=save_count;
   printf("-------------------------------------------------------------------------------------------------------\n");
+}
+/*******************************************************************/
+
+
+
+/*******************************************************************/
+// Function to TRACE LOG of the program execution at current point
+//DEBUG
+/*******************************************************************/
+void PRINT_TRACE_LOG()
+{
+  printf("Counter-example - Trace Log: \n");
+  printf("   #\t|      Address\t    | Address points to\t| Function ID\t|   IS DYNAMIC\t| Set FREE \t|  IS UNION \t| Line \n");
+  //printf("-------------------------------------------------------------------------------------------------------\n");
+  LIST_DYN_OBJ_FORTES *aux;
+  int save_count = count_all_list_FORTES;
+  for (aux=list_CE_trace; aux!=NULL; aux=aux->next_item_FORTES){
+	printf("%4d\t| ", count_all_list_FORTES);
+    printf("%18p| ", aux->adresse_mem_map_FORTES);
+
+    printf("%18p| ", aux->block_MEM_Point_FORTES);
+
+    printf("%4d\t\t| ", aux->map_ID_func_FORTES);
+    printf("%4d \t\t|", aux->map_is_DYNAM_FORTES);
+    printf("%4d \t\t|", aux->map_setFree_FORTES);
+    printf("%4d \t\t|", aux->map_isUnion_FORTES);
+    printf("%4d \n", aux->map_linePreCode_FORTES);
+
+    count_all_list_FORTES--;
+  }
+
+  count_all_list_FORTES=save_count;
+  //printf("-------------------------------------------------------------------------------------------------------\n");
 }
 /*******************************************************************/
 
@@ -156,7 +191,8 @@ LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *blo
         printf("------------------ DEGUB -----------------------\n");	
         print_debug(novo);
     }
-	
+
+	list_CE_trace = novo;
 	return novo;
 		
 }
@@ -240,7 +276,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
                 
                 //print_debug(list);
                 
-                
+                list_CE_trace = list;
                 return list;
                 
 			}
@@ -282,6 +318,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
 	}else{		
 		//print_debug(list);
 		//return list;
+		list_CE_trace = list;
         return list;
 	} 
   
@@ -303,6 +340,9 @@ int CHECK_MEMORY_LEAK(LIST_DYN_OBJ_FORTES* list, int ID_FUNC, int numLineCCode)
 		//1º - devemos verificar se os objeto na função todos foram liberados		
 		//if(aux->map_ID_func_FORTES == ID_FUNC){										
 		if(aux->map_is_DYNAM_FORTES == 1){
+
+		    PRINT_TRACE_LOG();
+
 			printf("\n");
             printf("[Failed] \n");
 			printf(" VIOLATED PROPERTY: Memory Leak \n");			
@@ -330,6 +370,9 @@ int INVALID_FREE(LIST_DYN_OBJ_FORTES* list, void *block, int numLineCCode)
     return 1; //TRUE
   }else{
     //free = INVALID FREE cuz object already free
+
+    PRINT_TRACE_LOG();
+
     printf("\n");
     printf("[Failed] \n");
     printf(" VIOLATED PROPERTY: Invalid FREE\n");				
@@ -432,6 +475,9 @@ int CHECK_OVERWRITE_ADDR(void *actual_block, void *last_block, int numLineCCode)
     if((void*)actual_block == (void*)last_block){
         return 1; //TRUE
     }else{
+
+        PRINT_TRACE_LOG();
+
         printf("\n");
         printf("[Failed] \n");
         printf(" VIOLATED PROPERTY: Overwrite Memory Address\n");

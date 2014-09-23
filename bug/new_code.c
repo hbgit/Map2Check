@@ -71,6 +71,8 @@ int main()
 
    p            = a;
    list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(p), (void *)(intptr_t)(p), 2, 0, 0, 0, 43); /** by FORTES **/
+   
+   __MAP_FORTES_assert(0, "Testing \n");
 
    i = 0;
    while (p != 0)

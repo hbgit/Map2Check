@@ -9,7 +9,7 @@
 
 
 #define log_error(M, ...) fprintf(stderr, "\n " M "\n \n", __FILE__, __LINE__, ##__VA_ARGS__)
-#define __MAP_FORTES_assert(A, M, ...) if(!(A)) {log_error(M, ##__VA_ARGS__); assert(A); }
+#define __MAP_FORTES_assert(A, M, ...) if(!(A)) {PRINT_TRACE_LOG(); log_error(M, ##__VA_ARGS__); assert(A); } //Update to print the trace
 
 
 typedef struct obj {
@@ -36,6 +36,8 @@ int INVALID_FREE(LIST_DYN_OBJ_FORTES* list, void *block, int numLineCCode);
 
 void print_debug(LIST_DYN_OBJ_FORTES *list);
 
+void PRINT_TRACE_LOG();
+
 LIST_DYN_OBJ_FORTES *list_LOG_mcf=NULL; /* Para o mapeamento */	
 
 void * invalidObjectFortes = 0;
@@ -47,6 +49,12 @@ int CHECK_OVERWRITE_ADDR(void *actual_block, void *last_block, int numLineCCode)
 void * GET_LAST_ADDR_POINTS_TO(LIST_DYN_OBJ_FORTES* list, void *adress);
 
 void * GET_LAST_ADDR_FROM_MALLOC(LIST_DYN_OBJ_FORTES* list, void *adress);
+
+
+//void __VERIFIER_error() __attribute__ ((__noreturn__));
+void __VERIFIER_error() {
+
+}
 
 
 #endif

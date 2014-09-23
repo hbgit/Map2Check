@@ -459,7 +459,12 @@ def start_generation_cassert(cFile, enSetFunc):
         list_tmp_path.append(getFisrtTextFileCl)
         list_tmp_path.append(getFisrtCsvDataCl)
         
-       
+
+    #TODO: Modify the analyzed code to handle the function __VERIFIER_error()
+    #     replace __VERIFIER_error() by __VERIFIER_error(Number of the actual line)
+    # HIP: Create a simple python script to read the file, count the lines, and then replace the string.
+    #      Finally save this modifed txt code in a tmp file and then pass this tmp file to the next steps.
+
     # OriCode
     # >>> Preprocessing source code
     getPreCFile = code_preprocessor(cFile)

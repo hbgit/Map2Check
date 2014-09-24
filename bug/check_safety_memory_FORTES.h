@@ -50,12 +50,10 @@ void * GET_LAST_ADDR_POINTS_TO(LIST_DYN_OBJ_FORTES* list, void *adress);
 
 void * GET_LAST_ADDR_FROM_MALLOC(LIST_DYN_OBJ_FORTES* list, void *adress);
 
+//int __ERROR_location(int numLineCCode);
 
 //void __VERIFIER_error() __attribute__ ((__noreturn__));
-void __VERIFIER_error(int numline) {
-    printf("%d \n", numline);
-    __MAP_FORTES_assert(0,"numline testing");
-}
+void __VERIFIER_error(int numline);
 
 
 #endif

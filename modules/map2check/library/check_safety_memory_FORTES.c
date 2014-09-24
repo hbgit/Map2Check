@@ -545,6 +545,22 @@ int IS_VALID_POINTER_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block
   return 1; //FALSE is not a valid pointer - 1 cuz the negation
 }
 
+
+/* Identify error location in the program  */
+int __VERIFIER_error(int numLineCCode){
+
+    PRINT_TRACE_LOG();
+
+    printf("\n");
+    printf("[Failed] \n");
+    printf(" VIOLATED PROPERTY: __VERIFIER_error \n");
+    printf("\t Location at original code in line: %d \n", numLineCCode);
+    printf("\n");
+    assert(0);
+    //exit(EXIT_FAILURE);
+
+}
+
 /*******************************************************************/
 
 /*******************************************************************/

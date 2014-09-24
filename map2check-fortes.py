@@ -420,7 +420,28 @@ def check_command_exec(result, file2Analyzed, note, flagNoReturn):
             print('Note : '+note+'\n')
             sys.exit()
         
-    
+
+def handle_func_verifier_error(_cfile):
+    file = open(_cfile, 'r')
+    lines = file.readlines()
+    file.close()
+
+    file = open('/tmp/tmp_hd_funcve.c','w')
+    for index, line in enumerate(lines):
+
+        if line.startswith('extern'):
+            if '__VERIFIER_error()'  in line.split():
+                line = line.replace( '__VERIFIER_error()', '__VERIFIER_error(int linenumber)' )
+
+        if '__VERIFIER_error();' in line.split():
+            line = line.replace('__VERIFIER_error();', '__VERIFIER_error(' + str(index+1) + ');')
+        file.write(line)
+
+    file.close()
+    return '/tmp/tmp_hd_funcve.c'
+
+
+
 
 
 def start_generation_cassert(cFile, enSetFunc):
@@ -464,10 +485,12 @@ def start_generation_cassert(cFile, enSetFunc):
     #     replace __VERIFIER_error() by __VERIFIER_error(Number of the actual line)
     # HIP: Create a simple python script to read the file, count the lines, and then replace the string.
     #      Finally save this modifed txt code in a tmp file and then pass this tmp file to the next steps.
+    m_cfile = handle_func_verifier_error(cFile)
+    list_tmp_path.append(m_cfile)
 
     # OriCode
     # >>> Preprocessing source code
-    getPreCFile = code_preprocessor(cFile)
+    getPreCFile = code_preprocessor(m_cfile)
     
     # OriCode
     # >>> Gather the data about functions location in the program

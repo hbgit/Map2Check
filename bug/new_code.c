@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 
-extern void __VERIFIER_error();
+extern void __VERIFIER_error(int numline);
 
 void exit(int s)
 {
@@ -72,7 +72,7 @@ int main()
    p            = a;
    list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(p), (void *)(intptr_t)(p), 2, 0, 0, 0, 43); /** by FORTES **/
    
-   __MAP_FORTES_assert(0, "Testing \n");
+   //__MAP_FORTES_assert(0, "Testing \n");
 
    i = 0;
    while (p != 0)
@@ -84,7 +84,7 @@ int main()
       if (p->h != 1)
       {
 ERROR:
-         __VERIFIER_error();
+         __VERIFIER_error(47);
       }
 // FORTES: Claim 3
       __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(p), (void *)(intptr_t)(p))), "[Failed]\n VIOLATED PROPERTY: Claim 3 \n \t Location at original code in line: 49 \n \t Comments:   dereference failure: invalid pointer");

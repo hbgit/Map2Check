@@ -1,3 +1,6 @@
+//./map2check-fortes.py -a code_samples/samples/D_CBMC_bound_array.c
+// We have a wrong map for arrays variables
+
 #include <stdio.h>
 
 int a[5], b[6];

@@ -1074,6 +1074,17 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 if self.checkMapIsComplete(inspect.currentframe().f_back.f_lineno):
                     self.setList2Map()
 
+
+                # DOING: Map all assignments
+                # Identify if the search about assigments is in all function or not
+                if enableSearchAllFunc:
+                    self.searchVarAssigmentInAllFunctions(nodeVar)
+                else:
+                    #Flag to identify that this variable is NOT global
+                    self.flag_idenitify_global_var = False
+                    self.has_ptr_assignment = True
+                    self.searchAssigInCompound(self.current_compund_FLOW, nodeVar)
+
             #print()
 
 

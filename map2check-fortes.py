@@ -459,8 +459,8 @@ def start_generation_cassert(cFile, enSetFunc):
     
     # Comment this and execute test
     # Checkout solution to support GNU extensions
-    #os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 0")
-    #sys.exit()
+    os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 0")
+    sys.exit()
 
     # HackCode
     #result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)

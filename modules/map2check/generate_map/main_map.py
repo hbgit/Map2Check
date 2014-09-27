@@ -27,6 +27,9 @@ if __name__ == "__main__":
     option_print = sys.argv[2]    
 
     test = ParseAstPy()
+    # tmp - TODO: get this option by argv
+    test.flag_track_all = True
+
     test.load2Parse(path_input_file)
 
     # Gathering data about all typedef

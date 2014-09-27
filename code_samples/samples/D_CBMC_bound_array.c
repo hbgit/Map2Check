@@ -1,14 +1,19 @@
 //./map2check-fortes.py -a code_samples/samples/D_CBMC_bound_array.c
-// We have a wrong map for arrays variables
-
+// BUG: in get the type, cuz actually we dont save the real value of the typedef
 #include <stdio.h>
+
+typedef unsigned char BYTE;
 
 int a[5], b[6];
 
+
 void return_foo(int c){
+    BYTE  b1, b2;
     int i;
     for(i=0; i<5; i++)
-        a[i] = i;    
+        a[i] = i;
+
+    b1 = '&';
 }
 
 #include <stdlib.h>

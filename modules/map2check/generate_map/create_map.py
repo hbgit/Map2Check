@@ -123,6 +123,11 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         self.utest_lines_mapped = []
 
 
+        # Options to trace generation
+        self.flag_track_all = False
+        self.flag_track_not_ptr = False
+
+
 
 
     def load2Parse(self, filename):
@@ -713,7 +718,11 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                             #print("\t ######## VAR: %s " % self.current_Id_in_init)
                             #self.map_points_to = get_struct_ref
                             
-                        self.map_points_to = get_struct_ref
+                        # [CHANGE-DOT]
+                        if self.flag_track_all and self.flag_track_not_ptr:
+                            self.map_points_to = "NULL"
+                        else:
+                            self.map_points_to = get_struct_ref
                             
                         #print("FILD: %s " % self.curr_field_used_by_struct_ref.name)
                         
@@ -806,7 +815,10 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                             self.map_is_dynamic = False
                             
                         
+                        # [CHANGE-DOT]
                         if flag_is_struture_type:
+                            self.map_points_to = "NULL"
+                        elif self.flag_track_all and self.flag_track_not_ptr:
                             self.map_points_to = "NULL"
                         else:
                             self.map_points_to = self.map_var
@@ -897,6 +909,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         @param enableSearchAllFunc: an integer to enable the search in All functions
         @return: NO
         """
+
+        self.reset_track_flags()
 
         #TODO: BUG -> identify when is a pointer and when has a pointer in a struct
         # eg., static void free_data(TData data)
@@ -992,6 +1006,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 # int main() {
                 #     TData data;
                 elif not self.hasAssigmentInDeclPtr and self.has_struct_ref:
+
+                    print(self.current_var_type)
+
                     lineNum = self.getNumberOfLine(nodeVar)
                     #reset vars to map
                     self.resetVarsToMap()
@@ -1056,6 +1073,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 lineNum = self.getNumberOfLine(nodeVar)
                 #reset vars to map
                 self.resetVarsToMap()
+
+                print(self.current_var_type)
+
                 self.map_line = lineNum
                 self.map_var = nodeVar.name                
                 self.map_points_to = "NULL"                            
@@ -1074,16 +1094,18 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 if self.checkMapIsComplete(inspect.currentframe().f_back.f_lineno):
                     self.setList2Map()
 
-
-                # DOING: Map all assignments
-                # Identify if the search about assigments is in all function or not
-                if enableSearchAllFunc:
-                    self.searchVarAssigmentInAllFunctions(nodeVar)
-                else:
-                    #Flag to identify that this variable is NOT global
-                    self.flag_idenitify_global_var = False
-                    self.has_ptr_assignment = True
-                    self.searchAssigInCompound(self.current_compund_FLOW, nodeVar)
+                if self.flag_track_all:
+                    self.flag_track_not_ptr = True
+                    # DOING: Map all assignments
+                    # Identify if the search about assigments is in all function or not
+                    if enableSearchAllFunc:
+                        #print("Searching by: %s" % nodeVar.name)
+                        self.searchVarAssigmentInAllFunctions(nodeVar)
+                    else:
+                        #Flag to identify that this variable is NOT global
+                        self.flag_idenitify_global_var = False
+                        self.has_ptr_assignment = True
+                        self.searchAssigInCompound(self.current_compund_FLOW, nodeVar)
 
             #print()
 
@@ -1322,6 +1344,10 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         self.has_struct_ref = False
         
         self.flag_tmp_has_struct = False
+
+
+    def reset_track_flags(self):
+        self.flag_track_not_ptr = False
         
         
         

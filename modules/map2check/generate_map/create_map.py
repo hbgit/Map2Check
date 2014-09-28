@@ -126,6 +126,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         # Options to trace generation
         self.flag_track_all = False
         self.flag_track_not_ptr = False
+        self.type_name_track_all = ''
 
 
 
@@ -618,8 +619,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             # Idenitfy if we have a FuncCall here
             self.resetExpandDeclVar()
             self.expand_init(item.init)
-            
-            
+
+            # [CHANGE-DOT]
+            print(self.type_name_track_all)
             
             #print(self.has_call_func)
             
@@ -755,6 +757,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                         else:
                             self.map_is_dynamic = False
 
+                        # [CHANGE-DOT]
+                        print(self.type_name_track_all)
+
                         # Finish to gather the data to map in this point
                         # Last check to add into list the data to map
                         if self.checkMapIsComplete(inspect.currentframe().f_back.f_lineno):
@@ -822,6 +827,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                             self.map_points_to = "NULL"
                         else:
                             self.map_points_to = self.map_var
+
+                        # [CHANGE-DOT]
+                        print(self.type_name_track_all)
 
                         # Finish to gather the data to map in this point
                         # Last check to add into list the data to map
@@ -898,6 +906,64 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         #for key, value in self.dictionary_of_var_types.items():
             #print("%s - %s" % (key, value))
 
+
+    def sort_type_names_decl(self, _list_type):
+        flag_unsigned_or_signed = False
+        pos_list_to_unsigned_or_signed = -1 # the var is not signed
+        flag_long_or_short = False
+        pos_list_to_long_or_short = []
+        all_index_used = []
+
+        #searching by unsigned or signed
+        for index, name in enumerate(_list_type):
+            if name == "unsigned" or name == "signed":
+                pos_list_to_unsigned_or_signed = index
+
+        #searching by long or short
+        for index, name in enumerate(_list_type):
+            if name == "long" or name == "short":
+                pos_list_to_long_or_short.append(index)
+
+        # set the sort of the types accordng our style
+        types_shorted = []
+        # 1st sinal
+        if pos_list_to_unsigned_or_signed > -1:
+            all_index_used.append(pos_list_to_unsigned_or_signed)
+            types_shorted.append(_list_type[pos_list_to_unsigned_or_signed])
+        # 2st size
+        if len(pos_list_to_long_or_short) > 0:
+            for pos in pos_list_to_long_or_short:
+                all_index_used.append(pos)
+                types_shorted.append(_list_type[pos])
+
+        # 3st the type
+        all_index = range(len(_list_type))
+        index_not_used = list(set(all_index)-set(all_index_used))
+        for pos in index_not_used:
+            types_shorted.append(_list_type[pos])
+
+
+        return types_shorted
+
+
+
+
+
+    def get_current_type(self, _list_type):
+        str_type = ' '.join(_list_type)
+        if str_type in self.dictionary_of_var_types:
+            # Sorting the types by our style if necessary
+            if len(self.dictionary_of_var_types[str_type][0]) > 1:
+                namessorted = self.sort_type_names_decl(self.dictionary_of_var_types[str_type][0])
+                return ' '.join(namessorted)
+            else:
+                return ' '.join(self.dictionary_of_var_types[str_type][0])
+        else:
+            if len(_list_type) > 1:
+                namessorted = self.sort_type_names_decl(_list_type)
+                return ' '.join(namessorted)
+            else:
+                return str_type
 
 
 
@@ -976,6 +1042,12 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 # It is necessary identify if is a input arg from function
                 if self.is_a_input_arg_function:
                     #print("ARG FUNC in ",nodeVar.coord)
+
+                    #[CHANGE-DOT]
+                    self.type_name_track_all = self.get_current_type(self.current_var_type)
+                    print(self.type_name_track_all)
+
+
                     self.has_ptr_assignment = True
                     lineNum = self.getNumberOfLine(nodeVar)
                     #reset vars to map
@@ -1007,7 +1079,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 #     TData data;
                 elif not self.hasAssigmentInDeclPtr and self.has_struct_ref:
 
-                    print(self.current_var_type)
+                    #[CHANGE-DOT]
+                    self.type_name_track_all = self.get_current_type(self.current_var_type)
+                    print(self.type_name_track_all)
 
                     lineNum = self.getNumberOfLine(nodeVar)
                     #reset vars to map
@@ -1074,7 +1148,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 #reset vars to map
                 self.resetVarsToMap()
 
-                print(self.current_var_type)
+                #[CHANGE-DOT]
+                self.type_name_track_all = self.get_current_type(self.current_var_type)
+                print(self.type_name_track_all)
 
                 self.map_line = lineNum
                 self.map_var = nodeVar.name                

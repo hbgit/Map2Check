@@ -19,7 +19,10 @@ void return_foo(int c){
 #include <stdlib.h>
 
 int main( ){
-	int i, j, temp; 
+    unsigned int ka;
+	int i, j, temp;
+	short unsigned usa=65535;
+
 	return_foo(3);
 	int * p = malloc(10);
 	for(i=0; i<5; i++){
@@ -33,6 +36,8 @@ int main( ){
 	if(i > 0){
 		exit(0);
 		abort();
+	}else{
+	    ka = 1234567;
 	}
 	return 0;
 }

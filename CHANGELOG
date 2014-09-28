@@ -1,2 +1,5 @@
-> [FILE:create_map.py] Creating a option to generate a trace for all variables - checkout the label [CHANGE-DOT] in program
-> [FILE:create_map.py] Adding the type of the variables in the trace map
+> [FILE:create_map.py] Created a option to generate a trace for all variables - checkout the label [CHANGE-DOT] in program
+> [FILE:create_map.py] Added the type of the variables in the trace map
+> [FILE:create_map.py] Get the var type in the Decl and save in an attribute and then put in the log
+> [FILE:create_map.py] Created a function to sort the type of the variable according our style in C LIB API
+> TODO in [FILE:create_map.py] added the type of the variable in the map list

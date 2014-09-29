@@ -112,7 +112,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         self.map_is_dynamic = None
         self.map_is_a_free = None
         self.map_is_a_union = None
-        self.map_number_of_vars = 6
+        self.map_type_of_var = None
+        self.map_number_of_vars = 9
         self.map_master_list_result = []
 
         #~ Only for Unit Test
@@ -161,6 +162,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         self.map_is_dynamic = None
         self.map_is_a_free = None
         self.map_is_a_union = None
+        self.map_type_of_var = None
 
 
 
@@ -171,7 +173,12 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         @return: 1 if is complete and otherwise an expection is shown
         """
 
-        map_list_2_check_vars = [self.map_line, self.map_var, self.map_points_to, self.map_id_function, self.map_is_global, self.map_is_dynamic, self.map_is_a_free, self.map_is_a_union]
+        map_list_2_check_vars = [self.map_line, self.map_var, self.map_points_to,
+                                 self.map_id_function, self.map_is_global,
+                                 self.map_is_dynamic, self.map_is_a_free,
+                                 self.map_is_a_union, self.map_type_of_var]
+
+        #print(map_list_2_check_vars)
 
         count_var_none = 0
         id_var = 0
@@ -195,8 +202,10 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     list_none.append("__map_is_dynamic__")
                 elif id_var == 7:
                     list_none.append("__map_is_a_free__")
-                elif id_var == 9:
+                elif id_var == 8:
                     list_none.append("__map_is_a_union__")
+                elif id_var == 9:
+                    list_none.append("__map_type__")
 
                 count_var_none += 1
 
@@ -230,6 +239,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         tmp_list_to_organize_data.append(self.map_is_dynamic)
         tmp_list_to_organize_data.append(self.map_is_a_free)
         tmp_list_to_organize_data.append(self.map_is_a_union)
+        tmp_list_to_organize_data.append(self.map_type_of_var)
 
         self.map_master_list_result.append(tmp_list_to_organize_data)
 
@@ -295,6 +305,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                         self.map_is_a_union = True
                     else:
                         self.map_is_a_union = False
+
+                    self.map_type_of_var = self.type_name_track_all
 
                     # Finish to gather the data to map in this point
                     # Last check to add into list the data to map
@@ -457,6 +469,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     else:
                         self.map_is_a_union = False
 
+                    self.map_type_of_var = self.type_name_track_all
+
                     # Finish to gather the data to map in this point
                     # Last check to add into list the data to map
                     if self.checkMapIsComplete(inspect.currentframe().f_back.f_lineno):                        
@@ -589,6 +603,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         else:
             self.map_is_a_union = False
 
+        #print(self.type_name_track_all)
+        self.map_type_of_var = self.type_name_track_all
+
         #print("\t\t ",nodeVar.name) #COM
 
         # Pointer Decl with assignment
@@ -621,7 +638,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             self.expand_init(item.init)
 
             # [CHANGE-DOT]
-            print(self.type_name_track_all)
+            #print(self.type_name_track_all)
             
             #print(self.has_call_func)
             
@@ -758,7 +775,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                             self.map_is_dynamic = False
 
                         # [CHANGE-DOT]
-                        print(self.type_name_track_all)
+                        #print(self.type_name_track_all)
 
                         # Finish to gather the data to map in this point
                         # Last check to add into list the data to map
@@ -829,7 +846,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                             self.map_points_to = self.map_var
 
                         # [CHANGE-DOT]
-                        print(self.type_name_track_all)
+                        #print(self.type_name_track_all)
 
                         # Finish to gather the data to map in this point
                         # Last check to add into list the data to map
@@ -1033,6 +1050,11 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             if self.current_is_ptr or self.has_struct_ref:
                 # Searching this variable in the program
 
+                #[CHANGE-DOT]
+                self.type_name_track_all = self.get_current_type(self.current_var_type)
+                #print(self.type_name_track_all)
+                self.map_type_of_var = self.type_name_track_all
+
                 if self.current_is_ptr:
                     # First of all, save the identifier PTR to execute the next steps
                     self.tmp_flag_is_ptr = True
@@ -1044,8 +1066,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     #print("ARG FUNC in ",nodeVar.coord)
 
                     #[CHANGE-DOT]
-                    self.type_name_track_all = self.get_current_type(self.current_var_type)
-                    print(self.type_name_track_all)
+                    #self.type_name_track_all = self.get_current_type(self.current_var_type)
+                    #print(self.type_name_track_all)
 
 
                     self.has_ptr_assignment = True
@@ -1067,6 +1089,10 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                         self.map_is_a_union = True
                     else:
                         self.map_is_a_union = False
+
+                    #[CHANGE-DOT]
+                    #self.type_name_track_all = self.get_current_type(self.current_var_type)
+                    #self.map_type_of_var = self.type_name_track_all
                     
 
                     # Last check to add into list the data to map
@@ -1079,13 +1105,10 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 #     TData data;
                 elif not self.hasAssigmentInDeclPtr and self.has_struct_ref:
 
-                    #[CHANGE-DOT]
-                    self.type_name_track_all = self.get_current_type(self.current_var_type)
-                    print(self.type_name_track_all)
-
                     lineNum = self.getNumberOfLine(nodeVar)
                     #reset vars to map
                     self.resetVarsToMap()
+
                     self.map_line = lineNum
                     self.map_var = nodeVar.name
                     self.map_points_to = "NULL"
@@ -1146,11 +1169,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 #print("NOT POINT Searching by Decl that is %s" % nodeVar.name)
                 lineNum = self.getNumberOfLine(nodeVar)
                 #reset vars to map
-                self.resetVarsToMap()
 
-                #[CHANGE-DOT]
-                self.type_name_track_all = self.get_current_type(self.current_var_type)
-                print(self.type_name_track_all)
+                self.resetVarsToMap()
 
                 self.map_line = lineNum
                 self.map_var = nodeVar.name                
@@ -1164,6 +1184,11 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     self.map_is_a_union = True
                 else:
                     self.map_is_a_union = False
+
+                #[CHANGE-DOT]
+                self.type_name_track_all = self.get_current_type(self.current_var_type)
+                #print(self.type_name_track_all)
+                self.map_type_of_var = self.type_name_track_all
 
                 #print("Here!!!")
                 # Last check to add into list the data to map
@@ -1796,11 +1821,11 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
         # Debug MODE output
         if optionPrint == 0:
-            print("%13s ;%14s ;%14s ;%14s ;%14s ;%14s ;%14s ;%14s ;" % ("LOC","Variable","Points to","Scope","Is Global","Is Dynamic","Is Free","Is a Union"))
+            print("%13s ;%14s ;%14s ;%14s ;%14s ;%14s ;%14s ;%19s ;" % ("LOC","Variable","Points to","Scope","Is Global","Is Dynamic","Is Free","Is a Union"))
             print("%s" % ("-"*140))
             for list in self.map_master_list_result:
                 for element in list:
-                    print("%13s ; " % element, end="")
+                    print("%12s ; " % element, end="")
                 print()
             print("%s" % ("-"*140))
             print()
@@ -1810,7 +1835,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
         # CSV MODE output
         elif optionPrint == 1:
-            print("LOC;Variable;Points to;Scope;Is Global;Is Dynamic;Is Free;Is Union")
+            print("LOC;Variable;Points to;Scope;Is Global;Is Dynamic;Is Free;Is Union;Type Var")
             for list in self.map_master_list_result:
                 for index in range(0,len(list)):
                     # Here we already set the C pattern to True and False, i.e., 1 or 0

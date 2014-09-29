@@ -1,6 +1,7 @@
 //./map2check-fortes.py -a code_samples/samples/D_CBMC_bound_array.c
-// BUG: in get the type, cuz actually we dont save the real value of the typedef
+//BUG no malloc
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef unsigned char BYTE;
 
@@ -37,8 +38,11 @@ int main( ){
 		exit(0);
 		abort();
 	}else{
+	    double df = 0.0;
 	    ka = 1234567;
 	}
+
+	float te = 1.5;
 	return 0;
 }
 

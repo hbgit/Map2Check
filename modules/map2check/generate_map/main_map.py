@@ -24,11 +24,15 @@ if __name__ == "__main__":
 
     #if 2 < len(sys.argv):
     path_input_file  = sys.argv[1]
-    option_print = sys.argv[2]    
+    option_print = sys.argv[2]
+    option_to_track = sys.argv[3]
 
     test = ParseAstPy()
     # tmp - TODO: get this option by argv
-    test.flag_track_all = True
+    if option_to_track == "1":
+        test.flag_track_all = True
+    else:
+        test.flag_track_all = False
 
     test.load2Parse(path_input_file)
 

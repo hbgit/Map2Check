@@ -2,4 +2,6 @@
 > [FILE:create_map.py] Added the type of the variables in the trace map
 > [FILE:create_map.py] Get the var type in the Decl and save in an attribute and then put in the log
 > [FILE:create_map.py] Created a function to sort the type of the variable according our style in C LIB API
-> TODO in [FILE:create_map.py] added the type of the variable in the map list
+> [FILE:create_map.py] Added the type of the variable in the map list
+> [FILE:map2chek-fortes.py] Added an option to choose among the complete track or partial (default)
+> [FILE:write_new_instance.py] Adding type in the function to map the variable track: LOC 874 -> updating mark_map_FORTES

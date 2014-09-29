@@ -476,6 +476,7 @@ class ParseC2Ast2C(object):
         self.map_is_free2map = []
         self.map_is_global2map = []
         self.map_is_union2map = []
+        self.map_type_var = []
         self.map_has_global_var2map = False
         
         # For data from Claims file
@@ -617,6 +618,8 @@ class ParseC2Ast2C(object):
                     self.map_var_points_to2map.append(row['Points to'])
                     # Is Union
                     self.map_is_union2map.append(row['Is Union'])
+                    # Type Var
+                    self.map_type_var.append(row['Type Var'])
                     
             
             # Check if there is any global var to map

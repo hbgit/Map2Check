@@ -249,6 +249,10 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
 
     
     #result = commands.getoutput(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
+    #print(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
+    #os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
+    #sys.exit()
+
     result = commands.getoutput(WRITE_NEW_INSTANCE+" "+tmpFileGnuSkip_end+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0) 
     
@@ -463,8 +467,8 @@ def start_generation_cassert(cFile, enSetFunc):
     
     # Comment this and execute test
     # Checkout solution to support GNU extensions
-    os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 1 "+TRACK_ALL)
-    sys.exit()
+    #os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 1 "+TRACK_ALL)
+    #sys.exit()
 
     # HackCode
     #result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)
@@ -515,8 +519,7 @@ def start_generation_cassert(cFile, enSetFunc):
     list_lines_map = get_2st_map.split("\n")
     # Adding the result of 2st map in the tmp_file_map.map
     getFinalFileMap = add_new_num_lines2csv(tmp_file_map, list_lines_map, 1)        
-    check_command_exec(0, tmp_file_map, "Generating code map after preprocessing",0)   
-    
+    check_command_exec(0, tmp_file_map, "Generating code map after preprocessing",0)
     
     
     # >>> Get the text claims again (second time) for the program    

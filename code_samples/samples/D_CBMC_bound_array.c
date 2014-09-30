@@ -23,6 +23,7 @@ int main( ){
     unsigned int ka;
 	int i, j, temp;
 	short unsigned usa=65535;
+	usa=11111;
 
 	return_foo(3);
 	int * p = malloc(10);

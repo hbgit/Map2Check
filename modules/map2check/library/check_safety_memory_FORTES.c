@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 
@@ -16,6 +17,7 @@ typedef struct obj {
   int   map_is_DYNAM_FORTES; 
   int   map_setFree_FORTES;
   int   map_isUnion_FORTES;
+  char  *map_typevar_FORTES;
   int   map_linePreCode_FORTES;
   
   struct obj *next_item_FORTES; 
@@ -32,12 +34,69 @@ LIST_DYN_OBJ_FORTES *list_CE_trace;
 
 
 /*******************************************************************/
+// Function to print the variable value from memory address based
+// on the variable type
+/*******************************************************************/
+void print_by_type(void *addr, char *type, int isptr){
+
+    if(strcmp(type,"none") == 0){
+        printf("none");
+    }
+    else if(strcmp(type,"int") == 0){
+        printf("%12d", *((int*)addr));
+    }
+    else if(strcmp(type,"unsigned int") == 0){
+        printf("%12u", *((unsigned int*)addr));
+    }
+    else if(strcmp(type,"short") == 0 || strcmp(type,"short int") == 0){
+        printf("%12hi", *((short*)addr));
+    }
+    else if(strcmp(type,"unsigned short") == 0 || strcmp(type,"unsigned short int") == 0){
+        printf("%12u", *((unsigned short*)addr));
+    }
+    else if(strcmp(type,"long") == 0 || strcmp(type,"long int") == 0){
+        printf("%12li", *((long int*)addr));
+    }
+    else if(strcmp(type,"unsigned long") == 0 || strcmp(type,"unsigned long int") == 0){
+        printf("%12lu", *((unsigned long*)addr));
+    }
+    else if(strcmp(type,"float") == 0){
+        printf("%12f", *((float*)addr));
+    }
+    else if(strcmp(type,"double") == 0){
+        printf("%12f", *((double*)addr));
+    }
+    else if(strcmp(type,"long double") == 0){
+        printf("%12llf", *((long double*)addr));
+    }
+    else if(strcmp(type,"char") == 0 || strcmp(type,"signed char") == 0){
+        if(isptr == 0){
+            printf("%12c", *((char*)addr));
+        }else{
+            printf("%12s", *((char**)addr));
+        }
+    }
+    else if(strcmp(type,"unsigned char") == 0){
+        printf("%12c", *((unsigned char*)addr));
+    }
+
+    else{
+        printf("-- ERROR --");
+    }
+
+
+}
+
+
+
+
+/*******************************************************************/
 // Function to print the mapping status until a k deepth of the code
 //DEBUG
 /*******************************************************************/
 void print_debug(LIST_DYN_OBJ_FORTES *list)
 {
-  printf("   #\t|      Address\t    | Address points to\t| Function ID\t|   IS DYNAMIC\t| Set FREE \t|  IS UNION \t| Line \n");
+  printf("   #\t|      Address\t    | Address points to\t| Function ID\t|   IS DYNAMIC\t| Set FREE \t|  IS UNION \t| TYPE \t| Line \n");
   printf("-------------------------------------------------------------------------------------------------------\n");
   LIST_DYN_OBJ_FORTES *aux;
   int save_count = count_all_list_FORTES;
@@ -51,6 +110,7 @@ void print_debug(LIST_DYN_OBJ_FORTES *list)
     printf("%4d \t\t|", aux->map_is_DYNAM_FORTES);
     printf("%4d \t\t|", aux->map_setFree_FORTES);
     printf("%4d \t\t|", aux->map_isUnion_FORTES);
+    printf("%4d \t\t|", aux->map_typevar_FORTES);
     printf("%4d \n", aux->map_linePreCode_FORTES);    
         
     count_all_list_FORTES--;
@@ -70,7 +130,7 @@ void print_debug(LIST_DYN_OBJ_FORTES *list)
 void PRINT_TRACE_LOG()
 {
   printf("Counter-example - Trace Log: \n");
-  printf("   #\t|      Address\t    | Address points to\t| Function ID\t|   IS DYNAMIC\t| Set FREE \t|  IS UNION \t| Line \n");
+  printf("   #\t|      Address\t    | Address points to\t| Var Value\t|  Function ID\t|   IS DYNAMIC\t| Set FREE \t|  IS UNION \t| Line \n");
   //printf("-------------------------------------------------------------------------------------------------------\n");
   LIST_DYN_OBJ_FORTES *aux;
   int save_count = count_all_list_FORTES;
@@ -79,6 +139,17 @@ void PRINT_TRACE_LOG()
     printf("%18p| ", aux->adresse_mem_map_FORTES);
 
     printf("%18p| ", aux->block_MEM_Point_FORTES);
+
+    //Getting the variables values
+    if(aux->block_MEM_Point_FORTES != NULL){
+        print_by_type(aux->block_MEM_Point_FORTES, aux->map_typevar_FORTES, 1);
+    }else{
+        print_by_type(aux->adresse_mem_map_FORTES, aux->map_typevar_FORTES, 0);
+    }
+
+    printf("\t|");
+
+
 
     printf("%4d\t\t| ", aux->map_ID_func_FORTES);
     printf("%4d \t\t|", aux->map_is_DYNAM_FORTES);
@@ -105,7 +176,8 @@ void PRINT_TRACE_LOG()
  * Function: add2List
  * GOAL: Function to add a new element into the list 
  **/ 
-LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *block, int ID, int status, int setFree, int isUnion, int linePreCode){
+LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *block, int ID,
+                              int status, int setFree, int isUnion, char *typevar, int linePreCode){
 	
 	LIST_DYN_OBJ_FORTES* aux_blk_cr;
     LIST_DYN_OBJ_FORTES* aux_tmp2;
@@ -125,7 +197,8 @@ LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *blo
         //Just create a new element, i.e., mapping another object
         novo->map_is_DYNAM_FORTES = 0;
         novo->map_setFree_FORTES = setFree;
-        novo->map_isUnion_FORTES = isUnion;       
+        novo->map_isUnion_FORTES = isUnion;
+        novo->map_typevar_FORTES = typevar;
         novo->adresse_mem_map_FORTES = (void *)adress; //get the adress from value point out
         novo->block_MEM_Point_FORTES = (void *)block;		
         novo->map_ID_func_FORTES = ID;			
@@ -182,6 +255,7 @@ LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *blo
         novo->map_is_DYNAM_FORTES = status;
         novo->map_setFree_FORTES = setFree;
         novo->map_isUnion_FORTES = isUnion;
+        novo->map_typevar_FORTES = typevar;
         novo->map_linePreCode_FORTES = linePreCode;
         novo->next_item_FORTES = list;
     }
@@ -216,7 +290,8 @@ LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *blo
  * [TO DO] 
  * 		=> Improve performace and check leak02.c
  * */ 
-LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block, int ID, int status, int setFree, int isUnion, int linePreCode)
+LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block, int ID,
+                                     int status, int setFree, int isUnion, char *typevar, int linePreCode)
 {   
 	LIST_DYN_OBJ_FORTES* aux;
     LIST_DYN_OBJ_FORTES* aux_tmp2;
@@ -253,6 +328,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
 				aux->block_MEM_Point_FORTES = (void *)block; //get the adress from value point out				
 				aux->map_setFree_FORTES = setFree;
                 aux->map_isUnion_FORTES = isUnion;
+                aux->map_typevar_FORTES = typevar;
                 //printf("Free: %d \n", aux->map_setFree_FORTES);
 				aux->map_linePreCode_FORTES = linePreCode;
                 
@@ -294,7 +370,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
                 printf("%d ADD NEW LOG \n", count_all_list_FORTES);
             }
 			
-            return add2List(list, (void *)adress, (void *)block, ID, status, setFree, isUnion, linePreCode);
+            return add2List(list, (void *)adress, (void *)block, ID, status, setFree, isUnion, typevar, linePreCode);
 		}					
 	}
 	
@@ -314,7 +390,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
         
         //printf("Add new address: %p -> %p \n", (void *)adress, (void *)block);
 		
-        return add2List(list, (void *)adress, (void *)block, ID, status, setFree, isUnion, linePreCode);		
+        return add2List(list, (void *)adress, (void *)block, ID, status, setFree, isUnion, typevar, linePreCode);
 	}else{		
 		//print_debug(list);
 		//return list;

@@ -41,8 +41,9 @@ void return_foo(int c)
 
 int main()
 {
-   unsigned int ka;
+   MAP_GB_VAR_FORTES(); /** by FORTES **/
 
+   unsigned int ka;
    list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(ka), (void *)(intptr_t)(NULL), 2, 0, 0, 0, "unsigned int", 23); /** by FORTES **/
 
    int i;
@@ -121,3 +122,12 @@ int main()
 
    assert(CHECK_MEMORY_LEAK(list_LOG_mcf, 0, 27)); /** by FORTES **/
 }
+
+
+/** Mapping global variables <- by FORTES**/
+MAP_GB_VAR_FORTES()
+{
+   list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(a), (void *)(intptr_t)(NULL), 0, 0, 0, 0, "int", 8); /** by FORTES **/
+   list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(b), (void *)(intptr_t)(NULL), 0, 0, 0, 0, "int", 8); /** by FORTES **/
+}
+/** End mapping global variables <- by FORTES**/

@@ -7,6 +7,22 @@
 > [FILE:write_new_instance.py] Added type in the function to map the variable track in the function mark_map_FORTES
 
 > [FILE:check_safety_memory_FORTES.c] Updating the functions in LIB to handle with type of the var
-                ::BUG rewrite the value from a memory address in a specific time of the program execution
-                ::HIP1: Added in the struct a field (like a union with all type) to save for the point where the var is mapped
-::BUG to print the array values from memory address
+                ::TODO: create an option in the LIB to complete and partial trace
+                ::Updated the function PRINT_TRACE_LOG to read from file tmp log
+                    - Updated the header
+                ::HIP2 (DONE): Write each action in the map list in a tmp file
+
+::BUG [SOLVED] to write in the new instance the global var
+
+
+
+> [FILE:check_safety_memory_FORTES.c] TODO: Delete tmp file generate by trace log
+
+> [FILE:create_map.py] TODO: in the complete trace add the loop assignment, such as: i++
+
+> TODO: Update auxiliary scripts to receive -t option from map2chek-fortes.py
+
+::BUG-ARRAY to print the array values from memory address
+
+> TODO: Write GraphML format like SVCOMP - How we should consider ARRAYS and POINTERS?
+

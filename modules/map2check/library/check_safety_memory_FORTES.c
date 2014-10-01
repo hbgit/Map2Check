@@ -10,9 +10,18 @@
 
 
 /*******************************************************************/
+union Data
+{
+   int dataInt;
+   float dataFloat;
+   char  *dataChar;
+};
+
+
 typedef struct obj {
   void  *adresse_mem_map_FORTES;
   void  *block_MEM_Point_FORTES;
+
   int   map_ID_func_FORTES;
   int   map_is_DYNAM_FORTES; 
   int   map_setFree_FORTES;
@@ -31,59 +40,179 @@ int FLAG_DEBUG = 0;
 
 //Counter-example
 LIST_DYN_OBJ_FORTES *list_CE_trace;
+FILE *gb_actualfile;
 
 
 /*******************************************************************/
 // Function to print the variable value from memory address based
 // on the variable type
 /*******************************************************************/
-void print_by_type(void *addr, char *type, int isptr){
+void print_by_type(void *addr, char *type, int isptr, int iswritefile){
 
     if(strcmp(type,"none") == 0){
-        printf("none");
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4s\t\t", "none");
+        }else{
+            printf("none");
+        }
+
     }
     else if(strcmp(type,"int") == 0){
-        printf("%12d", *((int*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4d\t\t", *((int*)addr));
+        }else{
+            printf("%12d", *((int*)addr));
+        }
     }
     else if(strcmp(type,"unsigned int") == 0){
-        printf("%12u", *((unsigned int*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4u\t\t", *((unsigned int*)addr));
+        }else{
+            printf("%12u", *((unsigned int*)addr));
+        }
     }
     else if(strcmp(type,"short") == 0 || strcmp(type,"short int") == 0){
-        printf("%12hi", *((short*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4hi\t\t", *((short*)addr));
+        }else{
+            printf("%12hi", *((short*)addr));
+        }
     }
     else if(strcmp(type,"unsigned short") == 0 || strcmp(type,"unsigned short int") == 0){
-        printf("%12u", *((unsigned short*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4u\t\t", *((unsigned short*)addr));
+        }else{
+            printf("%12u", *((unsigned short*)addr));
+        }
     }
     else if(strcmp(type,"long") == 0 || strcmp(type,"long int") == 0){
-        printf("%12li", *((long int*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4li\t\t", *((long int*)addr));
+        }else{
+            printf("%12li", *((long int*)addr));
+        }
     }
     else if(strcmp(type,"unsigned long") == 0 || strcmp(type,"unsigned long int") == 0){
-        printf("%12lu", *((unsigned long*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4lu\t\t", *((unsigned long*)addr));
+        }else{
+            printf("%12lu", *((unsigned long*)addr));
+        }
     }
     else if(strcmp(type,"float") == 0){
-        printf("%12f", *((float*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4f\t\t", *((float*)addr));
+        }else{
+            printf("%12f", *((float*)addr));
+        }
     }
     else if(strcmp(type,"double") == 0){
-        printf("%12f", *((double*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4f\t\t", *((double*)addr));
+        }else{
+            printf("%12f", *((double*)addr));
+        }
     }
     else if(strcmp(type,"long double") == 0){
-        printf("%12llf", *((long double*)addr));
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4llf\t\t", *((long double*)addr));
+        }else{
+            printf("%12llf", *((long double*)addr));
+        }
     }
     else if(strcmp(type,"char") == 0 || strcmp(type,"signed char") == 0){
         if(isptr == 0){
-            printf("%12c", *((char*)addr));
+            if(iswritefile){
+                if(*((char*)addr) == 0){
+                    fprintf(gb_actualfile,"| %4c\t\t", '0');
+                }else{
+                    fprintf(gb_actualfile,"| %4c\t\t", *((char*)addr));
+                }
+            }else{
+                if(*((char*)addr) == 0){
+                    fprintf(gb_actualfile,"%12c", '0');
+                }else{
+                    printf("%12c", *((char*)addr));
+                }
+
+            }
         }else{
-            printf("%12s", *((char**)addr));
+            if(iswritefile){
+                if(*((char**)addr) == 0){
+                    fprintf(gb_actualfile,"| %4s\t\t", '0');
+                }else{
+                    fprintf(gb_actualfile,"| %4s\t\t", *((char**)addr));
+                }
+            }else{
+                if(*((char**)addr) == 0){
+                    fprintf(gb_actualfile,"%12s\t\t", '0');
+                }else{
+                    printf("%12s", *((char**)addr));
+                }
+            }
         }
     }
     else if(strcmp(type,"unsigned char") == 0){
-        printf("%12c", *((unsigned char*)addr));
+        if(iswritefile){
+            if(*((unsigned char*)addr) == 0){
+                fprintf(gb_actualfile,"| %4c\t\t", '0');
+            }else{
+                fprintf(gb_actualfile,"| %4c\t\t", *((unsigned char*)addr));
+            }
+
+        }else{
+            if(*((unsigned char*)addr) == 0){
+                fprintf(gb_actualfile,"| %12c\t\t", '0');
+            }else{
+                printf("%12c", *((unsigned char*)addr));
+            }
+        }
     }
 
     else{
         printf("-- ERROR --");
     }
 
+
+}
+
+
+/*******************************************************************/
+// Function to write a log for each action in the map list
+/*******************************************************************/
+void write_logfile_maplist(LIST_DYN_OBJ_FORTES *list){
+
+    FILE *filelog;
+    /* open the file */
+    filelog = fopen("/tmp/tmp_map_currentlog.tmp", "a");
+    if (filelog == NULL) {
+     printf("I couldn't open log.map for writing.\n");
+     exit(0);
+    }
+
+    /* write to the file */
+    fprintf(filelog, "%4d\t| %18p| %18p| %4d\t\t| %4d\t\t| %4d\t\t| %4d\t\t| %4d\t\t",
+                    count_all_list_FORTES,
+                    list->adresse_mem_map_FORTES,
+                    list->block_MEM_Point_FORTES,
+                    list->map_ID_func_FORTES,
+                    list->map_is_DYNAM_FORTES,
+                    list->map_setFree_FORTES,
+                    list->map_isUnion_FORTES,
+                    list->map_linePreCode_FORTES);
+
+    //Write the value VAR
+    gb_actualfile = filelog;
+    if(list->block_MEM_Point_FORTES != NULL){
+        print_by_type(list->adresse_mem_map_FORTES, list->map_typevar_FORTES, 1, 1);
+    }else{
+        print_by_type(list->adresse_mem_map_FORTES, list->map_typevar_FORTES, 0, 1);
+    }
+    fprintf(filelog,"\n");
+
+
+    /* close the file */
+    fclose(filelog);
 
 }
 
@@ -129,38 +258,56 @@ void print_debug(LIST_DYN_OBJ_FORTES *list)
 /*******************************************************************/
 void PRINT_TRACE_LOG()
 {
-  printf("Counter-example - Trace Log: \n");
-  printf("   #\t|      Address\t    | Address points to\t| Var Value\t|  Function ID\t|   IS DYNAMIC\t| Set FREE \t|  IS UNION \t| Line \n");
-  //printf("-------------------------------------------------------------------------------------------------------\n");
-  LIST_DYN_OBJ_FORTES *aux;
-  int save_count = count_all_list_FORTES;
-  for (aux=list_CE_trace; aux!=NULL; aux=aux->next_item_FORTES){
-	printf("%4d\t| ", count_all_list_FORTES);
-    printf("%18p| ", aux->adresse_mem_map_FORTES);
+    printf("Counter-example - Trace Log: \n");
+    printf("   #\t|      Address\t    | Address points to\t| Function ID\t|  IS DYNAMIC\t|   Set FREE \t| IS UNION \t| Line \t\t| Var Value\n");
 
-    printf("%18p| ", aux->block_MEM_Point_FORTES);
+    FILE *fp;
+    int ch;
 
-    //Getting the variables values
-    if(aux->block_MEM_Point_FORTES != NULL){
-        print_by_type(aux->block_MEM_Point_FORTES, aux->map_typevar_FORTES, 1);
-    }else{
-        print_by_type(aux->adresse_mem_map_FORTES, aux->map_typevar_FORTES, 0);
+    fp = fopen("/tmp/tmp_map_currentlog.tmp","r"); // read mode
+
+    if( fp == NULL )
+    {
+      perror("Error while opening the file.\n");
+      exit(EXIT_FAILURE);
     }
 
-    printf("\t|");
+    while( ( ch = fgetc(fp) ) != EOF )
+        printf("%c",ch);
 
+    fclose(fp);
 
+  //printf("-------------------------------------------------------------------------------------------------------\n");
+//  LIST_DYN_OBJ_FORTES *aux;
+//  int save_count = count_all_list_FORTES;
+//  for (aux=list_CE_trace; aux!=NULL; aux=aux->next_item_FORTES){
+//	printf("%4d\t| ", count_all_list_FORTES);
+//    printf("%18p| ", aux->adresse_mem_map_FORTES);
+//
+//    printf("%18p| ", aux->block_MEM_Point_FORTES);
+//
+//    //Getting the variables values
+//    if(aux->block_MEM_Point_FORTES != NULL){
+//        print_by_type(aux->block_MEM_Point_FORTES, aux->map_typevar_FORTES, 1,0);
+//    }else{
+//        print_by_type(aux->adresse_mem_map_FORTES, aux->map_typevar_FORTES, 0,0);
+//    }
+//
+//    printf("\t|");
+//
+//
+//
+//    printf("%4d\t\t| ", aux->map_ID_func_FORTES);
+//    printf("%4d \t\t|", aux->map_is_DYNAM_FORTES);
+//    printf("%4d \t\t|", aux->map_setFree_FORTES);
+//    printf("%4d \t\t|", aux->map_isUnion_FORTES);
+//    printf("%4d \n", aux->map_linePreCode_FORTES);
+//
+//    count_all_list_FORTES--;
 
-    printf("%4d\t\t| ", aux->map_ID_func_FORTES);
-    printf("%4d \t\t|", aux->map_is_DYNAM_FORTES);
-    printf("%4d \t\t|", aux->map_setFree_FORTES);
-    printf("%4d \t\t|", aux->map_isUnion_FORTES);
-    printf("%4d \n", aux->map_linePreCode_FORTES);
+    //}
 
-    count_all_list_FORTES--;
-  }
-
-  count_all_list_FORTES=save_count;
+  //count_all_list_FORTES=save_count;
   //printf("-------------------------------------------------------------------------------------------------------\n");
 }
 /*******************************************************************/
@@ -267,6 +414,7 @@ LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *blo
     }
 
 	list_CE_trace = novo;
+	write_logfile_maplist(novo);
 	return novo;
 		
 }
@@ -353,6 +501,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
                 //print_debug(list);
                 
                 list_CE_trace = list;
+                write_logfile_maplist(list);
                 return list;
                 
 			}
@@ -395,6 +544,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
 		//print_debug(list);
 		//return list;
 		list_CE_trace = list;
+		write_logfile_maplist(list);
         return list;
 	} 
   

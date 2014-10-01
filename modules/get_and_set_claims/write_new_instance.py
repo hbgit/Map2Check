@@ -623,7 +623,7 @@ class ParseC2Ast2C(object):
                     
             
             # Check if there is any global var to map
-            if '1' in self.map_is_global2map:
+            if 1 in self.map_is_global2map:
                 self.map_has_global_var2map = True
             
             # DEBUG                  

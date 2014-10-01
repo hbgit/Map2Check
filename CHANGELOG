@@ -26,3 +26,9 @@
 
 > TODO: Write GraphML format like SVCOMP - How we should consider ARRAYS and POINTERS?
 
+
+> [FILE:write_graml_output.py] Creating example to generate graphml
+
+> [FILE:write_graml_output.py] TODO: Adding no setup to install Map2Check
+
+> [FILE:write_new_instance.py] TODO: Adding in the map list the var name to give as input to LIB

@@ -50,6 +50,10 @@ id_count = 1
 list_delete_tmp_file = []
 
 
+# Options to code generation
+FLAG_TRACK_ALL = False
+
+
 
 # Number of time that the analyzed program will be executed to perform the analysis
 NUMEBER_OF_RE_EXEC_EXP = 0
@@ -204,6 +208,7 @@ def only_generate_code(cProgram):
     global id_count
     global PATH_MAP_2_CHECK_FORTES
     global list_delete_tmp_file
+    global FLAG_TRACK_ALL
     
     result_this_step = [] # 1 True or False; 2 bin name file
        
@@ -211,7 +216,11 @@ def only_generate_code(cProgram):
     list_delete_tmp_file.append(new_c_program_name)
     
     # Take time to test case generation
-    cmd = [PATH_MAP_2_CHECK_FORTES, "--only-assert", cProgram]
+    cmd = None
+    if FLAG_TRACK_ALL:
+        cmd = [PATH_MAP_2_CHECK_FORTES, "--only-assert", "--track-all", cProgram]
+    else:
+        cmd = [PATH_MAP_2_CHECK_FORTES, "--only-assert", cProgram]
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -317,6 +326,8 @@ if __name__ == "__main__":
                help='the path of the C program')
     parser.add_argument('-n','--number-check', type=int, dest='setNumberCheck', nargs='?',
                         default=3, help='set the number of the program execution to check')
+    parser.add_argument('-t','--track-all', action="store_true" , dest='setTrackAll',
+               help='tracking all variables value')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-g','--only-generated-code', action="store_true" , dest='setOnlyCode', 
                help='generating only the code with the test cases')
@@ -336,6 +347,9 @@ if __name__ == "__main__":
             parser.parse_args(['-h'])
             sys.exit()
         else:
+
+            if args.setTrackAll:
+                FLAG_TRACK_ALL = True
 
             NUMEBER_OF_RE_EXEC_EXP = args.setNumberCheck
 

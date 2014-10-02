@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 # Create a directed graph
 Gm = nx.DiGraph(sourcecodelang="C")
 
+#nx.set_node_attributes()
 # Adding a node
 Gm.add_node("N1",entry="True")
 Gm.add_node("N2")
@@ -33,12 +34,16 @@ Gm.add_edge("N1","N2",dic_edgeeattr)
 
 Gm.add_edge("N2","N3")
 
+s='\n'.join(nx.generate_graphml(Gm,encoding='utf-8'))
 
-s='\n'.join(nx.generate_graphml(Gm))
+# TODO: In the end replace the id by correct name based on its attr.name
 
 print(s)
 
 limits=plt.axis('off') # turn of axis
+
+#edge_labels = nx.get_edge_attributes(Gm,'originline')
+#nx.draw_networkx_edge_labels(Gm, pos=nx.spring_layout(Gm), labels = edge_labels, with_labels=True)
 nx.draw_networkx(Gm,pos=nx.spring_layout(Gm),with_labels=True)
 #nx.draw(Gm)
 

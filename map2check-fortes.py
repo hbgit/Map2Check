@@ -671,16 +671,23 @@ if __name__ == "__main__":
         if args.setTrackAll:
             TRACK_ALL = "1"
 
-        # Run auxiliary script
-        # The return is as following:
-        #   - Status: [VERIFICATION SUCCESSFUL | VERIFICATION FAILED | TIME OUT | UNKNOW]
-        #   - If UNKNOW -> Output: message
-        #   - If VERIFICATION FAILED -> Output: The trace log is in PATH
-        #   - If TIME OUT -> Output: In {show de time definied}
-        saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
-                                             " -n " + str(args.setCompleteCheck) +
-                                             " " + inputCFile)
+            # Run auxiliary script
+            # The return is as following:
+            #   - Status: [VERIFICATION SUCCESSFUL | VERIFICATION FAILED | TIME OUT | UNKNOW]
+            #   - If UNKNOW -> Output: message
+            #   - If VERIFICATION FAILED -> Output: The trace log is in PATH
+            #   - If TIME OUT -> Output: In {show de time definied}
+            saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                                                 " -t " +
+                                                 " -n " + str(args.setCompleteCheck) +
+                                                 " " + inputCFile)
+        else:
+            saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                                                 " -n " + str(args.setCompleteCheck) +
+                                                 " " + inputCFile)
+
         print(saveresult_check) # TODO TEST
+        os.remove("/tmp/tmp_map_currentlog.tmp")
 
     elif args.setCunitAssert:
         start_generation_cunit_assert(inputCFile,getStartFunction)

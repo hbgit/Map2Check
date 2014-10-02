@@ -5,6 +5,10 @@
 > [FILE:create_map.py] Added the type of the variable in the map list
 > [FILE:map2chek-fortes.py] Added an option to choose among the complete track or partial (default)
 > [FILE:write_new_instance.py] Added type in the function to map the variable track in the function mark_map_FORTES
+> [SOLVED] to write in the new instance the global var
+> [FILE:check_safety_memory_FORTES.c] Deleted tmp file generate by trace log
+> [FILE:create_map.py] Updated auxiliary scripts to receive -t option from map2chek-fortes.py
+> [FILE:write_graml_output.py] Created example to generate graphml
 
 > [FILE:check_safety_memory_FORTES.c] Updating the functions in LIB to handle with type of the var
                 ::TODO: create an option in the LIB to complete and partial trace
@@ -12,22 +16,17 @@
                     - Updated the header
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
 
-::BUG [SOLVED] to write in the new instance the global var
 
 
 
-> [FILE:check_safety_memory_FORTES.c] TODO: Delete tmp file generate by trace log
+
+
 
 > [FILE:create_map.py] TODO: in the complete trace add the loop assignment, such as: i++
-
-> TODO: Update auxiliary scripts to receive -t option from map2chek-fortes.py
 
 ::BUG-ARRAY to print the array values from memory address
 
 > TODO: Write GraphML format like SVCOMP - How we should consider ARRAYS and POINTERS?
-
-
-> [FILE:write_graml_output.py] Creating example to generate graphml
 
 > [FILE:write_graml_output.py] TODO: Adding no setup to install Map2Check
 

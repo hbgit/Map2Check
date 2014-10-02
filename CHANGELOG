@@ -17,7 +17,8 @@
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
 
 
-
+> [FILE:write_graphml_output.py] Added the nodes to the graphml
+> [FILE:write_graphml_output.py] Adding the atributes of the graph
 
 
 
@@ -28,6 +29,6 @@
 
 > TODO: Write GraphML format like SVCOMP - How we should consider ARRAYS and POINTERS?
 
-> [FILE:write_graml_output.py] TODO: Adding no setup to install Map2Check
+> [FILE:write_graphml_output.py] TODO: Adding no setup to install Map2Check
 
 > [FILE:write_new_instance.py] TODO: Adding in the map list the var name to give as input to LIB

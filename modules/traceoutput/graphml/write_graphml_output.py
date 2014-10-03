@@ -133,7 +133,16 @@ class WriteGraphMLOutput(object):
                 Gmap.add_node(actualnodename)
                 # adding the edge from the last node added to the actual node
                 lastnodename = basenodename + str(index-1)
-                Gmap.add_edge(lastnodename,actualnodename)
+                # adding edge attributes
+                self.dic_edges_attributes['lineNumberInOrigin'] = eachline.strip()
+                self.dic_edges_attributes['originFileName'] = self.pathanalyzedprog.strip()
+                self.dic_edges_attributes['assumption'] = self.list_body_outmapbycolumns['Var Value'][index].strip()
+                dic_attr = self.check_dict_to_set(self.dic_edges_attributes)
+
+                Gmap.add_edge(lastnodename,actualnodename,dic_attr)
+
+
+        # TODO: Add the node for property violation
 
 
         # Generating the graph in the GraphML format
@@ -141,9 +150,9 @@ class WriteGraphMLOutput(object):
         print("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>")
         print(string_graph)
 
-        limits = plt.axis('off') # turn of axis
-        nx.draw_networkx(Gmap,pos=nx.spring_layout(Gmap),with_labels=True)
-        plt.show()
+        #limits = plt.axis('off') # turn of axis
+        #nx.draw_networkx(Gmap,pos=nx.spring_layout(Gmap),with_labels=True)
+        #plt.show()
 
 
 

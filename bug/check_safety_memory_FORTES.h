@@ -22,7 +22,8 @@ typedef struct obj {
 } LIST_DYN_OBJ_FORTES;
 
 
-LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block,int ID, int status, int setFree, int isUnion, int linePreCode);
+LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block,int ID,
+                                    int status, int setFree, int isUnion, char *type, int linePreCode);
 
 int CHECK_MEMORY_LEAK(LIST_DYN_OBJ_FORTES* list, int ID_FUNC, int numLineCCode);
 

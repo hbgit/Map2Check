@@ -100,6 +100,13 @@ def make_pycparser_compatible( data ):
             if '((__noreturn__));' in line.split():
                 line = line.replace( '((__noreturn__));', ';' )
 
+        # Replace __VERIFIER_error() by out implementation
+        if line.startswith('extern') and '__VERIFIER_error()' in line.split():       # SVCOMP
+            line = line.replace( '__VERIFIER_error()', '__VERIFIER_error(int numline)' )
+        if line.startswith('extern') and '__VERIFIER_error(void);' in line.split():       # SVCOMP
+            line = line.replace( '__VERIFIER_error(void);', '__VERIFIER_error(int numline);' )
+
+
         # types.h #
         for ugly in ['((__mode__ (__QI__)));' , '((__mode__ (__HI__)));' , '((__mode__ (__SI__)));' , '((__mode__ (__DI__)));' , '((__mode__ (__word__)));']:
             if line.endswith( ugly ): line = line.replace(ugly, ';')

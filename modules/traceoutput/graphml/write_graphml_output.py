@@ -26,6 +26,7 @@ class WriteGraphMLOutput(object):
         self.pathanalyzedprog = ''
         self.list_body_outmapbycolumns = None
         self.listdataviolated = []
+        self.listdatatokens = None
         # Attributes of the graph according to SVCOMP
         # Is a dictionary with a KEY:[Value,Type]
         self.dic_edges_attributes = {
@@ -100,12 +101,24 @@ class WriteGraphMLOutput(object):
             matchnumlineviolated = re.search(r'Location at original code in line:(.*)$', line)
             if matchnumlineviolated:
                 self.listdataviolated.append(matchnumlineviolated.group(1).strip())
+                break
 
 
     def check_dict_to_set(self, _dic_attributes):
         final_dic_attr = {key: _dic_attributes[key] for key in _dic_attributes if not _dic_attributes[key] == None }
-        print(final_dic_attr)
+        #print(final_dic_attr)
         return final_dic_attr
+
+
+    def search_linenum_in_listdatatokens(self, _numline):
+
+        for index, item in enumerate(self.listdatatokens):
+            if item[0] == _numline:
+                return index
+
+        return -1 # not found
+
+
 
 
     def generate_graphml(self):
@@ -120,6 +133,9 @@ class WriteGraphMLOutput(object):
 
         # Adding the nodes and the edges of the graph
         #print(self.list_body_outmapbycolumns[])
+        #print(self.listdatatokens)
+        nextnode = ''
+        lastnumnode = 0
         for index, eachline in enumerate(self.list_body_outmapbycolumns['Line']):
             actualnodename = basenodename + str(index)
             self.reset_dic_attributes()
@@ -132,17 +148,66 @@ class WriteGraphMLOutput(object):
             else:
                 Gmap.add_node(actualnodename)
                 # adding the edge from the last node added to the actual node
-                lastnodename = basenodename + str(index-1)
+                #lastnodename = basenodename + str(index-1)
+
+            # identify the next node to add the edge
+            if (index+1) <= len(self.list_body_outmapbycolumns['Line']):
+                nextnode = basenodename + str(index+1)
+
                 # adding edge attributes
                 self.dic_edges_attributes['lineNumberInOrigin'] = eachline.strip()
+
+                #get data tokens attributes
+                resultsearchtk = self.search_linenum_in_listdatatokens(int(eachline.strip()))
+                if resultsearchtk != -1:
+                    #print('\n'.join(self.listdatatokens[resultsearchtk][1][1]))
+                    numbertokens = ', '.join(str(x) for x in self.listdatatokens[resultsearchtk][1][0])
+                    texttokens = '\n'.join(self.listdatatokens[resultsearchtk][1][1])
+                    self.dic_edges_attributes['tokenSet'] = numbertokens
+                    self.dic_edges_attributes['originTokenSet'] = numbertokens
+                    self.dic_edges_attributes['sourcecode'] = texttokens
+
+
                 self.dic_edges_attributes['originFileName'] = self.pathanalyzedprog.strip()
                 self.dic_edges_attributes['assumption'] = self.list_body_outmapbycolumns['Var Value'][index].strip()
                 dic_attr = self.check_dict_to_set(self.dic_edges_attributes)
 
-                Gmap.add_edge(lastnodename,actualnodename,dic_attr)
+                Gmap.add_edge(actualnodename, nextnode, dic_attr)
 
 
-        # TODO: Add the node for property violation
+        #print(len(self.list_body_outmapbycolumns['Line']))
+        lastnumnode = len(self.list_body_outmapbycolumns['Line'])
+        # Adding the nodes for property violation
+        # node where the error has been identified
+        propertynode = basenodename + str(lastnumnode)
+        violationnode = basenodename + str(lastnumnode+1)
+        Gmap.add_node(violationnode,isViolationNode=True)
+
+        # adding edge attributes
+        self.dic_edges_attributes['lineNumberInOrigin'] = self.listdataviolated[0].strip()
+
+        #get data tokens attributes
+        resultsearchtk = self.search_linenum_in_listdatatokens(int(self.listdataviolated[0].strip()))
+        if resultsearchtk != -1:
+            numbertokens = ', '.join(str(x) for x in self.listdatatokens[resultsearchtk][1][0])
+            texttokens = '\n'.join(self.listdatatokens[resultsearchtk][1][1])
+            self.dic_edges_attributes['tokenSet'] = numbertokens
+            self.dic_edges_attributes['originTokenSet'] = numbertokens
+            self.dic_edges_attributes['sourcecode'] = texttokens
+
+
+        self.dic_edges_attributes['originFileName'] = self.pathanalyzedprog.strip()
+        dic_attr = self.check_dict_to_set(self.dic_edges_attributes)
+
+        Gmap.add_edge(propertynode, violationnode, dic_attr)
+        # #
+        # # node violation
+        # Gmap.add_node(propertynode,isViolationNode=True)
+
+
+
+
+
 
 
         # Generating the graph in the GraphML format

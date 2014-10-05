@@ -9,19 +9,25 @@
 > [FILE:check_safety_memory_FORTES.c] Deleted tmp file generate by trace log
 > [FILE:create_map.py] Updated auxiliary scripts to receive -t option from map2chek-fortes.py
 > [FILE:write_graml_output.py] Created example to generate graphml
-
-> [FILE:check_safety_memory_FORTES.c] Updating the functions in LIB to handle with type of the var
-                ::TODO: create an option in the LIB to complete and partial trace
+> [FILE:write_graphml_output.py] Added the nodes to the graphml
+> [FILE:create_map.py] Added the option to gerate the trace in GraphML format
+> [FILE:create_map.py] Created a method to generate the token data for GraphML format
+> [FILE:complete_check.py] Fixed bug related to choose the option --graphml-output
+> [FILE:write_graphml_output.py] Added the data token atributes to graphml
+> [FILE:check_safety_memory_FORTES.c] Updated the functions in LIB to handle with type of the var
                 ::Updated the function PRINT_TRACE_LOG to read from file tmp log
                     - Updated the header
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
 
 
-> [FILE:write_graphml_output.py] Added the nodes to the graphml
-> [FILE:write_graphml_output.py] Adding the atributes of the graph
+> [FILE:write_new_instance.py] DOING: Adding in the map list the var name to give as input to LIB
+
+> [FILE:write_graphml_output.py] TODO: Update the assumption attribute to correct form
 
 
 
+
+> [FILE: configure.py] TODO: adding c-tokenizer-x86_64-linux.zip in the install process
 
 > [FILE:create_map.py] TODO: in the complete trace add the loop assignment, such as: i++
 
@@ -31,4 +37,4 @@
 
 > [FILE:write_graphml_output.py] TODO: Adding no setup to install Map2Check
 
-> [FILE:write_new_instance.py] TODO: Adding in the map list the var name to give as input to LIB
+

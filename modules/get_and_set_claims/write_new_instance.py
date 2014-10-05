@@ -876,12 +876,14 @@ class ParseC2Ast2C(object):
         for index, numLine in enumerate(self.map_line2map):
             if numberOfLineCode == numLine:
                 #print(self.map_var2map[index])
-                print("list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&("+self.map_var2map[index]+\
-                    "),(void *)(intptr_t)("+self.map_var_points_to2map[index]+"),"+str(self.map_id_func2map[index])+","+\
-                    str(self.map_is_dynam2map[index])+","+str(self.map_is_free2map[index])+","+\
-                    str(self.map_is_union2map[index])+", \""+\
-                    str(self.map_type_var[index])+"\" ,"+\
-                    str(self.map_original_line_program[index])+"); /** by FORTES **/ \n")
+                print("list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&("+
+                      self.map_var2map[index] +
+                      "),(void *)(intptr_t)(" + self.map_var_points_to2map[index]+")," +
+                      str(self.map_id_func2map[index])+","+\
+                      str(self.map_is_dynam2map[index])+","+str(self.map_is_free2map[index])+","+\
+                      str(self.map_is_union2map[index])+", \""+\
+                      str(self.map_type_var[index])+"\" ,"+\
+                      str(self.map_original_line_program[index])+"); /** by FORTES **/ \n")
                     
     def check_and_write_claim(self, numberOfLineCode):
         for index, numLine in enumerate(self.CL_list_line_num):

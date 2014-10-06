@@ -19,6 +19,8 @@
                     - Updated the header
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
 > [FILE:write_new_instance.py] Added in the map list the var name to give as input to LIB
+> [FILE:create_map.py] When tokenizer the program we not consider blank lines
+
 
 
 > [FILE:write_graphml_output.py] TODO: Update the assumption attribute to correct form
@@ -34,6 +36,8 @@
 > [FILE: configure.py] TODO: adding c-tokenizer-x86_64-linux.zip in the install process
 
 > [FILE:create_map.py] TODO: in the complete trace add the loop assignment, such as: i++
+
+
 
 ::BUG-ARRAY to print the array values from memory address
 

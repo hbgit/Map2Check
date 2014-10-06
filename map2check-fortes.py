@@ -519,14 +519,14 @@ def create_map_tokenizer(_cFile, _finalFileMap):
     filec.close()
 
     lastqdttoken = 0
-    nextmaplineresult = 0
+    nextmaplineresult = 1 # Cuz the tokens number start in 1
     actualmapline = 0
 
     resulttokensnanalysis = []
 
     for index, line in enumerate(linescfile):
         filefortoken = open("/tmp/tmp_tokens.tmp",'w')
-        #print(line)
+        # print(line)
         filefortoken.write(line)
         filefortoken.close()
 
@@ -538,14 +538,20 @@ def create_map_tokenizer(_cFile, _finalFileMap):
             #print(str(index+1) + " ; " + str(nextmaplineresult) + " ; " + line, end="")
 
             lastqdttoken = resulttokens.count("\n")
+
+            #if lastqdttoken == 0:
+            #    nextmaplineresult -= 1
+
+            #print("Print ount0: "+str(nextmaplineresult))
+
             token2print = removeunncesstokens(resulttokens.split("\n"), nextmaplineresult)
 
             resulttokensnanalysis.append([index+1,token2print])
 
-            nextmaplineresult = lastqdttoken+nextmaplineresult+1
+            nextmaplineresult = lastqdttoken+nextmaplineresult
 
-            #print("Last count: "+str(lastqdttoken))
-            #print("Next l map: "+str(nextmaplineresult))
+            # print("Last count0: "+str(lastqdttoken))
+            # print("Next l map0: "+str(nextmaplineresult))
 
 
         else:
@@ -557,16 +563,15 @@ def create_map_tokenizer(_cFile, _finalFileMap):
             resulttokensnanalysis.append([index+1,token2print])
 
             nextmaplineresult = 1
-
             nextmaplineresult = lastqdttoken+nextmaplineresult
 
-            #print("Last count: "+str(lastqdttoken))
-            #print("Next l map: "+str(nextmaplineresult))
+            # print("Last count: "+str(lastqdttoken))
+            # print("Next l map: "+str(nextmaplineresult))
 
     #for debug
-    #for item in resulttokensnanalysis:
+    # for item in resulttokensnanalysis:
     #    print(item)
-    #sys.exit()
+    # sys.exit()
     return resulttokensnanalysis
 
 

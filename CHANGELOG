@@ -18,11 +18,15 @@
                 ::Updated the function PRINT_TRACE_LOG to read from file tmp log
                     - Updated the header
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
+> [FILE:write_new_instance.py] Added in the map list the var name to give as input to LIB
 
-
-> [FILE:write_new_instance.py] DOING: Adding in the map list the var name to give as input to LIB
 
 > [FILE:write_graphml_output.py] TODO: Update the assumption attribute to correct form
+
+> [FILE:write_graphml_output.py] TODO: Validate the assumption write in case of pointer and arrays
+
+
+> [FILE:check_safety_memory_FORTES.c] TODO: Executes os.remove("/tmp/tmp_map_currentlog.tmp") in the C library to avoid troubles with multiples executions
 
 
 

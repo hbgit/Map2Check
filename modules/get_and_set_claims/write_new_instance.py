@@ -879,6 +879,7 @@ class ParseC2Ast2C(object):
                 print("list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&("+
                       self.map_var2map[index] +
                       "),(void *)(intptr_t)(" + self.map_var_points_to2map[index]+")," +
+                      "\""+str(self.map_var2map[index])+"\","+\
                       str(self.map_id_func2map[index])+","+\
                       str(self.map_is_dynam2map[index])+","+str(self.map_is_free2map[index])+","+\
                       str(self.map_is_union2map[index])+", \""+\
@@ -1042,12 +1043,15 @@ class ParseC2Ast2C(object):
         
                 for index, value in enumerate(self.map_is_global2map):
                     if int(value) == 1 and int(self.map_id_func2map[index]) == 0:                    
-                        print("list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&("+self.map_var2map[index]+\
-                        "),(void *)(intptr_t)("+self.map_var_points_to2map[index]+"),"+str(self.map_id_func2map[index])+","+\
-                        str(self.map_is_dynam2map[index])+","+str(self.map_is_free2map[index])+","+\
-                        str(self.map_is_union2map[index])+", \""+\
-                        str(self.map_type_var[index])+"\" ,"+\
-                        str(self.map_original_line_program[index])+"); /** by FORTES **/ ")
+                        print("list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&("+
+                              self.map_var2map[index]+
+                              "),(void *)(intptr_t)(" + self.map_var_points_to2map[index]+")," +\
+                              "\""+str(self.map_var2map[index])+"\","+\
+                              str(self.map_id_func2map[index])+","+\
+                              str(self.map_is_dynam2map[index])+","+str(self.map_is_free2map[index])+","+\
+                              str(self.map_is_union2map[index])+", \""+\
+                              str(self.map_type_var[index])+"\" ,"+\
+                              str(self.map_original_line_program[index])+"); /** by FORTES **/ ")
             
                 print("}");
                 print("/** End mapping global variables <- by FORTES**/ ")

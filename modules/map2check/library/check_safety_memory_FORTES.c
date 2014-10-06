@@ -22,6 +22,7 @@ typedef struct obj {
   void  *adresse_mem_map_FORTES;
   void  *block_MEM_Point_FORTES;
 
+  char  *map_namevar_FORTES;
   int   map_ID_func_FORTES;
   int   map_is_DYNAM_FORTES; 
   int   map_setFree_FORTES;
@@ -191,7 +192,7 @@ void write_logfile_maplist(LIST_DYN_OBJ_FORTES *list){
     }
 
     /* write to the file */
-    fprintf(filelog, "%4d\t| %18p| %18p| %4d\t\t| %4d\t\t| %4d\t\t| %4d\t\t| %4d\t\t",
+    fprintf(filelog, "%4d\t| %18p| %18p| %4d\t\t| %4d\t\t| %4d\t\t| %8d\t| %4d\t| %8s\t",
                     count_all_list_FORTES,
                     list->adresse_mem_map_FORTES,
                     list->block_MEM_Point_FORTES,
@@ -199,7 +200,8 @@ void write_logfile_maplist(LIST_DYN_OBJ_FORTES *list){
                     list->map_is_DYNAM_FORTES,
                     list->map_setFree_FORTES,
                     list->map_isUnion_FORTES,
-                    list->map_linePreCode_FORTES);
+                    list->map_linePreCode_FORTES,
+                    list->map_namevar_FORTES);
 
     //Write the value VAR
     gb_actualfile = filelog;
@@ -259,7 +261,7 @@ void print_debug(LIST_DYN_OBJ_FORTES *list)
 void PRINT_TRACE_LOG()
 {
     printf("Counter-example - Trace Log: \n");
-    printf("   #\t|      Address\t    | Address points to\t| Function ID\t|  IS DYNAMIC\t|   Set FREE \t| IS UNION \t| Line \t\t| Var Value\n");
+    printf("   #\t|      Address\t    | Address points to\t| Function ID\t|  IS DYNAMIC\t|   Set FREE \t| IS UNION \t| Line \t| Var Name \t| Var Value\n");
 
     FILE *fp;
     int ch;
@@ -323,7 +325,7 @@ void PRINT_TRACE_LOG()
  * Function: add2List
  * GOAL: Function to add a new element into the list 
  **/ 
-LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *block, int ID,
+LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *block, char *namevar, int ID,
                               int status, int setFree, int isUnion, char *typevar, int linePreCode){
 	
 	LIST_DYN_OBJ_FORTES* aux_blk_cr;
@@ -347,7 +349,8 @@ LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *blo
         novo->map_isUnion_FORTES = isUnion;
         novo->map_typevar_FORTES = typevar;
         novo->adresse_mem_map_FORTES = (void *)adress; //get the adress from value point out
-        novo->block_MEM_Point_FORTES = (void *)block;		
+        novo->block_MEM_Point_FORTES = (void *)block;
+        novo->map_namevar_FORTES = namevar;
         novo->map_ID_func_FORTES = ID;			
         novo->map_linePreCode_FORTES = linePreCode;
         novo->next_item_FORTES = list;
@@ -397,7 +400,8 @@ LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *blo
         
         //Just create a new element, i.e., mapping another object
         novo->adresse_mem_map_FORTES = (void *)adress; //get the adress from value point out
-        novo->block_MEM_Point_FORTES = (void *)block;		
+        novo->block_MEM_Point_FORTES = (void *)block;
+        novo->map_namevar_FORTES = namevar;
         novo->map_ID_func_FORTES = ID;		
         novo->map_is_DYNAM_FORTES = status;
         novo->map_setFree_FORTES = setFree;
@@ -438,7 +442,7 @@ LIST_DYN_OBJ_FORTES* add2List(LIST_DYN_OBJ_FORTES* list, void *adress, void *blo
  * [TO DO] 
  * 		=> Improve performace and check leak02.c
  * */ 
-LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block, int ID,
+LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block, char *namevar, int ID,
                                      int status, int setFree, int isUnion, char *typevar, int linePreCode)
 {   
 	LIST_DYN_OBJ_FORTES* aux;
@@ -519,7 +523,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
                 printf("%d ADD NEW LOG \n", count_all_list_FORTES);
             }
 			
-            return add2List(list, (void *)adress, (void *)block, ID, status, setFree, isUnion, typevar, linePreCode);
+            return add2List(list, (void *)adress, (void *)block, namevar, ID, status, setFree, isUnion, typevar, linePreCode);
 		}					
 	}
 	
@@ -539,7 +543,7 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
         
         //printf("Add new address: %p -> %p \n", (void *)adress, (void *)block);
 		
-        return add2List(list, (void *)adress, (void *)block, ID, status, setFree, isUnion, typevar, linePreCode);
+        return add2List(list, (void *)adress, (void *)block, namevar, ID, status, setFree, isUnion, typevar, linePreCode);
 	}else{		
 		//print_debug(list);
 		//return list;

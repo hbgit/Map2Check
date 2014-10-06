@@ -169,12 +169,18 @@ class WriteGraphMLOutput(object):
 
 
                 self.dic_edges_attributes['originFileName'] = self.pathanalyzedprog.strip()
-                self.dic_edges_attributes['assumption'] = self.list_body_outmapbycolumns['Var Value'][index].strip()
+
+                # TODO: Validate in case of pointer and arrays
+                takeassumption = self.list_body_outmapbycolumns['Var Name'][index].strip() + " = " + \
+                                 self.list_body_outmapbycolumns['Var Value'][index].strip() + ";"
+
+                self.dic_edges_attributes['assumption'] = takeassumption
                 dic_attr = self.check_dict_to_set(self.dic_edges_attributes)
 
                 Gmap.add_edge(actualnodename, nextnode, dic_attr)
 
 
+        self.reset_dic_attributes()
         #print(len(self.list_body_outmapbycolumns['Line']))
         lastnumnode = len(self.list_body_outmapbycolumns['Line'])
         # Adding the nodes for property violation

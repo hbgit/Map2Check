@@ -11,10 +11,10 @@ int main()
 {
    int a = 1;
 
-   list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(a), (void *)(intptr_t)(NULL), 1, 0, 0, 0, "int", 4); /** by FORTES **/
+   list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(a), (void *)(intptr_t)(NULL), "a", 1, 0, 0, 0, "int", 4); /** by FORTES **/
 
    int c = 1 || (a = 0);
-   list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(c), (void *)(intptr_t)(NULL), 1, 0, 0, 0, "int", 5); /** by FORTES **/
+   list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(c), (void *)(intptr_t)(NULL), "c", 1, 0, 0, 0, "int", 5); /** by FORTES **/
 
    if (a)
    {

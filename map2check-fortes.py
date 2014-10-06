@@ -474,7 +474,7 @@ def removeunncesstokens(_listtokens, _linestartpointtoken):
 
     if not isanarray:
         for index, token in enumerate(_listtokens):
-            if token in ["(",")","{","}","=","*","+","-","/","%",";",",",""]:
+            if token in ["(",")","{","}","=","*","+","-","/","||","%",";",",",""]:
                 #print(token)
                 listindex.append(index)
 

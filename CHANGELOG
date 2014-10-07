@@ -20,26 +20,26 @@
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
 > [FILE:write_new_instance.py] Added in the map list the var name to give as input to LIB
 > [FILE:create_map.py] When tokenizer the program we not consider blank lines
-
-
 > [FILE: configure.py] Added networkx in the install process
 > [FILE: configure.py] Added c-tokenizer-x86_64-linux.zip in the install process
-
-
-
 > [FILE:check_safety_memory_FORTES.c] Executes os.remove("/tmp/tmp_map_currentlog.tmp") in the C library to avoid troubles with multiples executions
-
-
+> [FILE:write_graphml_output.py] Set the graphml attributes according to SVCOMP model
 
 
 > [FILE:write_graphml_output.py] TODO: Update the assumption attribute to correct form
 
 > [FILE:write_graphml_output.py] TODO: Validate the assumption write in case of pointer and arrays
 
+> [FILE:write_graphml_output.py] TODO: Validate the assumption write in case of arrays
+    ::BUG-ARRAY to print the array values from memory address
+
+
+> [FILE:write_graphml_output.py] TODO: Adding support to functions in graphml
+
 > [FILE:create_map.py] TODO: in the complete trace add the loop assignment, such as: i++
 
 
 
-::BUG-ARRAY to print the array values from memory address
 
-> TODO: Write GraphML format like SVCOMP - How we should consider ARRAYS and POINTERS?
+
+

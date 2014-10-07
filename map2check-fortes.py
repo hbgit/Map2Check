@@ -830,6 +830,7 @@ if __name__ == "__main__":
                                                      " -g " +
                                                      " -n " + str(args.setCompleteCheck) +
                                                      " " + inputCFile)
+
                 writegraphout = True
             else:
                 saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +

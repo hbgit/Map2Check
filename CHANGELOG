@@ -27,17 +27,14 @@
 
 
 
+> [FILE:check_safety_memory_FORTES.c] Executes os.remove("/tmp/tmp_map_currentlog.tmp") in the C library to avoid troubles with multiples executions
+
+
+
+
 > [FILE:write_graphml_output.py] TODO: Update the assumption attribute to correct form
 
 > [FILE:write_graphml_output.py] TODO: Validate the assumption write in case of pointer and arrays
-
-
-> [FILE:check_safety_memory_FORTES.c] TODO: Executes os.remove("/tmp/tmp_map_currentlog.tmp") in the C library to avoid troubles with multiples executions
-
-
-
-
-
 
 > [FILE:create_map.py] TODO: in the complete trace add the loop assignment, such as: i++
 

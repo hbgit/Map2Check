@@ -159,10 +159,12 @@ if __name__ == "__main__":
 
     if not os.path.exists(desttok):
         os.makedirs(desttok)
-        os.chown(desttok, saveusernameid, saveusernameid)
+        #os.chown(desttok+"tokenizer", saveusernameid, saveusernameid)
 
     extract_file( os.path.abspath("modules/other_tools/c-tokenizer-x86_64-linux.zip"),
                   os.path.abspath(desttok) )
+
+    os.chmod(desttok+"tokenizer", 777)
 
 
     #-------------------------------------------------------

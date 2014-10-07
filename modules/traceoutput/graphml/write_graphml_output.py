@@ -217,9 +217,11 @@ class WriteGraphMLOutput(object):
 
 
         # Generating the graph in the GraphML format
-        string_graph = '\n'.join(nx.generate_graphml(Gmap,encoding='utf-8'))
-        print("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>")
-        print(string_graph)
+        string_graph = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?> \n"
+        string_graph += '\n'.join(nx.generate_graphml(Gmap,encoding='utf-8'))
+        #print("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>")
+        #print(string_graph)
+        return string_graph
 
         #limits = plt.axis('off') # turn of axis
         #nx.draw_networkx(Gmap,pos=nx.spring_layout(Gmap),with_labels=True)

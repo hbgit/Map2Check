@@ -572,6 +572,7 @@ def create_map_tokenizer(_cFile, _finalFileMap):
     # for item in resulttokensnanalysis:
     #    print(item)
     # sys.exit()
+    os.remove("/tmp/tmp_tokens.tmp")
     return resulttokensnanalysis
 
 
@@ -725,7 +726,7 @@ def start_generation_cassert(cFile, enSetFunc):
     list_tmp_path.append(getFinalCFile)
     where_copied_head = os.path.dirname(getPath2NewInstCFile)+"/check_safety_memory_FORTES.h"
     
-    #list_tmp_path.append(where_copied_head)
+    list_tmp_path.append(where_copied_head)
     remove_tmp_files(list_tmp_path)
     sys.exit()   
     
@@ -852,8 +853,15 @@ if __name__ == "__main__":
             # Generating the graphml
             #print(WRITE_GRAPHMLOUT.listdatatokens)
             WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
-            WRITE_GRAPHMLOUT.generate_graphml()
+            name_file_result = commands.getoutput("mktemp")
+            lastoutput = open(str(name_file_result), "w")
+            lastoutput.write(WRITE_GRAPHMLOUT.generate_graphml())
+            lastoutput.close()
 
+            # Save this output in a tmp file
+            os.remove(nameoutputmap)
+            print("Status: VERIFICATION FAILED")
+            print("The trace log is in < " + name_file_result + " >")
 
         else:
             print(saveresult_check) # TODO TEST

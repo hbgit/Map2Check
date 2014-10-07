@@ -120,6 +120,52 @@ if __name__ == "__main__":
 
 
     #-------------------------------------------------------
+    ### Checking nextworkx
+    msg_netx = ""
+
+    cwd = os.getcwd()
+
+    try:
+        import networkx
+    except ImportError, e:
+        print("--- Installing: networkx")
+        extract_file( os.path.abspath("modules/other_tools/networkx-master.zip"),
+                      os.path.abspath("modules/other_tools/") )
+
+
+        os.chdir(os.path.abspath("modules/other_tools/networkx-master/"))
+        msg_netx = commands.getoutput("python setup.py install")
+
+        print("--- Checking installation for: networkx")
+        try:
+            import networkx
+            os.chdir(cwd)
+            shutil.rmtree(os.path.abspath("modules/other_tools/networkx-master"))
+        except ImportError, e:
+            print("--- Error to install networkx")
+            print("Details: ")
+            print(msg_netx)
+            sys.exit
+
+
+    #-------------------------------------------------------
+    ### Unpacking tokenizer
+    msg_tk = ""
+
+    cwd = os.getcwd()
+
+    print("--- Unpacking: tokenizer")
+    desttok = "modules/tokenizer/"
+
+    if not os.path.exists(desttok):
+        os.makedirs(desttok)
+        os.chown(desttok, saveusernameid, saveusernameid)
+
+    extract_file( os.path.abspath("modules/other_tools/c-tokenizer-x86_64-linux.zip"),
+                  os.path.abspath(desttok) )
+
+
+    #-------------------------------------------------------
     ### Generating Uncrustify
     msg_pyp = ""
 
@@ -244,7 +290,9 @@ if __name__ == "__main__":
     config.set('MAPFORTES_TOOL', 'MAPFORTES_path', os.path.abspath(''))
     config.set('MAPFORTES_TOOL', 'pyparsing', 'installed')
     config.set('MAPFORTES_TOOL', 'pycparser', 'installed')
+    config.set('MAPFORTES_TOOL', 'networkx', 'installed')
     config.set('MAPFORTES_TOOL', 'uncrustify', 'installed')
+    config.set('MAPFORTES_TOOL', 'tokenizer', 'installed')
     config.set('MAPFORTES_TOOL', 'perl', 'installed')
       
     

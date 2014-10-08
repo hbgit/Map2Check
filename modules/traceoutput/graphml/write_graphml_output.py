@@ -130,11 +130,16 @@ class WriteGraphMLOutput(object):
         basenodename = 'N'
         lastnode = None
 
+        # loading data id function name
+        ldfunctname = reader_csv_output.ReaderCsv()
+        dataidfunctname = ldfunctname.loadCsvFile("/tmp/tmp_idfunct.map2check",";")
+
         # Adding the nodes and the edges of the graph
         #print(self.list_body_outmapbycolumns[])
         #print(self.listdatatokens)
         nextnode = ''
         lastnumnode = 0
+        list_enterfunct = []
         for index, eachline in enumerate(self.list_body_outmapbycolumns['Line']):
             actualnodename = basenodename + str(index)
             self.reset_dic_attributes()
@@ -164,6 +169,28 @@ class WriteGraphMLOutput(object):
                     texttokens = '\n'.join(self.listdatatokens[resultsearchtk][1][1])
                     self.dic_edges_attributes['tokenSet'] = numbertokens
                     self.dic_edges_attributes['originTokenSet'] = numbertokens
+
+                    # >>> Adding function attribute
+                    # identify the ID of the main function
+                    idmainfunct = ''
+                    for i, value in enumerate(dataidfunctname['functname']):
+                        if value == "main":
+                            idmainfunct = dataidfunctname['id'][i].strip()
+                            break
+
+                    if index+1 <= (len(self.list_body_outmapbycolumns['Function ID'])-1):
+                        if self.list_body_outmapbycolumns['Function ID'][index] != \
+                            self.list_body_outmapbycolumns['Function ID'][index+1] and \
+                            self.list_body_outmapbycolumns['Function ID'][index+1] != idmainfunct:
+
+                            # getting the function name
+                            for i, value in enumerate(dataidfunctname['id']):
+                                if value == self.list_body_outmapbycolumns['Function ID'][index+1]:
+                                    self.dic_edges_attributes['enterFunction'] = dataidfunctname['functname'][i]
+                                    break
+
+                    # TODO: returnFrom not suportted yet
+
                     self.dic_edges_attributes['sourcecode'] = texttokens
 
 

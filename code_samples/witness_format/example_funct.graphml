@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?> 
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key attr.name="originFileName" attr.type="string" for="edge" id="d9" />
+  <key attr.name="tokenSet" attr.type="string" for="edge" id="d8" />
+  <key attr.name="sourcecode" attr.type="string" for="edge" id="d7" />
+  <key attr.name="enterFunction" attr.type="string" for="edge" id="d6" />
+  <key attr.name="assumption" attr.type="string" for="edge" id="d5" />
+  <key attr.name="originTokenSet" attr.type="string" for="edge" id="d4" />
+  <key attr.name="lineNumberInOrigin" attr.type="string" for="edge" id="d3" />
+  <key attr.name="isViolationNode" attr.type="boolean" for="node" id="d2" />
+  <key attr.name="isEntryNode" attr.type="string" for="node" id="entry" />
+  <key attr.name="sourcecodeLanguage" attr.type="string" for="graph" id="d0" />
+  <graph edgedefault="directed">
+    <data key="d0">C</data>
+    <node id="N0">
+      <data key="entry">True</data>
+    </node>
+    <node id="N1" />
+    <node id="N2" />
+    <node id="N3" />
+    <node id="N4" />
+    <node id="N5" />
+    <node id="N6">
+      <data key="d2">True</data>
+    </node>
+    <edge source="N0" target="N1">
+      <data key="d3">15</data>
+      <data key="d4">43, 44, 46</data>
+      <data key="d5">a = 1;</data>
+      <data key="d6">failure</data>
+      <data key="d7">int
+a
+=
+1
+;
+</data>
+      <data key="d8">43, 44, 46</data>
+      <data key="d9">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/code_samples/witness_format/example_funct.c</data>
+    </edge>
+    <edge source="N1" target="N2">
+      <data key="d3">8</data>
+      <data key="d4">24, 25</data>
+      <data key="d5">c = 0;</data>
+      <data key="d7">int
+c
+;
+</data>
+      <data key="d8">24, 25</data>
+      <data key="d9">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/code_samples/witness_format/example_funct.c</data>
+    </edge>
+    <edge source="N2" target="N3">
+      <data key="d3">9</data>
+      <data key="d4">27, 28</data>
+      <data key="d5">r = 0;</data>
+      <data key="d6">foo</data>
+      <data key="d7">int
+r
+;
+</data>
+      <data key="d8">27, 28</data>
+      <data key="d9">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/code_samples/witness_format/example_funct.c</data>
+    </edge>
+    <edge source="N3" target="N4">
+      <data key="d3">4</data>
+      <data key="d4">13, 14, 16</data>
+      <data key="d5">de = 0.000000;</data>
+      <data key="d7">float
+de
+=
+0.0
+;
+</data>
+      <data key="d8">13, 14, 16</data>
+      <data key="d9">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/code_samples/witness_format/example_funct.c</data>
+    </edge>
+    <edge source="N4" target="N5">
+      <data key="d3">17</data>
+      <data key="d4">55, 56</data>
+      <data key="d5">k = 0;</data>
+      <data key="d7">int
+k
+;
+</data>
+      <data key="d8">55, 56</data>
+      <data key="d9">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/code_samples/witness_format/example_funct.c</data>
+    </edge>
+    <edge source="N5" target="N6">
+      <data key="d3">18</data>
+      <data key="d4">58</data>
+      <data key="d9">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/code_samples/witness_format/example_funct.c</data>
+      <data key="d7">__VERIFIER_error
+(
+)
+;
+</data>
+      <data key="d8">58</data>
+    </edge>
+  </graph>
+</graphml>

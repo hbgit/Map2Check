@@ -583,6 +583,7 @@ class ParseC2Ast2C(object):
         countIdFunc = 0
         saveLastIdFunc = ''
         self.map_has_global_var2map = False
+        list_map_id_namefunc = []
         try:
             with open(mapFileCsv, 'r') as fileCsv:                
                 reader = csv.DictReader(fileCsv,delimiter=';')
@@ -597,8 +598,13 @@ class ParseC2Ast2C(object):
                     # After_Pre_LOC                    
                     self.map_line2map.append(int(row['After_Pre_LOC']))
                     
-                    # Scope                    
+                    # Scope
+                    # TODO: Create here a map ID == Name Function
+                    flag_globalidfunct = False
                     if str(row['Scope']) == "Global":
+                        if not flag_globalidfunct:
+                            list_map_id_namefunc.append([0,"Global"])
+                            flag_globalidfunct = True
                         self.map_id_func2map.append(0)
                     else:
                         if saveLastIdFunc == row['Scope']:
@@ -606,6 +612,7 @@ class ParseC2Ast2C(object):
                         else:
                             countIdFunc += 1
                             saveLastIdFunc = row['Scope']
+                            list_map_id_namefunc.append([countIdFunc,str(row['Scope'])])
                             self.map_id_func2map.append(countIdFunc)
                     
                     # Variable
@@ -641,6 +648,14 @@ class ParseC2Ast2C(object):
 
         except IOError:
             print("Could not read file: %s" % mapFileCsv)
+
+
+        # Write tmp file with data id and name of the functions
+        idfunctfile = open("/tmp/tmp_idfunct.map2check",'w')
+        idfunctfile.write("id;functname\n")
+        for item in list_map_id_namefunc:
+            idfunctfile.write(str(item[0])+";"+item[1]+"\n")
+        idfunctfile.close()
             
             
         

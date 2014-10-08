@@ -28,8 +28,7 @@
 
 
 > [FILE:write_graphml_output.py] Updated the graphml attribute, now only entry attribute is a string otherwise is like this "id0"
-
-> [FILE:write_graphml_output.py] TODO: Adding support to functions in graphml
+> [FILE:write_graphml_output.py] Added support to functions (enterFunction) in graphml
 
 
 

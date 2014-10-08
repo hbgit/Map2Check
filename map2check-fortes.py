@@ -853,6 +853,10 @@ if __name__ == "__main__":
 
             # Generating the graphml
             #print(WRITE_GRAPHMLOUT.listdatatokens)
+            # WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
+            # print(WRITE_GRAPHMLOUT.generate_graphml())
+            # sys.exit()
+
             WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
             name_file_result = commands.getoutput("mktemp")
             lastoutput = open(str(name_file_result), "w")
@@ -869,10 +873,11 @@ if __name__ == "__main__":
 
         os.remove("/tmp/tmp_map_currentlog.tmp")
         os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")
+        os.remove("/tmp/tmp_idfunct.map2check")
 
     elif args.setCunitAssert:
         start_generation_cunit_assert(inputCFile,getStartFunction)
-        
+
         
     
 

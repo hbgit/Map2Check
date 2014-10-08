@@ -229,97 +229,98 @@ class WriteGraphMLOutput(object):
         dic_attr_update = {} # ['name'] = {0 Status (True or False), 1 - old text to be replaced}
 
         for index, line in enumerate(texttmp):
-            # attr.name="assumption"
-            matchattr_assumption = re.search(r'attr.name=\"assumption\".*id=\"(.*)\"', line)
-            if matchattr_assumption:
-                #matchattr_assumption.group(1)
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"assumption\"", texttmp[index])
-                dic_attr_update["assumption"] = matchattr_assumption.group(1)
-                continue
-
-            matchattr_sourcecode = re.search(r'attr.name=\"sourcecode\".*id=\"(.*)\"', line)
-            if matchattr_sourcecode:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"sourcecode\"", texttmp[index])
-                dic_attr_update["sourcecode"] = matchattr_sourcecode.group(1)
-                continue
-
-            matchattr_sourcecodeLanguage = re.search(r'attr.name=\"sourcecodeLanguage\".*id=\"(.*)\"', line)
-            if matchattr_sourcecodeLanguage:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"sourcecodelang\"", texttmp[index])
-                dic_attr_update["sourcecodelang"] = matchattr_sourcecodeLanguage.group(1)
-                continue
-
-            matchattr_tokenSet = re.search(r'attr.name=\"tokenSet\".*id=\"(.*)\"', line)
-            if matchattr_tokenSet:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"tokens\"", texttmp[index])
-                dic_attr_update["tokens"] = matchattr_tokenSet.group(1)
-                continue
-
-            matchattr_originTokenSet = re.search(r'attr.name=\"originTokenSet\".*id=\"(.*)\"', line)
-            if matchattr_originTokenSet:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"origintokens\"", texttmp[index])
-                dic_attr_update["origintokens"] = matchattr_originTokenSet.group(1)
-                continue
-
-            matchattr_negativeCase = re.search(r'attr.name=\"negativeCase\".*id=\"(.*)\"', line)
-            if matchattr_negativeCase:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"negated\"", texttmp[index])
-                dic_attr_update["negated"] = matchattr_negativeCase.group(1)
-                continue
-
-            matchattr_lineNumberInOrigin = re.search(r'attr.name=\"lineNumberInOrigin\".*id=\"(.*)\"', line)
-            if matchattr_lineNumberInOrigin:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"originline\"", texttmp[index])
-                dic_attr_update["originline"] = matchattr_lineNumberInOrigin.group(1)
-                continue
-
-            matchattr_originFileName = re.search(r'attr.name=\"originFileName\".*id=\"(.*)\"', line)
-            if matchattr_originFileName:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"originfile\"", texttmp[index])
-                dic_attr_update["originfile"] = matchattr_originFileName.group(1)
-                continue
-
-            matchattr_nodeType = re.search(r'attr.name=\"nodeType\".*id=\"(.*)\"', line)
-            if matchattr_nodeType:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"nodetype\"", texttmp[index])
-                dic_attr_update["nodetype"] = matchattr_nodeType.group(1)
-                continue
-
-            matchattr_isFrontierNode = re.search(r'attr.name=\"isFrontierNode\".*id=\"(.*)\"', line)
-            if matchattr_isFrontierNode:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"frontier\"", texttmp[index])
-                dic_attr_update["frontier"] = matchattr_isFrontierNode.group(1)
-                continue
-
-            matchattr_isViolationNode = re.search(r'attr.name=\"isViolationNode\".*id=\"(.*)\"', line)
-            if matchattr_isViolationNode:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"violation\"", texttmp[index])
-                dic_attr_update["violation"] = matchattr_isViolationNode.group(1)
-                continue
+            # # attr.name="assumption"
+            # matchattr_assumption = re.search(r'attr.name=\"assumption\".*id=\"(.*)\"', line)
+            # if matchattr_assumption:
+            #     #matchattr_assumption.group(1)
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"assumption\"", texttmp[index])
+            #     dic_attr_update["assumption"] = matchattr_assumption.group(1)
+            #     continue
+            #
+            # matchattr_sourcecode = re.search(r'attr.name=\"sourcecode\".*id=\"(.*)\"', line)
+            # if matchattr_sourcecode:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"sourcecode\"", texttmp[index])
+            #     dic_attr_update["sourcecode"] = matchattr_sourcecode.group(1)
+            #     continue
+            #
+            # matchattr_sourcecodeLanguage = re.search(r'attr.name=\"sourcecodeLanguage\".*id=\"(.*)\"', line)
+            # if matchattr_sourcecodeLanguage:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"sourcecodelang\"", texttmp[index])
+            #     dic_attr_update["sourcecodelang"] = matchattr_sourcecodeLanguage.group(1)
+            #     continue
+            #
+            # matchattr_tokenSet = re.search(r'attr.name=\"tokenSet\".*id=\"(.*)\"', line)
+            # if matchattr_tokenSet:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"tokens\"", texttmp[index])
+            #     dic_attr_update["tokens"] = matchattr_tokenSet.group(1)
+            #     continue
+            #
+            # matchattr_originTokenSet = re.search(r'attr.name=\"originTokenSet\".*id=\"(.*)\"', line)
+            # if matchattr_originTokenSet:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"origintokens\"", texttmp[index])
+            #     dic_attr_update["origintokens"] = matchattr_originTokenSet.group(1)
+            #     continue
+            #
+            # matchattr_negativeCase = re.search(r'attr.name=\"negativeCase\".*id=\"(.*)\"', line)
+            # if matchattr_negativeCase:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"negated\"", texttmp[index])
+            #     dic_attr_update["negated"] = matchattr_negativeCase.group(1)
+            #     continue
+            #
+            # matchattr_lineNumberInOrigin = re.search(r'attr.name=\"lineNumberInOrigin\".*id=\"(.*)\"', line)
+            # if matchattr_lineNumberInOrigin:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"originline\"", texttmp[index])
+            #     dic_attr_update["originline"] = matchattr_lineNumberInOrigin.group(1)
+            #     continue
+            #
+            # matchattr_originFileName = re.search(r'attr.name=\"originFileName\".*id=\"(.*)\"', line)
+            # if matchattr_originFileName:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"originfile\"", texttmp[index])
+            #     dic_attr_update["originfile"] = matchattr_originFileName.group(1)
+            #     continue
+            #
+            # matchattr_nodeType = re.search(r'attr.name=\"nodeType\".*id=\"(.*)\"', line)
+            # if matchattr_nodeType:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"nodetype\"", texttmp[index])
+            #     dic_attr_update["nodetype"] = matchattr_nodeType.group(1)
+            #     continue
+            #
+            # matchattr_isFrontierNode = re.search(r'attr.name=\"isFrontierNode\".*id=\"(.*)\"', line)
+            # if matchattr_isFrontierNode:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"frontier\"", texttmp[index])
+            #     dic_attr_update["frontier"] = matchattr_isFrontierNode.group(1)
+            #     continue
+            #
+            # matchattr_isViolationNode = re.search(r'attr.name=\"isViolationNode\".*id=\"(.*)\"', line)
+            # if matchattr_isViolationNode:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"violation\"", texttmp[index])
+            #     dic_attr_update["violation"] = matchattr_isViolationNode.group(1)
+            #     continue
 
             matchattr_isEntryNode = re.search(r'attr.name=\"isEntryNode\".*id=\"(.*)\"', line)
             if matchattr_isEntryNode:
                 texttmp[index] = re.sub(r"id=\".*\"", "id=\"entry\"", texttmp[index])
                 dic_attr_update["entry"] = matchattr_isEntryNode.group(1)
-                continue
+                #continue
+                break
 
-            matchattr_isSinkNode = re.search(r'attr.name=\"isSinkNode\".*id=\"(.*)\"', line)
-            if matchattr_isSinkNode:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"sink\"", texttmp[index])
-                dic_attr_update["sink"] = matchattr_isSinkNode.group(1)
-                continue
-
-            matchattr_enterFunction = re.search(r'attr.name=\"enterFunction\".*id=\"(.*)\"', line)
-            if matchattr_enterFunction:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"enterFunction\"", texttmp[index])
-                dic_attr_update["enterFunction"] = matchattr_enterFunction.group(1)
-                continue
-
-            matchattr_returnFromFunction = re.search(r'attr.name=\"returnFromFunction\".*id=\"(.*)\"', line)
-            if matchattr_returnFromFunction:
-                texttmp[index] = re.sub(r"id=\".*\"", "id=\"returnFrom\"", texttmp[index])
-                dic_attr_update["returnFrom"] = matchattr_returnFromFunction.group(1)
-                continue
+            # matchattr_isSinkNode = re.search(r'attr.name=\"isSinkNode\".*id=\"(.*)\"', line)
+            # if matchattr_isSinkNode:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"sink\"", texttmp[index])
+            #     dic_attr_update["sink"] = matchattr_isSinkNode.group(1)
+            #     continue
+            #
+            # matchattr_enterFunction = re.search(r'attr.name=\"enterFunction\".*id=\"(.*)\"', line)
+            # if matchattr_enterFunction:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"enterFunction\"", texttmp[index])
+            #     dic_attr_update["enterFunction"] = matchattr_enterFunction.group(1)
+            #     continue
+            #
+            # matchattr_returnFromFunction = re.search(r'attr.name=\"returnFromFunction\".*id=\"(.*)\"', line)
+            # if matchattr_returnFromFunction:
+            #     texttmp[index] = re.sub(r"id=\".*\"", "id=\"returnFrom\"", texttmp[index])
+            #     dic_attr_update["returnFrom"] = matchattr_returnFromFunction.group(1)
+            #     continue
 
 
 

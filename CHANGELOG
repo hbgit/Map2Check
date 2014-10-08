@@ -26,6 +26,14 @@
 > [FILE:write_graphml_output.py] Set the graphml attributes according to SVCOMP model
 
 
+
+> [FILE:write_graphml_output.py] Updated the graphml attribute, now only entry attribute is a string otherwise is like this "id0"
+
+> [FILE:write_graphml_output.py] TODO: Adding support to functions in graphml
+
+
+
+
 > [FILE:write_graphml_output.py] TODO: Update the assumption attribute to correct form
 
 > [FILE:write_graphml_output.py] TODO: Validate the assumption write in case of pointer and arrays
@@ -34,9 +42,15 @@
     ::BUG-ARRAY to print the array values from memory address
 
 
-> [FILE:write_graphml_output.py] TODO: Adding support to functions in graphml
+
 
 > [FILE:create_map.py] TODO: in the complete trace add the loop assignment, such as: i++
+
+
+
+TO test with CPAChecker:
+
+$ scripts/cpa.sh -64 -explicitAnalysis-NoRefiner -setprop analysis.checkCounterexamples=false -setprop cpa.value.merge=SEP -setprop cfa.useMultiEdges=false -setprop parser.transformTokensToLines=true -spec witness_format/example0.graphml -spec PropertyERROR.prp witness_format/example0.c
 
 
 

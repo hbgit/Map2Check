@@ -223,11 +223,11 @@ void write_logfile_maplist(LIST_DYN_OBJ_FORTES *list){
 
 /*******************************************************************/
 // Function to print the mapping status until a k deepth of the code
-//DEBUG
+//DEBUG - TODO: BUG
 /*******************************************************************/
 void print_debug(LIST_DYN_OBJ_FORTES *list)
 {
-  printf("   #\t|      Address\t    | Address points to\t| Function ID\t|   IS DYNAMIC\t| Set FREE \t|  IS UNION \t| TYPE \t| Line \n");
+  printf("   #\t|      Address\t    | Address points to\t| Function ID\t|   IS DYNAMIC\t| Set FREE \t|  IS UNION \t| Line \n");
   printf("-------------------------------------------------------------------------------------------------------\n");
   LIST_DYN_OBJ_FORTES *aux;
   int save_count = count_all_list_FORTES;
@@ -241,7 +241,6 @@ void print_debug(LIST_DYN_OBJ_FORTES *list)
     printf("%4d \t\t|", aux->map_is_DYNAM_FORTES);
     printf("%4d \t\t|", aux->map_setFree_FORTES);
     printf("%4d \t\t|", aux->map_isUnion_FORTES);
-    printf("%4d \t\t|", aux->map_typevar_FORTES);
     printf("%4d \n", aux->map_linePreCode_FORTES);    
         
     count_all_list_FORTES--;
@@ -505,7 +504,8 @@ LIST_DYN_OBJ_FORTES* mark_map_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, vo
                 //print_debug(list);
                 
                 list_CE_trace = list;
-                write_logfile_maplist(list);
+                //Here is adopted aux to print cuz we want the actual address that has been updated
+                write_logfile_maplist(aux);
                 return list;
                 
 			}

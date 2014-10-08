@@ -197,10 +197,13 @@ class WriteGraphMLOutput(object):
                 self.dic_edges_attributes['originFileName'] = self.pathanalyzedprog.strip()
 
                 # TODO: Validate in case of pointer and arrays
-                takeassumption = self.list_body_outmapbycolumns['Var Name'][index].strip() + " = " + \
-                                 self.list_body_outmapbycolumns['Var Value'][index].strip() + ";"
+                # Identifying is a pointer
+                if self.list_body_outmapbycolumns['Address points to'][index].strip() == "(nil)":
+                    takeassumption = self.list_body_outmapbycolumns['Var Name'][index].strip() + " = " + \
+                                     self.list_body_outmapbycolumns['Var Value'][index].strip() + ";"
 
-                self.dic_edges_attributes['assumption'] = takeassumption
+                    self.dic_edges_attributes['assumption'] = takeassumption
+
                 dic_attr = self.check_dict_to_set(self.dic_edges_attributes)
 
                 Gmap.add_edge(actualnodename, nextnode, dic_attr)

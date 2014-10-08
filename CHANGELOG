@@ -30,12 +30,13 @@
 > [FILE:write_graphml_output.py] Updated the graphml attribute, now only entry attribute is a string otherwise is like this "id0"
 > [FILE:write_graphml_output.py] Added support to functions (enterFunction) in graphml
 
-
+> [FILE:write_graphml_output.py] TODO: Validate the assumption write in case of pointer
+    ::[SOLVED] BUG in log write about the pointers << The write log get the wrong pointer
 
 
 > [FILE:write_graphml_output.py] TODO: Update the assumption attribute to correct form
 
-> [FILE:write_graphml_output.py] TODO: Validate the assumption write in case of pointer and arrays
+
 
 > [FILE:write_graphml_output.py] TODO: Validate the assumption write in case of arrays
     ::BUG-ARRAY to print the array values from memory address
@@ -51,6 +52,12 @@ TO test with CPAChecker:
 
 $ scripts/cpa.sh -64 -explicitAnalysis-NoRefiner -setprop analysis.checkCounterexamples=false -setprop cpa.value.merge=SEP -setprop cfa.useMultiEdges=false -setprop parser.transformTokensToLines=true -spec witness_format/example0.graphml -spec PropertyERROR.prp witness_format/example0.c
 
+
+
+
+
+
+> [FILE:check_safety_memory_FORTES.c] BUG in void print_debug(LIST_DYN_OBJ_FORTES *list); is not print correct
 
 
 

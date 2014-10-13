@@ -868,11 +868,12 @@ if __name__ == "__main__":
             print("Status: VERIFICATION FAILED")
             print("The trace log is in < " + name_file_result + " >")
 
+            os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")
+
         else:
             print(saveresult_check) # TODO TEST
 
         os.remove("/tmp/tmp_map_currentlog.tmp")
-        os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")
         os.remove("/tmp/tmp_idfunct.map2check")
 
     elif args.setCunitAssert:

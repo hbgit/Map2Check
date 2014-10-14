@@ -391,12 +391,14 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
     file_from_map_2_cl = DIR_RESULT_CLAIMS+"/aux_file_map_2_translator.csv"
     list_tmp_path.append(file_from_map_2_cl)
 
+    # print(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
+    #           +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
+    # sys.exit()
+    os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
+              +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
 
-    #os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
-    #          +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
-
-    #os.system("cat "+csvClaimFile)
-    #sys.exit()
+    os.system("cat "+csvClaimFile)
+    sys.exit()
     result = commands.getoutput(CLAIM_TRANSLATOR + " -i " + csvClaimFile + " -c " + cFile
                                 + " -f " + dataFunctionFile + " -m " + file_from_map_2_cl
                                 + " -p " + csvMappedFromCode + " > " + name_new_csv_file)
@@ -603,8 +605,8 @@ def start_generation_cassert(cFile, enSetFunc):
     
     # Comment this and execute test
     # Checkout solution to support GNU extensions
-    #os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 1 "+TRACK_ALL)
-    #sys.exit()
+    os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 1 "+TRACK_ALL)
+    sys.exit()
 
     # HackCode
     #result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)

@@ -868,8 +868,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
 
         if self.flag_is_a_decl and not self.flag_tmp_has_struct:
-            
-            get_only_type = self.current_var_type[-1]  
+
+            get_only_type = self.current_var_type[-1]
             #print("=============================>", get_only_type)          
 
             # Working here $$$$$$$$$$$$$$ FAIKE POINTER
@@ -967,6 +967,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
 
     def get_current_type(self, _list_type):
+        print(_list_type)
         str_type = ' '.join(_list_type)
         if str_type in self.dictionary_of_var_types:
             # Sorting the types by our style if necessary
@@ -974,7 +975,12 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 namessorted = self.sort_type_names_decl(self.dictionary_of_var_types[str_type][0])
                 return ' '.join(namessorted)
             else:
-                return ' '.join(self.dictionary_of_var_types[str_type][0])
+                #print("Here", self.dictionary_of_var_types[str_type])
+                # Checking when the typedef is "" blank
+                if self.dictionary_of_var_types[str_type][0] == '':
+                    return ' '.join(_list_type)
+                else:
+                    return ' '.join(self.dictionary_of_var_types[str_type][0])
         else:
             if len(_list_type) > 1:
                 namessorted = self.sort_type_names_decl(_list_type)
@@ -1034,14 +1040,17 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             #    self.current_is_ptr = True
             
             # New this we can isolate what is pointer and what is struct
+            # TODO: Create a way to get type of the var like in self.checkVarType()
+            #       when this condction was not true
             if not self.current_is_ptr:
                 self.checkVarType()
-            
+
+
                             
             # print("------- After call -------")
-            # print("IS pointer: ",self.current_is_ptr)
-            # print("IS STRUCT: %s" % self.has_struct_ref)
-            # print("STRUCT flag: %s" % self.flag_tmp_has_struct)
+            print("IS pointer: ",self.current_is_ptr)
+            print("IS STRUCT: %s" % self.has_struct_ref)
+            print("STRUCT flag: %s" % self.flag_tmp_has_struct)
             
             
             
@@ -1051,8 +1060,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 # Searching this variable in the program
 
                 #[CHANGE-DOT]
+                print(">>>>>>>>>>>>>>>>>", self.current_var_type)
                 self.type_name_track_all = self.get_current_type(self.current_var_type)
-                #print(self.type_name_track_all)
+                print(">>>>>>>>>>>>>>", self.type_name_track_all)
                 self.map_type_of_var = self.type_name_track_all
 
                 if self.current_is_ptr:
@@ -1187,7 +1197,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
                 #[CHANGE-DOT]
                 self.type_name_track_all = self.get_current_type(self.current_var_type)
-                #print(self.type_name_track_all)
+                #print(">>>>>>>>>>>>>>>>>", self.type_name_track_all)
                 self.map_type_of_var = self.type_name_track_all
 
                 #print("Here!!!")
@@ -1352,7 +1362,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     #print("--------------- Input Args: ---------------")
                     self.is_a_input_arg_function = True
                     for eachArg in self.current_args_params_func:
-                        #print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
+                        print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
                         self.current_compund_FLOW = self.current_compund_func
                         self.getDataFromVar(eachArg,0)
                     self.is_a_input_arg_function = False
@@ -1380,7 +1390,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                             #self.current_loc_ast = index # BUG
                             #print("---------------------------------------------")
                             #print()
-                            # print("Searching by Decl: %s <> %s | Count Decl = %s" % (item.name, item.coord,self.identifier_first_decl_in_func))
+                            print("Searching by Decl: %s <> %s | Count Decl = %s" % (item.name, item.coord,self.identifier_first_decl_in_func))
                             
                             
                             # [TOP on STACK] Here we consider all type for first Decl in Function main, 

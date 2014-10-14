@@ -35,6 +35,22 @@
 > [FILE:create_map.py] Identified when the verification was VERIFICATION SUCCESSFUL and not create a graph, cuz is not possible
 
 
+> [FILE:create_map.py] TODO: Fixing bug in ./map2check-fortes.py -a code_samples/memsafety_category_svcomp14/test-0019_false-valid-memtrack.c
+      is not possible to get some var type - For strutures type is blank -- kernel problem self.get_current_type
+      STOP:
+        ARG FUNC:  pdata at  /tmp/tmp_hack_gnu.c:8
+        IS pointer:  True
+        IS STRUCT: False
+        STRUCT flag: False
+        >>>>>>>>>>>>>>>>> ['TData']
+        ['TData']
+        >>>>>>>>>>>>>> TData
+        The data gathered is not completed!, sorry about that :(
+        The number the data gathered was: < 8 >, but is expected 9
+        The incomple field are: ['__map_type__']
+        Bug located in line: < 1367 >
+> [FILE:check_safety_memory_FORTES.c] TODO: Update the print trace to "-" when is not possible to print the value
+> [FILE:create_map.py] TODO: Checking if is really need to identify what to print in the map list
 
 > [FILE:create_map.py] TODO: Fixing BUG in example4.c we do catch the error
 > [FILE:create_map.py] TODO: Executing test with CPAChecker in site examples

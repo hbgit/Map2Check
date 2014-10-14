@@ -198,7 +198,8 @@ class WriteGraphMLOutput(object):
 
                 # TODO: Validate in case of pointer and arrays
                 # Identifying is a pointer
-                if self.list_body_outmapbycolumns['Address points to'][index].strip() == "(nil)":
+                if self.list_body_outmapbycolumns['Address points to'][index].strip() == "(nil)" and \
+                   not self.list_body_outmapbycolumns['Var Value'][index].strip() == "--":
                     takeassumption = self.list_body_outmapbycolumns['Var Name'][index].strip() + " = " + \
                                      self.list_body_outmapbycolumns['Var Value'][index].strip() + ";"
 

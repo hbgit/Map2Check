@@ -40,9 +40,14 @@
         :: Data: In the moment to write the new code instance there are two ways to write the leak functions
 
 
-> [FILE:write_graphml_output.py] TODO: Updating the rules to print the graphml when is -- in the variable values
-
+> [FILE:write_graphml_output.py] Updated the rules to print the graphml when is -- in the variable values
 > [FILE:create_map.py] TODO: Analyzing print in the trace log about arrays
+        :: Data: in this Decl int z[4]={2,6,1,9}; is presented in the trace z = 2; :(
+            ::HIP1: Try ignore the Decl put --, and for assignments consider map this a[i]
+        :: In case of dynamic arrays using malloc we have a address pointed, and is not printed in the graphml :(
+        :: Q1: The bench in SVCOMP adopting arrays?
+
+
 
 > [FILE:create_map.py] TODO: Checking if is really need to identify what to print in the map list
 > [FILE:create_map.py] TODO: Fixing BUG in example4.c we do catch the error

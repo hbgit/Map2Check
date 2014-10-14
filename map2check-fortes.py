@@ -609,7 +609,7 @@ def start_generation_cassert(cFile, enSetFunc):
     # the result is save in /tmp/tmp_leakpoints.map2check
     runind = identify_points2leak.IdentifyLeakPoints(tmpFileGnuSkip)
     runind.identify_points()
-
+    list_tmp_path.append("/tmp/tmp_leakpoints.map2check")
     
     # Comment this and execute test
     # Checkout solution to support GNU extensions

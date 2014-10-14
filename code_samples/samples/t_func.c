@@ -18,7 +18,7 @@ int nondet_uint();
 int nondet_uint(){
 	
 	srand(time(NULL));
- 	int result = rand() % 10;
+ 	int result = rand() % 3200000000;
 	return result;
 		
 }
@@ -47,6 +47,6 @@ main(argc,argv)
 int argc;
 char *argv[3];
 {
-	calc(12,3);
+	calc(12,12);
 	d_div();
 }

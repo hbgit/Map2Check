@@ -36,11 +36,13 @@
 > [FILE:check_safety_memory_FORTES.c] Updated the print trace to "-" when is not possible to print the value
 > [FILE:create_map.py] Fixed bug in ./map2check-fortes.py -a code_samples/memsafety_category_svcomp14/test-0019_false-valid-memtrack.c
       is not possible to get some var type - For strutures type is blank -- kernel problem self.get_current_type
+> [FILE:create_map.py] Fixed Bug related to track of line number to original code. Test case: test-0019_1_false-valid-memtrack.c
+        :: Data: In the moment to write the new code instance there are two ways to write the leak functions
 
 
-> [FILE:create_map.py] TODO: Fixing Bug related to track of line number to original code. Test case: test-0019_1_false-valid-memtrack.c
+> [FILE:write_graphml_output.py] TODO: Updating the rules to print the graphml when is -- in the variable values
 
-
+> [FILE:create_map.py] TODO: Analyzing print in the trace log about arrays
 
 > [FILE:create_map.py] TODO: Checking if is really need to identify what to print in the map list
 > [FILE:create_map.py] TODO: Fixing BUG in example4.c we do catch the error

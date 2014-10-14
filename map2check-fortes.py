@@ -23,6 +23,7 @@
 
 from __future__ import print_function
 from modules.traceoutput.graphml import write_graphml_output
+from modules.points2leak import identify_points2leak
 
 FRAMEWORK_VERSION = 'Map2Check_FORTES-v3'
 
@@ -602,6 +603,13 @@ def start_generation_cassert(cFile, enSetFunc):
     tmpFileGnuSkip = "/tmp/tmp_hack_gnu.c"
     commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " 2>&1 > " + tmpFileGnuSkip)
     list_tmp_path.append(tmpFileGnuSkip)
+
+
+    # Generating possible leaks points in the program
+    # the result is save in /tmp/tmp_leakpoints.map2check
+    runind = identify_points2leak.IdentifyLeakPoints(tmpFileGnuSkip)
+    runind.identify_points()
+
     
     # Comment this and execute test
     # Checkout solution to support GNU extensions
@@ -637,6 +645,9 @@ def start_generation_cassert(cFile, enSetFunc):
     # OriCode
     # >>> Preprocessing source code
     getPreCFile = code_preprocessor(m_cfile)
+    #os.system("cat "+getPreCFile)
+    #sys.exit()
+
     
     # OriCode
     # >>> Gather the data about functions location in the program

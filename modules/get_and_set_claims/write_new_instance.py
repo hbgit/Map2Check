@@ -485,6 +485,10 @@ class ParseC2Ast2C(object):
         self.CL_list_comments = []
         self.CL_list_property = []
         self.CL_list_original_line = []
+
+
+        # For data from leakpoints file
+        self.leakpoints_linenum = []
         
     
     #@classmethod
@@ -521,6 +525,23 @@ class ParseC2Ast2C(object):
         # e entao efetuar um escape nelas e nao pelo tipo TypeDef
         #self.ast.show()
         #sys.exit()
+
+
+    def loaddata_leakpoints(self):
+        file = open("/tmp/tmp_leakpoints.map2check", 'r')
+        for line in file.readlines():
+            self.leakpoints_linenum.append(line.strip())
+        file.close()
+
+        # print(self.leakpoints_linenum)
+        #sys.exit()
+
+    def search_by_linumleak(self, _numline):
+        if _numline in self.leakpoints_linenum:
+            self.leakpoints_linenum.remove(_numline)
+            return [True,_numline]
+        else:
+            return [False]
         
     
     @staticmethod
@@ -714,8 +735,8 @@ class ParseC2Ast2C(object):
                         self.nextLineNumEgual.append(stmt.block_items[next_item])
                         #countTryNext += 1
                         next_item += 1
-                
-                self.getLine(stmt.block_items[index]) 
+
+                self.getLine(stmt.block_items[index])
                 
                 if len(self.nextLineNumEgual) > 1:
                     index = next_item
@@ -743,7 +764,7 @@ class ParseC2Ast2C(object):
     def getLine(self, line):
         if self.checkFlowProgram(line):
             # Header of the flow program            
-            #print("\t BF_Hflow: ",line.coord)  #DEBUG
+            # print("\t BF_Hflow: ",line.coord)  #DEBUG
             index = self.list_flow_program.index(type(line))
             get_flow_type = self.list_flow_program[index]
             generator_code = MyCGenerator()
@@ -824,22 +845,28 @@ class ParseC2Ast2C(object):
             
         else:
             # >> Body of the flow program
-            #print("\t\t BF_Bflow: ",line.coord) # DEBUG             
+            #print("\t\t BF_Bflow: ",line.coord) # DEBUG
             
             # Write the claims if there is             
             self.check_and_write_claim(self.getNumberOfLine(line))
-                        
+
+
             if type(line) == FuncCall:
                 #print("-----------", line.name.name)
                 if line.name.name in ['abort','exit']:
-                    # Write leak assertion 
-                    self.write_leak_assert(line)
-            
-            # Only for main function    
-            if self.flag_is_main:                
+                    # Write leak assertion
+                    #self.write_leak_assert(line)
+                    #print(self.leakpoints_linenum)
+                    self.write_leak_assert(self.leakpoints_linenum[0])
+                    self.leakpoints_linenum.pop(0)
+
+            # Only for main function
+            if self.flag_is_main:
                 if type(line) == Return:
-                    # Write leak assertion 
-                    self.write_leak_assert(line)
+                    # Write leak assertion
+                    #self.write_leak_assert(line)
+                    self.write_leak_assert(self.leakpoints_linenum[0])
+                    self.leakpoints_linenum.pop(0)
             
             if len(self.nextLineNumEgual) > 1:
                 tmp_k_1 = 0
@@ -926,14 +953,16 @@ class ParseC2Ast2C(object):
                 "),"+self.map_original_line_program[i]+")); /** by FORTES **/")
 
             
-    def write_leak_assert(self, astNode):        
+    #def write_leak_assert(self, astNode):
+    def write_leak_assert(self, _linenumber):
         if 1 in self.map_is_dynam2map:
             #index = self.map_original_line_program.index(self.getNumberOfLine(astNode))
             #print("assert(CHECK_MEMORY_LEAK(list_LOG_mcf, "+self.map_id_func2map[index]+", "+\
             #    str(self.getNumberOfLine(astNode))+" )); /** by FORTES **/")
             # WARNNING: IMPROVE THIS TO GET THE ID FUNC SCOPE
             print("assert(CHECK_MEMORY_LEAK(list_LOG_mcf, 0, "+\
-                str(self.getNumberOfLine(astNode))+" )); /** by FORTES **/")
+                _linenumber+" )); /** by FORTES **/")
+                #str(self.getNumberOfLine(astNode))+" )); /** by FORTES **/")
     
     
     def checkIsTypeDefFromCode(self, astNode):
@@ -1019,7 +1048,8 @@ class ParseC2Ast2C(object):
                             print()
                     
                     # >> Body of the function
-                    if type(self.ast.ext[index].body) is Compound:                                                
+                    if type(self.ast.ext[index].body) is Compound:
+                        #print("FIND FUNCT in ", self.ast.ext[index].coord)
                         self.expandFunction(self.ast.ext[index].body)
                     
                     
@@ -1027,8 +1057,10 @@ class ParseC2Ast2C(object):
                     # NEW
                     if self.ast.ext[index].decl.name == 'main':
                         #self.write_leak_assert(True, self.ast.ext[index])                                            
-                        #print(">>>>>>>>>>>>>>>>>>>>>>>")
-                        self.write_leak_assert(self.ast.ext[index])
+                        #print(">>>>>>>>>>>>>>>>>>>>>>>", self.ast.ext[index].coord)
+                        #self.write_leak_assert(self.ast.ext[index])
+                        self.write_leak_assert(self.leakpoints_linenum[0])
+                        self.leakpoints_linenum.pop(0)
                         
                     print("}\n")
                     
@@ -1094,6 +1126,7 @@ if __name__ == "__main__":
         
         runWrite = ParseC2Ast2C()
         runWrite.load2Parse(path_input_c_file)
+        runWrite.loaddata_leakpoints()
         runWrite.readCFile(path_input_c_file)
         runWrite.gatherData2Map(file_map)
         if not file_data_claims == 'None':

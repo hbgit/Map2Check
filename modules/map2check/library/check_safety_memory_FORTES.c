@@ -171,7 +171,11 @@ void print_by_type(void *addr, char *type, int isptr, int iswritefile){
     }
 
     else{
-        printf("-- ERROR --");
+        if(iswritefile){
+            fprintf(gb_actualfile,"| %4s\t\t", "--");
+        }else{
+            printf("--");
+        }
     }
 
 

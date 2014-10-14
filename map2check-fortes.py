@@ -844,31 +844,38 @@ if __name__ == "__main__":
 
 
         if writegraphout:
-            nameoutputmap = ''
-            matchoutputfile = re.search(r'The trace log is in <(.*)>', saveresult_check)
-            if matchoutputfile:
-                nameoutputmap = matchoutputfile.group(1).strip()
+            # Fisrt of all checking if we have a counterexample
+            matchoutputCE = re.match(r'Status: VERIFICATION FAILED', saveresult_check)
+            if matchoutputCE:
+                nameoutputmap = ''
+                matchoutputfile = re.search(r'The trace log is in <(.*)>', saveresult_check)
+                if matchoutputfile:
+                    nameoutputmap = matchoutputfile.group(1).strip()
 
-            generate_data_tokens(inputCFile, DIR_RESULT_CLAIMS+"/tmp_file_map.map")
+                generate_data_tokens(inputCFile, DIR_RESULT_CLAIMS+"/tmp_file_map.map")
 
-            # Generating the graphml
-            #print(WRITE_GRAPHMLOUT.listdatatokens)
-            # WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
-            # print(WRITE_GRAPHMLOUT.generate_graphml())
-            # sys.exit()
+                # Generating the graphml
+                #print(WRITE_GRAPHMLOUT.listdatatokens)
+                # WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
+                # print(WRITE_GRAPHMLOUT.generate_graphml())
+                # sys.exit()
 
-            WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
-            name_file_result = commands.getoutput("mktemp")
-            lastoutput = open(str(name_file_result), "w")
-            lastoutput.write(WRITE_GRAPHMLOUT.generate_graphml())
-            lastoutput.close()
+                WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
+                name_file_result = commands.getoutput("mktemp")
+                lastoutput = open(str(name_file_result), "w")
+                lastoutput.write(WRITE_GRAPHMLOUT.generate_graphml())
+                lastoutput.close()
 
-            # Save this output in a tmp file
-            os.remove(nameoutputmap)
-            print("Status: VERIFICATION FAILED")
-            print("The trace log is in < " + name_file_result + " >")
+                # Save this output in a tmp file
+                os.remove(nameoutputmap)
+                print("Status: VERIFICATION FAILED")
+                print("The trace log is in < " + name_file_result + " >")
 
-            os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")
+                os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")
+
+            else:
+                # Verification okay
+                print(saveresult_check)
 
         else:
             print(saveresult_check) # TODO TEST

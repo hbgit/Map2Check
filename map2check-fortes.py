@@ -262,8 +262,8 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     
     #result = commands.getoutput(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     #print(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
-    #os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
-    #sys.exit()
+    os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
+    sys.exit()
 
     result = commands.getoutput(WRITE_NEW_INSTANCE+" "+tmpFileGnuSkip_end+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0) 
@@ -610,6 +610,8 @@ def start_generation_cassert(cFile, enSetFunc):
     runind = identify_points2leak.IdentifyLeakPoints(tmpFileGnuSkip)
     runind.identify_points()
     list_tmp_path.append("/tmp/tmp_leakpoints.map2check")
+    #os.system("cat /tmp/tmp_leakpoints.map2check")
+    #sys.exit()
     
     # Comment this and execute test
     # Checkout solution to support GNU extensions
@@ -657,6 +659,8 @@ def start_generation_cassert(cFile, enSetFunc):
     # Apply hacking to handle with GNU extensions
     # HackGNUext: Generate a copy the analyzed program to a tmp file
     tmpFileGnuSkip_afterpre = "/tmp/tmp_hack_gnu_ap.c"
+    #os.system(GNU_SKIP_SCRIPT + " " + getPreCFile)
+    #sys.exit()
     commands.getoutput(GNU_SKIP_SCRIPT + " " + getPreCFile + " 2>&1 > " + tmpFileGnuSkip_afterpre)
     list_tmp_path.append(tmpFileGnuSkip_afterpre)
 
@@ -670,6 +674,8 @@ def start_generation_cassert(cFile, enSetFunc):
     getFinalFileMap = add_new_num_lines2csv(tmp_file_map, list_lines_map, 1)        
     check_command_exec(0, tmp_file_map, "Generating code map after preprocessing",0)
 
+    # [NEW] fix bug in the error function
+    getPreCFile = tmpFileGnuSkip_afterpre
     
     # >>> Get the text claims again (second time) for the program    
     if FLAG_IS_CLAIM:

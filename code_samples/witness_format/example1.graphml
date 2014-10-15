@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?> 
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key attr.name="enterFunction" attr.type="string" for="edge" id="d9" />
+  <key attr.name="assumption" attr.type="string" for="edge" id="d8" />
+  <key attr.name="tokenSet" attr.type="string" for="edge" id="d7" />
+  <key attr.name="sourcecode" attr.type="string" for="edge" id="d6" />
+  <key attr.name="originFileName" attr.type="string" for="edge" id="d5" />
+  <key attr.name="originTokenSet" attr.type="string" for="edge" id="d4" />
+  <key attr.name="lineNumberInOrigin" attr.type="string" for="edge" id="d3" />
+  <key attr.name="isEntryNode" attr.type="string" for="node" id="entry" />
+  <key attr.name="isViolationNode" attr.type="boolean" for="node" id="d1" />
+  <key attr.name="sourcecodeLanguage" attr.type="string" for="graph" id="d0" />
+  <graph edgedefault="directed">
+    <data key="d0">C</data>
+    <node id="N12" />
+    <node id="N13">
+      <data key="d1">True</data>
+    </node>
+    <node id="N10" />
+    <node id="N11" />
+    <node id="N8" />
+    <node id="N9" />
+    <node id="N0">
+      <data key="entry">True</data>
+    </node>
+    <node id="N1" />
+    <node id="N2" />
+    <node id="N3" />
+    <node id="N4" />
+    <node id="N5" />
+    <node id="N6" />
+    <node id="N7" />
+    <edge source="N12" target="N13">
+      <data key="d3">21</data>
+      <data key="d4">110</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+      <data key="d6">__VERIFIER_error
+(
+)
+;
+</data>
+      <data key="d7">110</data>
+    </edge>
+    <edge source="N10" target="N11">
+      <data key="d3">17</data>
+      <data key="d4">95, 97</data>
+      <data key="d8">a = 0;</data>
+      <data key="d6">a
+=
+0
+;
+</data>
+      <data key="d7">95, 97</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N11" target="N12">
+      <data key="d3">20</data>
+      <data key="d4">106, 108</data>
+      <data key="d8">a = 1;</data>
+      <data key="d6">a
+=
+1
+;
+</data>
+      <data key="d7">106, 108</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N8" target="N9">
+      <data key="d3">7</data>
+      <data key="d4">33, 34, 36, 37, 39, 40, 43, 44, 46</data>
+      <data key="d8">by = 6;</data>
+      <data key="d6">int
+pred
+(
+int
+p1
+,
+int
+by
+)
+{
+return
+p1
+-
+by
+;
+}
+;
+</data>
+      <data key="d7">33, 34, 36, 37, 39, 40, 43, 44, 46</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N9" target="N10">
+      <data key="d3">14</data>
+      <data key="d4">81, 83, 85, 87, 91</data>
+      <data key="d8">global = -2;</data>
+      <data key="d6">global
+=
+pred
+(
+global
+,
+bar
+(
+)
++
+a
+)
+;
+</data>
+      <data key="d7">81, 83, 85, 87, 91</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N0" target="N1">
+      <data key="d3">3</data>
+      <data key="d4">8, 9, 11</data>
+      <data key="d8">global = 5;</data>
+      <data key="d6">int
+global
+=
+5
+;
+</data>
+      <data key="d7">8, 9, 11</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N1" target="N2">
+      <data key="d3">10</data>
+      <data key="d4">55, 56, 58, 62, 64</data>
+      <data key="d8">a = 1;</data>
+      <data key="d6">int
+a
+=
+foo
+(
+)
+,
+b
+=
+bar
+(
+)
+;
+</data>
+      <data key="d7">55, 56, 58, 62, 64</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N2" target="N3">
+      <data key="d3">10</data>
+      <data key="d4">55, 56, 58, 62, 64</data>
+      <data key="d8">b = 5;</data>
+      <data key="d6">int
+a
+=
+foo
+(
+)
+,
+b
+=
+bar
+(
+)
+;
+</data>
+      <data key="d7">55, 56, 58, 62, 64</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N3" target="N4">
+      <data key="d3">11</data>
+      <data key="d4">68, 70, 72</data>
+      <data key="d8">global = 10;</data>
+      <data key="d9">pred</data>
+      <data key="d6">global
+=
+global
++
+b
+;
+</data>
+      <data key="d7">68, 70, 72</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N4" target="N5">
+      <data key="d3">7</data>
+      <data key="d4">33, 34, 36, 37, 39, 40, 43, 44, 46</data>
+      <data key="d8">p1 = 10;</data>
+      <data key="d6">int
+pred
+(
+int
+p1
+,
+int
+by
+)
+{
+return
+p1
+-
+by
+;
+}
+;
+</data>
+      <data key="d7">33, 34, 36, 37, 39, 40, 43, 44, 46</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N5" target="N6">
+      <data key="d3">7</data>
+      <data key="d4">33, 34, 36, 37, 39, 40, 43, 44, 46</data>
+      <data key="d8">by = 6;</data>
+      <data key="d6">int
+pred
+(
+int
+p1
+,
+int
+by
+)
+{
+return
+p1
+-
+by
+;
+}
+;
+</data>
+      <data key="d7">33, 34, 36, 37, 39, 40, 43, 44, 46</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N6" target="N7">
+      <data key="d3">14</data>
+      <data key="d4">81, 83, 85, 87, 91</data>
+      <data key="d8">global = 4;</data>
+      <data key="d9">pred</data>
+      <data key="d6">global
+=
+pred
+(
+global
+,
+bar
+(
+)
++
+a
+)
+;
+</data>
+      <data key="d7">81, 83, 85, 87, 91</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+    <edge source="N7" target="N8">
+      <data key="d3">7</data>
+      <data key="d4">33, 34, 36, 37, 39, 40, 43, 44, 46</data>
+      <data key="d8">p1 = 4;</data>
+      <data key="d6">int
+pred
+(
+int
+p1
+,
+int
+by
+)
+{
+return
+p1
+-
+by
+;
+}
+;
+</data>
+      <data key="d7">33, 34, 36, 37, 39, 40, 43, 44, 46</data>
+      <data key="d5">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example1.c</data>
+    </edge>
+  </graph>
+</graphml>

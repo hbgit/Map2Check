@@ -31,19 +31,31 @@ class PointCallMainVisitor(NodeVisitor):
     def __init__(self):
         self.filepathcsv2write = ''
         self.listlinenumresult = []
+        self.lastnodevisited = None
 
 
-    def searchendmain(self, node):
+    def lastsearchinmain(self, node):
+        #print("Checking: ", node)
         nodetype = type(node)
-        if(nodetype in [If,While,For,DoWhile,Switch,Case]):
+        if nodetype in [If,While,For,DoWhile,Switch,Case,Default]:
             if nodetype == If:
-                self.searchendmain(node.iftrue.block_items[-1])
+                for subnode in node.iftrue.block_items:
+                    self.lastnodevisited = subnode
+                    self.lastsearchinmain(subnode)
                 if node.iffalse:
-                    self.searchendmain(node.iffalse.block_items[-1])
+                    for subnode in node.iffalse.block_items:
+                        self.lastnodevisited = subnode
+                        self.lastsearchinmain(subnode)
             else:
-                self.searchendmain(node.stmt.block_items[-1])
+                for subnode in node.stmt.block_items:
+                    self.lastnodevisited = subnode
+                    self.lastsearchinmain(subnode)
         else:
-            self.listlinenumresult.append(node.coord)
+            if nodetype == Return:
+                #print(node.coord)
+                self.lastnodevisited = node
+                self.listlinenumresult.append(node.coord)
+
 
 
     def visit_FuncDef(self, node):
@@ -52,14 +64,19 @@ class PointCallMainVisitor(NodeVisitor):
             # search by return
             #print(node.body.block_items)
             for item in node.body.block_items:
-                if type(item) == Return:
-                    #print("Here")
-                    self.listlinenumresult.append(item.expr.coord)
+                self.lastsearchinmain(item)
+                self.lastnodevisited = item
+                # if type(item) == Return:
+                #     self.listlinenumresult.append(item.expr.coord)
+                #
+                # if type(item) in [If,While,For,DoWhile,Switch,Case]:
+                #     print(item.coord)
+                #     self.lastsearchinmain(item)
 
-            if(type(node.body.block_items[-1]) in [If,While,For,DoWhile,Switch,Case]):
-                self.searchendmain(node.body.block_items[-1])
-            else:
-                self.listlinenumresult.append(node.body.block_items[-1].coord)
+            #Last node visited == last line in the main
+            self.listlinenumresult.append(self.lastnodevisited.coord)
+
+            #self.listlinenumresult.append(node.body.block_items[-1].coord)
 
 
 
@@ -103,12 +120,18 @@ class IdentifyLeakPoints(object):
 
         v = PointCallOtherFuncVisitor()
         v.visit(ast)
+
+        #print(v.listlinenumresult) # DEBUG
+
         for i in v.listlinenumresult:
             #print(self.getNumberOfLine(i))
             tmpfileleakpoints.write(self.getNumberOfLine(i)+"\n")
 
         v = PointCallMainVisitor()
         v.visit(ast)
+
+        #print(v.listlinenumresult) # DEBUG
+
         for i in v.listlinenumresult:
             tmpfileleakpoints.write(self.getNumberOfLine(i)+"\n")
 

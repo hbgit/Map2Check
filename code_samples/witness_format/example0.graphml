@@ -15,12 +15,13 @@
       <data key="entry">True</data>
     </node>
     <node id="N1" />
-    <node id="N2">
+    <node id="N2" />
+    <node id="N3">
       <data key="d2">True</data>
     </node>
     <edge source="N0" target="N1">
-      <data key="d3">9</data>
-      <data key="d4">26, 27, 29</data>
+      <data key="d3">4</data>
+      <data key="d4">13, 14, 16</data>
       <data key="d5">a = 1;</data>
       <data key="d6">int
 a
@@ -28,19 +29,47 @@ a
 1
 ;
 </data>
-      <data key="d7">26, 27, 29</data>
-      <data key="d8">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example3.c</data>
+      <data key="d7">13, 14, 16</data>
+      <data key="d8">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example0.c</data>
     </edge>
     <edge source="N1" target="N2">
-      <data key="d3">4</data>
-      <data key="d4">13</data>
-      <data key="d8">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example3.c</data>
-      <data key="d6">__VERIFIER_error
+      <data key="d3">5</data>
+      <data key="d4">18, 19, 21, 24, 26</data>
+      <data key="d5">c = 1;</data>
+      <data key="d6">int
+c
+=
+1
+||
 (
+a
+=
+0
 )
 ;
 </data>
-      <data key="d7">13</data>
+      <data key="d7">18, 19, 21, 24, 26</data>
+      <data key="d8">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example0.c</data>
+    </edge>
+    <edge source="N2" target="N3">
+      <data key="d3">6</data>
+      <data key="d4">29, 31, 34, 38, 39</data>
+      <data key="d8">/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/code_samples/witness_format/example0.c</data>
+      <data key="d6">if
+(
+a
+)
+{
+__VERIFIER_error
+(
+)
+;
+return
+1
+;
+}
+</data>
+      <data key="d7">29, 31, 34, 38, 39</data>
     </edge>
   </graph>
 </graphml>

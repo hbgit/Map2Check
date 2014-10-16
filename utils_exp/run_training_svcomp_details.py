@@ -72,13 +72,19 @@ ACTUAL_TC_GEN_inMB = 0.0
 TOTAL_TC_GEN_inMB = 0.0
 ACTUAL_TIME_TC_GEN = 0
 TOTAL_TIME_TC_GEN = 0
+ACTUAL_GEN_GRAPH_inMB = 0.0
+TOTAL_GEN_GRAPH_inMB = 0.0
+ACTUAL_TIME_GEN_GRAPH = 0.0
+TOTAL_TIME_GEN_GRAPH = 0.0
+
 
 def get_mem_usage(_listtxtoutput):
     global ACTUAL_MEM_USED_EXEC_inMB
     #txt_result = _listtxtoutput.split("\n")
-    #print(_listtxtoutput)
+
     ru_maxrss = float(_listtxtoutput[-1].strip())
     ACTUAL_MEM_USED_EXEC_inMB = ru_maxrss * float(0.0009765625)
+
 
 tmp_FINAL_TIME = 0
 
@@ -86,27 +92,28 @@ def timeout_command(command, timeout):
     """call shell-command and either return its output or kill it
     if it doesn't normally exit within timeout seconds and return None"""
 
-    global ACTUAL_MEM_USED_EXEC_inMB
-    global ACTUAL_TC_GEN_inMB
     global tmp_FINAL_TIME
 
     cmd = command.split(" ")
     start = datetime.datetime.now()
-    process = subprocess.Popen(['time', '-f', '%M'] + cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(['time', '-f', '%M', 'timeout', str(timeout)] + cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     tmp_FINAL_TIME = time.time()
     list_out_exec = []
 
-    #Save PID from command
-    pid_command_exec = commands.getoutput("pidof \""+command+"\"")
+    if (datetime.datetime.now() - start).seconds > timeout:
+        return "TIME OUT",[]
 
-    while process.poll() is None:
-        #time.sleep(0.1)
-        now = datetime.datetime.now()
-        if (now - start).seconds > timeout:
-            os.kill(int(pid_command_exec), signal.SIGKILL)
-            os.kill(process.pid, signal.SIGKILL)
-            os.waitpid(-1, os.WNOHANG)
-            return "TIME OUT",[]
+    #Save PID from command
+    # pid_command_exec = commands.getoutput("pidof \""+command+"\"")
+    #
+    # while process.poll() is None:
+    #     #time.sleep(0.1)
+    #     now = datetime.datetime.now()
+    #     if (now - start).seconds > timeout:
+    #         os.kill(int(pid_command_exec), signal.SIGKILL)
+    #         os.kill(process.pid, signal.SIGKILL)
+    #         os.waitpid(-1, os.WNOHANG)
+    #         return "TIME OUT",[]
     
     list_out_exec.append(process.stdout)
     list_out_exec.append(process.stderr)
@@ -121,6 +128,8 @@ def set_codes_to_experiment(pathCPrograms):
     global ACTUAL_MEM_USED_EXEC_inMB
     global tmp_FINAL_TIME
     global list_delete_tmp_file
+    global ACTUAL_GEN_GRAPH_inMB
+    global ACTUAL_TIME_GEN_GRAPH
     
         
     # Map2Check PARAMS
@@ -149,27 +158,27 @@ def set_codes_to_experiment(pathCPrograms):
     HTML_TABLE_HEADER = "<thead> \n " \
                         "<tr id=\"tool\">" \
                           "<td style=\"width: 60%\">Tool</td>" \
-                          "<td colspan=\"6\">"+MAP2CHECK_VERSION+"</td>" \
+                          "<td colspan=\"9\">"+MAP2CHECK_VERSION+"</td>" \
                         "</tr>"\
                         "<tr id=\"limits\">" \
                           "<td>Limits</td>" \
-                          "<td colspan=\"6\">"+LIMIT_EXP+"</td>"+\
+                          "<td colspan=\"9\">"+LIMIT_EXP+"</td>"+\
                         "</tr>" \
                         "<tr id=\"os\">" \
                           "<td>OS</td>" \
-                          "<td colspan=\"6\">"+OS+"</td>"+\
+                          "<td colspan=\"9\">"+OS+"</td>"+\
                         "</tr>" \
                         "<tr id=\"system\">" \
                           "<td>System</td>" \
-                          "<td colspan=\"6\">"+CPU_INFO+" - "+MEM_INFO+"</td>" \
+                          "<td colspan=\"9\">"+CPU_INFO+" - "+MEM_INFO+"</td>" \
                         "</tr>" \
                         "<tr id=\"date\">" \
                           "<td>Date of run</td>" \
-                          "<td colspan=\"6\">"+DATE_EXECUTION+"</td>" \
+                          "<td colspan=\"9\">"+DATE_EXECUTION+"</td>" \
                         "</tr>" \
                         "<tr id=\"options\">" \
                           "<td>Options</td>" \
-                          "<td colspan=\"6\">"+MAP2CHECK_PARAMS+"</td>" \
+                          "<td colspan=\"9\">"+MAP2CHECK_PARAMS+"</td>" \
                         "</tr>" \
                         "<tr id=\"columnTitles\">" \
                           "<td class=\"clickable\" "+"title=\"Click here to toggle visibility of columns\">"+str(pathCPrograms)+\
@@ -186,6 +195,12 @@ def set_codes_to_experiment(pathCPrograms):
                           "time(s) Test Case Generation</td>" \
                           "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
                           "memory(MB) Test Case Generation</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "GraphML Status</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "time(s) GraphML Generation</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "memory(MB) GraphML Generation</td>" \
                         "</tr>" \
                         "</thead> \n <tbody> \n"
     #print(HTML_TABLE_HEADER)
@@ -217,6 +232,8 @@ def set_codes_to_experiment(pathCPrograms):
     TOTAL_POINTS        = 0
     COUNT_EXP_TRUE      = 0
     COUNT_EXP_FALSE     = 0
+
+    STATUS_GRAPHML_GEN  = True
     
     #cp ./REPORT/header.html $OUTPUT_REPORT_FILE
     #echo $HTML_TABLE_HEADER >> $OUTPUT_REPORT_FILE
@@ -311,12 +328,13 @@ def set_codes_to_experiment(pathCPrograms):
                     tmp_last_FAILED = False
                     tmp_last_time_FAILED = 0
                     tmp_last_mem_used_FAILED = 0.0
-                    while count_exe <= NUMEBER_OF_RE_EXEC_EXP:
+                    while count_exe <= NUMEBER_OF_RE_EXEC_EXP and not check_exec_status_FAILED:
                         flag_TIME_OUT = False
                         print("\t Run "+str(count_exe))
                         get_OUT_result_exec = timeout_command(cmd_bin_exec, 900)
                         #get_OUT_result_exec = timeout_command(cmd_bin_exec, 20)
                         FINAL_EXECUTION_TIMESTAMP = tmp_FINAL_TIME #from timeout function
+                        print("\t\t Finished execution")
 
                         
                         # Check if has a TIME OUT
@@ -350,7 +368,10 @@ def set_codes_to_experiment(pathCPrograms):
                             
                             #save the execution result
                             if check_exec_status_FAILED:
-                                outputRun = open(str(name_file_result), "a+b")
+                                # This write the multiples execution
+                                #outputRun = open(str(name_file_result), "a+b")
+                                # This save only one FAILED, always rewriting
+                                outputRun = open(str(name_file_result), "w")
                                 outputRun.write("-----------------------------------------------------------------------\n")
                                 outputRun.write(">>> "+str(datetime.datetime.now())+"\n")
                                 outputRun.write("\n")
@@ -361,7 +382,16 @@ def set_codes_to_experiment(pathCPrograms):
                                 for line in tmp_list_OUT_STDERR:
                                     outputRun.write(str(line))
                                 outputRun.close()
-                                
+
+
+                                # Call to generate the GraphML - preliminary test
+                                if generate_graphml(get_path_program, name_file_result):
+                                    STATUS_GRAPHML_GEN = "true"
+                                else:
+                                    STATUS_GRAPHML_GEN = "ERROR"
+                                print("\t\t Time G: "+str("%1.3f" % ACTUAL_TIME_GEN_GRAPH)+" MEM G: "+str("%1.2f" % ACTUAL_GEN_GRAPH_inMB))
+
+                                print("\t\t Finished the analisys of this execution")
                             
                         else:
                             # We have a TIME OUT
@@ -398,6 +428,7 @@ def set_codes_to_experiment(pathCPrograms):
                     FINAL_EXECUTION_TIMESTAMP = time.time()
 
                 TIME = FINAL_EXECUTION_TIMESTAMP - INITIAL_EXECUTION_TIMESTAMP
+                TOTAL_EXECUTION_TIME = TIME
                 
                 #print("DEBUG: EXP_FALSE: "+str(EXPECTED_FAILED_RESULT)+" - FAILED: "+str(FAILED)+" - SUCCESS: "+str(SUCCESS))
                 
@@ -486,9 +517,13 @@ def set_codes_to_experiment(pathCPrograms):
                            "<td class=\"unknownValue\">" + str(("%1.2f" % ACTUAL_MEM_USED_EXEC_inMB)) + "&nbsp;</td>" \
                            "<td class=\"unknownValue\">" + str(("%1.3f" % ACTUAL_TIME_TC_GEN)) + "&nbsp;</td>" \
                            "<td class=\"unknownValue\">" + str(("%1.2f" % ACTUAL_TC_GEN_inMB)) + "&nbsp;</td>" \
+                           "<td class=\"unknownValue\">" + str(STATUS_GRAPHML_GEN) + "&nbsp;</td>" \
+                           "<td class=\"unknownValue\">" + str(("%1.3f" % ACTUAL_TIME_GEN_GRAPH)) + "&nbsp;</td>" \
+                           "<td class=\"unknownValue\">" + str(("%1.2f" % ACTUAL_GEN_GRAPH_inMB)) + "&nbsp;</td>" \
                            "</tr> \n"
                 #commands.getoutput("echo \""+HTML_ENTRY+"\" >> "+OUTPUT_REPORT_FILE)              
                 #html_report.write(HTML_ENTRY)
+                #
                 
                 # write in tmp file the results
                 #list_to_write_in_html.append(HTML_ENTRY)
@@ -518,18 +553,21 @@ def set_codes_to_experiment(pathCPrograms):
     print()
     print("COUNT_EXP_FALSE: ",str(COUNT_EXP_FALSE))
     print("COUNT_EXP_TRUE: ",str(COUNT_EXP_TRUE))
-    TOTAL_EXECUTION_TIME = FINAL_TIMESTAMP - INITIAL_TIMESTAMP
+#    TOTAL_EXECUTION_TIME = FINAL_TIMESTAMP - INITIAL_TIMESTAMP
     
     # HTML CONTENT
     HTML_TABLE_FOOTER="</tbody> \n <tfoot>" \
                       "<tr>" \
                         "<td>total files</td>" \
                         "<td>"+str(TOTAL_FILES)+"</td>" \
-                        "<td class=\"unknownValue\">"+str(("%1.2f" % TOTAL_EXECUTION_TIME))+"&nbsp;</td>" \
-                        "<td class=\"unknownValue\">"+str(("%1.2f" % (TOTAL_MEM_IN_EXE + TOTAL_TC_GEN_inMB)))+"&nbsp;</td>" \
-                        "<td class=\"unknownValue\">"+str(("%1.2f" % TOTAL_MEM_IN_EXE))+"&nbsp;</td> " \
-                        "<td class=\"score\">"+str(("%1.3f" % TOTAL_TIME_TC_GEN))+"&nbsp;</td>" \
-                        "<td class=\"score\">"+str(("%1.2f" % TOTAL_TC_GEN_inMB))+"&nbsp;</td>" \
+                        "<td>"+str(("%1.2f" % TOTAL_EXECUTION_TIME))+"&nbsp;</td>" \
+                        "<td>"+str(("%1.2f" % (TOTAL_MEM_IN_EXE + TOTAL_TC_GEN_inMB + TOTAL_GEN_GRAPH_inMB)))+"&nbsp;</td>" \
+                        "<td>"+str(("%1.2f" % TOTAL_MEM_IN_EXE))+"&nbsp;</td> " \
+                        "<td>"+str(("%1.3f" % TOTAL_TIME_TC_GEN))+"&nbsp;</td>" \
+                        "<td>"+str(("%1.2f" % TOTAL_TC_GEN_inMB))+"&nbsp;</td>" \
+                        "<td class=\"score\">"+str("-")+"&nbsp;</td>" \
+                        "<td>"+str(("%1.3f" % TOTAL_TIME_GEN_GRAPH))+"&nbsp;</td>" \
+                        "<td>"+str(("%1.2f" % TOTAL_GEN_GRAPH_inMB))+"&nbsp;</td>" \
                       "</tr>" \
                       "<tr>" \
                         "<td title=\"(no bug exists + result is SAFE) OR "+\
@@ -538,6 +576,9 @@ def set_codes_to_experiment(pathCPrograms):
                         "<td>"+str(("%1.2f" % TIME_TOTAL_CORRECT))+"</td>" \
                         "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_CORRECT))+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_CORRECT))+"</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
                       "</tr>" \
@@ -549,6 +590,9 @@ def set_codes_to_experiment(pathCPrograms):
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_FNEGATI))+"</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
                       "</tr>" \
                       "<tr>" \
                         "<td title=\"no bug exists + result is UNSAFE\">false positives"+"</td>" \
@@ -558,11 +602,18 @@ def set_codes_to_experiment(pathCPrograms):
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_FPOSITI))+"</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
                       "</tr>" \
                       "<tr>" \
                         "<td title=\"17 safe files, 15 unsafe files\">score ("+\
                         str(TOTAL_FILES)+" files, max score: "+str(MAX_SCORE)+")</td>" \
                         "<td class=\"score\">"+str(TOTAL_POINTS)+"</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
@@ -618,6 +669,63 @@ def set_codes_to_experiment(pathCPrograms):
     
     
 
+def generate_graphml(_cProgram, _map2checkoutput):
+
+    global list_csv_generation
+    global id_count
+    global PATH_MAP_2_CHECK_FORTES
+    global ACTUAL_GEN_GRAPH_inMB
+    global TOTAL_GEN_GRAPH_inMB
+    global ACTUAL_TIME_GEN_GRAPH
+    global TOTAL_TIME_GEN_GRAPH
+    global ACTUAL_MEM_USED_EXEC_inMB
+
+
+
+    graphmlpath = _cProgram.replace(".c",".graphml")
+
+    # Take time to test case generation
+    cmd = [PATH_MAP_2_CHECK_FORTES, _cProgram, "--map2checkout-to-graphml", _map2checkoutput]
+
+    #cmd = cmd.split(" ")
+    tctimeinital = datetime.datetime.now()
+    process = subprocess.Popen(['time', '-f', '%M'] + cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    tctimefinal = datetime.datetime.now()
+    timetcgen = (tctimefinal - tctimeinital).seconds + (tctimefinal - tctimeinital).microseconds * 0.000001
+
+
+    ACTUAL_TIME_GEN_GRAPH = timetcgen
+    TOTAL_TIME_GEN_GRAPH += timetcgen
+
+    #Save result in file
+    #print(process.stdout.readlines())
+    writenewcode = open(graphmlpath, "w")
+    for line in process.stdout.readlines():
+        writenewcode.write(line)
+    writenewcode.close()
+
+    #print(process.stderr.readlines())
+
+    tmp_save_actual_exemb = ACTUAL_MEM_USED_EXEC_inMB
+
+    get_mem_usage(process.stderr.readlines())
+    ACTUAL_GEN_GRAPH_inMB = ACTUAL_MEM_USED_EXEC_inMB
+    TOTAL_GEN_GRAPH_inMB += ACTUAL_GEN_GRAPH_inMB
+
+    ACTUAL_MEM_USED_EXEC_inMB = tmp_save_actual_exemb
+    #ACTUAL_MEM_USED_EXEC_inMB = 0.0
+    #os.system(PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name)
+
+    # Checking if the generation was okay
+    matchpython_error = re.search(r"Traceback (most recent call last):", graphmlpath)
+    if matchpython_error:
+        return False
+    else:
+        return True
+
+
+
+
 def only_generate_code(cProgram):
     
     global list_csv_generation
@@ -636,7 +744,7 @@ def only_generate_code(cProgram):
     
     # Take time to test case generation
     #cmd = [PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name]
-    cmd = [PATH_MAP_2_CHECK_FORTES, "--only-assert", cProgram]
+    cmd = [PATH_MAP_2_CHECK_FORTES, "--track-all", "--only-assert", cProgram]
     #cmd = ["cat "+PATH_MAP_2_CHECK_FORTES]
 
     #cmd = cmd.split(" ")

@@ -41,8 +41,8 @@
 > [FILE:create_map.py] Executed tested with CPAChecker in site examples
 
 
-> [FILE:create_map.py] Creating a option to generate a graphml from map2check output
->[run_training_svcomp.py] Updating script to generate a graphml from map2check output
+> [FILE:create_map.py] Created a option to generate a graphml from map2check output
+>[run_training_svcomp.py] Updated script to generate a graphml from map2check output
 
 
 > [FILE:create_map.py] Otimizing the time execution of args parse. The average time is 0.5s (this maybe is high)

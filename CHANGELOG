@@ -45,6 +45,13 @@
 >[run_training_svcomp.py] Updated script to generate a graphml from map2check output
 
 
+> [THE PROJECT] ctags dependece >> http://ctags.sourceforge.net/
+> [THE PROJECT] TODO: Checkout possibility to remmove ctags and networkx
+> [THE PROJECT] Stop install when the requirements FAIL
+> [THE PROJECT] Needed to networkx -- Adicionar no instalador no MAP wget https://bootstrap.pypa.io/ez_setup.py -O - | python >>>> pacote setupinstall
+> [THE PROJECT] TODO: install test in diferent PCs
+> [THE PROJECT] Checking ESBMC cuz this apt-get install libc6-dev-i386
+
 > [FILE:create_map.py] Otimizing the time execution of args parse. The average time is 0.5s (this maybe is high)
 
 

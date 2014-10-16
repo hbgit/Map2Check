@@ -508,11 +508,7 @@ def removeunncesstokens(_listtokens, _linestartpointtoken):
 
 
 
-def create_map_tokenizer(_cFile, _finalFileMap):
-    #
-    filemap = open(_finalFileMap,'r')
-    linesfilemap = filemap.readlines()
-    filemap.close()
+def create_map_tokenizer(_cFile,):
 
     #print("Doing....")
     #print(_cFile)
@@ -579,11 +575,11 @@ def create_map_tokenizer(_cFile, _finalFileMap):
     return resulttokensnanalysis
 
 
-def generate_data_tokens(_cfile, _finalmapfile):
+def generate_data_tokens(_cfile):
     global WRITE_GRAPHMLOUT
     # >> generating a normalized dictionary for graphml
     # Create a method to generate the dictionary with data about the tokenizer
-    result_tokens = create_map_tokenizer(_cfile, _finalmapfile)
+    result_tokens = create_map_tokenizer(_cfile)
     WRITE_GRAPHMLOUT.listdatatokens = result_tokens
 
 
@@ -777,9 +773,11 @@ if __name__ == "__main__":
     parser.add_argument('-v','--version', action='version' , version="version 3")
     parser.add_argument(dest='inputCProgram', metavar='file.c', type=str,
                         help='the C program file to be analyzed')
-    parser.add_argument('-f','--function', type=str , dest='setMainFunction',
+    parser.add_argument('-m','--map2checkout-to-graphml', metavar='map2checkout.tmp', type=str, dest='setMapOut2Graph',
+                        help='Generating a GraphML from Map2Check output')
+    parser.add_argument('-f','--function', metavar='name', type=str , dest='setMainFunction',
                         help='set main function name')
-    parser.add_argument('-c','--complete-check', type=int, dest='setCompleteCheck',
+    parser.add_argument('-c','--complete-check', metavar='nr', type=int, dest='setCompleteCheck',
                         default=3, help='set the complete verification based on number of the program execution')
     parser.add_argument('-t','--track-all', action="store_true" , dest='setTrackAll',
                        help='create a complete trace of the variables', default=False)
@@ -811,7 +809,26 @@ if __name__ == "__main__":
             sys.exit()
         else:
             inputCFile = os.path.abspath(args.inputCProgram)
+
+    #-----------------------------------------------------
+    if args.setMapOut2Graph:
+        map2checkoutpath = os.path.abspath(args.setMapOut2Graph)
+        #print(inputCFile,"\n",map2checkoutpath)
+
+        generate_data_tokens(inputCFile)
+
+        # This option NOT support enterFunction, sorry about that
+        WRITE_GRAPHMLOUT.enable_enterFunction_attr = False
+        WRITE_GRAPHMLOUT.preprocess_outmap(map2checkoutpath)
+        name_file_result = commands.getoutput("mktemp")
+        lastoutput = open(str(name_file_result), "w")
+        lastoutput.write(WRITE_GRAPHMLOUT.generate_graphml())
+        lastoutput.close()
+
+        print("The Map2Check output in GraphML format is in < " + name_file_result + " >")
+        sys.exit()
                 
+    #-----------------------------------------------------
     if args.setMainFunction:
         #check if the given function there is in the code
         checkFunc=commands.getoutput('ctags -x --c-kinds=f '+inputCFile+' | grep -c "'+args.setMainFunction+'\"')
@@ -871,7 +888,7 @@ if __name__ == "__main__":
                 if matchoutputfile:
                     nameoutputmap = matchoutputfile.group(1).strip()
 
-                generate_data_tokens(inputCFile, DIR_RESULT_CLAIMS+"/tmp_file_map.map")
+                generate_data_tokens(inputCFile)
 
                 # Generating the graphml
                 #print(WRITE_GRAPHMLOUT.listdatatokens)

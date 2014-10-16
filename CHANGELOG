@@ -37,10 +37,15 @@
 > [FILE:create_map.py] Fixed Bug related to track of line number to original code. Test case: test-0019_1_false-valid-memtrack.c
         :: Data: In the moment to write the new code instance there are two ways to write the leak functions
 > [FILE:write_graphml_output.py] Updated the rules to print the graphml when is -- in the variable values
-
-
 > [FILE:create_map.py] Fixed Bug in witness/example0.c << colateral efect from last changes (points2leak)
-> [FILE:create_map.py] Executing tested with CPAChecker in site examples
+> [FILE:create_map.py] Executed tested with CPAChecker in site examples
+
+
+> [FILE:create_map.py] Creating a option to generate a graphml from map2check output
+>[run_training_svcomp.py] Updating script to generate a graphml from map2check output
+
+
+> [FILE:create_map.py] Otimizing the time execution of args parse. The average time is 0.5s (this maybe is high)
 
 
 > [FILE:create_map.py] TODO: Analyzing print in the trace log about arrays
@@ -49,6 +54,11 @@
         :: In case of dynamic arrays using malloc we have a address pointed, and is not printed in the graphml :(
         :: Q1: The bench in SVCOMP adopting arrays?
 
+
+> [FILE:create_map.py] Testing option of Map2Check
+> [FILE:write_graphml_output.py] Testing graphml generated and the impact of not support to returnFrom
+
+> [FILE:??????] Doing a script to simulate the SVCOMP execution call the wrapper script
 
 
 > [FILE:create_map.py] TODO: Checking if is really need to identify what to print in the map list

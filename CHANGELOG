@@ -39,11 +39,11 @@
 > [FILE:write_graphml_output.py] Updated the rules to print the graphml when is -- in the variable values
 > [FILE:create_map.py] Fixed Bug in witness/example0.c << colateral efect from last changes (points2leak)
 > [FILE:create_map.py] Executed tested with CPAChecker in site examples
-
-
 > [FILE:create_map.py] Created a option to generate a graphml from map2check output
->[run_training_svcomp.py] Updated script to generate a graphml from map2check output
+> [FILE:run_training_svcomp.py] Updated script to generate a graphml from map2check output
 
+
+>  [FILE:identify_points2leak] Fixed BUG related to deep search in compound and not compound AST nodes
 
 > [THE PROJECT] ctags dependece >> http://ctags.sourceforge.net/
 > [THE PROJECT] TODO: Checkout possibility to remmove ctags and networkx

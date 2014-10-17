@@ -27,6 +27,15 @@ ABS_PATH = os.path.dirname(__file__)
 # A visitor with some state information (the funcname it's
 # looking for)
 #
+# class ReturnMainVisitor(NodeVisitor):
+#     def __init__(self):
+#         self.returnfound = False
+#
+#     def visit_Return(self, node):
+#         self.returnfound = True
+#         return node.coord
+
+
 class PointCallMainVisitor(NodeVisitor):
     def __init__(self):
         self.filepathcsv2write = ''
@@ -39,17 +48,35 @@ class PointCallMainVisitor(NodeVisitor):
         nodetype = type(node)
         if nodetype in [If,While,For,DoWhile,Switch,Case,Default]:
             if nodetype == If:
-                for subnode in node.iftrue.block_items:
-                    self.lastnodevisited = subnode
-                    self.lastsearchinmain(subnode)
-                if node.iffalse:
-                    for subnode in node.iffalse.block_items:
+
+                # If the code block has more than one line
+                if type(node.iftrue) == Compound:
+                    for subnode in node.iftrue.block_items:
                         self.lastnodevisited = subnode
                         self.lastsearchinmain(subnode)
+                else:
+                    self.lastnodevisited = node.iftrue
+                    self.lastsearchinmain(node.iftrue)
+
+                if node.iffalse:
+                    if type(node.iffalse) == Compound:
+                        for subnode in node.iffalse.block_items:
+                            self.lastnodevisited = subnode
+                            self.lastsearchinmain(subnode)
+                    else:
+                        self.lastnodevisited = node.iffalse
+                        self.lastsearchinmain(node.iffalse)
+
+
             else:
-                for subnode in node.stmt.block_items:
-                    self.lastnodevisited = subnode
-                    self.lastsearchinmain(subnode)
+                if type(node.stmt) == Compound:
+                    for subnode in node.stmt.block_items:
+                        self.lastnodevisited = subnode
+                        self.lastsearchinmain(subnode)
+                else:
+                    self.lastnodevisited = node.stmt
+                    self.lastsearchinmain(node.stmt)
+
         else:
             if nodetype == Return:
                 #print(node.coord)
@@ -124,7 +151,7 @@ class IdentifyLeakPoints(object):
         #print(v.listlinenumresult) # DEBUG
 
         for i in v.listlinenumresult:
-            #print(self.getNumberOfLine(i))
+            #print(self.getNumberOfLine(i)) # DEBUG
             tmpfileleakpoints.write(self.getNumberOfLine(i)+"\n")
 
         v = PointCallMainVisitor()
@@ -133,6 +160,7 @@ class IdentifyLeakPoints(object):
         #print(v.listlinenumresult) # DEBUG
 
         for i in v.listlinenumresult:
+            #print(self.getNumberOfLine(i)) # DEBUG
             tmpfileleakpoints.write(self.getNumberOfLine(i)+"\n")
 
         tmpfileleakpoints.close()

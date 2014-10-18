@@ -49,12 +49,10 @@
 > [FILE:create_map.py] Fixed bug related to -t to map all, is not map i++ incr.
 > [FILE:create_map.py] Fixed bug related to map arrays pointers , e.g.,  a[i]++; that has not beem mapped.
     :: LOC 502 and 850
+> [FILE:create_map.py] Added support to alloca C function
 
 
-> [FILE:create_map.py] Adding support to alloca function
-
-
-
+> [FILE:parse_2_claimsv1609.py] Updating rules to in claim translation
 
 
 

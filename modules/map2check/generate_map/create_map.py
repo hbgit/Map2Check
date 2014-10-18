@@ -143,8 +143,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         #
         path_cpp_args = os.path.join(os.path.dirname(__file__), "../utils/fake_libc_include")
         self.ast = pycparser.parse_file(self.__inputfilename, use_cpp=True, cpp_path=CPPPATH, cpp_args=r'-I'+path_cpp_args)        
-        #~self.ast.show()
-        #sys.exit()
+        # self.ast.show()
+        # sys.exit()
 
 
     def resetVarsToMap(self):
@@ -604,7 +604,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         # Pointer Decl with assignment
         if type(item) is Decl:
             
-            #print("Pointer/STRUCT Decl with assignment")
+            #print("\t\tPointer/STRUCT Decl with assignment")
 
             #self.has_ptr_assignment = True
 
@@ -636,9 +636,11 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             #print(self.has_call_func)
             
             #if decl.init is not None:
+            #print("\t\t",self.current_Id_in_init)
             if self.has_call_func:  
                 
-                if self.current_Id_in_init == "malloc":                    
+                if self.current_Id_in_init == "malloc" or \
+                   self.current_Id_in_init == "alloca":
                     self.map_is_dynamic = True
                     if save_actual_has_struct:                    
                         self.map_points_to = self.map_var
@@ -1083,9 +1085,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
                             
             # print("------- After call -------")
-            # print("IS pointer: ",self.current_is_ptr)
-            # print("IS STRUCT: %s" % self.has_struct_ref)
-            # print("STRUCT flag: %s" % self.flag_tmp_has_struct)
+            #print("IS pointer: ",self.current_is_ptr)
+            #print("IS STRUCT: %s" % self.has_struct_ref)
+            #print("STRUCT flag: %s" % self.flag_tmp_has_struct)
             
             
             
@@ -1179,7 +1181,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 # Identify it has a Decl with assignment to ptr
                 elif self.hasAssigmentInDeclPtr or self.has_struct_ref:                    
                     #sprint("<<< ",self.hasAssigmentInDeclPtr)
-                    #print("PTR or STRUCT assig in: %s" % nodeVar.coord) #COM
+                    #print("\t\tPTR or STRUCT assig in: %s" % nodeVar.coord) #COM
                     self.has_ptr_assignment = True
                     self.identifyAssigment(nodeVar,nodeVar)
 

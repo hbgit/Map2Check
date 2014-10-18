@@ -14,7 +14,7 @@ void test_fun(int a[], int N)
         }
         while (a[i] > 0) {
             a[i]--;
-            pos++;
+            pos++;//249
         }
     }
 }

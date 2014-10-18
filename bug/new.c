@@ -25,20 +25,20 @@ void test_fun(int a[], int N)
    for (i = 0; i < N; i++)
    {
 // FORTES: Claim 1
-      __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 1 \n \t Location at original code in line: 11 \n \t Comments:   dereference failure: invalid pointer");
+      __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&( *(i + a) ), (void *)(intptr_t)( *(i + a) ) )), "[Failed]\n VIOLATED PROPERTY: Claim 1 \n \t Location at original code in line: 11 \n \t Comments:   dereference failure: invalid pointer");
       while (a[i] < 0)
       {
 // FORTES: Claim 2
-         __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 2 \n \t Location at original code in line: 12 \n \t Comments:   dereference failure: invalid pointer");
+         //__MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 2 \n \t Location at original code in line: 12 \n \t Comments:   dereference failure: invalid pointer");
          a[i]++;
          neg++;
       }
 // FORTES: Claim 3
-      __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 3 \n \t Location at original code in line: 15 \n \t Comments:   dereference failure: invalid pointer");
+      //__MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 3 \n \t Location at original code in line: 15 \n \t Comments:   dereference failure: invalid pointer");
       while (a[i] > 0)
       {
 // FORTES: Claim 4
-         __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 4 \n \t Location at original code in line: 16 \n \t Comments:   dereference failure: invalid pointer");
+         //__MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 4 \n \t Location at original code in line: 16 \n \t Comments:   dereference failure: invalid pointer");
          a[i]--;
          pos++;
       }

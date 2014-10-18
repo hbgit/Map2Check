@@ -41,9 +41,24 @@
 > [FILE:create_map.py] Executed tested with CPAChecker in site examples
 > [FILE:create_map.py] Created a option to generate a graphml from map2check output
 > [FILE:run_training_svcomp.py] Updated script to generate a graphml from map2check output
-
-
 >  [FILE:identify_points2leak] Fixed BUG related to deep search in compound and not compound AST nodes
+
+
+
+
+> [FILE:create_map.py] Fixed bug related to -t to map all, is not map i++ incr.
+> [FILE:create_map.py] Fixed bug related to map arrays pointers , e.g.,  a[i]++; that has not beem mapped.
+    :: LOC 502 and 850
+
+
+> [FILE:create_map.py] Adding support to alloca function
+
+
+
+
+
+
+
 
 > [THE PROJECT] ctags dependece >> http://ctags.sourceforge.net/
 > [THE PROJECT] TODO: Checkout possibility to remmove ctags and networkx

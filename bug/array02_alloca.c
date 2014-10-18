@@ -24,6 +24,6 @@ int main() {
   if (array_size < 1) {
      array_size = 1;
   }
-  int* numbers = (int*)alloca(array_size * sizeof(int));
+      int* numbers = (int*)alloca(array_size * sizeof(int));
   test_fun(numbers, array_size);
 }

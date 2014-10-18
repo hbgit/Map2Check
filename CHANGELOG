@@ -50,12 +50,13 @@
 > [FILE:create_map.py] Fixed bug related to map arrays pointers , e.g.,  a[i]++; that has not beem mapped.
     :: LOC 502 and 850
 > [FILE:create_map.py] Added support to alloca C function
-
-
 > [FILE:parse_2_claimsv1609.py] Updated rule "funInvalidPoint" to in claim translation
     :: Checking last rule
 
+
 > [THE PROJECT] Dealing with alloc C function. The actual project status generates false positives cuz the alloc function
+    :: HIP1: Adding a filed in mapping to identify what is the allocation function adopted, this way we can write a correct
+            leak asssertion to.
 
 
 

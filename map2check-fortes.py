@@ -262,8 +262,8 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     
     #result = commands.getoutput(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     #print(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
-    os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
-    sys.exit()
+    #os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
+    #sys.exit()
 
     result = commands.getoutput(WRITE_NEW_INSTANCE+" "+tmpFileGnuSkip_end+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0) 
@@ -416,7 +416,8 @@ def get_data_functions(cFile):
 
 
 def remove_tmp_files(list_path):
-    for path in list_path:        
+    uniclist = list(set(list_path))
+    for path in uniclist:
         os.remove(path)
         #print(path)
         
@@ -723,7 +724,7 @@ def start_generation_cassert(cFile, enSetFunc):
         getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, get_final_path_csv_file_CL, 1)
     else:
         getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, "None", 0)
-    list_tmp_path.append(getPreCFile)
+    #list_tmp_path.append(getPreCFile)
     list_tmp_path.append(getDataFunction)
     #print(GENERATE_GRAPHML)
     if not GENERATE_GRAPHML:
@@ -734,7 +735,8 @@ def start_generation_cassert(cFile, enSetFunc):
     # Because the map2check library we need to do a temporary copy    
     #   of the .h to program location to apply the preprocessing
     #    
-    shutil.copy2(LIBRAY_HEADER_MAP, os.path.dirname(getPath2NewInstCFile))           
+    shutil.copy2(LIBRAY_HEADER_MAP, os.path.dirname(getPath2NewInstCFile))
+    #print(getPath2NewInstCFile)
     getFinalCFile = code_preprocessor(getPath2NewInstCFile)
     os.system("cat "+getFinalCFile)
     list_tmp_path.append(getPath2NewInstCFile)

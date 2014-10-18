@@ -395,11 +395,11 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
     # print(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
     #           +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
     # sys.exit()
-    # os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
-    #           +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
-    #
-    # os.system("cat "+csvClaimFile)
-    # sys.exit()
+    #os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
+    #          +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
+
+    #os.system("cat "+csvClaimFile)
+    #sys.exit()
     result = commands.getoutput(CLAIM_TRANSLATOR + " -i " + csvClaimFile + " -c " + cFile
                                 + " -f " + dataFunctionFile + " -m " + file_from_map_2_cl
                                 + " -p " + csvMappedFromCode + " > " + name_new_csv_file)

@@ -52,9 +52,10 @@
 > [FILE:create_map.py] Added support to alloca C function
 
 
-> [FILE:parse_2_claimsv1609.py] Updating rules to in claim translation
+> [FILE:parse_2_claimsv1609.py] Updated rule "funInvalidPoint" to in claim translation
+    :: Checking last rule
 
-
+> [THE PROJECT] Dealing with alloc C function. The actual project status generates false positives cuz the alloc function
 
 
 

@@ -503,10 +503,21 @@ Utils functions for <funPointOffset>
 def setDoubleRef_IP(recString):
     pre_str="(void *)&"
     pos_str="(void *)(intptr_t)"
-    conc_str_token=""   
+    conc_str_token=""
+
+
+    #Checking if we have a unary operation, i.e., a+i where "a" is a pointer
+    flag_hasop = False
             
     for token in recString:
+        if str(token) == '-' or str(token) == '+':
+            flag_hasop = True
+
         conc_str_token = conc_str_token + str(token)
+
+    #print(flag_hasop)
+    if flag_hasop:
+        conc_str_token = "( *"+conc_str_token+" )"
     
     new_str = pre_str + conc_str_token + ", " + pos_str + conc_str_token + " )"
     return new_str
@@ -540,8 +551,9 @@ def applyFuncIsDynObj(recString):
     
 def addDerefenceSymb(recString):  
     pre_str="*"
-    conc_str_token=""   
-    
+    conc_str_token=""
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.")
+
     for token in recString:
         conc_str_token = conc_str_token+str(token)
     
@@ -1192,13 +1204,13 @@ DOING: in value check is the variable is the scope of the Function
 """
 expression2Calc_IP = expression2Calc.copy()
 value_ip = value.copy()
-funInvalidPoint = Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + invalidObject + rParen ^lParen + value_ip + rParen ^ expression2Calc_IP).setParseAction( setDoubleRef_IP ) ^\
+funInvalidPoint = Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + invalidObject + rParen ^ lParen + value_ip + rParen ^ expression2Calc_IP ).setParseAction( setDoubleRef_IP ) ^\
                   Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + toTypeCast + value_ip + rParen ^ expression2Calc_IP.setParseAction( replacePointerIndex )).setParseAction( setDoubleRef_IP ) ^\
                   Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + toTypeCast + expression2Calc_IP + rParen).setParseAction( setDoubleRef_IP ) ^\
                   Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf,")).setResultsName("invalidPointer") + (lParen + invalidObject + sinalToCalc + Suppress(toTypeCast) + lParen + structArrayVar + rParen + rParen).setParseAction( setDoubleRef_IP ) ^\
                   Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + ( Empty() ^ Suppress(toTypeCast) ) + value_ip + rParen).setParseAction( setDoubleRef_IP ) ^\
                   Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") + (lParen + ( Suppress(toTypeCast) ) + value_ip + sinalToCalc + value_ip.setParseAction( checkVarScope ) + rParen).setParseAction( setDoubleRef_IP ) ^\
-                  Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer") 
+                  Keyword("INVALID-POINTER").setParseAction(replaceWith("IS_VALID_POINTER_FORTES( list_LOG_mcf, ")).setResultsName("invalidPointer")
                   
 
 

@@ -25,22 +25,28 @@ void test_fun(int a[], int N)
    for (i = 0; i < N; i++)
    {
 // FORTES: Claim 1
-      __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&( *(i + a) ), (void *)(intptr_t)( *(i + a) ) )), "[Failed]\n VIOLATED PROPERTY: Claim 1 \n \t Location at original code in line: 11 \n \t Comments:   dereference failure: invalid pointer");
+      __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(*(i + a)), (void *)(intptr_t)(*(i + a)))), "[Failed]\n VIOLATED PROPERTY: Claim 1 \n \t Location at original code in line: 11 \n \t Comments:   dereference failure: invalid pointer");
       while (a[i] < 0)
       {
 // FORTES: Claim 2
-         //__MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 2 \n \t Location at original code in line: 12 \n \t Comments:   dereference failure: invalid pointer");
+         __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(*(i + a)), (void *)(intptr_t)(*(i + a)))), "[Failed]\n VIOLATED PROPERTY: Claim 2 \n \t Location at original code in line: 12 \n \t Comments:   dereference failure: invalid pointer");
          a[i]++;
+         list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(a[i]), (void *)(intptr_t)(a[i]), "a[i]", 1, 0, 0, 0, "int", 12); /** by FORTES **/
+
          neg++;
+         list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(neg), (void *)(intptr_t)(neg), "neg", 1, 0, 0, 0, "int", 13); /** by FORTES **/
       }
 // FORTES: Claim 3
-      //__MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 3 \n \t Location at original code in line: 15 \n \t Comments:   dereference failure: invalid pointer");
+      __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(*(i + a)), (void *)(intptr_t)(*(i + a)))), "[Failed]\n VIOLATED PROPERTY: Claim 3 \n \t Location at original code in line: 15 \n \t Comments:   dereference failure: invalid pointer");
       while (a[i] > 0)
       {
 // FORTES: Claim 4
-         //__MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(i + a), (void *)(intptr_t)(i + a))), "[Failed]\n VIOLATED PROPERTY: Claim 4 \n \t Location at original code in line: 16 \n \t Comments:   dereference failure: invalid pointer");
+         __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&(*(i + a)), (void *)(intptr_t)(*(i + a)))), "[Failed]\n VIOLATED PROPERTY: Claim 4 \n \t Location at original code in line: 16 \n \t Comments:   dereference failure: invalid pointer");
          a[i]--;
+         list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(a[i]), (void *)(intptr_t)(a[i]), "a[i]", 1, 0, 0, 0, "int", 16); /** by FORTES **/
+
          pos++;
+         list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(pos), (void *)(intptr_t)(pos), "pos", 1, 0, 0, 0, "int", 17); /** by FORTES **/
       }
    }
 }
@@ -58,7 +64,8 @@ int main()
       list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(array_size), (void *)(intptr_t)(NULL), "array_size", 2, 0, 0, 0, "int", 25); /** by FORTES **/
    }
    int *numbers = (int *)alloca(array_size * (sizeof(int)));
-   list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(numbers), (void *)(intptr_t)(numbers), "numbers", 2, 0, 0, 0, "int", 27); /** by FORTES **/
+   list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(numbers), (void *)(intptr_t)(numbers), "numbers", 2, 1, 0, 0, "int", 27); /** by FORTES **/
 
    test_fun(numbers, array_size);
+   assert(CHECK_MEMORY_LEAK(list_LOG_mcf, 0, 28)); /** by FORTES **/
 }

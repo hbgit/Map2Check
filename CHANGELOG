@@ -58,6 +58,12 @@
     :: HIP1: Adding a filed in mapping to identify what is the allocation function adopted, this way we can write a correct
             leak asssertion to.
 
+> [THE PROJECT] Creating an analysis to improve the use of __VERIFIER_nondet_int(). E.g., in cstrncat_alloc.c
+    is adopted to determine the size of array
+    ::HIP1: Creating a static analysis to determine what kid of __VERIFIER_nondet_int() should be, such as:
+            (1) 0 or 1 to whiles and fors, or
+            (2) the array size os vars
+
 
 
 > [THE PROJECT] ctags dependece >> http://ctags.sourceforge.net/

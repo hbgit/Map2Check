@@ -143,7 +143,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         #
         path_cpp_args = os.path.join(os.path.dirname(__file__), "../utils/fake_libc_include")
         self.ast = pycparser.parse_file(self.__inputfilename, use_cpp=True, cpp_path=CPPPATH, cpp_args=r'-I'+path_cpp_args)        
-        #~ self.ast.show()
+        # self.ast.show()
+        # sys.exit()
 
 
     def resetVarsToMap(self):
@@ -500,6 +501,12 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     # Reset var to ptr index
                     #self.tmp_flag_is_ptr = False
 
+                elif type(stmt) == UnaryOp:
+                    #print("\t ==== %s %s" % (stmt, stmt.coord)) #COM
+                    if stmt.op == "p++" or stmt.op == "p--":
+                        self.identifyAssigment(stmt, nodeVar)
+
+
                 elif type(stmt) == FuncCall:
                     #print("\t ==== %s %s" % (stmt, stmt.coord))                    
                     self.searchByFree(stmt,nodeVar)
@@ -507,11 +514,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
                 # Check list of flow program conditions
                 elif type(stmt) in self.list_of_flow_programs:
-                    #print("FROM: %s IN %s" % (stmt, str(stmt.coord)))
 
                     self.expand_flow_program(stmt)
-                    
-                    #print("\t %s -- %s" % (type(self.current_flow_program_comp), self.current_flow_program_comp.coord))
 
                     if self.enable_else_flow:
                         # for IF
@@ -520,27 +524,12 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                         self.searchAssigInCompound(self.current_else_flow_program, nodeVar)
                     #else:
                     elif type(stmt) is Case:
-                        #print("IN CASE: %s " % stmt.coord)                        
-                        #print(type(self.current_flow_program_comp))
-                        for stmt in self.current_flow_program_comp:                            
-                            
-                            # BUG -> From here, check if it is possible to conact the type from up in the top
-                            # $$$$$$$$$$$$$$$$$$
-                            #if type(stmt) == If:
-                                ##print("Indo a IF -> ")
-                                #print(type(stmt))
-                                #if not type(stmt) == Compound:
-                                    #print("Is NOT a compound")
-                            
+                        #print("IN CASE: %s " % stmt.coord)
+                        for stmt in self.current_flow_program_comp:
                             self.searchAssigInCompound(stmt, nodeVar)
-                        
-                        #self.identifyAssigment(self.current_assig_case, nodeVar)
-                        # Search by stmts recall searchAssigInCompound
-                        # Check if we have self.current_flow_program_comp
-                        
+
                     else:
                         #print("Others")
-                        #print()
                         self.searchAssigInCompound(self.current_flow_program_comp, nodeVar)
                      
         
@@ -551,6 +540,10 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 #print("\t As ==== %s %s" % (stmt, stmt.coord))
                 # Mapping is performed in this function
                 self.identifyAssigment(compoundStmt, nodeVar)
+
+            elif type(compoundStmt) == UnaryOp:
+                if compoundStmt.op == "p++" or compoundStmt.op == "p--":
+                    self.identifyAssigment(compoundStmt, nodeVar)
 
             elif type(compoundStmt) == FuncCall:
                 #print("\t Func ==== %s %s" % (compoundStmt, compoundStmt.coord))
@@ -611,7 +604,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         # Pointer Decl with assignment
         if type(item) is Decl:
             
-            #print("Pointer/STRUCT Decl with assignment")
+            #print("\t\tPointer/STRUCT Decl with assignment")
 
             #self.has_ptr_assignment = True
 
@@ -643,9 +636,11 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             #print(self.has_call_func)
             
             #if decl.init is not None:
+            #print("\t\t",self.current_Id_in_init)
             if self.has_call_func:  
                 
-                if self.current_Id_in_init == "malloc":                    
+                if self.current_Id_in_init == "malloc" or \
+                   self.current_Id_in_init == "alloca":
                     self.map_is_dynamic = True
                     if save_actual_has_struct:                    
                         self.map_points_to = self.map_var
@@ -855,6 +850,50 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
                 self.curr_has_operation_index_ptr = False
 
+        elif type(item) is UnaryOp:
+
+            # Checking if the var is the actual var that we have tracking
+            var = ''
+            if type(item.expr) == ID:
+                var = item.expr.name
+            elif type(item.expr) == ArrayRef:
+                var = item.expr.name.name
+
+            #print("\t",var," == ", nodeVar.name)
+
+            if var == nodeVar.name:
+
+                if type(item.expr) == ArrayRef:
+                    var = self.ast_gen.CGenerator().visit_ArrayRef(item.expr)
+                self.map_var = var
+                self.map_points_to = var
+
+                lineNum = self.getNumberOfLine(item)
+                self.map_line = lineNum
+
+                if self.flag_idenitify_global_var:
+                    self.map_id_function = self.global_curr_funct
+                else:
+                    self.map_id_function = self.current_funct
+                self.map_is_global = self.flag_idenitify_global_var
+
+                self.map_is_a_free = False
+                self.map_is_dynamic = False
+
+                if self.current_is_a_union:
+                    self.map_is_a_union = True
+                else:
+                    self.map_is_a_union = False
+
+                self.map_type_of_var = self.type_name_track_all
+
+                # Finish to gather the data to map in this point
+                # Last check to add into list the data to map
+                if self.checkMapIsComplete(inspect.currentframe().f_back.f_lineno):
+                    self.setList2Map()
+
+
+
 
 
     def checkVarType(self):
@@ -1046,9 +1085,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
                             
             # print("------- After call -------")
-            # print("IS pointer: ",self.current_is_ptr)
-            # print("IS STRUCT: %s" % self.has_struct_ref)
-            # print("STRUCT flag: %s" % self.flag_tmp_has_struct)
+            #print("IS pointer: ",self.current_is_ptr)
+            #print("IS STRUCT: %s" % self.has_struct_ref)
+            #print("STRUCT flag: %s" % self.flag_tmp_has_struct)
             
             
             
@@ -1142,7 +1181,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 # Identify it has a Decl with assignment to ptr
                 elif self.hasAssigmentInDeclPtr or self.has_struct_ref:                    
                     #sprint("<<< ",self.hasAssigmentInDeclPtr)
-                    #print("PTR or STRUCT assig in: %s" % nodeVar.coord) #COM
+                    #print("\t\tPTR or STRUCT assig in: %s" % nodeVar.coord) #COM
                     self.has_ptr_assignment = True
                     self.identifyAssigment(nodeVar,nodeVar)
 
@@ -1202,7 +1241,6 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 #print(">>>>>>>>>>>>>>>>>", self.type_name_track_all)
                 self.map_type_of_var = self.type_name_track_all
 
-                #print("Here!!!")
                 # Last check to add into list the data to map
                 if self.checkMapIsComplete(inspect.currentframe().f_back.f_lineno):
                     self.setList2Map()
@@ -1393,6 +1431,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                             #print("---------------------------------------------")
                             #print()
                             #print("Searching by Decl: %s <> %s | Count Decl = %s" % (item.name, item.coord,self.identifier_first_decl_in_func))
+                            #print("Searching by Decl: %s <> %s" % (item.name, item.coord))
                             
                             
                             # [TOP on STACK] Here we consider all type for first Decl in Function main, 

@@ -43,9 +43,32 @@
 > [FILE:run_training_svcomp.py] Updated script to generate a graphml from map2check output
 >  [FILE:identify_points2leak] Fixed BUG related to deep search in compound and not compound AST nodes
 
+> [FILE:create_map.py] Fixed bug related to -t to map all, is not map i++ incr.
+> [FILE:create_map.py] Fixed bug related to map arrays pointers , e.g.,  a[i]++; that has not beem mapped.
+    :: LOC 502 and 850
+> [FILE:create_map.py] Added support to alloca C function
+> [FILE:parse_2_claimsv1609.py] Updated rule "funInvalidPoint" to in claim translation
+    :: Checking last rule
 
-> [THE PROJECT] ctags dependece >> http://ctags.sourceforge.net/
-> [THE PROJECT] TODO: Checkout possibility to remmove ctags and networkx
+> [THE PROJECT] Removed ctags dependece >> http://ctags.sourceforge.net/
+> [THE PROJECT] DONE: Checkout possibility to remmove ctags and networkx
+
+
+> [THE PROJECT] Dealing with alloc C function. The actual project status generates false positives cuz the alloc function
+    :: HIP1: Adding a filed in mapping to identify what is the allocation function adopted, this way we can write a correct
+            leak asssertion to.
+
+> [THE PROJECT] Creating an analysis to improve the use of __VERIFIER_nondet_int(). E.g., in cstrncat_alloc.c
+    is adopted to determine the size of array
+    ::HIP1: Creating a static analysis to determine what kid of __VERIFIER_nondet_int() should be, such as:
+            (1) 0 or 1 to whiles and fors, or
+            (2) the array size os vars
+
+
+
+
+
+
 
 
 

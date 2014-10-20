@@ -395,11 +395,11 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
     # print(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
     #           +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
     # sys.exit()
-    # os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
-    #           +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
-    #
-    # os.system("cat "+csvClaimFile)
-    # sys.exit()
+    #os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
+    #          +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
+
+    #os.system("cat "+csvClaimFile)
+    #sys.exit()
     result = commands.getoutput(CLAIM_TRANSLATOR + " -i " + csvClaimFile + " -c " + cFile
                                 + " -f " + dataFunctionFile + " -m " + file_from_map_2_cl
                                 + " -p " + csvMappedFromCode + " > " + name_new_csv_file)
@@ -421,7 +421,8 @@ def get_data_functions(cFile):
 
 
 def remove_tmp_files(list_path):
-    for path in list_path:        
+    uniclist = list(set(list_path))
+    for path in uniclist:
         os.remove(path)
         #print(path)
         
@@ -739,7 +740,8 @@ def start_generation_cassert(cFile, enSetFunc):
     # Because the map2check library we need to do a temporary copy    
     #   of the .h to program location to apply the preprocessing
     #    
-    shutil.copy2(LIBRAY_HEADER_MAP, os.path.dirname(getPath2NewInstCFile))           
+    shutil.copy2(LIBRAY_HEADER_MAP, os.path.dirname(getPath2NewInstCFile))
+    #print(getPath2NewInstCFile)
     getFinalCFile = code_preprocessor(getPath2NewInstCFile)
     os.system("cat "+getFinalCFile)
     list_tmp_path.append(getPath2NewInstCFile)

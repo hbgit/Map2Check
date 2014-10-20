@@ -41,7 +41,7 @@ from operator import itemgetter
 import pwd
 import linecache
 
-
+from modules.utils import generate_data_funct
 
 
 # -------------------------------------------------
@@ -114,7 +114,7 @@ DIR_RESULT_END_CODE = ABS_PATH_FORTES+"/new_code"
 MAP_2_CHECK_MAP = ABS_PATH_FORTES+"/modules/map2check/generate_map/main_map.py"
 
 # Utils
-GET_DATA_LOC_FUNC = ABS_PATH_FORTES+"/modules/utils/get_data_func_location.pl"
+#GET_DATA_LOC_FUNC = ABS_PATH_FORTES+"/modules/utils/get_data_func_location.pl"
 LIBRAY_HEADER_MAP = ABS_PATH_FORTES+"/modules/map2check/library/check_safety_memory_FORTES.h"
 
 
@@ -262,8 +262,8 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     
     #result = commands.getoutput(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     #print(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
-    os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
-    sys.exit()
+    #os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
+    #sys.exit()
 
     result = commands.getoutput(WRITE_NEW_INSTANCE+" "+tmpFileGnuSkip_end+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0) 
@@ -409,8 +409,13 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
     
 def get_data_functions(cFile):
     file_loc_fun = DIR_RESULT_CLAIMS+"/tmp_data_function.loc"
-    result = commands.getoutput(GET_DATA_LOC_FUNC+" "+cFile+" > "+file_loc_fun)
-    check_command_exec(result, file_loc_fun, "Generating data function",0)
+    getdataf = generate_data_funct.GetDataFuncts()
+    getdataf.generate_ast(cFile)
+    getdataf.overview_data_functs(cFile, file_loc_fun)
+
+    #result = commands.getoutput(GET_DATA_LOC_FUNC+" "+cFile+" > "+file_loc_fun)
+    #check_command_exec(result, file_loc_fun, "Generating data function",0)
+
     return file_loc_fun
 
 
@@ -723,7 +728,7 @@ def start_generation_cassert(cFile, enSetFunc):
         getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, get_final_path_csv_file_CL, 1)
     else:
         getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, "None", 0)
-    list_tmp_path.append(getPreCFile)
+    #list_tmp_path.append(getPreCFile)
     list_tmp_path.append(getDataFunction)
     #print(GENERATE_GRAPHML)
     if not GENERATE_GRAPHML:
@@ -831,8 +836,11 @@ if __name__ == "__main__":
     #-----------------------------------------------------
     if args.setMainFunction:
         #check if the given function there is in the code
-        checkFunc=commands.getoutput('ctags -x --c-kinds=f '+inputCFile+' | grep -c "'+args.setMainFunction+'\"')
-        if int(checkFunc):
+        runind = generate_data_funct.GetDataFuncts()
+        runind.generate_ast(inputCFile)
+        checkFunc = runind.hasfunction(str(args.setMainFunction))
+        #checkFunc=commands.getoutput('ctags -x --c-kinds=f '+inputCFile+' | grep -c "'+args.setMainFunction+'\"')
+        if checkFunc:
             getStartFunction = args.setMainFunction
         else:
             print('Error: function { '+args.setMainFunction+' } not found')

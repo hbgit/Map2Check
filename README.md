@@ -29,10 +29,14 @@ E-mail: herberthb12@gmail.com
 - Requirements for using the tool<br>
 To use this tool is necessary that the system contains the following software already installed properly:
 
-> - Python;
+> - Linux OS
+> - Python (v2.7.1 or higher);
 > - Perl;
-> - CUnit available at http://cunit.sourceforge.net;
-> - Shell Script;
+> - Pycparser (v2.10) - https://github.com/eliben/pycparser
+> - Pyparsing (v1.5.6) - http://pyparsing.wikispaces.com
+> - Networkx (v1.9.1) - https://networkx.github.io/
+> - Uncrustify (v0.60) - http://uncrustify.sourceforge.net
+
 
 ================
 
@@ -40,13 +44,32 @@ To use this tool is necessary that the system contains the following software al
 <b>How to install Map2Check?</b>
 
 <p align="justify">
-In order to install Map2Check on your PC, you should download and save the map2check_vx.tar.gz file on your disk. 
+First of all, you need to install the required packages:
+</p>
+
+- <b>STEP 0:</b>
+> - Pycparser: $ apt-get or yum install python-pycparser
+> - Pyparsing: $ apt-get or yum install python-pyparsing
+> - Networkx (you need to have setuptools installed): $ apt-get or yum install python-networkx
+> - Uncrustify: $ apt-get or yum install uncrustify
+
+<p align="justify">
+Warnning: 
+</p>
+- In Ubuntu all this packages are in v13.04 or higher
+- In Debian all this packages are in Wheezy version or higher
+- In Fedora all this packages are in v19 or higher
+
+
+
+<p align="justify">
+In order to install Map2Check on your PC, you should download and save the map2check.zip file on your disk. 
 After that, you should type the following command:
 </p>
 
 - <b>STEP 1:</b>
 
-> $ tar -xzvf map2check_vx.tar.gz
+> $ unzip map2check.zip
 
 or from https://github.com
 
@@ -55,12 +78,12 @@ or from https://github.com
 - <b>STEP 2:</b>
 <p align="justify">
 Open the directory where the Map2Check tool was extracted and then you should locate the configure.py. 
-After that, you should run the configure.py script as ROOT, it is worth to say that you should run the 
+After that, you should run the configure.py script, it is worth to say that you should run the 
 configure.sh script from inside the directory where Map2Check was extracted.
 </p>
 
 > Example: <br>
-> 1) $ cd Map2Check-Fortes_vx <br>
+> 1) $ cd Map2Check <br>
 > 2) $ ls <br>
 >    code_samples  <configure.py>  <map2check-fortes.py>  modules  README  result_claims <br>
 > 3) $ sudo ./configure.py <br>
@@ -70,15 +93,15 @@ configure.sh script from inside the directory where Map2Check was extracted.
 
 It is advisable that you should set the environment variable PATH in your .bashrc file as follows:
 
-> $ export PATH=$PATH:/home/user/Map2Check_vx/
+> $ export PATH=$PATH:/home/user/Map2Check/
 
 - <b>STEP 4:</b>
 
 Testing Map2Check
 
-> $ map2check-fortes.py code_samples/D_CBMC_bound_array.c 
+> $ map2check-fortes.py -a code_samples/D_CBMC_bound_array.c 
 
-The output is the new code and the binary program in  code_samples/
+The output is the new code intrumented with the assertions.
 
 
 ================
@@ -87,7 +110,7 @@ How running the Map2Check?
 
 Running FORTES.
 
-> $ map2Check-fortes.py <file.c>
+> $ ./map2Check-fortes.py <file.c>
 
 > For help and others options:
 

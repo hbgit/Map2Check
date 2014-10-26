@@ -639,8 +639,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
             #print("\t\t",self.current_Id_in_init)
             if self.has_call_func:  
                 
-                if self.current_Id_in_init == "malloc" or \
-                   self.current_Id_in_init == "alloca":
+                # if self.current_Id_in_init == "malloc" or \
+                #    self.current_Id_in_init == "alloca":
+                if self.current_Id_in_init == "malloc":
                     self.map_is_dynamic = True
                     if save_actual_has_struct:                    
                         self.map_points_to = self.map_var

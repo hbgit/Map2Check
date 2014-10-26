@@ -60,8 +60,10 @@
         :: [SOLVED] BUG ::Is not generating correct the graphml
             :: Added CPAChecker
             :: Added the CPAChecker result in the HTML report
+                :: /home/hbazure/drive/Docs/CPAChecker/trunk
 
-> [FILE:create_map.py] Commenting  the partial support to alloc C function to Result Overview
+> [FILE:create_map.py] Commented the partial support to alloc C function
+
 
 
 

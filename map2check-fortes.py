@@ -652,10 +652,6 @@ def start_generation_cassert(cFile, enSetFunc):
     #os.system("cat "+getPreCFile)
     #sys.exit()
 
-    
-    # OriCode
-    # >>> Gather the data about functions location in the program
-    getDataFunction = get_data_functions(getPreCFile)    
 
     # 2nd HackCode
     # Apply hacking to handle with GNU extensions
@@ -665,6 +661,15 @@ def start_generation_cassert(cFile, enSetFunc):
     #sys.exit()
     commands.getoutput(GNU_SKIP_SCRIPT + " " + getPreCFile + " 2>&1 > " + tmpFileGnuSkip_afterpre)
     list_tmp_path.append(tmpFileGnuSkip_afterpre)
+
+
+    # TODO: Checkout if this not have a coloteral efect
+    # OriCode
+    # >>> Gather the data about functions location in the program
+    #getDataFunction = get_data_functions(getPreCFile)
+    getDataFunction = get_data_functions(tmpFileGnuSkip_afterpre)
+
+
 
     # HackCode
     # >>> Call map2check again to get data line number after preprocessing
@@ -825,7 +830,9 @@ if __name__ == "__main__":
         generate_data_tokens(inputCFile)
 
         # This option NOT support enterFunction, sorry about that
-        WRITE_GRAPHMLOUT.enable_enterFunction_attr = False
+        #WRITE_GRAPHMLOUT.enable_enterFunction_attr = False
+        # only for experiments and test regression
+        WRITE_GRAPHMLOUT.enable_enterFunction_attr = True
         WRITE_GRAPHMLOUT.preprocess_outmap(map2checkoutpath)
         name_file_result = commands.getoutput("mktemp")
         lastoutput = open(str(name_file_result), "w")
@@ -833,6 +840,15 @@ if __name__ == "__main__":
         lastoutput.close()
 
         print("The Map2Check output in GraphML format is in < " + name_file_result + " >")
+
+        if os.path.exists("/tmp/tmp_map_currentlog.tmp"):
+            os.remove("/tmp/tmp_map_currentlog.tmp")
+        if os.path.exists("/tmp/tmp_idfunct.map2check"):
+            os.remove("/tmp/tmp_idfunct.map2check")
+        if os.path.exists("/tmp/trace_of_program_exec_map2check.tmp"):
+            os.remove("/tmp/trace_of_program_exec_map2check.tmp")
+
+
         sys.exit()
                 
     #-----------------------------------------------------

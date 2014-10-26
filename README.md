@@ -48,18 +48,11 @@ First of all, you need to install the required packages:
 </p>
 
 - <b>STEP 0:</b>
-> - Pycparser: $ apt-get or yum install python-pycparser
-> - Pyparsing: $ apt-get or yum install python-pyparsing
-> - Networkx (you need to have setuptools installed): $ apt-get or yum install python-networkx
-> - Uncrustify: $ apt-get or yum install uncrustify
 
-<p align="justify">
-Warnning: 
-</p>
-- In Ubuntu all this packages are in v13.04 or higher
-- In Debian all this packages are in Wheezy version or higher
-- In Fedora all this packages are in v19 or higher
-
+> - Pycparser : $ pip install python-pycparser
+> - Pyparsing : $ pip install python-pyparsing
+> - Networkx  : $ pip install python-networkx
+> - Uncrustify : $ apt-get or yum install uncrustify
 
 
 <p align="justify">

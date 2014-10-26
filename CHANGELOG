@@ -53,15 +53,12 @@
 
 
 > [FILE:run_training_svcomp_details.py] Updated unsafe to FAILED
-
-
 > [FILE:run_training_svcomp_details.py] Updating TIMEOUT function
         :: What is generated in the program execution? -> The trace of the execution (if any failed)
         :: [SOLVED] BUG ::Is not generating correct the graphml
             :: Added CPAChecker
             :: Added the CPAChecker result in the HTML report
                 :: /home/hbazure/drive/Docs/CPAChecker/trunk
-
 > [FILE:create_map.py] Commented the partial support to alloc C function
 
 

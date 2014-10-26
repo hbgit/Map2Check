@@ -59,7 +59,7 @@
         :: What is generated in the program execution? -> The trace of the execution (if any failed)
         :: [SOLVED] BUG ::Is not generating correct the graphml
             :: Added CPAChecker
-            :: Adding the CPAChecker result in the HTML report
+            :: Added the CPAChecker result in the HTML report
 
 > [FILE:create_map.py] Commenting  the partial support to alloc C function to Result Overview
 

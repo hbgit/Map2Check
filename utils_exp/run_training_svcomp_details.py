@@ -130,6 +130,8 @@ def timeout_command(command, timeout):
     result_sdtout = commands.getoutput("cat /tmp/trace_of_program_exec_map2check.tmp")
     result_sdtout_list = result_sdtout.split("\n")
 
+    os.remove("/tmp/trace_of_program_exec_map2check.tmp")
+
 
     if tt > timeout:
         return ["TIME OUT",result_only_mem,result_stdrr_list,result_sdtout_list]
@@ -180,33 +182,35 @@ def set_codes_to_experiment(pathCPrograms):
     HTML_TABLE_HEADER = "<thead> \n " \
                         "<tr id=\"tool\">" \
                           "<td style=\"width: 60%\">Tool</td>" \
-                          "<td colspan=\"9\">"+MAP2CHECK_VERSION+"</td>" \
+                          "<td colspan=\"10\">"+MAP2CHECK_VERSION+"</td>" \
                         "</tr>"\
                         "<tr id=\"limits\">" \
                           "<td>Limits</td>" \
-                          "<td colspan=\"9\">"+LIMIT_EXP+"</td>"+\
+                          "<td colspan=\"10\">"+LIMIT_EXP+"</td>"+\
                         "</tr>" \
                         "<tr id=\"os\">" \
                           "<td>OS</td>" \
-                          "<td colspan=\"9\">"+OS+"</td>"+\
+                          "<td colspan=\"10\">"+OS+"</td>"+\
                         "</tr>" \
                         "<tr id=\"system\">" \
                           "<td>System</td>" \
-                          "<td colspan=\"9\">"+CPU_INFO+" - "+MEM_INFO+"</td>" \
+                          "<td colspan=\"10\">"+CPU_INFO+" - "+MEM_INFO+"</td>" \
                         "</tr>" \
                         "<tr id=\"date\">" \
                           "<td>Date of run</td>" \
-                          "<td colspan=\"9\">"+DATE_EXECUTION+"</td>" \
+                          "<td colspan=\"10\">"+DATE_EXECUTION+"</td>" \
                         "</tr>" \
                         "<tr id=\"options\">" \
                           "<td>Options</td>" \
-                          "<td colspan=\"9\">"+MAP2CHECK_PARAMS+"</td>" \
+                          "<td colspan=\"10\">"+MAP2CHECK_PARAMS+"</td>" \
                         "</tr>" \
                         "<tr id=\"columnTitles\">" \
                           "<td class=\"clickable\" "+"title=\"Click here to toggle visibility of columns\">"+str(pathCPrograms)+\
                           "</td>" \
                           "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
                           "status</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "CPAChecker re-check status</td>" \
                           "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
                           "total time(s)</td>" \
                           "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
@@ -301,6 +305,9 @@ def set_codes_to_experiment(pathCPrograms):
                 get_path_program = os.path.join(root, file)
                 
                 FILENAME = get_path_program
+
+                CPACHECKER_STATUS = "-"
+                CPACHECKER_OUTPUT_PATH = ''
                 
                 
                 # Get the expected result from benchmark program
@@ -338,6 +345,7 @@ def set_codes_to_experiment(pathCPrograms):
                     print("(2) Run new program instance")                     
                     
                     name_file_result = list_result_gen[1].replace("._mcf2check","._out")
+                    CPACHECKER_OUTPUT_PATH = list_result_gen[1].replace("._mcf2check",".cpachecker_out")
                     #list_delete_tmp_file.append(name_file_result)
                     #print("File result exec: "+name_file_result+"\n")                                        
                     
@@ -362,6 +370,7 @@ def set_codes_to_experiment(pathCPrograms):
                         #       (3) stderr output in list
                         #       (3) sdtout output in list
                         # ex: return ["EXECUTED",result_only_mem,result_stdrr_list,result_sdtout_list]
+                        #get_OUT_result_exec = timeout_command(cmd_bin_exec, 900)
                         get_OUT_result_exec = timeout_command(cmd_bin_exec, 900)
 
 
@@ -409,7 +418,7 @@ def set_codes_to_experiment(pathCPrograms):
                                 outputRun = open(str(name_file_result), "w")
                                 outputRun.write("-----------------------------------------------------------------------\n")
                                 outputRun.write(">>> Trace of "+str(get_path_program)+"\n")
-                                outputRun.write(">>> Generated at"+str(datetime.datetime.now())+"\n")
+                                outputRun.write(">>> Generated at "+str(datetime.datetime.now())+"\n")
                                 outputRun.write("\n")
                                 #outputRun.write(str(tmp_list_OUT_STDOUT))
                                 for line in tmp_list_OUT_STDOUT:
@@ -430,6 +439,7 @@ def set_codes_to_experiment(pathCPrograms):
                                     #print(result_gen_graphml[1]+" <<<<<< ML")
 
                                     if CPACHECKER_PATH:
+                                        print("\t\t >>> Runnning CPAChecker")
                                         cwd = os.getcwd()
                                         os.chdir(CPACHECKER_PATH)
                                         result_recheck = commands.getoutput(CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
@@ -438,16 +448,27 @@ def set_codes_to_experiment(pathCPrograms):
                                         flag_cpa = False
                                         for line in list_recheck:
                                             match_failed_CPA = re.search(r"Verification result: FALSE", line)
+                                            match_nobug_CPA = re.search(r"Verification result: TRUE", line)
                                             if match_failed_CPA:
-                                                print("CPAChecker --- OKAY")
+                                                print("\t\t\t CPAChecker --- POSITIVE")
+                                                CPACHECKER_STATUS = "positive"
                                                 flag_cpa = True
+                                                break
+                                            elif match_nobug_CPA:
+                                                print("\t\t\t CPAChecker --- NEGAIVE")
+                                                CPACHECKER_STATUS = "negative"
+                                                flag_cpa = True
+                                                break
+
 
                                         if not flag_cpa:
-                                            print("CPAChecker --- WRONG")
+                                            print("\t\t\t CPAChecker --- UNKNOWN")
 
 
                                         os.chdir(cwd)
-                                        print(result_recheck)
+                                        # Write cpachecker log
+                                        commands.getoutput("echo \""+result_recheck+"\" > "+CPACHECKER_OUTPUT_PATH)
+                                        #print(result_recheck)
                                 else:
                                     STATUS_GRAPHML_GEN = "ERROR"
                                 print("\t\t Time G: "+str("%1.3f" % ACTUAL_TIME_GEN_GRAPH)+" MEM G: "+str("%1.2f" % ACTUAL_GEN_GRAPH_inMB))
@@ -573,6 +594,7 @@ def set_codes_to_experiment(pathCPrograms):
                   
 
                 HTML_ENTRY="\t <tr><td>"+FILENAME+"</td><td class=\""+CSS_CLASS+"\">"+RESULT_TEXT+"</td>" \
+                           "<td class=\"unknownValue\">" + str(CPACHECKER_STATUS) + "&nbsp;</td>" \
                            "<td class=\"unknownValue\">" + str(("%1.2f" % TIME)) + "&nbsp;</td>" \
                            "<td class=\"unknownValue\">" + str(("%1.2f" % (ACTUAL_MEM_USED_EXEC_inMB+ACTUAL_TC_GEN_inMB))) + "&nbsp;</td>" \
                            "<td class=\"unknownValue\">" + str(("%1.2f" % ACTUAL_MEM_USED_EXEC_inMB)) + "&nbsp;</td>" \
@@ -621,6 +643,7 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td>total files</td>" \
                         "<td>"+str(TOTAL_FILES)+"</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_EXECUTION_TIME))+"&nbsp;</td>" \
                         "<td>"+str(("%1.2f" % (TOTAL_MEM_IN_EXE + TOTAL_TC_GEN_inMB + TOTAL_GEN_GRAPH_inMB)))+"&nbsp;</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEM_IN_EXE))+"&nbsp;</td> " \
@@ -634,6 +657,7 @@ def set_codes_to_experiment(pathCPrograms):
                         "<td title=\"(no bug exists + result is SAFE) OR "+\
                         "(bug exists + result is UNSAFE) OR (property is violated + violation is found)\">correct results</td>" \
                         "<td>"+ str(CORRECT_RESULTS)+"</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td>"+str(("%1.2f" % TIME_TOTAL_CORRECT))+"</td>" \
                         "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_CORRECT))+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_CORRECT))+"</td>" \
@@ -646,6 +670,7 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td title=\"bug exists + result is SAFE\">false negatives</td>" \
                         "<td>"+ str(FALSE_NEGATIVES)+"</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_FNEGATI))+"</td>" \
                         "<td>"+str(("%1.2f" % TIME_TOTAL_FNEGATI))+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_FNEGATI))+"</td>" \
@@ -658,6 +683,7 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td title=\"no bug exists + result is UNSAFE\">false positives"+"</td>" \
                         "<td>"+str(FALSE_POSITIVES)+"</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_FPOSITI))+"</td>" \
                         "<td>"+str(("%1.2f" % TIME_TOTAL_FPOSITI))+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_FPOSITI))+"</td>" \
@@ -670,6 +696,7 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td title=\"17 safe files, 15 unsafe files\">score ("+\
                         str(TOTAL_FILES)+" files, max score: "+str(MAX_SCORE)+")</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td class=\"score\">"+str(TOTAL_POINTS)+"</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \

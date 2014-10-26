@@ -45,15 +45,15 @@ def extract_file(_filepathtar, _to_directory):
 
 if __name__ == "__main__":
 
-    # Identify if is the user is root
-    if not os.getenv("USER") == "root":
-        print("Sorry about that!")
-        print("  >> We need to be root to execute this script")
-        sys.exit()
-
-    #save the name of the user logged
-    username = os.getlogin()
-    saveusernameid = pwd.getpwnam(str(username)).pw_uid
+    # # Identify if is the user is root
+    # if not os.getenv("USER") == "root":
+    #     print("Sorry about that!")
+    #     print("  >> We need to be root to execute this script")
+    #     sys.exit()
+    #
+    # #save the name of the user logged
+    # username = os.getlogin()
+    # saveusernameid = pwd.getpwnam(str(username)).pw_uid
         
     print()
     print("Checking prerequisites for installing the Map2Check-FORTES ... ")
@@ -61,91 +61,91 @@ if __name__ == "__main__":
     
 
     #-------------------------------------------------------
-    ### Checking Pycparse
-    msg_pyc = ""
-
-    cwd = os.getcwd()
-
-    try:
-        import pycparser
-    except ImportError, e:
-        print("--- Installing: pycparser")
-        extract_file( os.path.abspath("modules/other_tools/pycparser-master.zip"),
-                      os.path.abspath("modules/other_tools/") )
-
-
-        os.chdir(os.path.abspath("modules/other_tools/pycparser-master/"))
-        msg_pyp = commands.getoutput("python setup.py install")
-
-        print("--- Checking installation for: pycparser")
-        try:
-            import pycparser
-            os.chdir(cwd)
-            shutil.rmtree(os.path.abspath("modules/other_tools/pycparser-master"))
-        except ImportError, e:
-            print("--- Error to install pycparser")
-            print("Details: ")
-            print(msg_pyp)
-            #print("Available at https://github.com/eliben/pycparser")
-            sys.exit
+    # ### Checking Pycparse
+    # msg_pyc = ""
+    #
+    # cwd = os.getcwd()
+    #
+    # try:
+    #     import pycparser
+    # except ImportError, e:
+    #     print("--- Installing: pycparser")
+    #     extract_file( os.path.abspath("modules/other_tools/pycparser-master.zip"),
+    #                   os.path.abspath("modules/other_tools/") )
+    #
+    #
+    #     os.chdir(os.path.abspath("modules/other_tools/pycparser-master/"))
+    #     msg_pyp = commands.getoutput("python setup.py install")
+    #
+    #     print("--- Checking installation for: pycparser")
+    #     try:
+    #         import pycparser
+    #         os.chdir(cwd)
+    #         shutil.rmtree(os.path.abspath("modules/other_tools/pycparser-master"))
+    #     except ImportError, e:
+    #         print("--- Error to install pycparser")
+    #         print("Details: ")
+    #         print(msg_pyp)
+    #         #print("Available at https://github.com/eliben/pycparser")
+    #         sys.exit
 
     
     #-------------------------------------------------------
     ### Checking Pyparsing
-    msg_pyp = ""
-
-    cwd = os.getcwd()
-
-    try:
-        import pyparsing
-    except ImportError, e:
-        print("--- Installing: pyparsing")
-        extract_file( os.path.abspath("modules/other_tools/pyparsing-2.0.2.zip"),
-                      os.path.abspath("modules/other_tools/") )
-
-
-        os.chdir(os.path.abspath("modules/other_tools/pyparsing-2.0.2/"))
-        msg_pyp = commands.getoutput("python setup.py install")
-
-        print("--- Checking installation for: pyparsing")
-        try:
-            import pyparsing
-            os.chdir(cwd)
-            shutil.rmtree(os.path.abspath("modules/other_tools/pyparsing-2.0.2"))
-        except ImportError, e:
-            print("--- Error to install pyparsing")
-            print("Details: ")
-            print(msg_pyp)
-            sys.exit
+    # msg_pyp = ""
+    #
+    # cwd = os.getcwd()
+    #
+    # try:
+    #     import pyparsing
+    # except ImportError, e:
+    #     print("--- Installing: pyparsing")
+    #     extract_file( os.path.abspath("modules/other_tools/pyparsing-2.0.2.zip"),
+    #                   os.path.abspath("modules/other_tools/") )
+    #
+    #
+    #     os.chdir(os.path.abspath("modules/other_tools/pyparsing-2.0.2/"))
+    #     msg_pyp = commands.getoutput("python setup.py install")
+    #
+    #     print("--- Checking installation for: pyparsing")
+    #     try:
+    #         import pyparsing
+    #         os.chdir(cwd)
+    #         shutil.rmtree(os.path.abspath("modules/other_tools/pyparsing-2.0.2"))
+    #     except ImportError, e:
+    #         print("--- Error to install pyparsing")
+    #         print("Details: ")
+    #         print(msg_pyp)
+    #         sys.exit
 
 
     #-------------------------------------------------------
     ### Checking nextworkx
-    msg_netx = ""
-
-    cwd = os.getcwd()
-
-    try:
-        import networkx
-    except ImportError, e:
-        print("--- Installing: networkx")
-        extract_file( os.path.abspath("modules/other_tools/networkx-master.zip"),
-                      os.path.abspath("modules/other_tools/") )
-
-
-        os.chdir(os.path.abspath("modules/other_tools/networkx-master/"))
-        msg_netx = commands.getoutput("python setup.py install")
-
-        print("--- Checking installation for: networkx")
-        try:
-            import networkx
-            os.chdir(cwd)
-            shutil.rmtree(os.path.abspath("modules/other_tools/networkx-master"))
-        except ImportError, e:
-            print("--- Error to install networkx")
-            print("Details: ")
-            print(msg_netx)
-            sys.exit
+    # msg_netx = ""
+    #
+    # cwd = os.getcwd()
+    #
+    # try:
+    #     import networkx
+    # except ImportError, e:
+    #     print("--- Installing: networkx")
+    #     extract_file( os.path.abspath("modules/other_tools/networkx-master.zip"),
+    #                   os.path.abspath("modules/other_tools/") )
+    #
+    #
+    #     os.chdir(os.path.abspath("modules/other_tools/networkx-master/"))
+    #     msg_netx = commands.getoutput("python setup.py install")
+    #
+    #     print("--- Checking installation for: networkx")
+    #     try:
+    #         import networkx
+    #         os.chdir(cwd)
+    #         shutil.rmtree(os.path.abspath("modules/other_tools/networkx-master"))
+    #     except ImportError, e:
+    #         print("--- Error to install networkx")
+    #         print("Details: ")
+    #         print(msg_netx)
+    #         sys.exit
 
 
     #-------------------------------------------------------
@@ -205,7 +205,7 @@ if __name__ == "__main__":
         dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_64")
         if not os.path.exists(dest):
             os.makedirs(dest)
-            os.chown(dest, saveusernameid, saveusernameid)
+            #os.chown(dest, saveusernameid, saveusernameid)
         #64bits
         try:
             shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
@@ -222,7 +222,7 @@ if __name__ == "__main__":
         dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_32")
         if not os.path.exists(dest):
             os.makedirs(dest)
-            os.chown(dest, saveusernameid, saveusernameid)
+            #os.chown(dest, saveusernameid, saveusernameid)
         try:
             shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
                         dest )
@@ -254,17 +254,17 @@ if __name__ == "__main__":
         
         
     #-------------------------------------------------------
-    ### Checking Ctags
-    try:
-        # pipe output to /dev/null for silence
-        null = open("/dev/null", "w")
-        subprocess.Popen("ctags", stdout=null, stderr=null)
-        null.close()
-
-    except OSError:
-        print("Error: ", end="")
-        print("Ctags not found")
-        print("\t Please install Ctags")
+    # ### Checking Ctags
+    # try:
+    #     # pipe output to /dev/null for silence
+    #     null = open("/dev/null", "w")
+    #     subprocess.Popen("ctags", stdout=null, stderr=null)
+    #     null.close()
+    #
+    # except OSError:
+    #     print("Error: ", end="")
+    #     print("Ctags not found")
+    #     print("\t Please install Ctags")
         
         
     #-------------------------------------------------------

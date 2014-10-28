@@ -73,7 +73,10 @@
                             (1) Create a string for regex
                             (2) Create a new string to write in the file
                             (3) Replace the line in the file by string in (2)
-                :: HIP 2: Try short in python
+
+                :: [rejected] HIP 2: Try short in python
+                    :: NOT WORK, cuz on the trace log in trace_of_program_exec_map2check.tmp file is arriving
+                       in the experiments 11GB :(
 
 
 

@@ -64,7 +64,7 @@ list_delete_tmp_file = []
 
 
 # CPAChecker
-CPACHECKER_PATH = '/home/nhb/Documents/ON_DEV/CPAChecker/trunk/'
+CPACHECKER_PATH = '/home/hrocha/Documents/Projects_DEV/CPAChecker/trunk/'
 CPACHECKER_OPTIONS = 'scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc ' \
                      '-spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false ' \
                      '-setprop parser.transformTokensToLines=true -spec'
@@ -95,12 +95,24 @@ def get_mem_usage(_listtxtoutput):
 
 tmp_FINAL_TIME = 0
 
+ACTUAL_FILE_PATH = ''
+
 def timeout_command(command, timeout):
 
     global tmp_FINAL_TIME
 
+    if os.path.exists("/tmp/trace_of_program_exec_map2check.tmp"):
+        os.remove("/tmp/trace_of_program_exec_map2check.tmp")
+    else:
+        trace_file = open("/tmp/trace_of_program_exec_map2check.tmp","w")
+        trace_file.write("-----------------------------------------------------------------------\n")
+        trace_file.write(">>> Trace of "+str(ACTUAL_FILE_PATH)+"\n")
+        trace_file.write(">>> Generated at "+str(datetime.datetime.now())+"\n")
+        trace_file.write("\n")
+        trace_file.close()
+
     # generating the cammad to be executed
-    cmd_shell = "time -f %M timeout " + str(timeout) + " " + command + " > /tmp/trace_of_program_exec_map2check.tmp"
+    cmd_shell = "time -f %M timeout " + str(timeout) + " " + command + " >> /tmp/trace_of_program_exec_map2check.tmp"
 
     start_t = time.time()
     result_only_stderr = commands.getoutput(cmd_shell)
@@ -127,17 +139,17 @@ def timeout_command(command, timeout):
             del result_stdrr_list[index]
             break
     # generating stdout list
-    result_sdtout = commands.getoutput("cat /tmp/trace_of_program_exec_map2check.tmp")
+    result_sdtout = commands.getoutput("tail -n 20 /tmp/trace_of_program_exec_map2check.tmp")
     result_sdtout_list = result_sdtout.split("\n")
 
-    os.remove("/tmp/trace_of_program_exec_map2check.tmp")
+
+    #os.remove("/tmp/trace_of_program_exec_map2check.tmp")
 
 
     if tt > timeout:
         return ["TIME OUT",result_only_mem,result_stdrr_list,result_sdtout_list]
     else:
-        # Get the lines from file
-
+        # Get the needed lines from file
         return ["EXECUTED",result_only_mem,result_stdrr_list,result_sdtout_list]
 
 
@@ -154,6 +166,7 @@ def set_codes_to_experiment(pathCPrograms):
     global list_delete_tmp_file
     global ACTUAL_GEN_GRAPH_inMB
     global ACTUAL_TIME_GEN_GRAPH
+    global ACTUAL_FILE_PATH
     
         
     # Map2Check PARAMS
@@ -332,6 +345,7 @@ def set_codes_to_experiment(pathCPrograms):
                 print("(1) Generating test cases and new program instance")
                 INITIAL_EXECUTION_TIMESTAMP = time.time()
                 list_result_gen = only_generate_code(get_path_program)
+                ACTUAL_FILE_PATH = get_path_program
                 print("\t\t Time: "+str("%1.3f" % ACTUAL_TIME_TC_GEN)+" MEM: "+str("%1.2f" % ACTUAL_TC_GEN_inMB))
                 
                 # >> Run (2) execute the new program instance generated in phase (1)
@@ -415,22 +429,25 @@ def set_codes_to_experiment(pathCPrograms):
                                 # This write the multiples execution
                                 #outputRun = open(str(name_file_result), "a+b")
                                 # This save only one FAILED, always rewriting
-                                outputRun = open(str(name_file_result), "w")
-                                outputRun.write("-----------------------------------------------------------------------\n")
-                                outputRun.write(">>> Trace of "+str(get_path_program)+"\n")
-                                outputRun.write(">>> Generated at "+str(datetime.datetime.now())+"\n")
-                                outputRun.write("\n")
-                                #outputRun.write(str(tmp_list_OUT_STDOUT))
-                                for line in tmp_list_OUT_STDOUT:
-                                    outputRun.write(str(line)+" \n")
-                                #outputRun.write(str(tmp_list_OUT_STDERR))
-                                for line in tmp_list_OUT_STDERR:
-                                    outputRun.write(str(line)+" \n")
-                                outputRun.close()
+
+                                # outputRun = open(str(name_file_result), "w")
+                                # #outputRun.write(str(tmp_list_OUT_STDOUT))
+                                # # for line in tmp_list_OUT_STDOUT:
+                                # #     outputRun.write(str(line)+" \n")
+                                # #outputRun.write(str(tmp_list_OUT_STDERR))
+                                #
+                                # # append the file generated in the execution
+                                #
+                                # for line in tmp_list_OUT_STDERR:
+                                #     outputRun.write(str(line)+" \n")
+                                # outputRun.close()
+
+                                # Change the name and move the trace log
+                                os.system("mv /tmp/trace_of_program_exec_map2check.tmp "+name_file_result)
 
 
                                 # Call to generate the GraphML - preliminary test
-                                #print(get_path_program, name_file_result)
+                                print(get_path_program, name_file_result)
                                 result_gen_graphml = generate_graphml(get_path_program, name_file_result)
                                 if result_gen_graphml[0]:
                                     STATUS_GRAPHML_GEN = "true"
@@ -442,6 +459,7 @@ def set_codes_to_experiment(pathCPrograms):
                                         print("\t\t >>> Runnning CPAChecker")
                                         cwd = os.getcwd()
                                         os.chdir(CPACHECKER_PATH)
+                                        print("CMD: "+CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
                                         result_recheck = commands.getoutput(CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
                                         #
                                         list_recheck = result_recheck.split("\n")
@@ -455,7 +473,7 @@ def set_codes_to_experiment(pathCPrograms):
                                                 flag_cpa = True
                                                 break
                                             elif match_nobug_CPA:
-                                                print("\t\t\t CPAChecker --- NEGAIVE")
+                                                print("\t\t\t CPAChecker --- NEGATIVE")
                                                 CPACHECKER_STATUS = "negative"
                                                 flag_cpa = True
                                                 break

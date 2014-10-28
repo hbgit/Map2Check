@@ -1,0 +1,3 @@
+Running CPAchecker with default heap size (1200M). Specify a larger value with -heap if you have more RAM.
+Error: Invalid configuration (Please specify a program to analyze on the command line.) (CPAMain.main, SEVERE)
+

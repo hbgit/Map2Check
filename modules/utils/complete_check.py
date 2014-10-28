@@ -15,7 +15,7 @@ import time
 from pipes import quote
 import subprocess, datetime, os, time, signal
 
-import reader_csv_output
+
 
 
 # DEPENDENCY PARAMETERS
@@ -140,7 +140,6 @@ def set_codes_to_experiment(_pathcprogram):
 
                 tmp_list_OUT_STDOUT = get_OUT_result_exec[0].readlines()
                 tmp_list_OUT_STDERR = get_OUT_result_exec[1].readlines()
-
 
                 # From this executions we ALWAYS save the failed execution
                 # Check in the result of the bin execution

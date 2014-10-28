@@ -14,10 +14,12 @@
 > [FILE:create_map.py] Created a method to generate the token data for GraphML format
 > [FILE:complete_check.py] Fixed bug related to choose the option --graphml-output
 > [FILE:write_graphml_output.py] Added the data token atributes to graphml
+
 > [FILE:check_safety_memory_FORTES.c] Updated the functions in LIB to handle with type of the var
                 ::Updated the function PRINT_TRACE_LOG to read from file tmp log
                     - Updated the header
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
+
 > [FILE:write_new_instance.py] Added in the map list the var name to give as input to LIB
 > [FILE:create_map.py] When tokenizer the program we not consider blank lines
 > [FILE: configure.py] Added networkx in the install process
@@ -77,6 +79,13 @@
                 :: [rejected] HIP 2: Try short in python
                     :: NOT WORK, cuz on the trace log in trace_of_program_exec_map2check.tmp file is arriving
                        in the experiments 11GB :(
+
+                :: HIP 3: Create a complete list that have all trace as is write in the file, but in the end of the execution we
+                          remove all duplicate values based on line number and the memory address
+
+
+
+> [FILE:run_training_svcomp_details.py] Updating to remove the use of /tmp/trace_of_program_exec_map2check.tmp
 
 
 

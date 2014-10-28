@@ -900,9 +900,17 @@ if __name__ == "__main__":
                                                      " -n " + str(args.setCompleteCheck) +
                                                      " " + inputCFile)
         else:
-            saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
-                                                 " -n " + str(args.setCompleteCheck) +
-                                                 " " + inputCFile)
+            # BUG no generate graphml
+            if args.setGraphOut:
+                saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                                                     " -g " +
+                                                     " -n " + str(args.setCompleteCheck) +
+                                                     " " + inputCFile)
+                writegraphout = True
+            else:
+                saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                                                    " -n " + str(args.setCompleteCheck) +
+                                                    " " + inputCFile)
 
 
         if writegraphout:
@@ -933,7 +941,8 @@ if __name__ == "__main__":
                 print("Status: VERIFICATION FAILED")
                 print("The trace log is in < " + name_file_result + " >")
 
-                os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")
+                if os.path.exists(DIR_RESULT_CLAIMS+"/tmp_file_map.map"):
+                    os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")
 
             else:
                 # Verification okay
@@ -943,7 +952,8 @@ if __name__ == "__main__":
             print(saveresult_check) # TODO TEST
 
         #os.remove("/tmp/tmp_map_currentlog.tmp")
-        os.remove("/tmp/tmp_idfunct.map2check")
+        if os.path.exists("/tmp/tmp_idfunct.map2check"):
+            os.remove("/tmp/tmp_idfunct.map2check")
 
     elif args.setCunitAssert:
         start_generation_cunit_assert(inputCFile,getStartFunction)

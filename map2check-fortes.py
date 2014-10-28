@@ -942,7 +942,7 @@ if __name__ == "__main__":
         else:
             print(saveresult_check) # TODO TEST
 
-        os.remove("/tmp/tmp_map_currentlog.tmp")
+        #os.remove("/tmp/tmp_map_currentlog.tmp")
         os.remove("/tmp/tmp_idfunct.map2check")
 
     elif args.setCunitAssert:

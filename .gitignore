@@ -6,4 +6,3 @@ modules/bmc_tool/esbmc_tool/64/bin
 modules/preprocessor/primary_preprocessing/arch_64
 modules/preprocessor/primary_preprocessing/arch_32
 result_claims
-modules/tokenizer/tokenizer

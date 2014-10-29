@@ -86,7 +86,6 @@
                 - the stderr was not written correctly
 
 
-
 > [FILE:map2chek-fortes.py] Added new option --witnesspath
 >[FILE:map2check_wrapper_script.sh] Updated according to new SVCOMP requirements
     :: Removed uncessary file when we have a Time Out
@@ -94,11 +93,11 @@
 > [THE PROJECT] Updated actual branch to test in the server
 > [THE PROJECT] Replaced the name of map2check-fortes.py by map2check.py
 
+> [THE PROJECT] Removed tokenizer from configure.py
 
+
+> [THE PROJECT] Removing uncrustify from configure.py
 > [THE PROJECT] Adding chmod +x to tokenizer
-
-
-
 
 
 > [THE PROJECT] Dealing with alloc C function. The actual project status generates false positives cuz the alloc function

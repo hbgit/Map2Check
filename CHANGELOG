@@ -96,11 +96,17 @@
 > [THE PROJECT] Removed tokenizer from configure.py
 > [THE PROJECT] Added chmod +x to tokenizer
 > [THE PROJECT] Removed unnecessary files from other_tools
-
 > [THE PROJECT] Removed uncrustify from configure.py
     :: Removed the file of uncrustify now we get from the OS installed by the user
 
 
+> [THE PROJECT] Updated map2check.py to not need of seetings.cfg file
+> [THE PROJECT] Removed the use of configure.py - bkp in modules/not_used
+
+
+
+
+> [THE PROJECT] Updating readme file
 > [THE PROJECT] Thinking how avoid the tool execution if we have necessary packages not installed
 
 
@@ -163,6 +169,26 @@ $ scripts/cpa.sh -64 -explicitAnalysis-NoRefiner -setprop analysis.checkCountere
 > [FILE:check_safety_memory_FORTES.c] BUG in void print_debug(LIST_DYN_OBJ_FORTES *list); is not print correct
 
 
+------------------------------------------
+# For future
 
+# TODO:
+#   1) Create a documentation for each function
+#   2) Check nomaclature according paper
+#   3) Checkout that in the claim function to VALID_OBJECT
+# $$$$$$$$$$$$$$$ Create function nondet in library
+# DOING:
+#   1) Alpha test
+#       -> BUG FOUND: to write the new instance when exit commands are comments
+#       -> BUG FOUND: // FORTES: Claim 11 assert((i - 1 >= 0));
+#       -> BUG FOUND:
+#Claim 1:
+#  file code_samples/false_free_3.c line 15 function main
+#  dereference failure: free() of non-dynamic memory
+#  !(SAME-OBJECT(B, &C))
+#       -> BUG FOUND: When we apply the program directly in a file, ex. ./prog <file.c>
+#
+# CRITICAL BUG: ajustar o mapemento p identificar se uma var global esta fora das funções $$$$$$$$$$$$
+#   HIP: com base nos dados do escopo das funções, verificar se a num da linha esta fora deste escopo
 
 

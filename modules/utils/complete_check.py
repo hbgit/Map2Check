@@ -19,29 +19,30 @@ import subprocess, datetime, os, time, signal
 
 
 # DEPENDENCY PARAMETERS
-ABS_PATH_FILE = os.path.dirname(os.path.abspath(__file__)) + "/"
-PATH_FILE_SETTINGS = ABS_PATH_FILE+'../../settings.cfg'
-if not os.path.isfile(PATH_FILE_SETTINGS):
-    print('Error: unable to find the settings.cfg file')
-    print('Please run ./configure to check the prerequisites to use Map2Check-FORTES tool')
-    sys.exit()
+ABS_PATH_FILE = os.path.dirname(os.path.abspath(__file__)) + "/../../"
 
-config = ConfigParser.ConfigParser()
-config.read(PATH_FILE_SETTINGS)
-check_status_path = config.get('MAPFORTES_TOOL', 'mapfortes_path', 0)
-if check_status_path == 'empty' :
-    print("Sorry, you need to set up the Map2Check-FORTES path in settings.cfg file. See REAME file.")
-    sys.exit()
+# PATH_FILE_SETTINGS = ABS_PATH_FILE+'../../settings.cfg'
+# if not os.path.isfile(PATH_FILE_SETTINGS):
+#     print('Error: unable to find the settings.cfg file')
+#     print('Please run ./configure to check the prerequisites to use Map2Check-FORTES tool')
+#     sys.exit()
+
+# config = ConfigParser.ConfigParser()
+# config.read(PATH_FILE_SETTINGS)
+# check_status_path = config.get('MAPFORTES_TOOL', 'mapfortes_path', 0)
+# if check_status_path == 'empty' :
+#     print("Sorry, you need to set up the Map2Check-FORTES path in settings.cfg file. See REAME file.")
+#     sys.exit()
 
 
-PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check.py'
+PATH_MAP_2_CHECK_FORTES = ABS_PATH_FILE + 'map2check.py'
 if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
     print('Error: unable to find the map2check.py file')
     sys.exit()
 
 
 # API library location
-PATH_API_LIBRARY = check_status_path+'/modules/map2check/library/'
+PATH_API_LIBRARY = ABS_PATH_FILE + 'modules/map2check/library/'
 if not os.path.isdir(PATH_API_LIBRARY):
     print('Error: unable to find the path to API library')
     sys.exit()

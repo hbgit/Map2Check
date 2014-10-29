@@ -1,24 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: latin1 -*-
 # -------------------------------------------------
-# TODO: 
-#   1) Create a documentation for each function
-#   2) Check nomaclature according paper
-#   3) Checkout that in the claim function to VALID_OBJECT
-# $$$$$$$$$$$$$$$ Create function nondet in library
-# DOING:
-#   1) Alpha test
-#       -> BUG FOUND: to write the new instance when exit commands are comments
-#       -> BUG FOUND: // FORTES: Claim 11 assert((i - 1 >= 0));
-#       -> BUG FOUND: 
-#Claim 1:
-#  file code_samples/false_free_3.c line 15 function main
-#  dereference failure: free() of non-dynamic memory
-#  !(SAME-OBJECT(B, &C))
-#       -> BUG FOUND: When we apply the program directly in a file, ex. ./prog <file.c>
+# Map2Check Tool v3
+# by Herbert Rocha
 #
-# CRITICAL BUG: ajustar o mapemento p identificar se uma var global esta fora das funções $$$$$$$$$$$$
-#   HIP: com base nos dados do escopo das funções, verificar se a num da linha esta fora deste escopo
+# e-mail: map2check.tool@gmail.com
 # -------------------------------------------------
 
 from __future__ import print_function
@@ -51,22 +37,6 @@ from modules.utils import generate_data_funct
 #ABS_PATH_FORTES='/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/FORTES'
 ABS_PATH_FORTES = os.path.dirname(os.path.abspath(__file__))
 
-# Checkin is was executed the {configure.py} and if the ESBMC path was added
-PATH_FILE_SETTINGS = ABS_PATH_FORTES+'/settings.cfg'
-if not os.path.isfile(PATH_FILE_SETTINGS): 
-    print('Error: unable to find the settings.cfg file')
-    print('Please run ./configure to check the prerequisites to use Map2Check-FORTES tool')
-    sys.exit()
-
-
-config = ConfigParser.ConfigParser()
-config.read(PATH_FILE_SETTINGS)
-check_status_esbmc_path = config.get('ESBMC_TOOL', 'esbmc_path', 0)
-if check_status_esbmc_path == 'empty' :
-    print("Sorry, you need to set up the ESBMC path in settings.cfg file. See REAME file.")
-    sys.exit()    
-
-
 
 ######### settings for auxliary scripts
 COMPLETE_CHECK_SCRIPT = ABS_PATH_FORTES+"/modules/utils/complete_check.py"
@@ -84,9 +54,11 @@ set_arch=0
 
 if get_arch == "x86_64":
     set_arch="--64"
+    check_status_esbmc_path = ABS_PATH_FORTES + "/modules/bmc_tool/esbmc_tool/64/bin/esbmc"
     #FIRST_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/primary_preprocessing/arch_64/uncrustify"
 else:
     set_arch="--32"
+    check_status_esbmc_path = ABS_PATH_FORTES + "/modules/bmc_tool/esbmc_tool/32/bin/esbmc"
     #FIRST_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/primary_preprocessing/arch_32/uncrustify"
 
 # Checking if we have the uncrustify installed in the OS system

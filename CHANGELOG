@@ -94,10 +94,14 @@
 > [THE PROJECT] Replaced the name of map2check-fortes.py by map2check.py
 
 > [THE PROJECT] Removed tokenizer from configure.py
+> [THE PROJECT] Added chmod +x to tokenizer
+> [THE PROJECT] Removed unnecessary files from other_tools
+
+> [THE PROJECT] Removed uncrustify from configure.py
+    :: Removed the file of uncrustify now we get from the OS installed by the user
 
 
-> [THE PROJECT] Removing uncrustify from configure.py
-> [THE PROJECT] Adding chmod +x to tokenizer
+> [THE PROJECT] Thinking how avoid the tool execution if we have necessary packages not installed
 
 
 > [THE PROJECT] Dealing with alloc C function. The actual project status generates false positives cuz the alloc function

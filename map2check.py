@@ -79,16 +79,18 @@ TOKENIZER = ABS_PATH_FORTES+"/modules/tokenizer/tokenizer"
 
 
 ########## settings preprocessor and arch flag
-#TODO: move this part to ./configure
 get_arch=commands.getoutput("arch")
 set_arch=0
 
 if get_arch == "x86_64":
-    set_arch="--64"    
-    FIRST_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/primary_preprocessing/arch_64/uncrustify"
+    set_arch="--64"
+    #FIRST_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/primary_preprocessing/arch_64/uncrustify"
 else:
     set_arch="--32"
-    FIRST_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/primary_preprocessing/arch_32/uncrustify"
+    #FIRST_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/primary_preprocessing/arch_32/uncrustify"
+
+# Checking if we have the uncrustify installed in the OS system
+
 
 CONFIG_CFG=ABS_PATH_FORTES+"/modules/preprocessor/primary_preprocessing/ben.cfg"
 AUX_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/aux_preprocessing/aux_formatting.pl"
@@ -139,8 +141,11 @@ def code_preprocessor(cFile):
     # get the name of the analyzed program
     name_program=commands.getoutput('echo '+cFile+' | grep -o "[^/]*$"')
     rec_file="pre_"+name_program
-    rec_path=commands.getoutput('echo '+cFile+' | sed "s/'+name_program+'/'+rec_file+'/g"')            
-    os.system(FIRST_PREPROCESSING+' -q -l C -c '+CONFIG_CFG+' -f '+cFile+' > '+rec_path)    
+    rec_path=commands.getoutput('echo '+cFile+' | sed "s/'+name_program+'/'+rec_file+'/g"')
+
+    #os.system('uncrustify -q -l C -c '+CONFIG_CFG+' -f '+cFile)
+    #sys.exit()
+    os.system('uncrustify -q -l C -c '+CONFIG_CFG+' -f '+cFile+' > '+rec_path)
     
     return rec_path
     

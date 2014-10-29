@@ -168,90 +168,90 @@ if __name__ == "__main__":
 
 
     #-------------------------------------------------------
-    ### Generating Uncrustify
-    msg_pyp = ""
-
-    cwd = os.getcwd()
-
-    print("--- Compiling: uncrustify")
-    extract_file( os.path.abspath("modules/other_tools/uncrustify-0.60.tar.gz"),
-                  os.path.abspath("modules/other_tools/") )
-
-
-    #cd dir
-    os.chdir(os.path.abspath("modules/other_tools/uncrustify-0.60/"))
-
-    msg_conf_unc = commands.getoutput("./configure")
-    #Checking configure
-    if not os.path.isfile("Makefile"):
-        print("Error: Makefile file was not generated. See LOG: ")
-        print(msg_conf_unc)
-        sys.exit()
-
-    msg_make_unc = commands.getoutput("make")
-    #Checking configure
-    if not os.path.isfile("src/uncrustify"):
-        print("Error: uncrustity tool could not be generated. See LOG: ")
-        print(msg_make_unc)
-        sys.exit()
-
-    #Backing to original path
-    os.chdir(cwd)
-
-    print("--- Checking installation for: uncrustify")
-    #Copy tool to correct place
-    # Checking the OS arch
-    if platform.machine() == "x86_64":
-        dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_64")
-        if not os.path.exists(dest):
-            os.makedirs(dest)
-            #os.chown(dest, saveusernameid, saveusernameid)
-        #64bits
-        try:
-            shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
-                        dest )
-        except shutil.Error as e:
-            print('Error: %s' % e)
-            raise
-            # eg. source or destination doesn't exist
-        except IOError as e:
-            print('Error: %s' % e.strerror)
-            raise
-    else:
-        #32bits
-        dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_32")
-        if not os.path.exists(dest):
-            os.makedirs(dest)
-            #os.chown(dest, saveusernameid, saveusernameid)
-        try:
-            shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
-                        dest )
-        except shutil.Error as e:
-            print('Error: %s' % e)
-            raise
-            # eg. source or destination doesn't exist
-        except IOError as e:
-            print('Error: %s' % e.strerror)
-            raise
-
-    shutil.rmtree(os.path.abspath("modules/other_tools/uncrustify-0.60"))
+    # ### Generating Uncrustify
+    # msg_pyp = ""
+    #
+    # cwd = os.getcwd()
+    #
+    # print("--- Compiling: uncrustify")
+    # extract_file( os.path.abspath("modules/other_tools/uncrustify-0.60.tar.gz"),
+    #               os.path.abspath("modules/other_tools/") )
+    #
+    #
+    # #cd dir
+    # os.chdir(os.path.abspath("modules/other_tools/uncrustify-0.60/"))
+    #
+    # msg_conf_unc = commands.getoutput("./configure")
+    # #Checking configure
+    # if not os.path.isfile("Makefile"):
+    #     print("Error: Makefile file was not generated. See LOG: ")
+    #     print(msg_conf_unc)
+    #     sys.exit()
+    #
+    # msg_make_unc = commands.getoutput("make")
+    # #Checking configure
+    # if not os.path.isfile("src/uncrustify"):
+    #     print("Error: uncrustity tool could not be generated. See LOG: ")
+    #     print(msg_make_unc)
+    #     sys.exit()
+    #
+    # #Backing to original path
+    # os.chdir(cwd)
+    #
+    # print("--- Checking installation for: uncrustify")
+    # #Copy tool to correct place
+    # # Checking the OS arch
+    # if platform.machine() == "x86_64":
+    #     dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_64")
+    #     if not os.path.exists(dest):
+    #         os.makedirs(dest)
+    #         #os.chown(dest, saveusernameid, saveusernameid)
+    #     #64bits
+    #     try:
+    #         shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
+    #                     dest )
+    #     except shutil.Error as e:
+    #         print('Error: %s' % e)
+    #         raise
+    #         # eg. source or destination doesn't exist
+    #     except IOError as e:
+    #         print('Error: %s' % e.strerror)
+    #         raise
+    # else:
+    #     #32bits
+    #     dest = os.path.abspath("modules/preprocessor/primary_preprocessing/arch_32")
+    #     if not os.path.exists(dest):
+    #         os.makedirs(dest)
+    #         #os.chown(dest, saveusernameid, saveusernameid)
+    #     try:
+    #         shutil.copy2(os.path.abspath("modules/other_tools/uncrustify-0.60/src/uncrustify"),
+    #                     dest )
+    #     except shutil.Error as e:
+    #         print('Error: %s' % e)
+    #         raise
+    #         # eg. source or destination doesn't exist
+    #     except IOError as e:
+    #         print('Error: %s' % e.strerror)
+    #         raise
+    #
+    # shutil.rmtree(os.path.abspath("modules/other_tools/uncrustify-0.60"))
 
 
 
     #-------------------------------------------------------
-    ### Checking Perl
-    try:
-        # pipe output to /dev/null for silence
-        null = open("/dev/null", "w")
-        subprocess.Popen("perl", stdout=null, stderr=null)
-        null.close()
-
-    except OSError:
-        print("Error: ", end="")
-        print("Perl not found")
-        print("\t Please install Perl")
-        sys.exit()
-        
+    # ### Checking Perl
+    # try:
+    #     # pipe output to /dev/null for silence
+    #     null = open("/dev/null", "w")
+    #     subprocess.Popen("perl", stdout=null, stderr=null)
+    #     null.close()
+    #
+    # except OSError:
+    #     print("Error: ", end="")
+    #     print("Perl not found")
+    #     print("\t Please install Perl")
+    #     sys.exit()
+    #
         
     #-------------------------------------------------------
     # ### Checking Ctags

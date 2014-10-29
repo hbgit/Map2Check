@@ -93,6 +93,10 @@
                 - the stderr was not written correctly
 
 
+> [THE PROJECT] FIxing Bug in validate the grahml in CPAChecker <<< ONLY IN THE SCRIPT TEST :(
+    scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc -spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false -setprop parser.transformTokensToLines=true -spec
+
+
 
 
 > [THE PROJECT] Adding chmod +x to tokenizer

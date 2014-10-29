@@ -257,7 +257,9 @@ def set_codes_to_experiment(pathCPrograms):
     TIME_TOTAL_CORRECT  = 0
     TCEXCMB_TOTAL_CORRECT = 0
     CORRECT_TRUES       = 0
+    CPACHECK_POSITIVE_cont   = 0
     CORRECT_FALSES      = 0
+    CPACHECK_NEGATIVE_cont   = 0
     FALSE_POSITIVES     = 0
     TCEXCMB_TOTAL_FPOSITI = 0
     TOTAL_MEMO_FPOSITI  = 0
@@ -427,7 +429,7 @@ def set_codes_to_experiment(pathCPrograms):
                             #save the execution result
                             if check_exec_status_FAILED:
                                 # This write the multiples execution
-                                #outputRun = open(str(name_file_result), "a+b")
+                                outputRun = open(str("/tmp/trace_of_program_exec_map2check.tmp"), "a+b")
                                 # This save only one FAILED, always rewriting
 
                                 # outputRun = open(str(name_file_result), "w")
@@ -438,17 +440,22 @@ def set_codes_to_experiment(pathCPrograms):
                                 #
                                 # # append the file generated in the execution
                                 #
-                                # for line in tmp_list_OUT_STDERR:
-                                #     outputRun.write(str(line)+" \n")
-                                # outputRun.close()
+                                for line in tmp_list_OUT_STDERR:
+                                    #print(line)
+                                    outputRun.write(str(line)+" \n")
+
+                                outputRun.close()
 
                                 # Change the name and move the trace log
                                 os.system("mv /tmp/trace_of_program_exec_map2check.tmp "+name_file_result)
 
 
                                 # Call to generate the GraphML - preliminary test
-                                print(get_path_program, name_file_result)
+                                #print(get_path_program, name_file_result)
                                 result_gen_graphml = generate_graphml(get_path_program, name_file_result)
+
+
+
                                 if result_gen_graphml[0]:
                                     STATUS_GRAPHML_GEN = "true"
                                     # Running CPAChecker to check witness
@@ -459,7 +466,7 @@ def set_codes_to_experiment(pathCPrograms):
                                         print("\t\t >>> Runnning CPAChecker")
                                         cwd = os.getcwd()
                                         os.chdir(CPACHECKER_PATH)
-                                        print("CMD: "+CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
+                                        #print("CMD: "+CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
                                         result_recheck = commands.getoutput(CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
                                         #
                                         list_recheck = result_recheck.split("\n")
@@ -470,11 +477,13 @@ def set_codes_to_experiment(pathCPrograms):
                                             if match_failed_CPA:
                                                 print("\t\t\t CPAChecker --- POSITIVE")
                                                 CPACHECKER_STATUS = "positive"
+                                                CPACHECK_POSITIVE_cont += 1
                                                 flag_cpa = True
                                                 break
                                             elif match_nobug_CPA:
                                                 print("\t\t\t CPAChecker --- NEGATIVE")
                                                 CPACHECKER_STATUS = "negative"
+                                                CPACHECK_NEGATIVE_cont += 1
                                                 flag_cpa = True
                                                 break
 
@@ -654,6 +663,10 @@ def set_codes_to_experiment(pathCPrograms):
     print()
     print("COUNT_EXP_FALSE: ",str(COUNT_EXP_FALSE))
     print("COUNT_EXP_TRUE: ",str(COUNT_EXP_TRUE))
+    print()
+    print("COUNT CPAChecker POS: ",str(CPACHECK_POSITIVE_cont))
+    print("COUNT CPAChecker NEG: ",str(CPACHECK_NEGATIVE_cont))
+
 #    TOTAL_EXECUTION_TIME = FINAL_TIMESTAMP - INITIAL_TIMESTAMP
     
     # HTML CONTENT
@@ -661,7 +674,7 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td>total files</td>" \
                         "<td>"+str(TOTAL_FILES)+"</td>" \
-                        "<td class=\"score\">-</td>" \
+                        "<td>"+str(CPACHECK_POSITIVE_cont+CPACHECK_NEGATIVE_cont)+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_EXECUTION_TIME))+"&nbsp;</td>" \
                         "<td>"+str(("%1.2f" % (TOTAL_MEM_IN_EXE + TOTAL_TC_GEN_inMB + TOTAL_GEN_GRAPH_inMB)))+"&nbsp;</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEM_IN_EXE))+"&nbsp;</td> " \
@@ -675,7 +688,7 @@ def set_codes_to_experiment(pathCPrograms):
                         "<td title=\"(no bug exists + result is SAFE) OR "+\
                         "(bug exists + result is UNSAFE) OR (property is violated + violation is found)\">correct results</td>" \
                         "<td>"+ str(CORRECT_RESULTS)+"</td>" \
-                        "<td class=\"score\">-</td>" \
+                        "<td>"+ str(CPACHECK_POSITIVE_cont) +"</td>" \
                         "<td>"+str(("%1.2f" % TIME_TOTAL_CORRECT))+"</td>" \
                         "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_CORRECT))+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_CORRECT))+"</td>" \
@@ -714,8 +727,8 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td title=\"17 safe files, 15 unsafe files\">score ("+\
                         str(TOTAL_FILES)+" files, max score: "+str(MAX_SCORE)+")</td>" \
-                        "<td class=\"score\">-</td>" \
                         "<td class=\"score\">"+str(TOTAL_POINTS)+"</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
@@ -854,7 +867,10 @@ def only_generate_code(cProgram):
     
     # Take time to test case generation
     #cmd = [PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name]
-    cmd = [PATH_MAP_2_CHECK_FORTES, "--track-all", "--only-assert", cProgram]
+    # Partial track
+    cmd = [PATH_MAP_2_CHECK_FORTES, "--only-assert", cProgram]
+    # Complete track
+    #cmd = [PATH_MAP_2_CHECK_FORTES, "--track-all", "--only-assert", cProgram]
     #cmd = ["cat "+PATH_MAP_2_CHECK_FORTES]
 
     #cmd = cmd.split(" ")

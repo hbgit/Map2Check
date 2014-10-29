@@ -55,7 +55,7 @@
 
 
 > [FILE:run_training_svcomp_details.py] Updated unsafe to FAILED
-> [FILE:run_training_svcomp_details.py] Updating TIMEOUT function
+> [FILE:run_training_svcomp_details.py] Updated TIMEOUT function
         :: What is generated in the program execution? -> The trace of the execution (if any failed)
         :: [SOLVED] BUG ::Is not generating correct the graphml
             :: Added CPAChecker
@@ -85,11 +85,12 @@
 
 
 
-> [FILE:run_training_svcomp_details.py] Updating to remove the use of /tmp/trace_of_program_exec_map2check.tmp
+> [FILE:run_training_svcomp_details.py] Updated to improve the use of /tmp/trace_of_program_exec_map2check.tmp
             :: remove cat from /tmp/trace_of_program_exec_map2check.tmp
             :: [SOLVED] POSSIVEL BUG no novo trace. I had identified duplicated line trace
                 - Update the delete of duplicate values based on line number and of the {variable name}
-            :: BUG to generate the GRAPHML in the script
+            :: [SOLVED] BUG to generate the GRAPHML in the script
+                - the stderr was not written correctly
 
 
 

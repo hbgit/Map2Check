@@ -87,7 +87,8 @@
 
 > [FILE:run_training_svcomp_details.py] Updating to remove the use of /tmp/trace_of_program_exec_map2check.tmp
             :: remove cat from /tmp/trace_of_program_exec_map2check.tmp
-            :: POSSIVEL BUG no novo trace. I had identified duplicated line trace
+            :: [SOLVED] POSSIVEL BUG no novo trace. I had identified duplicated line trace
+                - Update the delete of duplicate values based on line number and of the {variable name}
             :: BUG to generate the GRAPHML in the script
 
 

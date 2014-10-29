@@ -321,7 +321,7 @@ void PRINT_TRACE_LOG()
     for (aux_2=list_LOG_complete_TRACE; aux_2!=NULL; aux_2=aux_2->next_item_FORTES){
 
         if (aux->map_linePreCode_FORTES == aux_2->map_linePreCode_FORTES &&
-            aux->adresse_mem_map_FORTES == aux_2->adresse_mem_map_FORTES){
+            aux->map_namevar_FORTES == aux_2->map_namevar_FORTES){
 
             if(count_found > 0){
                 //printf("Removing %4d == %4d \n", aux_2->map_linePreCode_FORTES, aux->map_linePreCode_FORTES);

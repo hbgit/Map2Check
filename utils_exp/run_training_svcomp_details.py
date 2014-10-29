@@ -64,7 +64,7 @@ list_delete_tmp_file = []
 
 
 # CPAChecker
-CPACHECKER_PATH = '/home/hrocha/Documents/Projects_DEV/CPAChecker/trunk/'
+CPACHECKER_PATH = '/home/nhb/Documents/ON_DEV/CPAChecker/trunk/'
 CPACHECKER_OPTIONS = 'scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc ' \
                      '-spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false ' \
                      '-setprop parser.transformTokensToLines=true -spec'

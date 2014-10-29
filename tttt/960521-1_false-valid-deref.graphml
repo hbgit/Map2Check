@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?> 
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key attr.name="enterFunction" attr.type="string" for="edge" id="d9" />
+  <key attr.name="originFileName" attr.type="string" for="edge" id="d8" />
+  <key attr.name="tokenSet" attr.type="string" for="edge" id="d7" />
+  <key attr.name="sourcecode" attr.type="string" for="edge" id="d6" />
+  <key attr.name="assumption" attr.type="string" for="edge" id="d5" />
+  <key attr.name="originTokenSet" attr.type="string" for="edge" id="d4" />
+  <key attr.name="lineNumberInOrigin" attr.type="string" for="edge" id="d3" />
+  <key attr.name="isEntryNode" attr.type="string" for="node" id="entry" />
+  <key attr.name="isViolationNode" attr.type="boolean" for="node" id="d1" />
+  <key attr.name="sourcecodeLanguage" attr.type="string" for="graph" id="d0" />
+  <graph edgedefault="directed">
+    <data key="d0">C</data>
+    <node id="N8">
+      <data key="d1">True</data>
+    </node>
+    <node id="N0">
+      <data key="entry">True</data>
+    </node>
+    <node id="N1" />
+    <node id="N2" />
+    <node id="N3" />
+    <node id="N4" />
+    <node id="N5" />
+    <node id="N6" />
+    <node id="N7" />
+    <edge source="N0" target="N1">
+      <data key="d3">6</data>
+      <data key="d4">27, 28</data>
+      <data key="d5">n = 128;</data>
+      <data key="d6">int
+n
+;
+</data>
+      <data key="d7">27, 28</data>
+      <data key="d8">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/tttt/960521-1_false-valid-deref.c</data>
+    </edge>
+    <edge source="N1" target="N2">
+      <data key="d3">22</data>
+      <data key="d4">96, 98, 100, 102, 105</data>
+      <data key="d8">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/tttt/960521-1_false-valid-deref.c</data>
+      <data key="d6">a
+=
+malloc
+(
+n
+*
+sizeof
+(
+*
+a
+)
+)
+;
+</data>
+      <data key="d7">96, 98, 100, 102, 105</data>
+    </edge>
+    <edge source="N2" target="N3">
+      <data key="d3">23</data>
+      <data key="d4">109, 111, 113, 115, 118</data>
+      <data key="d8">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/tttt/960521-1_false-valid-deref.c</data>
+      <data key="d6">b
+=
+malloc
+(
+n
+*
+sizeof
+(
+*
+b
+)
+)
+;
+</data>
+      <data key="d7">109, 111, 113, 115, 118</data>
+    </edge>
+    <edge source="N3" target="N4">
+      <data key="d3">24</data>
+      <data key="d4">123, 124, 126</data>
+      <data key="d9">foo</data>
+      <data key="d6">*
+b
+++
+=
+0
+;
+</data>
+      <data key="d7">123, 124, 126</data>
+      <data key="d8">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/tttt/960521-1_false-valid-deref.c</data>
+    </edge>
+    <edge source="N4" target="N5">
+      <data key="d3">12</data>
+      <data key="d4">39, 40</data>
+      <data key="d5">i = 1;</data>
+      <data key="d6">int
+i
+;
+</data>
+      <data key="d7">39, 40</data>
+      <data key="d8">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/tttt/960521-1_false-valid-deref.c</data>
+    </edge>
+    <edge source="N5" target="N6">
+      <data key="d3">14</data>
+      <data key="d4">56, 57, 58, 59, 60, 61, 62, 63</data>
+      <data key="d8">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/tttt/960521-1_false-valid-deref.c</data>
+      <data key="d6">a
+[
+i
+]
+=
+-
+1
+;
+</data>
+      <data key="d7">56, 57, 58, 59, 60, 61, 62, 63</data>
+    </edge>
+    <edge source="N6" target="N7">
+      <data key="d3">16</data>
+      <data key="d4">79, 80, 81, 82, 83, 84, 85, 86</data>
+      <data key="d8">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/tttt/960521-1_false-valid-deref.c</data>
+      <data key="d6">b
+[
+i
+]
+=
+-
+1
+;
+</data>
+      <data key="d7">79, 80, 81, 82, 83, 84, 85, 86</data>
+    </edge>
+    <edge source="N7" target="N8">
+      <data key="d3">26</data>
+      <data key="d4">133, 134, 135, 136, 137, 138, 139, 140</data>
+      <data key="d8">/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/tttt/960521-1_false-valid-deref.c</data>
+      <data key="d6">if
+(
+b
+[
+-
+2
+]
+)
+</data>
+      <data key="d7">133, 134, 135, 136, 137, 138, 139, 140</data>
+    </edge>
+  </graph>
+</graphml>

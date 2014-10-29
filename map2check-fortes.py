@@ -795,6 +795,8 @@ if __name__ == "__main__":
                        help='create a complete trace of the variables', default=False)
     parser.add_argument('-g','--graphml-output', action="store_true" , dest='setGraphOut',
                        help='generate the output of the tool in GraphML format (experimental)', default=False)
+    parser.add_argument('-w','--witnesspath', metavar='witnessfile.graphml', type=str, dest='setWitnessPath',
+                       help='dump the witness into the given file')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-u','--cunit', action="store_true" , dest='setCunitAssert',
@@ -932,14 +934,22 @@ if __name__ == "__main__":
 
                 WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
                 name_file_result = commands.getoutput("mktemp")
-                lastoutput = open(str(name_file_result), "w")
-                lastoutput.write(WRITE_GRAPHMLOUT.generate_graphml())
-                lastoutput.close()
+
+                if args.setWitnessPath:
+                    pathfile_graphml = os.path.abspath(args.setWitnessPath)
+                    lastoutput = open(str(pathfile_graphml), "w")
+                    lastoutput.write(WRITE_GRAPHMLOUT.generate_graphml())
+                    lastoutput.close()
+                else:
+                    lastoutput = open(str(name_file_result), "w")
+                    lastoutput.write(WRITE_GRAPHMLOUT.generate_graphml())
+                    lastoutput.close()
 
                 # Save this output in a tmp file
                 os.remove(nameoutputmap)
                 print("Status: VERIFICATION FAILED")
-                print("The trace log is in < " + name_file_result + " >")
+                if not args.setWitnessPath:
+                    print("The trace log is in < " + name_file_result + " >")
 
                 if os.path.exists(DIR_RESULT_CLAIMS+"/tmp_file_map.map"):
                     os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")

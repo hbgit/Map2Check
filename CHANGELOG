@@ -52,8 +52,6 @@
     :: Checking last rule
 > [THE PROJECT] Removed ctags dependece >> http://ctags.sourceforge.net/
 > [THE PROJECT] DONE: Checkout possibility to remmove ctags and networkx
-
-
 > [FILE:run_training_svcomp_details.py] Updated unsafe to FAILED
 > [FILE:run_training_svcomp_details.py] Updated TIMEOUT function
         :: What is generated in the program execution? -> The trace of the execution (if any failed)
@@ -62,12 +60,10 @@
             :: Added the CPAChecker result in the HTML report
                 :: /home/hbazure/drive/Docs/CPAChecker/trunk
 > [FILE:create_map.py] Commented the partial support to alloc C function
-
-
 > [FILE:run_training_svcomp_details.py] Log trace generate MemoryError
         :: The current trace log is generating a large graphml
             :: How reduce the number of nodes in the graph an th trace log
-                :: HIP1: Update library, before to write the file: (1) search (from bottom to up) in the list by line number and memory address,
+                :: [NOT USED] HIP1: Update library, before to write the file: (1) search (from bottom to up) in the list by line number and memory address,
                          if found replace in the actual log file by the current value. Create a regex based on the last values found
                          to line number and memory address and then replace all line txt match with the actual values of the list
 
@@ -80,11 +76,8 @@
                     :: NOT WORK, cuz on the trace log in trace_of_program_exec_map2check.tmp file is arriving
                        in the experiments 11GB :(
 
-                :: HIP 3: Create a complete list that have all trace as is write in the file, but in the end of the execution we
+                :: [USED] HIP 3: Create a complete list that have all trace as is write in the file, but in the end of the execution we
                           remove all duplicate values based on line number and the memory address
-
-
-
 > [FILE:run_training_svcomp_details.py] Updated to improve the use of /tmp/trace_of_program_exec_map2check.tmp
             :: remove cat from /tmp/trace_of_program_exec_map2check.tmp
             :: [SOLVED] POSSIVEL BUG no novo trace. I had identified duplicated line trace
@@ -93,8 +86,12 @@
                 - the stderr was not written correctly
 
 
-> [THE PROJECT] FIxing Bug in validate the grahml in CPAChecker <<< ONLY IN THE SCRIPT TEST :(
-    scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc -spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false -setprop parser.transformTokensToLines=true -spec
+
+> [FILE:map2chek-fortes.py] Added new option --witnesspath
+>[FILE:map2check_wrapper_script.sh] Updated according to new SVCOMP requirements
+    :: Removed uncessary file when we have a Time Out
+> [THE PROJECT] Created a new script to simulate the SVCOMP execution adopting map2check-wrapper.py
+
 
 
 
@@ -118,7 +115,8 @@
 
 
 
-
+> [THE PROJECT] (only for future) FIxing Bug in validate the grahml in CPAChecker <<< ONLY IN THE SCRIPT TEST :(
+    scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc -spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false -setprop parser.transformTokensToLines=true -spec
 
 
 

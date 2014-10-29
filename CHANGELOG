@@ -92,16 +92,14 @@
 > [THE PROJECT] Created a new script to simulate the SVCOMP execution adopting map2check-wrapper.py
 > [THE PROJECT] Updated actual branch to test in the server
 > [THE PROJECT] Replaced the name of map2check-fortes.py by map2check.py
-
 > [THE PROJECT] Removed tokenizer from configure.py
 > [THE PROJECT] Added chmod +x to tokenizer
 > [THE PROJECT] Removed unnecessary files from other_tools
 > [THE PROJECT] Removed uncrustify from configure.py
     :: Removed the file of uncrustify now we get from the OS installed by the user
-
-
 > [THE PROJECT] Updated map2check.py to not need of seetings.cfg file
 > [THE PROJECT] Removed the use of configure.py - bkp in modules/not_used
+> [THE PROJECT] Renamed wrapper script to tool
 
 
 

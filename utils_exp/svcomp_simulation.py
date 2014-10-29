@@ -93,7 +93,7 @@ def set_codes_to_experiment(pathCPrograms):
     
         
     # Map2Check PARAMS
-    MAP2CHECK_WRAPPER_SCRIPT_PATH = "map2check_wrapper_script.sh"
+    MAP2CHECK_WRAPPER_SCRIPT_PATH = "wrapper_script_map2check.sh"
     MAP2CHECK_VERSION = "version 3"
     MAP2CHECK_PARAMS = "--complete-check 3 --graphml-output --witnesspath"
     

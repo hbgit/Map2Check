@@ -312,7 +312,7 @@ if __name__ == "__main__":
 
     # Finished
     print("Installation finished")
-    #print("Futher details use: map2check-fortes.py -h")
+    #print("Futher details use: map2check.py -h")
     print()
-    os.system("./map2check-fortes.py -h")
+    os.system("./map2check.py -h")
 

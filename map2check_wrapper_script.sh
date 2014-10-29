@@ -4,8 +4,8 @@
 # Usage: ./map2check_wrapper_script.sh <file.c> <witnessfile.graphml>
 
 # Path to the Map2Check program
-#path_to_map2check=/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/map2check-fortes.py
-path_to_map2check=/home/hbazure/drive/Docs/Map2Check/map2check-fortes.py
+path_to_map2check=/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/map2check.py
+#path_to_map2check=/home/hbazure/drive/Docs/Map2Check/map2check.py
 
 # Command line, common to all tests.
 # Run Map2Check 3 times. Each program in the category is executed 3 times,

@@ -34,9 +34,9 @@ if check_status_path == 'empty' :
     sys.exit()
 
 
-PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check-fortes.py'
+PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check.py'
 if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
-    print('Error: unable to find the map2check-fortes.py file')
+    print('Error: unable to find the map2check.py file')
     sys.exit()
 
 

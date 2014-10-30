@@ -38,9 +38,9 @@ OUTPUT_REPORT_FILE = check_status_path+"/<name_>report.html"
 TMP_REPORT_FILE = check_status_path+'/tmp_result.html'
 
 
-PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check-fortes.py'
+PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check.py'
 if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
-    print('Error: unable to find the map2check-fortes.py file')
+    print('Error: unable to find the map2check.py file')
     sys.exit()
 
 
@@ -124,9 +124,9 @@ def set_codes_to_experiment(pathCPrograms):
     
         
     # Map2Check PARAMS
-    MAP2CHECK_EXECUTABLE = "map2check-fortes.py"
+    MAP2CHECK_EXECUTABLE = "map2check.py"
     MAP2CHECK_VERSION = commands.getoutput(PATH_MAP_2_CHECK_FORTES+" -v")
-    MAP2CHECK_PARAMS="map2check-fortes.py file.c"
+    MAP2CHECK_PARAMS="map2check.py file.c"
     
     # SYSTEM INFO
     DATE_EXECUTION = commands.getoutput("date")    

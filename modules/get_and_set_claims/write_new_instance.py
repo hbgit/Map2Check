@@ -1042,10 +1042,11 @@ class ParseC2Ast2C(object):
                     # Check if is the main function to insert global map                                        
                     if self.ast.ext[index].decl.name == 'main':
                         self.flag_is_main = True
-                        if self.map_has_global_var2map:                                                    
-                            print()                 
-                            print("MAP_GB_VAR_FORTES(); /** by FORTES **/ ")                                      
-                            print()
+                        if self.map_has_global_var2map:
+                            if 0 in self.map_is_global2map and 0 in self.map_id_func2map:
+                                print()
+                                print("MAP_GB_VAR_FORTES(); /** by FORTES **/ ")
+                                print()
                     
                     # >> Body of the function
                     if type(self.ast.ext[index].body) is Compound:

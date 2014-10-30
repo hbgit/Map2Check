@@ -38,9 +38,9 @@ OUTPUT_REPORT_FILE = check_status_path+"/<name_>report.html"
 TMP_REPORT_FILE = check_status_path+'/tmp_result.html'
 
 
-PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check-fortes.py'
+PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check.py'
 if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
-    print('Error: unable to find the map2check-fortes.py file')
+    print('Error: unable to find the map2check.py file')
     sys.exit()
 
 
@@ -61,6 +61,13 @@ list_csv_generation = []
 id_count = 1
 list_delete_tmp_file = []
 
+
+
+# CPAChecker
+CPACHECKER_PATH = '/home/nhb/Documents/ON_DEV/CPAChecker/trunk/'
+CPACHECKER_OPTIONS = 'scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc ' \
+                     '-spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false ' \
+                     '-setprop parser.transformTokensToLines=true -spec'
 
 
 # Number of time that the analyzed program will be executed to perform the analysis
@@ -88,36 +95,65 @@ def get_mem_usage(_listtxtoutput):
 
 tmp_FINAL_TIME = 0
 
+ACTUAL_FILE_PATH = ''
+
 def timeout_command(command, timeout):
-    """call shell-command and either return its output or kill it
-    if it doesn't normally exit within timeout seconds and return None"""
 
     global tmp_FINAL_TIME
 
-    cmd = command.split(" ")
-    start = datetime.datetime.now()
-    process = subprocess.Popen(['time', '-f', '%M', 'timeout', str(timeout)] + cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if os.path.exists("/tmp/trace_of_program_exec_map2check.tmp"):
+        os.remove("/tmp/trace_of_program_exec_map2check.tmp")
+    else:
+        trace_file = open("/tmp/trace_of_program_exec_map2check.tmp","w")
+        trace_file.write("-----------------------------------------------------------------------\n")
+        trace_file.write(">>> Trace of "+str(ACTUAL_FILE_PATH)+"\n")
+        trace_file.write(">>> Generated at "+str(datetime.datetime.now())+"\n")
+        trace_file.write("\n")
+        trace_file.close()
+
+    # generating the cammad to be executed
+    cmd_shell = "time -f %M timeout " + str(timeout) + " " + command + " >> /tmp/trace_of_program_exec_map2check.tmp"
+
+    start_t = time.time()
+    result_only_stderr = commands.getoutput(cmd_shell)
+    end_t = time.time()
+
+    # for my details
     tmp_FINAL_TIME = time.time()
+
+    tt = end_t - start_t
     list_out_exec = []
 
-    if (datetime.datetime.now() - start).seconds > timeout:
-        return "TIME OUT",[]
 
-    #Save PID from command
-    # pid_command_exec = commands.getoutput("pidof \""+command+"\"")
-    #
-    # while process.poll() is None:
-    #     #time.sleep(0.1)
-    #     now = datetime.datetime.now()
-    #     if (now - start).seconds > timeout:
-    #         os.kill(int(pid_command_exec), signal.SIGKILL)
-    #         os.kill(process.pid, signal.SIGKILL)
-    #         os.waitpid(-1, os.WNOHANG)
-    #         return "TIME OUT",[]
-    
-    list_out_exec.append(process.stdout)
-    list_out_exec.append(process.stderr)
-    return list_out_exec
+    # generating data to report
+    # output str to list
+    result_stdrr_list = result_only_stderr.split("\n")
+    len_stderr_list = len(result_stdrr_list)
+    # get memory
+    result_only_mem = result_stdrr_list[len_stderr_list-1]
+    del result_stdrr_list[len_stderr_list-1]
+    # removing possible timeout msg
+    for index, line in enumerate(result_stdrr_list):
+        match_to = re.search("timeout: the monitored command dumped core", line)
+        if match_to:
+            del result_stdrr_list[index]
+            break
+    # generating stdout list
+    result_sdtout = commands.getoutput("tail -n 20 /tmp/trace_of_program_exec_map2check.tmp")
+    result_sdtout_list = result_sdtout.split("\n")
+
+
+    #os.remove("/tmp/trace_of_program_exec_map2check.tmp")
+
+
+    if tt > timeout:
+        return ["TIME OUT",result_only_mem,result_stdrr_list,result_sdtout_list]
+    else:
+        # Get the needed lines from file
+        return ["EXECUTED",result_only_mem,result_stdrr_list,result_sdtout_list]
+
+
+
 
 
 def set_codes_to_experiment(pathCPrograms):
@@ -130,12 +166,13 @@ def set_codes_to_experiment(pathCPrograms):
     global list_delete_tmp_file
     global ACTUAL_GEN_GRAPH_inMB
     global ACTUAL_TIME_GEN_GRAPH
+    global ACTUAL_FILE_PATH
     
         
     # Map2Check PARAMS
-    MAP2CHECK_EXECUTABLE = "map2check-fortes.py"
+    MAP2CHECK_EXECUTABLE = "map2check.py"
     MAP2CHECK_VERSION = commands.getoutput(PATH_MAP_2_CHECK_FORTES+" -v")
-    MAP2CHECK_PARAMS="map2check-fortes.py file.c"
+    MAP2CHECK_PARAMS="map2check.py file.c"
     
     # SYSTEM INFO
     DATE_EXECUTION = commands.getoutput("date")    
@@ -158,33 +195,35 @@ def set_codes_to_experiment(pathCPrograms):
     HTML_TABLE_HEADER = "<thead> \n " \
                         "<tr id=\"tool\">" \
                           "<td style=\"width: 60%\">Tool</td>" \
-                          "<td colspan=\"9\">"+MAP2CHECK_VERSION+"</td>" \
+                          "<td colspan=\"10\">"+MAP2CHECK_VERSION+"</td>" \
                         "</tr>"\
                         "<tr id=\"limits\">" \
                           "<td>Limits</td>" \
-                          "<td colspan=\"9\">"+LIMIT_EXP+"</td>"+\
+                          "<td colspan=\"10\">"+LIMIT_EXP+"</td>"+\
                         "</tr>" \
                         "<tr id=\"os\">" \
                           "<td>OS</td>" \
-                          "<td colspan=\"9\">"+OS+"</td>"+\
+                          "<td colspan=\"10\">"+OS+"</td>"+\
                         "</tr>" \
                         "<tr id=\"system\">" \
                           "<td>System</td>" \
-                          "<td colspan=\"9\">"+CPU_INFO+" - "+MEM_INFO+"</td>" \
+                          "<td colspan=\"10\">"+CPU_INFO+" - "+MEM_INFO+"</td>" \
                         "</tr>" \
                         "<tr id=\"date\">" \
                           "<td>Date of run</td>" \
-                          "<td colspan=\"9\">"+DATE_EXECUTION+"</td>" \
+                          "<td colspan=\"10\">"+DATE_EXECUTION+"</td>" \
                         "</tr>" \
                         "<tr id=\"options\">" \
                           "<td>Options</td>" \
-                          "<td colspan=\"9\">"+MAP2CHECK_PARAMS+"</td>" \
+                          "<td colspan=\"10\">"+MAP2CHECK_PARAMS+"</td>" \
                         "</tr>" \
                         "<tr id=\"columnTitles\">" \
                           "<td class=\"clickable\" "+"title=\"Click here to toggle visibility of columns\">"+str(pathCPrograms)+\
                           "</td>" \
                           "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
                           "status</td>" \
+                          "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
+                          "CPAChecker re-check status</td>" \
                           "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
                           "total time(s)</td>" \
                           "<td colspan=\"1\" class=\"clickable\" title=\"Click here to show a graph of this column\">" \
@@ -218,7 +257,9 @@ def set_codes_to_experiment(pathCPrograms):
     TIME_TOTAL_CORRECT  = 0
     TCEXCMB_TOTAL_CORRECT = 0
     CORRECT_TRUES       = 0
+    CPACHECK_POSITIVE_cont   = 0
     CORRECT_FALSES      = 0
+    CPACHECK_NEGATIVE_cont   = 0
     FALSE_POSITIVES     = 0
     TCEXCMB_TOTAL_FPOSITI = 0
     TOTAL_MEMO_FPOSITI  = 0
@@ -279,17 +320,21 @@ def set_codes_to_experiment(pathCPrograms):
                 get_path_program = os.path.join(root, file)
                 
                 FILENAME = get_path_program
+
+                CPACHECKER_STATUS = "-"
+                CPACHECKER_OUTPUT_PATH = ''
                 
                 
                 # Get the expected result from benchmark program
                 #EXPECTED_FAILED_RESULT = commands.getoutput("echo "+file+" | grep 'false'| wc -l")  
-                matchRe_FAILED = re.search(r'false-(.[^\.]*)', str(file))                                        
+                matchRe_FAILED = re.search(r'false-(.[^\.]*)', str(file))
+                matchRe_UNSAFE = re.search(r'_unsafe', str(file))
                 EXPECTED_FAILED_RESULT = False
-                if matchRe_FAILED:
+                if matchRe_FAILED or matchRe_UNSAFE:
                     print(">> EXPECTED < FALSE > - label: "+matchRe_FAILED.group(1))
                     COUNT_EXP_FALSE += 1
                     EXPECTED_FAILED_RESULT = True
-                    MAX_SCORE = MAX_SCORE + 1                    
+                    MAX_SCORE = MAX_SCORE + 1
                 else:
                     print(">> EXPECTED < TRUE >")
                     COUNT_EXP_TRUE += 1
@@ -302,6 +347,7 @@ def set_codes_to_experiment(pathCPrograms):
                 print("(1) Generating test cases and new program instance")
                 INITIAL_EXECUTION_TIMESTAMP = time.time()
                 list_result_gen = only_generate_code(get_path_program)
+                ACTUAL_FILE_PATH = get_path_program
                 print("\t\t Time: "+str("%1.3f" % ACTUAL_TIME_TC_GEN)+" MEM: "+str("%1.2f" % ACTUAL_TC_GEN_inMB))
                 
                 # >> Run (2) execute the new program instance generated in phase (1)
@@ -315,6 +361,7 @@ def set_codes_to_experiment(pathCPrograms):
                     print("(2) Run new program instance")                     
                     
                     name_file_result = list_result_gen[1].replace("._mcf2check","._out")
+                    CPACHECKER_OUTPUT_PATH = list_result_gen[1].replace("._mcf2check",".cpachecker_out")
                     #list_delete_tmp_file.append(name_file_result)
                     #print("File result exec: "+name_file_result+"\n")                                        
                     
@@ -331,8 +378,19 @@ def set_codes_to_experiment(pathCPrograms):
                     while count_exe <= NUMEBER_OF_RE_EXEC_EXP and not check_exec_status_FAILED:
                         flag_TIME_OUT = False
                         print("\t Run "+str(count_exe))
+
+                        #get_OUT_result_exec = timeout_command(cmd_bin_exec, 900)
+                        # The return is a list with:
+                        #       (1) the status of execution
+                        #       (2) the memory consumed
+                        #       (3) stderr output in list
+                        #       (3) sdtout output in list
+                        # ex: return ["EXECUTED",result_only_mem,result_stdrr_list,result_sdtout_list]
+                        #get_OUT_result_exec = timeout_command(cmd_bin_exec, 900)
                         get_OUT_result_exec = timeout_command(cmd_bin_exec, 900)
-                        #get_OUT_result_exec = timeout_command(cmd_bin_exec, 20)
+
+
+
                         FINAL_EXECUTION_TIMESTAMP = tmp_FINAL_TIME #from timeout function
                         print("\t\t Finished execution")
 
@@ -340,11 +398,13 @@ def set_codes_to_experiment(pathCPrograms):
                         # Check if has a TIME OUT
                         #print("DEBUG out exec: "+str(get_OUT_result_exec[0].readlines()))
                         if not(str(get_OUT_result_exec[0]) == 'TIME OUT'):
-                            
-                            tmp_list_OUT_STDOUT = get_OUT_result_exec[0].readlines()
-                            tmp_list_OUT_STDERR = get_OUT_result_exec[1].readlines()
 
-                            get_mem_usage(tmp_list_OUT_STDERR)
+                            tmp_list_OUT_STDERR = get_OUT_result_exec[2]
+                            tmp_list_OUT_STDOUT = get_OUT_result_exec[3]
+
+                            get_mem_usage(get_OUT_result_exec[1])
+
+
                             #DEBUG
                             print("\t\t Time: %1.2f" % (FINAL_EXECUTION_TIMESTAMP - INITIAL_EXECUTION_TIMESTAMP))
                             print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
@@ -369,24 +429,73 @@ def set_codes_to_experiment(pathCPrograms):
                             #save the execution result
                             if check_exec_status_FAILED:
                                 # This write the multiples execution
-                                #outputRun = open(str(name_file_result), "a+b")
+                                outputRun = open(str("/tmp/trace_of_program_exec_map2check.tmp"), "a+b")
                                 # This save only one FAILED, always rewriting
-                                outputRun = open(str(name_file_result), "w")
-                                outputRun.write("-----------------------------------------------------------------------\n")
-                                outputRun.write(">>> "+str(datetime.datetime.now())+"\n")
-                                outputRun.write("\n")
-                                #outputRun.write(str(tmp_list_OUT_STDOUT))
-                                for line in tmp_list_OUT_STDOUT:
-                                    outputRun.write(str(line))
-                                #outputRun.write(str(tmp_list_OUT_STDERR))
+
+                                # outputRun = open(str(name_file_result), "w")
+                                # #outputRun.write(str(tmp_list_OUT_STDOUT))
+                                # # for line in tmp_list_OUT_STDOUT:
+                                # #     outputRun.write(str(line)+" \n")
+                                # #outputRun.write(str(tmp_list_OUT_STDERR))
+                                #
+                                # # append the file generated in the execution
+                                #
                                 for line in tmp_list_OUT_STDERR:
-                                    outputRun.write(str(line))
+                                    #print(line)
+                                    outputRun.write(str(line)+" \n")
+
                                 outputRun.close()
+
+                                # Change the name and move the trace log
+                                os.system("mv /tmp/trace_of_program_exec_map2check.tmp "+name_file_result)
 
 
                                 # Call to generate the GraphML - preliminary test
-                                if generate_graphml(get_path_program, name_file_result):
+                                #print(get_path_program, name_file_result)
+                                result_gen_graphml = generate_graphml(get_path_program, name_file_result)
+
+
+
+                                if result_gen_graphml[0]:
                                     STATUS_GRAPHML_GEN = "true"
+                                    # Running CPAChecker to check witness
+                                    # Open dir where is CPAChecker and then run the tool inside from directory
+                                    #print(result_gen_graphml[1]+" <<<<<< ML")
+
+                                    if CPACHECKER_PATH:
+                                        print("\t\t >>> Runnning CPAChecker")
+                                        cwd = os.getcwd()
+                                        os.chdir(CPACHECKER_PATH)
+                                        #print("CMD: "+CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
+                                        result_recheck = commands.getoutput(CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
+                                        #
+                                        list_recheck = result_recheck.split("\n")
+                                        flag_cpa = False
+                                        for line in list_recheck:
+                                            match_failed_CPA = re.search(r"Verification result: FALSE", line)
+                                            match_nobug_CPA = re.search(r"Verification result: TRUE", line)
+                                            if match_failed_CPA:
+                                                print("\t\t\t CPAChecker --- POSITIVE")
+                                                CPACHECKER_STATUS = "positive"
+                                                CPACHECK_POSITIVE_cont += 1
+                                                flag_cpa = True
+                                                break
+                                            elif match_nobug_CPA:
+                                                print("\t\t\t CPAChecker --- NEGATIVE")
+                                                CPACHECKER_STATUS = "negative"
+                                                CPACHECK_NEGATIVE_cont += 1
+                                                flag_cpa = True
+                                                break
+
+
+                                        if not flag_cpa:
+                                            print("\t\t\t CPAChecker --- UNKNOWN")
+
+
+                                        os.chdir(cwd)
+                                        # Write cpachecker log
+                                        commands.getoutput("echo \""+result_recheck+"\" > "+CPACHECKER_OUTPUT_PATH)
+                                        #print(result_recheck)
                                 else:
                                     STATUS_GRAPHML_GEN = "ERROR"
                                 print("\t\t Time G: "+str("%1.3f" % ACTUAL_TIME_GEN_GRAPH)+" MEM G: "+str("%1.2f" % ACTUAL_GEN_GRAPH_inMB))
@@ -512,6 +621,7 @@ def set_codes_to_experiment(pathCPrograms):
                   
 
                 HTML_ENTRY="\t <tr><td>"+FILENAME+"</td><td class=\""+CSS_CLASS+"\">"+RESULT_TEXT+"</td>" \
+                           "<td class=\"unknownValue\">" + str(CPACHECKER_STATUS) + "&nbsp;</td>" \
                            "<td class=\"unknownValue\">" + str(("%1.2f" % TIME)) + "&nbsp;</td>" \
                            "<td class=\"unknownValue\">" + str(("%1.2f" % (ACTUAL_MEM_USED_EXEC_inMB+ACTUAL_TC_GEN_inMB))) + "&nbsp;</td>" \
                            "<td class=\"unknownValue\">" + str(("%1.2f" % ACTUAL_MEM_USED_EXEC_inMB)) + "&nbsp;</td>" \
@@ -553,6 +663,10 @@ def set_codes_to_experiment(pathCPrograms):
     print()
     print("COUNT_EXP_FALSE: ",str(COUNT_EXP_FALSE))
     print("COUNT_EXP_TRUE: ",str(COUNT_EXP_TRUE))
+    print()
+    print("COUNT CPAChecker POS: ",str(CPACHECK_POSITIVE_cont))
+    print("COUNT CPAChecker NEG: ",str(CPACHECK_NEGATIVE_cont))
+
 #    TOTAL_EXECUTION_TIME = FINAL_TIMESTAMP - INITIAL_TIMESTAMP
     
     # HTML CONTENT
@@ -560,6 +674,7 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td>total files</td>" \
                         "<td>"+str(TOTAL_FILES)+"</td>" \
+                        "<td>"+str(CPACHECK_POSITIVE_cont+CPACHECK_NEGATIVE_cont)+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_EXECUTION_TIME))+"&nbsp;</td>" \
                         "<td>"+str(("%1.2f" % (TOTAL_MEM_IN_EXE + TOTAL_TC_GEN_inMB + TOTAL_GEN_GRAPH_inMB)))+"&nbsp;</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEM_IN_EXE))+"&nbsp;</td> " \
@@ -573,6 +688,7 @@ def set_codes_to_experiment(pathCPrograms):
                         "<td title=\"(no bug exists + result is SAFE) OR "+\
                         "(bug exists + result is UNSAFE) OR (property is violated + violation is found)\">correct results</td>" \
                         "<td>"+ str(CORRECT_RESULTS)+"</td>" \
+                        "<td>"+ str(CPACHECK_POSITIVE_cont) +"</td>" \
                         "<td>"+str(("%1.2f" % TIME_TOTAL_CORRECT))+"</td>" \
                         "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_CORRECT))+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_CORRECT))+"</td>" \
@@ -585,6 +701,7 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td title=\"bug exists + result is SAFE\">false negatives</td>" \
                         "<td>"+ str(FALSE_NEGATIVES)+"</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_FNEGATI))+"</td>" \
                         "<td>"+str(("%1.2f" % TIME_TOTAL_FNEGATI))+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_FNEGATI))+"</td>" \
@@ -597,6 +714,7 @@ def set_codes_to_experiment(pathCPrograms):
                       "<tr>" \
                         "<td title=\"no bug exists + result is UNSAFE\">false positives"+"</td>" \
                         "<td>"+str(FALSE_POSITIVES)+"</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td>"+str(("%1.2f" % TCEXCMB_TOTAL_FPOSITI))+"</td>" \
                         "<td>"+str(("%1.2f" % TIME_TOTAL_FPOSITI))+"</td>" \
                         "<td>"+str(("%1.2f" % TOTAL_MEMO_FPOSITI))+"</td>" \
@@ -610,6 +728,7 @@ def set_codes_to_experiment(pathCPrograms):
                         "<td title=\"17 safe files, 15 unsafe files\">score ("+\
                         str(TOTAL_FILES)+" files, max score: "+str(MAX_SCORE)+")</td>" \
                         "<td class=\"score\">"+str(TOTAL_POINTS)+"</td>" \
+                        "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
                         "<td class=\"score\">-</td>" \
@@ -699,10 +818,14 @@ def generate_graphml(_cProgram, _map2checkoutput):
 
     #Save result in file
     #print(process.stdout.readlines())
-    writenewcode = open(graphmlpath, "w")
+    #writenewcode = open(graphmlpath, "w")
+    pathgraphml = ''
     for line in process.stdout.readlines():
-        writenewcode.write(line)
-    writenewcode.close()
+        match_filegrahml = re.search(r"The Map2Check output in GraphML format is in <(.*)>",line)
+        #writenewcode.write(line)
+        if match_filegrahml:
+            pathgraphml = match_filegrahml.group(1)
+    #writenewcode.close()
 
     #print(process.stderr.readlines())
 
@@ -719,9 +842,9 @@ def generate_graphml(_cProgram, _map2checkoutput):
     # Checking if the generation was okay
     matchpython_error = re.search(r"Traceback (most recent call last):", graphmlpath)
     if matchpython_error:
-        return False
+        return [False,'']
     else:
-        return True
+        return [True,pathgraphml]
 
 
 
@@ -744,7 +867,10 @@ def only_generate_code(cProgram):
     
     # Take time to test case generation
     #cmd = [PATH_MAP_2_CHECK_FORTES+" "+cProgram+" > "+new_c_program_name]
-    cmd = [PATH_MAP_2_CHECK_FORTES, "--track-all", "--only-assert", cProgram]
+    # Partial track
+    cmd = [PATH_MAP_2_CHECK_FORTES, "--only-assert", cProgram]
+    # Complete track
+    #cmd = [PATH_MAP_2_CHECK_FORTES, "--track-all", "--only-assert", cProgram]
     #cmd = ["cat "+PATH_MAP_2_CHECK_FORTES]
 
     #cmd = cmd.split(" ")
@@ -852,6 +978,7 @@ def copy_api_library(_dircprograms):
 
 
 def remove_tmp_files(list_path):
+    #return True
     for path in list_path:
         os.remove(path)
 

@@ -16,30 +16,33 @@ from pipes import quote
 import subprocess, datetime, os, time, signal
 
 
+
+
 # DEPENDENCY PARAMETERS
-ABS_PATH_FILE = os.path.dirname(os.path.abspath(__file__)) + "/"
-PATH_FILE_SETTINGS = ABS_PATH_FILE+'../../settings.cfg'
-if not os.path.isfile(PATH_FILE_SETTINGS):
-    print('Error: unable to find the settings.cfg file')
-    print('Please run ./configure to check the prerequisites to use Map2Check-FORTES tool')
-    sys.exit()
+ABS_PATH_FILE = os.path.dirname(os.path.abspath(__file__)) + "/../../"
 
-config = ConfigParser.ConfigParser()
-config.read(PATH_FILE_SETTINGS)
-check_status_path = config.get('MAPFORTES_TOOL', 'mapfortes_path', 0)
-if check_status_path == 'empty' :
-    print("Sorry, you need to set up the Map2Check-FORTES path in settings.cfg file. See REAME file.")
-    sys.exit()
+# PATH_FILE_SETTINGS = ABS_PATH_FILE+'../../settings.cfg'
+# if not os.path.isfile(PATH_FILE_SETTINGS):
+#     print('Error: unable to find the settings.cfg file')
+#     print('Please run ./configure to check the prerequisites to use Map2Check-FORTES tool')
+#     sys.exit()
+
+# config = ConfigParser.ConfigParser()
+# config.read(PATH_FILE_SETTINGS)
+# check_status_path = config.get('MAPFORTES_TOOL', 'mapfortes_path', 0)
+# if check_status_path == 'empty' :
+#     print("Sorry, you need to set up the Map2Check-FORTES path in settings.cfg file. See REAME file.")
+#     sys.exit()
 
 
-PATH_MAP_2_CHECK_FORTES = check_status_path+'/map2check-fortes.py'
+PATH_MAP_2_CHECK_FORTES = ABS_PATH_FILE + 'map2check.py'
 if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
-    print('Error: unable to find the map2check-fortes.py file')
+    print('Error: unable to find the map2check.py file')
     sys.exit()
 
 
 # API library location
-PATH_API_LIBRARY = check_status_path+'/modules/map2check/library/'
+PATH_API_LIBRARY = ABS_PATH_FILE + 'modules/map2check/library/'
 if not os.path.isdir(PATH_API_LIBRARY):
     print('Error: unable to find the path to API library')
     sys.exit()
@@ -80,6 +83,7 @@ def timeout_command(command, timeout):
             os.kill(process.pid, signal.SIGKILL)
             os.waitpid(-1, os.WNOHANG)
             return "TIME OUT",[]
+
 
     list_out_exec.append(process.stdout)
     list_out_exec.append(process.stderr)
@@ -137,7 +141,6 @@ def set_codes_to_experiment(_pathcprogram):
 
                 tmp_list_OUT_STDOUT = get_OUT_result_exec[0].readlines()
                 tmp_list_OUT_STDERR = get_OUT_result_exec[1].readlines()
-
 
                 # From this executions we ALWAYS save the failed execution
                 # Check in the result of the bin execution

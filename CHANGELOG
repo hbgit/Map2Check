@@ -14,10 +14,12 @@
 > [FILE:create_map.py] Created a method to generate the token data for GraphML format
 > [FILE:complete_check.py] Fixed bug related to choose the option --graphml-output
 > [FILE:write_graphml_output.py] Added the data token atributes to graphml
+
 > [FILE:check_safety_memory_FORTES.c] Updated the functions in LIB to handle with type of the var
                 ::Updated the function PRINT_TRACE_LOG to read from file tmp log
                     - Updated the header
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
+
 > [FILE:write_new_instance.py] Added in the map list the var name to give as input to LIB
 > [FILE:create_map.py] When tokenizer the program we not consider blank lines
 > [FILE: configure.py] Added networkx in the install process
@@ -42,16 +44,86 @@
 > [FILE:create_map.py] Created a option to generate a graphml from map2check output
 > [FILE:run_training_svcomp.py] Updated script to generate a graphml from map2check output
 >  [FILE:identify_points2leak] Fixed BUG related to deep search in compound and not compound AST nodes
-
 > [FILE:create_map.py] Fixed bug related to -t to map all, is not map i++ incr.
 > [FILE:create_map.py] Fixed bug related to map arrays pointers , e.g.,  a[i]++; that has not beem mapped.
     :: LOC 502 and 850
 > [FILE:create_map.py] Added support to alloca C function
 > [FILE:parse_2_claimsv1609.py] Updated rule "funInvalidPoint" to in claim translation
     :: Checking last rule
-
 > [THE PROJECT] Removed ctags dependece >> http://ctags.sourceforge.net/
 > [THE PROJECT] DONE: Checkout possibility to remmove ctags and networkx
+> [FILE:run_training_svcomp_details.py] Updated unsafe to FAILED
+> [FILE:run_training_svcomp_details.py] Updated TIMEOUT function
+        :: What is generated in the program execution? -> The trace of the execution (if any failed)
+        :: [SOLVED] BUG ::Is not generating correct the graphml
+            :: Added CPAChecker
+            :: Added the CPAChecker result in the HTML report
+                :: /home/hbazure/drive/Docs/CPAChecker/trunk
+> [FILE:create_map.py] Commented the partial support to alloc C function
+> [FILE:run_training_svcomp_details.py] Log trace generate MemoryError
+        :: The current trace log is generating a large graphml
+            :: How reduce the number of nodes in the graph an th trace log
+                :: [NOT USED] HIP1: Update library, before to write the file: (1) search (from bottom to up) in the list by line number and memory address,
+                         if found replace in the actual log file by the current value. Create a regex based on the last values found
+                         to line number and memory address and then replace all line txt match with the actual values of the list
+
+                         :: To replace file:
+                            (1) Create a string for regex
+                            (2) Create a new string to write in the file
+                            (3) Replace the line in the file by string in (2)
+
+                :: [rejected] HIP 2: Try short in python
+                    :: NOT WORK, cuz on the trace log in trace_of_program_exec_map2check.tmp file is arriving
+                       in the experiments 11GB :(
+
+                :: [USED] HIP 3: Create a complete list that have all trace as is write in the file, but in the end of the execution we
+                          remove all duplicate values based on line number and the memory address
+> [FILE:run_training_svcomp_details.py] Updated to improve the use of /tmp/trace_of_program_exec_map2check.tmp
+            :: remove cat from /tmp/trace_of_program_exec_map2check.tmp
+            :: [SOLVED] POSSIVEL BUG no novo trace. I had identified duplicated line trace
+                - Update the delete of duplicate values based on line number and of the {variable name}
+            :: [SOLVED] BUG to generate the GRAPHML in the script
+                - the stderr was not written correctly
+
+
+> [FILE:map2chek-fortes.py] Added new option --witnesspath
+>[FILE:map2check_wrapper_script.sh] Updated according to new SVCOMP requirements
+    :: Removed uncessary file when we have a Time Out
+> [THE PROJECT] Created a new script to simulate the SVCOMP execution adopting map2check-wrapper.py
+> [THE PROJECT] Updated actual branch to test in the server
+> [THE PROJECT] Replaced the name of map2check-fortes.py by map2check.py
+> [THE PROJECT] Removed tokenizer from configure.py
+> [THE PROJECT] Added chmod +x to tokenizer
+> [THE PROJECT] Removed unnecessary files from other_tools
+> [THE PROJECT] Removed uncrustify from configure.py
+    :: Removed the file of uncrustify now we get from the OS installed by the user
+> [THE PROJECT] Updated map2check.py to not need of seetings.cfg file
+> [THE PROJECT] Removed the use of configure.py - bkp in modules/not_used
+> [THE PROJECT] Renamed wrapper script to tool
+
+
+
+> [FILE:create_map.py] Fixed bug related to:
+    File "/home/hbazure/drive/Docs/Map2Check/Map2Check/modules/map2check/generate_map/create_map.py", line 1596, in expand_decl
+    return ['ArrayDecl', dimval, decl.dim_quals, nested]
+> [FILE:write_new_instance.py] Fixed bug related to:
+   Status: UNKNOW
+   ERROR - Generating test cases and new program instance
+   :: When we have int *x; in global scode, then is generated MAP_GB_VAR_FORTES();, but no has that function cuz
+      the pointer mapped only in the first assignment
+   SOLVED: Added the code "if 0 in self.map_is_global2map and 0 in self.map_id_func2map:" at line 1046
+
+
+> [THE PROJECT] Fixed bug related to:
+    :: memory-alloca/selectionsort_unsafe_false-valid-deref.c
+        - SOLVED - map2check removed lines about added permission to DIR
+    :: memory-alloca/openbsd_cstpcpy-alloca_true-valid-memsafety.c
+        - SOLVED - create_map.py added "if not flowProgramCond.block_items is None:" at 1325
+
+
+
+> [THE PROJECT] Updating readme file
+> [THE PROJECT] Thinking how avoid the tool execution if we have necessary packages not installed
 
 
 > [THE PROJECT] Dealing with alloc C function. The actual project status generates false positives cuz the alloc function
@@ -70,15 +142,10 @@
 
 
 
-
-
-> [THE PROJECT] Stop install when the requirements FAIL
-> [THE PROJECT] Needed to networkx -- Adicionar no instalador no MAP wget https://bootstrap.pypa.io/ez_setup.py -O - | python >>>> pacote setupinstall
 > [THE PROJECT] TODO: install test in diferent PCs
 > [THE PROJECT] Checking ESBMC cuz this apt-get install libc6-dev-i386
 
 > [FILE:create_map.py] Otimizing the time execution of args parse. The average time is 0.5s (this maybe is high)
-
 
 > [FILE:create_map.py] TODO: Analyzing print in the trace log about arrays
         :: Data: in this Decl int z[4]={2,6,1,9}; is presented in the trace z = 2; :(
@@ -89,8 +156,6 @@
 
 > [FILE:create_map.py] Testing option of Map2Check
 > [FILE:write_graphml_output.py] Testing graphml generated and the impact of not support to returnFrom
-
-> [FILE:??????] Doing a script to simulate the SVCOMP execution call the wrapper script
 
 
 > [FILE:create_map.py] TODO: Checking if is really need to identify what to print in the map list
@@ -115,10 +180,31 @@ $ scripts/cpa.sh -64 -explicitAnalysis-NoRefiner -setprop analysis.checkCountere
 
 
 
-
+> [THE PROJECT] (only for future) FIxing Bug in validate the grahml in CPAChecker <<< ONLY IN THE SCRIPT TEST :(
+    scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc -spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false -setprop parser.transformTokensToLines=true -spec
 > [FILE:check_safety_memory_FORTES.c] BUG in void print_debug(LIST_DYN_OBJ_FORTES *list); is not print correct
 
 
+------------------------------------------
+# For future
 
+# TODO:
+#   1) Create a documentation for each function
+#   2) Check nomaclature according paper
+#   3) Checkout that in the claim function to VALID_OBJECT
+# $$$$$$$$$$$$$$$ Create function nondet in library
+# DOING:
+#   1) Alpha test
+#       -> BUG FOUND: to write the new instance when exit commands are comments
+#       -> BUG FOUND: // FORTES: Claim 11 assert((i - 1 >= 0));
+#       -> BUG FOUND:
+#Claim 1:
+#  file code_samples/false_free_3.c line 15 function main
+#  dereference failure: free() of non-dynamic memory
+#  !(SAME-OBJECT(B, &C))
+#       -> BUG FOUND: When we apply the program directly in a file, ex. ./prog <file.c>
+#
+# CRITICAL BUG: ajustar o mapemento p identificar se uma var global esta fora das funções $$$$$$$$$$$$
+#   HIP: com base nos dados do escopo das funções, verificar se a num da linha esta fora deste escopo
 
 

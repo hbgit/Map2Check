@@ -237,10 +237,13 @@ def set_codes_to_experiment(pathCPrograms):
                 # Get the expected result from benchmark program
                 #EXPECTED_FAILED_RESULT = commands.getoutput("echo "+file+" | grep 'false'| wc -l")  
                 matchRe_FAILED = re.search(r'false-(.[^\.]*)', str(file))
-                matchRe_UNSAFE = re.search(r'_unsafe', str(file))
+                matchRe_UNSAFE = re.search(r'_(unsafe)', str(file))
                 EXPECTED_FAILED_RESULT = False
                 if matchRe_FAILED or matchRe_UNSAFE:
-                    print(">> EXPECTED < FALSE > - label: "+matchRe_FAILED.group(1))
+                    if matchRe_FAILED:
+                        print(">> EXPECTED < FALSE > - label: "+matchRe_FAILED.group(1))
+                    elif matchRe_UNSAFE:
+                        print(">> EXPECTED < FALSE > - label: "+matchRe_UNSAFE.group(1))
                     COUNT_EXP_FALSE += 1
                     EXPECTED_FAILED_RESULT = True
                     MAX_SCORE = MAX_SCORE + 1

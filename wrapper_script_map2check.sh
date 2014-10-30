@@ -5,7 +5,7 @@
 
 # Path to the Map2Check program
 #path_to_map2check=/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/map2check.py
-path_to_map2check=/home/hbazure/drive/Docs/Map2Check/map2check.py
+path_to_map2check=/home/hbazure/drive/Docs/Map2Check/Map2Check/map2check.py
 
 # Command line, common to all tests.
 # Run Map2Check 3 times. Each program in the category is executed 3 times,

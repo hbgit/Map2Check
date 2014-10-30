@@ -125,6 +125,10 @@
 
 > [FILE:svcop_simulation.py] Updated the classification by failed and unsafe
 
+> [THE PROJECT] Fixing BUG
+    :: in memory-unsafe/knapsack_alloca_unsafe.c
+        - SOLVED update heade lib related to invalidObjectFortes
+
 
 
 

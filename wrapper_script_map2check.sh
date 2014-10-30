@@ -4,15 +4,15 @@
 # Usage: ./map2check_wrapper_script.sh <file.c> <witnessfile.graphml>
 
 # Path to the Map2Check program
-path_to_map2check=/home/hrocha/Documents/Projects_DEV/map2check_git/Map2Check-Fortes/map2check.py
-#path_to_map2check=/home/hbazure/drive/Docs/Map2Check/map2check.py
+#path_to_map2check=/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/map2check.py
+path_to_map2check=/home/hbazure/drive/Docs/Map2Check/map2check.py
 
 # Command line, common to all tests.
 # Run Map2Check 3 times. Each program in the category is executed 3 times,
 # because of the nondeterministic model in the programs. It is important
 # to note that from these 3 executions, we always consider the execution classified as
 # FAILED (if any), i.e., an execution that the tool has identified a property violation.
-map2check_options="--complete-check 3 --graphml-output --witnesspath"
+map2check_options="--complete-check 2 --graphml-output --witnesspath"
 
 
 

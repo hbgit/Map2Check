@@ -12,6 +12,8 @@ import csv
 import ConfigParser
 import shutil
 import time
+import string
+import random
 from pipes import quote
 import subprocess, datetime, os, time, signal
 
@@ -23,7 +25,8 @@ ABS_PATH_FILE = os.path.dirname(os.path.abspath(__file__))
 # Name of the final report
 OUTPUT_REPORT_FILE = ABS_PATH_FILE+"/<name_>report.html"
 # Name of the tmp report that is generated according to tests execution
-TMP_REPORT_FILE = ABS_PATH_FILE+'/tmp_result.html'
+id = random.choice(string.letters)
+TMP_REPORT_FILE = ABS_PATH_FILE+'/tmp_result_'+id.strip()+'.html'
 
 # HTML Model Report
 PATH_HTML_MODEL_REPORT = ABS_PATH_FILE+'/modules/html_report/report_model.html'
@@ -40,8 +43,9 @@ list_delete_tmp_file = []
 
 
 # CPAChecker
-#CPACHECKER_PATH = '/home/hbazure/drive/Docs/CPAChecker/trunk/'
-CPACHECKER_PATH = '/home/hrocha/Documents/Projects_DEV/CPAChecker/trunk/'
+CPACHECKER_PATH = '/home/hbazure/drive/Docs/CPAChecker/trunk/'
+#CPACHECKER_PATH = '/home/hrocha/Documents/Projects_DEV/CPAChecker/trunk/'
+#CPACHECKER_PATH = '/home/nhb/Documents/ON_DEV/CPAChecker/trunk/'
 CPACHECKER_OPTIONS = 'scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc ' \
                      '-spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false ' \
                      '-setprop parser.transformTokensToLines=true -spec'
@@ -178,6 +182,8 @@ def set_codes_to_experiment(pathCPrograms):
     COUNT_EXP_TRUE      = 0
     COUNT_EXP_FALSE     = 0
 
+    TOTAL_EXECUTION_TIME = 0.0
+
     STATUS_GRAPHML_GEN  = True
     
     #cp ./REPORT/header.html $OUTPUT_REPORT_FILE
@@ -259,6 +265,9 @@ def set_codes_to_experiment(pathCPrograms):
 
                 FINAL_EXECUTION_TIMESTAMP = time.time()
 
+                print("\t\t\t Result: "+str(result_exec).strip())
+                print("\t\t\t Actual time: %1.5s" % (FINAL_EXECUTION_TIMESTAMP-INITIAL_EXECUTION_TIMESTAMP))
+
                 # Flag Status
                 FAILED = False
                 SUCCESS = False
@@ -327,7 +336,7 @@ def set_codes_to_experiment(pathCPrograms):
 
 
                 TIME = FINAL_EXECUTION_TIMESTAMP - INITIAL_EXECUTION_TIMESTAMP
-                TOTAL_EXECUTION_TIME = TIME
+                TOTAL_EXECUTION_TIME += TIME
                 
                 #print("DEBUG: EXP_FALSE: "+str(EXPECTED_FAILED_RESULT)+" - FAILED: "+str(FAILED)+" - SUCCESS: "+str(SUCCESS))
                 
@@ -338,21 +347,22 @@ def set_codes_to_experiment(pathCPrograms):
                 
                 if not FAILED and not SUCCESS and flag_TIME_OUT:
                     CSS_CLASS         = "status error"
-                    RESULT_TEXT       = "timeout"
+                    #RESULT_TEXT       = "timeout"
+                    RESULT_TEXT       = "unknown"
                     NUM_UNKNOW_AND_TO += 1
-                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    #TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
                     #echo $(echo -e"\033[0;33munknown\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print(">> ACTUAL: TIMEOUT in "+str(TIME)+" s")
-                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
+                    #print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                     
                 if not FAILED and not SUCCESS and not flag_TIME_OUT:
                     CSS_CLASS         = "status unknown"
                     RESULT_TEXT       = "unknown"
                     NUM_UNKNOW_AND_TO += 1
-                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    #TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
                     #echo $(echo -e"\033[0;33munknown\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print(">> ACTUAL: UNKNOWN in "+str(TIME)+" s")
-                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
+                    #print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif EXPECTED_FAILED_RESULT and FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "correctProperty"
@@ -360,40 +370,40 @@ def set_codes_to_experiment(pathCPrograms):
                     RESULT_TEXT       = "false(label)"
                     CORRECT_RESULTS   = CORRECT_RESULTS + 1
                     CORRECT_FALSES    = CORRECT_FALSES + 1
-                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
-                    TCEXCMB_TOTAL_CORRECT += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
-                    TOTAL_MEMO_CORRECT  += ACTUAL_MEM_USED_EXEC_inMB
+                    #TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    #TCEXCMB_TOTAL_CORRECT += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
+                    #TOTAL_MEMO_CORRECT  += ACTUAL_MEM_USED_EXEC_inMB
 
                     TIME_TOTAL_CORRECT += TIME
                     #echo $(echo -e "\033[0;32mfalse(label)\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print(">> ACTUAL: false(label) in "+str(TIME)+" s")
-                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
+                    #print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif EXPECTED_FAILED_RESULT and not FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "wrongProperty"
                     CSS_CLASS         = "status wrong true"
                     RESULT_TEXT       = "true"
                     FALSE_POSITIVES   = FALSE_POSITIVES + 1
-                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
-                    TOTAL_MEMO_FPOSITI += ACTUAL_MEM_USED_EXEC_inMB
-                    TCEXCMB_TOTAL_FPOSITI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
+                    #TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    #TOTAL_MEMO_FPOSITI += ACTUAL_MEM_USED_EXEC_inMB
+                    #TCEXCMB_TOTAL_FPOSITI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
                     TIME_TOTAL_FPOSITI += TIME
                     #echo $(echo -e "\033[0;31mtrue\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print(">> ACTUAL: true in "+str(TIME)+" s")
-                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
+                    #print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif not EXPECTED_FAILED_RESULT and FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "wrongProperty"
                     CSS_CLASS         = "status wrong false"
                     RESULT_TEXT       = "false(label)"
                     FALSE_NEGATIVES   = FALSE_NEGATIVES + 1
-                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
-                    TOTAL_MEMO_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB
-                    TCEXCMB_TOTAL_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
+                    #TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    #TOTAL_MEMO_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB
+                    #TCEXCMB_TOTAL_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
                     TIME_TOTAL_FNEGATI += TIME
                     #echo $(echo -e "\033[0;31mfalse(label)\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print(">> ACTUAL: false(label) in "+str(TIME)+" s")
-                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
+                    #print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif not EXPECTED_FAILED_RESULT and not FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "correctProperty"
@@ -401,13 +411,13 @@ def set_codes_to_experiment(pathCPrograms):
                     RESULT_TEXT       = "true"
                     CORRECT_RESULTS   = CORRECT_RESULTS + 1
                     CORRECT_TRUES     = CORRECT_TRUES + 1
-                    TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
-                    TOTAL_MEMO_CORRECT  += ACTUAL_MEM_USED_EXEC_inMB
-                    TCEXCMB_TOTAL_CORRECT += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
+                    #TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
+                    #TOTAL_MEMO_CORRECT  += ACTUAL_MEM_USED_EXEC_inMB
+                    #TCEXCMB_TOTAL_CORRECT += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
                     TIME_TOTAL_CORRECT += TIME
                     #echo $(echo -e "\033[0;32mtrue\033[0m" | cut -d " " -f2) "in $TIME""s"
                     print(">> ACTUAL: true in "+str(TIME)+" s")
-                    print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
+                    #print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
 
                 HTML_ENTRY="\t <tr><td>"+FILENAME+"</td><td class=\""+CSS_CLASS+"\">"+RESULT_TEXT+"</td>" \
@@ -423,8 +433,9 @@ def set_codes_to_experiment(pathCPrograms):
                 html_tmp_report.close()
                 
                 id_count += 1
+                print(" ")
 
-            print("")
+            #print("")
                  
     # end
     print()

@@ -1,8 +1,6 @@
 .idea/**/*
 .pyc
 settings.cfg
-modules/bmc_tool/esbmc_tool/32/bin
-modules/bmc_tool/esbmc_tool/64/bin
 modules/preprocessor/primary_preprocessing/arch_64
 modules/preprocessor/primary_preprocessing/arch_32
 result_claims

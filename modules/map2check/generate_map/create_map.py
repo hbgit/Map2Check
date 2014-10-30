@@ -1593,7 +1593,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     return ['ArrayDecl', decl.dim.expr, decl.dim_quals, nested]
                 else:                
                     dimval = decl.dim.value if decl.dim else ''
-                    return ['ArrayDecl', dimval, decl.dim_quals, nested]
+                    #print(decl.dim_quals)
+                    #return ['ArrayDecl', dimval, decl.dim_quals, nested]
+                    return ['ArrayDecl', dimval, nested]
                 
             elif typ == PtrDecl:
                 self.current_is_ptr = True

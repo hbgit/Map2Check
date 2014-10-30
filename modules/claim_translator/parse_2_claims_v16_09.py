@@ -504,6 +504,8 @@ def setDoubleRef_IP(recString):
     pre_str="(void *)&"
     pos_str="(void *)(intptr_t)"
     conc_str_token=""
+    addr_ptr = ''
+    addr_ptr_to = ''
 
 
     #Checking if we have a unary operation, i.e., a+i where "a" is a pointer
@@ -517,9 +519,19 @@ def setDoubleRef_IP(recString):
 
     #print(flag_hasop)
     if flag_hasop:
-        conc_str_token = "( *"+conc_str_token+" )"
+        #conc_str_token = "( *"+conc_str_token+" )"
+        addr_ptr    = "( *"+conc_str_token+" )"
+        addr_ptr_to = "( "+conc_str_token+" )"
+    else:
+        addr_ptr    = "( *"+conc_str_token+" )"
+        addr_ptr_to = "( *"+conc_str_token+" )"
+
+
+
+        #conc_str_token = "( *"+conc_str_token+" )"
     
-    new_str = pre_str + conc_str_token + ", " + pos_str + conc_str_token + " )"
+    #new_str = pre_str + conc_str_token + ", " + pos_str + conc_str_token + " )"
+    new_str = pre_str + addr_ptr + ", " + pos_str + addr_ptr_to + " )"
     return new_str
 
 

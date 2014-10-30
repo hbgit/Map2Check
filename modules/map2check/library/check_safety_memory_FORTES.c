@@ -932,7 +932,9 @@ int myRand(int arr[], int freq[], int n)
 
 //int __VERIFIER_nondet_int(void)
 int __VERIFIER_nondet_int(void){
-    int arr[]  = {0, 1};
+    //int arr[]  = {0, 1};
+    //int upperlimit = 10;
+    int arr[]  = {0, 5};
     int freq[] = {30, 65};
     int i, n = sizeof(arr) / sizeof(arr[0]); 
     // Use a different seed value for every run.

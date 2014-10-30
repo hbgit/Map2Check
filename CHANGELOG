@@ -125,9 +125,12 @@
 
 > [FILE:svcop_simulation.py] Updated the classification by failed and unsafe
 
-> [THE PROJECT] Fixing BUG
+> [THE PROJECT] Fixed BUG
     :: in memory-unsafe/knapsack_alloca_unsafe.c
         - SOLVED update heade lib related to invalidObjectFortes
+    :: [BUG+SOLVED] Related to use the function __VERIFIER_nondet_int() not for 0 or 1 but a real random int
+        - There is a possibily that we have a bug in the assertions
+            :: (void *)(intptr_t)(*(arr + i)) << WRONG way should be (void *)(intptr_t)((arr + i)) no derefence symbol (*)
 
 
 

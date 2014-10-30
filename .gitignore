@@ -1,6 +1,3 @@
 .idea/**/*
 .pyc
-settings.cfg
-modules/preprocessor/primary_preprocessing/arch_64
-modules/preprocessor/primary_preprocessing/arch_32
 result_claims

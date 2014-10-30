@@ -796,6 +796,9 @@ def checkVarScope( rec_token ):
             print("Could not read file: %s" % csvfilemapped)
 
 
+    #print(list_numlinemapped)
+    #sys.exit()
+
     # Identifying the scope in code to reduce the running
     f = open(args.list_function)
     lines_data_function = f.readlines()
@@ -819,6 +822,8 @@ def checkVarScope( rec_token ):
         # The actual line number is bigger than line that start the function
         # and the mapped line is less than end line number of the function
         #print(actual_nr_line_CL+" >= "+str(list_num_scopetocheck[0])+" and "+numline+" <= "+str(list_num_scopetocheck[1]))
+        #print(">>>>>> ",actual_nr_line_CL," - ",list_num_scopetocheck[0])
+        #print(">>>>>> ",list_numlinemapped[index]," - ",list_num_scopetocheck[1])
 
         if int(actual_nr_line_CL) >= int(list_num_scopetocheck[0]) and \
            int(list_numlinemapped[index]) <= int(list_num_scopetocheck[1]):

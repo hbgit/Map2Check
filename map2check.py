@@ -73,10 +73,7 @@ ESBMC_PATH = check_status_esbmc_path
 DIR_RESULT_CLAIMS = ABS_PATH_FORTES+"/result_claims"
 if not os.path.exists(DIR_RESULT_CLAIMS):
     os.makedirs(DIR_RESULT_CLAIMS)
-    #save the name of the user logged
-    username = os.getlogin()
-    saveusernameid = pwd.getpwnam(str(username)).pw_uid
-    os.chown(DIR_RESULT_CLAIMS, saveusernameid, saveusernameid)
+
 
 GET_DATA_CLAIMS = ABS_PATH_FORTES+"/modules/get_and_set_claims/abs_claims.pl"
 CLAIM_TRANSLATOR = ABS_PATH_FORTES+"/modules/claim_translator/parse_2_claims_v16_09.py"
@@ -369,11 +366,9 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
     file_from_map_2_cl = DIR_RESULT_CLAIMS+"/aux_file_map_2_translator.csv"
     list_tmp_path.append(file_from_map_2_cl)
 
-    # print(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
-    #           +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
-    # sys.exit()
+
     #os.system(CLAIM_TRANSLATOR+" -i "+csvClaimFile+" -c "+cFile+" -f "+dataFunctionFile
-    #          +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
+    #         +" -m "+file_from_map_2_cl+" -p" + csvMappedFromCode + " -d 0")
 
     #os.system("cat "+csvClaimFile)
     #sys.exit()
@@ -651,7 +646,12 @@ def start_generation_cassert(cFile, enSetFunc):
     # HackCode
     # >>> Call map2check again to get data line number after preprocessing
     #get_2st_map = commands.getoutput(MAP_2_CHECK_MAP+" "+getPreCFile+" 2")
+    #os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip_afterpre+" 2 " + TRACK_ALL)
+    #sys.exit()
     get_2st_map = commands.getoutput(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip_afterpre+" 2 " + TRACK_ALL)
+
+
+
     check_command_exec(get_2st_map, 0, "Generating code map after preprocessing",1)   
     list_lines_map = get_2st_map.split("\n")
     # Adding the result of 2st map in the tmp_file_map.map

@@ -1321,22 +1321,24 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
         if type(flowProgramCond) is Compound:
             #print("**********************************************")            
-            for stmt in flowProgramCond.block_items:
-                
-                if type(stmt) == Decl:
-                    #print("Searching by Decl in FLOW: %s <> %s" % (stmt.name, stmt.coord))
-                    #print()
-                    #print(self.ast_gen.CGenerator().visit(stmt))
-                    #self.current_loc_ast = index          
-                    
-                    self.getDataFromVar(stmt,0)
+            #print(">>>>>", flowProgramCond.block_items)
+            if not flowProgramCond.block_items is None:
+                for stmt in flowProgramCond.block_items:
 
-                elif type(stmt) in self.list_of_flow_programs:
-                    save_next_flow_program = stmt
-                    #self.current_compund_FLOW = stmt
-                    self.searchDeclInFlowProgram(save_next_flow_program, currentAstLoc)
-                    # BUG we DO NOT run the flow program
-                    #print("======== %s" % save_next_flow_program)
+                    if type(stmt) == Decl:
+                        #print("Searching by Decl in FLOW: %s <> %s" % (stmt.name, stmt.coord))
+                        #print()
+                        #print(self.ast_gen.CGenerator().visit(stmt))
+                        #self.current_loc_ast = index
+
+                        self.getDataFromVar(stmt,0)
+
+                    elif type(stmt) in self.list_of_flow_programs:
+                        save_next_flow_program = stmt
+                        #self.current_compund_FLOW = stmt
+                        self.searchDeclInFlowProgram(save_next_flow_program, currentAstLoc)
+                        # BUG we DO NOT run the flow program
+                        #print("======== %s" % save_next_flow_program)
                     
                     
 

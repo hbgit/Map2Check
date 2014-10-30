@@ -106,7 +106,6 @@
 > [FILE:create_map.py] Fixed bug related to:
     File "/home/hbazure/drive/Docs/Map2Check/Map2Check/modules/map2check/generate_map/create_map.py", line 1596, in expand_decl
     return ['ArrayDecl', dimval, decl.dim_quals, nested]
-
 > [FILE:write_new_instance.py] Fixed bug related to:
    Status: UNKNOW
    ERROR - Generating test cases and new program instance
@@ -115,7 +114,11 @@
    SOLVED: Added the code "if 0 in self.map_is_global2map and 0 in self.map_id_func2map:" at line 1046
 
 
-
+> [THE PROJECT] Fixed bug related to:
+    :: memory-alloca/selectionsort_unsafe_false-valid-deref.c
+        - SOLVED - map2check removed lines about added permission to DIR
+    :: memory-alloca/openbsd_cstpcpy-alloca_true-valid-memsafety.c
+        - SOLVED - create_map.py added "if not flowProgramCond.block_items is None:" at 1325
 
 
 

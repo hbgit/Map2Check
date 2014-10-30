@@ -123,6 +123,9 @@
 
 
 
+
+
+
 > [FILE:svcop_simulation.py] Updated the classification by failed and unsafe
 
 > [THE PROJECT] Fixed BUG
@@ -132,6 +135,7 @@
         - There is a possibily that we have a bug in the assertions
             :: (void *)(intptr_t)(*(arr + i)) << WRONG way should be (void *)(intptr_t)((arr + i)) no derefence symbol (*)
 
+> [FILE:svcop_simulation.py]  Removed the option -preprocess from CPAChecker execution
 
 
 

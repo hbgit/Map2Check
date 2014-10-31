@@ -43,6 +43,8 @@ int FLAG_DEBUG = 0;
 LIST_DYN_OBJ_FORTES *list_CE_trace;
 FILE *gb_actualfile;
 
+int FLAG_to_IS_VALID_POINTER_FORTES = 0;
+
 
 /*******************************************************************/
 // Function to print the variable value from memory address based
@@ -372,6 +374,8 @@ void PRINT_TRACE_LOG()
 //        printf("%4d \n", aux_3->map_linePreCode_FORTES);
 //    }
 
+
+
   reverse_trace_to_print(list_LOG_complete_TRACE);
 
   count_all_list_FORTES=save_count;
@@ -386,6 +390,9 @@ reverse_trace_to_print(LIST_DYN_OBJ_FORTES* list){
 
     reverse_trace_to_print(list->next_item_FORTES);
     //printf("The node is %d\n", list->map_linePreCode_FORTES);
+    //printf("-- %p\n", list->block_MEM_Point_FORTES);
+    //printf("-- %d \n", list->map_ID_func_FORTES);
+
     printf("%4d\t| %18p| %18p| %4d\t\t| %4d\t\t| %4d\t\t| %8d\t| %4d\t| %8s\t|",
             count_all_list_FORTES,
             list->adresse_mem_map_FORTES,
@@ -397,14 +404,20 @@ reverse_trace_to_print(LIST_DYN_OBJ_FORTES* list){
             list->map_linePreCode_FORTES,
             list->map_namevar_FORTES);
 
+
     //Write the value VAR
     //printf("\n");
     //printf("The node is %s\n", list->map_typevar_FORTES);
     //printf("The node is %s\n", list->adresse_mem_map_FORTES);
-    if(list->block_MEM_Point_FORTES != NULL){
-        print_by_type(list->adresse_mem_map_FORTES, list->map_typevar_FORTES, 1, 0);
+    if(list->block_MEM_Point_FORTES == NULL){
+        printf("NULL");
     }else{
-        print_by_type(list->adresse_mem_map_FORTES, list->map_typevar_FORTES, 0, 0);
+        if(FLAG_to_IS_VALID_POINTER_FORTES == 0){
+            print_by_type(list->adresse_mem_map_FORTES, list->map_typevar_FORTES, 1, 0);
+        }else{
+            printf("--");
+        }
+        //print_by_type(list->adresse_mem_map_FORTES, list->map_typevar_FORTES, 0, 0);
     }
     printf("\n");
     //printf("The node is %s\n", list->map_typevar_FORTES);
@@ -863,7 +876,8 @@ int IS_VALID_POINTER_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block
   LIST_DYN_OBJ_FORTES* aux;
   //Search by block address
   for (aux=list; aux!=NULL; aux=aux->next_item_FORTES){
-	  if((aux->block_MEM_Point_FORTES == (void *)block)){		  
+	  if((aux->block_MEM_Point_FORTES == (void *)block)){
+	  		//printf("");
 			return 0; //FALSE is not a valid object - 0 cuz the negation
 	  }    
    }
@@ -874,7 +888,7 @@ int IS_VALID_POINTER_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block
 			return 0; //TRUE - 0 cuz the negation
 	   }
    }
-   
+  FLAG_to_IS_VALID_POINTER_FORTES = 1;
   return 1; //FALSE is not a valid pointer - 1 cuz the negation
 }
 

@@ -447,15 +447,28 @@ def set_codes_to_experiment(pathCPrograms):
     
     FINAL_TIMESTAMP = time.time()
     
-    # CALCULATE POINTS
-    TOTAL_POINTS = (TOTAL_POINTS + 2 * CORRECT_TRUES)   
-    print("CORRECT_TRUES  : ",str(CORRECT_TRUES)) 
-    TOTAL_POINTS = (TOTAL_POINTS + CORRECT_FALSES)    
-    print("CORRECT_FALSES : ",str(CORRECT_FALSES)) 
-    TOTAL_POINTS = (TOTAL_POINTS - 8 * FALSE_POSITIVES)    
-    print("FALSE_POSITIVES: ",str(FALSE_POSITIVES)) 
-    TOTAL_POINTS = (TOTAL_POINTS - 4 * FALSE_NEGATIVES)    
-    print("FALSE_NEGATIVES: ",str(FALSE_NEGATIVES)) 
+    # CALCULATE POINTS according svcomp 2015
+    print("CORRECT_FALSES : ",str(CORRECT_FALSES))
+    print("FALSE_NEGATIVES: ",str(FALSE_NEGATIVES))
+    print("CORRECT_TRUES  : ",str(CORRECT_TRUES))
+    print("FALSE_POSITIVES: ",str(FALSE_POSITIVES))
+
+
+    TOTAL_FC     = (CORRECT_FALSES) # FALSE correct
+    TOTAL_FI     = (- 6 * FALSE_NEGATIVES) # FALSE incorrect
+    TOTAL_TC     = (2 * CORRECT_TRUES) # TRUE correct
+    TOTAL_TI     = (- 12 * FALSE_POSITIVES) # TRUE incorrect
+
+    TOTAL_POINTS = TOTAL_FC + TOTAL_FI + TOTAL_TC + TOTAL_TI
+
+
+
+
+
+
+
+
+
     print("UNKNOW and TO  : ",str(NUM_UNKNOW_AND_TO))
     print()
     print("COUNT_EXP_FALSE: ",str(COUNT_EXP_FALSE))

@@ -137,6 +137,15 @@
 
 > [FILE:svcop_simulation.py]  Removed the option -preprocess from CPAChecker execution
 
+> [FILE:svcop_simulation.py] Updated count score in svcop_simulation.py
+    TOTAL_POINTS = (TOTAL_POINTS + 2 * CORRECT_TRUES) -> 2
+    TOTAL_POINTS = (TOTAL_POINTS - 8 * FALSE_POSITIVES) -> -62
+    TOTAL_POINTS = (TOTAL_POINTS - 4 * FALSE_NEGATIVES)
+
+
+> [THE PROJECT] Fixing bugs
+    :: in
+
 
 
 

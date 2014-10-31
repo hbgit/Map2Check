@@ -208,3 +208,55 @@ $ scripts/cpa.sh -64 -explicitAnalysis-NoRefiner -setprop analysis.checkCountere
 #   HIP: com base nos dados do escopo das funções, verificar se a num da linha esta fora deste escopo
 
 
+
+==========================================
+Results 3110:1316
+-> memsafety
+    - Correct falses : 15
+    - False negatives: 8
+    - Correct true   : 9
+    - False positive : 1
+    - Unkwnow        : 4
+    Score total: -27
+    Total files: 37
+
+-> memsafety-ext
+    - Correct falses : 0
+    - False negatives: 4
+    - Correct true   : 4
+    - False positive : 0
+    - Unkwnow        : 0
+    Score total: -16
+    Total files: 8
+
+-> memo-alloca
+    - Correct falses : 22
+    - False negatives: 113
+    - Correct true   : 7
+    - False positive : 5
+    - Unkwnow        : 6
+    Score total: -702
+    Total files: 153
+
+-> memo-unsafe
+    - Correct falses : 19
+    - False negatives: 1
+    - Correct true   : 0
+    - False positive : 6
+    - Unkwnow        : 1
+    Score total: -59
+    Total files: 27
+
+-> list-ext-properties
+    - Correct falses : 9
+    - False negatives: 3
+    - Correct true   : 8
+    - False positive : 0
+    - Unkwnow        : 0
+    Score total: 7
+    Total files: 20
+
+
+Total Score:
+
+

@@ -875,15 +875,19 @@ int IS_VALID_POINTER_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block
 {
   LIST_DYN_OBJ_FORTES* aux, *aux2;
   //Search by block address
+
+  //printf("%p -- \n", (void *)block);
+
+  int count_found_block = 0;
   for (aux=list; aux!=NULL; aux=aux->next_item_FORTES){
+
+      //printf("%p -- %p \n", aux->adresse_mem_map_FORTES, (void *)block);
       //printf("%p -- %p \n", aux->block_MEM_Point_FORTES, (void *)block);
 	  if((aux->block_MEM_Point_FORTES == (void *)block)){
-            //We have two possible valids conclusion
-            //(1) is the block is a dynamic value
-            if(aux->map_is_DYNAM_FORTES == 0){
-                return 1; //is not a dynamic value, so invalid address - 1 cuz the negation -- BUG
-            }
-            //printf("aux->map_is_DYNAM_FORTES == 0 \n");
+	        count_found_block += 1;
+	        //printf(">>>>>> \n");
+
+            //printf("=== %p -- %p \n", aux->adresse_mem_map_FORTES, (void *)block);
 
             //(2) is address used by another valid variable
             for (aux2=list; aux2!=NULL; aux2=aux2->next_item_FORTES){
@@ -893,10 +897,40 @@ int IS_VALID_POINTER_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block
                 }
             }
 
+
+
+            //We have two possible valids conclusion
+            //(1) is the block is a dynamic value
+//            if(aux->map_is_DYNAM_FORTES == 0){
+//                return 1; //is not a dynamic value, so invalid address - 1 cuz the negation -- BUG
+//            }
+//            if(aux->map_is_DYNAM_FORTES == 1){
+//                return 0; //It IS a dynamic value
+//            }
+//            //printf("aux->map_is_DYNAM_FORTES == 0 \n");
+//
+//            printf(">>> %p -- %p \n", aux->adresse_mem_map_FORTES, (void *)block);
+
+
+
             // The two two possible of valids pointer was not okay
-			return 1; //FALSE is not a valid object - 0 cuz the negation
-	  }    
+			//return 1; //FALSE is not a valid object - 0 cuz the negation
+
+			//WARNNNING: WHEN we have a block = {1,2,3} and some ptr points to 2. In this case,
+			 //only mapped address is 1 from block, but is of course that 2  is a VALID address. How to deal with it?
+
+			 //Consider a valid or not address
+
+	  }
+
    }
+
+  //printf(">>>>>>> %d \n", count_found_block);
+  if(count_found_block > 1){
+    return 0; //NO BUG
+  }else{
+    return 1; //BUG
+  }
    
    //Search by current address
    for (aux=list; aux!=NULL; aux=aux->next_item_FORTES){

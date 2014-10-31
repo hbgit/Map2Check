@@ -501,6 +501,7 @@ def mountString(rec_tokens):
 Utils functions for <funPointOffset>
 """
 def setDoubleRef_IP(recString):
+    global printFLag
     pre_str="(void *)&"
     pos_str="(void *)(intptr_t)"
     conc_str_token=""
@@ -516,6 +517,10 @@ def setDoubleRef_IP(recString):
             flag_hasop = True
 
         conc_str_token = conc_str_token + str(token)
+
+    match_only_iof = re.search(r"invalidObjectFortes", conc_str_token)
+    if match_only_iof:
+        printFLag = 0
 
     #print(flag_hasop)
     if flag_hasop:

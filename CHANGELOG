@@ -151,6 +151,8 @@
             - cuz in the function IS_VALID_POINTER_FORTES we do not check if the block is a valid addr
     :: test-memleak_nexttime-valid-memtrack.c in related to incorrect map of memcpy
         -
+    :: test-0217_true-valid-memsafety.c
+        - invalidObjectFortes set a flag to IS_VALID_POINTER_FORTES
     :: Provide support to alloca function
 
 

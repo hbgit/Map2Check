@@ -33,8 +33,11 @@ int main()
    int *a = arr;
    list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&(a), (void *)(intptr_t)(a), "a", 1, 0, 0, 0, "int", 10); /** by FORTES **/
 
+   printf("=== %p \n", (void *)&((a)));
+   printf("=== %p \n", (void *)(intptr_t)((a)));
+   print_debug(list_LOG_mcf);
 // FORTES: Claim 1
-   __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&((*a)), (void *)(intptr_t)((*a)))), "[Failed]\n VIOLATED PROPERTY: Claim 1 \n \t Location at original code in line: 11 \n \t Comments:   dereference failure: invalid pointer");
+   __MAP_FORTES_assert(!(IS_VALID_POINTER_FORTES(list_LOG_mcf, (void *)&((a)), (void *)(intptr_t)((a)))), "[Failed]\n VIOLATED PROPERTY: Claim 1 \n \t Location at original code in line: 11 \n \t Comments:   dereference failure: invalid pointer");
 // FORTES: Claim 2
    __MAP_FORTES_assert((1), "[Failed]\n VIOLATED PROPERTY: Claim 2 \n \t Location at original code in line: 11 \n \t Comments:   dereference failure: invalid pointer");
    while ((*a) != (*((arr + length) - 1)))

@@ -145,10 +145,16 @@
 
 > [THE PROJECT] Fixing bugs
     :: [SOLVED] in delete_unsafe.c -> Handle NULL in the lib
-    :: [FUTURE] in cstrcat_unsafe.c - STOPPED for while
-        - cuz in the function IS_VALID_POINTER_FORTES we do not check if the block is a valid addr
-    :: [TODO] in the lib to get data value from print_by_type, this cuz the time when is call - checkout write_logfile_maplist
+    :: [SOLVED] in memsafety/test-0019_false-valid-memtrack.c, add_last_unsafe.c, delete_unsafe.c and cstrcat_unsafe.c
+        - Updated function setDoubleRef_IP in parse_2_claims_v1609.py
+        - Updated funcion IS_VALID_POINTER_FORTES in lib
+            - cuz in the function IS_VALID_POINTER_FORTES we do not check if the block is a valid addr
+    :: test-memleak_nexttime-valid-memtrack.c in related to incorrect map of memcpy
+        -
     :: Provide support to alloca function
+
+
+> [THE PROJECT]  [TODO] in the lib to get data value from print_by_type, this cuz the time when is call - checkout write_logfile_maplist
 
 
 

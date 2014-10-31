@@ -873,12 +873,28 @@ int IS_VALID_OBJECT_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block)
  * */
 int IS_VALID_POINTER_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block)
 {
-  LIST_DYN_OBJ_FORTES* aux;
+  LIST_DYN_OBJ_FORTES* aux, *aux2;
   //Search by block address
   for (aux=list; aux!=NULL; aux=aux->next_item_FORTES){
+      //printf("%p -- %p \n", aux->block_MEM_Point_FORTES, (void *)block);
 	  if((aux->block_MEM_Point_FORTES == (void *)block)){
-	  		//printf("");
-			return 0; //FALSE is not a valid object - 0 cuz the negation
+            //We have two possible valids conclusion
+            //(1) is the block is a dynamic value
+            if(aux->map_is_DYNAM_FORTES == 0){
+                return 1; //is not a dynamic value, so invalid address - 1 cuz the negation -- BUG
+            }
+            //printf("aux->map_is_DYNAM_FORTES == 0 \n");
+
+            //(2) is address used by another valid variable
+            for (aux2=list; aux2!=NULL; aux2=aux2->next_item_FORTES){
+                if (aux->adresse_mem_map_FORTES == (void *)block){
+                    //printf("%p -- %p \n", aux->adresse_mem_map_FORTES, (void *)block);
+                    return 0; //  Is a valid address - 0 cuz the negation -- NO BUG
+                }
+            }
+
+            // The two two possible of valids pointer was not okay
+			return 1; //FALSE is not a valid object - 0 cuz the negation
 	  }    
    }
    
@@ -888,6 +904,7 @@ int IS_VALID_POINTER_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block
 			return 0; //TRUE - 0 cuz the negation
 	   }
    }
+
   FLAG_to_IS_VALID_POINTER_FORTES = 1;
   return 1; //FALSE is not a valid pointer - 1 cuz the negation
 }

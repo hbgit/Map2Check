@@ -523,8 +523,8 @@ def setDoubleRef_IP(recString):
         addr_ptr    = "( *"+conc_str_token+" )"
         addr_ptr_to = "( "+conc_str_token+" )"
     else:
-        addr_ptr    = "( *"+conc_str_token+" )"
-        addr_ptr_to = "( *"+conc_str_token+" )"
+        addr_ptr    = "( "+conc_str_token+" )"
+        addr_ptr_to = "( "+conc_str_token+" )"
 
 
 

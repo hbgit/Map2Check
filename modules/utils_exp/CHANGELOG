@@ -112,13 +112,55 @@
    :: When we have int *x; in global scode, then is generated MAP_GB_VAR_FORTES();, but no has that function cuz
       the pointer mapped only in the first assignment
    SOLVED: Added the code "if 0 in self.map_is_global2map and 0 in self.map_id_func2map:" at line 1046
-
-
 > [THE PROJECT] Fixed bug related to:
     :: memory-alloca/selectionsort_unsafe_false-valid-deref.c
         - SOLVED - map2check removed lines about added permission to DIR
     :: memory-alloca/openbsd_cstpcpy-alloca_true-valid-memsafety.c
         - SOLVED - create_map.py added "if not flowProgramCond.block_items is None:" at 1325
+
+
+
+
+
+
+
+
+
+> [FILE:svcop_simulation.py] Updated the classification by failed and unsafe
+
+> [THE PROJECT] Fixed BUG
+    :: in memory-unsafe/knapsack_alloca_unsafe.c
+        - SOLVED update heade lib related to invalidObjectFortes
+    :: [BUG+SOLVED] Related to use the function __VERIFIER_nondet_int() not for 0 or 1 but a real random int
+        - There is a possibily that we have a bug in the assertions
+            :: (void *)(intptr_t)(*(arr + i)) << WRONG way should be (void *)(intptr_t)((arr + i)) no derefence symbol (*)
+
+> [FILE:svcop_simulation.py]  Removed the option -preprocess from CPAChecker execution
+
+> [FILE:svcop_simulation.py] Updated count score in svcop_simulation.py
+    TOTAL_POINTS = (TOTAL_POINTS + 2 * CORRECT_TRUES) -> 2
+    TOTAL_POINTS = (TOTAL_POINTS - 8 * FALSE_POSITIVES) -> -62
+    TOTAL_POINTS = (TOTAL_POINTS - 4 * FALSE_NEGATIVES)
+
+
+> [THE PROJECT] Fixing bugs
+    :: [SOLVED] in delete_unsafe.c -> Handle NULL in the lib
+    :: [SOLVED] in memsafety/test-0019_false-valid-memtrack.c, add_last_unsafe.c, delete_unsafe.c and cstrcat_unsafe.c
+        - Updated function setDoubleRef_IP in parse_2_claims_v1609.py
+        - Updated funcion IS_VALID_POINTER_FORTES in lib
+            - cuz in the function IS_VALID_POINTER_FORTES we do not check if the block is a valid addr
+    :: test-memleak_nexttime-valid-memtrack.c in related to incorrect map of memcpy
+        -
+    :: test-0217_true-valid-memsafety.c
+        - invalidObjectFortes set a flag to IS_VALID_POINTER_FORTES
+    :: Provide support to alloca function
+    :: in a.04-alloca_true-valid-memsafety.c - handle with value to ptr . e.g., int *ptr = 12;
+    :: in delete_unsafe.c adicionar no map list if is a arg func
+
+
+> [THE PROJECT]  [TODO] in the lib to get data value from print_by_type, this cuz the time when is call - checkout write_logfile_maplist
+
+
 
 
 
@@ -183,6 +225,23 @@ $ scripts/cpa.sh -64 -explicitAnalysis-NoRefiner -setprop analysis.checkCountere
 > [THE PROJECT] (only for future) FIxing Bug in validate the grahml in CPAChecker <<< ONLY IN THE SCRIPT TEST :(
     scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc -spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false -setprop parser.transformTokensToLines=true -spec
 > [FILE:check_safety_memory_FORTES.c] BUG in void print_debug(LIST_DYN_OBJ_FORTES *list); is not print correct
+
+
+
+
+
+
+
+
+
+
+Before merge ----- remember commit bc28cf1452f3ec77b9ead6d73c4a36378c39b7f3
+
+
+
+
+
+
 
 
 ------------------------------------------

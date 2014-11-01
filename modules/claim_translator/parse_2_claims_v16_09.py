@@ -44,6 +44,32 @@ parser.add_argument("-d", "--debug-mode", type=int, choices=[0, 1], default=0, h
 args = parser.parse_args()
 
 
+### get data from mapped code
+csvfilemapped = args.data_mapped
+list_numlinemapped = []
+list_namevarmapped = []
+list_namevar2ptmapped = []
+list_isargfunctmapped = []
+
+gb_cfile = args.code
+
+
+try:
+    with open(csvfilemapped, 'r') as fileCsv:
+        reader = csv.DictReader(fileCsv,delimiter=';')
+        for row in reader:
+            list_numlinemapped.append(row['After_Pre_LOC'].strip())
+            list_namevarmapped.append(row['Variable'].strip())
+            list_namevar2ptmapped.append(row['Points to'].strip())
+            list_isargfunctmapped.append(row['Is Arg Funct'].strip())
+
+except IOError:
+        print("Could not read file: %s" % csvfilemapped)
+
+
+
+
+
 #---------------------------------------------------------------------
 
 # List from mapping to help the translation
@@ -501,9 +527,19 @@ def mountString(rec_tokens):
 Utils functions for <funPointOffset>
 """
 def setDoubleRef_IP(recString):
+    global printFLag
+    global actual_nr_line_CL
+    global list_numlinemapped
+    global list_namevarmapped
+    global list_namevar2ptmapped
+    global list_isargfunctmapped
+    global gb_cfile
+
     pre_str="(void *)&"
     pos_str="(void *)(intptr_t)"
     conc_str_token=""
+    addr_ptr = ''
+    addr_ptr_to = ''
 
 
     #Checking if we have a unary operation, i.e., a+i where "a" is a pointer
@@ -515,11 +551,75 @@ def setDoubleRef_IP(recString):
 
         conc_str_token = conc_str_token + str(token)
 
+    match_only_iof = re.search(r"invalidObjectFortes", conc_str_token)
+    if match_only_iof:
+        printFLag = 0
+
     #print(flag_hasop)
     if flag_hasop:
-        conc_str_token = "( *"+conc_str_token+" )"
+        #conc_str_token = "( *"+conc_str_token+" )"
+        addr_ptr    = "( *"+conc_str_token+" )"
+        addr_ptr_to = "( "+conc_str_token+" )"
+    else:
+
+        flag_update_point2 = False
+        #print(">>>>>> ", conc_str_token)
+        var2cmp = re.sub(r"^\(","",conc_str_token)
+        var2cmp = re.sub(r"\)$","",var2cmp)
+        #print(">>>>>> ", var2cmp)
+
+        flag_isargfunct = False
+        for index, value in enumerate(list_numlinemapped):
+            #print(var2cmp," == ",list_namevarmapped[index])
+            if var2cmp == list_namevarmapped[index]:
+                #print("egual name")
+                if checkScopeByNumLine(actual_nr_line_CL,value):
+                    #print("scope")
+                    if list_isargfunctmapped[index] == "1":
+                        flag_isargfunct = True
+                        #print("FOUND")
+
+
+        if not flag_isargfunct:
+
+            for index, value in enumerate(list_numlinemapped):
+                if actual_nr_line_CL == value:
+                    #print(var2cmp," == ",list_namevarmapped[index])
+                    if var2cmp == list_namevarmapped[index]:
+                        if list_namevar2ptmapped[index] == "NULL":
+                            flag_update_point2 = True
+                            break
+
+            #Last check identify *prt = value
+            if not flag_update_point2:
+                filec = open(gb_cfile,'r')
+                list_filec = filec.readlines()
+                filec.close()
+                # search in file by line number
+                regex_sym_def = r"\\*[ ]*" + var2cmp
+                for index, line in enumerate(list_filec):
+                    #print(str(index+1)+ "==" +str( actual_nr_line_CL))
+                    if str(index+1) == actual_nr_line_CL:
+                       # print("--------",line)
+                        match_deref_symb = re.search(regex_sym_def,line)
+                        if match_deref_symb:
+                            #print(">>>>>>>>>>> ")
+                            flag_update_point2 = True
+                            break
+
+
+        addr_ptr    = "( "+conc_str_token+" )"
+        if flag_update_point2:
+            addr_ptr_to = "( NULL )"
+        else:
+            addr_ptr_to = "( "+conc_str_token+" )"
+
+
+
+        #conc_str_token = "( *"+conc_str_token+" )"
     
-    new_str = pre_str + conc_str_token + ", " + pos_str + conc_str_token + " )"
+    #new_str = pre_str + conc_str_token + ", " + pos_str + conc_str_token + " )"
+    new_str = pre_str + addr_ptr + ", " + pos_str + addr_ptr_to + " )"
     return new_str
 
 
@@ -756,8 +856,40 @@ def set_cast_intptr_t( rec_token ):
     return mountString
 
 
+def checkScopeByNumLine(_num_line_actual, _num_line_of_value):
+    # Identifying the scope and
+    f = open(args.list_function)
+    lines_data_function = f.readlines()
+    f.close()
+
+    # What function am I?
+    name_funct = ''
+    flag_found = False
+    index_found = 0
+    for index, eachLine in enumerate(lines_data_function):
+        data_function = re.split(";",eachLine)
+        if int(data_function[1]) <= int(_num_line_actual) <= int(data_function[2]):
+            name_funct = data_function[0].strip()
+            index_found = index
+            flag_found = True
+            break
+
+    # Identify if the number line of value we have tested is in the actual scope
+    if flag_found:
+        data_function = re.split(";",lines_data_function[index_found])
+        if int(data_function[1]) <= int(_num_line_of_value) <= int(data_function[2]):
+            #print(name_funct)
+            return True
+
+    return False
+
+
+
+
 def checkVarScope( rec_token ):
     global printFLag
+    global list_numlinemapped
+    global list_namevarmapped
 
     namevartocheck = ''
     flagref = False
@@ -779,21 +911,21 @@ def checkVarScope( rec_token ):
 
     # TODO: How analysis only the scope of the variable
     #print(args.data_mapped)
-    csvfilemapped = args.data_mapped
+    #csvfilemapped = args.data_mapped
 
     # Identify the scope, i.e., what function
     # Reading data csv from mapped code
-    list_numlinemapped = []
-    list_namevarmapped = []
-    try:
-        with open(csvfilemapped, 'r') as fileCsv:
-            reader = csv.DictReader(fileCsv,delimiter=';')
-            for row in reader:
-               list_numlinemapped.append(row['After_Pre_LOC'].strip())
-               list_namevarmapped.append(row['Variable'].strip())
-
-    except IOError:
-            print("Could not read file: %s" % csvfilemapped)
+    #list_numlinemapped = []
+    #list_namevarmapped = []
+    # try:
+    #     with open(csvfilemapped, 'r') as fileCsv:
+    #         reader = csv.DictReader(fileCsv,delimiter=';')
+    #         for row in reader:
+    #            list_numlinemapped.append(row['After_Pre_LOC'].strip())
+    #            list_namevarmapped.append(row['Variable'].strip())
+    #
+    # except IOError:
+    #         print("Could not read file: %s" % csvfilemapped)
 
 
     #print(list_numlinemapped)

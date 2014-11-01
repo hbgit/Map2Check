@@ -100,7 +100,7 @@ def set_codes_to_experiment(pathCPrograms):
     # Map2Check PARAMS
     MAP2CHECK_WRAPPER_SCRIPT_PATH = "wrapper_script_map2check.sh"
     MAP2CHECK_VERSION = "version 3"
-    MAP2CHECK_PARAMS = "--complete-check 3 --graphml-output --witnesspath"
+    MAP2CHECK_PARAMS = "--complete-check 2 --graphml-output --witnesspath"
     
     # SYSTEM INFO
     DATE_EXECUTION = commands.getoutput("date")    
@@ -237,10 +237,13 @@ def set_codes_to_experiment(pathCPrograms):
                 # Get the expected result from benchmark program
                 #EXPECTED_FAILED_RESULT = commands.getoutput("echo "+file+" | grep 'false'| wc -l")  
                 matchRe_FAILED = re.search(r'false-(.[^\.]*)', str(file))
-                matchRe_UNSAFE = re.search(r'_unsafe', str(file))
+                matchRe_UNSAFE = re.search(r'_(unsafe)', str(file))
                 EXPECTED_FAILED_RESULT = False
                 if matchRe_FAILED or matchRe_UNSAFE:
-                    print(">> EXPECTED < FALSE > - label: "+matchRe_FAILED.group(1))
+                    if matchRe_FAILED:
+                        print(">> EXPECTED < FALSE > - label: "+matchRe_FAILED.group(1))
+                    elif matchRe_UNSAFE:
+                        print(">> EXPECTED < FALSE > - label: "+matchRe_UNSAFE.group(1))
                     COUNT_EXP_FALSE += 1
                     EXPECTED_FAILED_RESULT = True
                     MAX_SCORE = MAX_SCORE + 1
@@ -444,15 +447,28 @@ def set_codes_to_experiment(pathCPrograms):
     
     FINAL_TIMESTAMP = time.time()
     
-    # CALCULATE POINTS
-    TOTAL_POINTS = (TOTAL_POINTS + 2 * CORRECT_TRUES)   
-    print("CORRECT_TRUES  : ",str(CORRECT_TRUES)) 
-    TOTAL_POINTS = (TOTAL_POINTS + CORRECT_FALSES)    
-    print("CORRECT_FALSES : ",str(CORRECT_FALSES)) 
-    TOTAL_POINTS = (TOTAL_POINTS - 8 * FALSE_POSITIVES)    
-    print("FALSE_POSITIVES: ",str(FALSE_POSITIVES)) 
-    TOTAL_POINTS = (TOTAL_POINTS - 4 * FALSE_NEGATIVES)    
-    print("FALSE_NEGATIVES: ",str(FALSE_NEGATIVES)) 
+    # CALCULATE POINTS according svcomp 2015
+    print("CORRECT_FALSES : ",str(CORRECT_FALSES))
+    print("FALSE_NEGATIVES: ",str(FALSE_NEGATIVES))
+    print("CORRECT_TRUES  : ",str(CORRECT_TRUES))
+    print("FALSE_POSITIVES: ",str(FALSE_POSITIVES))
+
+
+    TOTAL_FC     = (CORRECT_FALSES) # FALSE correct
+    TOTAL_FI     = (- 6 * FALSE_NEGATIVES) # FALSE incorrect
+    TOTAL_TC     = (2 * CORRECT_TRUES) # TRUE correct
+    TOTAL_TI     = (- 12 * FALSE_POSITIVES) # TRUE incorrect
+
+    TOTAL_POINTS = TOTAL_FC + TOTAL_FI + TOTAL_TC + TOTAL_TI
+
+
+
+
+
+
+
+
+
     print("UNKNOW and TO  : ",str(NUM_UNKNOW_AND_TO))
     print()
     print("COUNT_EXP_FALSE: ",str(COUNT_EXP_FALSE))

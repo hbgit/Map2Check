@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
+#include <limits.h>
 
 
 #define log_error(M, ...) fprintf(stderr, "\n " M "\n \n", __FILE__, __LINE__, ##__VA_ARGS__)
@@ -39,9 +40,9 @@ void print_debug(LIST_DYN_OBJ_FORTES *list);
 
 void PRINT_TRACE_LOG();
 
-LIST_DYN_OBJ_FORTES *list_LOG_mcf=NULL; /* Para o mapeamento */	
+LIST_DYN_OBJ_FORTES *list_LOG_mcf=NULL;
 
-void * invalidObjectFortes = 0;
+int invalidObjectFortes = INT_MAX;
 
 int __VERIFIER_nondet_int(void);
 
@@ -51,9 +52,6 @@ void * GET_LAST_ADDR_POINTS_TO(LIST_DYN_OBJ_FORTES* list, void *adress);
 
 void * GET_LAST_ADDR_FROM_MALLOC(LIST_DYN_OBJ_FORTES* list, void *adress);
 
-//int __ERROR_location(int numLineCCode);
-
-//void __VERIFIER_error() __attribute__ ((__noreturn__));
 void __VERIFIER_error(int numline);
 
 

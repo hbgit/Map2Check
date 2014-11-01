@@ -655,7 +655,9 @@ def start_generation_cassert(cFile, enSetFunc):
     check_command_exec(get_2st_map, 0, "Generating code map after preprocessing",1)   
     list_lines_map = get_2st_map.split("\n")
     # Adding the result of 2st map in the tmp_file_map.map
-    getFinalFileMap = add_new_num_lines2csv(tmp_file_map, list_lines_map, 1)        
+    getFinalFileMap = add_new_num_lines2csv(tmp_file_map, list_lines_map, 1)
+    #print(getFinalFileMap)
+    #sys.exit()
     check_command_exec(0, tmp_file_map, "Generating code map after preprocessing",0)
 
     # [NEW] fix bug in the error function

@@ -154,6 +154,8 @@
     :: test-0217_true-valid-memsafety.c
         - invalidObjectFortes set a flag to IS_VALID_POINTER_FORTES
     :: Provide support to alloca function
+    :: in a.04-alloca_true-valid-memsafety.c - handle with value to ptr . e.g., int *ptr = 12;
+    :: in delete_unsafe.c adicionar no map list if is a arg func
 
 
 > [THE PROJECT]  [TODO] in the lib to get data value from print_by_type, this cuz the time when is call - checkout write_logfile_maplist

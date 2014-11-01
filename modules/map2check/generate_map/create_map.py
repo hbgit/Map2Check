@@ -113,7 +113,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         self.map_is_a_free = None
         self.map_is_a_union = None
         self.map_type_of_var = None
-        self.map_number_of_vars = 9
+        self.map_is_arg_funct = 0
+        self.map_number_of_vars = 10
         self.map_master_list_result = []
 
         #~ Only for Unit Test
@@ -143,8 +144,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         #
         path_cpp_args = os.path.join(os.path.dirname(__file__), "../utils/fake_libc_include")
         self.ast = pycparser.parse_file(self.__inputfilename, use_cpp=True, cpp_path=CPPPATH, cpp_args=r'-I'+path_cpp_args)        
-        # self.ast.show()
-        # sys.exit()
+        #
+        #self.ast.show()
+        #sys.exit()
 
 
     def resetVarsToMap(self):
@@ -177,7 +179,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         map_list_2_check_vars = [self.map_line, self.map_var, self.map_points_to,
                                  self.map_id_function, self.map_is_global,
                                  self.map_is_dynamic, self.map_is_a_free,
-                                 self.map_is_a_union, self.map_type_of_var]
+                                 self.map_is_a_union, self.map_type_of_var, self.map_is_arg_funct]
 
         #print(map_list_2_check_vars)
 
@@ -207,6 +209,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     list_none.append("__map_is_a_union__")
                 elif id_var == 9:
                     list_none.append("__map_type__")
+                elif id_var == 10:
+                    list_none.append("__map_is_arg_funct__")
 
                 count_var_none += 1
 
@@ -241,6 +245,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         tmp_list_to_organize_data.append(self.map_is_a_free)
         tmp_list_to_organize_data.append(self.map_is_a_union)
         tmp_list_to_organize_data.append(self.map_type_of_var)
+        tmp_list_to_organize_data.append(self.map_is_arg_funct)
 
         self.map_master_list_result.append(tmp_list_to_organize_data)
 
@@ -308,6 +313,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                         self.map_is_a_union = False
 
                     self.map_type_of_var = self.type_name_track_all
+
 
                     # Finish to gather the data to map in this point
                     # Last check to add into list the data to map
@@ -577,6 +583,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         @return: NO
         """
 
+        #print(">>>>> identifyAssigment")
+
         # Starting gathering the data to map
         lineNum = self.getNumberOfLine(item)
         #reset vars to map
@@ -787,6 +795,14 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                         name_var = ''                        
                                                 
                         flag_is_struture_type = False
+
+                        #print(type(each_assign.lvalue))
+
+                        flag_deref_symb = False
+                        if type(each_assign.lvalue) == UnaryOp:
+                            if each_assign.lvalue.op == "*":
+                                flag_deref_symb = True
+
                         
                         if type(nodeVar.type.type) == Struct:
                             flag_is_struture_type = True
@@ -837,6 +853,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                         if flag_is_struture_type:
                             self.map_points_to = "NULL"
                         elif self.flag_track_all and self.flag_track_not_ptr:
+                            self.map_points_to = "NULL"
+                        elif flag_deref_symb:
                             self.map_points_to = "NULL"
                         else:
                             self.map_points_to = self.map_var
@@ -1377,6 +1395,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         for index in range(0,len(self.ast.ext)):
 
              if type(self.ast.ext[index]) == FuncDef:
+                #reset
+                self.map_is_arg_funct = 0
 
                 #get the name of the function
                 #print(">>> Function: ",end="")
@@ -1404,6 +1424,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                 if len(self.current_args_params_func) > 0:
                     #print("--------------- Input Args: ---------------")
                     self.is_a_input_arg_function = True
+                    self.map_is_arg_funct = 1
                     for eachArg in self.current_args_params_func:
                         #print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
                         self.current_compund_FLOW = self.current_compund_func
@@ -1411,6 +1432,9 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     self.is_a_input_arg_function = False
                     #print("---------------End Input Args---------------")
                     #print("")
+
+                #reset
+                self.map_is_arg_funct = 0
 
                 #print("--------------- Decl and Pointer Assigments ---------------")
                 # get Decl and identify if is a pointer
@@ -1891,7 +1915,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
 
         # CSV MODE output
         elif optionPrint == 1:
-            print("LOC;Variable;Points to;Scope;Is Global;Is Dynamic;Is Free;Is Union;Type Var")
+            print("LOC;Variable;Points to;Scope;Is Global;Is Dynamic;Is Free;Is Union;Type Var;Is Arg Funct")
             for list in self.map_master_list_result:
                 for index in range(0,len(list)):
                     # Here we already set the C pattern to True and False, i.e., 1 or 0

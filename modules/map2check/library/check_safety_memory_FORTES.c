@@ -878,6 +878,10 @@ int IS_VALID_POINTER_FORTES(LIST_DYN_OBJ_FORTES* list, void *adress, void *block
 
   //printf("%p -- \n", (void *)block);
 
+  if((void *)block == NULL){
+    return 0; //NO BUG
+  }
+
   int count_found_block = 0;
   for (aux=list; aux!=NULL; aux=aux->next_item_FORTES){
 

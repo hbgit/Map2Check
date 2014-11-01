@@ -46,7 +46,7 @@ list_delete_tmp_file = []
 CPACHECKER_PATH = '/home/hbazure/drive/Docs/CPAChecker/trunk/'
 #CPACHECKER_PATH = '/home/hrocha/Documents/Projects_DEV/CPAChecker/trunk/'
 #CPACHECKER_PATH = '/home/nhb/Documents/ON_DEV/CPAChecker/trunk/'
-CPACHECKER_OPTIONS = 'scripts/cpa.sh -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc ' \
+CPACHECKER_OPTIONS = 'scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec config/specification/cpalien-leaks.spc ' \
                      '-spec config/specification/TerminatingFunctions.spc -setprop cfa.useMultiEdges=false ' \
                      '-setprop parser.transformTokensToLines=true -spec'
 
@@ -100,7 +100,7 @@ def set_codes_to_experiment(pathCPrograms):
     # Map2Check PARAMS
     MAP2CHECK_WRAPPER_SCRIPT_PATH = "wrapper_script_map2check.sh"
     MAP2CHECK_VERSION = "version 3"
-    MAP2CHECK_PARAMS = "--complete-check 3 --graphml-output --witnesspath"
+    MAP2CHECK_PARAMS = "--complete-check 2 --graphml-output --witnesspath"
     
     # SYSTEM INFO
     DATE_EXECUTION = commands.getoutput("date")    

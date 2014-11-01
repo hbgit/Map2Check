@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: latin1 -*-
 # -------------------------------------------------
-# Map2Check Tool v3
+# Map2Check Tool v5
 # by Herbert Rocha
 #
 # e-mail: map2check.tool@gmail.com
@@ -11,7 +11,7 @@ from __future__ import print_function
 from modules.traceoutput.graphml import write_graphml_output
 from modules.points2leak import identify_points2leak
 
-FRAMEWORK_VERSION = 'Map2Check_FORTES-v3'
+FRAMEWORK_VERSION = 'Map2Check_FORTES-v5'
 
 
 import argparse
@@ -760,8 +760,8 @@ def start_generation_cunit_assert(cFile,enSetFunc):
 if __name__ == "__main__":    
     
     ############# Parse args options
-    parser = argparse.ArgumentParser(description='Run Map2Check v3')
-    parser.add_argument('-v','--version', action='version' , version="version 3")
+    parser = argparse.ArgumentParser(description='Run Map2Check v5')
+    parser.add_argument('-v','--version', action='version' , version="version 5")
     parser.add_argument(dest='inputCProgram', metavar='file.c', type=str,
                         help='the C program file to be analyzed')
     parser.add_argument('-m','--map2checkout-to-graphml', metavar='map2checkout.tmp', type=str, dest='setMapOut2Graph',

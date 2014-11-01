@@ -227,6 +227,23 @@ $ scripts/cpa.sh -64 -explicitAnalysis-NoRefiner -setprop analysis.checkCountere
 > [FILE:check_safety_memory_FORTES.c] BUG in void print_debug(LIST_DYN_OBJ_FORTES *list); is not print correct
 
 
+
+
+
+
+
+
+
+
+Before merge ----- remember commit bc28cf1452f3ec77b9ead6d73c4a36378c39b7f3
+
+
+
+
+
+
+
+
 ------------------------------------------
 # For future
 

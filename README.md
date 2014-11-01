@@ -75,7 +75,7 @@ in the installation directory as follows:
 
 For help and others options: 
 
-> $ ./map2Check.py -h
+> $ ./map2check.py -h
 
 
 

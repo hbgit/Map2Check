@@ -14,12 +14,10 @@
 > [FILE:create_map.py] Created a method to generate the token data for GraphML format
 > [FILE:complete_check.py] Fixed bug related to choose the option --graphml-output
 > [FILE:write_graphml_output.py] Added the data token atributes to graphml
-
 > [FILE:check_safety_memory_FORTES.c] Updated the functions in LIB to handle with type of the var
                 ::Updated the function PRINT_TRACE_LOG to read from file tmp log
                     - Updated the header
                 ::HIP2 (DONE): Write each action in the map list in a tmp file
-
 > [FILE:write_new_instance.py] Added in the map list the var name to give as input to LIB
 > [FILE:create_map.py] When tokenizer the program we not consider blank lines
 > [FILE: configure.py] Added networkx in the install process
@@ -84,8 +82,6 @@
                 - Update the delete of duplicate values based on line number and of the {variable name}
             :: [SOLVED] BUG to generate the GRAPHML in the script
                 - the stderr was not written correctly
-
-
 > [FILE:map2chek-fortes.py] Added new option --witnesspath
 >[FILE:map2check_wrapper_script.sh] Updated according to new SVCOMP requirements
     :: Removed uncessary file when we have a Time Out
@@ -100,9 +96,6 @@
 > [THE PROJECT] Updated map2check.py to not need of seetings.cfg file
 > [THE PROJECT] Removed the use of configure.py - bkp in modules/not_used
 > [THE PROJECT] Renamed wrapper script to tool
-
-
-
 > [FILE:create_map.py] Fixed bug related to:
     File "/home/hbazure/drive/Docs/Map2Check/Map2Check/modules/map2check/generate_map/create_map.py", line 1596, in expand_decl
     return ['ArrayDecl', dimval, decl.dim_quals, nested]
@@ -127,21 +120,17 @@
 
 
 > [FILE:svcop_simulation.py] Updated the classification by failed and unsafe
-
 > [THE PROJECT] Fixed BUG
     :: in memory-unsafe/knapsack_alloca_unsafe.c
         - SOLVED update heade lib related to invalidObjectFortes
     :: [BUG+SOLVED] Related to use the function __VERIFIER_nondet_int() not for 0 or 1 but a real random int
         - There is a possibily that we have a bug in the assertions
             :: (void *)(intptr_t)(*(arr + i)) << WRONG way should be (void *)(intptr_t)((arr + i)) no derefence symbol (*)
-
 > [FILE:svcop_simulation.py]  Removed the option -preprocess from CPAChecker execution
-
 > [FILE:svcop_simulation.py] Updated count score in svcop_simulation.py
     TOTAL_POINTS = (TOTAL_POINTS + 2 * CORRECT_TRUES) -> 2
     TOTAL_POINTS = (TOTAL_POINTS - 8 * FALSE_POSITIVES) -> -62
     TOTAL_POINTS = (TOTAL_POINTS - 4 * FALSE_NEGATIVES)
-
 
 > [THE PROJECT] Fixing bugs
     :: [SOLVED] in delete_unsafe.c -> Handle NULL in the lib
@@ -156,6 +145,25 @@
     :: Provide support to alloca function
     :: in a.04-alloca_true-valid-memsafety.c - handle with value to ptr . e.g., int *ptr = 12;
     :: in delete_unsafe.c adicionar no map list if is a arg func
+
+
+
+
+
+
+> [THE PROJECT] Removed unused imports
+    - for x in $(ls -R |grep .py$); do echo $x; pylint $x | grep "Unused import"; done
+
+
+
+
+
+
+
+
+
+
+
 
 
 > [THE PROJECT]  [TODO] in the lib to get data value from print_by_type, this cuz the time when is call - checkout write_logfile_maplist

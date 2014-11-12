@@ -20,12 +20,12 @@ import os
 import commands
 import re
 import csv
-import ConfigParser
+#import ConfigParser
 import shutil
 from pipes import quote
 from operator import itemgetter
-import pwd
-import linecache
+#import pwd
+#import linecache
 
 from modules.utils import generate_data_funct
 

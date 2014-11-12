@@ -936,7 +936,14 @@ class ParseC2Ast2C(object):
                 tmp_comments = self.CL_list_comments[index].split('?')                
                 msg_assert = ", \"[Failed]\\n VIOLATED PROPERTY: "+str(self.CL_list_id[index])+\
                 " \\n \\t Location at original code in line: "+str(self.CL_list_original_line[index])+" \\n \\t Comments: "+\
-                str(tmp_comments[2].rstrip())+"\""
+                str(tmp_comments[2].rstrip())\
+                #+"\""
+
+                # >> Classifying the violated property according to SVCOMP 2015
+                # only this because ESBMC
+                class_property = "\\n \\n FALSE(valid-deref) \\n "+"\""
+                msg_assert += class_property
+
                 print("__MAP_FORTES_assert("+self.CL_list_property[index]+" "+msg_assert+");")
                 
         # Write free ssertion

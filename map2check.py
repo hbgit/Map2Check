@@ -947,9 +947,14 @@ if __name__ == "__main__":
             matchoutputCE = re.match(r'Status: VERIFICATION FAILED', saveresult_check)
             if matchoutputCE:
                 nameoutputmap = ''
+                property_svcomp = ''
                 matchoutputfile = re.search(r'The trace log is in <(.*)>', saveresult_check)
                 if matchoutputfile:
                     nameoutputmap = matchoutputfile.group(1).strip()
+                # Gathering the property (i.e. valid-free, valid-memtrack,valid-deref) from result
+                matchprp = re.search(r"(FALSE\(.*\))", saveresult_check)
+                if matchprp:
+                    property_svcomp = matchprp.group(1)
 
                 generate_data_tokens(inputCFile)
 
@@ -977,6 +982,8 @@ if __name__ == "__main__":
                 print("Status: VERIFICATION FAILED")
                 if not args.setWitnessPath:
                     print("The trace log is in < " + name_file_result + " >")
+                # The property
+                print(property_svcomp)
 
                 if os.path.exists(DIR_RESULT_CLAIMS+"/tmp_file_map.map"):
                     os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")

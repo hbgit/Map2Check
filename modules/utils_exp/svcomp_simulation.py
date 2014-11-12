@@ -216,7 +216,7 @@ def set_codes_to_experiment(pathCPrograms):
     # Get number total of the programs 
     for root, dirs, files in os.walk(pathCPrograms):                
         for file in files:
-            if file.endswith(".c"):
+            if file.endswith(".i"):
                 total_num_programs += 1
                 
     TOTAL_FILES = total_num_programs
@@ -224,7 +224,7 @@ def set_codes_to_experiment(pathCPrograms):
     
     for root, dirs, files in os.walk(pathCPrograms):                
         for file in files:
-            if file.endswith(".c"):
+            if file.endswith(".i"):
                 print(file, end=" -> ")
                 print(" "+str(id_count)+" from "+str(total_num_programs))
                 get_path_program = os.path.join(root, file)
@@ -256,8 +256,8 @@ def set_codes_to_experiment(pathCPrograms):
 
                 ACTUAL_FILE_PATH = get_path_program
                 # generating the name for witness file to save the log
-                witnessfilepath = get_path_program.replace(".c",".graphml")
-                CPACHECKER_OUTPUT_PATH = get_path_program.replace(".c",".cpachecker_out")
+                witnessfilepath = get_path_program.replace(".i",".graphml")
+                CPACHECKER_OUTPUT_PATH = get_path_program.replace(".i",".cpachecker_out")
 
                 # Running Map2Check
                 cmd = "./"+MAP2CHECK_WRAPPER_SCRIPT_PATH + " " + get_path_program + " " + witnessfilepath
@@ -284,7 +284,9 @@ def set_codes_to_experiment(pathCPrograms):
 
                     # -- The result is True or False
                     # Checking it was False
-                    if str(result_exec) == "FALSE":
+                    # Gathering the property (i.e. valid-free, valid-memtrack,valid-deref) from result
+                    matchprp = re.search(r"(FALSE\(.*\))", str(result_exec))
+                    if matchprp:
 
                         FAILED = True
                         SUCCESS = False

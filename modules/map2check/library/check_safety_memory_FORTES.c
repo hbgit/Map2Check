@@ -694,6 +694,8 @@ int CHECK_MEMORY_LEAK(LIST_DYN_OBJ_FORTES* list, int ID_FUNC, int numLineCCode)
 			printf(" VIOLATED PROPERTY: Memory Leak \n");			
 			printf("\t Location at original code in line: %d \n", numLineCCode);
             printf("\t Last use at original code in line: %d \n", aux->map_linePreCode_FORTES);
+            printf("\n");
+            printf(" FALSE(valid-memtrack)\n");
 			printf("\n"); 								
 			return 0;  //dereference failure: forgotten memory 			
 		}		
@@ -724,6 +726,8 @@ int INVALID_FREE(LIST_DYN_OBJ_FORTES* list, void *block, int numLineCCode)
     printf(" VIOLATED PROPERTY: Invalid FREE\n");				
     printf("\t Location at original code in line: %d \n", numLineCCode);
     printf("\t Last use at original code in line: %d \n", line_of_the_last_use);
+    printf("\n");
+    printf(" FALSE(valid-free)\n");
     printf("\n");
     return 0; //FALSE
   }
@@ -825,12 +829,14 @@ int CHECK_OVERWRITE_ADDR(void *actual_block, void *last_block, int numLineCCode)
         PRINT_TRACE_LOG();
 
         printf("\n");
-        printf("[Failed] \n");
+        printf("[Failed]\n");
         printf(" VIOLATED PROPERTY: Overwrite Memory Address\n");
         printf("\t Location at original code in line: %d \n", numLineCCode);
         printf("\t Last use at original code in line: %d \n", line_of_the_last_use);
         printf("\t Actual address   : %p \n", (void*)actual_block);
         printf("\t Original address : %p \n", (void*)last_block);
+        printf("\n");
+        printf(" FALSE(valid-deref)\n");
         printf("\n");
         return 0; //FALSE
     }
@@ -957,6 +963,8 @@ int __VERIFIER_error(int numLineCCode){
     printf("[Failed] \n");
     printf(" VIOLATED PROPERTY: __VERIFIER_error \n");
     printf("\t Location at original code in line: %d \n", numLineCCode);
+    printf("\n");
+    printf(" FALSE(__VERIFIER_error)\n");
     printf("\n");
     assert(0);
     //exit(EXIT_FAILURE);

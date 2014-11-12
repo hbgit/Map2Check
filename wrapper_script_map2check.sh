@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # ------------- Map2Check wrapper script to SVCOMP'15
-# Usage: ./map2check_wrapper_script.sh <file.c> <witnessfile.graphml>
+# Usage: ./map2check_wrapper_script.sh <file.i> <witnessfile.graphml>
 
 # Path to the Map2Check tool
-path_to_map2check=/home/hbazure/drive/Docs/Map2Check/Map2Check/map2check.py
+path_to_map2check=/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/map2check.py
+#/home/hbazure/drive/Docs/Map2Check/Map2Check/map2check.py
 
 # Command line, common to all tests.
 # Run Map2Check 2 times. Each program in the category is executed 2 times,
@@ -56,7 +57,10 @@ success=`echo ${result_check} | grep -c "VERIFICATION SUCCESSFUL"`
 # Decide which result we determined here.
 if [ $failed -gt 0 ]; then
     # Error path found
-    echo "FALSE"
+    # Gathering the property (i.e. valid-free, valid-memtrack,valid-deref) from result
+    property=`echo ${result_check} | grep -o "FALSE.*"`
+    # Print the property
+    echo ${property}
 elif [ $success -gt 0 ]; then
     echo "TRUE"
 else
@@ -69,7 +73,7 @@ else
     scripttmp="${srcbench}/build_2_check.sh"
     headerlib="${srcbench}/check_safety_memory_FORTES.h"
     maplib="${srcbench}/check_safety_memory_FORTES.o"
-    programtmp=`echo ${benchmark} | sed -e s/'.c'/'__mcf_new.c'/`
+    programtmp=`echo ${benchmark} | sed -e s/'.i'/'__mcf_new.c'/`
     execs="${srcbench}/*._mcf2check"
 
 

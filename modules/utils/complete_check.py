@@ -129,6 +129,7 @@ def set_codes_to_experiment(_pathcprogram):
         count_exe = 1
         check_exec_status_FAILED = False
         tmp_last_FAILED = False
+        property_SVCOMP = "" # FALSE(p) p in {valid-free, valid-deref, valid-memtrack}
 
         # Here we consider the first failed identified
         # Maybe stop the while when we have a timeout
@@ -166,13 +167,23 @@ def set_codes_to_experiment(_pathcprogram):
                     outputRun.write(">>> Trace of " + _pathcprogram + "\n")
                     outputRun.write(">>> Generated at " + str(datetime.datetime.now()) + "\n")
                     outputRun.write("\n")
-                    for line in tmp_list_OUT_STDOUT:
+                    for index, line in enumerate(tmp_list_OUT_STDOUT):
+                        # from Map Lib
+                        matchprp = re.search(r"^[ ](FALSE\(.*\))", line)
+                        if matchprp:
+                            property_SVCOMP = matchprp.group(1)
                         outputRun.write(str(line))
+
                     for line in tmp_list_OUT_STDERR:
+                        # from asserts
+                        matchprp = re.search(r"^[ ](FALSE\(.*\))", line)
+                        if matchprp:
+                            property_SVCOMP = matchprp.group(1)
                         outputRun.write(str(line))
                     outputRun.close()
                 #else:
                 #    list_delete_tmp_file.append(name_file_result)
+                    #property_SVCOMP = tmp_list_OUT_STDERR
 
 
             else:
@@ -189,6 +200,7 @@ def set_codes_to_experiment(_pathcprogram):
                 # FAILED
                 print("Status: VERIFICATION FAILED")
                 print("The trace log is in < " + name_file_result + " >")
+                print(property_SVCOMP)
 
             else:
                 #SUCCESSFUL

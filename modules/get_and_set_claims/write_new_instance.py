@@ -451,6 +451,7 @@ class ParseC2Ast2C(object):
         self.flag_is_main = False
         self.actual_index_ast_node = 0
         self.nextLineNumEgual = []
+        self.is_precode_i = False
         
         self.FLAG_write_only_cl = False
         self.FLAG_write_only_map = False
@@ -990,11 +991,14 @@ class ParseC2Ast2C(object):
         if not self.flag_assert:
             print("#include <assert.h> /** by FORTES **/")
         if not self.flag_stdint:
-            print("#include <stdint.h> /** by FORTES **/")
+            if not self.is_precode_i:
+                print("#include <stdint.h> /** by FORTES **/")
         if not self.flag_stdio:
-            print("#include <stdio.h> /** by FORTES **/")
+            if not self.is_precode_i:
+                print("#include <stdio.h> /** by FORTES **/")
         if not self.flag_stdlib:
-            print("#include <stdlib.h> /** by FORTES **/")
+            if not self.is_precode_i:
+                print("#include <stdlib.h> /** by FORTES **/")
         
         # FORTES+MAP2CHECK header
         print("#include \"check_safety_memory_FORTES.h\" /** by FORTES **/ \n")    
@@ -1002,6 +1006,15 @@ class ParseC2Ast2C(object):
         if self.flag_others_h:
             for header in self.header_others:
                 print(header.rstrip())
+
+        if self.is_precode_i:
+            # For cil pre-processed code
+            print("typedef int intptr_t;")
+            print("struct _IO_FILE;")
+            print("typedef struct _IO_FILE FILE;")
+            print("extern struct _IO_FILE *stderr;")
+            print("extern int fprintf (FILE *__restrict __stream, const char *__restrict __format, ...);")
+            print("extern int printf (const char *__restrict __format, ...);")
                 
         print()               
                             
@@ -1116,7 +1129,7 @@ class ParseC2Ast2C(object):
 if __name__ == "__main__":  
     
     # Validate the args
-    if len(sys.argv) > 1 and len(sys.argv) <= 6:    
+    if len(sys.argv) > 1 and len(sys.argv) <= 7:
         #print(len(sys.argv))
         #print(sys.argv)
         path_input_c_file = sys.argv[1]
@@ -1124,8 +1137,13 @@ if __name__ == "__main__":
         file_map = sys.argv[3]
         file_data_claims = sys.argv[4]
         has_claims = sys.argv[5]
+        is_precode_i = sys.argv[6]
         
         runWrite = ParseC2Ast2C()
+        if is_precode_i == "True":
+            runWrite.is_precode_i = True
+        else:
+            runWrite.is_precode_i = False
         runWrite.load2Parse(path_input_c_file)
         runWrite.loaddata_leakpoints()
         runWrite.readCFile(path_input_c_file)

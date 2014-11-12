@@ -21,6 +21,8 @@ import subprocess, datetime, os, time, signal
 # DEPENDENCY PARAMETERS
 ABS_PATH_FILE = os.path.dirname(os.path.abspath(__file__)) + "/../../"
 
+IS_PRE_CODE_i = False
+
 # PATH_FILE_SETTINGS = ABS_PATH_FILE+'../../settings.cfg'
 # if not os.path.isfile(PATH_FILE_SETTINGS):
 #     print('Error: unable to find the settings.cfg file')
@@ -213,10 +215,15 @@ def only_generate_code(cProgram):
     global PATH_MAP_2_CHECK_FORTES
     global list_delete_tmp_file
     global FLAG_TRACK_ALL
+    global IS_PRE_CODE_i
     
     result_this_step = [] # 1 True or False; 2 bin name file
-       
-    new_c_program_name = cProgram.replace(".c","__mcf_new.c")
+
+    if IS_PRE_CODE_i:
+        new_c_program_name = cProgram.replace(".i","__mcf_new.c")
+    else:
+        new_c_program_name = cProgram.replace(".c","__mcf_new.c")
+
     list_delete_tmp_file.append(new_c_program_name)
     
     # Take time to test case generation
@@ -260,6 +267,8 @@ def only_generate_code(cProgram):
 
 
 def only_compile_code(cProgram):
+    global IS_PRE_CODE_i
+
     COMPILE_SCRIPT = './build_2_check.sh'
     
     head, tail = os.path.split(cProgram)
@@ -272,8 +281,12 @@ def only_compile_code(cProgram):
     has_bin_file = False
     
     # Check if exist the bin file
-    # First of all get the name bin file???
-    tail = tail.replace(".c","._mcf2check")                   
+    # First of all get the name bin file
+    if IS_PRE_CODE_i:
+        tail = tail.replace(".i","._mcf2check")
+    else:
+        tail = tail.replace(".c","._mcf2check")
+
     if os.path.isfile(tail):
         has_bin_file = True
     else:
@@ -289,12 +302,21 @@ def only_compile_code(cProgram):
 def copy_api_library(_cprogramfile):
     global list_delete_tmp_file
     global PATH_API_LIBRARY
+    global IS_PRE_CODE_i
 
     pathofcprogram = os.path.dirname(_cprogramfile)
+    pathscriptcompile = ""
+    pathheaderapi = ""
+    pathlibapi = ""
 
     #The script to compile
-    pathscriptcompile = PATH_API_LIBRARY+'build_2_check.sh'
-    pathheaderapi = PATH_API_LIBRARY+'check_safety_memory_FORTES.h'
+    if IS_PRE_CODE_i:
+        pathscriptcompile = PATH_API_LIBRARY+'build_i/build_2_check.sh'
+        pathheaderapi = PATH_API_LIBRARY+'header_i/check_safety_memory_FORTES.h'
+    else:
+        pathscriptcompile = PATH_API_LIBRARY+'build_2_check.sh'
+        pathheaderapi = PATH_API_LIBRARY+'check_safety_memory_FORTES.h'
+
     pathlibapi = PATH_API_LIBRARY+'check_safety_memory_FORTES.o'
 
     try:
@@ -319,6 +341,7 @@ def copy_api_library(_cprogramfile):
 def remove_tmp_files(list_path):
     for path in list_path:
         os.remove(path)
+        #print(path)
 
 
 
@@ -341,6 +364,8 @@ if __name__ == "__main__":
                         help='tracking all variables value')
     parser.add_argument('-g','--graphml-output', action="store_true" , dest='setGraphOut',
                        help='generate the output of the tool in GraphML format (experimental)', default=False)
+    parser.add_argument('-i','--is-preprocessed', action="store_true" , dest='isPreCode',
+                       help='identify that is a preprocessed code', default=False)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-o','--only-generated-code', action="store_true" , dest='setOnlyCode',
@@ -368,6 +393,9 @@ if __name__ == "__main__":
                 GENERATE_GRAPHML = True
 
             NUMEBER_OF_RE_EXEC_EXP = args.setNumberCheck
+
+            if args.isPreCode:
+                IS_PRE_CODE_i = True
 
             pathCPrograms = args.pathCProgram
             copy_api_library(pathCPrograms)

@@ -143,7 +143,8 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
         # Load the input source file to build the AST, then generate the symbol table
         #
         path_cpp_args = os.path.join(os.path.dirname(__file__), "../utils/fake_libc_include")
-        self.ast = pycparser.parse_file(self.__inputfilename, use_cpp=True, cpp_path=CPPPATH, cpp_args=r'-I'+path_cpp_args)        
+        self.ast = pycparser.parse_file(self.__inputfilename, use_cpp=True, cpp_path=CPPPATH, cpp_args=r'-I'+path_cpp_args)
+        #
         #
         #self.ast.show()
         #sys.exit()

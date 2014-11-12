@@ -2,6 +2,7 @@
 # -*- coding: latin1 -*-
 
 import sys
+import re
 
 _super_hack = '''typedef union
 {
@@ -59,6 +60,20 @@ def make_pycparser_compatible( data ):
         if '((__malloc__));' in line.split(): line = line.replace('((__malloc__));', ';')   # stdio.h:225
         if '((__malloc__))' in line.split(): line = line.replace('((__malloc__))', '')
 
+        #__const
+        # match_ext = re.search(r"(__extension__)* extern", line)
+        # if match_ext or line.startswith('extern'):
+        match_const = re.search(r"__const[^_]", line)
+        if match_const:
+            line = line.replace('__const', 'const')
+
+            #print(line)
+            #sys.exit()
+
+        #print(">>>>>> "+ line)
+
+
+
         if '__attribute__((visibility("default")))' in line.split():
             line = line.replace('__attribute__((visibility("default")))', '')
 
@@ -69,6 +84,36 @@ def make_pycparser_compatible( data ):
         #
         if '__attribute__((packed))' in line.split(): line = line.replace('__attribute__((packed))', '')
         if '__attribute__((packed));' in line.split(): line = line.replace('__attribute__((packed));', ';')
+
+
+        # __WAIT_STATUS
+        if '__WAIT_STATUS' in line.split(): line = line.replace('__WAIT_STATUS', '')
+        if '((__transparent_union__))' in line.split(): line = line.replace('((__transparent_union__))', '')
+        if '((__transparent_union__));' in line.split(): line = line.replace('((__transparent_union__));', ';')
+        if '((__transparent_union__)) ;' in line.split(): line = line.replace('((__transparent_union__)) ;', ';')
+
+        #
+        if '((__pure__))' in line.split(): line = line.replace('((__pure__))', '')
+        if '((__pure__)) ;' in line.split(): line = line.replace('((__pure__)) ;', ';')
+
+        #
+        if '((__warn_unused_result__))' in line.split(): line = line.replace('((__warn_unused_result__))', '')
+        if '((__warn_unused_result__)) ;' in line.split(): line = line.replace('((__warn_unused_result__)) ;', ';')
+        if '((__warn_unused_result__));' in line.split(): line = line.replace('((__warn_unused_result__));', ';')
+
+        # __nothrow__ and __leaf__
+        match_nl = re.search(r"\(\(__nothrow__[ ]*,[ ]*__leaf__\)\)", line)
+        if match_nl:
+            #line = line.replace('((__nothrow__ , __leaf__))', '')
+            line = re.sub(r"\(\(__nothrow__[ ]*,[ ]*__leaf__\)\)", "", line)
+
+        #
+        match_nnull = re.search(r"\(\(__nonnull__[ ]*[\(]([0-9]*,[ ]*)*([0-9]*)[\)]\)\)", line)
+        if match_nnull:
+            line = re.sub(r"\(\(__nonnull__[ ]*[\(]([0-9]*,[ ]*)*([0-9]*)[\)]\)\)", "", line)
+            #line = line.replace('((__nonnull__ (1)))', '')
+
+
 
         if '__extension__' in line.split(): line = line.replace('__extension__','')
         if '__attribute__' in line.split(): line = line.replace('__attribute__', '')
@@ -108,12 +153,23 @@ def make_pycparser_compatible( data ):
 
 
         # types.h #
-        for ugly in ['((__mode__ (__QI__)));' , '((__mode__ (__HI__)));' , '((__mode__ (__SI__)));' , '((__mode__ (__DI__)));' , '((__mode__ (__word__)));']:
+        list_mode = ['((__mode__ (__QI__)));' , '((__mode__(__QI__)));' ,
+                     '((__mode__ (__HI__)));' , '((__mode__(__HI__)));' ,
+                     '((__mode__ (__SI__)));' , '((__mode__(__SI__)));' ,
+                     '((__mode__ (__DI__)));' , '((__mode__(__DI__)));' ,
+                     '((__mode__ (__word__)));' , '((__mode__(__word__)));']
+        for ugly in list_mode:
             if line.endswith( ugly ): line = line.replace(ugly, ';')
 
-        if '__asm__' in line.split() and '__isoc99_' in line:
-            if line.strip().endswith(';'): line = line.split('__asm__')[0] + ';'
-            else: line = line.split('__asm__')[0]
+        # if '__asm__' in line.split() and '__isoc99_' in line:
+        #     if line.strip().endswith(';'): line = line.split('__asm__')[0] + ';'
+        #     else: line = line.split('__asm__')[0]
+
+        #
+        match_asm = re.search(r"__asm__[ ]*\(\"\" \"__xpg_strerror_r\"\)", line)
+        if match_asm:
+            #line = line.replace('((__nothrow__ , __leaf__))', '')
+            line = re.sub(r"__asm__[ ]*\(\"\" \"__xpg_strerror_r\"\)", "", line)
 
         #if '*__const' in line.split(): # sys_errlist.h
         #   pass

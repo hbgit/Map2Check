@@ -150,9 +150,24 @@
 
 
 
-
+{FROM SVCOMP 2015 issues}
 > [THE PROJECT] Removed unused imports
     - for x in $(ls -R |grep .py$); do echo $x; pylint $x | grep "Unused import"; done
+
+> [THE PROJECT] Handling with CIL data in *.i
+    - Identify when is *.i and apply the following changes:
+        (1) [DONE] The new code  instance could NOT have:  stdint.h, stdio.h and stdlib.h, as well as, in the map lib
+        (2) [DONE] Adding in the code instance the folowing header:
+            typedef int intptr_t;
+            struct _IO_FILE;
+            typedef struct _IO_FILE FILE;
+            extern struct _IO_FILE *stderr;
+            extern int fprintf (FILE *__restrict __stream,
+                  const char *__restrict __format, ...);
+            extern int printf (const char *__restrict __format, ...);
+        (3) [DONE] Creating a way to copy a specific .h and compile script to map when the file was from to CIL == .i
+        (4) [DONE] in the script to build the new code instance add -Wpointer-to-int-cast
+
 
 
 

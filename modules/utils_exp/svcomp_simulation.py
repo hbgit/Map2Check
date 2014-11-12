@@ -8,14 +8,15 @@ import sys
 import os
 import commands
 import re
-import csv
-import ConfigParser
-import shutil
+#import csv
+#import ConfigParser
+#import shutil
 import time
 import string
 import random
-from pipes import quote
-import subprocess, datetime, os, time, signal
+#from pipes import quote
+#import subprocess, datetime, os, time, signal
+
 
 
 # DEPENDENCY PARAMETERS

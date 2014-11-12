@@ -8,12 +8,12 @@ import sys
 import os
 import commands
 import re
-import csv
-import ConfigParser
+#import csv
+#import ConfigParser
 import shutil
 import time
-from pipes import quote
-import subprocess, datetime, os, time, signal
+#from pipes import quote
+import subprocess, datetime, signal
 
 
 

@@ -5,15 +5,15 @@ from __future__ import print_function
 
 import argparse
 import sys
-import os
+#import os
 import commands
 import re
-import csv
+#import csv
 import ConfigParser
 import shutil
-import time
-from pipes import quote
-import subprocess, datetime, os, time, signal
+#import time
+#from pipes import quote
+import subprocess, datetime, os, time
 
 
 # DEPENDENCY PARAMETERS

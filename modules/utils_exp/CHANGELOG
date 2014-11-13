@@ -185,12 +185,10 @@
     G valid-deref ; All pointer dereferences are valid (counterexample: invalid dereference). More precisely: There exists no finite execution of the program on which an invalid pointer dereference occurs.
     G valid-memtrack ; All allocated memory is tracked, i.e., pointed to or deallocated (counterexample: memory leak). More precisely: There exists no finite execution of the program on which the program lost track of some previously allocated memory.
 
-
-> [THE PROJECT] Checking ajust in memory-unsafe DIR benchs [TODO]
-
-
-
-
+> [THE PROJECT] Fixing issues with space
+    - map2check.py
+    - complete_check.py
+    - svcomp_simulation
 
 
 

@@ -8,7 +8,7 @@ __author__ = 'Herbert OLiveira Rocha'
 import sys
 import os
 import re
-import commands
+#import commands
 
 # From PycParser
 import pycparser.c_parser

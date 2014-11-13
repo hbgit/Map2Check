@@ -12,7 +12,7 @@ import re
 #import ConfigParser
 import shutil
 import time
-#from pipes import quote
+from pipes import quote
 import subprocess, datetime, signal
 
 
@@ -288,7 +288,7 @@ def only_compile_code(cProgram):
     # Now change the directory
     os.chdir( head )
 
-    get_result = commands.getoutput(COMPILE_SCRIPT+" "+tail)
+    get_result = commands.getoutput(quote(COMPILE_SCRIPT)+" "+tail)
     
     has_bin_file = False
     

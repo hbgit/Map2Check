@@ -14,7 +14,7 @@ import re
 import time
 import string
 import random
-#from pipes import quote
+from pipes import quote
 #import subprocess, datetime, os, time, signal
 
 
@@ -265,7 +265,7 @@ def set_codes_to_experiment(pathCPrograms):
                 print("\t\t >>> Runnning Map2Check")
                 INITIAL_EXECUTION_TIMESTAMP = time.time()
 
-                result_exec = commands.getoutput(cmd)
+                result_exec = commands.getoutput(quote(cmd))
 
                 FINAL_EXECUTION_TIMESTAMP = time.time()
 
@@ -299,7 +299,7 @@ def set_codes_to_experiment(pathCPrograms):
                             os.chdir(CPACHECKER_PATH)
 
                             #print("CMD: "+CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
-                            result_recheck = commands.getoutput(CPACHECKER_OPTIONS+" "+witnessfilepath+" "+get_path_program)
+                            result_recheck = commands.getoutput(quote(CPACHECKER_OPTIONS)+" "+quote(witnessfilepath)+" "+quote(get_path_program))
                             # Analysing CPAChecker result
                             list_recheck = result_recheck.split("\n")
                             flag_cpa = False
@@ -326,7 +326,7 @@ def set_codes_to_experiment(pathCPrograms):
 
                             os.chdir(cwd)
                             # Write cpachecker log
-                            commands.getoutput("echo \""+result_recheck+"\" > "+CPACHECKER_OUTPUT_PATH)
+                            commands.getoutput("echo \""+result_recheck+"\" > "+quote(CPACHECKER_OUTPUT_PATH))
 
                     elif str(result_exec) == "TRUE":
                         FAILED = False

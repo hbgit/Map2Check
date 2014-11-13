@@ -27,6 +27,8 @@ from operator import itemgetter
 #import pwd
 #import linecache
 
+
+
 from modules.utils import generate_data_funct
 
 
@@ -112,13 +114,13 @@ def code_preprocessor(cFile):
     # Return the tmp location of the code
     
     # get the name of the analyzed program
-    name_program=commands.getoutput('echo '+cFile+' | grep -o "[^/]*$"')
+    name_program=commands.getoutput('echo '+quote(cFile)+' | grep -o "[^/]*$"')
     rec_file="pre_"+name_program
-    rec_path=commands.getoutput('echo '+cFile+' | sed "s/'+name_program+'/'+rec_file+'/g"')
+    rec_path=commands.getoutput('echo '+quote(cFile)+' | sed "s/'+name_program+'/'+rec_file+'/g"')
 
     #os.system('uncrustify -q -l C -c '+CONFIG_CFG+' -f '+cFile)
     #sys.exit()
-    os.system('uncrustify -q -l C -c '+CONFIG_CFG+' -f '+cFile+' > '+rec_path)
+    os.system('uncrustify -q -l C -c '+quote(CONFIG_CFG)+' -f '+quote(cFile)+' > ' + quote(rec_path))
     
     return rec_path
     
@@ -160,11 +162,11 @@ def get_esbmc_claims(cFile, enClaimByFunc):
     # Get the claims from cFile and return the path the file with the claims    
     if enClaimByFunc:        
         #print("Options: ", cFile, enClaimByFunc)
-        tmp_cl=commands.getoutput('echo '+cFile+' | grep -o "[^/]*$" | grep -o "^[^.]*"')
+        tmp_cl=commands.getoutput('echo '+quote(cFile)+' | grep -o "[^/]*$" | grep -o "^[^.]*"')
         rec_name=tmp_cl+".cl"
         rec_name=rec_name+"_func_"+enClaimByFunc+".cl"
         #Running the ESBMC to get the claims by functions               
-        list_claims=commands.getoutput(ESBMC_PATH+' '+set_arch+' --no-library --function '+enClaimByFunc+' --show-claims '+cFile)
+        list_claims=commands.getoutput(quote(ESBMC_PATH)+' '+set_arch+' --no-library --function '+enClaimByFunc+' --show-claims '+quote(cFile))
 
         #os.system(ESBMC_PATH+' '+set_arch+' --no-library --function '+enClaimByFunc+' --show-claims '+cFile)
         #sys.exit()
@@ -172,16 +174,16 @@ def get_esbmc_claims(cFile, enClaimByFunc):
         check_command_exec(list_claims, 0, "Generating esbmc claims",1)   
         
         ressulTextCL=isolate_claim_by_func(list_claims.rsplit('\n'),enClaimByFunc)                        
-        os.system('echo '+quote(ressulTextCL)+' > '+DIR_RESULT_CLAIMS+'/'+rec_name)        
+        os.system('echo '+quote(ressulTextCL)+' > '+quote(DIR_RESULT_CLAIMS+'/'+rec_name))
         
     else:
         #print("Options: ", cFile)
-        tmp_cl=commands.getoutput('echo '+cFile+' | grep -o "[^/]*$" | grep -o "^[^.]*"')
+        tmp_cl=commands.getoutput('echo '+quote(cFile)+' | grep -o "[^/]*$" | grep -o "^[^.]*"')
         rec_name=tmp_cl+".cl"
         #Running the ESBMC to get the claims        
         #os.system(ESBMC_PATH+' '+set_arch+' --no-library --show-claims '+cFile)
         #sys.exit()
-        result=commands.getoutput(ESBMC_PATH+' '+set_arch+' --no-library --show-claims '+cFile+' > '+DIR_RESULT_CLAIMS+'/'+rec_name)
+        result=commands.getoutput(quote(ESBMC_PATH)+' '+set_arch+' --no-library --show-claims '+quote(cFile)+' > '+quote(DIR_RESULT_CLAIMS+'/'+rec_name))
 
         #os.system(ESBMC_PATH+' '+set_arch+' --no-library --show-claims '+cFile)
         #sys.exit()
@@ -192,7 +194,7 @@ def get_esbmc_claims(cFile, enClaimByFunc):
     pathCl = DIR_RESULT_CLAIMS+'/'+rec_name    
     #list_tmp_path.append(rec_name)
     # Check if the program has at least one claim if not the process is aborted
-    ckResult = commands.getoutput('cat '+pathCl+' | grep -c "Claim .*"')
+    ckResult = commands.getoutput('cat '+quote(pathCl)+' | grep -c "Claim .*"')
     if int(ckResult):
         FLAG_IS_CLAIM = True
         return pathCl
@@ -206,11 +208,11 @@ def get_esbmc_claims(cFile, enClaimByFunc):
 def call_abs_claims(cFile,textCl):
     # generating a data csv   
     
-    pathFile=commands.getoutput('echo '+cFile+' | grep -o "[^/]*$" | grep -o "^[^.]*"')
+    pathFile=commands.getoutput('echo '+quote(cFile)+' | grep -o "[^/]*$" | grep -o "^[^.]*"')
     csvName=pathFile+".1st" 
                
-    result = commands.getoutput(GET_DATA_CLAIMS+" "+textCl+" > "+DIR_RESULT_CLAIMS+"/"+csvName)
-    pathCsvName = DIR_RESULT_CLAIMS+"/"+csvName
+    result = commands.getoutput(quote(GET_DATA_CLAIMS)+" "+quote(textCl)+" > "+quote(DIR_RESULT_CLAIMS+"/"+csvName))
+    pathCsvName = quote(DIR_RESULT_CLAIMS+"/"+csvName)
     
     #os.system("cat "+DIR_RESULT_CLAIMS+"/"+csvName)
     #sys.exit()
@@ -234,7 +236,7 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     # Apply hacking to handle with GNU extensions
     # HackGNUext: Generate a copy the analyzed program to a tmp file
     tmpFileGnuSkip_end = "/tmp/tmp_hack_gnu_end.c"
-    commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " 2>&1 > " + tmpFileGnuSkip_end)
+    commands.getoutput(quote(GNU_SKIP_SCRIPT) + " " + quote(cFile) + " 2>&1 > " + quote(tmpFileGnuSkip_end))
     list_tmp_path.append(tmpFileGnuSkip_end)
 
 
@@ -244,9 +246,9 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     #os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
     #sys.exit()
 
-    result = commands.getoutput(WRITE_NEW_INSTANCE + " " + tmpFileGnuSkip_end + " " + dataLocFunction + \
-                                " " + mapFile + " " + absClaimFile + " " + str(has_claims) + \
-                                " " + str(IS_PRE_CODE_i) + " " +  _originalfilename + " > "+path2NewInstFile)
+    result = commands.getoutput(quote(WRITE_NEW_INSTANCE) + " " + quote(tmpFileGnuSkip_end) + " " + quote(dataLocFunction) + \
+                                " " + quote(mapFile) + " " + quote(absClaimFile) + " " + str(has_claims) + \
+                                " " + str(IS_PRE_CODE_i) + " " +  quote(_originalfilename) + " > " + quote(path2NewInstFile))
 
     check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0)
     
@@ -380,18 +382,18 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
 
     #os.system("cat "+csvClaimFile)
     #sys.exit()
-    result = commands.getoutput(CLAIM_TRANSLATOR + " -i " + csvClaimFile +\
-                                " -c " + cFile +\
-                                " -f " + dataFunctionFile +\
-                                " -m " + file_from_map_2_cl +\
-                                " -p " + csvMappedFromCode +\
-                                " > " + name_new_csv_file)
-    check_command_exec(result, name_new_csv_file, "Translating esbmc claims",0)   
+    result = commands.getoutput(quote(CLAIM_TRANSLATOR) + " -i " + quote(csvClaimFile) +\
+                                " -c " + quote(cFile) +\
+                                " -f " + quote(dataFunctionFile) +\
+                                " -m " + quote(file_from_map_2_cl) +\
+                                " -p " + quote(csvMappedFromCode) +\
+                                " > " + quote(name_new_csv_file))
+    check_command_exec(result, quote(name_new_csv_file), "Translating esbmc claims",0)
     return name_new_csv_file
     
     
 def get_data_functions(cFile):
-    file_loc_fun = DIR_RESULT_CLAIMS+"/tmp_data_function.loc"
+    file_loc_fun = quote(DIR_RESULT_CLAIMS+"/tmp_data_function.loc")
     getdataf = generate_data_funct.GetDataFuncts()
     getdataf.generate_ast(cFile)
     getdataf.overview_data_functs(cFile, file_loc_fun)
@@ -518,7 +520,7 @@ def create_map_tokenizer(_cFile,):
         filefortoken.write(line)
         filefortoken.close()
 
-        resulttokens = commands.getoutput(TOKENIZER+" "+"/tmp/tmp_tokens.tmp")
+        resulttokens = commands.getoutput(quote(TOKENIZER)+" "+"/tmp/tmp_tokens.tmp")
         #TODO: testing
         #print(resulttokens,end="")
         if index > 0:
@@ -591,7 +593,7 @@ def start_generation_cassert(cFile, enSetFunc):
     #os.system(GNU_SKIP_SCRIPT + " " + cFile)
     #sys.exit()
 
-    commands.getoutput(GNU_SKIP_SCRIPT + " " + cFile + " 2>&1 > " + tmpFileGnuSkip)
+    commands.getoutput(quote(GNU_SKIP_SCRIPT) + " " + quote(cFile) + " 2>&1 > " + tmpFileGnuSkip)
     list_tmp_path.append(tmpFileGnuSkip)
 
 
@@ -610,7 +612,7 @@ def start_generation_cassert(cFile, enSetFunc):
 
     # HackCode
     #result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)
-    result = commands.getoutput(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip+" 1 " + TRACK_ALL + " > "+tmp_file_map)
+    result = commands.getoutput(quote(MAP_2_CHECK_MAP)+" "+quote(tmpFileGnuSkip)+" 1 " + TRACK_ALL + " > "+quote(tmp_file_map))
     check_command_exec(result, tmp_file_map, "Generating code map in original code",0)
     list_tmp_path.append(tmp_file_map)
        
@@ -649,7 +651,7 @@ def start_generation_cassert(cFile, enSetFunc):
     #os.system(GNU_SKIP_SCRIPT + " " + getPreCFile)
     #sys.exit()
 
-    commands.getoutput(GNU_SKIP_SCRIPT + " " + getPreCFile + " 2>&1 > " + tmpFileGnuSkip_afterpre)
+    commands.getoutput(quote(GNU_SKIP_SCRIPT) + " " + quote(getPreCFile) + " 2>&1 > " + quote(tmpFileGnuSkip_afterpre))
     list_tmp_path.append(tmpFileGnuSkip_afterpre)
 
 
@@ -666,7 +668,7 @@ def start_generation_cassert(cFile, enSetFunc):
     #get_2st_map = commands.getoutput(MAP_2_CHECK_MAP+" "+getPreCFile+" 2")
     #os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip_afterpre+" 2 " + TRACK_ALL)
     #sys.exit()
-    get_2st_map = commands.getoutput(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip_afterpre+" 2 " + TRACK_ALL)
+    get_2st_map = commands.getoutput(quote(MAP_2_CHECK_MAP)+" "+quote(tmpFileGnuSkip_afterpre)+" 2 " + TRACK_ALL)
 
 
 
@@ -703,7 +705,7 @@ def start_generation_cassert(cFile, enSetFunc):
         
         # Reading the claim list to add the original number lines in this list                
         #get_2st_text_Cl = commands.getoutput("cat "+getTranslatedCsvClaim)            
-        get_1st_text_Cl = commands.getoutput("cat "+getFisrtCsvDataCl)            
+        get_1st_text_Cl = commands.getoutput("cat "+quote(getFisrtCsvDataCl))
         
         # generating a list from output            
         lines_CL = get_1st_text_Cl.split("\n")
@@ -748,7 +750,7 @@ def start_generation_cassert(cFile, enSetFunc):
         shutil.copy2(LIBRAY_HEADER_MAP_i, os.path.dirname(getPath2NewInstCFile))
     #print(getPath2NewInstCFile)
     getFinalCFile = code_preprocessor(getPath2NewInstCFile)
-    os.system("cat "+getFinalCFile)
+    os.system("cat "+quote(getFinalCFile))
     list_tmp_path.append(getPath2NewInstCFile)
     list_tmp_path.append(getFinalCFile)
     where_copied_head = os.path.dirname(getPath2NewInstCFile)+"/check_safety_memory_FORTES.h"
@@ -894,56 +896,56 @@ if __name__ == "__main__":
             #   - If TIME OUT -> Output: In {show de time definied}
             if args.setGraphOut:
                 if IS_PRE_CODE_i:
-                    saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                    saveresult_check = commands.getoutput(quote(COMPLETE_CHECK_SCRIPT) +
                                                          " -t " +
                                                          " -g " +
                                                          " -n " + str(args.setCompleteCheck) +
                                                          " -i " +
-                                                         " " + inputCFile)
+                                                         " " + quote(inputCFile))
                 else:
-                    saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                    saveresult_check = commands.getoutput(quote(COMPLETE_CHECK_SCRIPT) +
                                                          " -t " +
                                                          " -g " +
                                                          " -n " + str(args.setCompleteCheck) +
-                                                         " " + inputCFile)
+                                                         " " + quote(inputCFile))
 
                 writegraphout = True
             else:
                 if IS_PRE_CODE_i:
-                    saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                    saveresult_check = commands.getoutput(quote(COMPLETE_CHECK_SCRIPT) +
                                                          " -t " +
                                                          " -n " + str(args.setCompleteCheck) +
                                                          " -i " +
-                                                         " " + inputCFile)
+                                                         " " + quote(inputCFile))
                 else:
-                    saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                    saveresult_check = commands.getoutput(quote(COMPLETE_CHECK_SCRIPT) +
                                                          " -t " +
                                                          " -n " + str(args.setCompleteCheck) +
-                                                         " " + inputCFile)
+                                                         " " + quote(inputCFile))
         else:
             if args.setGraphOut:
                 if IS_PRE_CODE_i:
-                    saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                    saveresult_check = commands.getoutput(quote(COMPLETE_CHECK_SCRIPT) +
                                                          " -g " +
                                                          " -n " + str(args.setCompleteCheck) +
                                                          " -i " +
-                                                         " " + inputCFile)
+                                                         " " + quote(inputCFile))
                 else:
-                    saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                    saveresult_check = commands.getoutput(quote(COMPLETE_CHECK_SCRIPT) +
                                                      " -g " +
                                                      " -n " + str(args.setCompleteCheck) +
-                                                     " " + inputCFile)
+                                                     " " + quote(inputCFile))
                 writegraphout = True
             else:
                 if IS_PRE_CODE_i:
-                    saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                    saveresult_check = commands.getoutput(quote(COMPLETE_CHECK_SCRIPT) +
                                                         " -n " + str(args.setCompleteCheck) +
                                                         " -i " +
-                                                        " " + inputCFile)
+                                                        " " + quote(inputCFile))
                 else:
-                    saveresult_check = commands.getoutput(COMPLETE_CHECK_SCRIPT +
+                    saveresult_check = commands.getoutput(quote(COMPLETE_CHECK_SCRIPT) +
                                                         " -n " + str(args.setCompleteCheck) +
-                                                        " " + inputCFile)
+                                                        " " + quote(inputCFile))
 
 
         if writegraphout:

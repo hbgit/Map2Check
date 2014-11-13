@@ -4,7 +4,7 @@
 # Usage: ./map2check_wrapper_script.sh <file.i> <witnessfile.graphml>
 
 # Path to the Map2Check tool
-path_to_map2check=/home/nhb/Documents/ON_DEV/MAP2CHECK_FORTES_ON_DEV/ON_GIT_HUB/Map2Check-Fortes/map2check.py
+path_to_map2check=/mnt/Docs/Map2Check/vn5i/Map2Check/map2check.py
 #/home/hbazure/drive/Docs/Map2Check/Map2Check/map2check.py
 
 # Command line, common to all tests.

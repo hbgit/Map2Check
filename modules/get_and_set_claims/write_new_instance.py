@@ -940,8 +940,17 @@ class ParseC2Ast2C(object):
                 #+"\""
 
                 # >> Classifying the violated property according to SVCOMP 2015
-                # only this because ESBMC
-                class_property = "\\n \\n FALSE(valid-deref) \\n "+"\""
+                # Get data from file name to determine the property
+                #
+                match_mem_track = re.search(r"false-valid-memtrack", self.__inputfilename)
+                match_false_free = re.search(r"false-valid-free", self.__inputfilename)
+                if match_mem_track:
+                    class_property = "\\n \\n FALSE(valid-memtrack) \\n "+"\""
+                elif match_false_free:
+                    class_property = "\\n \\n FALSE(valid-free) \\n "+"\""
+                else:
+                    # only this because ESBMC
+                    class_property = "\\n \\n FALSE(valid-deref) \\n "+"\""
                 msg_assert += class_property
 
                 print("__MAP_FORTES_assert("+self.CL_list_property[index]+" "+msg_assert+");")

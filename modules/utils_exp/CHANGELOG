@@ -174,7 +174,9 @@
     - [DOING] Check how define this in the graphml or just in the wrapper script
         - Updating output tool [DONE]
         - Updating wrapper script
-    - []
+    - [DONE] Updating report svcomp trainning
+    - [DONE] Checking label property for mem-track and false-free <<< TALK LUCAS
+        checkout test-0234_false-valid-memtrack.i and test-0158_false-valid-free.i in memsafety
 
     >>>>>> Classification:
     Formula ; Definition

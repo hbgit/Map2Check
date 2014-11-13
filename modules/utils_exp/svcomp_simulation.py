@@ -279,6 +279,7 @@ def set_codes_to_experiment(pathCPrograms):
 
                 # >> Analysing the result to write the log
                 print("\t\t Finished execution")
+                SAVE_PRP_result = ''
                 # Check if has a TIME OUT
                 if not(str(result_exec).strip() == 'UNKNOWN'):
 
@@ -287,6 +288,7 @@ def set_codes_to_experiment(pathCPrograms):
                     # Gathering the property (i.e. valid-free, valid-memtrack,valid-deref) from result
                     matchprp = re.search(r"(FALSE\(.*\))", str(result_exec))
                     if matchprp:
+                        SAVE_PRP_result = matchprp.group(1)
 
                         FAILED = True
                         SUCCESS = False
@@ -373,7 +375,8 @@ def set_codes_to_experiment(pathCPrograms):
                 elif EXPECTED_FAILED_RESULT and FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "correctProperty"
                     CSS_CLASS         = "status correct false"
-                    RESULT_TEXT       = "false(label)"
+                    #RESULT_TEXT       = "false(label)"
+                    RESULT_TEXT       = SAVE_PRP_result
                     CORRECT_RESULTS   = CORRECT_RESULTS + 1
                     CORRECT_FALSES    = CORRECT_FALSES + 1
                     #TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
@@ -382,7 +385,8 @@ def set_codes_to_experiment(pathCPrograms):
 
                     TIME_TOTAL_CORRECT += TIME
                     #echo $(echo -e "\033[0;32mfalse(label)\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print(">> ACTUAL: false(label) in "+str(TIME)+" s")
+                    #print(">> ACTUAL: false(label) in "+str(TIME)+" s")
+                    print(">> ACTUAL: " + RESULT_TEXT +" in "+str(TIME)+" s")
                     #print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif EXPECTED_FAILED_RESULT and not FAILED and not flag_TIME_OUT:
@@ -401,14 +405,16 @@ def set_codes_to_experiment(pathCPrograms):
                 elif not EXPECTED_FAILED_RESULT and FAILED and not flag_TIME_OUT:
                     #CSS_CLASS         = "wrongProperty"
                     CSS_CLASS         = "status wrong false"
-                    RESULT_TEXT       = "false(label)"
+                    #RESULT_TEXT       = "false(label)"
+                    RESULT_TEXT       = SAVE_PRP_result
                     FALSE_NEGATIVES   = FALSE_NEGATIVES + 1
                     #TOTAL_MEM_IN_EXE  += ACTUAL_MEM_USED_EXEC_inMB
                     #TOTAL_MEMO_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB
                     #TCEXCMB_TOTAL_FNEGATI += ACTUAL_MEM_USED_EXEC_inMB + ACTUAL_TC_GEN_inMB
                     TIME_TOTAL_FNEGATI += TIME
                     #echo $(echo -e "\033[0;31mfalse(label)\033[0m" | cut -d " " -f2) "in $TIME""s"
-                    print(">> ACTUAL: false(label) in "+str(TIME)+" s")
+                    #print(">> ACTUAL: false(label) in "+str(TIME)+" s")
+                    print(">> ACTUAL: " + RESULT_TEXT +" in "+str(TIME)+" s")
                     #print("\t\t Memo: %1.2f" % ACTUAL_MEM_USED_EXEC_inMB)
                   
                 elif not EXPECTED_FAILED_RESULT and not FAILED and not flag_TIME_OUT:

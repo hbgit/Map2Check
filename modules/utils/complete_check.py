@@ -38,14 +38,14 @@ IS_PRE_CODE_i = False
 
 
 PATH_MAP_2_CHECK_FORTES = ABS_PATH_FILE + 'map2check.py'
-if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
+if not os.path.isfile(quote(PATH_MAP_2_CHECK_FORTES)):
     print('Error: unable to find the map2check.py file')
     sys.exit()
 
 
 # API library location
 PATH_API_LIBRARY = ABS_PATH_FILE + 'modules/map2check/library/'
-if not os.path.isdir(PATH_API_LIBRARY):
+if not os.path.isdir(quote(PATH_API_LIBRARY)):
     print('Error: unable to find the path to API library')
     sys.exit()
 
@@ -299,7 +299,7 @@ def only_compile_code(cProgram):
     else:
         tail = tail.replace(".c","._mcf2check")
 
-    if os.path.isfile(tail):
+    if os.path.isfile(quote(tail)):
         has_bin_file = True
     else:
         has_bin_file = False
@@ -393,7 +393,7 @@ if __name__ == "__main__":
     pathCPrograms=''
 
     if args.pathCProgram:
-        if not os.path.isfile(args.pathCProgram):
+        if not os.path.isfile(quote(args.pathCProgram)):
             print('Error: unable to open find the file (%s)' % args.pathCProgram)
             parser.parse_args(['-h'])
             sys.exit()

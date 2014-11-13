@@ -31,7 +31,7 @@ TMP_REPORT_FILE = ABS_PATH_FILE+'/tmp_result_'+id.strip()+'.html'
 
 # HTML Model Report
 PATH_HTML_MODEL_REPORT = ABS_PATH_FILE+'/modules/html_report/report_model.html'
-if not os.path.isfile(PATH_HTML_MODEL_REPORT):
+if not os.path.isfile(quote(PATH_HTML_MODEL_REPORT)):
     print('Error: unable to find the report_model.html file')
     sys.exit()
 
@@ -52,7 +52,7 @@ CPACHECKER_OPTIONS = 'scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec 
                      '-setprop parser.transformTokensToLines=true -spec'
 
 # Just for not generate errors
-if not os.path.exists(CPACHECKER_PATH):
+if not os.path.exists(quote(CPACHECKER_PATH)):
     print("It is necessary to set the correct path to CPAChecker tool")
     sys.exit()
 
@@ -601,7 +601,7 @@ if __name__ == "__main__":
     pathCPrograms=''
     
     if args.dirCPrograms:                 
-        if not os.path.isdir(args.dirCPrograms): 
+        if not os.path.isdir(quote(args.dirCPrograms)):
             print('Error: unable to open find the dir (%s)' % args.dirCPrograms)
             parser.parse_args(['-h'])
             sys.exit()

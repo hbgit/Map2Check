@@ -74,8 +74,8 @@ AUX_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/aux_preprocessing/aux_f
 ESBMC_PATH = check_status_esbmc_path
 
 DIR_RESULT_CLAIMS = ABS_PATH_FORTES+"/result_claims"
-if not os.path.exists(DIR_RESULT_CLAIMS):
-    os.makedirs(DIR_RESULT_CLAIMS)
+if not os.path.exists(quote(DIR_RESULT_CLAIMS)):
+    os.makedirs(quote(DIR_RESULT_CLAIMS))
 
 
 GET_DATA_CLAIMS = ABS_PATH_FORTES+"/modules/get_and_set_claims/abs_claims.pl"
@@ -428,8 +428,8 @@ def check_command_exec(result, file2Analyzed, note, flagNoReturn):
         
     # Checking file generated
     elif file2Analyzed != 0:
-        if not os.path.isfile(file2Analyzed): 
-            print('Error: unable to open the file (%s) \n' % file2Analyzed)            
+        if not os.path.isfile(quote(file2Analyzed)):
+            print('Error: unable to open the file (%s) \n' % quote(file2Analyzed))
             print('Note : '+note+'\n')
             sys.exit()
         
@@ -819,8 +819,8 @@ if __name__ == "__main__":
 
     
     if args.inputCProgram:                 
-        if not os.path.isfile(args.inputCProgram): 
-            print('Error: unable to open input file (%s)' % args.inputCProgram)
+        if not os.path.isfile(quote(args.inputCProgram)):
+            print('Error: unable to open input file (%s)' % quote(args.inputCProgram))
             parser.parse_args(['-h'])
             sys.exit()
         else:
@@ -991,8 +991,8 @@ if __name__ == "__main__":
                 # The property
                 print(property_svcomp)
 
-                if os.path.exists(DIR_RESULT_CLAIMS+"/tmp_file_map.map"):
-                    os.remove(DIR_RESULT_CLAIMS+"/tmp_file_map.map")
+                if os.path.exists(quote(DIR_RESULT_CLAIMS+"/tmp_file_map.map")):
+                    os.remove(quote(DIR_RESULT_CLAIMS+"/tmp_file_map.map"))
 
             else:
                 # Verification okay

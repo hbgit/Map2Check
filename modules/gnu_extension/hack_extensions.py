@@ -120,7 +120,7 @@ def make_pycparser_compatible( data ):
         if '__THROW' in line.split(): line = line.replace('__THROW', '')
 
         if '__inline__' in line.split(): line = line.replace( '__inline__', '' )
-        if '__inline' in line.split(): line = line.replace( '__inline', '' )
+        #if '__inline' in line.split(): line = line.replace( '__inline', '' )
 
         if '((__nothrow__))' in line.split(): line = line.replace('((__nothrow__))', '')    # inttypes.h
         if '((__nothrow__));' in line.split(): line = line.replace('((__nothrow__));', ';')

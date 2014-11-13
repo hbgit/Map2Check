@@ -218,7 +218,7 @@ def call_abs_claims(cFile,textCl):
     return pathCsvName
 
 
-def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claims):
+def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claims,  _originalfilename):
     global IS_PRE_CODE_i
     # Get data claim and add claim in the new instace program, and finally
     # return the path of the new instance
@@ -246,8 +246,9 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
 
     result = commands.getoutput(WRITE_NEW_INSTANCE + " " + tmpFileGnuSkip_end + " " + dataLocFunction + \
                                 " " + mapFile + " " + absClaimFile + " " + str(has_claims) + \
-                                " " + str(IS_PRE_CODE_i) + " > "+path2NewInstFile)
-    check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0) 
+                                " " + str(IS_PRE_CODE_i) + " " +  _originalfilename + " > "+path2NewInstFile)
+
+    check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0)
     
     return path2NewInstFile
     
@@ -379,9 +380,12 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
 
     #os.system("cat "+csvClaimFile)
     #sys.exit()
-    result = commands.getoutput(CLAIM_TRANSLATOR + " -i " + csvClaimFile + " -c " + cFile
-                                + " -f " + dataFunctionFile + " -m " + file_from_map_2_cl
-                                + " -p " + csvMappedFromCode + " > " + name_new_csv_file)
+    result = commands.getoutput(CLAIM_TRANSLATOR + " -i " + csvClaimFile +\
+                                " -c " + cFile +\
+                                " -f " + dataFunctionFile +\
+                                " -m " + file_from_map_2_cl +\
+                                " -p " + csvMappedFromCode +\
+                                " > " + name_new_csv_file)
     check_command_exec(result, name_new_csv_file, "Translating esbmc claims",0)   
     return name_new_csv_file
     
@@ -724,9 +728,9 @@ def start_generation_cassert(cFile, enSetFunc):
     # >>> Call get claims and add in the new instance of the program
     # SEE: assert == 0 | CUnit == 1    
     if FLAG_IS_CLAIM:
-        getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, get_final_path_csv_file_CL, 1)
+        getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, get_final_path_csv_file_CL, 1, cFile)
     else:
-        getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, "None", 0)
+        getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, "None", 0, cFile)
     #list_tmp_path.append(getPreCFile)
     list_tmp_path.append(getDataFunction)
     #print(GENERATE_GRAPHML)

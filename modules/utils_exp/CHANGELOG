@@ -177,12 +177,16 @@
     - [DONE] Updating report svcomp trainning
     - [DONE] Checking label property for mem-track and false-free <<< TALK LUCAS
         checkout test-0234_false-valid-memtrack.i and test-0158_false-valid-free.i in memsafety
+        - Fixed bug to generated property label
 
     >>>>>> Classification:
     Formula ; Definition
     G valid-free ; All memory deallocations are valid (counterexample: invalid free). More precisely: There exists no finite execution of the program on which an invalid memory deallocation occurs.
     G valid-deref ; All pointer dereferences are valid (counterexample: invalid dereference). More precisely: There exists no finite execution of the program on which an invalid pointer dereference occurs.
     G valid-memtrack ; All allocated memory is tracked, i.e., pointed to or deallocated (counterexample: memory leak). More precisely: There exists no finite execution of the program on which the program lost track of some previously allocated memory.
+
+
+> [THE PROJECT] Checking ajust in memory-unsafe DIR benchs [TODO]
 
 
 

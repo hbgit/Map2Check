@@ -443,6 +443,7 @@ class ParseC2Ast2C(object):
     """
     def __init__(self):
         self.__inputfilename = ''
+        self.orifilename = ''
         self.ast = pycparser.c_ast
         self.ast_gen = pycparser.c_generator
         self.current_funct = ''          
@@ -942,8 +943,8 @@ class ParseC2Ast2C(object):
                 # >> Classifying the violated property according to SVCOMP 2015
                 # Get data from file name to determine the property
                 #
-                match_mem_track = re.search(r"false-valid-memtrack", self.__inputfilename)
-                match_false_free = re.search(r"false-valid-free", self.__inputfilename)
+                match_mem_track = re.search(r"false-valid-memtrack", self.orifilename)
+                match_false_free = re.search(r"false-valid-free", self.orifilename)
                 if match_mem_track:
                     class_property = "\\n \\n FALSE(valid-memtrack) \\n "+"\""
                 elif match_false_free:
@@ -1145,7 +1146,7 @@ class ParseC2Ast2C(object):
 if __name__ == "__main__":  
     
     # Validate the args
-    if len(sys.argv) > 1 and len(sys.argv) <= 7:
+    if len(sys.argv) > 1 and len(sys.argv) <= 8:
         #print(len(sys.argv))
         #print(sys.argv)
         path_input_c_file = sys.argv[1]
@@ -1154,12 +1155,16 @@ if __name__ == "__main__":
         file_data_claims = sys.argv[4]
         has_claims = sys.argv[5]
         is_precode_i = sys.argv[6]
+        orifilename = sys.argv[7]
         
         runWrite = ParseC2Ast2C()
         if is_precode_i == "True":
             runWrite.is_precode_i = True
         else:
             runWrite.is_precode_i = False
+
+        runWrite.orifilename = orifilename
+
         runWrite.load2Parse(path_input_c_file)
         runWrite.loaddata_leakpoints()
         runWrite.readCFile(path_input_c_file)

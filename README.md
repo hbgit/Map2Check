@@ -28,6 +28,7 @@ To use this tool is necessary that the system contains the following software al
 > - Linux OS
 > - Python (v2.7.1 or higher);
 > - Perl;
+> - GCC compiler; 
 > - Pycparser (v2.10) - https://github.com/eliben/pycparser
 > - Pyparsing (v1.5.6) - http://pyparsing.wikispaces.com
 > - Networkx (v1.9.1) - https://networkx.github.io/
@@ -83,7 +84,12 @@ For help and others options:
 
 <b> Instructions for SV-COMP'15 </b>
 
-Use the 'wrapper_script_map2check.sh' script in the installation directory to verify each single test-case.
+Use the 'wrapper_script_map2check.sh' script in the installation directory to verify each single test-case. 
+In the script it is necessary to setup the path to the Map2Check tool in the variable <b>path_to_map2check</b>. 
+
+Example: 
+ 
+> path_to_map2check=/mnt/Docs/Map2Check/vn5i/Map2Check/map2check.py
 
 Usage: 
 

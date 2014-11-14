@@ -5,12 +5,12 @@
 
 # Path to the Map2Check tool
 path_to_map2check=/mnt/Docs/Map2Check/vn5i/Map2Check/map2check.py
-#/home/hbazure/drive/Docs/Map2Check/Map2Check/map2check.py
+
 
 # Command line, common to all tests.
 # Run Map2Check 2 times. Each program in the category is executed 2 times,
 # because of the nondeterministic model in the programs. It is important
-# to note that from these 3 executions, we always consider the execution classified as
+# to note that from these 2 executions, we always consider the execution classified as
 # FAILED (if any), i.e., an execution that the tool has identified a property violation.
 map2check_options="--complete-check 2 --graphml-output --witnesspath"
 
@@ -66,7 +66,7 @@ elif [ $success -gt 0 ]; then
 else
     echo "UNKNOWN"
     # Clean up after ourselves. This because, how the Map2Check was interruped than
-    # it is possible to have some left over temporary file
+    # it is possible to have some left over temporary file.
     # Get path from benchmark and then removing the temporary files
     srcbench="$(dirname ${benchmark})"
 

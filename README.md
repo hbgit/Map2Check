@@ -87,11 +87,12 @@ Use the 'wrapper_script_map2check.sh' script in the installation directory to ve
 
 Usage: 
 
-> $ ./wrapper_script_map2check.sh <path/to/test-case.c> <path/to/witnessfile.graphml>
+> $ ./wrapper_script_map2check.sh \<path/to/test-case.i\> \<path/to/witnessfile.graphml\>
 
 <p align="justify">
-The verification result (TRUE, FALSE, or UNKNOWN) will be printed to
-standard output. If the sourcefile contains a bug and the tool returns FALSE (Error
+The verification result (<b> TRUE, FALSE(p), or UNKNOWN </b>) will be printed to
+standard output. FALSE(p), with p in {valid-free, valid-deref, valid-memtrack}, means that the (partial) 
+property p is violated. If the sourcefile contains a bug and the tool returns FALSE (Error
 found) is dumped the witness into the given file (path/to/witnessfile.graphml). 
 There is timeout of 895 seconds set by this script, using "timeout" tool that is part of coreutils 
 on debian and fedora. If these constraints are violated, it should be treated as UNKNOWN result. 

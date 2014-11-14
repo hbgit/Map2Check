@@ -74,8 +74,8 @@ AUX_PREPROCESSING=ABS_PATH_FORTES+"/modules/preprocessor/aux_preprocessing/aux_f
 ESBMC_PATH = check_status_esbmc_path
 
 DIR_RESULT_CLAIMS = ABS_PATH_FORTES+"/result_claims"
-if not os.path.exists(quote(DIR_RESULT_CLAIMS)):
-    os.makedirs(quote(DIR_RESULT_CLAIMS))
+if not os.path.exists(DIR_RESULT_CLAIMS):
+    os.makedirs(DIR_RESULT_CLAIMS)
 
 
 GET_DATA_CLAIMS = ABS_PATH_FORTES+"/modules/get_and_set_claims/abs_claims.pl"
@@ -212,7 +212,7 @@ def call_abs_claims(cFile,textCl):
     csvName=pathFile+".1st" 
                
     result = commands.getoutput(quote(GET_DATA_CLAIMS)+" "+quote(textCl)+" > "+quote(DIR_RESULT_CLAIMS+"/"+csvName))
-    pathCsvName = quote(DIR_RESULT_CLAIMS+"/"+csvName)
+    pathCsvName = DIR_RESULT_CLAIMS+"/"+csvName
     
     #os.system("cat "+DIR_RESULT_CLAIMS+"/"+csvName)
     #sys.exit()
@@ -388,12 +388,12 @@ def apply_claim_translator(cFile, csvClaimFile, dataFunctionFile, csvMappedFromC
                                 " -m " + quote(file_from_map_2_cl) +\
                                 " -p " + quote(csvMappedFromCode) +\
                                 " > " + quote(name_new_csv_file))
-    check_command_exec(result, quote(name_new_csv_file), "Translating esbmc claims",0)
+    check_command_exec(result, name_new_csv_file, "Translating esbmc claims",0)
     return name_new_csv_file
     
     
 def get_data_functions(cFile):
-    file_loc_fun = quote(DIR_RESULT_CLAIMS+"/tmp_data_function.loc")
+    file_loc_fun = DIR_RESULT_CLAIMS+"/tmp_data_function.loc"
     getdataf = generate_data_funct.GetDataFuncts()
     getdataf.generate_ast(cFile)
     getdataf.overview_data_functs(cFile, file_loc_fun)
@@ -428,7 +428,7 @@ def check_command_exec(result, file2Analyzed, note, flagNoReturn):
         
     # Checking file generated
     elif file2Analyzed != 0:
-        if not os.path.isfile(quote(file2Analyzed)):
+        if not os.path.isfile(file2Analyzed):
             print('Error: unable to open the file (%s) \n' % quote(file2Analyzed))
             print('Note : '+note+'\n')
             sys.exit()
@@ -612,7 +612,7 @@ def start_generation_cassert(cFile, enSetFunc):
 
     # HackCode
     #result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)
-    result = commands.getoutput(quote(MAP_2_CHECK_MAP)+" "+quote(tmpFileGnuSkip)+" 1 " + TRACK_ALL + " > "+quote(tmp_file_map))
+    result = commands.getoutput(quote(MAP_2_CHECK_MAP)+" "+tmpFileGnuSkip+" 1 " + TRACK_ALL + " > "+quote(tmp_file_map))
     check_command_exec(result, tmp_file_map, "Generating code map in original code",0)
     list_tmp_path.append(tmp_file_map)
        
@@ -819,7 +819,7 @@ if __name__ == "__main__":
 
     
     if args.inputCProgram:                 
-        if not os.path.isfile(quote(args.inputCProgram)):
+        if not os.path.isfile(args.inputCProgram):
             print('Error: unable to open input file (%s)' % quote(args.inputCProgram))
             parser.parse_args(['-h'])
             sys.exit()

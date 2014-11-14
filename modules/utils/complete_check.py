@@ -38,14 +38,14 @@ IS_PRE_CODE_i = False
 
 
 PATH_MAP_2_CHECK_FORTES = ABS_PATH_FILE + 'map2check.py'
-if not os.path.isfile(quote(PATH_MAP_2_CHECK_FORTES)):
+if not os.path.isfile(PATH_MAP_2_CHECK_FORTES):
     print('Error: unable to find the map2check.py file')
     sys.exit()
 
 
 # API library location
 PATH_API_LIBRARY = ABS_PATH_FILE + 'modules/map2check/library/'
-if not os.path.isdir(quote(PATH_API_LIBRARY)):
+if not os.path.isdir(PATH_API_LIBRARY):
     print('Error: unable to find the path to API library')
     sys.exit()
 
@@ -69,26 +69,69 @@ def timeout_command(command, timeout):
     """call shell-command and either return its output or kill it
     if it doesn't normally exit within timeout seconds and return None"""
 
-    cmd = command.split(" ")
-    start = datetime.datetime.now()
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # generating the cammad to be executed
+    stdout = commands.getoutput("mktemp")
+    cmd_shell = "timeout " + str(timeout) + " " + quote(command) + " > " + stdout
+
+    start_t = time.time()
+    result_only_stderr = commands.getoutput(cmd_shell)
+    end_t = time.time()
+
+    tt = end_t - start_t
+
+    # generating data to report
+    # output str to list
+    result_stdrr_list = result_only_stderr.split("\n")
+    len_stderr_list = len(result_stdrr_list)
+    # removing possible timeout msg when we have a stop execution by asserts
+    for index, line in enumerate(result_stdrr_list):
+        match_to = re.search("(timeout: the monitored command dumped core)", line)
+        if match_to:
+            del result_stdrr_list[index]
+            break
+
+    if tt > timeout:
+        return "TIME OUT",[]
+
+
+    #sh:
+    match_sh = re.search("^sh: ", result_stdrr_list[-1])
+    if match_sh:
+        del result_stdrr_list[-1]
+
+    # generating stdout list
+    result_sdtout = commands.getoutput("cat "+stdout)
+    os.remove(stdout)
+    result_sdtout_list = result_sdtout.split("\n")
+
+
+    #cmd = command.split(" ")
+    # cmd = quote(command)
+    # start = datetime.datetime.now()
+    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
     list_out_exec = []
 
-    #Save PID from command
-    pid_command_exec = commands.getoutput("pidof \""+command+"\"")
+    #
+    # #Save PID from command
+    # #pid_command_exec = commands.getoutput("pidof \""+command+"\"")
+    # pid_command_exec = process.pid
+    #
+    # while process.poll() is None:
+    #     #time.sleep(0.1)
+    #     now = datetime.datetime.now()
+    #     if (now - start).seconds > timeout:
+    #         os.kill(int(pid_command_exec), signal.SIGKILL)
+    #         os.kill(process.pid, signal.SIGKILL)
+    #         os.waitpid(-1, os.WNOHANG)
+    #         return "TIME OUT",[]
 
-    while process.poll() is None:
-        #time.sleep(0.1)
-        now = datetime.datetime.now()
-        if (now - start).seconds > timeout:
-            os.kill(int(pid_command_exec), signal.SIGKILL)
-            os.kill(process.pid, signal.SIGKILL)
-            os.waitpid(-1, os.WNOHANG)
-            return "TIME OUT",[]
 
+    #list_out_exec.append(process.stdout)
+    list_out_exec.append(result_sdtout_list)
+    #list_out_exec.append(process.stderr)
+    list_out_exec.append(result_stdrr_list)
 
-    list_out_exec.append(process.stdout)
-    list_out_exec.append(process.stderr)
     return list_out_exec
 
 
@@ -142,8 +185,9 @@ def set_codes_to_experiment(_pathcprogram):
             # Check if has a TIME OUT
             if not(str(get_OUT_result_exec[0]) == 'TIME OUT'):
 
-                tmp_list_OUT_STDOUT = get_OUT_result_exec[0].readlines()
-                tmp_list_OUT_STDERR = get_OUT_result_exec[1].readlines()
+                #tmp_list_OUT_STDOUT = get_OUT_result_exec[0].readlines()
+                tmp_list_OUT_STDOUT = get_OUT_result_exec[0]
+                tmp_list_OUT_STDERR = get_OUT_result_exec[1]
 
                 # From this executions we ALWAYS save the failed execution
                 # Check in the result of the bin execution
@@ -172,14 +216,14 @@ def set_codes_to_experiment(_pathcprogram):
                         matchprp = re.search(r"^[ ](FALSE\(.*\))", line)
                         if matchprp:
                             property_SVCOMP = matchprp.group(1)
-                        outputRun.write(str(line))
+                        outputRun.write(str(line)+"\n")
 
                     for line in tmp_list_OUT_STDERR:
                         # from asserts
                         matchprp = re.search(r"^[ ](FALSE\(.*\))", line)
                         if matchprp:
                             property_SVCOMP = matchprp.group(1)
-                        outputRun.write(str(line))
+                        outputRun.write(str(line)+"\n")
                     outputRun.close()
                 #else:
                 #    list_delete_tmp_file.append(name_file_result)
@@ -288,7 +332,7 @@ def only_compile_code(cProgram):
     # Now change the directory
     os.chdir( head )
 
-    get_result = commands.getoutput(quote(COMPILE_SCRIPT)+" "+tail)
+    get_result = commands.getoutput(COMPILE_SCRIPT+" "+quote(tail))
     
     has_bin_file = False
     
@@ -299,7 +343,7 @@ def only_compile_code(cProgram):
     else:
         tail = tail.replace(".c","._mcf2check")
 
-    if os.path.isfile(quote(tail)):
+    if os.path.isfile(tail):
         has_bin_file = True
     else:
         has_bin_file = False
@@ -393,7 +437,7 @@ if __name__ == "__main__":
     pathCPrograms=''
 
     if args.pathCProgram:
-        if not os.path.isfile(quote(args.pathCProgram)):
+        if not os.path.isfile(args.pathCProgram):
             print('Error: unable to open find the file (%s)' % args.pathCProgram)
             parser.parse_args(['-h'])
             sys.exit()

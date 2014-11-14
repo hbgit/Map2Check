@@ -44,7 +44,7 @@ if test "${benchmark}" = ""; then
 fi
 
 # The complete command to be executed
-run_cmdline="${path_to_map2check} ${map2check_options} ${witnesspath} ${benchmark};"
+run_cmdline="${path_to_map2check} ${map2check_options} \"${witnesspath}\" \"${benchmark}\";"
 
 # Invoke our command, wrapped in a timeout so that we can
 # postprocess the results. `timeout` is part of coreutils on debian and fedora.

@@ -31,7 +31,7 @@ TMP_REPORT_FILE = ABS_PATH_FILE+'/tmp_result_'+id.strip()+'.html'
 
 # HTML Model Report
 PATH_HTML_MODEL_REPORT = ABS_PATH_FILE+'/modules/html_report/report_model.html'
-if not os.path.isfile(quote(PATH_HTML_MODEL_REPORT)):
+if not os.path.isfile(PATH_HTML_MODEL_REPORT):
     print('Error: unable to find the report_model.html file')
     sys.exit()
 
@@ -52,7 +52,7 @@ CPACHECKER_OPTIONS = 'scripts/cpa.sh -preprocess -sv-comp14--memorysafety -spec 
                      '-setprop parser.transformTokensToLines=true -spec'
 
 # Just for not generate errors
-if not os.path.exists(quote(CPACHECKER_PATH)):
+if not os.path.exists(CPACHECKER_PATH):
     print("It is necessary to set the correct path to CPAChecker tool")
     sys.exit()
 
@@ -260,12 +260,12 @@ def set_codes_to_experiment(pathCPrograms):
                 CPACHECKER_OUTPUT_PATH = get_path_program.replace(".i",".cpachecker_out")
 
                 # Running Map2Check
-                cmd = "./"+MAP2CHECK_WRAPPER_SCRIPT_PATH + " " + get_path_program + " " + witnessfilepath
+                cmd = "./"+MAP2CHECK_WRAPPER_SCRIPT_PATH + " " + quote(get_path_program) + " " + quote(witnessfilepath)
                 #print(">>>", cmd)
                 print("\t\t >>> Runnning Map2Check")
                 INITIAL_EXECUTION_TIMESTAMP = time.time()
 
-                result_exec = commands.getoutput(quote(cmd))
+                result_exec = commands.getoutput(cmd)
 
                 FINAL_EXECUTION_TIMESTAMP = time.time()
 
@@ -299,7 +299,7 @@ def set_codes_to_experiment(pathCPrograms):
                             os.chdir(CPACHECKER_PATH)
 
                             #print("CMD: "+CPACHECKER_OPTIONS+" "+result_gen_graphml[1]+" "+get_path_program)
-                            result_recheck = commands.getoutput(quote(CPACHECKER_OPTIONS)+" "+quote(witnessfilepath)+" "+quote(get_path_program))
+                            result_recheck = commands.getoutput(CPACHECKER_OPTIONS+" "+quote(witnessfilepath)+" "+quote(get_path_program))
                             # Analysing CPAChecker result
                             list_recheck = result_recheck.split("\n")
                             flag_cpa = False

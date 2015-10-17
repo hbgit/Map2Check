@@ -4,7 +4,7 @@
 # Usage: ./map2check_wrapper_script.sh <file.i> <witnessfile.graphml>
 
 # Path to the Map2Check tool
-path_to_map2check=/mnt/Docs/Map2Check/vn5i/Map2Check/map2check.py
+path_to_map2check=/home/herbert/Projects/Map2Check/map2check.py
 
 
 # Command line, common to all tests.
@@ -61,8 +61,8 @@ if [ $failed -gt 0 ]; then
     property=`echo ${result_check} | grep -o "FALSE.*"`
     # Print the property
     echo ${property}
-elif [ $success -gt 0 ]; then
-    echo "TRUE"
+#elif [ $success -gt 0 ]; then
+#    echo "TRUE"
 else
     echo "UNKNOWN"
     # Clean up after ourselves. This because, how the Map2Check was interruped than

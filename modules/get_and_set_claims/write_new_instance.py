@@ -781,7 +781,7 @@ class ParseC2Ast2C(object):
                 s += '){'
                 print(s)
                 # Mapping the header of the function
-                self.check_and_map(self.getNumberOfLine(line))
+                self.check_and_map(self.getNumberOfLine(line), False)
                 self.expandFunction(line.iftrue)
                 if line.iffalse:
                     print('}else{ \n')
@@ -796,7 +796,7 @@ class ParseC2Ast2C(object):
                 s += '){\n'
                 print(s)
                 # Mapping the header of the function
-                self.check_and_map(self.getNumberOfLine(line))
+                self.check_and_map(self.getNumberOfLine(line), False)
                 self.expandFunction(line.stmt)
                 print("}")
                 
@@ -810,7 +810,7 @@ class ParseC2Ast2C(object):
                 s += '){ \n'                
                 print(s)
                 # Mapping the header of the function
-                self.check_and_map(self.getNumberOfLine(line))
+                self.check_and_map(self.getNumberOfLine(line), False)
                 self.expandFunction(line.stmt)
                 print("}")
                 
@@ -824,13 +824,13 @@ class ParseC2Ast2C(object):
                 s += ');'
                 print(s)
                 # Mapping the header of the function
-                self.check_and_map(self.getNumberOfLine(line))
+                self.check_and_map(self.getNumberOfLine(line), False)
                 
             elif get_flow_type == Switch:
                 s = 'switch (' + generator_code.visit(line.cond) + ')\n{'
                 print(s)
                 # Mapping the header of the function
-                self.check_and_map(self.getNumberOfLine(line))
+                self.check_and_map(self.getNumberOfLine(line), False)
                 self.expandFunction(line.stmt)
                 print("}")
                 
@@ -839,7 +839,7 @@ class ParseC2Ast2C(object):
                 s = 'case ' + generator_code.visit(line.expr) + ':\n'
                 print(s)
                 # Mapping the header of the function
-                self.check_and_map(self.getNumberOfLine(line))
+                self.check_and_map(self.getNumberOfLine(line), False)
                 for stmt in line.stmts:
                     self.expandFunction(stmt)
                 #self.expandFunction(line.stmts)
@@ -887,7 +887,7 @@ class ParseC2Ast2C(object):
                 print(self.ast_gen.CGenerator()._generate_stmt(line).rstrip())
                 
             # Mapping 
-            self.check_and_map(self.getNumberOfLine(line))
+            self.check_and_map(self.getNumberOfLine(line), False)
             
             
                 
@@ -916,19 +916,34 @@ class ParseC2Ast2C(object):
             #self.expandFunction(line.stmt)
         
         
-    def check_and_map(self, numberOfLineCode):
+    def check_and_map(self, numberOfLineCode, _isfunctheader): 
+        # TODO: if is a function is need to identify this and then pass the name of the funct,
+        #       cuz headers funct more than one code line
+        print(">>>", self.map_line2map)
+        print(">>>", self.map_id_func2map)
+        
+        check_next = True
         for index, numLine in enumerate(self.map_line2map):
             if numberOfLineCode == numLine:
-                #print(self.map_var2map[index])
-                print("list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&("+
-                      self.map_var2map[index] +
-                      "),(void *)(intptr_t)(" + self.map_var_points_to2map[index]+")," +
-                      "\""+str(self.map_var2map[index])+"\","+\
-                      str(self.map_id_func2map[index])+","+\
-                      str(self.map_is_dynam2map[index])+","+str(self.map_is_free2map[index])+","+\
-                      str(self.map_is_union2map[index])+", \""+\
-                      str(self.map_type_var[index])+"\" ,"+\
-                      str(self.map_original_line_program[index])+"); /** by FORTES **/ \n")
+                while check_next:
+                    #print(self.map_var2map[index])
+                    print("list_LOG_mcf = mark_map_FORTES(list_LOG_mcf, (void *)&("+
+                          self.map_var2map[index] +
+                          "),(void *)(intptr_t)(" + self.map_var_points_to2map[index]+")," +
+                          "\""+str(self.map_var2map[index])+"\","+\
+                          str(self.map_id_func2map[index])+","+\
+                          str(self.map_is_dynam2map[index])+","+str(self.map_is_free2map[index])+","+\
+                          str(self.map_is_union2map[index])+", \""+\
+                          str(self.map_type_var[index])+"\" ,"+\
+                          str(self.map_original_line_program[index])+"); /** by FORTES **/ \n")
+                          
+                    # Test if the next line need to mapped too
+                    if _isfunctheader:
+                        if self.map_id_func2map[index] == self.map_id_func2map[index+1]:
+                            index += 1
+                            check_next = True
+                        else:
+                            check_next = False
                     
     def check_and_write_claim(self, numberOfLineCode):
         for index, numLine in enumerate(self.CL_list_line_num):
@@ -1057,7 +1072,8 @@ class ParseC2Ast2C(object):
                     self.check_and_write_claim(self.getNumberOfLine(self.ast.ext[index]))
                     
                     # Mapping the header of the function
-                    self.check_and_map(self.getNumberOfLine(self.ast.ext[index]))
+                    print("########", self.ast.ext[index].decl.name)
+                    self.check_and_map(self.getNumberOfLine(self.ast.ext[index]), True)
                                        
                     
                     # Check if is the main function to insert global map                                        

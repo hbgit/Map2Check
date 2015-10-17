@@ -243,8 +243,14 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     
     #result = commands.getoutput(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims)+" > "+path2NewInstFile)
     #print(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
-    #os.system(WRITE_NEW_INSTANCE+" "+cFile+" "+dataLocFunction+" "+mapFile+" "+absClaimFile+" "+str(has_claims))
-    #sys.exit()
+    # TODO - STOP -- BUG in code write_new_instance.py - 919, 1060
+    # Why the data to function map is NOT correct???
+    #print(mapFile, tmpFileGnuSkip_end)
+    
+    os.system(quote(WRITE_NEW_INSTANCE) + " " + quote(tmpFileGnuSkip_end) + " " + quote(dataLocFunction) + \
+                                " " + quote(mapFile) + " " + quote(absClaimFile) + " " + str(has_claims) + \
+                                " " + str(IS_PRE_CODE_i) + " " +  quote(_originalfilename))
+    sys.exit()
 
     result = commands.getoutput(quote(WRITE_NEW_INSTANCE) + " " + quote(tmpFileGnuSkip_end) + " " + quote(dataLocFunction) + \
                                 " " + quote(mapFile) + " " + quote(absClaimFile) + " " + str(has_claims) + \
@@ -611,8 +617,8 @@ def start_generation_cassert(cFile, enSetFunc):
     #sys.exit()
 
     # HackCode
-    os.system(quote(MAP_2_CHECK_MAP)+" "+tmpFileGnuSkip+" 1 " + TRACK_ALL)
-    sys.exit()
+    #os.system(quote(MAP_2_CHECK_MAP)+" "+tmpFileGnuSkip+" 1 " + TRACK_ALL)
+    #sys.exit()
     
     result = commands.getoutput(quote(MAP_2_CHECK_MAP)+" "+tmpFileGnuSkip+" 1 " + TRACK_ALL + " > "+quote(tmp_file_map))
     check_command_exec(result, tmp_file_map, "Generating code map in original code",0)
@@ -668,7 +674,7 @@ def start_generation_cassert(cFile, enSetFunc):
     # HackCode
     # >>> Call map2check again to get data line number after preprocessing
     #get_2st_map = commands.getoutput(MAP_2_CHECK_MAP+" "+getPreCFile+" 2")
-    #os.system(MAP_2_CHECK_MAP+" "+tmpFileGnuSkip_afterpre+" 2 " + TRACK_ALL)
+    #os.system(quote(MAP_2_CHECK_MAP)+" "+quote(tmpFileGnuSkip_afterpre)+" 2 " + TRACK_ALL)
     #sys.exit()
     get_2st_map = commands.getoutput(quote(MAP_2_CHECK_MAP)+" "+quote(tmpFileGnuSkip_afterpre)+" 2 " + TRACK_ALL)
 

@@ -270,7 +270,7 @@ def call_map2check(cFile, enReWriteResult):
     mapAstParse.mapGlobalVars()
 
     # Function  mapping OKAY
-    mapAstParse.mapEachFunction()
+    mapAstParse.mapEachFunction()    
 
     # Sorting data mapped by the line of the program
     mapAstParse.sortListMapByNumLine()
@@ -611,7 +611,9 @@ def start_generation_cassert(cFile, enSetFunc):
     #sys.exit()
 
     # HackCode
-    #result = commands.getoutput(MAP_2_CHECK_MAP+" "+cFile+" 1"+" > "+tmp_file_map)
+    os.system(quote(MAP_2_CHECK_MAP)+" "+tmpFileGnuSkip+" 1 " + TRACK_ALL)
+    sys.exit()
+    
     result = commands.getoutput(quote(MAP_2_CHECK_MAP)+" "+tmpFileGnuSkip+" 1 " + TRACK_ALL + " > "+quote(tmp_file_map))
     check_command_exec(result, tmp_file_map, "Generating code map in original code",0)
     list_tmp_path.append(tmp_file_map)

@@ -1427,7 +1427,7 @@ class ParseAstPy(pycparser.c_ast.NodeVisitor):
                     self.is_a_input_arg_function = True
                     self.map_is_arg_funct = 1
                     for eachArg in self.current_args_params_func:
-                        #print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
+                        print("ARG FUNC: ",eachArg.name, "at ",eachArg.coord)
                         self.current_compund_FLOW = self.current_compund_func
                         self.getDataFromVar(eachArg,0)
                     self.is_a_input_arg_function = False

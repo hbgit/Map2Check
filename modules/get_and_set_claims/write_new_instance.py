@@ -446,7 +446,8 @@ class ParseC2Ast2C(object):
         self.orifilename = ''
         self.ast = pycparser.c_ast
         self.ast_gen = pycparser.c_generator
-        self.current_funct = ''          
+        self.current_funct = ''   
+        self.numberargsfuct = 0       
         self.current_compund_func = pycparser.c_ast.Compound
         self.list_flow_program = [If,While,For,DoWhile,Switch,Case]
         self.flag_is_main = False
@@ -919,8 +920,8 @@ class ParseC2Ast2C(object):
     def check_and_map(self, numberOfLineCode, _isfunctheader): 
         # TODO: if is a function is need to identify this and then pass the name of the funct,
         #       cuz headers funct more than one code line
-        print(">>>", self.map_line2map)
-        print(">>>", self.map_id_func2map)
+        #print(">>>", self.map_line2map)
+        #print(">>>", self.map_id_func2map)
         
         check_next = True
         for index, numLine in enumerate(self.map_line2map):
@@ -939,11 +940,13 @@ class ParseC2Ast2C(object):
                           
                     # Test if the next line need to mapped too
                     if _isfunctheader:
-                        if self.map_id_func2map[index] == self.map_id_func2map[index+1]:
-                            index += 1
-                            check_next = True
-                        else:
-                            check_next = False
+                        self.numberargsfuct -= 1
+                    if _isfunctheader and self.numberargsfuct > 0:                        
+                        index += 1 # The next items are args from the function                        
+                        check_next = True
+                    else:
+                        check_next = False
+                    
                     
     def check_and_write_claim(self, numberOfLineCode):
         for index, numLine in enumerate(self.CL_list_line_num):
@@ -1065,14 +1068,18 @@ class ParseC2Ast2C(object):
                     self.flag_is_main = False
                     # >> Header of the function
                     #print(self.ast.ext[index].coord)  # DEBUG
-                    print(self.ast_gen.CGenerator().visit(self.ast.ext[index].decl))
+                    headerfunct = self.ast_gen.CGenerator().visit(self.ast.ext[index].decl)
+                    print(headerfunct)
+                    # Identify how many args this funct header has
+                    self.numberargsfuct = len(headerfunct.split(","))
+                    
                     print("{")
                     
                     # Write the claims if there is 
                     self.check_and_write_claim(self.getNumberOfLine(self.ast.ext[index]))
                     
                     # Mapping the header of the function
-                    print("########", self.ast.ext[index].decl.name)
+                    #print("########", self.ast.ext[index].decl.name)
                     self.check_and_map(self.getNumberOfLine(self.ast.ext[index]), True)
                                        
                     

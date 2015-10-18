@@ -247,10 +247,10 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     # Why the data to function map is NOT correct???
     #print(mapFile, tmpFileGnuSkip_end)
     
-    os.system(quote(WRITE_NEW_INSTANCE) + " " + quote(tmpFileGnuSkip_end) + " " + quote(dataLocFunction) + \
-                                " " + quote(mapFile) + " " + quote(absClaimFile) + " " + str(has_claims) + \
-                                " " + str(IS_PRE_CODE_i) + " " +  quote(_originalfilename))
-    sys.exit()
+    #os.system(quote(WRITE_NEW_INSTANCE) + " " + quote(tmpFileGnuSkip_end) + " " + quote(dataLocFunction) + \
+                                #" " + quote(mapFile) + " " + quote(absClaimFile) + " " + str(has_claims) + \
+                                #" " + str(IS_PRE_CODE_i) + " " +  quote(_originalfilename))
+    #sys.exit()
 
     result = commands.getoutput(quote(WRITE_NEW_INSTANCE) + " " + quote(tmpFileGnuSkip_end) + " " + quote(dataLocFunction) + \
                                 " " + quote(mapFile) + " " + quote(absClaimFile) + " " + str(has_claims) + \

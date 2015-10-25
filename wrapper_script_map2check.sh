@@ -16,6 +16,9 @@ path_to_map2check=/home/hrocha/ON_DEV/benchexec/Map2Check/map2check.py
 map2check_options="--complete-check 2 --graphml-output --witnesspath"
 
 
+# Memsafety cmdline property options
+error_label = 0
+
 
 while getopts "c:mh" arg; do
     case $arg in
@@ -28,7 +31,11 @@ Options:
         c)
             # Given the lack of variation in the property file... we don't
             # actually interpret it. Instead we have the same options to all
-            # tests.
+            # tests, except for the HeapReach, where we define the
+            # error labels to be ERROR.
+            if grep -q -E "LTL(G ! call(__VERIFIER_error()))" $OPTARG; then			
+            	error_label = 1
+            fi
             ;;
     esac
 done

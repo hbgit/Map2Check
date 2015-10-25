@@ -454,6 +454,7 @@ class ParseC2Ast2C(object):
         self.actual_index_ast_node = 0
         self.nextLineNumEgual = []
         self.is_precode_i = False
+        self.is_error_label = False
         
         self.FLAG_write_only_cl = False
         self.FLAG_write_only_map = False
@@ -860,7 +861,8 @@ class ParseC2Ast2C(object):
                     # Write leak assertion
                     #self.write_leak_assert(line)
                     #print(self.leakpoints_linenum)
-                    self.write_leak_assert(self.leakpoints_linenum[0])
+                    if not self.is_error_label:
+                        self.write_leak_assert(self.leakpoints_linenum[0])
                     self.leakpoints_linenum.pop(0)
 
             # Only for main function
@@ -868,7 +870,8 @@ class ParseC2Ast2C(object):
                 if type(line) == Return:
                     # Write leak assertion
                     #self.write_leak_assert(line)
-                    self.write_leak_assert(self.leakpoints_linenum[0])
+                    if not self.is_error_label:
+                        self.write_leak_assert(self.leakpoints_linenum[0])
                     self.leakpoints_linenum.pop(0)
             
             if len(self.nextLineNumEgual) > 1:
@@ -970,14 +973,16 @@ class ParseC2Ast2C(object):
             if numberOfLineCode == num and int(self.map_is_free2map[i]) == 1:
                 # write assert to union in free
                 if int(self.map_is_union2map[i]) == 1:
-                    print("assert(CHECK_OVERWRITE_ADDR((void *)(intptr_t)("+self.map_var_points_to2map[i]+"), "+\
-                    "GET_LAST_ADDR_POINTS_TO(list_LOG_mcf, (void *)&("+self.map_var2map[i]+")),"+\
-                    str(self.map_original_line_program[i])+")); /** by FORTES **/")
+                    if not self.is_error_label:
+                        print("assert(CHECK_OVERWRITE_ADDR((void *)(intptr_t)("+self.map_var_points_to2map[i]+"), "+\
+                        "GET_LAST_ADDR_POINTS_TO(list_LOG_mcf, (void *)&("+self.map_var2map[i]+")),"+\
+                        str(self.map_original_line_program[i])+")); /** by FORTES **/")
 
                 
-                # write free assertion    
-                print("assert(INVALID_FREE(list_LOG_mcf, (void *)(intptr_t)("+self.map_var_points_to2map[i]+\
-                "),"+self.map_original_line_program[i]+")); /** by FORTES **/")
+                # write free assertion 
+                if not self.is_error_label:   
+                    print("assert(INVALID_FREE(list_LOG_mcf, (void *)(intptr_t)("+self.map_var_points_to2map[i]+\
+                    "),"+self.map_original_line_program[i]+")); /** by FORTES **/")
 
             
     #def write_leak_assert(self, astNode):
@@ -1104,7 +1109,8 @@ class ParseC2Ast2C(object):
                         #self.write_leak_assert(True, self.ast.ext[index])                                            
                         #print(">>>>>>>>>>>>>>>>>>>>>>>", self.ast.ext[index].coord)
                         #self.write_leak_assert(self.ast.ext[index])
-                        self.write_leak_assert(self.leakpoints_linenum[0])
+                        if not self.is_error_label:
+                            self.write_leak_assert(self.leakpoints_linenum[0])
                         self.leakpoints_linenum.pop(0)
                         
                     print("}\n")
@@ -1160,7 +1166,7 @@ class ParseC2Ast2C(object):
 if __name__ == "__main__":  
     
     # Validate the args
-    if len(sys.argv) > 1 and len(sys.argv) <= 8:
+    if len(sys.argv) > 1 and len(sys.argv) <= 9:
         #print(len(sys.argv))
         #print(sys.argv)
         path_input_c_file = sys.argv[1]
@@ -1168,14 +1174,18 @@ if __name__ == "__main__":
         file_map = sys.argv[3]
         file_data_claims = sys.argv[4]
         has_claims = sys.argv[5]
-        is_precode_i = sys.argv[6]
-        orifilename = sys.argv[7]
+        error_label = sys.argv[6]
+        is_precode_i = sys.argv[7]
+        orifilename = sys.argv[8]
         
         runWrite = ParseC2Ast2C()
         if is_precode_i == "True":
             runWrite.is_precode_i = True
         else:
             runWrite.is_precode_i = False
+            
+        if error_label == "True":
+            runWrite.is_error_label = True
 
         runWrite.orifilename = orifilename
 

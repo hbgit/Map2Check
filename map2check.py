@@ -103,6 +103,7 @@ list_tmp_path = []
 TRACK_ALL = "0"
 GENERATE_GRAPHML = False
 WRITE_GRAPHMLOUT = write_graphml_output.WriteGraphMLOutput()
+ERROR_LABEL = False
 # -------------------------------------------------
 
 
@@ -254,6 +255,7 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
 
     result = commands.getoutput(quote(WRITE_NEW_INSTANCE) + " " + quote(tmpFileGnuSkip_end) + " " + quote(dataLocFunction) + \
                                 " " + quote(mapFile) + " " + quote(absClaimFile) + " " + str(has_claims) + \
+                                " " + str(ERROR_LABEL) + \
                                 " " + str(IS_PRE_CODE_i) + " " +  quote(_originalfilename) + " > " + quote(path2NewInstFile))
 
     check_command_exec(result, path2NewInstFile, "Writing a new instance of the analyzed code",0)
@@ -585,6 +587,7 @@ def generate_data_tokens(_cfile):
 def start_generation_cassert(cFile, enSetFunc):
     
     global FLAG_IS_CLAIM
+    global ERROR_LABEL
     global WRITE_GRAPHMLOUT
     global GENERATE_GRAPHML
     global IS_PRE_CODE_i
@@ -627,7 +630,8 @@ def start_generation_cassert(cFile, enSetFunc):
 
     # OriCode
     # >>> First get claims to save the original line number
-    getFisrtTextFileCl = get_esbmc_claims(cFile, enSetFunc) 
+    if not ERROR_LABEL:
+        getFisrtTextFileCl = get_esbmc_claims(cFile, enSetFunc) 
     #print(getFisrtTextFileCl)   
     #sys.exit()
     if FLAG_IS_CLAIM:
@@ -736,7 +740,9 @@ def start_generation_cassert(cFile, enSetFunc):
        
        
     # >>> Call get claims and add in the new instance of the program
-    # SEE: assert == 0 | CUnit == 1    
+    # SEE: assert == 0 | CUnit == 1  
+    # TODO: Identify what is the property to analyze and then decide
+    #       if translate or not the claims   
     if FLAG_IS_CLAIM:
         getPath2NewInstCFile = get_and_set_claims(getPreCFile, getDataFunction, getFinalFileMap, get_final_path_csv_file_CL, 1, cFile)
     else:
@@ -797,6 +803,8 @@ if __name__ == "__main__":
                         help='the C program file to be analyzed')
     parser.add_argument('-m','--map2checkout-to-graphml', metavar='map2checkout.tmp', type=str, dest='setMapOut2Graph',
                         help='Generating a GraphML from Map2Check output')
+    parser.add_argument('-e','--error-label', action="store_true" , dest='setErrorLabel',
+                       help='test if a error location is reached adopting the function __VERIFIER_error()', default=False)
     parser.add_argument('-f','--function', metavar='name', type=str , dest='setMainFunction',
                         help='set main function name')
     parser.add_argument('-c','--complete-check', metavar='nr', type=int, dest='setCompleteCheck',
@@ -839,6 +847,9 @@ if __name__ == "__main__":
 
 
     #-----------------------------------------------------
+    if args.setErrorLabel:
+        ERROR_LABEL = args.setErrorLabel
+        
     if args.setMapOut2Graph:
         map2checkoutpath = os.path.abspath(args.setMapOut2Graph)
         #print(inputCFile,"\n",map2checkoutpath)

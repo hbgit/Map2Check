@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?> 
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key attr.name="originFileName" attr.type="string" for="edge" id="d8" />
+  <key attr.name="tokenSet" attr.type="string" for="edge" id="d7" />
+  <key attr.name="sourcecode" attr.type="string" for="edge" id="d6" />
+  <key attr.name="assumption" attr.type="string" for="edge" id="d5" />
+  <key attr.name="originTokenSet" attr.type="string" for="edge" id="d4" />
+  <key attr.name="lineNumberInOrigin" attr.type="string" for="edge" id="d3" />
+  <key attr.name="isViolationNode" attr.type="boolean" for="node" id="d2" />
+  <key attr.name="isEntryNode" attr.type="string" for="node" id="entry" />
+  <key attr.name="sourcecodeLanguage" attr.type="string" for="graph" id="d0" />
+  <graph edgedefault="directed">
+    <data key="d0">C</data>
+    <node id="N0">
+      <data key="entry">True</data>
+    </node>
+    <node id="N1" />
+    <node id="N2" />
+    <node id="N3">
+      <data key="d2">True</data>
+    </node>
+    <edge source="N0" target="N1">
+      <data key="d3">9</data>
+      <data key="d4">31, 32, 34</data>
+      <data key="d5">a = NULL;</data>
+      <data key="d6">int
+a
+=
+1
+;
+</data>
+      <data key="d7">31, 32, 34</data>
+      <data key="d8">/home/herbert/Projects/Map2Check/verifie.c</data>
+    </edge>
+    <edge source="N1" target="N2">
+      <data key="d3">10</data>
+      <data key="d4">36, 38, 40, 42</data>
+      <data key="d8">/home/herbert/Projects/Map2Check/verifie.c</data>
+      <data key="d6">int
+*
+b
+=
+malloc
+(
+10
+)
+;
+</data>
+      <data key="d7">36, 38, 40, 42</data>
+    </edge>
+    <edge source="N2" target="N3">
+      <data key="d3">13</data>
+      <data key="d4">50</data>
+      <data key="d8">/home/herbert/Projects/Map2Check/verifie.c</data>
+      <data key="d6">__VERIFIER_error
+(
+)
+;
+</data>
+      <data key="d7">50</data>
+    </edge>
+  </graph>
+</graphml>

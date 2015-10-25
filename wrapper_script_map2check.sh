@@ -38,9 +38,8 @@ Options:
             # error labels to be ERROR.            
             error_property=`cat $OPTARG | grep -c "LTL(G ! call(__VERIFIER_error()))"`
             if [ $error_property -gt 0 ]; then			
-            	error_label=1
-            	benchmark=
-            	echo "HERE"
+            	error_label=1          	
+            	
             fi
             ;;
         w)
@@ -50,7 +49,6 @@ Options:
     esac
 done
 
-echo ${BASH_ARGV[0]}
 # Store the path to the file we're going to be checking.
 benchmark=${BASH_ARGV[0]}
 

@@ -47,16 +47,33 @@ class CheckTypeDef(NodeVisitor):
         self.check = False        
 
     def visit_Typedef(self, node):
-        self.check = True
-        ##if type(node.type) is TypeDecl:
-        viar = CheckArrayDecl()
-        viar.visit(node)
-        viptr = CheckPtrDecl()
-        viptr.visit(node)
         
-        if viar.check and viptr.check:
-            #print(node.coord)
-            self.check = True
+        if self.checkIsTypeDefFromCode(node): 
+#            print("Here")       
+            ##if type(node.type) is TypeDecl:
+            viar = CheckArrayDecl()
+            viar.visit(node)
+            viptr = CheckPtrDecl()
+            viptr.visit(node)
+            
+            if viar.check and viptr.check:
+                #print(node.coord)
+                self.check = True
+            
+    
+    def checkIsTypeDefFromCode(self, node):
+        """
+        Identify the typedef node from AST related to C program, i.e.,
+        exclude typedef from fake_libc_include/_fake_typedefs.h
+        """
+                
+        if type(node) == Typedef:                
+            matchTypeDef_Fake_typedefs = re.search(r'(fake_libc_include/_fake_typedefs.h)', str(node.coord))
+            if not matchTypeDef_Fake_typedefs:
+                print(node.coord)
+                return True
+            else:
+                return False
             
 
 

@@ -101,7 +101,8 @@ def timeout_command(command, timeout):
 
     # generating stdout list
     result_sdtout = commands.getoutput("cat "+stdout)
-    os.remove(stdout)
+    if os.path.exists(stdout):
+        os.remove(stdout)
     result_sdtout_list = result_sdtout.split("\n")
 
 
@@ -396,8 +397,9 @@ def copy_api_library(_cprogramfile):
 
 def remove_tmp_files(list_path):
     for path in list_path:
-        os.remove(path)
-        #print(path)
+        if os.path.exists(path):
+            os.remove(path)
+            #print(path)
 
 
 

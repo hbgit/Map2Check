@@ -1,0 +1,846 @@
+FileAST: 
+  Decl: __VERIFIER_error, [], ['extern'], []
+    FuncDecl: 
+      ParamList: 
+        Decl: numline, [], [], []
+          TypeDecl: numline, []
+            IdentifierType: ['int']
+      TypeDecl: __VERIFIER_error, []
+        IdentifierType: ['void']
+  Typedef: size_t, [], ['typedef']
+    TypeDecl: size_t, []
+      IdentifierType: ['int']
+  Typedef: __builtin_va_list, [], ['typedef']
+    TypeDecl: __builtin_va_list, []
+      IdentifierType: ['int']
+  Typedef: __gnuc_va_list, [], ['typedef']
+    TypeDecl: __gnuc_va_list, []
+      IdentifierType: ['int']
+  Typedef: __int8_t, [], ['typedef']
+    TypeDecl: __int8_t, []
+      IdentifierType: ['int']
+  Typedef: __uint8_t, [], ['typedef']
+    TypeDecl: __uint8_t, []
+      IdentifierType: ['int']
+  Typedef: __int16_t, [], ['typedef']
+    TypeDecl: __int16_t, []
+      IdentifierType: ['int']
+  Typedef: __uint16_t, [], ['typedef']
+    TypeDecl: __uint16_t, []
+      IdentifierType: ['int']
+  Typedef: __int_least16_t, [], ['typedef']
+    TypeDecl: __int_least16_t, []
+      IdentifierType: ['int']
+  Typedef: __uint_least16_t, [], ['typedef']
+    TypeDecl: __uint_least16_t, []
+      IdentifierType: ['int']
+  Typedef: __int32_t, [], ['typedef']
+    TypeDecl: __int32_t, []
+      IdentifierType: ['int']
+  Typedef: __uint32_t, [], ['typedef']
+    TypeDecl: __uint32_t, []
+      IdentifierType: ['int']
+  Typedef: __int_least32_t, [], ['typedef']
+    TypeDecl: __int_least32_t, []
+      IdentifierType: ['int']
+  Typedef: __uint_least32_t, [], ['typedef']
+    TypeDecl: __uint_least32_t, []
+      IdentifierType: ['int']
+  Typedef: _LOCK_T, [], ['typedef']
+    TypeDecl: _LOCK_T, []
+      IdentifierType: ['int']
+  Typedef: _LOCK_RECURSIVE_T, [], ['typedef']
+    TypeDecl: _LOCK_RECURSIVE_T, []
+      IdentifierType: ['int']
+  Typedef: _off_t, [], ['typedef']
+    TypeDecl: _off_t, []
+      IdentifierType: ['int']
+  Typedef: __dev_t, [], ['typedef']
+    TypeDecl: __dev_t, []
+      IdentifierType: ['int']
+  Typedef: __uid_t, [], ['typedef']
+    TypeDecl: __uid_t, []
+      IdentifierType: ['int']
+  Typedef: __gid_t, [], ['typedef']
+    TypeDecl: __gid_t, []
+      IdentifierType: ['int']
+  Typedef: _off64_t, [], ['typedef']
+    TypeDecl: _off64_t, []
+      IdentifierType: ['int']
+  Typedef: _fpos_t, [], ['typedef']
+    TypeDecl: _fpos_t, []
+      IdentifierType: ['int']
+  Typedef: _ssize_t, [], ['typedef']
+    TypeDecl: _ssize_t, []
+      IdentifierType: ['int']
+  Typedef: wint_t, [], ['typedef']
+    TypeDecl: wint_t, []
+      IdentifierType: ['int']
+  Typedef: _mbstate_t, [], ['typedef']
+    TypeDecl: _mbstate_t, []
+      IdentifierType: ['int']
+  Typedef: _flock_t, [], ['typedef']
+    TypeDecl: _flock_t, []
+      IdentifierType: ['int']
+  Typedef: _iconv_t, [], ['typedef']
+    TypeDecl: _iconv_t, []
+      IdentifierType: ['int']
+  Typedef: __ULong, [], ['typedef']
+    TypeDecl: __ULong, []
+      IdentifierType: ['int']
+  Typedef: __FILE, [], ['typedef']
+    TypeDecl: __FILE, []
+      IdentifierType: ['int']
+  Typedef: ptrdiff_t, [], ['typedef']
+    TypeDecl: ptrdiff_t, []
+      IdentifierType: ['int']
+  Typedef: wchar_t, [], ['typedef']
+    TypeDecl: wchar_t, []
+      IdentifierType: ['int']
+  Typedef: __off_t, [], ['typedef']
+    TypeDecl: __off_t, []
+      IdentifierType: ['int']
+  Typedef: __pid_t, [], ['typedef']
+    TypeDecl: __pid_t, []
+      IdentifierType: ['int']
+  Typedef: __loff_t, [], ['typedef']
+    TypeDecl: __loff_t, []
+      IdentifierType: ['int']
+  Typedef: u_char, [], ['typedef']
+    TypeDecl: u_char, []
+      IdentifierType: ['int']
+  Typedef: u_short, [], ['typedef']
+    TypeDecl: u_short, []
+      IdentifierType: ['int']
+  Typedef: u_int, [], ['typedef']
+    TypeDecl: u_int, []
+      IdentifierType: ['int']
+  Typedef: u_long, [], ['typedef']
+    TypeDecl: u_long, []
+      IdentifierType: ['int']
+  Typedef: ushort, [], ['typedef']
+    TypeDecl: ushort, []
+      IdentifierType: ['int']
+  Typedef: uint, [], ['typedef']
+    TypeDecl: uint, []
+      IdentifierType: ['int']
+  Typedef: clock_t, [], ['typedef']
+    TypeDecl: clock_t, []
+      IdentifierType: ['int']
+  Typedef: time_t, [], ['typedef']
+    TypeDecl: time_t, []
+      IdentifierType: ['int']
+  Typedef: daddr_t, [], ['typedef']
+    TypeDecl: daddr_t, []
+      IdentifierType: ['int']
+  Typedef: caddr_t, [], ['typedef']
+    TypeDecl: caddr_t, []
+      IdentifierType: ['int']
+  Typedef: ino_t, [], ['typedef']
+    TypeDecl: ino_t, []
+      IdentifierType: ['int']
+  Typedef: off_t, [], ['typedef']
+    TypeDecl: off_t, []
+      IdentifierType: ['int']
+  Typedef: dev_t, [], ['typedef']
+    TypeDecl: dev_t, []
+      IdentifierType: ['int']
+  Typedef: uid_t, [], ['typedef']
+    TypeDecl: uid_t, []
+      IdentifierType: ['int']
+  Typedef: gid_t, [], ['typedef']
+    TypeDecl: gid_t, []
+      IdentifierType: ['int']
+  Typedef: pid_t, [], ['typedef']
+    TypeDecl: pid_t, []
+      IdentifierType: ['int']
+  Typedef: key_t, [], ['typedef']
+    TypeDecl: key_t, []
+      IdentifierType: ['int']
+  Typedef: ssize_t, [], ['typedef']
+    TypeDecl: ssize_t, []
+      IdentifierType: ['int']
+  Typedef: mode_t, [], ['typedef']
+    TypeDecl: mode_t, []
+      IdentifierType: ['int']
+  Typedef: nlink_t, [], ['typedef']
+    TypeDecl: nlink_t, []
+      IdentifierType: ['int']
+  Typedef: fd_mask, [], ['typedef']
+    TypeDecl: fd_mask, []
+      IdentifierType: ['int']
+  Typedef: _types_fd_set, [], ['typedef']
+    TypeDecl: _types_fd_set, []
+      IdentifierType: ['int']
+  Typedef: clockid_t, [], ['typedef']
+    TypeDecl: clockid_t, []
+      IdentifierType: ['int']
+  Typedef: timer_t, [], ['typedef']
+    TypeDecl: timer_t, []
+      IdentifierType: ['int']
+  Typedef: useconds_t, [], ['typedef']
+    TypeDecl: useconds_t, []
+      IdentifierType: ['int']
+  Typedef: suseconds_t, [], ['typedef']
+    TypeDecl: suseconds_t, []
+      IdentifierType: ['int']
+  Typedef: FILE, [], ['typedef']
+    TypeDecl: FILE, []
+      IdentifierType: ['int']
+  Typedef: fpos_t, [], ['typedef']
+    TypeDecl: fpos_t, []
+      IdentifierType: ['int']
+  Typedef: cookie_read_function_t, [], ['typedef']
+    TypeDecl: cookie_read_function_t, []
+      IdentifierType: ['int']
+  Typedef: cookie_write_function_t, [], ['typedef']
+    TypeDecl: cookie_write_function_t, []
+      IdentifierType: ['int']
+  Typedef: cookie_seek_function_t, [], ['typedef']
+    TypeDecl: cookie_seek_function_t, []
+      IdentifierType: ['int']
+  Typedef: cookie_close_function_t, [], ['typedef']
+    TypeDecl: cookie_close_function_t, []
+      IdentifierType: ['int']
+  Typedef: cookie_io_functions_t, [], ['typedef']
+    TypeDecl: cookie_io_functions_t, []
+      IdentifierType: ['int']
+  Typedef: div_t, [], ['typedef']
+    TypeDecl: div_t, []
+      IdentifierType: ['int']
+  Typedef: ldiv_t, [], ['typedef']
+    TypeDecl: ldiv_t, []
+      IdentifierType: ['int']
+  Typedef: lldiv_t, [], ['typedef']
+    TypeDecl: lldiv_t, []
+      IdentifierType: ['int']
+  Typedef: sigset_t, [], ['typedef']
+    TypeDecl: sigset_t, []
+      IdentifierType: ['int']
+  Typedef: _sig_func_ptr, [], ['typedef']
+    TypeDecl: _sig_func_ptr, []
+      IdentifierType: ['int']
+  Typedef: sig_atomic_t, [], ['typedef']
+    TypeDecl: sig_atomic_t, []
+      IdentifierType: ['int']
+  Typedef: __tzrule_type, [], ['typedef']
+    TypeDecl: __tzrule_type, []
+      IdentifierType: ['int']
+  Typedef: __tzinfo_type, [], ['typedef']
+    TypeDecl: __tzinfo_type, []
+      IdentifierType: ['int']
+  Typedef: mbstate_t, [], ['typedef']
+    TypeDecl: mbstate_t, []
+      IdentifierType: ['int']
+  Typedef: sem_t, [], ['typedef']
+    TypeDecl: sem_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_t, [], ['typedef']
+    TypeDecl: pthread_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_attr_t, [], ['typedef']
+    TypeDecl: pthread_attr_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_mutex_t, [], ['typedef']
+    TypeDecl: pthread_mutex_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_mutexattr_t, [], ['typedef']
+    TypeDecl: pthread_mutexattr_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_cond_t, [], ['typedef']
+    TypeDecl: pthread_cond_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_condattr_t, [], ['typedef']
+    TypeDecl: pthread_condattr_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_key_t, [], ['typedef']
+    TypeDecl: pthread_key_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_once_t, [], ['typedef']
+    TypeDecl: pthread_once_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_rwlock_t, [], ['typedef']
+    TypeDecl: pthread_rwlock_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_rwlockattr_t, [], ['typedef']
+    TypeDecl: pthread_rwlockattr_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_spinlock_t, [], ['typedef']
+    TypeDecl: pthread_spinlock_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_barrier_t, [], ['typedef']
+    TypeDecl: pthread_barrier_t, []
+      IdentifierType: ['int']
+  Typedef: pthread_barrierattr_t, [], ['typedef']
+    TypeDecl: pthread_barrierattr_t, []
+      IdentifierType: ['int']
+  Typedef: jmp_buf, [], ['typedef']
+    TypeDecl: jmp_buf, []
+      IdentifierType: ['int']
+  Typedef: int8_t, [], ['typedef']
+    TypeDecl: int8_t, []
+      IdentifierType: ['int']
+  Typedef: uint8_t, [], ['typedef']
+    TypeDecl: uint8_t, []
+      IdentifierType: ['int']
+  Typedef: int16_t, [], ['typedef']
+    TypeDecl: int16_t, []
+      IdentifierType: ['int']
+  Typedef: uint16_t, [], ['typedef']
+    TypeDecl: uint16_t, []
+      IdentifierType: ['int']
+  Typedef: int32_t, [], ['typedef']
+    TypeDecl: int32_t, []
+      IdentifierType: ['int']
+  Typedef: uint32_t, [], ['typedef']
+    TypeDecl: uint32_t, []
+      IdentifierType: ['int']
+  Typedef: int64_t, [], ['typedef']
+    TypeDecl: int64_t, []
+      IdentifierType: ['int']
+  Typedef: uint64_t, [], ['typedef']
+    TypeDecl: uint64_t, []
+      IdentifierType: ['int']
+  Typedef: int_least8_t, [], ['typedef']
+    TypeDecl: int_least8_t, []
+      IdentifierType: ['int']
+  Typedef: uint_least8_t, [], ['typedef']
+    TypeDecl: uint_least8_t, []
+      IdentifierType: ['int']
+  Typedef: int_least16_t, [], ['typedef']
+    TypeDecl: int_least16_t, []
+      IdentifierType: ['int']
+  Typedef: uint_least16_t, [], ['typedef']
+    TypeDecl: uint_least16_t, []
+      IdentifierType: ['int']
+  Typedef: int_least32_t, [], ['typedef']
+    TypeDecl: int_least32_t, []
+      IdentifierType: ['int']
+  Typedef: uint_least32_t, [], ['typedef']
+    TypeDecl: uint_least32_t, []
+      IdentifierType: ['int']
+  Typedef: int_least64_t, [], ['typedef']
+    TypeDecl: int_least64_t, []
+      IdentifierType: ['int']
+  Typedef: uint_least64_t, [], ['typedef']
+    TypeDecl: uint_least64_t, []
+      IdentifierType: ['int']
+  Typedef: int_fast8_t, [], ['typedef']
+    TypeDecl: int_fast8_t, []
+      IdentifierType: ['int']
+  Typedef: uint_fast8_t, [], ['typedef']
+    TypeDecl: uint_fast8_t, []
+      IdentifierType: ['int']
+  Typedef: int_fast16_t, [], ['typedef']
+    TypeDecl: int_fast16_t, []
+      IdentifierType: ['int']
+  Typedef: uint_fast16_t, [], ['typedef']
+    TypeDecl: uint_fast16_t, []
+      IdentifierType: ['int']
+  Typedef: int_fast32_t, [], ['typedef']
+    TypeDecl: int_fast32_t, []
+      IdentifierType: ['int']
+  Typedef: uint_fast32_t, [], ['typedef']
+    TypeDecl: uint_fast32_t, []
+      IdentifierType: ['int']
+  Typedef: int_fast64_t, [], ['typedef']
+    TypeDecl: int_fast64_t, []
+      IdentifierType: ['int']
+  Typedef: uint_fast64_t, [], ['typedef']
+    TypeDecl: uint_fast64_t, []
+      IdentifierType: ['int']
+  Typedef: intptr_t, [], ['typedef']
+    TypeDecl: intptr_t, []
+      IdentifierType: ['int']
+  Typedef: uintptr_t, [], ['typedef']
+    TypeDecl: uintptr_t, []
+      IdentifierType: ['int']
+  Typedef: intmax_t, [], ['typedef']
+    TypeDecl: intmax_t, []
+      IdentifierType: ['int']
+  Typedef: uintmax_t, [], ['typedef']
+    TypeDecl: uintmax_t, []
+      IdentifierType: ['int']
+  Typedef: bool, [], ['typedef']
+    TypeDecl: bool, []
+      IdentifierType: ['_Bool']
+  Typedef: va_list, [], ['typedef']
+    TypeDecl: va_list, []
+      IdentifierType: ['int']
+  Decl: __VERIFIER_nondet_int, [], ['extern'], []
+    FuncDecl: 
+      ParamList: 
+        Typename: []
+          TypeDecl: None, []
+            IdentifierType: ['void']
+      TypeDecl: __VERIFIER_nondet_int, []
+        IdentifierType: ['int']
+  Typedef: list_t, [], ['typedef']
+    ArrayDecl: 
+      PtrDecl: []
+        TypeDecl: list_t, []
+          IdentifierType: ['void']
+      Constant: int, 2
+  Typedef: list_p, [], ['typedef']
+    PtrDecl: []
+      TypeDecl: list_p, []
+        IdentifierType: ['list_t']
+  Typedef: end_point_t, [], ['typedef']
+    TypeDecl: end_point_t, []
+      Enum: None
+        EnumeratorList: 
+          Enumerator: LIST_BEG
+          Enumerator: LIST_END
+  Typedef: item_t, [], ['typedef']
+    ArrayDecl: 
+      PtrDecl: []
+        TypeDecl: item_t, []
+          IdentifierType: ['void']
+      Constant: int, 2
+  Typedef: item_p, [], ['typedef']
+    PtrDecl: []
+      TypeDecl: item_p, []
+        IdentifierType: ['item_t']
+  Typedef: direction_t, [], ['typedef']
+    TypeDecl: direction_t, []
+      Enum: None
+        EnumeratorList: 
+          Enumerator: ITEM_PREV
+          Enumerator: ITEM_NEXT
+  Typedef: user_item_p, [], ['typedef']
+    PtrDecl: []
+      TypeDecl: user_item_p, []
+        Struct: None
+          Decl: head, [], [], []
+            TypeDecl: head, []
+              IdentifierType: ['item_t']
+          Decl: text, [], [], []
+            ArrayDecl: 
+              TypeDecl: text, []
+                IdentifierType: ['char']
+              BinaryOp: +
+                Constant: int, 0x100
+                Constant: int, 1
+  FuncDef: 
+    Decl: is_empty, [], [], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            TypeDecl: list, []
+              IdentifierType: ['list_p']
+        TypeDecl: is_empty, []
+          IdentifierType: ['int']
+    Compound: 
+      Decl: no_beg, [], [], []
+        TypeDecl: no_beg, []
+          IdentifierType: ['int']
+        UnaryOp: !
+          ArrayRef: 
+            UnaryOp: *
+              ID: list
+            ID: LIST_BEG
+      Decl: no_end, [], [], []
+        TypeDecl: no_end, []
+          IdentifierType: ['int']
+        UnaryOp: !
+          ArrayRef: 
+            UnaryOp: *
+              ID: list
+            ID: LIST_END
+      If: 
+        BinaryOp: !=
+          ID: no_beg
+          ID: no_end
+        FuncCall: 
+          ID: free
+          ExprList: 
+            ID: list
+      Return: 
+        ID: no_beg
+  FuncDef: 
+    Decl: create_item, [], [], []
+      FuncDecl: 
+        ParamList: 
+          Decl: at, [], [], []
+            TypeDecl: at, []
+              IdentifierType: ['end_point_t']
+          Decl: cursor, [], [], []
+            PtrDecl: []
+              TypeDecl: cursor, []
+                IdentifierType: ['item_p']
+        TypeDecl: create_item, []
+          IdentifierType: ['item_p']
+    Compound: 
+      Decl: item, [], [], []
+        TypeDecl: item, []
+          IdentifierType: ['user_item_p']
+        FuncCall: 
+          ID: malloc
+          ExprList: 
+            UnaryOp: sizeof
+              UnaryOp: *
+                ID: item
+      If: 
+        UnaryOp: !
+          ID: item
+        FuncCall: 
+          ID: abort
+      Decl: term_field, [], [], []
+        TypeDecl: term_field, []
+          IdentifierType: ['direction_t']
+      Decl: link_field, [], [], []
+        TypeDecl: link_field, []
+          IdentifierType: ['direction_t']
+      Switch: 
+        ID: at
+        Compound: 
+          Case: 
+            ID: LIST_BEG
+            Assignment: =
+              ID: link_field
+              ID: ITEM_NEXT
+            Assignment: =
+              ID: term_field
+              ID: ITEM_PREV
+            Break: 
+          Case: 
+            ID: LIST_END
+            Assignment: =
+              ID: link_field
+              ID: ITEM_PREV
+            Assignment: =
+              ID: term_field
+              ID: ITEM_NEXT
+            Break: 
+      While: 
+        BinaryOp: &&
+          BinaryOp: &&
+            UnaryOp: *
+              ID: cursor
+            ArrayRef: 
+              UnaryOp: *
+                UnaryOp: *
+                  ID: cursor
+              ID: link_field
+          FuncCall: 
+            ID: __VERIFIER_nondet_int
+        Assignment: =
+          ID: cursor
+          Cast: 
+            Typename: []
+              PtrDecl: []
+                TypeDecl: None, []
+                  IdentifierType: ['item_p']
+            UnaryOp: &
+              ArrayRef: 
+                UnaryOp: *
+                  UnaryOp: *
+                    ID: cursor
+                ID: link_field
+      Decl: link, [], [], []
+        TypeDecl: link, []
+          IdentifierType: ['item_p']
+        UnaryOp: *
+          ID: cursor
+      Assignment: =
+        ArrayRef: 
+          StructRef: ->
+            ID: item
+            ID: head
+          ID: link_field
+        ID: link
+      Assignment: =
+        ArrayRef: 
+          StructRef: ->
+            ID: item
+            ID: head
+          ID: term_field
+        TernaryOp: 
+          ID: link
+          ArrayRef: 
+            UnaryOp: *
+              ID: link
+            ID: term_field
+          Constant: int, 0
+      Assignment: =
+        ArrayRef: 
+          StructRef: ->
+            ID: item
+            ID: text
+          Constant: int, 0
+        Constant: char, '\0'
+      Decl: head, [], [], []
+        TypeDecl: head, []
+          IdentifierType: ['item_p']
+        UnaryOp: &
+          StructRef: ->
+            ID: item
+            ID: head
+      If: 
+        ID: link
+        Assignment: =
+          ArrayRef: 
+            UnaryOp: *
+              ID: link
+            ID: term_field
+          ID: head
+      Assignment: =
+        UnaryOp: *
+          ID: cursor
+        ID: head
+      Return: 
+        ID: head
+  FuncDef: 
+    Decl: append_one, [], [], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            TypeDecl: list, []
+              IdentifierType: ['list_p']
+          Decl: to, [], [], []
+            TypeDecl: to, []
+              IdentifierType: ['end_point_t']
+        TypeDecl: append_one, []
+          IdentifierType: ['void']
+    Compound: 
+      Decl: cursor, [], [], []
+        PtrDecl: []
+          TypeDecl: cursor, []
+            IdentifierType: ['item_p']
+        Cast: 
+          Typename: []
+            PtrDecl: []
+              TypeDecl: None, []
+                IdentifierType: ['item_p']
+          UnaryOp: &
+            ArrayRef: 
+              UnaryOp: *
+                ID: list
+              ID: to
+      Decl: item, [], [], []
+        TypeDecl: item, []
+          IdentifierType: ['item_p']
+        FuncCall: 
+          ID: create_item
+          ExprList: 
+            ID: to
+            ID: cursor
+      If: 
+        BinaryOp: ==
+          Constant: int, 0
+          ArrayRef: 
+            UnaryOp: *
+              ID: item
+            ID: ITEM_PREV
+        Assignment: =
+          ArrayRef: 
+            UnaryOp: *
+              ID: list
+            ID: LIST_BEG
+          ID: item
+      If: 
+        BinaryOp: ==
+          Constant: int, 0
+          ArrayRef: 
+            UnaryOp: *
+              ID: list
+            ID: ITEM_NEXT
+        Assignment: =
+          ArrayRef: 
+            UnaryOp: *
+              ID: list
+            ID: LIST_END
+          ID: item
+  FuncDef: 
+    Decl: remove_one, [], [], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            TypeDecl: list, []
+              IdentifierType: ['list_p']
+          Decl: from, [], [], []
+            TypeDecl: from, []
+              IdentifierType: ['end_point_t']
+        TypeDecl: remove_one, []
+          IdentifierType: ['void']
+    Compound: 
+      If: 
+        FuncCall: 
+          ID: is_empty
+          ExprList: 
+            ID: list
+        Return: 
+      If: 
+        BinaryOp: ==
+          ArrayRef: 
+            UnaryOp: *
+              ID: list
+            ID: LIST_BEG
+          ArrayRef: 
+            UnaryOp: *
+              ID: list
+            ID: LIST_END
+        Compound: 
+          FuncCall: 
+            ID: free
+            ExprList: 
+              ArrayRef: 
+                UnaryOp: *
+                  ID: list
+                ID: LIST_BEG
+          FuncCall: 
+            ID: memset
+            ExprList: 
+              UnaryOp: *
+                ID: list
+              Constant: int, 0
+              UnaryOp: sizeof
+                UnaryOp: *
+                  ID: list
+          Return: 
+      Decl: next_field, ['const'], [], []
+        TypeDecl: next_field, ['const']
+          IdentifierType: ['direction_t']
+        TernaryOp: 
+          BinaryOp: ==
+            ID: LIST_BEG
+            ID: from
+          ID: ITEM_NEXT
+          ID: ITEM_PREV
+      Decl: term_field, ['const'], [], []
+        TypeDecl: term_field, ['const']
+          IdentifierType: ['direction_t']
+        TernaryOp: 
+          BinaryOp: ==
+            ID: LIST_END
+            ID: from
+          ID: ITEM_NEXT
+          ID: ITEM_PREV
+      Decl: item, [], [], []
+        TypeDecl: item, []
+          IdentifierType: ['item_p']
+        ArrayRef: 
+          UnaryOp: *
+            ID: list
+          ID: from
+      Decl: next, [], [], []
+        TypeDecl: next, []
+          IdentifierType: ['item_p']
+        ArrayRef: 
+          UnaryOp: *
+            ID: item
+          ID: next_field
+      Assignment: =
+        ArrayRef: 
+          UnaryOp: *
+            ID: next
+          ID: term_field
+        Constant: int, 0
+      Assignment: =
+        ArrayRef: 
+          UnaryOp: *
+            ID: list
+          ID: from
+        ID: next
+      FuncCall: 
+        ID: free
+        ExprList: 
+          ID: item
+  FuncDef: 
+    Decl: rand_end_point, [], [], []
+      FuncDecl: 
+        ParamList: 
+          Typename: []
+            TypeDecl: None, []
+              IdentifierType: ['void']
+        TypeDecl: rand_end_point, []
+          IdentifierType: ['end_point_t']
+    Compound: 
+      If: 
+        FuncCall: 
+          ID: __VERIFIER_nondet_int
+        Return: 
+          ID: LIST_BEG
+        Return: 
+          ID: LIST_END
+  FuncDef: 
+    Decl: main, [], [], []
+      FuncDecl: 
+        TypeDecl: main, []
+          IdentifierType: ['int']
+    Compound: 
+      Decl: list, [], ['static'], []
+        TypeDecl: list, []
+          IdentifierType: ['list_t']
+      While: 
+        FuncCall: 
+          ID: __VERIFIER_nondet_int
+        Compound: 
+          While: 
+            FuncCall: 
+              ID: __VERIFIER_nondet_int
+            FuncCall: 
+              ID: append_one
+              ExprList: 
+                UnaryOp: &
+                  ID: list
+                FuncCall: 
+                  ID: rand_end_point
+          While: 
+            FuncCall: 
+              ID: __VERIFIER_nondet_int
+            FuncCall: 
+              ID: remove_one
+              ExprList: 
+                UnaryOp: &
+                  ID: list
+                FuncCall: 
+                  ID: rand_end_point
+      Decl: end_point, [], [], []
+        TypeDecl: end_point, []
+          IdentifierType: ['end_point_t']
+      Decl: direction, [], [], []
+        TypeDecl: direction, []
+          IdentifierType: ['direction_t']
+      If: 
+        FuncCall: 
+          ID: __VERIFIER_nondet_int
+        Compound: 
+          Assignment: =
+            ID: end_point
+            ID: LIST_BEG
+          Assignment: =
+            ID: direction
+            ID: ITEM_NEXT
+        Compound: 
+          Assignment: =
+            ID: end_point
+            ID: LIST_END
+          Assignment: =
+            ID: direction
+            ID: ITEM_PREV
+      Decl: cursor, [], [], []
+        TypeDecl: cursor, []
+          IdentifierType: ['item_p']
+        ArrayRef: 
+          ID: list
+          ID: end_point
+      While: 
+        ID: cursor
+        Compound: 
+          Decl: next, [], [], []
+            TypeDecl: next, []
+              IdentifierType: ['item_p']
+            ArrayRef: 
+              UnaryOp: *
+                ID: cursor
+              ID: direction
+          FuncCall: 
+            ID: free
+            ExprList: 
+              ID: cursor
+          Assignment: =
+            ID: cursor
+            ID: next
+      Return: 
+        Constant: int, 0

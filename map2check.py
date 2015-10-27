@@ -10,6 +10,7 @@
 from __future__ import print_function
 from modules.traceoutput.graphml import write_graphml_output
 from modules.points2leak import identify_points2leak
+from modules.not_supported import block_check
 
 FRAMEWORK_VERSION = 'Map2Check_FORTES-v5'
 
@@ -592,6 +593,7 @@ def start_generation_cassert(cFile, enSetFunc):
     global GENERATE_GRAPHML
     global IS_PRE_CODE_i
         
+    
     # >>> First map to save the original line number    
     tmp_file_map = DIR_RESULT_CLAIMS+"/tmp_file_map.1st"
 
@@ -605,7 +607,14 @@ def start_generation_cassert(cFile, enSetFunc):
     commands.getoutput(quote(GNU_SKIP_SCRIPT) + " " + quote(cFile) + " 2>&1 > " + tmpFileGnuSkip)
     list_tmp_path.append(tmpFileGnuSkip)
 
+    #TODO: Identify structures not supported by the tool    
+    runblock = block_check.IdentifyNotSupported(tmpFileGnuSkip)
+    runblock.identify_structures_stop()
+    if runblock.check:
+        check_command_exec(runblock.check, None, "Structures not supported",0)
+    #sys.exit()
 
+    
     # Generating possible leaks points in the program
     # the result is save in /tmp/tmp_leakpoints.map2check
     runind = identify_points2leak.IdentifyLeakPoints(tmpFileGnuSkip)

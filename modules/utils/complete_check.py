@@ -301,7 +301,7 @@ def only_generate_code(cProgram):
     #Save result in file
     writenewcode = open(new_c_program_name, "w")
     for line in process.stdout.readlines():
-        writenewcode.write(line)
+        writenewcode.write(line)        
     writenewcode.close()
 
 

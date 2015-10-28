@@ -608,13 +608,13 @@ def start_generation_cassert(cFile, enSetFunc):
     list_tmp_path.append(tmpFileGnuSkip)
 
     #TODO: Identify structures not supported by the tool    
-    os.system("cat "+tmpFileGnuSkip)
-    sys.exit()
     runblock = block_check.IdentifyNotSupported(tmpFileGnuSkip)
     runblock.identify_structures_stop()
+    #sys.exit()
     if runblock.check:
         check_command_exec(runblock.check, None, "Structures not supported",0)
-    #
+        
+    
 
     
     # Generating possible leaks points in the program

@@ -808,8 +808,8 @@ def start_generation_cunit_assert(cFile,enSetFunc):
 if __name__ == "__main__":    
     
     ############# Parse args options
-    parser = argparse.ArgumentParser(description='Run Map2Check v5')
-    parser.add_argument('-v','--version', action='version' , version="version 5")
+    parser = argparse.ArgumentParser(description='Run Map2Check v6')
+    parser.add_argument('-v','--version', action='version' , version="version 6")
     parser.add_argument(dest='inputCProgram', metavar='file.c or file.i', type=str,
                         help='the C program file to be analyzed')
     parser.add_argument('-m','--map2checkout-to-graphml', metavar='map2checkout.tmp', type=str, dest='setMapOut2Graph',

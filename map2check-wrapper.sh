@@ -17,7 +17,9 @@ map2check_options="--complete-check 2 --graphml-output --witnesspath"
 
 # Store the path to the files
 benchmark=""
-ABS_PATH=`cd "."; pwd`
+#ABS_PATH=`cd "."; pwd`
+pathmap=`readlink -f $path_to_map2check`
+ABS_PATH=`dirname $pathmap`
 witnessdir=$ABS_PATH"/graphml"
 if [ ! -d "$witnessdir" ]; then
   mkdir $witnessdir
@@ -37,11 +39,13 @@ Options:
 }
 
 
+validop=0
 while [ "$1" != "" ]; do
     case $1 in
         -c | --property-file )           
-            shift
+            shift            
             propfile=$1
+            validop=1
             # Given the lack of variation in the property file... we don't
             # actually interpret it. Instead we have the same options to all
             # tests, except for the HeapReach, where we define the
@@ -55,6 +59,7 @@ while [ "$1" != "" ]; do
         -v | --version )    
             versiontool=`$path_to_map2check --version`
             echo $versiontool
+            validop=1
             exit        
             ;;
         -h | --help )
@@ -62,8 +67,10 @@ while [ "$1" != "" ]; do
             exit
             ;;
         * )                     
-            usage
-            exit 1
+            if [ $validop -eq 0 ]; then 
+                usage
+                exit 1
+            fi            
     esac
     shift
 done

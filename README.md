@@ -82,24 +82,27 @@ For help and others options:
 
 ===========================
 
-<b> Instructions for SV-COMP'15 </b>
+<b> Instructions for SV-COMP'16 </b>
 
-Use the 'wrapper_script_map2check.sh' script in the installation directory to verify each single test-case. 
+Use the 'map2check-wrapper.sh' script in the installation directory to verify each single test-case. 
 In the script it is necessary to setup the path to the Map2Check tool in the variable <b>path_to_map2check</b>. 
 
 Example: 
  
-> path_to_map2check=/mnt/Docs/Map2Check/vn5i/Map2Check/map2check.py
+> path_to_map2check=/mnt/Docs/Map2Check/vn6i/Map2Check/map2check.py
 
 Usage: 
 
-> $ ./wrapper_script_map2check.sh \<path/to/test-case.i\> \<path/to/witnessfile.graphml\>
+> $ ./wrapper_script_map2check.sh -c propertyFile.prp file.i.
 
 <p align="justify">
-The verification result (<b> TRUE, FALSE(p), or UNKNOWN </b>) will be printed to
-standard output. FALSE(p), with p in {valid-free, valid-deref, valid-memtrack}, means that the (partial) 
-property p is violated. If the sourcefile contains a bug and the tool returns FALSE (Error
-found) is dumped the witness into the given file (path/to/witnessfile.graphml). 
+Map2Check accepts the property file and the verification task and provides as verification result:
+<b>FALSE(p) + Witness</b> or <b>UNKNOWN</b>. 
+FALSE(p), with p in {valid-free, valid-deref, valid-memtrack}, means that the (partial) 
+property p is violated. 
+For each error-path, a file that contains the violation
+path is generated in Map2Check root-path graphml folder; this file has the same name
+of the verification task with the extension </b>graphml</b>.
 There is timeout of 895 seconds set by this script, using "timeout" tool that is part of coreutils 
 on debian and fedora. If these constraints are violated, it should be treated as UNKNOWN result. 
 </p>

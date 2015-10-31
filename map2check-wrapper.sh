@@ -17,13 +17,18 @@ map2check_options="--complete-check 2 --graphml-output --witnesspath"
 
 # Store the path to the files
 benchmark=""
+ABS_PATH=`cd "."; pwd`
+witnessdir=$ABS_PATH"/graphml"
+if [ ! -d "$witnessdir" ]; then
+  mkdir $witnessdir
+fi
 witnesspath=""
 
 # Memsafety cmdline property options
 error_label=0
 
 
-while getopts "c:mw:h" arg; do
+while getopts "c:mh" arg; do
     case $arg in
         h)
             echo "Usage: $0 [options] path_to_benchmark
@@ -42,15 +47,15 @@ Options:
             	
             fi
             ;;
-        w)
-			# Store the path to the file to write the witness if the sourcefile
-			# contains a bug and the tool returns False (Error found)
-			witnesspath=$OPTARG
     esac
 done
 
 # Store the path to the file we're going to be checking.
 benchmark=${BASH_ARGV[0]}
+# Store the path to the file to write the witness if the sourcefile
+# contains a bug and the tool returns False (Error found)
+name=$(basename "$benchmark")
+witnesspath=$witnessdir"/"`echo $name | sed -e "s/.c\|.i/.graphml/g"`
 
 
 if test "${benchmark}" = ""; then

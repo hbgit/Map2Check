@@ -1005,7 +1005,7 @@ if __name__ == "__main__":
                 name_file_result = commands.getoutput("mktemp")
 
                 if args.setWitnessPath:
-                    pathfile_graphml = os.path.abspath(args.setWitnessPath)
+                    pathfile_graphml = os.path.abspath(args.setWitnessPath)                    
                     lastoutput = open(str(pathfile_graphml), "w")
                     lastoutput.write(WRITE_GRAPHMLOUT.generate_graphml())
                     lastoutput.close()

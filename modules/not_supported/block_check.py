@@ -74,6 +74,7 @@ class CheckPtrx2(NodeVisitor):
                             if type(i.type.type) is PtrDecl:
                                 self.check = True                                
                                 line = self.getNumberOfLine(i.coord)
+                                print(node.type, node.coord, node.quals)
                                 self.list_line_ptrs.append(int(line))
                                 
         #linenum = self.getNumberOfLine(node.coord)
@@ -156,16 +157,16 @@ class IdentifyNotSupported(object):
             else:
                 self.check = False
                 
-        vip = CheckPtrx2()
-        # Pointer to pointer is NOT COMPLETE supported
-        for index in range(0,len(ast.ext)):                                     
-            vip.visit(ast.ext[index])
-            if vip.check:                
-                self.check = vip.check
-                #break
-                return self.check
-            else:
-                self.check = False
+        #vip = CheckPtrx2()
+        ## Pointer to pointer is NOT COMPLETE supported
+        #for index in range(0,len(ast.ext)):                                     
+            #vip.visit(ast.ext[index])
+            #if vip.check:                
+                #self.check = vip.check
+                ##break
+                #return self.check
+            #else:
+                #self.check = False
                 
         
 

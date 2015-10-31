@@ -45,6 +45,43 @@ class CheckArrayDecl(NodeVisitor):
         #print("---------", node.coord)
 
 
+class CheckPtrx2(NodeVisitor):
+    # Ptr to ptr
+    def __init__(self):
+        self.linenum = 0
+        self.check = False
+        self.list_line_ptrs = []
+        
+    
+    @staticmethod
+    def getNumberOfLine(nodecoord):
+        #print(nodeVar)
+        txt = str(nodecoord)
+        matchNumLine = re.search(r'(.[^:]+)$', txt)
+        if matchNumLine:
+            onlyNumber = matchNumLine.group(1).replace(":","")
+            return onlyNumber
+
+    def visit_Decl(self, node):
+        
+        #print(node.type, node.coord, node.quals)
+        
+        if type(node.type) is FuncDecl:
+            if type(node.type.args) is not type(None):
+                if type(node.type.args.params) is not type(None):
+                    for i in node.type.args.params:
+                        if type(i.type) is PtrDecl:
+                            if type(i.type.type) is PtrDecl:
+                                self.check = True                                
+                                line = self.getNumberOfLine(i.coord)
+                                self.list_line_ptrs.append(int(line))
+                                
+        #linenum = self.getNumberOfLine(node.coord)
+        #self.list_line_ptrs.append(linenum)
+        
+        
+
+
 class CheckTypeDef(NodeVisitor):
     def __init__(self):
         self.linenum = 0
@@ -114,6 +151,17 @@ class IdentifyNotSupported(object):
             vi.visit(ast.ext[index])
             if vi.check:                
                 self.check = vi.check
+                #break
+                return self.check
+            else:
+                self.check = False
+                
+        vip = CheckPtrx2()
+        # Pointer to pointer is NOT COMPLETE supported
+        for index in range(0,len(ast.ext)):                                     
+            vip.visit(ast.ext[index])
+            if vip.check:                
+                self.check = vip.check
                 #break
                 return self.check
             else:

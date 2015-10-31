@@ -610,6 +610,7 @@ def start_generation_cassert(cFile, enSetFunc):
     #TODO: Identify structures not supported by the tool    
     runblock = block_check.IdentifyNotSupported(tmpFileGnuSkip)
     runblock.identify_structures_stop()
+    #print(runblock.check)
     #sys.exit()
     if runblock.check:
         check_command_exec(runblock.check, None, "Structures not supported",0)

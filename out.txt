@@ -367,6 +367,39 @@ FileAST:
   Typedef: va_list, [], ['typedef']
     TypeDecl: va_list, []
       IdentifierType: ['int']
+  FuncDef: 
+    Decl: calloc_model, [], ['static'], []
+      FuncDecl: 
+        ParamList: 
+          Decl: nmemb, [], [], []
+            TypeDecl: nmemb, []
+              IdentifierType: ['size_t']
+          Decl: size, [], [], []
+            TypeDecl: size, []
+              IdentifierType: ['size_t']
+        PtrDecl: []
+          TypeDecl: calloc_model, []
+            IdentifierType: ['void']
+    Compound: 
+      Decl: ptr, [], [], []
+        PtrDecl: []
+          TypeDecl: ptr, []
+            IdentifierType: ['void']
+        FuncCall: 
+          ID: malloc
+          ExprList: 
+            BinaryOp: *
+              ID: nmemb
+              ID: size
+      Return: 
+        FuncCall: 
+          ID: memset
+          ExprList: 
+            ID: ptr
+            Constant: int, 0
+            BinaryOp: *
+              ID: nmemb
+              ID: size
   Decl: __VERIFIER_nondet_int, [], ['extern'], []
     FuncDecl: 
       ParamList: 
@@ -375,394 +408,460 @@ FileAST:
             IdentifierType: ['void']
       TypeDecl: __VERIFIER_nondet_int, []
         IdentifierType: ['int']
-  Typedef: list_t, [], ['typedef']
-    ArrayDecl: 
-      PtrDecl: []
-        TypeDecl: list_t, []
-          IdentifierType: ['void']
-      Constant: int, 2
-  Typedef: list_p, [], ['typedef']
-    PtrDecl: []
-      TypeDecl: list_p, []
-        IdentifierType: ['list_t']
-  Typedef: end_point_t, [], ['typedef']
-    TypeDecl: end_point_t, []
-      Enum: None
-        EnumeratorList: 
-          Enumerator: LIST_BEG
-          Enumerator: LIST_END
-  Typedef: item_t, [], ['typedef']
-    ArrayDecl: 
-      PtrDecl: []
-        TypeDecl: item_t, []
-          IdentifierType: ['void']
-      Constant: int, 2
-  Typedef: item_p, [], ['typedef']
-    PtrDecl: []
-      TypeDecl: item_p, []
-        IdentifierType: ['item_t']
-  Typedef: direction_t, [], ['typedef']
-    TypeDecl: direction_t, []
-      Enum: None
-        EnumeratorList: 
-          Enumerator: ITEM_PREV
-          Enumerator: ITEM_NEXT
-  Typedef: user_item_p, [], ['typedef']
-    PtrDecl: []
-      TypeDecl: user_item_p, []
-        Struct: None
-          Decl: head, [], [], []
-            TypeDecl: head, []
-              IdentifierType: ['item_t']
-          Decl: text, [], [], []
-            ArrayDecl: 
-              TypeDecl: text, []
-                IdentifierType: ['char']
-              BinaryOp: +
-                Constant: int, 0x100
-                Constant: int, 1
+  Decl: None, [], [], []
+    Struct: L4
+      Decl: next, [], [], []
+        PtrDecl: []
+          TypeDecl: next, []
+            Struct: L4
+      Decl: down, [], [], []
+        PtrDecl: []
+          TypeDecl: down, []
+            Struct: L5
+  Decl: None, [], [], []
+    Struct: L3
+      Decl: down, [], [], []
+        PtrDecl: []
+          TypeDecl: down, []
+            Struct: L4
+      Decl: next, [], [], []
+        PtrDecl: []
+          TypeDecl: next, []
+            Struct: L3
+  Decl: None, [], [], []
+    Struct: L2
+      Decl: next, [], [], []
+        PtrDecl: []
+          TypeDecl: next, []
+            Struct: L2
+      Decl: down, [], [], []
+        PtrDecl: []
+          TypeDecl: down, []
+            Struct: L3
+  Decl: None, [], [], []
+    Struct: L1
+      Decl: down, [], [], []
+        PtrDecl: []
+          TypeDecl: down, []
+            Struct: L2
+      Decl: next, [], [], []
+        PtrDecl: []
+          TypeDecl: next, []
+            Struct: L1
+  Decl: None, [], [], []
+    Struct: L0
+      Decl: next, [], [], []
+        PtrDecl: []
+          TypeDecl: next, []
+            Struct: L0
+      Decl: down, [], [], []
+        PtrDecl: []
+          TypeDecl: down, []
+            Struct: L1
   FuncDef: 
-    Decl: is_empty, [], [], []
+    Decl: zalloc_or_die, [], ['static'], []
+      FuncDecl: 
+        ParamList: 
+          Decl: size, [], [], []
+            TypeDecl: size, []
+              IdentifierType: ['unsigned']
+        PtrDecl: []
+          TypeDecl: zalloc_or_die, []
+            IdentifierType: ['void']
+    Compound: 
+      Decl: ptr, [], [], []
+        PtrDecl: []
+          TypeDecl: ptr, []
+            IdentifierType: ['void']
+        FuncCall: 
+          ID: calloc_model
+          ExprList: 
+            Constant: int, 1U
+            ID: size
+      If: 
+        ID: ptr
+        Return: 
+          ID: ptr
+      FuncCall: 
+        ID: abort
+  FuncDef: 
+    Decl: l4_insert, [], ['static'], []
       FuncDecl: 
         ParamList: 
           Decl: list, [], [], []
-            TypeDecl: list, []
-              IdentifierType: ['list_p']
-        TypeDecl: is_empty, []
-          IdentifierType: ['int']
-    Compound: 
-      Decl: no_beg, [], [], []
-        TypeDecl: no_beg, []
-          IdentifierType: ['int']
-        UnaryOp: !
-          ArrayRef: 
-            UnaryOp: *
-              ID: list
-            ID: LIST_BEG
-      Decl: no_end, [], [], []
-        TypeDecl: no_end, []
-          IdentifierType: ['int']
-        UnaryOp: !
-          ArrayRef: 
-            UnaryOp: *
-              ID: list
-            ID: LIST_END
-      If: 
-        BinaryOp: !=
-          ID: no_beg
-          ID: no_end
-        FuncCall: 
-          ID: free
-          ExprList: 
-            ID: list
-      Return: 
-        ID: no_beg
-  FuncDef: 
-    Decl: create_item, [], [], []
-      FuncDecl: 
-        ParamList: 
-          Decl: at, [], [], []
-            TypeDecl: at, []
-              IdentifierType: ['end_point_t']
-          Decl: cursor, [], [], []
             PtrDecl: []
-              TypeDecl: cursor, []
-                IdentifierType: ['item_p']
-        TypeDecl: create_item, []
-          IdentifierType: ['item_p']
+              PtrDecl: []
+                TypeDecl: list, []
+                  Struct: L4
+        TypeDecl: l4_insert, []
+          IdentifierType: ['void']
     Compound: 
       Decl: item, [], [], []
-        TypeDecl: item, []
-          IdentifierType: ['user_item_p']
+        PtrDecl: []
+          TypeDecl: item, []
+            Struct: L4
         FuncCall: 
-          ID: malloc
+          ID: zalloc_or_die
           ExprList: 
             UnaryOp: sizeof
               UnaryOp: *
                 ID: item
-      If: 
-        UnaryOp: !
+      Assignment: =
+        StructRef: ->
           ID: item
+          ID: down
         FuncCall: 
-          ID: abort
-      Decl: term_field, [], [], []
-        TypeDecl: term_field, []
-          IdentifierType: ['direction_t']
-      Decl: link_field, [], [], []
-        TypeDecl: link_field, []
-          IdentifierType: ['direction_t']
-      Switch: 
-        ID: at
-        Compound: 
-          Case: 
-            ID: LIST_BEG
-            Assignment: =
-              ID: link_field
-              ID: ITEM_NEXT
-            Assignment: =
-              ID: term_field
-              ID: ITEM_PREV
-            Break: 
-          Case: 
-            ID: LIST_END
-            Assignment: =
-              ID: link_field
-              ID: ITEM_PREV
-            Assignment: =
-              ID: term_field
-              ID: ITEM_NEXT
-            Break: 
-      While: 
-        BinaryOp: &&
-          BinaryOp: &&
-            UnaryOp: *
-              ID: cursor
-            ArrayRef: 
-              UnaryOp: *
-                UnaryOp: *
-                  ID: cursor
-              ID: link_field
-          FuncCall: 
-            ID: __VERIFIER_nondet_int
-        Assignment: =
-          ID: cursor
-          Cast: 
-            Typename: []
-              PtrDecl: []
-                TypeDecl: None, []
-                  IdentifierType: ['item_p']
-            UnaryOp: &
-              ArrayRef: 
-                UnaryOp: *
-                  UnaryOp: *
-                    ID: cursor
-                ID: link_field
-      Decl: link, [], [], []
-        TypeDecl: link, []
-          IdentifierType: ['item_p']
+          ID: zalloc_or_die
+          ExprList: 
+            Constant: int, 119U
+      Assignment: =
+        StructRef: ->
+          ID: item
+          ID: next
         UnaryOp: *
-          ID: cursor
-      Assignment: =
-        ArrayRef: 
-          StructRef: ->
-            ID: item
-            ID: head
-          ID: link_field
-        ID: link
-      Assignment: =
-        ArrayRef: 
-          StructRef: ->
-            ID: item
-            ID: head
-          ID: term_field
-        TernaryOp: 
-          ID: link
-          ArrayRef: 
-            UnaryOp: *
-              ID: link
-            ID: term_field
-          Constant: int, 0
-      Assignment: =
-        ArrayRef: 
-          StructRef: ->
-            ID: item
-            ID: text
-          Constant: int, 0
-        Constant: char, '\0'
-      Decl: head, [], [], []
-        TypeDecl: head, []
-          IdentifierType: ['item_p']
-        UnaryOp: &
-          StructRef: ->
-            ID: item
-            ID: head
-      If: 
-        ID: link
-        Assignment: =
-          ArrayRef: 
-            UnaryOp: *
-              ID: link
-            ID: term_field
-          ID: head
+          ID: list
       Assignment: =
         UnaryOp: *
-          ID: cursor
-        ID: head
-      Return: 
-        ID: head
+          ID: list
+        ID: item
   FuncDef: 
-    Decl: append_one, [], [], []
+    Decl: l3_insert, [], ['static'], []
       FuncDecl: 
         ParamList: 
           Decl: list, [], [], []
-            TypeDecl: list, []
-              IdentifierType: ['list_p']
-          Decl: to, [], [], []
-            TypeDecl: to, []
-              IdentifierType: ['end_point_t']
-        TypeDecl: append_one, []
-          IdentifierType: ['void']
-    Compound: 
-      Decl: cursor, [], [], []
-        PtrDecl: []
-          TypeDecl: cursor, []
-            IdentifierType: ['item_p']
-        Cast: 
-          Typename: []
             PtrDecl: []
-              TypeDecl: None, []
-                IdentifierType: ['item_p']
-          UnaryOp: &
-            ArrayRef: 
-              UnaryOp: *
-                ID: list
-              ID: to
+              PtrDecl: []
+                TypeDecl: list, []
+                  Struct: L3
+        TypeDecl: l3_insert, []
+          IdentifierType: ['void']
+    Compound: 
       Decl: item, [], [], []
-        TypeDecl: item, []
-          IdentifierType: ['item_p']
+        PtrDecl: []
+          TypeDecl: item, []
+            Struct: L3
         FuncCall: 
-          ID: create_item
+          ID: zalloc_or_die
           ExprList: 
-            ID: to
-            ID: cursor
-      If: 
-        BinaryOp: ==
-          Constant: int, 0
-          ArrayRef: 
-            UnaryOp: *
-              ID: item
-            ID: ITEM_PREV
-        Assignment: =
-          ArrayRef: 
-            UnaryOp: *
-              ID: list
-            ID: LIST_BEG
+            UnaryOp: sizeof
+              UnaryOp: *
+                ID: item
+      DoWhile: 
+        FuncCall: 
+          ID: __VERIFIER_nondet_int
+        FuncCall: 
+          ID: l4_insert
+          ExprList: 
+            UnaryOp: &
+              StructRef: ->
+                ID: item
+                ID: down
+      Assignment: =
+        StructRef: ->
           ID: item
-      If: 
-        BinaryOp: ==
-          Constant: int, 0
-          ArrayRef: 
-            UnaryOp: *
-              ID: list
-            ID: ITEM_NEXT
-        Assignment: =
-          ArrayRef: 
-            UnaryOp: *
-              ID: list
-            ID: LIST_END
-          ID: item
+          ID: next
+        UnaryOp: *
+          ID: list
+      Assignment: =
+        UnaryOp: *
+          ID: list
+        ID: item
   FuncDef: 
-    Decl: remove_one, [], [], []
+    Decl: l2_insert, [], ['static'], []
       FuncDecl: 
         ParamList: 
           Decl: list, [], [], []
-            TypeDecl: list, []
-              IdentifierType: ['list_p']
-          Decl: from, [], [], []
-            TypeDecl: from, []
-              IdentifierType: ['end_point_t']
-        TypeDecl: remove_one, []
+            PtrDecl: []
+              PtrDecl: []
+                TypeDecl: list, []
+                  Struct: L2
+        TypeDecl: l2_insert, []
           IdentifierType: ['void']
     Compound: 
-      If: 
+      Decl: item, [], [], []
+        PtrDecl: []
+          TypeDecl: item, []
+            Struct: L2
         FuncCall: 
-          ID: is_empty
+          ID: zalloc_or_die
           ExprList: 
-            ID: list
-        Return: 
-      If: 
-        BinaryOp: ==
-          ArrayRef: 
-            UnaryOp: *
-              ID: list
-            ID: LIST_BEG
-          ArrayRef: 
-            UnaryOp: *
-              ID: list
-            ID: LIST_END
+            UnaryOp: sizeof
+              UnaryOp: *
+                ID: item
+      DoWhile: 
+        FuncCall: 
+          ID: __VERIFIER_nondet_int
+        FuncCall: 
+          ID: l3_insert
+          ExprList: 
+            UnaryOp: &
+              StructRef: ->
+                ID: item
+                ID: down
+      Assignment: =
+        StructRef: ->
+          ID: item
+          ID: next
+        UnaryOp: *
+          ID: list
+      Assignment: =
+        UnaryOp: *
+          ID: list
+        ID: item
+  FuncDef: 
+    Decl: l1_insert, [], ['static'], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            PtrDecl: []
+              PtrDecl: []
+                TypeDecl: list, []
+                  Struct: L1
+        TypeDecl: l1_insert, []
+          IdentifierType: ['void']
+    Compound: 
+      Decl: item, [], [], []
+        PtrDecl: []
+          TypeDecl: item, []
+            Struct: L1
+        FuncCall: 
+          ID: zalloc_or_die
+          ExprList: 
+            UnaryOp: sizeof
+              UnaryOp: *
+                ID: item
+      DoWhile: 
+        FuncCall: 
+          ID: __VERIFIER_nondet_int
+        FuncCall: 
+          ID: l2_insert
+          ExprList: 
+            UnaryOp: &
+              StructRef: ->
+                ID: item
+                ID: down
+      Assignment: =
+        StructRef: ->
+          ID: item
+          ID: next
+        UnaryOp: *
+          ID: list
+      Assignment: =
+        UnaryOp: *
+          ID: list
+        ID: item
+  FuncDef: 
+    Decl: l0_insert, [], ['static'], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            PtrDecl: []
+              PtrDecl: []
+                TypeDecl: list, []
+                  Struct: L0
+        TypeDecl: l0_insert, []
+          IdentifierType: ['void']
+    Compound: 
+      Decl: item, [], [], []
+        PtrDecl: []
+          TypeDecl: item, []
+            Struct: L0
+        FuncCall: 
+          ID: zalloc_or_die
+          ExprList: 
+            UnaryOp: sizeof
+              UnaryOp: *
+                ID: item
+      DoWhile: 
+        FuncCall: 
+          ID: __VERIFIER_nondet_int
+        FuncCall: 
+          ID: l1_insert
+          ExprList: 
+            UnaryOp: &
+              StructRef: ->
+                ID: item
+                ID: down
+      Assignment: =
+        StructRef: ->
+          ID: item
+          ID: next
+        UnaryOp: *
+          ID: list
+      Assignment: =
+        UnaryOp: *
+          ID: list
+        ID: item
+  FuncDef: 
+    Decl: l4_destroy, [], ['static'], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            PtrDecl: []
+              TypeDecl: list, []
+                Struct: L4
+        TypeDecl: l4_destroy, []
+          IdentifierType: ['void']
+    Compound: 
+      DoWhile: 
+        ID: list
         Compound: 
           FuncCall: 
             ID: free
             ExprList: 
-              ArrayRef: 
-                UnaryOp: *
-                  ID: list
-                ID: LIST_BEG
-          FuncCall: 
-            ID: memset
-            ExprList: 
-              UnaryOp: *
+              StructRef: ->
                 ID: list
-              Constant: int, 0
-              UnaryOp: sizeof
-                UnaryOp: *
-                  ID: list
-          Return: 
-      Decl: next_field, ['const'], [], []
-        TypeDecl: next_field, ['const']
-          IdentifierType: ['direction_t']
-        TernaryOp: 
-          BinaryOp: ==
-            ID: LIST_BEG
-            ID: from
-          ID: ITEM_NEXT
-          ID: ITEM_PREV
-      Decl: term_field, ['const'], [], []
-        TypeDecl: term_field, ['const']
-          IdentifierType: ['direction_t']
-        TernaryOp: 
-          BinaryOp: ==
-            ID: LIST_END
-            ID: from
-          ID: ITEM_NEXT
-          ID: ITEM_PREV
-      Decl: item, [], [], []
-        TypeDecl: item, []
-          IdentifierType: ['item_p']
-        ArrayRef: 
-          UnaryOp: *
+                ID: down
+          Decl: next, [], [], []
+            PtrDecl: []
+              TypeDecl: next, []
+                Struct: L4
+            StructRef: ->
+              ID: list
+              ID: next
+          FuncCall: 
+            ID: free
+            ExprList: 
+              ID: list
+          Assignment: =
             ID: list
-          ID: from
-      Decl: next, [], [], []
-        TypeDecl: next, []
-          IdentifierType: ['item_p']
-        ArrayRef: 
-          UnaryOp: *
-            ID: item
-          ID: next_field
-      Assignment: =
-        ArrayRef: 
-          UnaryOp: *
             ID: next
-          ID: term_field
-        Constant: int, 0
-      Assignment: =
-        ArrayRef: 
-          UnaryOp: *
-            ID: list
-          ID: from
-        ID: next
-      FuncCall: 
-        ID: free
-        ExprList: 
-          ID: item
   FuncDef: 
-    Decl: rand_end_point, [], [], []
+    Decl: l3_destroy, [], ['static'], []
       FuncDecl: 
         ParamList: 
-          Typename: []
-            TypeDecl: None, []
-              IdentifierType: ['void']
-        TypeDecl: rand_end_point, []
-          IdentifierType: ['end_point_t']
+          Decl: list, [], [], []
+            PtrDecl: []
+              TypeDecl: list, []
+                Struct: L3
+        TypeDecl: l3_destroy, []
+          IdentifierType: ['void']
     Compound: 
-      If: 
-        FuncCall: 
-          ID: __VERIFIER_nondet_int
-        Return: 
-          ID: LIST_BEG
-        Return: 
-          ID: LIST_END
+      DoWhile: 
+        ID: list
+        Compound: 
+          FuncCall: 
+            ID: l4_destroy
+            ExprList: 
+              StructRef: ->
+                ID: list
+                ID: down
+          Decl: next, [], [], []
+            PtrDecl: []
+              TypeDecl: next, []
+                Struct: L3
+            StructRef: ->
+              ID: list
+              ID: next
+          FuncCall: 
+            ID: free
+            ExprList: 
+              ID: list
+          Assignment: =
+            ID: list
+            ID: next
+  FuncDef: 
+    Decl: l2_destroy, [], ['static'], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            PtrDecl: []
+              TypeDecl: list, []
+                Struct: L2
+        TypeDecl: l2_destroy, []
+          IdentifierType: ['void']
+    Compound: 
+      DoWhile: 
+        ID: list
+        Compound: 
+          FuncCall: 
+            ID: l3_destroy
+            ExprList: 
+              StructRef: ->
+                ID: list
+                ID: down
+          Decl: next, [], [], []
+            PtrDecl: []
+              TypeDecl: next, []
+                Struct: L2
+            StructRef: ->
+              ID: list
+              ID: next
+          FuncCall: 
+            ID: free
+            ExprList: 
+              ID: list
+          Assignment: =
+            ID: list
+            ID: next
+  FuncDef: 
+    Decl: l1_destroy, [], ['static'], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            PtrDecl: []
+              TypeDecl: list, []
+                Struct: L1
+        TypeDecl: l1_destroy, []
+          IdentifierType: ['void']
+    Compound: 
+      DoWhile: 
+        ID: list
+        Compound: 
+          FuncCall: 
+            ID: l2_destroy
+            ExprList: 
+              StructRef: ->
+                ID: list
+                ID: down
+          Decl: next, [], [], []
+            PtrDecl: []
+              TypeDecl: next, []
+                Struct: L1
+            StructRef: ->
+              ID: list
+              ID: next
+          FuncCall: 
+            ID: free
+            ExprList: 
+              ID: list
+          Assignment: =
+            ID: list
+            ID: next
+  FuncDef: 
+    Decl: l0_destroy, [], ['static'], []
+      FuncDecl: 
+        ParamList: 
+          Decl: list, [], [], []
+            PtrDecl: []
+              TypeDecl: list, []
+                Struct: L0
+        TypeDecl: l0_destroy, []
+          IdentifierType: ['void']
+    Compound: 
+      DoWhile: 
+        ID: list
+        Compound: 
+          FuncCall: 
+            ID: l1_destroy
+            ExprList: 
+              StructRef: ->
+                ID: list
+                ID: down
+          Decl: next, [], [], []
+            PtrDecl: []
+              TypeDecl: next, []
+                Struct: L0
+            StructRef: ->
+              ID: list
+              ID: next
+          FuncCall: 
+            ID: free
+            ExprList: 
+              ID: list
+          Assignment: =
+            ID: list
+            ID: next
   FuncDef: 
     Decl: main, [], [], []
       FuncDecl: 
@@ -770,77 +869,18 @@ FileAST:
           IdentifierType: ['int']
     Compound: 
       Decl: list, [], ['static'], []
-        TypeDecl: list, []
-          IdentifierType: ['list_t']
-      While: 
+        PtrDecl: []
+          TypeDecl: list, []
+            Struct: L0
+      DoWhile: 
         FuncCall: 
           ID: __VERIFIER_nondet_int
-        Compound: 
-          While: 
-            FuncCall: 
-              ID: __VERIFIER_nondet_int
-            FuncCall: 
-              ID: append_one
-              ExprList: 
-                UnaryOp: &
-                  ID: list
-                FuncCall: 
-                  ID: rand_end_point
-          While: 
-            FuncCall: 
-              ID: __VERIFIER_nondet_int
-            FuncCall: 
-              ID: remove_one
-              ExprList: 
-                UnaryOp: &
-                  ID: list
-                FuncCall: 
-                  ID: rand_end_point
-      Decl: end_point, [], [], []
-        TypeDecl: end_point, []
-          IdentifierType: ['end_point_t']
-      Decl: direction, [], [], []
-        TypeDecl: direction, []
-          IdentifierType: ['direction_t']
-      If: 
         FuncCall: 
-          ID: __VERIFIER_nondet_int
-        Compound: 
-          Assignment: =
-            ID: end_point
-            ID: LIST_BEG
-          Assignment: =
-            ID: direction
-            ID: ITEM_NEXT
-        Compound: 
-          Assignment: =
-            ID: end_point
-            ID: LIST_END
-          Assignment: =
-            ID: direction
-            ID: ITEM_PREV
-      Decl: cursor, [], [], []
-        TypeDecl: cursor, []
-          IdentifierType: ['item_p']
-        ArrayRef: 
+          ID: l0_insert
+          ExprList: 
+            UnaryOp: &
+              ID: list
+      FuncCall: 
+        ID: l0_destroy
+        ExprList: 
           ID: list
-          ID: end_point
-      While: 
-        ID: cursor
-        Compound: 
-          Decl: next, [], [], []
-            TypeDecl: next, []
-              IdentifierType: ['item_p']
-            ArrayRef: 
-              UnaryOp: *
-                ID: cursor
-              ID: direction
-          FuncCall: 
-            ID: free
-            ExprList: 
-              ID: cursor
-          Assignment: =
-            ID: cursor
-            ID: next
-      Return: 
-        Constant: int, 0

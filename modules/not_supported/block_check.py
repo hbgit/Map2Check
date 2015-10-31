@@ -108,9 +108,9 @@ class IdentifyNotSupported(object):
         #sys.exit()
         
         vi = CheckTypeDef()
-        for index in range(0,len(ast.ext)):                         
-            # Not supported pointer with arrays, eg:
-            # typedef void *item_t[2];        
+        # Not supported pointer with arrays, eg:
+        # typedef void *item_t[2];        
+        for index in range(0,len(ast.ext)):                                     
             vi.visit(ast.ext[index])
             if vi.check:                
                 self.check = vi.check

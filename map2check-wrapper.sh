@@ -57,7 +57,8 @@ while [ "$1" != "" ]; do
             fi
             ;;
         -v | --version )    
-            versiontool=`$path_to_map2check --version`
+            outtoolv="$($path_to_map2check --version 2>&1)"            
+            versiontool=$(echo ${outtoolv} | grep -o "[0-9]*")
             echo $versiontool
             validop=1
             exit        

@@ -83,7 +83,7 @@ benchmark=${BASH_ARGV[0]}
 # Store the path to the file to write the witness if the sourcefile
 # contains a bug and the tool returns False (Error found)
 name=$(basename "$benchmark")
-witnesspath=$witnessdir"/"`echo $name | sed -e "s/.c\|.i/.graphml/g"`
+witnesspath=$witnessdir"/"$name".graphml"
 
 
 if test "${benchmark}" = ""; then

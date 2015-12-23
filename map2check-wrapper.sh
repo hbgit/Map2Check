@@ -4,8 +4,9 @@
 # Usage: ./map2check_wrapper_script.sh <file.i> <witnessfile.graphml>
 
 # Path to the Map2Check tool
-path_to_map2check=/home/herbert/Projects/Map2Check/map2check.py
-#path_to_map2check=/home/hrocha/ON_DEV/benchexec/Map2Check/map2check.py
+pathabs=`readlink -f $0`
+ABS_PATH_TOOL=`dirname $pathabs`
+path_to_map2check=$ABS_PATH_TOOL"/map2check.py"
 
 
 # Command line, common to all tests.

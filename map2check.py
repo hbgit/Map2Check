@@ -78,6 +78,9 @@ ESBMC_PATH = check_status_esbmc_path
 DIR_RESULT_CLAIMS = ABS_PATH_FORTES+"/result_claims"
 if not os.path.exists(DIR_RESULT_CLAIMS):
     os.makedirs(DIR_RESULT_CLAIMS)
+else:
+    shutil.rmtree(DIR_RESULT_CLAIMS)
+    os.makedirs(DIR_RESULT_CLAIMS)
 
 
 GET_DATA_CLAIMS = ABS_PATH_FORTES+"/modules/get_and_set_claims/abs_claims.pl"

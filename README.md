@@ -85,11 +85,6 @@ For help and others options:
 <b> Instructions for SV-COMP'16 </b>
 
 Use the 'map2check-wrapper.sh' script in the installation directory to verify each single test-case. 
-In the script it is necessary to setup the path to the Map2Check tool in the variable <b>path_to_map2check</b>. 
-
-Example: 
- 
-> path_to_map2check=/mnt/Docs/Map2Check/vn6i/Map2Check/map2check.py
 
 Usage: 
 

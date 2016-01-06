@@ -206,7 +206,8 @@ def set_codes_to_experiment(_pathcprogram):
 
                 #save the execution result
                 if check_exec_status_FAILED:
-                    name_file_result = commands.getoutput("mktemp")
+                    #name_file_result = commands.getoutput("mktemp")
+                    name_file_result = ABS_PATH_FILE+ "result_claims/trace_" + str(time.strftime('%H:%M:%S').replace(":", "_")) + ".log"
                     outputRun = open(str(name_file_result), "a+b")
                     outputRun.write("-----------------------------------------------------------------------\n")
                     outputRun.write(">>> Trace of " + _pathcprogram + "\n")

@@ -21,6 +21,7 @@ import pycparser.c_generator
 # Portable cpp path for Windows and Linux/Unix
 CPPPATH = '../map2check/utils/cpp.exe' if sys.platform == 'win32' else 'cpp'
 ABS_PATH = os.path.dirname(__file__)
+ABS_PATH_RESULTCLAIMS = os.path.dirname(os.path.abspath(__file__)) + "/../../result_claims/"
 # -------------------------------------------------
 
 
@@ -142,8 +143,9 @@ class IdentifyLeakPoints(object):
         #ast.show()
         #sys.exit()
 
-        # Write in a tmp file the lines to test a possible leak
-        tmpfileleakpoints = open("/tmp/tmp_leakpoints.map2check",'w')
+        # Write in a tmp file the lines to test a possible leak        
+        #tmpfileleakpoints = open("/tmp/tmp_leakpoints.map2check",'w')
+        tmpfileleakpoints = open(ABS_PATH_RESULTCLAIMS + "tmp_leakpoints.map2check",'w')
 
         v = PointCallOtherFuncVisitor()
         v.visit(ast)

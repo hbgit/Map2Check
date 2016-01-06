@@ -8,6 +8,7 @@ __author__ = 'Herbert OLiveira Rocha'
 #Python
 import sys
 import re
+import os
 
 import networkx as nx
 
@@ -16,6 +17,7 @@ import networkx as nx
 
 import reader_csv_output
 
+ABS_PATH_RESULTCLAIMS = os.path.dirname(os.path.abspath(__file__)) + "/../../../result_claims/"
 
 class WriteGraphMLOutput(object):
 
@@ -134,8 +136,9 @@ class WriteGraphMLOutput(object):
         dataidfunctname = None
         if self.enable_enterFunction_attr:
             # loading data id function name
-            ldfunctname = reader_csv_output.ReaderCsv()
-            dataidfunctname = ldfunctname.loadCsvFile("/tmp/tmp_idfunct.map2check",";")
+            ldfunctname = reader_csv_output.ReaderCsv()            
+            #dataidfunctname = ldfunctname.loadCsvFile("/tmp/tmp_idfunct.map2check",";")
+            dataidfunctname = ldfunctname.loadCsvFile(ABS_PATH_RESULTCLAIMS + "tmp_idfunct.map2check",";")
 
 
         # Adding the nodes and the edges of the graph

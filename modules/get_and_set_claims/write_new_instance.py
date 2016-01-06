@@ -21,6 +21,7 @@ import pycparser.c_generator
 
 
 #### Gather the absolute path
+ABS_PATH_RESULTCLAIMS = os.path.dirname(os.path.abspath(__file__)) + "/../../result_claims/"
 sys.path.append(os.path.dirname(__file__))
 
 
@@ -532,7 +533,8 @@ class ParseC2Ast2C(object):
 
 
     def loaddata_leakpoints(self):
-        file = open("/tmp/tmp_leakpoints.map2check", 'r')
+        #file = open("/tmp/tmp_leakpoints.map2check", 'r')
+        file = open(ABS_PATH_RESULTCLAIMS + "tmp_leakpoints.map2check", 'r')
         for line in file.readlines():
             self.leakpoints_linenum.append(line.strip())
         file.close()
@@ -675,12 +677,15 @@ class ParseC2Ast2C(object):
             print("Could not read file: %s" % mapFileCsv)
 
 
-        # Write tmp file with data id and name of the functions
-        idfunctfile = open("/tmp/tmp_idfunct.map2check",'w')
+        # Write tmp file with data id and name of the functions        
+        #idfunctfile = open("/tmp/tmp_idfunct.map2check",'w')                
+        idfunctfile = open(ABS_PATH_RESULTCLAIMS + "tmp_idfunct.map2check",'w')
         idfunctfile.write("id;functname\n")
         for item in list_map_id_namefunc:
-            idfunctfile.write(str(item[0])+";"+item[1]+"\n")
+            idfunctfile.write(str(item[0])+";"+item[1]+"\n")        
         idfunctfile.close()
+        
+        #os.system("echo \""+path_idfuncfile+"\" >> /tmp/log.tmp")
             
             
         

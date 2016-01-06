@@ -21,6 +21,7 @@ import os
 import commands
 import re
 import csv
+import time
 #import ConfigParser
 import shutil
 from pipes import quote
@@ -237,7 +238,8 @@ def get_and_set_claims(cFile, dataLocFunction, mapFile , absClaimFile, has_claim
     # 3nd HackCode
     # Apply hacking to handle with GNU extensions
     # HackGNUext: Generate a copy the analyzed program to a tmp file
-    tmpFileGnuSkip_end = "/tmp/tmp_hack_gnu_end.c"
+    #tmpFileGnuSkip_end = "/tmp/tmp_hack_gnu_end.c"
+    tmpFileGnuSkip_end = DIR_RESULT_CLAIMS + "/tmp_hack_gnu_end.c"    
     commands.getoutput(quote(GNU_SKIP_SCRIPT) + " " + quote(cFile) + " 2>&1 > " + quote(tmpFileGnuSkip_end))
     list_tmp_path.append(tmpFileGnuSkip_end)
 
@@ -448,7 +450,8 @@ def handle_func_verifier_error(_cfile):
     lines = file.readlines()
     file.close()
 
-    file = open('/tmp/tmp_hd_funcve.c','w')
+    #file = open('/tmp/tmp_hd_funcve.c','w')    
+    file = open(DIR_RESULT_CLAIMS + '/tmp_hd_funcve.c','w')    
     for index, line in enumerate(lines):
 
         if line.startswith('extern'):
@@ -460,7 +463,7 @@ def handle_func_verifier_error(_cfile):
         file.write(line)
 
     file.close()
-    return '/tmp/tmp_hd_funcve.c'
+    return DIR_RESULT_CLAIMS + '/tmp_hd_funcve.c'
 
 
 def removeunncesstokens(_listtokens, _linestartpointtoken):
@@ -524,12 +527,13 @@ def create_map_tokenizer(_cFile,):
     resulttokensnanalysis = []
 
     for index, line in enumerate(linescfile):
-        filefortoken = open("/tmp/tmp_tokens.tmp",'w')
+        #filefortoken = open("/tmp/tmp_tokens.tmp",'w')        
+        filefortoken = open(DIR_RESULT_CLAIMS + '/tmp_tokens.tmp','w')
         # print(line)
         filefortoken.write(line)
         filefortoken.close()
 
-        resulttokens = commands.getoutput(quote(TOKENIZER)+" "+"/tmp/tmp_tokens.tmp")
+        resulttokens = commands.getoutput(quote(TOKENIZER)+" "+ DIR_RESULT_CLAIMS + '/tmp_tokens.tmp')
         #TODO: testing
         #print(resulttokens,end="")
         if index > 0:
@@ -570,8 +574,9 @@ def create_map_tokenizer(_cFile,):
     #for debug
     # for item in resulttokensnanalysis:
     #    print(item)
-    # sys.exit()
-    os.remove("/tmp/tmp_tokens.tmp")
+    # sys.exit()    
+    os.remove(DIR_RESULT_CLAIMS + '/tmp_tokens.tmp')
+    #os.remove("/tmp/tmp_tokens.tmp")
     return resulttokensnanalysis
 
 
@@ -599,7 +604,9 @@ def start_generation_cassert(cFile, enSetFunc):
 
     # Apply hacking to handle with GNU extensions
     # HackGNUext: Generate a copy the analyzed program to a tmp file
-    tmpFileGnuSkip = "/tmp/tmp_hack_gnu.c"
+    #tmpFileGnuSkip = "/tmp/tmp_hack_gnu.c"
+    tmpFileGnuSkip = DIR_RESULT_CLAIMS + '/tmp_hack_gnu.c'
+    
 
     #os.system(GNU_SKIP_SCRIPT + " " + cFile)
     #sys.exit()
@@ -621,8 +628,9 @@ def start_generation_cassert(cFile, enSetFunc):
     # Generating possible leaks points in the program
     # the result is save in /tmp/tmp_leakpoints.map2check
     runind = identify_points2leak.IdentifyLeakPoints(tmpFileGnuSkip)
-    runind.identify_points()
-    list_tmp_path.append("/tmp/tmp_leakpoints.map2check")
+    runind.identify_points()    
+    list_tmp_path.append(DIR_RESULT_CLAIMS + '/tmp_leakpoints.map2check')
+    #list_tmp_path.append("/tmp/tmp_leakpoints.map2check")
     # os.system("cat /tmp/tmp_leakpoints.map2check")
     # sys.exit()
     
@@ -669,8 +677,9 @@ def start_generation_cassert(cFile, enSetFunc):
 
     # 2nd HackCode
     # Apply hacking to handle with GNU extensions
-    # HackGNUext: Generate a copy the analyzed program to a tmp file
-    tmpFileGnuSkip_afterpre = "/tmp/tmp_hack_gnu_ap.c"
+    # HackGNUext: Generate a copy the analyzed program to a tmp file    
+    tmpFileGnuSkip_afterpre = DIR_RESULT_CLAIMS + '/tmp_hack_gnu_ap.c'
+    #tmpFileGnuSkip_afterpre = "/tmp/tmp_hack_gnu_ap.c"
 
     #os.system(GNU_SKIP_SCRIPT + " " + getPreCFile)
     #sys.exit()
@@ -879,13 +888,13 @@ if __name__ == "__main__":
         lastoutput.close()
 
         print("The Map2Check output in GraphML format is in < " + name_file_result + " >")
-
-        if os.path.exists("/tmp/tmp_map_currentlog.tmp"):
-            os.remove("/tmp/tmp_map_currentlog.tmp")
-        if os.path.exists("/tmp/tmp_idfunct.map2check"):
-            os.remove("/tmp/tmp_idfunct.map2check")
-        if os.path.exists("/tmp/trace_of_program_exec_map2check.tmp"):
-            os.remove("/tmp/trace_of_program_exec_map2check.tmp")
+        
+        if os.path.exists(DIR_RESULT_CLAIMS + "/tmp_map_currentlog.tmp"):
+            os.remove(DIR_RESULT_CLAIMS + "/tmp_map_currentlog.tmp")
+        if os.path.exists(DIR_RESULT_CLAIMS + "/tmp_idfunct.map2check"): 
+            os.remove(DIR_RESULT_CLAIMS + "/tmp_idfunct.map2check")
+        if os.path.exists(DIR_RESULT_CLAIMS + "/trace_of_program_exec_map2check.tmp"): 
+            os.remove(DIR_RESULT_CLAIMS + "/trace_of_program_exec_map2check.tmp")
 
 
         sys.exit()
@@ -1002,7 +1011,9 @@ if __name__ == "__main__":
                 # sys.exit()
 
                 WRITE_GRAPHMLOUT.preprocess_outmap(nameoutputmap)
-                name_file_result = commands.getoutput("mktemp")
+                #name_file_result = commands.getoutput("mktemp")
+                name_file_result = DIR_RESULT_CLAIMS+"/trace_" + str(time.strftime('%H:%M:%S').replace(":", "_")) + ".log"
+                
 
                 if args.setWitnessPath:
                     pathfile_graphml = os.path.abspath(args.setWitnessPath)                    
@@ -1032,9 +1043,9 @@ if __name__ == "__main__":
         else:
             print(saveresult_check) # TODO TEST
 
-        #os.remove("/tmp/tmp_map_currentlog.tmp")
-        if os.path.exists("/tmp/tmp_idfunct.map2check"):
-            os.remove("/tmp/tmp_idfunct.map2check")
+        #os.remove("/tmp/tmp_map_currentlog.tmp")        
+        if os.path.exists(DIR_RESULT_CLAIMS + "/tmp_idfunct.map2check"):
+            os.remove(DIR_RESULT_CLAIMS + "/tmp_idfunct.map2check")
 
     elif args.setCunitAssert:
         start_generation_cunit_assert(inputCFile,getStartFunction)

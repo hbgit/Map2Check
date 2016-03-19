@@ -50,7 +50,7 @@ First of all, you need to install the required packages:
 > - Pyparsing : $ pip install pyparsing
 > - Networkx  : $ pip install networkx
 > - Uncrustify : $ apt-get install uncrustify
-
+> - If running 64bit distro : $ apt-get install g++-multilib
 
 - <b>STEP 1:</b>
 

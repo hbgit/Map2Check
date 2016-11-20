@@ -94,8 +94,8 @@ For help and others options:
 <b> Authors </b>
 
 Maintainers:
-  Herbert O. Rocha (since 2014), Federal University of Roraima, Brazil
-  Rafael Menezes   (since 2016), Federal University of Roraima, Brazil
+  Herbert O. Rocha (since 2014), Federal University of Roraima, Brazil <\br>
+  Rafael Menezes   (since 2016), Federal University of Roraima, Brazil <\br>
 
 Questions and bug reports:  
   E-mail: map2check.tool@gmail.com

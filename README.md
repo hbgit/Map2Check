@@ -1,9 +1,6 @@
 <h1>Map2Check</h1>
 <h3>Memory Management Test Cases Generation of C Programs</h3>
 
-Author: Herbert O. Rocha <br>
-E-mail: map2check.tool@gmail.com
-
 ================ 
 
           .-.          
@@ -31,8 +28,11 @@ To use this tool is necessary that the system contains the following software al
 > - GCC compiler; 
 > - Pycparser (v2.10) - https://github.com/eliben/pycparser
 > - Pyparsing (v1.5.6) - http://pyparsing.wikispaces.com
-> - Networkx (v1.9.1) - https://networkx.github.io/
+> - Networkx (v1.9.1) - https://networkx.github.io
 > - Uncrustify (v0.60) - http://uncrustify.sourceforge.net
+> - Boost - http://www.boost.org
+> - Clang - http://clang.llvm.org
+> - LLVM - http://www.llvm.org
 
 
 ================
@@ -50,6 +50,9 @@ First of all, you need to install the required packages:
 > - Pyparsing : $ pip install python-pyparsing
 > - Networkx  : $ pip install python-networkx
 > - Uncrustify : $ apt-get install uncrustify
+> - Boost : $ apt-get install libboost-all-dev
+> - Clang : $ apt-get install clang
+> - LLVM : $ apt-get install llvm-devel llvm-static llvm-libs libedit-devel
 
 
 - <b>STEP 1:</b>
@@ -68,39 +71,34 @@ or from https://github.com
 - <b>STEP 2:</b>
 
 <p align="justify">
+Build tool: $ make  
+</p>
+
+- <b>STEP 3:</b>
+
+<p align="justify">
 Testing tool. Map2Check can be invoked through a standard command-line interface. Map2Check should be called 
 in the installation directory as follows:  
 </p>
 
-> $ ./map2check.py code_samples/samples/false_free_2.c 
+> $ ./map2check code_samples/samples/false_free_2.c 
 
 For help and others options: 
 
-> $ ./map2check.py -h
+> $ ./map2check -h
 
 
 
 ===========================
 
-<b> Instructions for SV-COMP'16 </b>
+<b> Authors </b>
 
-Use the 'map2check-wrapper.sh' script in the installation directory to verify each single test-case. 
+Maintainers:
+  Herbert O. Rocha (since 2014), Federal University of Roraima, Brazil
+  Rafael Menezes   (since 2016), Federal University of Roraima, Brazil
 
-Usage: 
-
-> $ ./wrapper_script_map2check.sh -c propertyFile.prp file.i.
-
-<p align="justify">
-Map2Check accepts the property file and the verification task and provides as verification result:
-<b>FALSE(p) + Witness</b> or <b>UNKNOWN</b>. 
-FALSE(p), with p in {valid-free, valid-deref, valid-memtrack}, means that the (partial) 
-property p is violated. 
-For each error-path, a file that contains the violation
-path is generated in Map2Check root-path graphml folder; this file has the same name
-of the verification task with the extension </b>graphml</b>.
-There is timeout of 895 seconds set by this script, using "timeout" tool that is part of coreutils 
-on debian and fedora. If these constraints are violated, it should be treated as UNKNOWN result. 
-</p>
+Questions and bug reports:  
+  E-mail: map2check.tool@gmail.com
 
 
 

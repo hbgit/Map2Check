@@ -1,33 +1,48 @@
-#CXX := clang++ `llvm-config --cxxflags`
-#CC := clang
+CXX              := g++
+CXXFLAGS         := -fno-rtti -O0 -g
+CXXFLAGS_NORTTI  := -O0 -g
+LDFLAGS          := -lboost_program_options -lboost_filesystem -lboost_system
+PLUGIN_CXXFLAGS  := -fpic 
 
-CXX := g++
-CXXFLAGS := -fno-rtti -O0 -g
-PLUGIN_CXXFLAGS := -fpic
-
-LLVM_CXXFLAGS := `llvm-config --cxxflags`
-LLVM_LDFLAGS  := `llvm-config --ldflags --libs --system-libs`
+LLVM_CXXFLAGS    := `llvm-config --cxxflags`
+LLVM_LDFLAGS     := `llvm-config --ldflags --libs --system-libs`
 
 # Internal paths in this project: where to find sources, and where to put
 # build artifacts.
-SRC_LLVM_DIR := modules/src_llvm
-BUILDDIR := build
+SRC_MODULES_DIR := modules
+SRC_LLVM_DIR    := modules/src_llvm
+BUILDDIR        := build
+OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/blklooppass.o
+SAMPLES         := $(wildcard samples/*.c)
 
 
 .PHONY: all
 all: make_builddir \
-		$(BUILDDIR)/map2check 
+		$(BUILDDIR)/blklooppass \
+		$(BUILDDIR)/caller \
+		$(BUILDDIR)/map2check
 
 
 .PHONY: make_builddir
 make_builddir:
-	@test -d $(BUILDDIR) || mkdir $(BUILDDIR)
-		
+	@test -d $(BUILDDIR) || mkdir $(BUILDDIR) 
 
-$(BUILDDIR)/map2check: $(SRC_LLVM_DIR)/main/map2check.cpp			
-			$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) -o $@
+
+$(BUILDDIR)/blklooppass: $(SRC_LLVM_DIR)/pass/BlkLoopPass.cpp
+			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
+
+$(BUILDDIR)/caller: $(SRC_MODULES_DIR)/main/caller.cpp
+			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o			
 			
+$(BUILDDIR)/map2check: $(SRC_MODULES_DIR)/main/map2check.cpp
+			$(CXX) -c $^ -o $@.o
+			$(CXX) $(OBJECTS_I) $(LDFLAGS) $(LLVM_LDFLAGS) -o $(BUILDDIR)/map2check
 
+
+.PHONY: samples
+samples: $(SAMPLES)
+		clang -emit-llvm -c $^ -o $^.bc
+		
 
 .PHONY: clean
 clean:

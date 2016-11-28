@@ -1,5 +1,7 @@
 *~
 build
+samples/*.bc
+teste/*.bc
 .idea/workspace.xml
 .idea/**/*
 *.pyc

@@ -1,15 +1,15 @@
 //Map2Check library
-#include "../src_llvm/pass/BlkLoopPass.h"
+#include "../src_llvm/pass/FuncPass.h"
 #include "caller.h"
 
 //LLVM
 #include <llvm/LinkAllPasses.h>
 #include <llvm/Pass.h>
 #include <llvm/PassManager.h>
-#include <llvm/Support/raw_ostream.h> 
+#include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
-#include <llvm/IR/Function.h> 
+#include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/LegacyPassManager.h>
@@ -19,6 +19,7 @@
 #include <llvm/ADT/Statistic.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Bitcode/ReaderWriter.h>
+
 
 #include <iostream>
 #include <string>
@@ -39,7 +40,7 @@ namespace {
   }
 }
 
-llvm::Module * M; 
+llvm::Module * M;
 // Build up all of the passes that we want to do to the module.
 PassManager InitialPasses;
 PassManager AnalysisPasses;
@@ -50,14 +51,14 @@ Caller::Caller( std::string bcprogram_path ) {
 }
 
 void Caller::printdata() {
-	cout << "File Path:" << this->pathprogram << endl; 
+	cout << "File Path:" << this->pathprogram << endl;
 	this->parseIrFile();
 }
 
 int Caller::parseIrFile(){
 	// Parse the input LLVM IR file into a module.
 	StringRef filename = this->pathprogram;
-	
+
 	SMDiagnostic SM;
 	LLVMContext & Context = getGlobalContext();
 	M = ParseIRFile(filename,SM,Context);
@@ -66,31 +67,31 @@ int Caller::parseIrFile(){
 		check("Problem reading input bitcode/IR: " + SM.getMessage().str());
 	}else{
 		std::cout << "Successfully read bitcode/IR" << std::endl;
-    
+
 		/*for (Module::iterator I = M->begin(), E = M->end(); I != E; ++I){
 			if (I->hasName()) {
 				cout << " Name: " << I->getName().str() << endl;
 			}
 		}**/
-		
+
 		PassRegistry &Registry = *PassRegistry::getPassRegistry();
 		initializeAnalysis(Registry);
 		InitialPasses.add(llvm::createCFGSimplificationPass());
 		InitialPasses.run(*M);
 	}
 
-	
+
 	return 0;
 }
 
-int Caller::callBlkLoopPass(){
+int Caller::callPass(){
 	// Create a pass manager and fill it with the passes we want to run.
-	/*legacy::PassManager PM;
-	PM.add(new LoopInfo());
-	PM.add(new BlkLoppPass());
-	PM.run(*Mod);*/
-	AnalysisPasses.add(new LoopInfo());
-	AnalysisPasses.add(new BlkLoppPass());
+	// legacy::PassManager PM;
+	// PM.add(new FuncPass());
+	// PM.run(*M);
+
+	AnalysisPasses.add(new FuncPass());
 	AnalysisPasses.run(*M);
+
 	return 1;
 }

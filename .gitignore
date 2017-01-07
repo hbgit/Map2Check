@@ -5,4 +5,4 @@ teste/*.bc
 .idea/workspace.xml
 .idea/**/*
 *.pyc
-
+.clang_complete

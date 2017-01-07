@@ -9,18 +9,18 @@
 #include <llvm/PassManager.h>*/
 
 class Caller {
-	
+
 	protected:
       std::string pathprogram;
-		
+
    public:
       Caller( std::string bcprogram_path );
-		
+
       void printdata();
-      
+
       int parseIrFile();
-      
-      int callBlkLoopPass();
+
+      int callPass();
 };
 
 #endif

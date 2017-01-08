@@ -20,6 +20,8 @@ class Caller {
 
       int parseIrFile();
 
+			void genByteCodeFile();
+
       int callPass();
 };
 

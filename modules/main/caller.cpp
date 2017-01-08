@@ -95,3 +95,16 @@ int Caller::callPass(){
 
 	return 1;
 }
+
+void Caller::genByteCodeFile() {
+  const char *Filename = "output.bc";
+  std::string ErrorInfo("An error happened while writing output file");
+
+  raw_fd_ostream file_descriptor(Filename, ErrorInfo);
+
+  WriteBitcodeToFile(M, file_descriptor);
+  file_descriptor.close();
+
+
+
+}

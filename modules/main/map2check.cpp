@@ -53,6 +53,7 @@ int main(int argc, char** argv)
 				("input-file,i", po::value< vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
 				("loop-pass,l", "\tanalisys code loops")
         ("func-pass,f", "\tconverts functions")
+        ("output-file,o", "\tGenerates output file")
 		;
 
 		po::positional_options_description p;
@@ -107,6 +108,15 @@ int main(int argc, char** argv)
 			if (vm.count("loop-pass"))
 			{
 				caller->callPass();
+
+				// return SUCCESS;
+			}
+
+
+
+      if (vm.count("output-file"))
+			{
+				caller->genByteCodeFile();
 
 				return SUCCESS;
 			}

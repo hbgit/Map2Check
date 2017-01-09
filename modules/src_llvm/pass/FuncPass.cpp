@@ -19,11 +19,17 @@ struct FuncPass : public FunctionPass {
 
         virtual bool runOnFunction(Function &F) {
                 LLVMContext& Ctx = F.getContext();
-                Constant* klee_malloc = F.getParent()->getOrInsertFunction(
-                        "klee_malloc",
+                Constant* map2check_malloc = F.getParent()->getOrInsertFunction(
+                        "map2check_malloc",
                         Type::getVoidTy(Ctx),
                         Type::getInt8PtrTy(Ctx),
                         Type::getInt64Ty(Ctx),
+                        NULL);
+
+                Constant* map2check_free = F.getParent()->getOrInsertFunction(
+                        "map2check_free",
+                        Type::getVoidTy(Ctx),
+                        Type::getInt32PtrTy(Ctx),
                         NULL);
                 /*
                  * Iterates over all instructions "i" of all functions and blocks
@@ -47,8 +53,14 @@ struct FuncPass : public FunctionPass {
 
                                                 if(f != NULL) {
                                                         if (f->getName() == "free") {
-                                                                Twine non_det("my_free");
-                                                                f->setName(non_det);
+                                                          auto j = i;
+                                                          ++j;
+
+                                                          //Adds map2check_free with destination address
+                                                          IRBuilder<> builder((Instruction*)i);
+                                                          auto address = callInst->getArgOperand(0);
+                                                          Value* args[] = {address};
+                                                          builder.CreateCall(map2check_free, args);
                                                         }
                                                 }
 
@@ -59,14 +71,14 @@ struct FuncPass : public FunctionPass {
                                                         auto j = i;
                                                         ++j;
 
-                                                        //Adds klee_malloc with allocated address and size
+                                                        //Adds map2check_malloc with allocated address and size
                                                         IRBuilder<> builder((Instruction*)j);
                                                         auto size = callInst->getArgOperand(0);
                                                         Value* args[] = {callInst, size};
-                                                        builder.CreateCall(klee_malloc, args);
+                                                        builder.CreateCall(map2check_malloc, args);
                                                 }
                                                 else if (f->getName() == "non_det_int") {
-                                                        Twine non_det("klee_non_det_int");
+                                                        Twine non_det("map2check_non_det_int");
                                                         f->setName(non_det);
                                                 }
                                         }

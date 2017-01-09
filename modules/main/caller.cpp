@@ -1,6 +1,9 @@
 //Map2Check library
 #include "../src_llvm/pass/FuncPass.h"
+#include "../src_llvm/pass/AllocaPass.h"
+
 #include "caller.h"
+
 
 //LLVM
 #include <llvm/LinkAllPasses.h>
@@ -23,6 +26,8 @@
 
 #include <iostream>
 #include <string>
+
+#include <stdlib.h>
 
 using namespace std;
 using namespace llvm;
@@ -91,6 +96,7 @@ int Caller::callPass(){
 	// PM.run(*M);
 
 	AnalysisPasses.add(new FuncPass());
+  AnalysisPasses.add(new AllocaPass());
 	AnalysisPasses.run(*M);
 
 	return 1;
@@ -104,7 +110,16 @@ void Caller::genByteCodeFile() {
 
   WriteBitcodeToFile(M, file_descriptor);
   file_descriptor.close();
+}
 
+// TODO: Implement using lllvm/clang api
+void Caller::linkLLVM() {
+  const char* command = "llvm-link output.bc utils.bc > result.bc";
+  system(command);
+}
 
-
+// TODO: Implement using klee api
+void Caller::callKlee() {
+  const char* klee_command = "klee  result.bc";
+  system(klee_command);
 }

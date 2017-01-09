@@ -23,6 +23,11 @@ class Caller {
 			void genByteCodeFile();
 
       int callPass();
+
+			void linkLLVM();
+
+			void callKlee();
+
 };
 
 #endif

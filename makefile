@@ -1,3 +1,4 @@
+CC               := clang
 CXX              := clang++
 CXXFLAGS         := -fno-rtti -O0 -g
 CXXFLAGS_NORTTI  := -O0 -g
@@ -13,13 +14,15 @@ LLVM_LDFLAGS     := `llvm-config --ldflags --libs`
 SRC_MODULES_DIR := modules
 SRC_LLVM_DIR    := modules/src_llvm
 BUILDDIR        := build
-OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/funcpass.o
+OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/funcpass.o $(BUILDDIR)/allocapass.o
 SAMPLES         := $(wildcard samples/*.c)
 
 
 .PHONY: all
 all: make_builddir \
 	  $(BUILDDIR)/funcpass \
+		$(BUILDDIR)/allocapass \
+		$(BUILDDIR)/utils \
 		$(BUILDDIR)/caller \
 		$(BUILDDIR)/map2check
 
@@ -29,6 +32,12 @@ make_builddir:
 	@test -d $(BUILDDIR) || mkdir $(BUILDDIR)
 
 $(BUILDDIR)/funcpass: $(SRC_LLVM_DIR)/pass/FuncPass.cpp
+			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
+
+$(BUILDDIR)/utils: $(SRC_LLVM_DIR)/utils/Utils.c
+			$(CC) -c -emit-llvm  $^ -o $@.bc
+
+$(BUILDDIR)/allocapass: $(SRC_LLVM_DIR)/pass/AllocaPass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
 
 

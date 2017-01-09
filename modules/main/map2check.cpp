@@ -117,6 +117,9 @@ int main(int argc, char** argv)
       if (vm.count("output-file"))
 			{
 				caller->genByteCodeFile();
+        caller->linkLLVM();
+        caller->callKlee();
+
 
 				return SUCCESS;
 			}

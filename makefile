@@ -7,7 +7,9 @@ PLUGIN_CXXFLAGS  := -fpic
 
 LLVM_CXXFLAGS    := `llvm-config --cxxflags`
 LLVM_LDFLAGS     := `llvm-config --ldflags --libs`
-# LLVM_LDFLAGS     := `llvm-config --ldflags --libs --system-libs`
+
+
+LLVM_LINK        := llvm-link
 
 # Internal paths in this project: where to find sources, and where to put
 # build artifacts.
@@ -24,6 +26,7 @@ all: make_builddir \
 		$(BUILDDIR)/allocapass \
 		$(BUILDDIR)/utils \
 		$(BUILDDIR)/caller \
+		$(BUILDDIR)/memoryutils \
 		$(BUILDDIR)/map2check
 
 
@@ -35,6 +38,9 @@ $(BUILDDIR)/funcpass: $(SRC_LLVM_DIR)/pass/FuncPass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
 
 $(BUILDDIR)/utils: $(SRC_LLVM_DIR)/utils/Utils.c
+			$(CC) -c -emit-llvm  $^ -o $@.bc
+
+$(BUILDDIR)/memoryutils: $(SRC_LLVM_DIR)/utils/MemoryUtils.c
 			$(CC) -c -emit-llvm  $^ -o $@.bc
 
 $(BUILDDIR)/allocapass: $(SRC_LLVM_DIR)/pass/AllocaPass.cpp

@@ -102,7 +102,13 @@ int Caller::callPass(){
 	return 1;
 }
 
+
 void Caller::genByteCodeFile() {
+
+  /* Generates an file (named output.bc) that contains the LLVM IR
+    after executing the passes
+  */
+
   const char *Filename = "output.bc";
   std::string ErrorInfo("An error happened while writing output file");
 
@@ -113,13 +119,21 @@ void Caller::genByteCodeFile() {
 }
 
 // TODO: Implement using lllvm/clang api
+
 void Caller::linkLLVM() {
-  const char* command = "llvm-link output.bc utils.bc > result.bc";
+  /* Link functions called after executing the passes */
+
+  const char* command = "llvm-link output.bc utils.bc > inter.bc";
   system(command);
+
+  const char* command2 = "llvm-link inter.bc memoryutils.bc > result.bc";
+  system(command2);
 }
 
 // TODO: Implement using klee api
 void Caller::callKlee() {
+  /* Execute klee */
+
   const char* klee_command = "klee  result.bc";
   system(klee_command);
 }

@@ -31,6 +31,11 @@ struct FuncPass : public FunctionPass {
                         Type::getVoidTy(Ctx),
                         Type::getInt32PtrTy(Ctx),
                         NULL);
+
+                Constant* free_list_log = F.getParent()->getOrInsertFunction(
+                        "map2check_free_list_log",
+                        Type::getVoidTy(Ctx),
+                        NULL);
                 /*
                  * Iterates over all instructions "i" of all functions and blocks
                  */
@@ -89,6 +94,18 @@ struct FuncPass : public FunctionPass {
 
                         }
                 }
+
+              if(F.getName() == "main") {
+                Function::iterator bb = F.end();
+                bb--;
+
+                BasicBlock::iterator i = bb->end();
+                i--;
+
+                IRBuilder<> builder((Instruction*)i);
+                Value* args[] = {};
+                builder.CreateCall(free_list_log);
+              }
 
         return true;
 }

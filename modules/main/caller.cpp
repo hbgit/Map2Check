@@ -1,6 +1,7 @@
 //Map2Check library
 #include "../src_llvm/pass/FuncPass.h"
 #include "../src_llvm/pass/AllocaPass.h"
+#include "../src_llvm/pass/StorePass.h"
 
 #include "caller.h"
 
@@ -97,6 +98,7 @@ int Caller::callPass(){
 
 	AnalysisPasses.add(new FuncPass());
   AnalysisPasses.add(new AllocaPass());
+  AnalysisPasses.add(new StorePass());
 	AnalysisPasses.run(*M);
 
 	return 1;
@@ -123,10 +125,10 @@ void Caller::genByteCodeFile() {
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
 
-  const char* command = "llvm-link output.bc utils.bc > inter.bc";
+  const char* command = "./llvm-link output.bc utils.bc > inter.bc";
   system(command);
 
-  const char* command2 = "llvm-link inter.bc memoryutils.bc > result.bc";
+  const char* command2 = "./llvm-link inter.bc memoryutils.bc > result.bc";
   system(command2);
 }
 
@@ -134,6 +136,6 @@ void Caller::linkLLVM() {
 void Caller::callKlee() {
   /* Execute klee */
 
-  const char* klee_command = "klee  result.bc";
+  const char* klee_command = "./klee  result.bc";
   system(klee_command);
 }

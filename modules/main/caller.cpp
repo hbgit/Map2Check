@@ -11,6 +11,7 @@
 #include <llvm/Pass.h>
 #include <llvm/IR/PassManager.h>
 #include <llvm/PassRegistry.h>
+#include <llvm/Support/FileSystem.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
@@ -47,10 +48,10 @@ namespace {
   }
 }
 
-llvm::Module * M;
+std::unique_ptr<Module> M;
 // Build up all of the passes that we want to do to the module.
-//PassManager InitialPasses;
-//PassManager AnalysisPasses;
+legacy::PassManager InitialPasses;
+legacy::PassManager AnalysisPasses;
 
 
 Caller::Caller( std::string bcprogram_path ) {
@@ -68,24 +69,18 @@ int Caller::parseIrFile(){
 
 	SMDiagnostic SM;
 	LLVMContext & Context = getGlobalContext();
-	/*M = parseIRFile(filename,SM,Context);
+	M = parseIRFile(filename,SM,Context);
 
 	if (!SM.getMessage().empty()){
 		check("Problem reading input bitcode/IR: " + SM.getMessage().str());
 	}else{
 		std::cout << "Successfully read bitcode/IR" << std::endl;
 
-		/*for (Module::iterator I = M->begin(), E = M->end(); I != E; ++I){
-			if (I->hasName()) {
-				cout << " Name: " << I->getName().str() << endl;
-			}
-		}*/
-
-		//PassRegistry &Registry = *PassRegistry::getPassRegistry();
-		//initializeAnalysis(Registry);
-		//InitialPasses.add(llvm::createCFGSimplificationPass());
-		//InitialPasses.run(*M);
-		//}
+		PassRegistry &Registry = *PassRegistry::getPassRegistry();
+		initializeAnalysis(Registry);
+		InitialPasses.add(llvm::createCFGSimplificationPass());
+		InitialPasses.run(*M);
+		}
 
 
 	return 0;
@@ -97,10 +92,10 @@ int Caller::callPass(){
 	// PM.add(new FuncPass());
 	// PM.run(*M);
 
-  //	AnalysisPasses.add(new FuncPass());
-  //AnalysisPasses.add(new AllocaPass());
-  //AnalysisPasses.add(new StorePass());
-  //	AnalysisPasses.run(*M);
+  	AnalysisPasses.add(new FuncPass());
+  AnalysisPasses.add(new AllocaPass());
+  AnalysisPasses.add(new StorePass());
+  	AnalysisPasses.run(*M);
 
 	return 1;
 }
@@ -113,12 +108,12 @@ void Caller::genByteCodeFile() {
   */
 
   const char *Filename = "output.bc";
-  std::string ErrorInfo("An error happened while writing output file");
+  errs() << "";
+  std::error_code EC;
+  llvm::raw_fd_ostream file_descriptor(Filename, EC, llvm::sys::fs::F_None  );
 
-  //raw_fd_ostream file_descriptor(Filename, ErrorInfo);
-
-  //WriteBitcodeToFile(M, file_descriptor);
-  //file_descriptor.close();
+  WriteBitcodeToFile(&(*M), file_descriptor);
+  file_descriptor.close();
 }
 
 // TODO: Implement using lllvm/clang api

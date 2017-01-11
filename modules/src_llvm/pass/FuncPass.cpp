@@ -103,7 +103,7 @@ struct FuncPass : public FunctionPass {
                 i--;
 
                 IRBuilder<> builder((Instruction*)i);
-                Value* args[] = {};
+                //Value* args[] = {};
                 builder.CreateCall(free_list_log);
               }
 

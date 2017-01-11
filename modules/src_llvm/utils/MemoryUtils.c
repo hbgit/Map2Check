@@ -6,7 +6,7 @@
 LIST_LOG list_map2check;
 bool list_initialized = false;
 
-void map2check_add_store_pointer map2check_add_store_pointer(void* var, void* value) {
+void map2check_add_store_pointer(void* var, void* value) {
   #ifdef DEBUG
   printf("OPERATION WITH POINTER:\n");
   printf("\t ORIGIN: %p", var);

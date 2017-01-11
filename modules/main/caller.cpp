@@ -9,7 +9,8 @@
 //LLVM
 #include <llvm/LinkAllPasses.h>
 #include <llvm/Pass.h>
-#include <llvm/PassManager.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/PassRegistry.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
@@ -48,8 +49,8 @@ namespace {
 
 llvm::Module * M;
 // Build up all of the passes that we want to do to the module.
-PassManager InitialPasses;
-PassManager AnalysisPasses;
+//PassManager InitialPasses;
+//PassManager AnalysisPasses;
 
 
 Caller::Caller( std::string bcprogram_path ) {
@@ -67,7 +68,7 @@ int Caller::parseIrFile(){
 
 	SMDiagnostic SM;
 	LLVMContext & Context = getGlobalContext();
-	M = ParseIRFile(filename,SM,Context);
+	/*M = parseIRFile(filename,SM,Context);
 
 	if (!SM.getMessage().empty()){
 		check("Problem reading input bitcode/IR: " + SM.getMessage().str());
@@ -78,13 +79,13 @@ int Caller::parseIrFile(){
 			if (I->hasName()) {
 				cout << " Name: " << I->getName().str() << endl;
 			}
-		}**/
+		}*/
 
-		PassRegistry &Registry = *PassRegistry::getPassRegistry();
-		initializeAnalysis(Registry);
-		InitialPasses.add(llvm::createCFGSimplificationPass());
-		InitialPasses.run(*M);
-	}
+		//PassRegistry &Registry = *PassRegistry::getPassRegistry();
+		//initializeAnalysis(Registry);
+		//InitialPasses.add(llvm::createCFGSimplificationPass());
+		//InitialPasses.run(*M);
+		//}
 
 
 	return 0;
@@ -96,10 +97,10 @@ int Caller::callPass(){
 	// PM.add(new FuncPass());
 	// PM.run(*M);
 
-	AnalysisPasses.add(new FuncPass());
-  AnalysisPasses.add(new AllocaPass());
-  AnalysisPasses.add(new StorePass());
-	AnalysisPasses.run(*M);
+  //	AnalysisPasses.add(new FuncPass());
+  //AnalysisPasses.add(new AllocaPass());
+  //AnalysisPasses.add(new StorePass());
+  //	AnalysisPasses.run(*M);
 
 	return 1;
 }
@@ -114,10 +115,10 @@ void Caller::genByteCodeFile() {
   const char *Filename = "output.bc";
   std::string ErrorInfo("An error happened while writing output file");
 
-  raw_fd_ostream file_descriptor(Filename, ErrorInfo);
+  //raw_fd_ostream file_descriptor(Filename, ErrorInfo);
 
-  WriteBitcodeToFile(M, file_descriptor);
-  file_descriptor.close();
+  //WriteBitcodeToFile(M, file_descriptor);
+  //file_descriptor.close();
 }
 
 // TODO: Implement using lllvm/clang api
@@ -125,11 +126,11 @@ void Caller::genByteCodeFile() {
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
 
-  const char* command = "./llvm-link output.bc utils.bc > inter.bc";
-  system(command);
+  //const char* command = "./llvm-link output.bc utils.bc > inter.bc";
+  //system(command);
 
-  const char* command2 = "./llvm-link inter.bc memoryutils.bc > result.bc";
-  system(command2);
+  //const char* command2 = "./llvm-link inter.bc memoryutils.bc > result.bc";
+  //system(command2);
 }
 
 // TODO: Implement using klee api
@@ -137,5 +138,5 @@ void Caller::callKlee() {
   /* Execute klee */
 
   const char* klee_command = "./klee  result.bc";
-  system(klee_command);
+  //system(klee_command);
 }

@@ -57,13 +57,13 @@ using namespace llvm;
               Value* name_llvm = builder_alloc.CreateGlobalStringPtr(name);
               Twine non_det("bitcast");
 
-              auto c = CastInst::CreatePointerCast(allocInst, Type::getInt8PtrTy(Ctx), non_det, j);
+	      // auto c = CastInst::CreatePointerCast(allocInst, Type::getInt8PtrTy(Ctx), non_det, j);
 
               // Adds klee call with allocated address
               ++j;
-              IRBuilder<> builder((Instruction*) j);
-              Value* args[] = {c, name_llvm };
-              builder.CreateCall(map2check_pointer, args);
+              //IRBuilder<> builder((Instruction*) j);
+              //Value* args[] = {c, name_llvm };
+              //builder.CreateCall(map2check_pointer, args);
             }
 		   }
 		 }

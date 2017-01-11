@@ -41,11 +41,11 @@ struct StorePass : public FunctionPass {
                               ++j;
 
                               //Adds map2check_free with destination address
-                              IRBuilder<> builder((Instruction*)i);
-                              auto var_address = storeInst->getPointerOperand();
-                              auto receives    = storeInst->getValueOperand();
-                              Value* args[] = {address};
-                              builder.CreateCall(add_store_pointer, args);
+                              //IRBuilder<> builder((Instruction*)i);
+                              //auto var_address = storeInst->getPointerOperand();
+                              //auto receives    = storeInst->getValueOperand();
+                              //Value* args[] = {address};
+                              //builder.CreateCall(add_store_pointer, args);
                             }
 
                             // errs() << "endereço da ponteiro" << storeInst->getValueOperand()->getName() << "\n";

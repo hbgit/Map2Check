@@ -35,11 +35,10 @@ using namespace llvm;
 
 		 /*
 		  * The next block check if the current instruction is a Allocation, if
-		  * so, if the allocation is not a pointer, it instruments the "klee"
+		  * so, if the allocation is a pointer, it instruments the "map2check_pointer"
 		  * function with its address and size
 		  */
 		 if (AllocaInst* allocInst = dyn_cast<AllocaInst>(&*i)) {
-		  //  alloca_inst_pass(F, allocInst, i);
 
 		   auto name = allocInst->getName();
 
@@ -48,24 +47,24 @@ using namespace llvm;
 			 * is a temp var, and we do not need to care of it
 			 */
 		   if (name.compare("")){
-			 auto type = allocInst->getAllocatedType();
-			 // Checks if allocated type is a pointer
-			 if (type->isPointerTy()) {
-			   auto j = i;
-			   ++j;
+			      auto type = allocInst->getAllocatedType();
+			      // Checks if allocated type is a pointer
+			      if (type->isPointerTy()) {
+			        auto j = i;
+			        ++j;
 
-			   IRBuilder<> builder_alloc((Instruction*) j);
-			   Value* name_llvm = builder_alloc.CreateGlobalStringPtr(name);
-         Twine non_det("bitcast");
+              IRBuilder<> builder_alloc((Instruction*) j);
+              Value* name_llvm = builder_alloc.CreateGlobalStringPtr(name);
+              Twine non_det("bitcast");
 
-         auto c = CastInst::CreatePointerCast(allocInst, Type::getInt8PtrTy(Ctx), non_det, j);
+              auto c = CastInst::CreatePointerCast(allocInst, Type::getInt8PtrTy(Ctx), non_det, j);
 
-         // Adds klee call with allocated address
-         ++j;
-			   IRBuilder<> builder((Instruction*) j);
-			   Value* args[] = {c, name_llvm };
-			   builder.CreateCall(map2check_pointer, args);
-			 }
+              // Adds klee call with allocated address
+              ++j;
+              IRBuilder<> builder((Instruction*) j);
+              Value* args[] = {c, name_llvm };
+              builder.CreateCall(map2check_pointer, args);
+            }
 		   }
 		 }
 	   }

@@ -7,7 +7,7 @@ CC               := $(LLVM_BUILD_DIR)/bin/clang
 CXX              := g++
 
 INC              := -I $(LLVM_SRC_DIR)/include
-CXXFLAGS         := -fno-rtti -O0 -g $(INC) 
+CXXFLAGS         := -fno-rtti -O0 -g $(INC)
 CXXFLAGS_NORTTI  := -O0 -g
 LDFLAGS          := -lboost_program_options -lboost_filesystem -lboost_system
 PLUGIN_CXXFLAGS  := -fpic

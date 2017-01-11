@@ -1,15 +1,22 @@
-CC               := install/bin/clang
-CXX              := install/bin/clang
-CXXFLAGS         := -fno-rtti -O0 -g
+LLVM_VERSION     := 3.8.1
+LLVM_BUILD_DIR   := llvm-build-cmake
+LLVM_SRC_DIR     := llvm-$(LLVM_VERSION)
+
+
+CC               := $(LLVM_BUILD_DIR)/bin/clang
+CXX              := g++
+
+INC              := -I $(LLVM_SRC_DIR)/include
+CXXFLAGS         := -fno-rtti -O0 -g $(INC) 
 CXXFLAGS_NORTTI  := -O0 -g
 LDFLAGS          := -lboost_program_options -lboost_filesystem -lboost_system
 PLUGIN_CXXFLAGS  := -fpic
 
-LLVM_CXXFLAGS    := `install/bin/llvm-config --cxxflags`
-LLVM_LDFLAGS     := `install/bin/llvm-config --ldflags --libs`
+LLVM_CXXFLAGS    := `$(LLVM_BUILD_DIR)/bin/llvm-config --cxxflags`
+LLVM_LDFLAGS     := `$(LLVM_BUILD_DIR)/bin/llvm-config --ldflags --libs --system-libs`
 
 
-LLVM_LINK        := install/bin/llvm-link
+LLVM_LINK        := $(LLVM_BUILD_DIR)/llvm-link
 
 # Internal paths in this project: where to find sources, and where to put
 # build artifacts.

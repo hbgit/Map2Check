@@ -6,6 +6,14 @@
 LIST_LOG list_map2check;
 bool list_initialized = false;
 
+void map2check_add_store_pointer map2check_add_store_pointer(void* var, void* value) {
+  #ifdef DEBUG
+  printf("OPERATION WITH POINTER:\n");
+  printf("\t ORIGIN: %p", var);
+  printf("\t DESTINY: %p", value);
+  #endif
+}
+
 void list_log_to_file(LIST_LOG_ROW* row) {
   FILE* output = fopen("output", "a");
 

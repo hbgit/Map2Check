@@ -1,28 +1,29 @@
-CC               := clang
-CXX              := clang++
+CC               := install/bin/clang
+CXX              := install/bin/clang
 CXXFLAGS         := -fno-rtti -O0 -g
 CXXFLAGS_NORTTI  := -O0 -g
 LDFLAGS          := -lboost_program_options -lboost_filesystem -lboost_system
 PLUGIN_CXXFLAGS  := -fpic
 
-LLVM_CXXFLAGS    := `llvm-config --cxxflags`
-LLVM_LDFLAGS     := `llvm-config --ldflags --libs`
+LLVM_CXXFLAGS    := `install/bin/llvm-config --cxxflags`
+LLVM_LDFLAGS     := `install/bin/llvm-config --ldflags --libs`
 
 
-LLVM_LINK        := llvm-link
+LLVM_LINK        := install/bin/llvm-link
 
 # Internal paths in this project: where to find sources, and where to put
 # build artifacts.
 SRC_MODULES_DIR := modules
 SRC_LLVM_DIR    := modules/src_llvm
 BUILDDIR        := build
-OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/funcpass.o $(BUILDDIR)/allocapass.o
+OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/funcpass.o $(BUILDDIR)/allocapass.o $(BUILDDIR)/storepass.o
 SAMPLES         := $(wildcard samples/*.c)
 
 
 .PHONY: all
 all: make_builddir \
 	  $(BUILDDIR)/funcpass \
+		$(BUILDDIR)/storepass \
 		$(BUILDDIR)/allocapass \
 		$(BUILDDIR)/utils \
 		$(BUILDDIR)/caller \
@@ -36,6 +37,10 @@ make_builddir:
 
 $(BUILDDIR)/funcpass: $(SRC_LLVM_DIR)/pass/FuncPass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
+
+$(BUILDDIR)/storepass: $(SRC_LLVM_DIR)/pass/StorePass.cpp
+			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
+
 
 $(BUILDDIR)/utils: $(SRC_LLVM_DIR)/utils/Utils.c
 			$(CC) -c -emit-llvm  $^ -o $@.bc

@@ -1,6 +1,7 @@
 *~
 build
 samples/*.bc
+install
 teste/*.bc
 .idea/workspace.xml
 .idea/**/*

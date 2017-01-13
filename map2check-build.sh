@@ -247,12 +247,24 @@ map2check() {
 
 }
 
-#
+gtest() {
+	cd /usr/src/gtest
+	cmake CMakeLists.txt
+	make
+
+	# copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder
+	cp *.a /usr/lib
+
+	cd -
+}
+
+
 build_llvm
 install_llvm
 minisat
 stp
 klee
+gtest
 map2check
 
   # echo $LD_LIBRARY_PATH

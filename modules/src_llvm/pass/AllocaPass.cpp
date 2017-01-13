@@ -24,6 +24,8 @@ using namespace llvm;
                   Type::getVoidTy(Ctx),
                   Type::getInt8PtrTy(Ctx),
                   Type::getInt8PtrTy(Ctx),
+                  Type::getInt8PtrTy(Ctx),
+                  Type::getInt32Ty(Ctx),
                   NULL);
 
 
@@ -53,17 +55,31 @@ using namespace llvm;
 			        auto j = i;
 			        ++j;
 
+              unsigned line_number;
+
+              DebugLoc location = allocInst->getDebugLoc();
+              if(location) {
+                line_number = location.getLine();
+              }
+              else {
+                line_number  = 0;
+              }
+
+              ConstantInt* line_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), line_number);
+
+
               IRBuilder<> builder_alloc((Instruction*) j);
               Value* name_llvm = builder_alloc.CreateGlobalStringPtr(name);
-              Twine non_det("bitcast");
+              Value* scope_llvm = builder_alloc.CreateGlobalStringPtr(F.getName());
 
+              Twine non_det("bitcast");
       	      Value* pointerCast = CastInst::CreatePointerCast(allocInst, Type::getInt8PtrTy(Ctx), non_det,(Instruction*) j);
 
               // Adds klee call with allocated address
               ++j;
               IRBuilder<> builder((Instruction*) j);
-              Value* args[] = {pointerCast, name_llvm };
-              builder.CreateCall(map2check_pointer, args);
+              Value* args[] = {pointerCast,  scope_llvm, name_llvm, line_value };
+              // builder.CreateCall(map2check_pointer, args);
             }
 		   }
 		 }

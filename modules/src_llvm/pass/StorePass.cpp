@@ -25,6 +25,9 @@ struct StorePass : public FunctionPass {
                         Type::getVoidTy(Ctx),
                         Type::getInt8PtrTy(Ctx),
                         Type::getInt8PtrTy(Ctx),
+                        Type::getInt32Ty(Ctx),
+                        Type::getInt8PtrTy(Ctx),
+                        Type::getInt32Ty(Ctx),
                         NULL);
                 /*
                  * Iterates over all instructions "i" of all functions and blocks
@@ -35,25 +38,40 @@ struct StorePass : public FunctionPass {
                           if (StoreInst* storeInst = dyn_cast<StoreInst>(&*i)) {
 
                             if(storeInst->getValueOperand()->getType()->isPointerTy()) {
-                              errs() << "Var ponteiro\t"  << storeInst->getPointerOperand()->getName() << "\n";
+
+                              unsigned line_number;
+                              unsigned scope_number;
+                              DebugLoc location = storeInst->getDebugLoc();
+                              if(location) {
+                                scope_number = location.getScope()->getMetadataID();
+                                line_number = location.getLine();
+                              }
+                              else {
+                                scope_number = 0;
+                                line_number  = 0;
+                              }
+
+                              ConstantInt* line_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), line_number);
+                              ConstantInt* scope_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), scope_number);
+                              Value* var_address = storeInst->getPointerOperand();
+                              Value* receives    = storeInst->getValueOperand();
 
                               auto j = i;
+
+                              Twine bitcast("bitcast");
+
+                      	      Value* varPointerCast = CastInst::CreatePointerCast(var_address, Type::getInt8PtrTy(Ctx), bitcast,(Instruction*) j);
+                              Value* receivesPointerCast = CastInst::CreatePointerCast(receives, Type::getInt8PtrTy(Ctx), bitcast,(Instruction*) j);
                               ++j;
 
-                              //Adds map2check_free with destination address
-                              IRBuilder<> builder((Instruction*)i);
-                              auto var_address = storeInst->getPointerOperand();
-                              auto receives    = storeInst->getValueOperand();
-                              Value* args[] = {var_address};
+                              // Adds map2check_free with destination address
+                              IRBuilder<> builder((Instruction*)j);
+                              Value* name_llvm = builder.CreateGlobalStringPtr(var_address->getName());
+                              Value* scope_llvm = builder.CreateGlobalStringPtr(F.getName());
+
+                              Value* args[] = {varPointerCast, receivesPointerCast, scope_value, name_llvm, line_value};
                               builder.CreateCall(map2check_add_store_pointer, args);
                             }
-
-                            // errs() << "endereço da ponteiro" << storeInst->getValueOperand()->getName() << "\n";
-                            // errs() << "endereço de destino"  << storeInst->getPointerOperand()->getName() << "\n";
-
-
-
-
                         }
                       }
                     }

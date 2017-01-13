@@ -9,7 +9,7 @@ CXX              := g++
 INC              := -I $(LLVM_SRC_DIR)/include
 CXXFLAGS         := -fno-rtti -O0 -g $(INC)
 CXXFLAGS_NORTTI  := -O0 -g
-LDFLAGS          := -lboost_program_options -lboost_filesystem -lboost_system
+LDFLAGS          := -static -lboost_program_options -lboost_filesystem -lboost_system
 PLUGIN_CXXFLAGS  := -fpic
 
 LLVM_CXXFLAGS    := `$(LLVM_BUILD_DIR)/bin/llvm-config --cxxflags`
@@ -37,6 +37,16 @@ all: make_builddir \
 		$(BUILDDIR)/memoryutils \
 		$(BUILDDIR)/map2check
 
+
+.PHONY: install
+install: all
+	cp $(BUILDDIR)/map2check install/
+	cp $(BUILDDIR)/utils.bc install/lib/
+	cp $(BUILDDIR)/memoryutils.bc install/lib/
+
+.PHONY: pass
+pass: $(BUILDDIR)/funcpass
+	$(CXX) -shared -o $@.so $^.o
 
 .PHONY: make_builddir
 make_builddir:

@@ -18,6 +18,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/Linker/Linker.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
@@ -34,6 +35,9 @@
 
 using namespace std;
 using namespace llvm;
+
+#define DEBUG_PASS
+
 
 namespace {
   static void check(std::string E) {
@@ -75,26 +79,24 @@ int Caller::parseIrFile(){
 		check("Problem reading input bitcode/IR: " + SM.getMessage().str());
 	}else{
 		std::cout << "Successfully read bitcode/IR" << std::endl;
+  }
 
-		PassRegistry &Registry = *PassRegistry::getPassRegistry();
-		initializeAnalysis(Registry);
-		InitialPasses.add(llvm::createCFGSimplificationPass());
-		InitialPasses.run(*M);
-		}
+	// 	PassRegistry &Registry = *PassRegistry::getPassRegistry();
+	// 	initializeAnalysis(Registry);
+		// InitialPasses.add(llvm::createCFGSimplificationPass());
+		// InitialPasses.run(*M);
+	// 	}
 
 
 	return 0;
 }
 
 int Caller::callPass(){
-	// Create a pass manager and fill it with the passes we want to run.
-	// legacy::PassManager PM;
-	// PM.add(new FuncPass());
-	// PM.run(*M);
 
   	AnalysisPasses.add(new FuncPass());
-  AnalysisPasses.add(new AllocaPass());
-  AnalysisPasses.add(new StorePass());
+    AnalysisPasses.add(new StorePass());
+    AnalysisPasses.add(new AllocaPass());
+
   	AnalysisPasses.run(*M);
 
 	return 1;
@@ -113,25 +115,29 @@ void Caller::genByteCodeFile() {
   llvm::raw_fd_ostream file_descriptor(Filename, EC, llvm::sys::fs::F_None  );
 
   WriteBitcodeToFile(&(*M), file_descriptor);
-  file_descriptor.close();
+  file_descriptor.flush();
 }
 
 // TODO: Implement using lllvm/clang api
-
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
 
-  //const char* command = "./llvm-link output.bc utils.bc > inter.bc";
-  //system(command);
+  const char* command = "./bin/llvm-link output.bc lib/utils.bc > inter.bc";
+  system(command);
 
-  //const char* command2 = "./llvm-link inter.bc memoryutils.bc > result.bc";
-  //system(command2);
+  const char* command2 = "./bin/llvm-link inter.bc lib/memoryutils.bc > result.bc";
+  system(command2);
+
+  #ifndef DEBUG
+  system("rm inter.bc");
+  system("rm output.bc");
+  #endif
 }
 
 // TODO: Implement using klee api
 void Caller::callKlee() {
   /* Execute klee */
 
-  const char* klee_command = "./klee  result.bc";
-  //system(klee_command);
+  const char* klee_command = "./bin/klee  result.bc";
+  system(klee_command);
 }

@@ -18,6 +18,7 @@
 #  MA 02110-1301, USA.
 
 # set -x
+
 export PREFIX=`pwd`/install
 
 export LD_LIBRARY_PATH="$PREFIX/lib:/lib/:$LD_LIBRARY_PATH"
@@ -146,8 +147,6 @@ build_llvm()
 
 	# configure llvm
 	if [ ! -d CMakeFiles ]; then
-		echo 'we should definitely build RelWithDebInfo here, no?'
-		echo 'N.B. we strip below anyway, so why not Release actually?'
 		cmake ../llvm-${LLVM_VERSION} \
 			-DCMAKE_BUILD_TYPE=Release\
 			-DLLVM_INCLUDE_EXAMPLES=OFF \
@@ -239,40 +238,13 @@ klee()
 			-DENABLE_UNIT_TESTS=OFF \
 		|| clean_and_exit 1 "git"
 	fi
+	cd -
+}
 
-	# clean runtime libs, it may be 32-bit from last build
-	make -C runtime -f Makefile.cmake.bitcode clean 2>/dev/null
-	rm -f Release+Asserts/lib/kleeRuntimeIntrinsic.bc* 2>/dev/null
-	rm -f Release+Asserts/lib/klee-libc.bc* 2>/dev/null
+map2check() {
+	make all
+	make install
 
-	# build 64-bit libs and install them to prefix
-	pwd
-	(build && make install) || exit 1
-
-	mv $PREFIX/lib64/klee $PREFIX/lib/klee
-	rmdir $PREFIX/lib64
-
-	# clean 64-bit build and build 32-bit version of runtime library
-	make -C runtime -f Makefile.cmake.bitcode clean \
-		|| exitmsg "Failed building klee 32-bit runtime library"
-	rm -f Release+Asserts/lib/kleeRuntimeIntrinsic.bc*
-	rm -f Release+Asserts/lib/klee-libc.bc*
-	make -C runtime/Intrinsic -f Makefile.cmake.bitcode EXTRA_LLVMCC.Flags=-m32 \
-		|| exitmsg "Failed building 32-bit klee runtime library"
-	make -C runtime/klee-libc -f Makefile.cmake.bitcode EXTRA_LLVMCC.Flags=-m32 \
-		|| exitmsg "Failed building 32-bit klee runtime library"
-
-	# copy 32-bit library version to prefix
-	mkdir -p $PREFIX/lib32/klee/runtime
-	cp Release+Asserts/lib/kleeRuntimeIntrinsic.bc \
-		$PREFIX/lib32/klee/runtime/kleeRuntimeIntrinsic.bc \
-		|| exitmsg "Did not build 32-bit klee runtime lib"
-	cp Release+Asserts/lib/klee-libc.bc \
-		$PREFIX/lib32/klee/runtime/klee-libc.bc \
-		|| exitmsg "Did not build 32-bit klee runtime lib"
-
-
-cd -
 }
 
 #
@@ -281,6 +253,6 @@ install_llvm
 minisat
 stp
 klee
-
+map2check
 
   # echo $LD_LIBRARY_PATH

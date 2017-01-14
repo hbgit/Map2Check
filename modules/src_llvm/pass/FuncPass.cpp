@@ -29,7 +29,10 @@ struct FuncPass : public FunctionPass {
                 Constant* map2check_free = F.getParent()->getOrInsertFunction(
                         "map2check_free",
                         Type::getVoidTy(Ctx),
-                        Type::getInt32PtrTy(Ctx),
+                        Type::getInt8PtrTy(Ctx),
+                        Type::getInt8PtrTy(Ctx),
+                        Type::getInt32Ty(Ctx),
+                        Type::getInt32Ty(Ctx),
                         NULL);
 
                 Constant* free_list_log = F.getParent()->getOrInsertFunction(
@@ -54,18 +57,72 @@ struct FuncPass : public FunctionPass {
                                         // If 'f' equals NULL it could mean that a bitcast is taking place
                                         if(f == NULL) {
                                                 Value* v = callInst->getCalledValue();
+
                                                 f = dyn_cast<Function>(v->stripPointerCasts());
 
                                                 if(f != NULL) {
                                                         if (f->getName() == "free") {
-                                                          auto j = i;
-                                                          ++j;
+                                                          unsigned scope_number;
+                                                          unsigned line_number;
 
-                                                          //Adds map2check_free with destination address
-                                                          IRBuilder<> builder((Instruction*)i);
-                                                          auto address = callInst->getArgOperand(0);
-                                                          Value* args[] = {address};
-                                                          builder.CreateCall(map2check_free, args);
+                                                          DebugLoc location = callInst->getDebugLoc();
+                                                          if(location) {
+                                                            scope_number = location.getScope()->getMetadataID();
+                                                            line_number = location.getLine();
+                                                          }
+                                                          else {
+                                                            scope_number = 0;
+                                                            line_number  = 0;
+                                                          }
+
+                                                          ConstantInt* scope_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), scope_number);
+                                                          ConstantInt* line_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), line_number);
+
+                                                          LoadInst* li = dyn_cast<LoadInst>(callInst->getArgOperand(0));
+
+                                                          if(li) {
+                                                            auto j = i;
+                                                            ++j;
+
+
+
+                                                            auto name = li->getPointerOperand()->getName();
+
+                                                            IRBuilder<> builder((Instruction*)j);
+                                                            Value* name_llvm = builder.CreateGlobalStringPtr(name);
+                                                            Twine non_det("bitcast_map2check");
+                                                    	      Value* pointerCast = CastInst::CreatePointerCast(li->getPointerOperand(), Type::getInt8PtrTy(Ctx), non_det,(Instruction*) j);
+
+                                                            Value* args[] = { name_llvm, pointerCast, scope_value, line_value };
+
+                                                            builder.CreateCall(map2check_free, args);
+                                                          }
+
+
+                                                          // callInst->getArgOperand(1)->dump();
+                                                          // callInst->getArgOperand(2)->dump();
+                                                          // Value* cois =
+
+                                                          // auto j = i;
+                                                          // // ++j;
+                                                          //
+                                                          // Value* address = f->get
+                                                          // errs() << "NAME: " << address->getName() << "\n";
+                                                          // Twine non_det("bitcast_map2check");
+                                                          //
+                                                  	      // Value* pointerCast = CastInst::CreatePointerCast(callInst, Type::getInt8PtrTy(Ctx), non_det,(Instruction*) j);
+                                                          // //
+                                                          //
+                                                          // //Adds map2check_free with destination address
+                                                          // ++j;
+                                                          // IRBuilder<> builder((Instruction*)j);
+                                                          // //
+                                                          // Value* args[] = {pointerCast };
+                                                          // builder.CreateCall(map2check_free, args);
+                                                          // Twine non_det("map2check_free");
+                                                          // f->setName(non_det);
+
+
                                                         }
                                                 }
 
@@ -73,9 +130,9 @@ struct FuncPass : public FunctionPass {
 
                                         else {
                                                 if (f->getName() == "malloc") {
+
                                                         auto j = i;
                                                         ++j;
-
                                                         //Adds map2check_malloc with allocated address and size
                                                         IRBuilder<> builder((Instruction*)j);
                                                         auto size = callInst->getArgOperand(0);
@@ -85,6 +142,16 @@ struct FuncPass : public FunctionPass {
                                                 else if (f->getName() == "non_det_int") {
                                                         Twine non_det("map2check_non_det_int");
                                                         f->setName(non_det);
+                                                }
+                                                else if (f->getName() == "free") {
+                                                  Value* addr = callInst->getArgOperand(0);
+
+                                                  auto j = i;
+                                                  ++j;
+                                                  IRBuilder<> builder((Instruction*)j);
+                                                  //
+                                                  Value* args[] = {addr};
+                                                  builder.CreateCall(map2check_free, args);
                                                 }
                                         }
 

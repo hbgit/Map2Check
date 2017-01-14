@@ -3,18 +3,126 @@
 
 #define DEBUG
 
+MEMORY_ALLOCATIONS_ROW new_memory_row(long address, bool is_free) {
+  MEMORY_ALLOCATIONS_ROW row;
+  row.addr = address;
+  row.is_free = is_free;
+  return row;
+}
+
+MEMORY_ALLOCATIONS_LOG new_memory_allocation() {
+  MEMORY_ALLOCATIONS_LOG log_list;
+  log_list.values = NULL;
+  log_list.size   = 0;
+  return log_list;
+}
+
 LIST_LOG list_map2check;
 bool list_initialized = false;
 
+MEMORY_ALLOCATIONS_LOG allocations_map2check;
+bool allocations_initialized = false;
 
-// TODO: IMPLEMENT DYNAMIC AND FREE
+bool mark_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address) {
+  MEMORY_ALLOCATIONS_ROW row = new_memory_row(address, false);
+  allocation_log->size++;
+
+  MEMORY_ALLOCATIONS_ROW* temp_list = (MEMORY_ALLOCATIONS_ROW*) realloc (allocation_log->values  , allocation_log->size * sizeof(MEMORY_ALLOCATIONS_ROW));
+  allocation_log->values = temp_list;
+
+  allocation_log->values[allocation_log->size-1] = row;
+
+  return true;
+}
+
+bool mark_deallocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address) {
+  MEMORY_ALLOCATIONS_ROW row = new_memory_row(address, true);
+
+  allocation_log->size++;
+
+  MEMORY_ALLOCATIONS_ROW* temp_list = (MEMORY_ALLOCATIONS_ROW*) realloc (allocation_log->values  , allocation_log->size * sizeof(MEMORY_ALLOCATIONS_ROW));
+  allocation_log->values = temp_list;
+  //
+  allocation_log->values[allocation_log->size-1] = row;
+  // allocation_log->values[allocation_log->size-1].id = allocation_log->size;
+
+  return true;
+}
+
+MEMORY check_address_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address) {
+  int i = allocation_log->size - 1;
+
+  for(i; i >= 0; i--) {
+    if(allocation_log->values[i].addr == address) {
+      if(allocation_log->values[i].is_free == true) {
+        return FREE;
+      }
+      else {
+        return DYNAMIC;
+      }
+    }
+  }
+
+  return STATIC;
+
+}
+
+bool free_memory_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log) {
+  #ifdef DEBUG
+  print_allocation_log(allocation_log);
+
+  #endif
+
+  free(allocation_log->values);
+  return true;
+
+}
+
+void print_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log) {
+  printf("\n#############################################################################\n");
+  printf("################## ALLOCATION LOG ###########################################  \n");
+  printf("#############################################################################  \n");
+
+  int i = 0;
+  for(;i < allocation_log->size;i++) {
+    MEMORY_ALLOCATIONS_ROW row = allocation_log->values[i];
+    printf("\t# ID: %d \n", i);
+    printf("\t# MEMORY ADDRESS: %p \n", row.addr);
+    printf("\t# IS FREE: %d \n", row.is_free);
+    printf("\n");
+  }
+}
 void map2check_add_store_pointer(void* var, void* value,unsigned scope, const char* name, int line) {
   if(list_initialized == false) {
     list_map2check = new_list_log();
     list_initialized = true;
   }
 
-  LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, false, false, line, name);
+  if(!allocations_initialized) {
+    allocations_map2check = new_memory_allocation();
+    allocations_initialized = true;
+  }
+
+  MEMORY status = check_address_allocation_log(&allocations_map2check, (long) value);
+  bool isDynamic;
+  bool isFree;
+
+  switch (status) {
+    case STATIC:
+      isDynamic = false;
+      isFree = false;
+      break;
+    case FREE:
+      isDynamic = false;
+      isFree = true;
+      break;
+    case DYNAMIC:
+      isDynamic = true;
+      isFree = false;
+      break;
+  }
+
+  LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name);
   mark_map_log(&list_map2check, &row);
 }
 
@@ -29,6 +137,8 @@ void map2check_pointer(void* x,unsigned scope, const char* name, int line){
   mark_map_log(&list_map2check, &row);
 
 }
+
+
 
 void list_log_to_file(LIST_LOG_ROW* row) {
   FILE* output = fopen("output", "a");
@@ -84,15 +194,14 @@ bool mark_map_log(LIST_LOG* list, LIST_LOG_ROW* row) {
 
 void map2check_free_list_log(){
   free_list_log(&list_map2check);
+  free_memory_allocation_log(&allocations_map2check);
 }
 
 bool free_list_log(LIST_LOG* list) {
     // free(list);
   #ifdef DEBUG
   print_list_log(list);
-  printf("Freeing LIST_LOG values");
 
-  printf("\n\n");
   #endif
   free(list->values);
   return true;
@@ -116,4 +225,39 @@ void print_list_log(LIST_LOG* list) {
     printf("\t# LINE NUMBER: %d\n", row.line_number);
     printf("\n");
   }
+}
+
+
+int map2check_non_det_int() {
+  int non_det;
+  klee_make_symbolic(&non_det, sizeof(non_det), "non_det_int");
+  return non_det;
+}
+
+void map2check_malloc(void* ptr, int size) {
+  if(!allocations_initialized) {
+    allocations_map2check = new_memory_allocation();
+    allocations_initialized = true;
+  }
+
+  mark_allocation_log(&allocations_map2check, (long) ptr);
+}
+
+// TODO: implement SCOPE, LINE NUMBER
+void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line) {
+  if(!allocations_initialized) {
+    allocations_map2check = new_memory_allocation();
+    allocations_initialized = true;
+  }
+
+  int* addr = (int*) ptr;
+  mark_deallocation_log(&allocations_map2check, (long) *addr);
+
+  if(list_initialized == false) {
+    list_map2check = new_list_log();
+    list_initialized = true;
+  }
+
+  LIST_LOG_ROW row = new_list_row((long) ptr,(long) *addr, scope, false, true, line, name);
+  mark_map_log(&list_map2check, &row);
 }

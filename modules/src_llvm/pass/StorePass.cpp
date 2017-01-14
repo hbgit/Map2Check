@@ -51,10 +51,15 @@ struct StorePass : public FunctionPass {
                                 line_number  = 0;
                               }
 
+
+
                               ConstantInt* line_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), line_number);
                               ConstantInt* scope_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), scope_number);
                               Value* var_address = storeInst->getPointerOperand();
                               Value* receives    = storeInst->getValueOperand();
+
+                              // errs() << "VAR: " << var_address->getName() << "\n";
+                              // errs() << "SCOPE: " << scope_number << "\n";
 
                               auto j = i;
 
@@ -67,7 +72,6 @@ struct StorePass : public FunctionPass {
                               // Adds map2check_free with destination address
                               IRBuilder<> builder((Instruction*)j);
                               Value* name_llvm = builder.CreateGlobalStringPtr(var_address->getName());
-                              Value* scope_llvm = builder.CreateGlobalStringPtr(F.getName());
 
                               Value* args[] = {varPointerCast, receivesPointerCast, scope_value, name_llvm, line_value};
                               builder.CreateCall(map2check_add_store_pointer, args);

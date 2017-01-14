@@ -5,6 +5,11 @@
 #define true 1
 #define false 0
 
+#define MEMORY char
+#define STATIC 0
+#define FREE 1
+#define DYNAMIC 2
+
 typedef struct obj {
   unsigned id;
   const char* var_name;
@@ -22,11 +27,16 @@ typedef struct obj1 {
 } LIST_LOG;
 
 typedef struct obj2 {
-  struct obj2* next;
-  // struct obj2* prev;
   long addr;
   bool is_free;
+} MEMORY_ALLOCATIONS_ROW;
+
+typedef struct obj3 {
+  MEMORY_ALLOCATIONS_ROW* values;
+  unsigned size;
 } MEMORY_ALLOCATIONS_LOG;
+
+
 
 /**
  * Creates a new MEMORY_ALLOCATIONS_LOG
@@ -40,7 +50,7 @@ MEMORY_ALLOCATIONS_LOG new_memory_allocation();
  * @param  address        Memory Address to be added
  * @return                Returns success of operation
  */
-bool mark_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address, bool is_free);
+bool mark_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address);
 
 /**
  * Mark element as free to a MEMORY_ALLOCATIONS_LOG
@@ -51,12 +61,28 @@ bool mark_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address, b
 bool mark_deallocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address);
 
 /**
- * Checks if an address exists in a MEMORY_ALLOCATIONS_LOG
+ * Checks if an address exists in a MEMORY_ALLOCATIONS_LOG, it checks from the last added to the first
  * @param  allocation_log Pointer to the MEMORY_ALLOCATIONS_LOG
  * @param  address        Memory Address to be checked
- * @return                Returns if the Memory Address exists in the MEMORY_ALLOCATIONS_LOG
+ * @return                Returns the most recent status of the address
  */
-bool check_address_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address);
+MEMORY check_address_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address);
+
+/**
+ * Free allocated values from MEMORY_ALLOCATIONS_LOG
+ * @param  allocation_log Pointer to the MEMORY_ALLOCATIONS_LOG
+ * @return                Returns the success of operation
+ */
+bool free_memory_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log);
+
+void print_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log);
+/**
+ * This method initializes a MEMORY_ALLOCATIONS_ROW with the defined parameters
+ * @param  address Memory Address to be logged
+ * @param  is_free Is the *address* released?
+ * @return         Returns the initialized MEMORY_ALLOCATIONS_ROW
+ */
+MEMORY_ALLOCATIONS_ROW new_memory_row(long address, bool is_free);
 
 
 /**

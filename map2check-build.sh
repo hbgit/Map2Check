@@ -258,7 +258,6 @@ gtest() {
 	cd -
 }
 
-
 build_llvm
 install_llvm
 minisat

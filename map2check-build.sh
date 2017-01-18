@@ -268,7 +268,7 @@ gtest() {
 build_llvm
 install_llvm
 minisat
-# gtest
+gtest
 stp
 klee
 map2check

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "MemoryUtils.h"
 
-#define DEBUG
+// #define DEBUG
 
 MEMORY_ALLOCATIONS_ROW new_memory_row(long address, bool is_free) {
   MEMORY_ALLOCATIONS_ROW row;

@@ -35,7 +35,6 @@ ABS_SRCDIR=`readlink -f $SRCDIR`
 # create prefix directory
 mkdir -p $PREFIX/bin
 mkdir -p $PREFIX/lib
-mkdir -p $PREFIX/lib32
 mkdir -p $PREFIX/include
 
 git_clone_or_pull()
@@ -238,6 +237,14 @@ klee()
 			-DENABLE_UNIT_TESTS=OFF \
 		|| clean_and_exit 1 "git"
 	fi
+
+
+	make -C runtime -f Makefile.cmake.bitcode clean 2>/dev/null
+	make -C runtime -f Makefile.cmake.bitcode clean 2>/dev/null
+	rm -f Release+Asserts/lib/klee-libc.bc* 2>/dev/null
+
+	pwd
+	(build && make install) || exit 1
 	cd -
 }
 
@@ -261,9 +268,9 @@ gtest() {
 build_llvm
 install_llvm
 minisat
+# gtest
 stp
 klee
-gtest
 map2check
 
   # echo $LD_LIBRARY_PATH

@@ -10,6 +10,7 @@ namespace po = boost::program_options;
 #include <iterator>
 #include <numeric>
 #include <sstream>
+#include <cstdlib>
 using namespace std;
 
 #include "caller.h"
@@ -42,6 +43,15 @@ void help_msg(){
 int main(int argc, char** argv)
 {
 	Caller* caller;
+
+  namespace fs = boost::filesystem;
+fs::path p("lib/klee/runtime");
+fs::path klee_lib_path = fs::complete(p); // complete == absolute
+// std::cout << "The absolute path: " << klee_lib_path;
+std::string klee_env_var = "KLEE_RUNTIME_LIBRARY_PATH=" + klee_lib_path.string();
+
+// const char* env_command = klee_env_var.c_str();
+putenv((char*) klee_env_var.c_str() );
 
 	try
 	{
@@ -119,19 +129,6 @@ int main(int argc, char** argv)
 
 				return SUCCESS;
 			}
-
-
-
-      //
-      // if (vm.count("output-file"))
-			// {
-			// 	caller->genByteCodeFile();
-      //   caller->linkLLVM();
-      //   caller->callKlee();
-      //
-      //
-			// 	return SUCCESS;
-			// }
 
 
 			po::notify(vm); // throws on error, so do after help in case

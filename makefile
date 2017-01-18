@@ -23,13 +23,14 @@ LLVM_LINK        := $(LLVM_BUILD_DIR)/llvm-link
 SRC_MODULES_DIR := modules
 SRC_LLVM_DIR    := modules/src_llvm
 BUILDDIR        := build
-OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/funcpass.o $(BUILDDIR)/allocapass.o $(BUILDDIR)/storepass.o
+OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/funcpass.o $(BUILDDIR)/allocapass.o $(BUILDDIR)/storepass.o $(BUILDDIR)/assertpass.o
 SAMPLES         := $(wildcard samples/*.c)
 
 
 .PHONY: all
 all: make_builddir \
 	  $(BUILDDIR)/funcpass \
+		$(BUILDDIR)/assertpass \
 		$(BUILDDIR)/storepass \
 		$(BUILDDIR)/allocapass \
 		$(BUILDDIR)/utils \
@@ -55,12 +56,15 @@ make_builddir:
 $(BUILDDIR)/funcpass: $(SRC_LLVM_DIR)/pass/FuncPass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
 
+$(BUILDDIR)/assertpass: $(SRC_LLVM_DIR)/pass/AssertsPass.cpp
+			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
+
 $(BUILDDIR)/storepass: $(SRC_LLVM_DIR)/pass/StorePass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
 
 
 $(BUILDDIR)/utils: $(SRC_LLVM_DIR)/utils/Utils.c
-			$(CC) -c -emit-llvm  $^ -o $@.bc
+			$(CC) -I./klee/include/ -c -emit-llvm  $^ -o $@.bc
 
 $(BUILDDIR)/memoryutils: $(SRC_LLVM_DIR)/utils/MemoryUtils.c
 			$(CC) -c -emit-llvm  $^ -o $@.bc

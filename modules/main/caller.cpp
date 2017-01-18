@@ -3,6 +3,8 @@
 #include "../src_llvm/pass/AllocaPass.h"
 #include "../src_llvm/pass/StorePass.h"
 
+#include "../src_llvm/pass/AssertsPass.h"
+
 #include "caller.h"
 
 
@@ -95,13 +97,23 @@ int Caller::callPass(){
 
   	AnalysisPasses.add(new FuncPass());
     AnalysisPasses.add(new StorePass());
-    AnalysisPasses.add(new AllocaPass());
+    // AnalysisPasses.add(new AllocaPass());
 
   	AnalysisPasses.run(*M);
 
 	return 1;
 }
 
+int Caller::callPass(std::string target_function){
+    AnalysisPasses.add(new AssertsPass(target_function));
+  	AnalysisPasses.add(new FuncPass());
+    AnalysisPasses.add(new StorePass());
+    AnalysisPasses.add(new AssertsPass(target_function));
+    // AnalysisPasses.add(new AllocaPass());
+  	AnalysisPasses.run(*M);
+
+	return 1;
+}
 
 void Caller::genByteCodeFile() {
 
@@ -138,6 +150,6 @@ void Caller::linkLLVM() {
 void Caller::callKlee() {
   /* Execute klee */
 
-  const char* klee_command = "./bin/klee  result.bc";
+  const char* klee_command = "./bin/klee result.bc";
   system(klee_command);
 }

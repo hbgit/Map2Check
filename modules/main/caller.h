@@ -20,9 +20,12 @@ class Caller {
 
       int parseIrFile();
 
+
+
 			void genByteCodeFile();
 
       int callPass();
+			int callPass(std::string target_function);
 
 			void linkLLVM();
 

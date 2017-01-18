@@ -51,9 +51,9 @@ int main(int argc, char** argv)
 		desc.add_options()
 				("help,h", "\tshow help")
 				("input-file,i", po::value< vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
-				("loop-pass,l", "\tanalisys code loops")
-        ("func-pass,f", "\tconverts functions")
-        ("output-file,o", "\tGenerates output file")
+        ("target-function,f", po::value< string >(), "\tchecks if function can be executed")
+
+
 		;
 
 		po::positional_options_description p;
@@ -102,27 +102,36 @@ int main(int argc, char** argv)
 				 **/
 				caller  = new Caller(pathfile);
 				caller->parseIrFile();
-				//return SUCCESS;
-			}
 
-			if (vm.count("loop-pass"))
-			{
-				caller->callPass();
+        if (vm.count("target-function"))
+  			{
+          string function = vm["target-function"].as< string >();
+          // cout << "Function name " << function << "\n";
+  				caller->callPass(function);
+  			}
+        else {
+          caller->callPass();
+        }
 
-				// return SUCCESS;
-			}
-
-
-
-      if (vm.count("output-file"))
-			{
-				caller->genByteCodeFile();
+        caller->genByteCodeFile();
         caller->linkLLVM();
         caller->callKlee();
 
-
 				return SUCCESS;
 			}
+
+
+
+      //
+      // if (vm.count("output-file"))
+			// {
+			// 	caller->genByteCodeFile();
+      //   caller->linkLLVM();
+      //   caller->callKlee();
+      //
+      //
+			// 	return SUCCESS;
+			// }
 
 
 			po::notify(vm); // throws on error, so do after help in case

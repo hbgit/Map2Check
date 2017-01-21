@@ -1,6 +1,6 @@
 LLVM_VERSION     := 3.8.1
-LLVM_BUILD_DIR   := llvm-build-cmake
-LLVM_SRC_DIR     := llvm-$(LLVM_VERSION)
+LLVM_BUILD_DIR   := dependencies/llvm-build-cmake
+LLVM_SRC_DIR     := dependencies/llvm-$(LLVM_VERSION)
 
 
 CC               := $(LLVM_BUILD_DIR)/bin/clang
@@ -39,11 +39,11 @@ all: make_builddir \
 		$(BUILDDIR)/map2check
 
 
-.PHONY: install
-install: all
-	cp $(BUILDDIR)/map2check install/
-	cp $(BUILDDIR)/utils.bc install/lib/
-	cp $(BUILDDIR)/memoryutils.bc install/lib/
+.PHONY: release
+release: all
+	cp $(BUILDDIR)/map2check release/
+	cp $(BUILDDIR)/utils.bc release/lib/
+	cp $(BUILDDIR)/memoryutils.bc release/lib/
 
 .PHONY: pass
 pass: $(BUILDDIR)/funcpass

@@ -1,13 +1,8 @@
 *~
 build
-klee
-klee-build
-llvm-build-cmake
-llvm-3.8.1
-minisat
-stp
+dependencies
 samples/*.bc
-install
+release
 teste/*.bc
 .idea/workspace.xml
 .idea/**/*

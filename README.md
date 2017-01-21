@@ -23,22 +23,12 @@
 To use this tool is necessary that the system contains the following software already installed properly:
 
 > - Linux OS
-> - Python (v2.7.1 or higher);
-> - Perl;
-> - GCC compiler; 
-> - Pycparser (v2.10) - https://github.com/eliben/pycparser
-> - Pyparsing (v1.5.6) - http://pyparsing.wikispaces.com
-> - Networkx (v1.9.1) - https://networkx.github.io
-> - Uncrustify (v0.60) - http://uncrustify.sourceforge.net
-> - Boost - http://www.boost.org
-> - Clang - http://clang.llvm.org
-> - LLVM - http://www.llvm.org
 
 
 ================
 
 
-<b>How to install Map2Check?</b>
+<b>How to build Map2Check?</b>
 
 <p align="justify">
 First of all, you need to install the required packages:
@@ -46,13 +36,7 @@ First of all, you need to install the required packages:
 
 - <b>STEP 0:</b>
 
-> - Pycparser : $ pip install python-pycparser
-> - Pyparsing : $ pip install python-pyparsing
-> - Networkx  : $ pip install python-networkx
-> - Uncrustify : $ apt-get install uncrustify
-> - Boost : $ apt-get install libboost-all-dev
-> - Clang : $ apt-get install clang
-> - LLVM : $ apt-get install llvm-devel llvm-static llvm-libs libedit-devel
+> $ sudo apt install wget build-essential git cmake pkg-config libz-dev curl bison flex bc libcap-dev libboost-all-dev libncurses5-dev python-minimal python-pip unzip libgtest-dev
 
 
 - <b>STEP 1:</b>
@@ -71,7 +55,8 @@ or from https://github.com
 - <b>STEP 2:</b>
 
 <p align="justify">
-Build tool: $ make  
+Execute the script: $ ./map2check-build.sh
+This will create a folder named release containing the map2check executable and the required libraries
 </p>
 
 - <b>STEP 3:</b>

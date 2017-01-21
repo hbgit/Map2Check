@@ -17,9 +17,10 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-# set -x
+set -x
 
-export PREFIX=`pwd`/install
+export PREFIX=`pwd`/release
+export DEPENDENCIES=`pwd`/dependencies
 
 export LD_LIBRARY_PATH="$PREFIX/lib:/lib/:$LD_LIBRARY_PATH"
 export C_INCLUDE_PATH="$PREFIX/include:$C_INCLUDE_PATH"
@@ -36,6 +37,9 @@ ABS_SRCDIR=`readlink -f $SRCDIR`
 mkdir -p $PREFIX/bin
 mkdir -p $PREFIX/lib
 mkdir -p $PREFIX/include
+
+# create dependencies directory
+mkdir -p $DEPENDENCIES
 
 git_clone_or_pull()
 {
@@ -122,7 +126,9 @@ check()
 
 build_llvm()
 {
-	if [ ! -d "llvm-${LLVM_VERSION}" ]; then
+    
+    
+	if [ ! -d "$DEPENDENCIES/llvm-${LLVM_VERSION}" ]; then
 		wget http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz || exit 1
 		wget http://llvm.org/releases/${LLVM_VERSION}/cfe-${LLVM_VERSION}.src.tar.xz || exit 1
 
@@ -141,8 +147,8 @@ build_llvm()
     echo "LLVM folder already exists, proceding to compilation"
 	fi
 
-	mkdir -p llvm-build-cmake
-	cd llvm-build-cmake || exitmsg "downloading failed"
+	mkdir -p $DEPENDENCIES/llvm-build-cmake
+	cd $DEPENDENCIES/llvm-build-cmake || exitmsg "downloading failed"
 
 	# configure llvm
 	if [ ! -d CMakeFiles ]; then
@@ -164,7 +170,7 @@ build_llvm()
 
 install_llvm()
 {
-  LLVM_LOCATION=llvm-build-cmake
+  LLVM_LOCATION=$DEPENDENCIES/llvm-build-cmake
   cp $LLVM_LOCATION/bin/clang $PREFIX/bin/clang || exit 1
 	cp $LLVM_LOCATION/bin/opt $PREFIX/bin/opt || exit 1
 	cp $LLVM_LOCATION/bin/llvm-link $PREFIX/bin/llvm-link || exit 1
@@ -190,8 +196,9 @@ clean_and_exit()
 
 minisat()
 {
+    cd $DEPENDENCIES
   git_clone_or_pull https://github.com/stp/minisat.git minisat
-	cd minisat
+	cd $DEPENDENCIES/minisat
 	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags zlib`"
 	(build lr && make prefix=$PREFIX install-headers) || exit 1
 	cp build/release/lib/libminisat.a $PREFIX/lib/ || exit 1
@@ -201,8 +208,9 @@ cd -
 
 stp()
 {
+    cd $DEPENDENCIES
   git_clone_or_pull https://github.com/stp/stp.git stp
-	cd stp || exitmsg "Cloning failed"
+	cd $DEPENDENCIES/stp || exitmsg "Cloning failed"
 
   echo $PREFIX
 	if [ ! -d CMakeFiles ]; then
@@ -221,11 +229,12 @@ stp()
 
 klee()
 {
-  # build klee
+    # build klee
+    cd $DEPENDENCIES
 	git_clone_or_pull "-b 3.0.8 https://github.com/rafaelsa94/klee.git" klee || exitmsg "Cloning failed"
 
-	mkdir -p klee-build/
-	cd klee-build/
+	mkdir -p $DEPENDENCIES/klee-build/
+	cd $DEPENDENCIES/klee-build/
 
 	if [ ! -d CMakeFiles ]; then
 		cmake ../klee -DCMAKE_INSTALL_PREFIX=$PREFIX \
@@ -249,8 +258,9 @@ klee()
 }
 
 map2check() {
+    cd $RUNDIR
 	make all
-	make install
+	make release
 
 }
 

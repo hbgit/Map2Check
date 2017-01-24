@@ -77,7 +77,7 @@ exitmsg()
 
 build()
 {
-	make -j4 CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" $@ || exit 1
+	make -j1 CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" $@ || exit 1
 	return 0
 }
 check()
@@ -126,8 +126,8 @@ check()
 
 build_llvm()
 {
-    
-    
+
+
 	if [ ! -d "$DEPENDENCIES/llvm-${LLVM_VERSION}" ]; then
 		wget http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz || exit 1
 		wget http://llvm.org/releases/${LLVM_VERSION}/cfe-${LLVM_VERSION}.src.tar.xz || exit 1
@@ -148,6 +148,7 @@ build_llvm()
 	fi
 
 	mkdir -p $DEPENDENCIES/llvm-build-cmake
+	mv llvm-${LLVM_VERSION}  $DEPENDENCIES/dependencies/
 	cd $DEPENDENCIES/llvm-build-cmake || exitmsg "downloading failed"
 
 	# configure llvm

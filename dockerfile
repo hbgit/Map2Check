@@ -10,7 +10,8 @@ FROM ubuntu:16.10
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
 
-ENV BUILD_DIR=/home/map2check/devel_tool/build
+ENV BUILD_DIR=/home/map2check/devel_tool/build \
+    MAP_SRC=/home/map2check/devel_tool/map_src
 
 # Update the repository sources list
 RUN apt-get update
@@ -64,12 +65,20 @@ VOLUME /home/map2check/devel_tool/
 
 ### Buildind Map2Check tool
 
-# Create build directory
-RUN mkdir -p ${BUILD_DIR}
+# Copy across source files needed for build
+RUN mkdir ${MAP_SRC}
+ADD / ${MAP_SRC}
 
-   
+# Create build directory
+RUN mkdir ${BUILD_DIR}
+
+# Set klee user to be owner
+RUN sudo chown --recursive map2check: ${MAP_SRC}
+
+RUN ls -alh ${MAP_SRC}
+
 # Build KLEE (use TravisCI script)
-RUN map2check-build.sh
+RUN ${MAP_SRC}/map2check-build.sh
 
 # Revoke password-less sudo and Set up sudo access for the ``map2check`` user so it
 # requires a password

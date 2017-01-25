@@ -42,6 +42,7 @@ all: make_builddir \
 .PHONY: release
 release: all
 	@test -d release || mkdir release
+	@test -d release/lib || mkdir release/lib
 	cp $(BUILDDIR)/map2check release/
 	cp $(BUILDDIR)/utils.bc release/lib/
 	cp $(BUILDDIR)/memoryutils.bc release/lib/

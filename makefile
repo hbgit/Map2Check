@@ -64,7 +64,7 @@ $(BUILDDIR)/storepass: $(SRC_LLVM_DIR)/pass/StorePass.cpp
 
 
 $(BUILDDIR)/utils: $(SRC_LLVM_DIR)/utils/Utils.c
-			$(CC) -I./klee/include/ -c -emit-llvm  $^ -o $@.bc
+			$(CC) -I./dependencies/klee/include/ -c -emit-llvm  $^ -o $@.bc
 
 $(BUILDDIR)/memoryutils: $(SRC_LLVM_DIR)/utils/MemoryUtils.c
 			$(CC) -c -emit-llvm  $^ -o $@.bc

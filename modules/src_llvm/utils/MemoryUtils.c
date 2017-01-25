@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "MemoryUtils.h"
 
-// #define DEBUG
+// #define  DEBUG
 
 MEMORY_ALLOCATIONS_ROW new_memory_row(long address, bool is_free) {
   MEMORY_ALLOCATIONS_ROW row;
@@ -225,6 +225,10 @@ void print_list_log(LIST_LOG* list) {
     printf("\t# LINE NUMBER: %d\n", row.line_number);
     printf("\n");
   }
+}
+
+void map2check_list_debug() {
+  print_list_log(&list_map2check);
 }
 
 

@@ -140,15 +140,19 @@ void map2check_pointer(void* x,unsigned scope, const char* name, int line){
 
 
 
-void list_log_to_file(LIST_LOG_ROW* row) {
-  FILE* output = fopen("output", "a");
-  fprintf(output, "ID, %d\n", row->id);
-  fprintf(output, "\tMEMORY ADDRESS, %p\n", row->memory_address);
-  fprintf(output, "\tPOINTS TO, %p\n", row->memory_address_points_to);
-  fprintf(output, "\tSCOPE, %d", row->scope);
-  fprintf(output, "\tIS FREE, %d\n", row->is_free);
-  fprintf(output, "\tIS DYNAMIC, %d\n", row->is_dynamic);
-  fprintf(output, "\n\n");
+void list_log_to_file(LIST_LOG* list) {
+  FILE* output = fopen("list_log", "w");
+  int i = 0;
+  for(;i< list->size; i++) {
+    LIST_LOG_ROW*row = &list->values[i];
+    fprintf(output, "%d,", row->id);
+    fprintf(output, "%p,", row->memory_address);
+    fprintf(output, "%p,", row->memory_address_points_to);
+    fprintf(output, "%d,", row->scope);
+    fprintf(output, "%d,", row->is_free);
+    fprintf(output, "%d\n", row->is_dynamic);
+
+  }
 
   fclose(output);
 }
@@ -199,10 +203,9 @@ void map2check_free_list_log(){
 
 bool free_list_log(LIST_LOG* list) {
     // free(list);
-  #ifdef DEBUG
-  print_list_log(list);
 
-  #endif
+  // print_list_log(&list_map2check);
+  list_log_to_file(&list_map2check);
   free(list->values);
   return true;
 }
@@ -228,7 +231,7 @@ void print_list_log(LIST_LOG* list) {
 }
 
 void map2check_list_debug() {
-  print_list_log(&list_map2check);
+    print_list_log(&list_map2check  );
 }
 
 

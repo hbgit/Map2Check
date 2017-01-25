@@ -121,10 +121,10 @@ bool mark_map_log(LIST_LOG* list, LIST_LOG_ROW* row);
 bool free_list_log(LIST_LOG* list);
 
 /**
- * Append elements from LIST_LOG_ROW to a FILE
- * @param row Pointer to the LIST_LOG_ROW to be appended
+ * Write elements from LIST_LOG to a FILE
+ * @param row Pointer to the LIST_LOG to be writed
  */
-void list_log_to_file(LIST_LOG_ROW* row);
+void list_log_to_file(LIST_LOG* list);
 
 /**
  * Prints elements from a LIST_LOG

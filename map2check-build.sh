@@ -77,7 +77,14 @@ exitmsg()
 
 build()
 {
-	make -j1 CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" $@ || exit 1
+
+	if [ -f /proc/cpuinfo ]; then
+    CPUS=`grep processor /proc/cpuinfo | wc -l`
+	else
+    CPUS=1
+	fi
+
+	make -j `expr $CPUS + 1` CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" $@ || exit 1
 	return 0
 }
 check()
@@ -148,7 +155,7 @@ build_llvm()
 	fi
 
 	mkdir -p $DEPENDENCIES/llvm-build-cmake
-	mv llvm-${LLVM_VERSION}  $DEPENDENCIES/dependencies/
+	mv llvm-${LLVM_VERSION}  $DEPENDENCIES/llvm-${LLVM_VERSION}
 	cd $DEPENDENCIES/llvm-build-cmake || exitmsg "downloading failed"
 
 	# configure llvm

@@ -16,7 +16,7 @@ ENV BUILD_DIR=/home/map2check/devel_tool/build \
 # Update the repository sources list
 RUN apt-get update
 
-################## BEGIN INSTALLATION ######################
+############depois tu me manda uma cópia do teu mirrors ###### BEGIN INSTALLATION ######################
 # Devel packages
 RUN apt-get install -y sudo \
 	apt-utils \
@@ -78,7 +78,7 @@ RUN sudo chown --recursive map2check: ${MAP_SRC}
 RUN ls -alh ${MAP_SRC}
 
 # Build KLEE (use TravisCI script)
-RUN ${MAP_SRC}/map2check-build.sh
+RUN cd ${MAP_SRC} && sudo ./map2check-build.sh
 
 # Revoke password-less sudo and Set up sudo access for the ``map2check`` user so it
 # requires a password

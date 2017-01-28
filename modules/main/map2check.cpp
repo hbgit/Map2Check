@@ -25,7 +25,7 @@ namespace
 
 // A helper function to simplify the main part.
 template<class T>
-ostream& operator<<(ostream& os, const vector<T>& v)
+ostream& operator<<(ostream& os, const std::vector<T>& v)
 {
     copy(v.begin(), v.end(), ostream_iterator<T>(os, " "));
     return os;
@@ -60,7 +60,7 @@ putenv((char*) klee_env_var.c_str() );
 		po::options_description desc("Options");
 		desc.add_options()
 				("help,h", "\tshow help")
-				("input-file,i", po::value< vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
+      ("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
         ("target-function,f", po::value< string >(), "\tchecks if function can be executed")
 
 
@@ -91,10 +91,10 @@ putenv((char*) klee_env_var.c_str() );
 
 			if (vm.count("input-file")) {
 				cout << "Input file: "
-                 << vm["input-file"].as< vector<string> >() << "\n";
-                std::string pathfile;
-				pathfile = accumulate(begin(vm["input-file"].as< vector<string> >()),
-				               end(vm["input-file"].as< vector<string> >()), pathfile);
+             << vm["input-file"].as< std::vector<string> >() << "\n";
+        std::string pathfile;
+        pathfile = accumulate(boost::begin(vm["input-file"].as< std::vector<string> >()),
+                              boost::end(vm["input-file"].as< std::vector<string> >()), pathfile);
 				string extension = boost::filesystem::extension(pathfile);
 				if(extension.compare(".bc")){
 					help_msg();

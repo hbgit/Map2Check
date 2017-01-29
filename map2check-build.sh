@@ -209,7 +209,7 @@ minisat()
 	cd $DEPENDENCIES/minisat
 	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags zlib`"
 	(build lr && make prefix=$PREFIX install-headers) || exit 1
-	cp build/release/lib/libminisat.a $PREFIX/lib/ || exit 1
+	cp `pwd`/build/release/lib/libminisat.a $PREFIX/lib/ || exit 1
 
 cd -
 }

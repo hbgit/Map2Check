@@ -60,7 +60,7 @@ RUN useradd -m map2check && \
 USER map2check
 RUN mkdir /home/map2check/devel_tool             
 WORKDIR /home/map2check/devel_tool/
-VOLUME /home/map2check/devel_tool/
+
 
 
 ### Buildind Map2Check tool
@@ -73,12 +73,14 @@ ADD / ${MAP_SRC}
 RUN mkdir ${BUILD_DIR}
 
 # Set klee user to be owner
-RUN sudo chown --recursive map2check: ${MAP_SRC}
-
+RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 RUN ls -alh ${MAP_SRC}
 
 # Build KLEE (use TravisCI script)
 RUN cd ${MAP_SRC} && sudo ./map2check-build.sh
+
+RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
+VOLUME /home/map2check/devel_tool/
 
 # Revoke password-less sudo and Set up sudo access for the ``map2check`` user so it
 # requires a password

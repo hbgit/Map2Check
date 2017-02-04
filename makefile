@@ -69,7 +69,7 @@ $(BUILDDIR)/utils: $(SRC_LLVM_DIR)/utils/Utils.c
 			$(CC) -I./dependencies/klee/include/ -c -emit-llvm  $^ -o $@.bc
 
 $(BUILDDIR)/memoryutils: $(SRC_LLVM_DIR)/utils/MemoryUtils.c
-			$(CC) -c -emit-llvm  $^ -o $@.bc
+			$(CC) -I./dependencies/klee/include/ -c -emit-llvm  $^ -o $@.bc
 
 $(BUILDDIR)/allocapass: $(SRC_LLVM_DIR)/pass/AllocaPass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o

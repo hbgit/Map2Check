@@ -33,13 +33,16 @@ public:
                 Constant* map2check_target_function = F.getParent()->getOrInsertFunction(
                         "map2check_target_function",
                         Type::getVoidTy(Ctx),
+			Type::getInt8PtrTy(Ctx),
+			Type::getInt32Ty(Ctx),
+                        Type::getInt32Ty(Ctx),
                         NULL);
                 /*
                  * Iterates over all instructions "i" of all functions and blocks
                  */
 
-
-                for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
+		auto name = F.getName();
+                for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {		  
                         for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
                                 /*
                                  * The next block check if the current instruction is a malloc or free,
@@ -50,6 +53,7 @@ public:
                                  */
                                 if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
                                         Function* f = callInst->getCalledFunction();
+					
                                         if(f == NULL) {
                                                 Value* v = callInst->getCalledValue();
 
@@ -59,7 +63,6 @@ public:
 
                                                         if ( !this->target_function.compare(f->getName())) {
                                                           auto j = i;
-                                                          // --j;
 
                                                           IRBuilder<> builder((Instruction*)j);
                                                           builder.CreateCall(map2check_target_function);
@@ -71,15 +74,33 @@ public:
 
                                         else {
 
+					  
+					  if (!this->target_function.compare(f->getName())) {
+					    auto j = i;
+					    
+					    IRBuilder<> builder((Instruction*)j);
+					    
+					    unsigned line_number;
+					    unsigned scope_number;
 
-                                                if (!this->target_function.compare(f->getName())) {
+					    DebugLoc location = callInst->getDebugLoc();
+					    if(location) {
+					      scope_number = location.getScope()->getMetadataID();
+					      line_number = location.getLine();
+					    }
+					    else {
+					      scope_number = 0;
+					      line_number  = 0;
+					    }
 
-                                                        auto j = i;
-                                                        // --j;
+					    ConstantInt* scope_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), scope_number);
+					    ConstantInt* line_value = ConstantInt::getSigned(Type::getInt32Ty(Ctx), line_number);
 
-                                                        IRBuilder<> builder((Instruction*)j);
-                                                        builder.CreateCall(map2check_target_function);
-                                                }
+					    Value* name_llvm = builder.CreateGlobalStringPtr(this->target_function);
+					    
+					    Value* args[] = {name_llvm, scope_value, line_value };
+					    builder.CreateCall(map2check_target_function, args);
+					  }
                                         }
 
 

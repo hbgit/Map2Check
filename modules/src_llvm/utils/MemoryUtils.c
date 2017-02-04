@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <klee/klee.h>
 #include "MemoryUtils.h"
 
 // #define  DEBUG
@@ -267,4 +268,11 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line)
 
   LIST_LOG_ROW row = new_list_row((long) ptr,(long) *addr, scope, false, true, line, name);
   mark_map_log(&list_map2check, &row);
+}
+
+void map2check_target_function(const char* func_name, int scope, int line) {
+  printf("ERROR on Function %s :: SCOPE: %d :: LINE: %d\n", func_name, scope, line);
+  map2check_list_debug();
+  free_list_log(&list_map2check);
+  klee_assert(0); 
 }

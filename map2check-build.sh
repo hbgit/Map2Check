@@ -270,6 +270,9 @@ map2check() {
 	make all
 	make release
 
+    sudo chown $UID:$UID -R . 
+
+
 }
 
 gtest() {

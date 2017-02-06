@@ -58,9 +58,7 @@ struct StorePass : public FunctionPass {
                               Value* var_address = storeInst->getPointerOperand();
                               Value* receives    = storeInst->getValueOperand();
 
-                              // errs() << "VAR: " << var_address->getName() << "\n";
-                              // errs() << "SCOPE: " << scope_number << "\n";
-
+                              
                               auto j = i;
 
                               Twine bitcast("bitcast");

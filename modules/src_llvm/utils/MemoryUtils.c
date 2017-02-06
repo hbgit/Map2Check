@@ -251,14 +251,42 @@ void map2check_malloc(void* ptr, int size) {
   mark_allocation_log(&allocations_map2check, (long) ptr);
 }
 
-// TODO: implement SCOPE, LINE NUMBER
+int map2check_is_invalid_free(long ptr) {
+  int i = list_map2check.size - 1;
+  for(; i >= 0; i--) {
+    long points_to = list_map2check.values[i]
+      .memory_address_points_to;   
+
+    if (points_to == ptr) {
+      bool is_free = list_map2check
+	.values[i].is_free;
+
+      if(is_free) {
+	return true;
+      }
+      else {
+	return false;
+      }
+    } 
+  }
+
+  return false;
+}
+
+void map2check_ERROR() {
+  map2check_list_debug();
+  free_list_log(&list_map2check);
+  klee_assert(0); 
+}
+
+
 void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line) {
   if(!allocations_initialized) {
     allocations_map2check = new_memory_allocation();
     allocations_initialized = true;
   }
 
-  int* addr = (int*) ptr;
+  long* addr = (long*) ptr;
   mark_deallocation_log(&allocations_map2check, (long) *addr);
 
   if(list_initialized == false) {
@@ -266,13 +294,24 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line)
     list_initialized = true;
   }
 
-  LIST_LOG_ROW row = new_list_row((long) ptr,(long) *addr, scope, false, true, line, name);
+  LIST_LOG_ROW row = new_list_row((long) ptr,
+				  (long) *addr,
+				  scope,
+				  false,
+				  true,
+				  line,
+				  name);
+  bool error = map2check_is_invalid_free((long) *addr);
   mark_map_log(&list_map2check, &row);
+
+  if(error) {
+    map2check_ERROR();    
+  }
+
 }
+
 
 void map2check_target_function(const char* func_name, int scope, int line) {
   printf("ERROR on Function %s :: SCOPE: %d :: LINE: %d\n", func_name, scope, line);
-  map2check_list_debug();
-  free_list_log(&list_map2check);
-  klee_assert(0); 
+  map2check_ERROR();  
 }

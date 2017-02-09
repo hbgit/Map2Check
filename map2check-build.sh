@@ -79,7 +79,7 @@ build()
 {
 
 	if [ -f /proc/cpuinfo ]; then
-    CPUS=`grep processor /proc/cpuinfo | wc -l`
+    CPUS=`grep ^processor /proc/cpuinfo | wc -l`
 	else
     CPUS=1
 	fi
@@ -268,10 +268,7 @@ klee()
 map2check() {
     cd $RUNDIR
 	make all
-	make release
-
-    sudo chown $UID:$UID -R . 
-
+	make release  
 
 }
 

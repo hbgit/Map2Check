@@ -2,8 +2,19 @@
 # Dockerfile to build map2check container images
 # based on Ubuntu
 # Usage: 
-#  $ docker build -t hrocha/mapdevel .
-#  $ docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/ hrocha/mapdevel /bin/bash
+#  By docker https://hub.docker.com:
+#   $ docker pull hrocha/mapdevel
+#   $ mkdir $(pwd)/mapdevel
+#   $ docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/host:Z hrocha/mapdevel /bin/bash
+#  By gitclone https://github.com/hbgit/Map2Check:
+#   $ docker build -t hrocha/mapdevel .
+#   $ docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash
+#
+# The docker user is "map2check" and the password is "map2check"
+# Docker tips:
+#  You can check that the container still exists by running: $ docker ps -a
+#  You can restart the container by running: docker start -ai mapdevel
+#  You can run any command in running container just knowing its ID (or name): docker exec <container_id_or_name> echo "Hello from container!"
 ############################################################
 FROM ubuntu:16.10
 
@@ -11,7 +22,7 @@ FROM ubuntu:16.10
 MAINTAINER <herberthb12@gmail.com>
 
 ENV BUILD_DIR=/home/map2check/devel_tool/build \
-    MAP_SRC=/home/map2check/devel_tool/map_src
+    MAP_SRC=/home/map2check/devel_tool/map_src_on_docker
 
 # Update the repository sources list
 RUN apt-get update
@@ -62,21 +73,16 @@ RUN mkdir /home/map2check/devel_tool
 WORKDIR /home/map2check/devel_tool/
 
 
-
 ### Buildind Map2Check tool
 
 # Copy across source files needed for build
 RUN mkdir ${MAP_SRC}
 ADD / ${MAP_SRC}
 
-# Create build directory
-RUN mkdir ${BUILD_DIR}
-
-# Set klee user to be owner
+# Set map2check user to be owner
 RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
-RUN ls -alh ${MAP_SRC}
 
-# Build KLEE (use TravisCI script)
+# Build Map2Check
 RUN cd ${MAP_SRC} && sudo ./map2check-build.sh
 
 RUN sudo chown -R map2check:map2check ${MAP_SRC}/*

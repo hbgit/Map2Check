@@ -1,0 +1,4 @@
+.git
+autom4te.cache
+**/.*.swp
+Dockerfile

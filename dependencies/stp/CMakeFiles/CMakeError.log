@@ -1,0 +1,34 @@
+Performing C++ SOURCE FILE Test HAVE_FLAG_STDLIB_LIBCPP failed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/stp/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_d510e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d510e.dir/build.make CMakeFiles/cmTC_d510e.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/stp/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_d510e.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_FLAG_STDLIB_LIBCPP   -stdlib=libc++ -o CMakeFiles/cmTC_d510e.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/stp/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-stdlib=libc++'
+CMakeFiles/cmTC_d510e.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_d510e.dir/src.cxx.o' failed
+make[1]: *** [CMakeFiles/cmTC_d510e.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/stp/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_d510e/fast' failed
+make: *** [cmTC_d510e/fast] Error 2
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAVE_FLAG_-Wheader-guard failed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/stp/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_821ca/fast"
+/usr/bin/make -f CMakeFiles/cmTC_821ca.dir/build.make CMakeFiles/cmTC_821ca.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/stp/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_821ca.dir/src.cxx.o
+/usr/bin/c++     -std=c++11  -Wall -Wextra -pedantic -Wunused -Wsign-compare -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -DHAVE_FLAG_-Wheader-guard   -Wheader-guard -o CMakeFiles/cmTC_821ca.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/stp/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Wheader-guard'
+CMakeFiles/cmTC_821ca.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_821ca.dir/src.cxx.o' failed
+make[1]: *** [CMakeFiles/cmTC_821ca.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/stp/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_821ca/fast' failed
+make: *** [cmTC_821ca/fast] Error 2
+
+Source file was:
+int main() { return 0; }

@@ -84,7 +84,7 @@ RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 
 # Build Map2Check
 #RUN cd ${MAP_SRC} && sudo ./map2check-build.sh
-RUN cd ${MAP_SRC} && make
+RUN cd ${MAP_SRC} && make release
 
 RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 VOLUME /home/map2check/devel_tool/

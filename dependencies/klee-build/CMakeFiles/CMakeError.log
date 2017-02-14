@@ -1,0 +1,78 @@
+Determining if the include file malloc/malloc.h exists failed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_259e6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_259e6.dir/build.make CMakeFiles/cmTC_259e6.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_259e6.dir/CheckIncludeFile.cxx.o
+/usr/bin/c++     -std=c++11 -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_259e6.dir/CheckIncludeFile.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx:1:27: fatal error: malloc/malloc.h: No such file or directory
+ #include <malloc/malloc.h>
+                           ^
+compilation terminated.
+CMakeFiles/cmTC_259e6.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_259e6.dir/CheckIncludeFile.cxx.o' failed
+make[1]: *** [CMakeFiles/cmTC_259e6.dir/CheckIncludeFile.cxx.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_259e6/fast' failed
+make: *** [cmTC_259e6/fast] Error 2
+
+
+Determining if the function malloc_zone_statistics exists failed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_936a2/fast"
+/usr/bin/make -f CMakeFiles/cmTC_936a2.dir/build.make CMakeFiles/cmTC_936a2.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_936a2.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=malloc_zone_statistics   -o CMakeFiles/cmTC_936a2.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_936a2
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_936a2.dir/link.txt --verbose=1
+/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=malloc_zone_statistics    CMakeFiles/cmTC_936a2.dir/CheckFunctionExists.c.o  -o cmTC_936a2 -rdynamic 
+CMakeFiles/cmTC_936a2.dir/CheckFunctionExists.c.o: In function `main':
+CheckFunctionExists.c:(.text+0x15): undefined reference to `malloc_zone_statistics'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_936a2.dir/build.make:97: recipe for target 'cmTC_936a2' failed
+make[1]: *** [cmTC_936a2] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_936a2/fast' failed
+make: *** [cmTC_936a2/fast] Error 2
+
+
+Determining if the include file selinux/selinux.h exists failed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_bb26c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_bb26c.dir/build.make CMakeFiles/cmTC_bb26c.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_bb26c.dir/CheckIncludeFile.c.o
+/usr/bin/cc    -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_bb26c.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:29: fatal error: selinux/selinux.h: No such file or directory
+ #include <selinux/selinux.h>
+                             ^
+compilation terminated.
+CMakeFiles/cmTC_bb26c.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_bb26c.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_bb26c.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_bb26c/fast' failed
+make: *** [cmTC_bb26c/fast] Error 2
+
+
+Determining if the include file sys/acl.h exists failed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_6408b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6408b.dir/build.make CMakeFiles/cmTC_6408b.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_6408b.dir/CheckIncludeFile.c.o
+/usr/bin/cc    -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_6408b.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:21: fatal error: sys/acl.h: No such file or directory
+ #include <sys/acl.h>
+                     ^
+compilation terminated.
+CMakeFiles/cmTC_6408b.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_6408b.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_6408b.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_6408b/fast' failed
+make: *** [cmTC_6408b/fast] Error 2
+
+

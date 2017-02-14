@@ -1,1 +1,0 @@
-/usr/bin/cc   -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -Werror=date-time -ffunction-sections -fdata-sections -O3 -DNDEBUG   -Wl,-allow-shlib-undefined  -Wl,-O3 -Wl,--gc-sections CMakeFiles/count.dir/count.c.o  -o ../../bin/count -rdynamic -Wl,-rpath,"\$ORIGIN/../lib" 

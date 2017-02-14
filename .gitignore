@@ -1,6 +1,8 @@
 *~
 build
 samples/*.bc
+dependencies
+release
 teste/*.bc
 .idea/workspace.xml
 .idea/**/*

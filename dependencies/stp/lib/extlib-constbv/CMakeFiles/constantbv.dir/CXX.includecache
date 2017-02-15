@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/map2check/devel_tool/map_src_on_docker/dependencies/stp/lib/extlib-constbv/constantbv.cpp
+stdio.h
+-
+stdlib.h
+-
+limits.h
+-
+string.h
+-
+ctype.h
+-
+cassert
+-
+constantbv.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/stp/lib/extlib-constbv/constantbv.h
+
+/home/map2check/devel_tool/map_src_on_docker/dependencies/stp/lib/extlib-constbv/constantbv.h
+stdlib.h
+-
+limits.h
+-
+string.h
+-
+ctype.h
+-
+

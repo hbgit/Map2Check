@@ -1,0 +1,2382 @@
+The system is: Linux - 3.13.0-24-generic - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/cc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/3.5.2/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /usr/bin/c++ 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/3.5.2/CompilerIdCXX/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_94ea5/fast"
+/usr/bin/make -f CMakeFiles/cmTC_94ea5.dir/build.make CMakeFiles/cmTC_94ea5.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_94ea5.dir/testCCompiler.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_94ea5.dir/testCCompiler.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_94ea5
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_94ea5.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_94ea5.dir/testCCompiler.c.o  -o cmTC_94ea5 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_2fae0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_2fae0.dir/build.make CMakeFiles/cmTC_2fae0.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_2fae0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2fae0.dir/link.txt --verbose=1
+/usr/bin/cc      -v CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o  -o cmTC_2fae0 -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/cc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 6.2.0-5ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-6 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Thread model: posix
+gcc version 6.2.0 20161005 (Ubuntu 6.2.0-5ubuntu12) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_2fae0' '-rdynamic' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/6/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper -plugin-opt=-fresolution=/tmp/cchS8Q1Y.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_2fae0 /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/6 -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/6/../../.. CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_2fae0' '-rdynamic' '-mtune=generic' '-march=x86-64'
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_2fae0/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_2fae0.dir/build.make CMakeFiles/cmTC_2fae0.dir/build]
+  ignore line: [make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc     -o CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_2fae0]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2fae0.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc      -v CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o  -o cmTC_2fae0 -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/cc]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper]
+  ignore line: [Target: x86_64-linux-gnu]
+  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 6.2.0-5ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-6 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 6.2.0 20161005 (Ubuntu 6.2.0-5ubuntu12) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_2fae0' '-rdynamic' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/6/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper -plugin-opt=-fresolution=/tmp/cchS8Q1Y.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_2fae0 /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/6 -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/6/../../.. CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/cchS8Q1Y.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [--sysroot=/] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-pie] ==> ignore
+    arg [-znow] ==> ignore
+    arg [-zrelro] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_2fae0] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../..]
+    arg [CMakeFiles/cmTC_2fae0.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6] ==> [/usr/lib/gcc/x86_64-linux-gnu/6]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../..] ==> [/usr/lib]
+  implicit libs: [c]
+  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/6;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+  implicit fwks: []
+
+
+
+
+Detecting C [-std=c11] compiler features compiled with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_93c25/fast"
+/usr/bin/make -f CMakeFiles/cmTC_93c25.dir/build.make CMakeFiles/cmTC_93c25.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_93c25.dir/feature_tests.c.o
+/usr/bin/cc    -std=c11 -o CMakeFiles/cmTC_93c25.dir/feature_tests.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/feature_tests.c
+Linking C executable cmTC_93c25
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_93c25.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_93c25.dir/feature_tests.c.o  -o cmTC_93c25 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:1c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c99] compiler features compiled with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c0b64/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c0b64.dir/build.make CMakeFiles/cmTC_c0b64.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c0b64.dir/feature_tests.c.o
+/usr/bin/cc    -std=c99 -o CMakeFiles/cmTC_c0b64.dir/feature_tests.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/feature_tests.c
+Linking C executable cmTC_c0b64
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c0b64.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_c0b64.dir/feature_tests.c.o  -o cmTC_c0b64 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c90] compiler features compiled with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_97270/fast"
+/usr/bin/make -f CMakeFiles/cmTC_97270.dir/build.make CMakeFiles/cmTC_97270.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_97270.dir/feature_tests.c.o
+/usr/bin/cc    -std=c90 -o CMakeFiles/cmTC_97270.dir/feature_tests.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/feature_tests.c
+Linking C executable cmTC_97270
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_97270.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_97270.dir/feature_tests.c.o  -o cmTC_97270 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:0c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:0c_variadic_macros
+Determining if the CXX compiler works passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_5eb2f/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5eb2f.dir/build.make CMakeFiles/cmTC_5eb2f.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_5eb2f.dir/testCXXCompiler.cxx.o
+/usr/bin/c++      -o CMakeFiles/cmTC_5eb2f.dir/testCXXCompiler.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_5eb2f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5eb2f.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_5eb2f.dir/testCXXCompiler.cxx.o  -o cmTC_5eb2f -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_25d63/fast"
+/usr/bin/make -f CMakeFiles/cmTC_25d63.dir/build.make CMakeFiles/cmTC_25d63.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/c++      -o CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_25d63
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_25d63.dir/link.txt --verbose=1
+/usr/bin/c++       -v CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_25d63 -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/c++
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 6.2.0-5ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-6 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Thread model: posix
+gcc version 6.2.0 20161005 (Ubuntu 6.2.0-5ubuntu12) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_25d63' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/6/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper -plugin-opt=-fresolution=/tmp/ccSmcsd2.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_25d63 /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/6 -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/6/../../.. CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_25d63' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_25d63/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_25d63.dir/build.make CMakeFiles/cmTC_25d63.dir/build]
+  ignore line: [make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp']
+  ignore line: [Building CXX object CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/c++      -o CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_25d63]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_25d63.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/c++       -v CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_25d63 -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/c++]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper]
+  ignore line: [Target: x86_64-linux-gnu]
+  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 6.2.0-5ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-6 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 6.2.0 20161005 (Ubuntu 6.2.0-5ubuntu12) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_25d63' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/6/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper -plugin-opt=-fresolution=/tmp/ccSmcsd2.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_25d63 /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/6 -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/6/../../.. CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccSmcsd2.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--sysroot=/] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-pie] ==> ignore
+    arg [-znow] ==> ignore
+    arg [-zrelro] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_25d63] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../..]
+    arg [CMakeFiles/cmTC_25d63.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6] ==> [/usr/lib/gcc/x86_64-linux-gnu/6]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../..] ==> [/usr/lib]
+  implicit libs: [stdc++;m;c]
+  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/6;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+  implicit fwks: []
+
+
+
+
+Detecting CXX [-std=c++14] compiler features compiled with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_37dcc/fast"
+/usr/bin/make -f CMakeFiles/cmTC_37dcc.dir/build.make CMakeFiles/cmTC_37dcc.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_37dcc.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++14 -o CMakeFiles/cmTC_37dcc.dir/feature_tests.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_37dcc
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_37dcc.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_37dcc.dir/feature_tests.cxx.o  -o cmTC_37dcc -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:1cxx_alignas
+    Feature record: CXX_FEATURE:1cxx_alignof
+    Feature record: CXX_FEATURE:1cxx_attributes
+    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:1cxx_binary_literals
+    Feature record: CXX_FEATURE:1cxx_constexpr
+    Feature record: CXX_FEATURE:1cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:1cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:1cxx_deleted_functions
+    Feature record: CXX_FEATURE:1cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:1cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:1cxx_generic_lambdas
+    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:1cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:1cxx_noexcept
+    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:1cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:1cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:1cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:1cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:1cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:1cxx_user_literals
+    Feature record: CXX_FEATURE:1cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates
+
+
+Detecting CXX [-std=c++11] compiler features compiled with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_0090b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0090b.dir/build.make CMakeFiles/cmTC_0090b.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0090b.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++11 -o CMakeFiles/cmTC_0090b.dir/feature_tests.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_0090b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0090b.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_0090b.dir/feature_tests.cxx.o  -o cmTC_0090b -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:1cxx_alignas
+    Feature record: CXX_FEATURE:1cxx_alignof
+    Feature record: CXX_FEATURE:1cxx_attributes
+    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:0cxx_binary_literals
+    Feature record: CXX_FEATURE:1cxx_constexpr
+    Feature record: CXX_FEATURE:0cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:0cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:1cxx_deleted_functions
+    Feature record: CXX_FEATURE:0cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:1cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:0cxx_generic_lambdas
+    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:1cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:1cxx_noexcept
+    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:0cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:0cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:1cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:1cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:1cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:1cxx_user_literals
+    Feature record: CXX_FEATURE:0cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates
+
+
+Detecting CXX [-std=c++98] compiler features compiled with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_7182f/fast"
+/usr/bin/make -f CMakeFiles/cmTC_7182f.dir/build.make CMakeFiles/cmTC_7182f.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_7182f.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++98 -o CMakeFiles/cmTC_7182f.dir/feature_tests.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_7182f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7182f.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_7182f.dir/feature_tests.cxx.o  -o cmTC_7182f -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:0cxx_alias_templates
+    Feature record: CXX_FEATURE:0cxx_alignas
+    Feature record: CXX_FEATURE:0cxx_alignof
+    Feature record: CXX_FEATURE:0cxx_attributes
+    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:0cxx_auto_type
+    Feature record: CXX_FEATURE:0cxx_binary_literals
+    Feature record: CXX_FEATURE:0cxx_constexpr
+    Feature record: CXX_FEATURE:0cxx_contextual_conversions
+    Feature record: CXX_FEATURE:0cxx_decltype
+    Feature record: CXX_FEATURE:0cxx_decltype_auto
+    Feature record: CXX_FEATURE:0cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:0cxx_default_function_template_args
+    Feature record: CXX_FEATURE:0cxx_defaulted_functions
+    Feature record: CXX_FEATURE:0cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:0cxx_delegating_constructors
+    Feature record: CXX_FEATURE:0cxx_deleted_functions
+    Feature record: CXX_FEATURE:0cxx_digit_separators
+    Feature record: CXX_FEATURE:0cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:0cxx_explicit_conversions
+    Feature record: CXX_FEATURE:0cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:0cxx_extern_templates
+    Feature record: CXX_FEATURE:0cxx_final
+    Feature record: CXX_FEATURE:0cxx_func_identifier
+    Feature record: CXX_FEATURE:0cxx_generalized_initializers
+    Feature record: CXX_FEATURE:0cxx_generic_lambdas
+    Feature record: CXX_FEATURE:0cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:0cxx_inline_namespaces
+    Feature record: CXX_FEATURE:0cxx_lambdas
+    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:0cxx_local_type_template_args
+    Feature record: CXX_FEATURE:0cxx_long_long_type
+    Feature record: CXX_FEATURE:0cxx_noexcept
+    Feature record: CXX_FEATURE:0cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:0cxx_nullptr
+    Feature record: CXX_FEATURE:0cxx_override
+    Feature record: CXX_FEATURE:0cxx_range_for
+    Feature record: CXX_FEATURE:0cxx_raw_string_literals
+    Feature record: CXX_FEATURE:0cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:0cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:0cxx_return_type_deduction
+    Feature record: CXX_FEATURE:0cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:0cxx_rvalue_references
+    Feature record: CXX_FEATURE:0cxx_sizeof_member
+    Feature record: CXX_FEATURE:0cxx_static_assert
+    Feature record: CXX_FEATURE:0cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:0cxx_thread_local
+    Feature record: CXX_FEATURE:0cxx_trailing_return_types
+    Feature record: CXX_FEATURE:0cxx_unicode_literals
+    Feature record: CXX_FEATURE:0cxx_uniform_initialization
+    Feature record: CXX_FEATURE:0cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:0cxx_user_literals
+    Feature record: CXX_FEATURE:0cxx_variable_templates
+    Feature record: CXX_FEATURE:0cxx_variadic_macros
+    Feature record: CXX_FEATURE:0cxx_variadic_templates
+Determining if the include file dirent.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_f4915/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f4915.dir/build.make CMakeFiles/cmTC_f4915.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f4915.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_f4915.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_f4915
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f4915.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_f4915.dir/CheckIncludeFile.c.o  -o cmTC_f4915 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file dlfcn.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c20d8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c20d8.dir/build.make CMakeFiles/cmTC_c20d8.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c20d8.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_c20d8.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_c20d8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c20d8.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_c20d8.dir/CheckIncludeFile.c.o  -o cmTC_c20d8 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file errno.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c8983/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c8983.dir/build.make CMakeFiles/cmTC_c8983.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c8983.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_c8983.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_c8983
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c8983.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_c8983.dir/CheckIncludeFile.c.o  -o cmTC_c8983 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file execinfo.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_67eeb/fast"
+/usr/bin/make -f CMakeFiles/cmTC_67eeb.dir/build.make CMakeFiles/cmTC_67eeb.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_67eeb.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_67eeb.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_67eeb
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_67eeb.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_67eeb.dir/CheckIncludeFile.c.o  -o cmTC_67eeb -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file fcntl.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_0659c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0659c.dir/build.make CMakeFiles/cmTC_0659c.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_0659c.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_0659c.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_0659c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0659c.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_0659c.dir/CheckIncludeFile.c.o  -o cmTC_0659c -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file inttypes.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_59103/fast"
+/usr/bin/make -f CMakeFiles/cmTC_59103.dir/build.make CMakeFiles/cmTC_59103.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_59103.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_59103.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_59103
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_59103.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_59103.dir/CheckIncludeFile.c.o  -o cmTC_59103 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file limits.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_e3054/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e3054.dir/build.make CMakeFiles/cmTC_e3054.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_e3054.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_e3054.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_e3054
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e3054.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_e3054.dir/CheckIncludeFile.c.o  -o cmTC_e3054 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file link.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_da5f7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_da5f7.dir/build.make CMakeFiles/cmTC_da5f7.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_da5f7.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_da5f7.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_da5f7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_da5f7.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_da5f7.dir/CheckIncludeFile.c.o  -o cmTC_da5f7 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file malloc.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_424e3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_424e3.dir/build.make CMakeFiles/cmTC_424e3.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_424e3.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_424e3.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_424e3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_424e3.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_424e3.dir/CheckIncludeFile.c.o  -o cmTC_424e3 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_296da/fast"
+/usr/bin/make -f CMakeFiles/cmTC_296da.dir/build.make CMakeFiles/cmTC_296da.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_296da.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_296da.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_296da
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_296da.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_296da.dir/CheckIncludeFile.c.o  -o cmTC_296da -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file signal.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1e72a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1e72a.dir/build.make CMakeFiles/cmTC_1e72a.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_1e72a.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_1e72a.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_1e72a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1e72a.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_1e72a.dir/CheckIncludeFile.c.o  -o cmTC_1e72a -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file stdint.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_71f84/fast"
+/usr/bin/make -f CMakeFiles/cmTC_71f84.dir/build.make CMakeFiles/cmTC_71f84.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_71f84.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_71f84.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_71f84
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_71f84.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_71f84.dir/CheckIncludeFile.c.o  -o cmTC_71f84 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/dir.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_992ac/fast"
+/usr/bin/make -f CMakeFiles/cmTC_992ac.dir/build.make CMakeFiles/cmTC_992ac.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_992ac.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_992ac.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_992ac
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_992ac.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_992ac.dir/CheckIncludeFile.c.o  -o cmTC_992ac -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/ioctl.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_83bd8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_83bd8.dir/build.make CMakeFiles/cmTC_83bd8.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_83bd8.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_83bd8.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_83bd8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_83bd8.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_83bd8.dir/CheckIncludeFile.c.o  -o cmTC_83bd8 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/mman.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_f3ea9/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f3ea9.dir/build.make CMakeFiles/cmTC_f3ea9.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f3ea9.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_f3ea9.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_f3ea9
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f3ea9.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_f3ea9.dir/CheckIncludeFile.c.o  -o cmTC_f3ea9 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/param.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_061cc/fast"
+/usr/bin/make -f CMakeFiles/cmTC_061cc.dir/build.make CMakeFiles/cmTC_061cc.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_061cc.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_061cc.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_061cc
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_061cc.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_061cc.dir/CheckIncludeFile.c.o  -o cmTC_061cc -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/resource.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b2db2/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b2db2.dir/build.make CMakeFiles/cmTC_b2db2.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_b2db2.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_b2db2.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_b2db2
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b2db2.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_b2db2.dir/CheckIncludeFile.c.o  -o cmTC_b2db2 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/stat.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_34a52/fast"
+/usr/bin/make -f CMakeFiles/cmTC_34a52.dir/build.make CMakeFiles/cmTC_34a52.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_34a52.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_34a52.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_34a52
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_34a52.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_34a52.dir/CheckIncludeFile.c.o  -o cmTC_34a52 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/time.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_f2a45/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f2a45.dir/build.make CMakeFiles/cmTC_f2a45.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f2a45.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_f2a45.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_f2a45
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f2a45.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_f2a45.dir/CheckIncludeFile.c.o  -o cmTC_f2a45 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/uio.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_2e173/fast"
+/usr/bin/make -f CMakeFiles/cmTC_2e173.dir/build.make CMakeFiles/cmTC_2e173.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_2e173.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_2e173.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_2e173
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2e173.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_2e173.dir/CheckIncludeFile.c.o  -o cmTC_2e173 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file termios.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c5d98/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c5d98.dir/build.make CMakeFiles/cmTC_c5d98.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c5d98.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_c5d98.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_c5d98
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c5d98.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_c5d98.dir/CheckIncludeFile.c.o  -o cmTC_c5d98 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file unistd.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_abe2a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_abe2a.dir/build.make CMakeFiles/cmTC_abe2a.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_abe2a.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_abe2a.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_abe2a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_abe2a.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_abe2a.dir/CheckIncludeFile.c.o  -o cmTC_abe2a -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file utime.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_00051/fast"
+/usr/bin/make -f CMakeFiles/cmTC_00051.dir/build.make CMakeFiles/cmTC_00051.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_00051.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_00051.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_00051
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_00051.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_00051.dir/CheckIncludeFile.c.o  -o cmTC_00051 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file zlib.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_db7e5/fast"
+/usr/bin/make -f CMakeFiles/cmTC_db7e5.dir/build.make CMakeFiles/cmTC_db7e5.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_db7e5.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_db7e5.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_db7e5
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_db7e5.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_db7e5.dir/CheckIncludeFile.c.o  -o cmTC_db7e5 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file fenv.h exists passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c91a3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c91a3.dir/build.make CMakeFiles/cmTC_c91a3.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c91a3.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_c91a3.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_c91a3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c91a3.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_c91a3.dir/CheckIncludeFile.c.o  -o cmTC_c91a3 -rdynamic 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the FE_ALL_EXCEPT exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_e5ace/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e5ace.dir/build.make CMakeFiles/cmTC_e5ace.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_e5ace.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_e5ace.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_e5ace
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e5ace.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_e5ace.dir/CheckSymbolExists.c.o  -o cmTC_e5ace -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <fenv.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef FE_ALL_EXCEPT
+  return ((int*)(&FE_ALL_EXCEPT))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the FE_INEXACT exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_60607/fast"
+/usr/bin/make -f CMakeFiles/cmTC_60607.dir/build.make CMakeFiles/cmTC_60607.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_60607.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_60607.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_60607
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_60607.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_60607.dir/CheckSymbolExists.c.o  -o cmTC_60607 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <fenv.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef FE_INEXACT
+  return ((int*)(&FE_INEXACT))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Performing C++ SOURCE FILE Test HAVE_CXXABI_H succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_adca7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_adca7.dir/build.make CMakeFiles/cmTC_adca7.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_adca7.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_CXXABI_H   -o CMakeFiles/cmTC_adca7.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_adca7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_adca7.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAVE_CXXABI_H    CMakeFiles/cmTC_adca7.dir/src.cxx.o  -o cmTC_adca7 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+#include <stddef.h>
+#include <cxxabi.h>
+int main() { return 0; }
+
+Determining if the function pthread_create exists in the pthread passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_a29aa/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a29aa.dir/build.make CMakeFiles/cmTC_a29aa.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a29aa.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_a29aa.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_a29aa
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a29aa.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_a29aa.dir/CheckFunctionExists.c.o  -o cmTC_a29aa -rdynamic -lpthread -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the function pthread_getspecific exists in the pthread passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_60d9f/fast"
+/usr/bin/make -f CMakeFiles/cmTC_60d9f.dir/build.make CMakeFiles/cmTC_60d9f.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_60d9f.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=pthread_getspecific   -o CMakeFiles/cmTC_60d9f.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_60d9f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_60d9f.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_getspecific    CMakeFiles/cmTC_60d9f.dir/CheckFunctionExists.c.o  -o cmTC_60d9f -rdynamic -lpthread -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the function pthread_rwlock_init exists in the pthread passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c5b3a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c5b3a.dir/build.make CMakeFiles/cmTC_c5b3a.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c5b3a.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=pthread_rwlock_init   -o CMakeFiles/cmTC_c5b3a.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_c5b3a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c5b3a.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_rwlock_init    CMakeFiles/cmTC_c5b3a.dir/CheckFunctionExists.c.o  -o cmTC_c5b3a -rdynamic -lpthread -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the function pthread_mutex_lock exists in the pthread passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_4fc03/fast"
+/usr/bin/make -f CMakeFiles/cmTC_4fc03.dir/build.make CMakeFiles/cmTC_4fc03.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_4fc03.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=pthread_mutex_lock   -o CMakeFiles/cmTC_4fc03.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_4fc03
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4fc03.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_mutex_lock    CMakeFiles/cmTC_4fc03.dir/CheckFunctionExists.c.o  -o cmTC_4fc03 -rdynamic -lpthread -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the function dlopen exists in the dl passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_3e577/fast"
+/usr/bin/make -f CMakeFiles/cmTC_3e577.dir/build.make CMakeFiles/cmTC_3e577.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3e577.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=dlopen   -o CMakeFiles/cmTC_3e577.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_3e577
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3e577.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=dlopen    CMakeFiles/cmTC_3e577.dir/CheckFunctionExists.c.o  -o cmTC_3e577 -rdynamic -ldl -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the function clock_gettime exists in the rt passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_59427/fast"
+/usr/bin/make -f CMakeFiles/cmTC_59427.dir/build.make CMakeFiles/cmTC_59427.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_59427.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=clock_gettime   -o CMakeFiles/cmTC_59427.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_59427
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_59427.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=clock_gettime    CMakeFiles/cmTC_59427.dir/CheckFunctionExists.c.o  -o cmTC_59427 -rdynamic -lrt -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the function compress2 exists in the z passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_2a067/fast"
+/usr/bin/make -f CMakeFiles/cmTC_2a067.dir/build.make CMakeFiles/cmTC_2a067.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_2a067.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=compress2   -o CMakeFiles/cmTC_2a067.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_2a067
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2a067.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=compress2    CMakeFiles/cmTC_2a067.dir/CheckFunctionExists.c.o  -o cmTC_2a067 -rdynamic -lz -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the function setupterm exists in the tinfo passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_37e94/fast"
+/usr/bin/make -f CMakeFiles/cmTC_37e94.dir/build.make CMakeFiles/cmTC_37e94.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_37e94.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=setupterm   -o CMakeFiles/cmTC_37e94.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_37e94
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_37e94.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=setupterm    CMakeFiles/cmTC_37e94.dir/CheckFunctionExists.c.o  -o cmTC_37e94 -rdynamic -ltinfo -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+
+Determining if the backtrace exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_bf092/fast"
+/usr/bin/make -f CMakeFiles/cmTC_bf092.dir/build.make CMakeFiles/cmTC_bf092.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_bf092.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_bf092.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_bf092
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bf092.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_bf092.dir/CheckSymbolExists.c.o  -o cmTC_bf092 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <execinfo.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef backtrace
+  return ((int*)(&backtrace))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the getpagesize exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_aee01/fast"
+/usr/bin/make -f CMakeFiles/cmTC_aee01.dir/build.make CMakeFiles/cmTC_aee01.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_aee01.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_aee01.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_aee01
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_aee01.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_aee01.dir/CheckSymbolExists.c.o  -o cmTC_aee01 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <unistd.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef getpagesize
+  return ((int*)(&getpagesize))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the getrusage exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_f6298/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f6298.dir/build.make CMakeFiles/cmTC_f6298.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f6298.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_f6298.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_f6298
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f6298.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_f6298.dir/CheckSymbolExists.c.o  -o cmTC_f6298 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/resource.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef getrusage
+  return ((int*)(&getrusage))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the setrlimit exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_00785/fast"
+/usr/bin/make -f CMakeFiles/cmTC_00785.dir/build.make CMakeFiles/cmTC_00785.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_00785.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_00785.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_00785
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_00785.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_00785.dir/CheckSymbolExists.c.o  -o cmTC_00785 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/resource.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef setrlimit
+  return ((int*)(&setrlimit))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the isatty exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_de6a1/fast"
+/usr/bin/make -f CMakeFiles/cmTC_de6a1.dir/build.make CMakeFiles/cmTC_de6a1.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_de6a1.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_de6a1.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_de6a1
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_de6a1.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_de6a1.dir/CheckSymbolExists.c.o  -o cmTC_de6a1 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <unistd.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef isatty
+  return ((int*)(&isatty))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the futimens exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_8f8db/fast"
+/usr/bin/make -f CMakeFiles/cmTC_8f8db.dir/build.make CMakeFiles/cmTC_8f8db.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_8f8db.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_8f8db.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_8f8db
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8f8db.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_8f8db.dir/CheckSymbolExists.c.o  -o cmTC_8f8db -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/stat.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef futimens
+  return ((int*)(&futimens))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the futimes exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_69069/fast"
+/usr/bin/make -f CMakeFiles/cmTC_69069.dir/build.make CMakeFiles/cmTC_69069.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_69069.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_69069.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_69069
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_69069.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_69069.dir/CheckSymbolExists.c.o  -o cmTC_69069 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/time.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef futimes
+  return ((int*)(&futimes))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the writev exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_7bc32/fast"
+/usr/bin/make -f CMakeFiles/cmTC_7bc32.dir/build.make CMakeFiles/cmTC_7bc32.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_7bc32.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_7bc32.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_7bc32
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7bc32.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_7bc32.dir/CheckSymbolExists.c.o  -o cmTC_7bc32 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/uio.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef writev
+  return ((int*)(&writev))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the mallinfo exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_bc7c3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_bc7c3.dir/build.make CMakeFiles/cmTC_bc7c3.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_bc7c3.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_bc7c3.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_bc7c3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bc7c3.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_bc7c3.dir/CheckSymbolExists.c.o  -o cmTC_bc7c3 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <malloc.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef mallinfo
+  return ((int*)(&mallinfo))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the mkdtemp exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_d9c63/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d9c63.dir/build.make CMakeFiles/cmTC_d9c63.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d9c63.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_d9c63.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_d9c63
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d9c63.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_d9c63.dir/CheckSymbolExists.c.o  -o cmTC_d9c63 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef mkdtemp
+  return ((int*)(&mkdtemp))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the mkstemp exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_3e7ea/fast"
+/usr/bin/make -f CMakeFiles/cmTC_3e7ea.dir/build.make CMakeFiles/cmTC_3e7ea.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3e7ea.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_3e7ea.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_3e7ea
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3e7ea.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_3e7ea.dir/CheckSymbolExists.c.o  -o cmTC_3e7ea -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef mkstemp
+  return ((int*)(&mkstemp))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the mktemp exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_3b7a4/fast"
+/usr/bin/make -f CMakeFiles/cmTC_3b7a4.dir/build.make CMakeFiles/cmTC_3b7a4.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3b7a4.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_3b7a4.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_3b7a4
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3b7a4.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_3b7a4.dir/CheckSymbolExists.c.o  -o cmTC_3b7a4 -rdynamic -lm 
+CMakeFiles/cmTC_3b7a4.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x1b): warning: the use of `mktemp' is dangerous, better use `mkstemp' or `mkdtemp'
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef mktemp
+  return ((int*)(&mktemp))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the closedir exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_83ceb/fast"
+/usr/bin/make -f CMakeFiles/cmTC_83ceb.dir/build.make CMakeFiles/cmTC_83ceb.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_83ceb.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_83ceb.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_83ceb
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_83ceb.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_83ceb.dir/CheckSymbolExists.c.o  -o cmTC_83ceb -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/types.h>
+#include <dirent.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef closedir
+  return ((int*)(&closedir))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the opendir exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_234d1/fast"
+/usr/bin/make -f CMakeFiles/cmTC_234d1.dir/build.make CMakeFiles/cmTC_234d1.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_234d1.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_234d1.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_234d1
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_234d1.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_234d1.dir/CheckSymbolExists.c.o  -o cmTC_234d1 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/types.h>
+#include <dirent.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef opendir
+  return ((int*)(&opendir))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the readdir exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_03ed3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_03ed3.dir/build.make CMakeFiles/cmTC_03ed3.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_03ed3.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_03ed3.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_03ed3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_03ed3.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_03ed3.dir/CheckSymbolExists.c.o  -o cmTC_03ed3 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/types.h>
+#include <dirent.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef readdir
+  return ((int*)(&readdir))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the getcwd exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_6fbad/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6fbad.dir/build.make CMakeFiles/cmTC_6fbad.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_6fbad.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_6fbad.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_6fbad
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6fbad.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_6fbad.dir/CheckSymbolExists.c.o  -o cmTC_6fbad -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <unistd.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef getcwd
+  return ((int*)(&getcwd))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the gettimeofday exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_0c894/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0c894.dir/build.make CMakeFiles/cmTC_0c894.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_0c894.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_0c894.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_0c894
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0c894.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_0c894.dir/CheckSymbolExists.c.o  -o cmTC_0c894 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/time.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef gettimeofday
+  return ((int*)(&gettimeofday))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the getrlimit exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_bbd13/fast"
+/usr/bin/make -f CMakeFiles/cmTC_bbd13.dir/build.make CMakeFiles/cmTC_bbd13.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_bbd13.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_bbd13.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_bbd13
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bbd13.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_bbd13.dir/CheckSymbolExists.c.o  -o cmTC_bbd13 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef getrlimit
+  return ((int*)(&getrlimit))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the posix_spawn exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_67eb4/fast"
+/usr/bin/make -f CMakeFiles/cmTC_67eb4.dir/build.make CMakeFiles/cmTC_67eb4.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_67eb4.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_67eb4.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_67eb4
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_67eb4.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_67eb4.dir/CheckSymbolExists.c.o  -o cmTC_67eb4 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <spawn.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef posix_spawn
+  return ((int*)(&posix_spawn))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the pread exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_43f17/fast"
+/usr/bin/make -f CMakeFiles/cmTC_43f17.dir/build.make CMakeFiles/cmTC_43f17.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_43f17.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_43f17.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_43f17
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_43f17.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_43f17.dir/CheckSymbolExists.c.o  -o cmTC_43f17 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <unistd.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pread
+  return ((int*)(&pread))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the realpath exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_10218/fast"
+/usr/bin/make -f CMakeFiles/cmTC_10218.dir/build.make CMakeFiles/cmTC_10218.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_10218.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_10218.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_10218
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_10218.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_10218.dir/CheckSymbolExists.c.o  -o cmTC_10218 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef realpath
+  return ((int*)(&realpath))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the sbrk exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_f044b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f044b.dir/build.make CMakeFiles/cmTC_f044b.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f044b.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_f044b.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_f044b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f044b.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_f044b.dir/CheckSymbolExists.c.o  -o cmTC_f044b -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <unistd.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef sbrk
+  return ((int*)(&sbrk))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the srand48 exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_d5eb5/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d5eb5.dir/build.make CMakeFiles/cmTC_d5eb5.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d5eb5.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_d5eb5.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_d5eb5
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d5eb5.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_d5eb5.dir/CheckSymbolExists.c.o  -o cmTC_d5eb5 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef srand48
+  return ((int*)(&srand48))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the lrand48 exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c8a0d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c8a0d.dir/build.make CMakeFiles/cmTC_c8a0d.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c8a0d.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_c8a0d.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_c8a0d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c8a0d.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_c8a0d.dir/CheckSymbolExists.c.o  -o cmTC_c8a0d -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef lrand48
+  return ((int*)(&lrand48))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the drand48 exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1721a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1721a.dir/build.make CMakeFiles/cmTC_1721a.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_1721a.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_1721a.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_1721a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1721a.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_1721a.dir/CheckSymbolExists.c.o  -o cmTC_1721a -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef drand48
+  return ((int*)(&drand48))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the strtoll exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_88dd5/fast"
+/usr/bin/make -f CMakeFiles/cmTC_88dd5.dir/build.make CMakeFiles/cmTC_88dd5.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_88dd5.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_88dd5.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_88dd5
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_88dd5.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_88dd5.dir/CheckSymbolExists.c.o  -o cmTC_88dd5 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strtoll
+  return ((int*)(&strtoll))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the strtoq exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_ce9c1/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ce9c1.dir/build.make CMakeFiles/cmTC_ce9c1.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_ce9c1.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_ce9c1.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_ce9c1
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ce9c1.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_ce9c1.dir/CheckSymbolExists.c.o  -o cmTC_ce9c1 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strtoq
+  return ((int*)(&strtoq))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the strerror exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_cd5ce/fast"
+/usr/bin/make -f CMakeFiles/cmTC_cd5ce.dir/build.make CMakeFiles/cmTC_cd5ce.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_cd5ce.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_cd5ce.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_cd5ce
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cd5ce.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_cd5ce.dir/CheckSymbolExists.c.o  -o cmTC_cd5ce -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <string.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strerror
+  return ((int*)(&strerror))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the strerror_r exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_85ac3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_85ac3.dir/build.make CMakeFiles/cmTC_85ac3.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_85ac3.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_85ac3.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_85ac3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_85ac3.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_85ac3.dir/CheckSymbolExists.c.o  -o cmTC_85ac3 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <string.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strerror_r
+  return ((int*)(&strerror_r))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the setenv exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_327c1/fast"
+/usr/bin/make -f CMakeFiles/cmTC_327c1.dir/build.make CMakeFiles/cmTC_327c1.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_327c1.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_327c1.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_327c1
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_327c1.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_327c1.dir/CheckSymbolExists.c.o  -o cmTC_327c1 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef setenv
+  return ((int*)(&setenv))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the dlerror exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b0910/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b0910.dir/build.make CMakeFiles/cmTC_b0910.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_b0910.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_b0910.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_b0910
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b0910.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_b0910.dir/CheckSymbolExists.c.o  -o cmTC_b0910 -rdynamic -lm -ldl 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <dlfcn.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef dlerror
+  return ((int*)(&dlerror))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the dlopen exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_ea8ec/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ea8ec.dir/build.make CMakeFiles/cmTC_ea8ec.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_ea8ec.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_ea8ec.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_ea8ec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ea8ec.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_ea8ec.dir/CheckSymbolExists.c.o  -o cmTC_ea8ec -rdynamic -lm -ldl 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <dlfcn.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef dlopen
+  return ((int*)(&dlopen))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the __GLIBC__ exist passed with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_9cecb/fast"
+/usr/bin/make -f CMakeFiles/cmTC_9cecb.dir/build.make CMakeFiles/cmTC_9cecb.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_9cecb.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_9cecb.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_9cecb
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9cecb.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_9cecb.dir/CheckSymbolExists.c.o  -o cmTC_9cecb -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <stdio.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef __GLIBC__
+  return ((int*)(&__GLIBC__))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Performing C++ SOURCE FILE Test HAVE_INT64_T succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_f9396/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f9396.dir/build.make CMakeFiles/cmTC_f9396.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_f9396.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_INT64_T   -o CMakeFiles/cmTC_f9396.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_f9396
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f9396.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAVE_INT64_T    CMakeFiles/cmTC_f9396.dir/src.cxx.o  -o cmTC_f9396 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+    #include<sys/types.h>
+#include<inttypes.h>
+#include<stdint.h>
+ int64_t typeVar;
+    int main() {
+        return 0;
+    }
+    
+Performing C++ SOURCE FILE Test HAVE_UINT64_T succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b1f98/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b1f98.dir/build.make CMakeFiles/cmTC_b1f98.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_b1f98.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_UINT64_T   -o CMakeFiles/cmTC_b1f98.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_b1f98
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b1f98.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAVE_UINT64_T    CMakeFiles/cmTC_b1f98.dir/src.cxx.o  -o cmTC_b1f98 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+    #include<sys/types.h>
+#include<inttypes.h>
+#include<stdint.h>
+ uint64_t typeVar;
+    int main() {
+        return 0;
+    }
+    
+Performing C++ SOURCE FILE Test HAVE_U_INT64_T succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_68b53/fast"
+/usr/bin/make -f CMakeFiles/cmTC_68b53.dir/build.make CMakeFiles/cmTC_68b53.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_68b53.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_U_INT64_T   -o CMakeFiles/cmTC_68b53.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_68b53
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_68b53.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAVE_U_INT64_T    CMakeFiles/cmTC_68b53.dir/src.cxx.o  -o cmTC_68b53 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+    #include<sys/types.h>
+#include<inttypes.h>
+#include<stdint.h>
+ u_int64_t typeVar;
+    int main() {
+        return 0;
+    }
+    
+Performing C++ SOURCE FILE Test HAVE_CXX_ATOMICS_WITHOUT_LIB succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_15c5a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_15c5a.dir/build.make CMakeFiles/cmTC_15c5a.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_15c5a.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_CXX_ATOMICS_WITHOUT_LIB -std=c++11   -o CMakeFiles/cmTC_15c5a.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_15c5a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_15c5a.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAVE_CXX_ATOMICS_WITHOUT_LIB -std=c++11    CMakeFiles/cmTC_15c5a.dir/src.cxx.o  -o cmTC_15c5a -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+#include <atomic>
+std::atomic<int> x;
+int main() {
+  return x;
+}
+
+Performing C++ SOURCE FILE Test LLVM_HAS_ATOMICS succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_d37b0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d37b0.dir/build.make CMakeFiles/cmTC_d37b0.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_d37b0.dir/src.cxx.o
+/usr/bin/c++     -DLLVM_HAS_ATOMICS   -o CMakeFiles/cmTC_d37b0.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_d37b0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d37b0.dir/link.txt --verbose=1
+/usr/bin/c++    -DLLVM_HAS_ATOMICS    CMakeFiles/cmTC_d37b0.dir/src.cxx.o  -o cmTC_d37b0 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+#ifdef _MSC_VER
+#include <Intrin.h> /* Workaround for PR19898. */
+#include <windows.h>
+#endif
+int main() {
+#ifdef _MSC_VER
+        volatile LONG val = 1;
+        MemoryBarrier();
+        InterlockedCompareExchange(&val, 0, 1);
+        InterlockedIncrement(&val);
+        InterlockedDecrement(&val);
+#else
+        volatile unsigned long val = 1;
+        __sync_synchronize();
+        __sync_val_compare_and_swap(&val, 1, 0);
+        __sync_add_and_fetch(&val, 1);
+        __sync_sub_and_fetch(&val, 1);
+#endif
+        return 0;
+      }
+
+Performing C++ SOURCE FILE Test SUPPORTS_NO_VARIADIC_MACROS_FLAG succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c41e3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c41e3.dir/build.make CMakeFiles/cmTC_c41e3.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_c41e3.dir/src.cxx.o
+/usr/bin/c++     -DSUPPORTS_NO_VARIADIC_MACROS_FLAG   -Wno-variadic-macros -o CMakeFiles/cmTC_c41e3.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_c41e3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c41e3.dir/link.txt --verbose=1
+/usr/bin/c++    -DSUPPORTS_NO_VARIADIC_MACROS_FLAG    CMakeFiles/cmTC_c41e3.dir/src.cxx.o  -o cmTC_c41e3 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAS_MAYBE_UNINITIALIZED succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_0a803/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0a803.dir/build.make CMakeFiles/cmTC_0a803.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0a803.dir/src.cxx.o
+/usr/bin/c++     -DHAS_MAYBE_UNINITIALIZED   -Wmaybe-uninitialized -o CMakeFiles/cmTC_0a803.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_0a803
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0a803.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAS_MAYBE_UNINITIALIZED    CMakeFiles/cmTC_0a803.dir/src.cxx.o  -o cmTC_0a803 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C SOURCE FILE Test C_SUPPORTS_FPIC succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_11a28/fast"
+/usr/bin/make -f CMakeFiles/cmTC_11a28.dir/build.make CMakeFiles/cmTC_11a28.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_11a28.dir/src.c.o
+/usr/bin/cc    -DC_SUPPORTS_FPIC   -Werror -fPIC -o CMakeFiles/cmTC_11a28.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_11a28
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_11a28.dir/link.txt --verbose=1
+/usr/bin/cc   -DC_SUPPORTS_FPIC    CMakeFiles/cmTC_11a28.dir/src.c.o  -o cmTC_11a28 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C++ SOURCE FILE Test CXX_SUPPORTS_FPIC succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_6479c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6479c.dir/build.make CMakeFiles/cmTC_6479c.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_6479c.dir/src.cxx.o
+/usr/bin/c++     -DCXX_SUPPORTS_FPIC   -Werror -fPIC -o CMakeFiles/cmTC_6479c.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_6479c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6479c.dir/link.txt --verbose=1
+/usr/bin/c++    -DCXX_SUPPORTS_FPIC    CMakeFiles/cmTC_6479c.dir/src.cxx.o  -o cmTC_6479c -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_eddef/fast"
+/usr/bin/make -f CMakeFiles/cmTC_eddef.dir/build.make CMakeFiles/cmTC_eddef.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_eddef.dir/src.cxx.o
+/usr/bin/c++     -fPIC -DSUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG   -fvisibility-inlines-hidden -o CMakeFiles/cmTC_eddef.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_eddef
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_eddef.dir/link.txt --verbose=1
+/usr/bin/c++    -fPIC -DSUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG    CMakeFiles/cmTC_eddef.dir/src.cxx.o  -o cmTC_eddef -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test CXX_SUPPORTS_MISSING_FIELD_INITIALIZERS_FLAG succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_abd3b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_abd3b.dir/build.make CMakeFiles/cmTC_abd3b.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_abd3b.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -DCXX_SUPPORTS_MISSING_FIELD_INITIALIZERS_FLAG   -Wmissing-field-initializers -o CMakeFiles/cmTC_abd3b.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_abd3b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_abd3b.dir/link.txt --verbose=1
+/usr/bin/c++    -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -DCXX_SUPPORTS_MISSING_FIELD_INITIALIZERS_FLAG    CMakeFiles/cmTC_abd3b.dir/src.cxx.o  -o cmTC_abd3b -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test CXX_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1ef37/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1ef37.dir/build.make CMakeFiles/cmTC_1ef37.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_1ef37.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -DCXX_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG   -Werror -Wdelete-non-virtual-dtor -o CMakeFiles/cmTC_1ef37.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_1ef37
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1ef37.dir/link.txt --verbose=1
+/usr/bin/c++    -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -DCXX_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG    CMakeFiles/cmTC_1ef37.dir/src.cxx.o  -o cmTC_1ef37 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C SOURCE FILE Test C_SUPPORTS_WERROR_DATE_TIME succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_09ead/fast"
+/usr/bin/make -f CMakeFiles/cmTC_09ead.dir/build.make CMakeFiles/cmTC_09ead.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_09ead.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -DC_SUPPORTS_WERROR_DATE_TIME   -Werror -Werror=date-time -o CMakeFiles/cmTC_09ead.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_09ead
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_09ead.dir/link.txt --verbose=1
+/usr/bin/cc   -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -DC_SUPPORTS_WERROR_DATE_TIME    CMakeFiles/cmTC_09ead.dir/src.c.o  -o cmTC_09ead -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C++ SOURCE FILE Test CXX_SUPPORTS_WERROR_DATE_TIME succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_53f54/fast"
+/usr/bin/make -f CMakeFiles/cmTC_53f54.dir/build.make CMakeFiles/cmTC_53f54.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_53f54.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -DCXX_SUPPORTS_WERROR_DATE_TIME   -Werror -Werror=date-time -o CMakeFiles/cmTC_53f54.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_53f54
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_53f54.dir/link.txt --verbose=1
+/usr/bin/c++    -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -DCXX_SUPPORTS_WERROR_DATE_TIME    CMakeFiles/cmTC_53f54.dir/src.cxx.o  -o cmTC_53f54 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test CXX_SUPPORTS_CXX11 succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_6679c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6679c.dir/build.make CMakeFiles/cmTC_6679c.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_6679c.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -DCXX_SUPPORTS_CXX11   -std=c++11 -o CMakeFiles/cmTC_6679c.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_6679c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6679c.dir/link.txt --verbose=1
+/usr/bin/c++    -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -DCXX_SUPPORTS_CXX11    CMakeFiles/cmTC_6679c.dir/src.cxx.o  -o cmTC_6679c -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C SOURCE FILE Test C_SUPPORTS_FNO_FUNCTION_SECTIONS succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_a5c94/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a5c94.dir/build.make CMakeFiles/cmTC_a5c94.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a5c94.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -Werror=date-time -DC_SUPPORTS_FNO_FUNCTION_SECTIONS   -Werror -fno-function-sections -o CMakeFiles/cmTC_a5c94.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_a5c94
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a5c94.dir/link.txt --verbose=1
+/usr/bin/cc   -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -Werror=date-time -DC_SUPPORTS_FNO_FUNCTION_SECTIONS    CMakeFiles/cmTC_a5c94.dir/src.c.o  -o cmTC_a5c94 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C SOURCE FILE Test C_SUPPORTS_FFUNCTION_SECTIONS succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c3bde/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c3bde.dir/build.make CMakeFiles/cmTC_c3bde.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c3bde.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -Werror=date-time -DC_SUPPORTS_FFUNCTION_SECTIONS   -Werror -ffunction-sections -o CMakeFiles/cmTC_c3bde.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_c3bde
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c3bde.dir/link.txt --verbose=1
+/usr/bin/cc   -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -Werror=date-time -DC_SUPPORTS_FFUNCTION_SECTIONS    CMakeFiles/cmTC_c3bde.dir/src.c.o  -o cmTC_c3bde -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C++ SOURCE FILE Test CXX_SUPPORTS_FFUNCTION_SECTIONS succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b456b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b456b.dir/build.make CMakeFiles/cmTC_b456b.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_b456b.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -DCXX_SUPPORTS_FFUNCTION_SECTIONS   -Werror -ffunction-sections -o CMakeFiles/cmTC_b456b.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_b456b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b456b.dir/link.txt --verbose=1
+/usr/bin/c++    -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -DCXX_SUPPORTS_FFUNCTION_SECTIONS    CMakeFiles/cmTC_b456b.dir/src.cxx.o  -o cmTC_b456b -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C SOURCE FILE Test C_SUPPORTS_FDATA_SECTIONS succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_994e0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_994e0.dir/build.make CMakeFiles/cmTC_994e0.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_994e0.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -Werror=date-time -ffunction-sections -DC_SUPPORTS_FDATA_SECTIONS   -Werror -fdata-sections -o CMakeFiles/cmTC_994e0.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_994e0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_994e0.dir/link.txt --verbose=1
+/usr/bin/cc   -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-comment -Werror=date-time -ffunction-sections -DC_SUPPORTS_FDATA_SECTIONS    CMakeFiles/cmTC_994e0.dir/src.c.o  -o cmTC_994e0 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main(void) { return 0; }
+Performing C++ SOURCE FILE Test CXX_SUPPORTS_FDATA_SECTIONS succeeded with the following output:
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_bbe74/fast"
+/usr/bin/make -f CMakeFiles/cmTC_bbe74.dir/build.make CMakeFiles/cmTC_bbe74.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_bbe74.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -DCXX_SUPPORTS_FDATA_SECTIONS   -Werror -fdata-sections -o CMakeFiles/cmTC_bbe74.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_bbe74
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bbe74.dir/link.txt --verbose=1
+/usr/bin/c++    -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -DCXX_SUPPORTS_FDATA_SECTIONS    CMakeFiles/cmTC_bbe74.dir/src.cxx.o  -o cmTC_bbe74 -rdynamic -lm 
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }

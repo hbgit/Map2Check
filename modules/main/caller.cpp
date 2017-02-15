@@ -95,20 +95,20 @@ int Caller::parseIrFile(){
 
 int Caller::callPass(){
 
-  	AnalysisPasses.add(new FuncPass());
-    AnalysisPasses.add(new StorePass());
-    // AnalysisPasses.add(new AllocaPass());
+  AnalysisPasses.add(new FuncPass());
+  AnalysisPasses.add(new StorePass());
+  // AnalysisPasses.add(new AllocaPass());
+  
+  AnalysisPasses.run(*M);
 
-  	AnalysisPasses.run(*M);
-
-	return 1;
+  return 1;
 }
 
 int Caller::callPass(std::string target_function){
     AnalysisPasses.add(new AssertsPass(target_function));
-  	AnalysisPasses.add(new FuncPass());
+    AnalysisPasses.add(new FuncPass());
     AnalysisPasses.add(new StorePass());
-    AnalysisPasses.add(new AssertsPass(target_function));
+    // AnalysisPasses.add(new AssertsPass(target_function));
     // AnalysisPasses.add(new AllocaPass());
   	AnalysisPasses.run(*M);
 

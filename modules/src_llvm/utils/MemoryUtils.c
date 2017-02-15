@@ -253,15 +253,19 @@ void map2check_malloc(void* ptr, int size) {
 
 int map2check_is_invalid_free(long ptr) {
   int i = list_map2check.size - 1;
+  
   for(; i >= 0; i--) {
     long points_to = list_map2check.values[i]
       .memory_address_points_to;   
 
     if (points_to == ptr) {
+      
       bool is_free = list_map2check
 	.values[i].is_free;
+      bool is_dynamic = list_map2check
+	.values[i].is_dynamic;
 
-      if(is_free) {
+      if(is_free || (!is_dynamic)) {
 	return true;
       }
       else {
@@ -270,7 +274,7 @@ int map2check_is_invalid_free(long ptr) {
     } 
   }
 
-  return false;
+  return true;
 }
 
 void map2check_ERROR() {
@@ -287,7 +291,8 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line)
   }
 
   long* addr = (long*) ptr;
-  mark_deallocation_log(&allocations_map2check, (long) *addr);
+  
+  
 
   if(list_initialized == false) {
     list_map2check = new_list_log();
@@ -302,9 +307,13 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line)
 				  line,
 				  name);
   bool error = map2check_is_invalid_free((long) *addr);
+  mark_deallocation_log(&allocations_map2check, (long) *addr);
   mark_map_log(&list_map2check, &row);
 
   if(error) {
+    printf("MAP2CHECK: Violated Property: valid-free\n");
+    printf("MAP2CHECK: Line: %d\n",line);
+    printf("MAP2CHECK: FAIL\n");    
     map2check_ERROR();    
   }
 

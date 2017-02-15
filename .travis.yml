@@ -11,7 +11,7 @@ before_install:
 
 # command to run tests
 script:
-  - docker ps | grep -q mapdevel
+  - docker ps -a | grep -q mapdevel
 
 notifications:
   email:

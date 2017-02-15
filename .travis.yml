@@ -10,8 +10,8 @@ before_install:
 #  - docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash
 
 # command to run tests
-#script:
-#  - ./release/map2check -h
+script:
+  - docker ps | grep -q mapdevel
 
 notifications:
   email:

@@ -129,7 +129,7 @@ struct FuncPass : public FunctionPass {
 	      Value* args[] = {callInst, size};
 	      builder.CreateCall(map2check_malloc, args);
 	    }
-	    else if (f->getName() == "non_det_int") {
+	    else if (f->getName() == "__VERIFIER_nondet_int") {
 	      Twine non_det("map2check_non_det_int");
 	      f->setName(non_det);
 	    }

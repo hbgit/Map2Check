@@ -284,7 +284,7 @@ void map2check_ERROR() {
 }
 
 
-void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line) {
+void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,  const char* function_name) {
   if(!allocations_initialized) {
     allocations_map2check = new_memory_allocation();
     allocations_initialized = true;
@@ -311,9 +311,10 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line)
   mark_map_log(&list_map2check, &row);
 
   if(error) {
-    printf("MAP2CHECK: Violated Property: valid-free\n");
-    printf("MAP2CHECK: Line: %d\n",line);
-    printf("MAP2CHECK: FAIL\n");    
+    printf("VERIFICATION FAILED\n\n");
+    printf("FALSE-FREE: Operand of free must have zero pointer offset\n");
+    printf("Line %d in function %s\n\n", line, function_name);    
+    printf("FAILED\n");
     map2check_ERROR();    
   }
 

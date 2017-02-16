@@ -35,6 +35,7 @@ struct FuncPass : public FunctionPass {
 					Type::getInt8PtrTy(Ctx),
 					Type::getInt32Ty(Ctx),
 					Type::getInt32Ty(Ctx),
+					Type::getInt8PtrTy(Ctx),
 					NULL);
 
     Constant* free_list_log = F
@@ -97,6 +98,11 @@ struct FuncPass : public FunctionPass {
 		  IRBuilder<> builder((Instruction*)j);
 		  Value* name_llvm = builder
 		    .CreateGlobalStringPtr(name);
+
+		  auto function_name = F.getName();
+		  Value* function_llvm = builder
+		  .CreateGlobalStringPtr(function_name);
+		  
 		  Twine non_det("bitcast_map2check");
 		  Value* pointerCast = CastInst
 		    ::CreatePointerCast(li->getPointerOperand(),
@@ -107,7 +113,8 @@ struct FuncPass : public FunctionPass {
 		  Value* args[] = { name_llvm,
 				    pointerCast,
 				    scope_value,
-				    line_value
+				    line_value,
+				    function_llvm
 		  };
 
 		  builder.CreateCall(map2check_free, args);
@@ -168,6 +175,11 @@ struct FuncPass : public FunctionPass {
 		Value* name_llvm = builder
 		  .CreateGlobalStringPtr(name);
 		Twine non_det("bitcast_map2check");
+
+		 auto function_name = F.getName();
+		  Value* function_llvm = builder
+		  .CreateGlobalStringPtr(function_name);
+		  
 		Value* pointerCast = CastInst
 		  ::CreatePointerCast(li->getPointerOperand(),
 				      Type::getInt8PtrTy(Ctx),
@@ -177,7 +189,8 @@ struct FuncPass : public FunctionPass {
 		Value* args[] = { name_llvm,
 				  pointerCast,
 				  scope_value,
-				  line_value
+				  line_value,
+				  function_llvm
 		};
 
 		builder.CreateCall(map2check_free, args);

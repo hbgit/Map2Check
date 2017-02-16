@@ -5,11 +5,11 @@ import argparse
 import shlex
 import subprocess
 
-tool_path = "./release/map2check "
+tool_path = "./map2check "
 # default args
 extra_tool = "timeout 895s "
 command_line = extra_tool + tool_path
-clang_path = "dependencies/llvm-build-cmake/bin/clang "
+clang_path = "../dependencies/llvm-build-cmake/bin/clang "
 clang_args = "-c -emit-llvm -O0 -g "
 clang_command = clang_path + clang_args
 bcs_files = "bcs_files"

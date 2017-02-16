@@ -5,6 +5,10 @@ dependencies/llvm-3.8.1/.git*
 dependencies/llvm-build-cmake/.git*
 dependencies/minisat/.git*
 dependencies/stp/.git*
+release/bcs_files
+release/klee-*
+release/*.bc
+release/list_log
 build
 samples/*.bc
 teste/*.bc

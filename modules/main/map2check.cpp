@@ -75,7 +75,7 @@ putenv((char*) klee_env_var.c_str() );
 			po::store(po::command_line_parser(argc, argv).
 					  options(desc).positional(p).run(), vm); // can throw
 
-			if (vm.count("input-file") == 0) {
+			if ( vm.count("help") == 0 && vm.count("input-file") == 0) {
 				help_msg();
 				cout << desc;
 				return ERROR_IN_COMMAND_LINE;

@@ -18,16 +18,21 @@ enum class NonDetType {INTEGER,STRING,FLOAT};
 
 struct MemoryTrackPass : public FunctionPass {
   static char ID;
- MemoryTrackPass(bool SVCOMP = true) : FunctionPass(ID) {}
+ MemoryTrackPass(bool SVCOMP = true) : FunctionPass(ID) {
+    this->target_function = "";
+    this->isTrackingFunction = false;
+  };
  MemoryTrackPass(std::string function, bool SVCOMP =  true) : FunctionPass(ID) {  
   this->SVCOMP = SVCOMP;
   this->target_function = function;
+  this->isTrackingFunction = true;
   };
  virtual bool runOnFunction(Function &F);
 
  private:    
   void instrumentKlee(NonDetType nonDetType);
   void instrumentPointer();
+  void instrumentTargetFunction();
   void instrumentMalloc();
   void instrumentFree();
   void instrumentReleaseMemory();
@@ -38,6 +43,7 @@ struct MemoryTrackPass : public FunctionPass {
   void getDebugInfo();
  
   bool SVCOMP;
+  bool isTrackingFunction;
   std::string target_function;  
   Function* currentFunction;
   Function* caleeFunction;  

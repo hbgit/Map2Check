@@ -138,7 +138,26 @@ void MemoryTrackPass::switchCallInstruction() {
   else if (this->caleeFunction->getName() == "__VERIFIER_nondet_int"
 	   && this->SVCOMP) {
     this->instrumentKlee(NonDetType::INTEGER);      
-  } 
+  }
+  else if (this->caleeFunction->getName() == this->target_function
+	   && this->isTrackingFunction) {
+    this->instrumentTargetFunction();
+  }
+}
+
+void MemoryTrackPass::instrumentTargetFunction() {
+  auto j = this->currentInstruction;
+					    
+  IRBuilder<> builder((Instruction*)j);
+  Value* name_llvm = builder.CreateGlobalStringPtr
+    (this->target_function);
+					    
+  Value* args[] = {name_llvm,
+		   this->scope_value,
+		   this->line_value };
+  
+  builder.CreateCall(map2check_target_function,
+		     args);
 }
 
 // TODO: make dynCast only one time
@@ -241,3 +260,6 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
      
    return true; 
 }
+
+char MemoryTrackPass::ID = 0;
+static RegisterPass<MemoryTrackPass> X("memory_track", "Validate memory security proprieties using dynamic memory tracking");

@@ -1,12 +1,7 @@
 //Map2Check library
-#include "../src_llvm/pass/FuncPass.h"
-#include "../src_llvm/pass/AllocaPass.h"
-#include "../src_llvm/pass/StorePass.h"
-
-#include "../src_llvm/pass/AssertsPass.h"
+#include "../src_llvm/pass/MemoryTrackPass.h"
 
 #include "caller.h"
-
 
 //LLVM
 #include <llvm/LinkAllPasses.h>
@@ -32,7 +27,6 @@
 
 #include <iostream>
 #include <string>
-
 #include <stdlib.h>
 
 using namespace std;
@@ -61,64 +55,57 @@ legacy::PassManager AnalysisPasses;
 
 
 Caller::Caller( std::string bcprogram_path ) {
-	this->pathprogram = bcprogram_path;
+  this->pathprogram = bcprogram_path;
 }
 
 void Caller::printdata() {
-	cout << "File Path:" << this->pathprogram << endl;
-	this->parseIrFile();
+  cout << "File Path:" << this->pathprogram << endl;
+  this->parseIrFile();
 }
 
 int Caller::parseIrFile(){
-	// Parse the input LLVM IR file into a module.
-	StringRef filename = this->pathprogram;
+  // Parse the input LLVM IR file into a module.
+  StringRef filename = this->pathprogram;
 
-	SMDiagnostic SM;
-	LLVMContext & Context = getGlobalContext();
-	M = parseIRFile(filename,SM,Context);
+  SMDiagnostic SM;
+  LLVMContext & Context = getGlobalContext();
+  M = parseIRFile(filename,SM,Context);
 
-	if (!SM.getMessage().empty()){
-		check("Problem reading input bitcode/IR: " + SM.getMessage().str());
-	}else{
-		std::cout << "Successfully read bitcode/IR" << std::endl;
+  if (!SM.getMessage().empty()){
+    check("Problem reading input bitcode/IR: " + SM.getMessage().str());
+  }else{
+    std::cout << "Successfully read bitcode/IR" << std::endl;
   }
 
-	// 	PassRegistry &Registry = *PassRegistry::getPassRegistry();
-	// 	initializeAnalysis(Registry);
-		// InitialPasses.add(llvm::createCFGSimplificationPass());
-		// InitialPasses.run(*M);
-	// 	}
+  // 	PassRegistry &Registry = *PassRegistry::getPassRegistry();
+  // 	initializeAnalysis(Registry);
+  // InitialPasses.add(llvm::createCFGSimplificationPass());
+  // InitialPasses.run(*M);
+  // 	}
 
 
-	return 0;
+  return 0;
 }
 
 int Caller::callPass(){
 
-  AnalysisPasses.add(new FuncPass());
-  AnalysisPasses.add(new StorePass());
-  // AnalysisPasses.add(new AllocaPass());
-  
+  AnalysisPasses.add(new MemoryTrackPass());  
   AnalysisPasses.run(*M);
 
   return 1;
 }
 
 int Caller::callPass(std::string target_function){
-    AnalysisPasses.add(new AssertsPass(target_function));
-    AnalysisPasses.add(new FuncPass());
-    AnalysisPasses.add(new StorePass());
-    // AnalysisPasses.add(new AssertsPass(target_function));
-    // AnalysisPasses.add(new AllocaPass());
-  	AnalysisPasses.run(*M);
+  AnalysisPasses.add(new MemoryTrackPass(target_function));
+  AnalysisPasses.run(*M);
 
-	return 1;
+  return 1;
 }
 
 void Caller::genByteCodeFile() {
 
   /* Generates an file (named output.bc) that contains the LLVM IR
-    after executing the passes
+     after executing the passes
   */
 
   const char *Filename = "output.bc";
@@ -140,10 +127,10 @@ void Caller::linkLLVM() {
   const char* command2 = "./bin/llvm-link inter.bc lib/memoryutils.bc > result.bc";
   system(command2);
 
-  #ifndef DEBUG
+#ifndef DEBUG
   system("rm inter.bc");
   system("rm output.bc");
-  #endif
+#endif
 }
 
 // TODO: Implement using klee api

@@ -23,17 +23,13 @@ LLVM_LINK        := $(LLVM_BUILD_DIR)/llvm-link
 SRC_MODULES_DIR := modules
 SRC_LLVM_DIR    := modules/src_llvm
 BUILDDIR        := build
-OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/funcpass.o $(BUILDDIR)/allocapass.o $(BUILDDIR)/storepass.o $(BUILDDIR)/assertpass.o
+OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/trackpass.o
 SAMPLES         := $(wildcard samples/*.c)
 
 
 .PHONY: all
 all: make_builddir \
-	  $(BUILDDIR)/funcpass \
-		$(BUILDDIR)/assertpass \
-		$(BUILDDIR)/storepass \
-		$(BUILDDIR)/allocapass \
-		$(BUILDDIR)/trackpass \
+	 	$(BUILDDIR)/trackpass \
 		$(BUILDDIR)/utils \
 		$(BUILDDIR)/caller \
 		$(BUILDDIR)/memoryutils \
@@ -49,26 +45,15 @@ release: all
 	cp $(BUILDDIR)/memoryutils.bc release/lib/
 
 .PHONY: pass
-pass: $(BUILDDIR)/funcpass
+pass: $(BUILDDIR)/trackpass
 	$(CXX) -shared -o $@.so $^.o
 
 .PHONY: make_builddir
 make_builddir:
 	@test -d $(BUILDDIR) || mkdir $(BUILDDIR)
 
-$(BUILDDIR)/funcpass: $(SRC_LLVM_DIR)/pass/FuncPass.cpp
-			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
-
 $(BUILDDIR)/trackpass: $(SRC_LLVM_DIR)/pass/MemoryTrackPass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
-
-
-$(BUILDDIR)/assertpass: $(SRC_LLVM_DIR)/pass/AssertsPass.cpp
-			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
-
-$(BUILDDIR)/storepass: $(SRC_LLVM_DIR)/pass/StorePass.cpp
-			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
-
 
 $(BUILDDIR)/utils: $(SRC_LLVM_DIR)/utils/Utils.c
 			$(CC) -I./dependencies/klee/include/ -c -emit-llvm  $^ -o $@.bc
@@ -76,17 +61,12 @@ $(BUILDDIR)/utils: $(SRC_LLVM_DIR)/utils/Utils.c
 $(BUILDDIR)/memoryutils: $(SRC_LLVM_DIR)/utils/MemoryUtils.c
 			$(CC) -I./dependencies/klee/include/ -c -emit-llvm  $^ -o $@.bc
 
-$(BUILDDIR)/allocapass: $(SRC_LLVM_DIR)/pass/AllocaPass.cpp
-			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
-
-
 $(BUILDDIR)/caller: $(SRC_MODULES_DIR)/main/caller.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
 
 $(BUILDDIR)/map2check: $(SRC_MODULES_DIR)/main/map2check.cpp
 			$(CXX) -c $^ -o $@.o
 			$(CXX) $(OBJECTS_I) $(LDFLAGS) $(LLVM_LDFLAGS) -o $(BUILDDIR)/map2check
-
 
 .PHONY: samples
 samples: $(SAMPLES)

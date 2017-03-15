@@ -28,9 +28,11 @@ bool mark_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address) {
   MEMORY_ALLOCATIONS_ROW row = new_memory_row(address, false);
   allocation_log->size++;
 
-  MEMORY_ALLOCATIONS_ROW* temp_list = (MEMORY_ALLOCATIONS_ROW*) realloc (allocation_log->values  , allocation_log->size * sizeof(MEMORY_ALLOCATIONS_ROW));
-  allocation_log->values = temp_list;
+  MEMORY_ALLOCATIONS_ROW* temp_list = (MEMORY_ALLOCATIONS_ROW*)
+    realloc (allocation_log->values,
+	     allocation_log->size * sizeof(MEMORY_ALLOCATIONS_ROW));
 
+  allocation_log->values = temp_list;
   allocation_log->values[allocation_log->size-1] = row;
 
   return true;
@@ -41,11 +43,12 @@ bool mark_deallocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address)
 
   allocation_log->size++;
 
-  MEMORY_ALLOCATIONS_ROW* temp_list = (MEMORY_ALLOCATIONS_ROW*) realloc (allocation_log->values  , allocation_log->size * sizeof(MEMORY_ALLOCATIONS_ROW));
-  allocation_log->values = temp_list;
-  //
+  MEMORY_ALLOCATIONS_ROW* temp_list = (MEMORY_ALLOCATIONS_ROW*)
+    realloc (allocation_log->values,
+	     allocation_log->size * sizeof(MEMORY_ALLOCATIONS_ROW));
+  
+  allocation_log->values = temp_list;  //
   allocation_log->values[allocation_log->size-1] = row;
-  // allocation_log->values[allocation_log->size-1].id = allocation_log->size;
 
   return true;
 }
@@ -69,11 +72,9 @@ MEMORY check_address_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long
 }
 
 bool free_memory_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log) {
-  #ifdef DEBUG
+#ifdef DEBUG
   print_allocation_log(allocation_log);
-
-  #endif
-
+#endif
   free(allocation_log->values);
   return true;
 
@@ -109,25 +110,24 @@ void map2check_add_store_pointer(void* var, void* value,unsigned scope, const ch
   bool isFree;
 
   switch (status) {
-    case STATIC:
-      isDynamic = false;
-      isFree = false;
-      break;
-    case FREE:
-      isDynamic = false;
-      isFree = true;
-      break;
-    case DYNAMIC:
-      isDynamic = true;
-      isFree = false;
-      break;
+  case STATIC:
+    isDynamic = false;
+    isFree = false;
+    break;
+  case FREE:
+    isDynamic = false;
+    isFree = true;
+    break;
+  case DYNAMIC:
+    isDynamic = true;
+    isFree = false;
+    break;
   }
 
   LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name);
   mark_map_log(&list_map2check, &row);
 }
 
-// TODO: IMPLEMENT DYNAMIC AND FREE
 void map2check_pointer(void* x,unsigned scope, const char* name, int line){
   if(list_initialized == false) {
     list_map2check = new_list_log();
@@ -136,10 +136,7 @@ void map2check_pointer(void* x,unsigned scope, const char* name, int line){
 
   LIST_LOG_ROW row = new_list_row((long) x, 0, scope, true, false, line,name);
   mark_map_log(&list_map2check, &row);
-
 }
-
-
 
 void list_log_to_file(LIST_LOG* list) {
   FILE* output = fopen("list_log", "w");
@@ -158,22 +155,19 @@ void list_log_to_file(LIST_LOG* list) {
   fclose(output);
 }
 
-
-
-
 LIST_LOG_ROW new_list_row (long memory_address, long memory_address_points_to,
- unsigned scope, bool is_dynamic, bool is_free, unsigned line_number, const char* name) {
-    LIST_LOG_ROW row;
-    row.id = 0;
-    row.is_dynamic = is_dynamic;
-    row.is_free = is_free;
-    row.line_number = line_number;
-    row.memory_address = memory_address;
-    row.memory_address_points_to = memory_address_points_to;
-    row.scope = scope;
-    row.var_name = name;
+			   unsigned scope, bool is_dynamic, bool is_free, unsigned line_number, const char* name) {
+  LIST_LOG_ROW row;
+  row.id = 0;
+  row.is_dynamic = is_dynamic;
+  row.is_free = is_free;
+  row.line_number = line_number;
+  row.memory_address = memory_address;
+  row.memory_address_points_to = memory_address_points_to;
+  row.scope = scope;
+  row.var_name = name;
 
-    return row;
+  return row;
 }
 
 LIST_LOG new_list_log() {
@@ -188,7 +182,10 @@ LIST_LOG new_list_log() {
 bool mark_map_log(LIST_LOG* list, LIST_LOG_ROW* row) {
   list->size++;
 
-  LIST_LOG_ROW* temp_list = (LIST_LOG_ROW*) realloc (list->values  , list->size * sizeof(LIST_LOG_ROW));
+  LIST_LOG_ROW* temp_list = (LIST_LOG_ROW*)
+    realloc (list->values,
+	     list->size * sizeof(LIST_LOG_ROW));
+  
   list->values = temp_list;
 
   list->values[list->size-1] = *row;
@@ -203,7 +200,7 @@ void map2check_free_list_log(){
 }
 
 bool free_list_log(LIST_LOG* list) {
-    // free(list);
+  // free(list);
 
   // print_list_log(&list_map2check);
   list_log_to_file(&list_map2check);
@@ -232,13 +229,15 @@ void print_list_log(LIST_LOG* list) {
 }
 
 void map2check_list_debug() {
-    print_list_log(&list_map2check  );
+  print_list_log(&list_map2check);
 }
 
 
 int map2check_non_det_int() {
   int non_det;
-  klee_make_symbolic(&non_det, sizeof(non_det), "non_det_int");
+  klee_make_symbolic(&non_det,
+		     sizeof(non_det),
+		     "non_det_int");
   return non_det;
 }
 
@@ -290,9 +289,7 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
     allocations_initialized = true;
   }
 
-  long* addr = (long*) ptr;
-  
-  
+  long* addr = (long*) ptr;  
 
   if(list_initialized == false) {
     list_map2check = new_list_log();

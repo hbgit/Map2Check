@@ -76,6 +76,7 @@ MEMORY check_address_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long
 bool free_memory_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log);
 
 void print_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log);
+
 /**
  * This method initializes a MEMORY_ALLOCATIONS_ROW with the defined parameters
  * @param  address Memory Address to be logged

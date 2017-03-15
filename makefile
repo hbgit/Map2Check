@@ -33,6 +33,7 @@ all: make_builddir \
 		$(BUILDDIR)/assertpass \
 		$(BUILDDIR)/storepass \
 		$(BUILDDIR)/allocapass \
+		$(BUILDDIR)/trackpass \
 		$(BUILDDIR)/utils \
 		$(BUILDDIR)/caller \
 		$(BUILDDIR)/memoryutils \
@@ -57,6 +58,10 @@ make_builddir:
 
 $(BUILDDIR)/funcpass: $(SRC_LLVM_DIR)/pass/FuncPass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
+
+$(BUILDDIR)/trackpass: $(SRC_LLVM_DIR)/pass/MemoryTrackPass.cpp
+			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
+
 
 $(BUILDDIR)/assertpass: $(SRC_LLVM_DIR)/pass/AssertsPass.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o

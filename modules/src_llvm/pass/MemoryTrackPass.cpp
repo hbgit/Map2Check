@@ -57,42 +57,51 @@ void MemoryTrackPass::instrumentMalloc() {
 // TODO: make dynCast only one time
 void MemoryTrackPass::instrumentFree() {  
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
-  auto j = this->currentInstruction;  
+  auto j = this->currentInstruction;
+  // ++j;
+  
+  this->caleeFunction = callInst->getCalledFunction();
+  this->getDebugInfo();
+  LoadInst* li; 
+  
+  if (this->caleeFunction == NULL) {    
+    Value* v = callInst->getCalledValue();
+    this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+    li = dyn_cast<LoadInst>(callInst ->getArgOperand(0));
 
-  LoadInst* li = dyn_cast<LoadInst>(callInst
-				    ->getArgOperand(0));
-
-  if(li) {
-    auto j = this->currentInstruction;
-    ++j;
-
-    auto name = li->getPointerOperand()->getName();
-
-    IRBuilder<> builder((Instruction*)j);
-    Value* name_llvm = builder
-      .CreateGlobalStringPtr(name);
-
-    auto function_name = this->currentFunction->getName();
-    Value* function_llvm = builder
-      .CreateGlobalStringPtr(function_name);
-		  
-    Twine non_det("bitcast");
-    Value* pointerCast = CastInst
-      ::CreatePointerCast(li->getPointerOperand(),
-			  Type::getInt8PtrTy(*this->Ctx),
-			  non_det,
-			  (Instruction*) j);
-
-    Value* args[] = { name_llvm,
-		      pointerCast,
-		      this->scope_value,
-		      this->line_value,
-		      function_llvm
-    };
-
-    builder.CreateCall(this->map2check_free, args);
+    
+  }
+  else {   
+    // Value* addr = callInst->getArgOperand(0)->stripPointerCasts();
+    li = dyn_cast<LoadInst>(callInst->
+				      getArgOperand(0)->
+				      stripPointerCasts());
   }
 
+  auto name = li->getPointerOperand()->getName();
+  IRBuilder<> builder((Instruction*)j);
+  Value* name_llvm = builder
+    .CreateGlobalStringPtr(name);
+  
+  auto function_name = this->currentFunction->getName();
+  Value* function_llvm = builder
+    .CreateGlobalStringPtr(function_name);
+  		  
+  Twine non_det("bitcast_map2check");
+  Value* pointerCast = CastInst
+    ::CreatePointerCast(li->getPointerOperand(),
+			Type::getInt8PtrTy(*this->Ctx),
+			non_det,
+			(Instruction*) j);
+  
+  Value* args[] = { name_llvm,
+		    pointerCast,
+		    this->scope_value,
+		    this->line_value,
+		    function_llvm
+  };
+  
+  builder.CreateCall(map2check_free, args);
 }
 
 void MemoryTrackPass::getDebugInfo() {
@@ -130,6 +139,7 @@ void MemoryTrackPass::instrumentReleaseMemory() {
 void MemoryTrackPass::switchCallInstruction() {
   
   if (this->caleeFunction->getName() == "free") {
+    
     this->instrumentFree();      
   }
   else if (this->caleeFunction->getName() == "malloc") {

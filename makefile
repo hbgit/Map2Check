@@ -4,12 +4,12 @@ LLVM_SRC_DIR     := dependencies/llvm-$(LLVM_VERSION)
 
 
 CC               := $(LLVM_BUILD_DIR)/bin/clang
-CXX              := g++
+CXX              := g++ -O2 -DDEBUG
 
 INC              := -I $(LLVM_SRC_DIR)/include
-CXXFLAGS         := -fno-rtti -O0 -g $(INC)
+CXXFLAGS         :=  -fno-rtti $(INC)
 CXXFLAGS_NORTTI  := -O0 -g
-LDFLAGS          := -static  -lboost_log -lboost_log_setup -lboost_program_options -lboost_system -lboost_filesystem -lboost_thread
+LDFLAGS          := -static -lboost_log -lboost_log_setup -lboost_program_options -lboost_system -lboost_filesystem -lboost_thread
 PLUGIN_CXXFLAGS  := -fpic
 
 LLVM_CXXFLAGS    := `$(LLVM_BUILD_DIR)/bin/llvm-config  --cxxflags`
@@ -23,7 +23,7 @@ LLVM_LINK        := $(LLVM_BUILD_DIR)/llvm-link
 SRC_MODULES_DIR := modules
 SRC_LLVM_DIR    := modules/src_llvm
 BUILDDIR        := build
-OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/trackpass.o
+OBJECTS_I       := $(BUILDDIR)/map2check.o $(BUILDDIR)/caller.o $(BUILDDIR)/trackpass.o $(BUILDDIR)/verifier.o  $(BUILDDIR)/log.o
 SAMPLES         := $(wildcard samples/*.c)
 
 
@@ -31,7 +31,9 @@ SAMPLES         := $(wildcard samples/*.c)
 all: make_builddir \
 	 	$(BUILDDIR)/trackpass \
 		$(BUILDDIR)/utils \
+		$(BUILDDIR)/verifier \
 		$(BUILDDIR)/caller \
+		$(BUILDDIR)/log \
 		$(BUILDDIR)/memoryutils \
 		$(BUILDDIR)/map2check
 
@@ -63,6 +65,13 @@ $(BUILDDIR)/memoryutils: $(SRC_LLVM_DIR)/utils/MemoryUtils.c
 
 $(BUILDDIR)/caller: $(SRC_MODULES_DIR)/main/caller.cpp
 			$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) $^ $(LLVM_LDFLAGS) $(PLUGIN_CXXFLAGS) -o $@.o
+
+$(BUILDDIR)/verifier: $(SRC_MODULES_DIR)/main/verifier.cpp
+			$(CXX) -c $^ -o $@.o
+
+
+$(BUILDDIR)/log: $(SRC_MODULES_DIR)/main/log.cpp
+			$(CXX) -c $^ -o $@.o
 
 $(BUILDDIR)/map2check: $(SRC_MODULES_DIR)/main/map2check.cpp
 			$(CXX) -c $^ -o $@.o

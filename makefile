@@ -9,11 +9,11 @@ CXX              := g++
 INC              := -I $(LLVM_SRC_DIR)/include
 CXXFLAGS         := -fno-rtti -O0 -g $(INC)
 CXXFLAGS_NORTTI  := -O0 -g
-LDFLAGS          := -static -lboost_program_options -lboost_filesystem -lboost_system
+LDFLAGS          := -static  -lboost_log -lboost_log_setup -lboost_program_options -lboost_system -lboost_filesystem -lboost_thread
 PLUGIN_CXXFLAGS  := -fpic
 
-LLVM_CXXFLAGS    := `$(LLVM_BUILD_DIR)/bin/llvm-config --cxxflags`
-LLVM_LDFLAGS     := `$(LLVM_BUILD_DIR)/bin/llvm-config --ldflags --libs --system-libs`
+LLVM_CXXFLAGS    := `$(LLVM_BUILD_DIR)/bin/llvm-config  --cxxflags`
+LLVM_LDFLAGS     := `$(LLVM_BUILD_DIR)/bin/llvm-config  --ldflags --libs --system-libs`
 
 
 LLVM_LINK        := $(LLVM_BUILD_DIR)/llvm-link

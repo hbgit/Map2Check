@@ -149,9 +149,7 @@ void list_log_to_file(LIST_LOG* list) {
     fprintf(output, "%d,", row->scope);
     fprintf(output, "%d,", row->is_free);
     fprintf(output, "%d\n", row->is_dynamic);
-
   }
-
   fclose(output);
 }
 

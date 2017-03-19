@@ -2,9 +2,10 @@
 using namespace llvm;
 
 // TODO: Work with other types
+// FIX: It it not current function 
 void MemoryTrackPass::instrumentKlee(NonDetType nonDetType) {
   Twine non_det("map2check_non_det_int");
-  this->currentFunction->setName(non_det);
+  this->caleeFunction->setName(non_det);
 }
 
 // TODO: make dynCast only one time
@@ -145,8 +146,9 @@ void MemoryTrackPass::switchCallInstruction() {
   else if (this->caleeFunction->getName() == "malloc") {
     this->instrumentMalloc();      
   }
-  else if (this->caleeFunction->getName() == "__VERIFIER_nondet_int"
-	   && this->SVCOMP) {
+  // TODO: Resolve SVCOMP ISSUE
+  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")
+	  ) {
     this->instrumentKlee(NonDetType::INTEGER);      
   }
   else if (this->caleeFunction->getName() == this->target_function

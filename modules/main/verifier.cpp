@@ -12,8 +12,22 @@ Witness::Witness(string kleeResultFolder) {
   genKleeFilesListFromFolder(kleeResultFolder);
 }
 
+void Witness::convertKleeFileToTextFile(KleeResult kleeResult) {
+  Map2Check::Log::Debug("Converting ktest to test file");
+  
+  std::ostringstream command; 
+  command.str("");  
+  command << Map2Check::Tools::ktestBinary << " --write-ints ";
+  command << kleeResult.name << ".ktest";
+  command << " >> " << kleeResult.name << ".test";
+
+  Map2Check::Log::Debug(command.str());
+  system(command.str().c_str());
+}  
+
 void Witness::genKleeFilesListFromFolder(std::string kleeResultFolder) {
   Map2Check::Log::Debug("Obtaining files from folder: " + kleeResultFolder);
+
 
   // Checks if folder exists
   if (!fs::exists(kleeResultFolder) || !fs::is_directory(kleeResultFolder))
@@ -24,8 +38,8 @@ void Witness::genKleeFilesListFromFolder(std::string kleeResultFolder) {
     Map2Check::Log::Debug("Folder does exist, continuing");
     fs::directory_iterator end_iter;
 
-    std::regex ktest("(.*\).ktest");
-    std::regex error("(.*)\.assert.err");
+    std::regex ktest("(.*)\.ktest");
+    std::regex error("(.*)\.assert\.err");
     for( fs::directory_iterator dir_iter(kleeResultFolder) ; dir_iter != end_iter ; ++dir_iter)
       {
 	KleeResult result;
@@ -78,6 +92,15 @@ void Witness::genKleeFilesListFromFolder(std::string kleeResultFolder) {
   if (kleeResults.size() == 0) {
     throw InvalidKleeFolderException(kleeResultFolder);  
   }
+
+  if(!fs::is_regular_file(Map2Check::Tools::ktestBinary)) {
+    throw InvalidKtestBinException();
+  }
+  
+  std::for_each(kleeResults.begin(),
+		kleeResults.end(),
+		convertKleeFileToTextFile);
+  
 }
 
 const char* WitnessException::what() const throw() {
@@ -92,6 +115,14 @@ const char* InvalidKleeFolderException::what() const throw() {
   std::ostringstream cnvt; 
   cnvt.str("");
   cnvt << "Folder " <<  this->folder << " does not contain Klee Results!";
+  Map2Check::Log::Error(cnvt.str());
+  return cnvt.str().c_str();  
+}
+
+const char* InvalidKtestBinException::what() const throw() {
+  std::ostringstream cnvt; 
+  cnvt.str("");
+  cnvt << "Could not find binary " <<  Map2Check::Tools::ktestBinary;
   Map2Check::Log::Error(cnvt.str());
   return cnvt.str().c_str();  
 }

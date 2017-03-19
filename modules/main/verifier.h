@@ -6,15 +6,15 @@
 #include <vector>
 #include <stdexcept>
 	
-
 using namespace std;
+
+namespace Map2Check::Tools {
+  const string ktestBinary("./bin/ktest-tool");
+}
   
 class Witness {
  public:   
   Witness(string kleeResultFolder);
- private: 
-  void genKleeFilesListFromFolder(string kleeResultFolder);
-  void convertKleeFilesToTextFiles();
   enum class KleeStatus {
     OK,
     ERROR  
@@ -22,8 +22,10 @@ class Witness {
   struct KleeResult {
     KleeStatus kleeStatus;
     string name;
-    string path;
-  };
+  };  
+ private:  
+  void genKleeFilesListFromFolder(string kleeResultFolder);  
+  static void convertKleeFileToTextFile(KleeResult kleeResult); 
   vector<KleeResult> kleeResults;
   
 };
@@ -41,4 +43,10 @@ class InvalidKleeFolderException : public WitnessException {
 
  private:
   string folder;
+};
+
+class InvalidKtestBinException : public WitnessException {
+   public:
+ InvalidKtestBinException() : WitnessException("") {}
+  virtual const char* what() const throw();  
 };

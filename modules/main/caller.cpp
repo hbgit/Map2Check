@@ -137,6 +137,6 @@ void Caller::linkLLVM() {
 void Caller::callKlee() {
   /* Execute klee */
 
-  const char* klee_command = "./bin/klee result.bc";
+  const char* klee_command = "./bin/klee result.bc >> kleeOutput.log";
   system(klee_command);
 }

@@ -4,15 +4,16 @@ cmake_minimum_required(VERSION 3.5)
 message("Started Map2Check CMake")
 
 set(LLVM_VERSION 3.8.1)  
-# set(CMAKE_CXX_COMPILER g++)
+set(LLVM_SOURCE ${PROJECT_SOURCE_DIR}/dependencies/llvm-${LLVM_VERSION})
+set(LLVM_BUILD ${PROJECT_SOURCE_DIR}/dependencies/llvm-build-cmake/bin)
 
-set(INC -I${PROJECT_SOURCE_DIR}/dependencies/llvm-${LLVM_VERSION}/include)
+#####################################################
+## TODO: Separate next functions to another file   ##
+##       and accept options from cmake input       ##
+####################################################
 
 find_program(LLVM_CONFIG llvm-config
-  # dependencies/llvm-build-cmake
-  HINTS ${PROJECT_SOURCE_DIR}/dependencies/llvm-build-cmake/bin
-  # PATHS ${libclang_llvm_lib_search_paths}
-  # PATH_SUFFIXES LLVM/lib #Windows package from http://llvm.org/releases/
+  HINTS ${LLVM_BUILD}
   DOC "llvm-config is used to generate flags to link with llvm.")
 
 if(NOT LLVM_CONFIG)
@@ -32,6 +33,9 @@ set (EXECUTE_LLVM_SYSTEMFLAGS ${LLVM_CONFIG} --system-libs)
 execute_process(COMMAND ${EXECUTE_LLVM_LDFLAGS} OUTPUT_VARIABLE LLVM_SYSTEMFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 set(LLVM_LIBS "${LLVM_LDFLAGS} ${LLVM_LIBSFLAGS} ${LLVM_SYSTEMFLAGS}")
+
+###########################################################################
+
 
 add_subdirectory(modules)
 

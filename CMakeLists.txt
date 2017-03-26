@@ -37,7 +37,10 @@ execute_process(COMMAND ${EXECUTE_LLVM_LIBSFLAGS} OUTPUT_VARIABLE LLVM_LIBSFLAGS
 set (EXECUTE_LLVM_SYSTEMFLAGS ${LLVM_CONFIG} --system-libs)
 execute_process(COMMAND ${EXECUTE_LLVM_SYSTEMFLAGS} OUTPUT_VARIABLE LLVM_SYSTEMFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-set(LLVM_LIBS "${LLVM_LDFLAGS} ${LLVM_LIBSFLAGS} ${LLVM_SYSTEMFLAGS}")
+set(CUSTOM_LLVM_LIBS "-lLLVMLTO -lLLVMObjCARCOpts -lLLVMSymbolize -lLLVMDebugInfoPDB -lLLVMDebugInfoDWARF -lLLVMMIRParser -lLLVMLibDriver -lLLVMOption -lLLVMTableGen -lLLVMOrcJIT -lLLVMPasses -lLLVMipo -lLLVMVectorize -lLLVMLinker -lLLVMIRReader -lLLVMAsmParser -lLLVMX86Disassembler -lLLVMX86AsmParser -lLLVMX86CodeGen -lLLVMSelectionDAG -lLLVMAsmPrinter -lLLVMX86Desc -lLLVMMCDisassembler -lLLVMX86Info -lLLVMX86AsmPrinter -lLLVMX86Utils -lLLVMMCJIT -lLLVMExecutionEngine -lLLVMRuntimeDyld -lLLVMCodeGen -lLLVMTarget -lLLVMScalarOpts -lLLVMInstCombine -lLLVMInstrumentation -lLLVMProfileData -lLLVMObject -lLLVMMCParser -lLLVMTransformUtils -lLLVMMC -lLLVMBitWriter -lLLVMBitReader -lLLVMAnalysis -lLLVMCore -lLLVMSupport")
+
+
+set(LLVM_LIBS "${LLVM_LDFLAGS} ${CUSTOM_LLVM_LIBS} ${LLVM_SYSTEMFLAGS}")
 
 ###########################################################################
 

@@ -9,6 +9,7 @@ map2check() {
     mkdir build
     cd build
     cmake .. -DCMAKE_INSTALL_PREFIX=../release/
+    make all
     make test
     make install
     # make all

@@ -15,7 +15,7 @@ map2check() {
 }
 
 gtest() {
-    gtestfile="/usr/lib/libgtest.a"
+    # gtestfile="/usr/lib/libgtest.a"
     if [ ! -f "$gtestfile" ]
     then
     	cd /usr/src/gtest
@@ -29,5 +29,5 @@ gtest() {
    fi
 }
 
-gtest
+# gtest
 map2check

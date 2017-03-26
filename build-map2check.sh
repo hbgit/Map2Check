@@ -6,8 +6,12 @@ RUNDIR=`pwd`
 
 map2check() {
     cd $RUNDIR
-    make all
-    make release  
+    mkdir build
+    cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=../release/
+    make install
+    # make all
+    # make release  
 }
 
 gtest() {

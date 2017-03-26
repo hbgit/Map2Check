@@ -12,7 +12,11 @@ set(KLEE_INCLUDE ${PROJECT_SOURCE_DIR}/dependencies/klee/include)
 #####################################################
 ## TODO: Separate next functions to another file   ##
 ##       and accept options from cmake input       ##
-####################################################
+#####################################################
+
+set(Boost_USE_STATIC_LIBS        ON) # only find static libs
+set(Boost_USE_MULTITHREADED      ON)
+find_package(Boost REQUIRED COMPONENTS unit_test_framework log log_setup program_options system filesystem thread)
 
 find_program(LLVM_CONFIG llvm-config
   HINTS ${LLVM_BUILD}/bin
@@ -44,7 +48,7 @@ set(LLVM_LIBS "${LLVM_LDFLAGS} ${CUSTOM_LLVM_LIBS} ${LLVM_SYSTEMFLAGS}")
 
 ###########################################################################
 
-
-
 add_subdirectory(modules)
+enable_testing()
+add_subdirectory(test)
 

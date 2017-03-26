@@ -7,6 +7,8 @@ set(LLVM_VERSION 3.8.1)
 set(LLVM_SOURCE ${PROJECT_SOURCE_DIR}/dependencies/llvm-${LLVM_VERSION})
 set(LLVM_BUILD ${PROJECT_SOURCE_DIR}/dependencies/llvm-build-cmake/bin)
 
+set(KLEE_INCLUDE ${PROJECT_SOURCE_DIR}/dependencies/klee/include)
+
 #####################################################
 ## TODO: Separate next functions to another file   ##
 ##       and accept options from cmake input       ##
@@ -15,6 +17,9 @@ set(LLVM_BUILD ${PROJECT_SOURCE_DIR}/dependencies/llvm-build-cmake/bin)
 find_program(LLVM_CONFIG llvm-config
   HINTS ${LLVM_BUILD}
   DOC "llvm-config is used to generate flags to link with llvm.")
+
+find_program(CLANG clang
+  HINTS ${LLVM_BUILD})
 
 if(NOT LLVM_CONFIG)
     message(FATAL_ERROR "LLVM not found!")

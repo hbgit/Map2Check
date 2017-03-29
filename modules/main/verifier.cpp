@@ -139,7 +139,8 @@ void Witness::genKleeFilesListFromFolder(std::string kleeResultFolder) {
     throw InvalidKtestBinException();
   }
   
-  for(int i; i < this->kleeResults.size(); i++) {
+  for(int i = 0; i < kleeResults.size(); i++) {
+    Map2Check::Log::Debug("Converting klee file to text file");
     convertKleeFileToTextFile(&this->kleeResults[i]);
     
   }
@@ -156,8 +157,29 @@ void Witness::generateWitness() {
    for(auto i = this->kleeResults.begin();
        i != this->kleeResults.end(); i++) {
      KleeResult kleeResult = *i;
-     Map2Check::Log::Debug("Got test: " + kleeResult.name);
+     Map2Check::Log::Debug("Got test: " + kleeResult.name);     
      vertex_t currentState = initialState;
+
+     /* TODO: Remove this hack (make another function or something
+      * like that, this will make read only one error */
+
+     static bool alreadyGotError = false;
+     if(alreadyGotError) {
+       Map2Check::Log::Debug("Already analized error test, skipping all others");
+       break;
+     }
+     
+     if(!(kleeResult.kleeStatus == Witness::KleeStatus::ERROR)) {
+       Map2Check::Log::Debug("Normal result, skipping");
+       continue;
+     }
+
+     alreadyGotError = true;
+
+     Map2Check::Log::Debug("Found error, continuing");     
+
+     /*========================= END OF HACK ==============================*/
+
      
      for(int j = 0; j < kleeResult.states.size(); j++) {
        Witness::Graph::edge_iterator ei, eiEnd;
@@ -192,9 +214,11 @@ void Witness::generateWitness() {
 	 this->graph[currentState].status = StateStatus::NON_ACCEPTING;
 	 this->generateEdge(source, currentState, value);
        }
-     }        
 
+
+     }        
      this->changeStateStatus(currentState, kleeResult.kleeStatus);  
+
    }
    
 }

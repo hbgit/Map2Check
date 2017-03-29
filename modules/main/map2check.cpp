@@ -11,6 +11,7 @@ namespace po = boost::program_options;
 #include <numeric>
 #include <sstream>
 #include <cstdlib>
+#include <memory>
 using namespace std;
 
 #include "caller.h"
@@ -46,7 +47,7 @@ int main(int argc, char** argv)
 {
   Map2Check::Log::Info("Started Map2Check");
   // TODO: Use unique ptr for caller
-  Caller* caller;
+  std::unique_ptr<Caller> caller;
   namespace fs = boost::filesystem;
 
   // TODO: put those vars in a anonimous namespace
@@ -65,8 +66,6 @@ int main(int argc, char** argv)
 	("help,h", "\tshow help")
 	("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
 	("target-function,f", po::value< string >(), "\tchecks if function can be executed")
-
-
 	;
 
       po::positional_options_description p;
@@ -97,10 +96,15 @@ int main(int argc, char** argv)
 	    cout << "Input file: "
 		 << vm["input-file"].as< std::vector<string> >() << "\n";
 	    std::string pathfile;
-	    pathfile = accumulate(boost::begin(vm["input-file"].as< std::vector<string> >()),
-				  boost::end(vm["input-file"].as< std::vector<string> >()), pathfile);
+	    pathfile = accumulate(boost::begin(vm["input-file"]
+					       .as< std::vector<string> >
+					       ()),
+				  boost::end(vm["input-file"]
+					     .as< std::vector<string> >
+					     ()), pathfile);
+	    
 	    string extension = boost::filesystem::extension(pathfile);
-	    if(extension.compare(".bc")){
+	    if(extension.compare(".bc") && extension.compare(".c")){
 	      help_msg();
 	      cout << desc;
 	      return ERROR_IN_COMMAND_LINE;
@@ -114,7 +118,13 @@ int main(int argc, char** argv)
 	     * (5) Added ESBMC claims in the analyzed code
 	     * (6) Generating C code to execute the assertions
 	     **/
-	    caller  = new Caller(pathfile);
+	    
+	    if(extension.compare(".bc")) {
+	      caller = make_unique<Caller>(Caller::compileCFile(pathfile));	      
+	    } else {
+	      caller  =  make_unique<Caller>(pathfile);
+	    }
+	    
 	    caller->parseIrFile();
 
 	    Map2Check::Log::Info("Applying instrumentation");

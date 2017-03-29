@@ -24,9 +24,11 @@
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 
-
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
 #include <iostream>
 #include <string>
+#include <regex>
 #include <stdlib.h>
 
 using namespace std;
@@ -140,3 +142,76 @@ void Caller::callKlee() {
   const char* klee_command = "./bin/klee result.bc >> kleeOutput.log";
   system(klee_command);
 }
+
+
+string Caller::compileCFile(std::string cprogram_path) {
+  Map2Check::Log::Info("Compiling " + cprogram_path);
+
+  if(!fs::exists(Map2Check::Tools::clangBinary) ||
+     !fs::is_regular_file(Map2Check::Tools::clangBinary)) {
+    throw InvalidClangBinaryException();
+  }
+
+  if (!fs::exists(Map2Check::Tools::clangIncludeFolder) ||
+      !fs::is_directory(Map2Check::Tools::clangIncludeFolder)) {
+    throw InvalidClangIncludeException();
+  }
+  
+  std::ostringstream command;
+  command.str("");
+  command << Map2Check::Tools::clangBinary << " -I"
+	  << Map2Check::Tools::clangIncludeFolder
+          << " -c -emit-llvm -g -O0 "
+          << cprogram_path
+          << " >> clang.out";
+     
+  int result = system(command.str().c_str());
+  if(result == -1) {
+    throw ErrorCompilingCProgramException();
+  }
+
+  std::ostringstream program;
+ 
+  std::regex programName("(.*)\.c");  
+  if(std::regex_match (cprogram_path, programName)) {
+    Map2Check::Log::Debug("Match C file");
+    std::size_t pos = cprogram_path.find(".c");
+    program.str(cprogram_path.substr(0,pos));
+   }  
+   
+  return (program.str() + ".bc");
+}
+
+const char* CallerException::what() const throw() {
+  std::ostringstream cnvt; 
+  cnvt.str("");
+  cnvt << runtime_error::what();
+  Map2Check::Log::Error(cnvt.str());
+  return cnvt.str().c_str();  
+}
+
+
+const char* InvalidClangBinaryException::what() const throw() {
+  std::ostringstream cnvt; 
+  cnvt.str("Could not find clang binary");
+  cnvt << runtime_error::what();
+  Map2Check::Log::Error(cnvt.str());
+  return cnvt.str().c_str();  
+}
+
+const char* InvalidClangIncludeException::what() const throw() {
+  std::ostringstream cnvt; 
+  cnvt.str("Could not find clang include dir");
+  cnvt << runtime_error::what();
+  Map2Check::Log::Error(cnvt.str());
+  return cnvt.str().c_str();  
+}
+
+const char* ErrorCompilingCProgramException::what() const throw() {
+  std::ostringstream cnvt; 
+  cnvt.str("Error while compiling C program, check clang.out");
+  cnvt << runtime_error::what();
+  Map2Check::Log::Error(cnvt.str());
+  return cnvt.str().c_str();  
+}
+

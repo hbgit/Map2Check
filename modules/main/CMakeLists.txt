@@ -2,7 +2,7 @@
 
 include_directories(${LLVM_SOURCE}/include)
 
-set(CALLER_FLAGS "-fexceptions -fpic ${LLVM_INCLUDE}")
+set(CALLER_FLAGS "-fexceptions -fpic ${LLVM_INCLUDE} -fexceptions")
 # set(CMAKE_CXX_FLAGS  "${CALLER_FLAGS}" )
 add_library(Caller OBJECT caller.cpp)
 set_target_properties(Caller PROPERTIES COMPILE_FLAGS ${CALLER_FLAGS})

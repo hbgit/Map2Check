@@ -3,6 +3,9 @@ project(Map2Check)
 cmake_minimum_required(VERSION 3.5)
 message("Started Map2Check CMake")
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+
 set(LLVM_VERSION 3.8.1)  
 set(LLVM_SOURCE ${PROJECT_SOURCE_DIR}/dependencies/llvm-${LLVM_VERSION})
 set(LLVM_BUILD ${PROJECT_SOURCE_DIR}/dependencies/llvm-build-cmake)

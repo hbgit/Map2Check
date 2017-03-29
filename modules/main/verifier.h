@@ -4,14 +4,10 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
 #include <boost/graph/adjacency_list.hpp> 
-	
-using namespace std;
+#include "tools.h"
 
-namespace Map2Check::Tools {
-  const string ktestBinary("./bin/ktest-tool");
-}
+using namespace std;
   
 class Witness {
  public:   

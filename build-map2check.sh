@@ -12,8 +12,7 @@ map2check() {
     make all
     make test
     make install
-    # make all
-    # make release  
+    # make release
 }
 
 gtest() {

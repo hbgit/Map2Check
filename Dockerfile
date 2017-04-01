@@ -1,7 +1,7 @@
 ############################################################
 # Dockerfile to build map2check container images
 # based on Ubuntu
-# Usage: 
+# Usage:
 #  By docker https://hub.docker.com:
 #   $ docker pull hrocha/mapdevel
 #   $ mkdir $(pwd)/mapdevel
@@ -23,6 +23,9 @@ MAINTAINER <herberthb12@gmail.com>
 
 ENV BUILD_DIR=/home/map2check/devel_tool/build \
     MAP_SRC=/home/map2check/devel_tool/map_src_on_docker
+
+# Fix for docker for windows
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 # Update the repository sources list
 RUN apt-get update
@@ -57,7 +60,7 @@ RUN apt-get install -y python-pycparser \
 
 # Clean packages installation
 RUN apt-get clean
-     
+
 
 # Setting entrypoint
 # Create ``map2check`` user for container with password ``map2check``.
@@ -68,7 +71,7 @@ RUN useradd -m map2check && \
     echo 'map2check  ALL=(root) NOPASSWD: ALL' >> /etc/sudoers
 
 USER map2check
-RUN mkdir /home/map2check/devel_tool             
+RUN mkdir /home/map2check/devel_tool
 WORKDIR /home/map2check/devel_tool/
 
 
@@ -93,7 +96,7 @@ USER root
 RUN mv /etc/sudoers.bak /etc/sudoers && \
     echo 'map2check  ALL=(root) ALL' >> /etc/sudoers
 USER map2check
-            
+
 
 
 ##################### INSTALLATION END #####################

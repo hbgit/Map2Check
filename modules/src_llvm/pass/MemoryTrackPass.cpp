@@ -1,35 +1,43 @@
 #include "MemoryTrackPass.h"
 using namespace llvm;
 
+std::string infoFile = "witnessInfo";
+std::string echoCommand = "echo";
+
 // TODO: Work with other types
-// FIX: It it not current function 
+// FIX: It it not current function
 void MemoryTrackPass::instrumentKlee(NonDetType nonDetType) {
   Twine non_det("map2check_non_det_int");
   this->caleeFunction->setName(non_det);
 }
 
+void MemoryTrackPass::addWitnessInfo(std::string info) {
+  int result = system(info.c_str());
+  // If result != 0 means that something gone wrong
+}
+
 // TODO: make dynCast only one time
 void MemoryTrackPass::instrumentPointer() {
-  StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);  
+  StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
   Value* var_address = storeInst->getPointerOperand();
   Value* receives    = storeInst->getValueOperand();
-                              
+
   auto j = this->currentInstruction;
 
   Twine bitcast("bitcast");
-  
+
   Value* varPointerCast = CastInst::CreatePointerCast
     (var_address,
      Type::getInt8PtrTy(*this->Ctx),
      bitcast,(Instruction*) j);
-  
+
   Value* receivesPointerCast = CastInst::CreatePointerCast
     (receives,
      Type::getInt8PtrTy(*this->Ctx),
      bitcast,(Instruction*) j);
-  
+
   ++j;
-  
+
   IRBuilder<> builder((Instruction*)j);
   Value* name_llvm = builder.CreateGlobalStringPtr
     (var_address->getName());
@@ -38,8 +46,8 @@ void MemoryTrackPass::instrumentPointer() {
 		   this->scope_value,
 		   name_llvm,
 		   this->line_value};
-  
-  builder.CreateCall(this->map2check_pointer, args);  
+
+  builder.CreateCall(this->map2check_pointer, args);
 }
 
 // TODO: make dynCast only one time
@@ -47,32 +55,32 @@ void MemoryTrackPass::instrumentMalloc() {
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   ++j;
-  
+
   //Adds map2check_malloc with allocated address and size
   IRBuilder<> builder((Instruction*)j);
   auto size = callInst->getArgOperand(0);
   Value* args[] = {callInst, size};
-  builder.CreateCall(map2check_malloc, args);  
+  builder.CreateCall(map2check_malloc, args);
 }
 
 // TODO: make dynCast only one time
-void MemoryTrackPass::instrumentFree() {  
+void MemoryTrackPass::instrumentFree() {
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   // ++j;
-  
+
   this->caleeFunction = callInst->getCalledFunction();
   this->getDebugInfo();
-  LoadInst* li; 
-  
-  if (this->caleeFunction == NULL) {    
+  LoadInst* li;
+
+  if (this->caleeFunction == NULL) {
     Value* v = callInst->getCalledValue();
     this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
     li = dyn_cast<LoadInst>(callInst ->getArgOperand(0));
 
-    
+
   }
-  else {   
+  else {
     // Value* addr = callInst->getArgOperand(0)->stripPointerCasts();
     li = dyn_cast<LoadInst>(callInst->
 				      getArgOperand(0)->
@@ -83,25 +91,25 @@ void MemoryTrackPass::instrumentFree() {
   IRBuilder<> builder((Instruction*)j);
   Value* name_llvm = builder
     .CreateGlobalStringPtr(name);
-  
+
   auto function_name = this->currentFunction->getName();
   Value* function_llvm = builder
     .CreateGlobalStringPtr(function_name);
-  		  
+
   Twine non_det("bitcast_map2check");
   Value* pointerCast = CastInst
     ::CreatePointerCast(li->getPointerOperand(),
 			Type::getInt8PtrTy(*this->Ctx),
 			non_det,
 			(Instruction*) j);
-  
+
   Value* args[] = { name_llvm,
 		    pointerCast,
 		    this->scope_value,
 		    this->line_value,
 		    function_llvm
   };
-  
+
   builder.CreateCall(map2check_free, args);
 }
 
@@ -123,7 +131,19 @@ void MemoryTrackPass::getDebugInfo() {
   this->line_value = ConstantInt
     ::getSigned(Type::getInt32Ty(*this->Ctx), line_number);
 }
-  
+
+int MemoryTrackPass::getLineNumber() {
+  unsigned line_number;
+  DebugLoc location = this->currentInstruction->getDebugLoc();
+  if(location) {
+    line_number = location.getLine();
+  }
+  else {
+    line_number  = 0;
+  }
+  return line_number;
+}
+
 void MemoryTrackPass::instrumentReleaseMemory() {
   Function::iterator bb = this->currentFunction->end();
   bb--;
@@ -133,23 +153,41 @@ void MemoryTrackPass::instrumentReleaseMemory() {
 
   IRBuilder<> builder((Instruction*)i);
   //Value* args[] = {};
-  builder.CreateCall(this->free_list_log);  
+  builder.CreateCall(this->free_list_log);
 }
 
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
-  
   if (this->caleeFunction->getName() == "free") {
-    
-    this->instrumentFree();      
+
+    this->instrumentFree();
   }
   else if (this->caleeFunction->getName() == "malloc") {
-    this->instrumentMalloc();      
+    this->instrumentMalloc();
   }
   // TODO: Resolve SVCOMP ISSUE
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")
 	  ) {
-    this->instrumentKlee(NonDetType::INTEGER);      
+    this->instrumentKlee(NonDetType::INTEGER);
+    // Adding info for witness generation
+    std::ostringstream command;
+    command.str("");
+    command << echoCommand << " KLEE:" << this->getLineNumber();
+    command << " >> " << infoFile << "\n";
+    errs() << command.str();
+    this->addWitnessInfo(command.str());
+  }
+  // TODO: FIX this hack
+  else if ((this->caleeFunction->getName() == "map2check_non_det_int")
+	  ) {
+      // Adding info for witness generation
+      std::ostringstream command;
+      command.str("");
+      command << echoCommand << " KLEE:" << this->getLineNumber();
+      command << " >> " << infoFile << "\n";
+      errs() << command.str();
+
+      this->addWitnessInfo(command.str());
   }
   else if (this->caleeFunction->getName() == this->target_function
 	   && this->isTrackingFunction) {
@@ -159,34 +197,43 @@ void MemoryTrackPass::switchCallInstruction() {
 
 void MemoryTrackPass::instrumentTargetFunction() {
   auto j = this->currentInstruction;
-					    
+
   IRBuilder<> builder((Instruction*)j);
   Value* name_llvm = builder.CreateGlobalStringPtr
     (this->target_function);
-					    
+
   Value* args[] = {name_llvm,
 		   this->scope_value,
 		   this->line_value };
-  
+
   builder.CreateCall(map2check_target_function,
 		     args);
+
+  // Adding info for witness generation
+  std::ostringstream command;
+  command.str("");
+  command << echoCommand << " TARGET:" << this->getLineNumber();
+  command << " >> " << infoFile << "\n";
+  errs() << command.str();
+
+  this->addWitnessInfo(command.str());
 }
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::runOnCallInstruction() {
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   this->caleeFunction = callInst->getCalledFunction();
-  
+
   if (this->caleeFunction == NULL) {
     Value* v = callInst->getCalledValue();
     this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
     if(this->caleeFunction != NULL) {
-      this->switchCallInstruction();     
+      this->switchCallInstruction();
     }
   }
   else {
-    this->switchCallInstruction();        
+    this->switchCallInstruction();
   }
 
    this->caleeFunction = NULL;
@@ -197,12 +244,12 @@ void MemoryTrackPass::runOnStoreInstruction() {
   StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
    if(storeInst->getValueOperand()->getType()->isPointerTy()) {
      this->instrumentPointer();
-   }  
+   }
 }
 
 void MemoryTrackPass::prepareMap2CheckInstructions() {
   Function& F = *this->currentFunction;
-  
+
   this->map2check_target_function = F.getParent()->
     getOrInsertFunction("map2check_target_function",
 			Type::getVoidTy(*this->Ctx),
@@ -210,7 +257,7 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt32Ty(*this->Ctx),
 			Type::getInt32Ty(*this->Ctx),
 			NULL);
-  
+
   this->map2check_pointer = F.getParent()->
     getOrInsertFunction("map2check_add_store_pointer",
 			Type::getVoidTy(*this->Ctx),
@@ -220,7 +267,7 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt8PtrTy(*this->Ctx),
 			Type::getInt32Ty(*this->Ctx),
 			NULL);
-  
+
   this->map2check_malloc = F.getParent()->
     getOrInsertFunction("map2check_malloc",
 			Type::getVoidTy(*this->Ctx),
@@ -245,6 +292,14 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 }
 
 bool MemoryTrackPass::runOnFunction(Function &F) {
+  // Clean witnessInfo if it already exists
+  std::ostringstream command;
+  command.str("");
+  command << echoCommand <<  " > "  << infoFile << "\n";
+  errs() << command.str();
+  this->addWitnessInfo(command.str());
+
+
   this->Ctx = &F.getContext();
   this->currentFunction = &F;
   this->prepareMap2CheckInstructions();
@@ -255,22 +310,22 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
 	     e = bb->end(); i != e; ++i) {
 	this->currentInstruction = i;
 
-	
+
 	if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
 	  this->getDebugInfo();
 	  this->runOnCallInstruction();
 	} else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
 	  this->getDebugInfo();
 	  this->runOnStoreInstruction();
-	}	
+	}
       }
    }
 
    if(F.getName() == "main") {
      this->instrumentReleaseMemory();
    }
-     
-   return true; 
+
+   return true;
 }
 
 char MemoryTrackPass::ID = 0;

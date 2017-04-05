@@ -94,7 +94,7 @@ void print_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log) {
     printf("\n");
   }
 }
-void map2check_add_store_pointer(void* var, void* value,unsigned scope, const char* name, int line) {
+void map2check_add_store_pointer(void* var, void* value,unsigned scope, const char* name, int line,  const char* function_name) {
   if(list_initialized == false) {
     list_map2check = new_list_log();
     list_initialized = true;
@@ -123,9 +123,7 @@ void map2check_add_store_pointer(void* var, void* value,unsigned scope, const ch
     isFree = false;
     break;
   }
-
-  // TODO: Add current function name
-  LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, "function_example_map2check");
+  LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, function_name);
   mark_map_log(&list_map2check, &row);
 }
 
@@ -142,7 +140,7 @@ void map2check_pointer(void* x,unsigned scope, const char* name, int line){
 
 void list_log_to_file(LIST_LOG* list) {
   FILE* output = fopen("list_log.csv", "w");
-  fprintf(output, "id;memory address;points to;scope;is free;is dynamic;function name\n");
+  // fprintf(output, "id;memory address;points to;scope;is free;is dynamic;function name\n");
   int i = 0;
   for(;i< list->size; i++) {
     LIST_LOG_ROW*row = &list->values[i];
@@ -151,7 +149,8 @@ void list_log_to_file(LIST_LOG* list) {
     fprintf(output, "%p;", row->memory_address_points_to);
     fprintf(output, "%d;", row->scope);
     fprintf(output, "%d;", row->is_free);
-    fprintf(output, "%d\n", row->is_dynamic);
+    fprintf(output, "%d;", row->is_dynamic);
+    fprintf(output, "%s;", row->var_name);
     fprintf(output, "%s\n", row->function_name);
   }
   fclose(output);

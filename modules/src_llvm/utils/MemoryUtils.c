@@ -46,7 +46,7 @@ bool mark_deallocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address)
   MEMORY_ALLOCATIONS_ROW* temp_list = (MEMORY_ALLOCATIONS_ROW*)
     realloc (allocation_log->values,
 	     allocation_log->size * sizeof(MEMORY_ALLOCATIONS_ROW));
-  
+
   allocation_log->values = temp_list;  //
   allocation_log->values[allocation_log->size-1] = row;
 
@@ -139,15 +139,16 @@ void map2check_pointer(void* x,unsigned scope, const char* name, int line){
 }
 
 void list_log_to_file(LIST_LOG* list) {
-  FILE* output = fopen("list_log", "w");
+  FILE* output = fopen("list_log.csv", "w");
+  fprintf(output, "id;memory address;points to; scope;is free;is dynamic\n");
   int i = 0;
   for(;i< list->size; i++) {
     LIST_LOG_ROW*row = &list->values[i];
-    fprintf(output, "%d,", row->id);
-    fprintf(output, "%p,", row->memory_address);
-    fprintf(output, "%p,", row->memory_address_points_to);
-    fprintf(output, "%d,", row->scope);
-    fprintf(output, "%d,", row->is_free);
+    fprintf(output, "%d;", row->id);
+    fprintf(output, "%p;", row->memory_address);
+    fprintf(output, "%p;", row->memory_address_points_to);
+    fprintf(output, "%d;", row->scope);
+    fprintf(output, "%d;", row->is_free);
     fprintf(output, "%d\n", row->is_dynamic);
   }
   fclose(output);
@@ -183,7 +184,7 @@ bool mark_map_log(LIST_LOG* list, LIST_LOG_ROW* row) {
   LIST_LOG_ROW* temp_list = (LIST_LOG_ROW*)
     realloc (list->values,
 	     list->size * sizeof(LIST_LOG_ROW));
-  
+
   list->values = temp_list;
 
   list->values[list->size-1] = *row;
@@ -250,13 +251,13 @@ void map2check_malloc(void* ptr, int size) {
 
 int map2check_is_invalid_free(long ptr) {
   int i = list_map2check.size - 1;
-  
+
   for(; i >= 0; i--) {
     long points_to = list_map2check.values[i]
-      .memory_address_points_to;   
+      .memory_address_points_to;
 
     if (points_to == ptr) {
-      
+
       bool is_free = list_map2check
 	.values[i].is_free;
       bool is_dynamic = list_map2check
@@ -268,7 +269,7 @@ int map2check_is_invalid_free(long ptr) {
       else {
 	return false;
       }
-    } 
+    }
   }
 
   return true;
@@ -276,8 +277,9 @@ int map2check_is_invalid_free(long ptr) {
 
 void map2check_ERROR() {
   map2check_list_debug();
+  list_log_to_file(&list_map2check);
   free_list_log(&list_map2check);
-  klee_assert(0); 
+  klee_assert(0);
 }
 
 
@@ -287,7 +289,7 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
     allocations_initialized = true;
   }
 
-  long* addr = (long*) ptr;  
+  long* addr = (long*) ptr;
 
   if(list_initialized == false) {
     list_map2check = new_list_log();
@@ -308,9 +310,9 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
   if(error) {
     printf("VERIFICATION FAILED\n\n");
     printf("FALSE-FREE: Operand of free must have zero pointer offset\n");
-    printf("Line %d in function %s\n\n", line, function_name);    
+    printf("Line %d in function %s\n\n", line, function_name);
     printf("FAILED\n");
-    map2check_ERROR();    
+    map2check_ERROR();
   }
 
 }
@@ -318,5 +320,5 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
 
 void map2check_target_function(const char* func_name, int scope, int line) {
   printf("ERROR on Function %s :: SCOPE: %d :: LINE: %d\n", func_name, scope, line);
-  map2check_ERROR();  
+  map2check_ERROR();
 }

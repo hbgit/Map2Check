@@ -42,10 +42,15 @@ void MemoryTrackPass::instrumentPointer() {
   Value* name_llvm = builder.CreateGlobalStringPtr
     (var_address->getName());
 
+  Value* function_llvm = builder.CreateGlobalStringPtr
+      (currentFunction->getName());
+
   Value* args[] = {varPointerCast, receivesPointerCast,
 		   this->scope_value,
 		   name_llvm,
-		   this->line_value};
+		   this->line_value,
+       function_llvm
+     };
 
   builder.CreateCall(this->map2check_pointer, args);
 }
@@ -266,6 +271,7 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt32Ty(*this->Ctx),
 			Type::getInt8PtrTy(*this->Ctx),
 			Type::getInt32Ty(*this->Ctx),
+      Type::getInt8PtrTy(*this->Ctx),
 			NULL);
 
   this->map2check_malloc = F.getParent()->

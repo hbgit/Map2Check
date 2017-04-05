@@ -163,7 +163,8 @@ void map2check_pointer(void* x, unsigned scope, const char* name, int line);
  * @param scope Number of the scope
  * @param name  Name of the pointer
  * @param line  Line where store operation was called
+ * @param function_name  Name of the function where the operation occured.
  */
-void map2check_add_store_pointer(void* var, void* value, unsigned scope, const char* name, int line);
+void map2check_add_store_pointer(void* var, void* value, unsigned scope, const char* name, int line, const char* function_name);
 
 #endif

@@ -254,6 +254,7 @@ void map2check_malloc(void* ptr, int size) {
   mark_allocation_log(&allocations_map2check, (long) ptr);
 }
 
+// TODO: Fix function, if it does not found address, it should be a deref problem
 int map2check_is_invalid_free(long ptr) {
   int i = list_map2check.size - 1;
 
@@ -313,11 +314,21 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
     printf("FALSE-FREE: Operand of free must have zero pointer offset\n");
     printf("Line %d in function %s\n\n", line, function_name);
     printf("FAILED\n");
+    FILE* output = fopen("map2check_property", "w");
+    fprintf(output, "FALSE-FREE\n");
+    fprintf(output, "Line: %d\n", line);
+    fprintf(output, "Function: %s\n", function_name);
+    fclose(output);
     map2check_ERROR();
   }
 }
 
 void map2check_target_function(const char* func_name, int scope, int line) {
   printf("ERROR on Function %s :: SCOPE: %d :: LINE: %d\n", func_name, scope, line);
+  FILE* output = fopen("map2check_property", "w");
+  fprintf(output, "TARGET-REACHED\n");
+  fprintf(output, "Line: %d\n", line);
+  fprintf(output, "Function: %s\n", func_name);
+  fclose(output);
   map2check_ERROR();
 }

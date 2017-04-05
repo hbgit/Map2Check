@@ -36,8 +36,6 @@ typedef struct obj3 {
   unsigned size;
 } MEMORY_ALLOCATIONS_LOG;
 
-
-
 /**
  * Creates a new MEMORY_ALLOCATIONS_LOG
  * @return A new MEMORY_ALLOCATIONS_LOG pre-initialized
@@ -133,7 +131,23 @@ void list_log_to_file(LIST_LOG* list);
  */
 void print_list_log(LIST_LOG* list);
 
+/**
+ * Track pointer pointer for LIST_LOG (this function is to be used for instrumentation)
+ * @param x     Address of current pointer
+ * @param scope Number of the scope
+ * @param name  Name of the pointer
+ * @param line  Line where pointer was declared
+ */
 void map2check_pointer(void* x, unsigned scope, const char* name, int line);
+
+/**
+ * Track pointer store operations (this function is to be used for instrumentation)
+ * @param var   Address of current pointer
+ * @param value New address to where pointer points to
+ * @param scope Number of the scope
+ * @param name  Name of the pointer
+ * @param line  Line where store operation was called
+ */
 void map2check_add_store_pointer(void* var, void* value, unsigned scope, const char* name, int line);
 
 #endif

@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <vector>
+#include <sstream>
 using namespace std;
 
 /**
@@ -14,12 +16,28 @@ namespace Map2Check::Tools {
 
   /** Struct used to represend all rows from list log CSV */
   struct ListLogRow {
-    unsigned id;
-    long memoryAddress;
-    long pointsTo;
-    unsigned scope;
-    bool isFree;
-    bool isDynamic;
+    string id;
+    string memoryAddress;
+    string pointsTo;
+    string scope;
+    string isFree;
+    string isDynamic;
+    string varName;
+    string functionName;
+
+    operator std::string() const {
+        std::ostringstream cnvt;
+        cnvt.str("");
+        cnvt << "\nLIST LOG ROW\n";
+        cnvt << "\tID: " << this->id << "\n";
+        cnvt << "\tAddress: " << this->memoryAddress << "\n";
+        cnvt << "\tPointsTo: " << this->pointsTo << "\n";
+        cnvt << "\tIs Free: " << this->isFree << "\n";
+        cnvt << "\tIs Dynamic: " << this->isDynamic << "\n";
+        cnvt << "\tVar Name: " << this->varName << "\n";
+        cnvt << "\tFunction Name: " << this->functionName << "\n";
+        return cnvt.str();
+    }
   };
 
   /** Class used to get all ListLogRow from a CSV file */
@@ -44,6 +62,18 @@ namespace Map2Check::Tools {
   class CSVHelperException : public runtime_error {
     public:
       CSVHelperException(string message) : runtime_error(message) {}
+      virtual const char* what() const throw();
+  };
+
+  class CouldNotOpenFileException : public CSVHelperException {
+    public:
+      CouldNotOpenFileException() : CSVHelperException("") {}
+      virtual const char* what() const throw();
+  };
+
+  class InvalidCSVException : public CSVHelperException {
+    public:
+      InvalidCSVException() : CSVHelperException("") {}
       virtual const char* what() const throw();
   };
 

@@ -11,6 +11,8 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <stdexcept>
 
 using namespace llvm;
 
@@ -22,32 +24,34 @@ struct MemoryTrackPass : public FunctionPass {
     this->target_function = "";
     this->isTrackingFunction = false;
   };
- MemoryTrackPass(std::string function, bool SVCOMP =  true) : FunctionPass(ID) {  
+ MemoryTrackPass(std::string function, bool SVCOMP =  true) : FunctionPass(ID) {
   this->SVCOMP = SVCOMP;
   this->target_function = function;
   this->isTrackingFunction = true;
   };
  virtual bool runOnFunction(Function &F);
 
- private:    
+ private:
   void instrumentKlee(NonDetType nonDetType);
   void instrumentPointer();
   void instrumentTargetFunction();
   void instrumentMalloc();
   void instrumentFree();
   void instrumentReleaseMemory();
-  void runOnCallInstruction();  
+  void runOnCallInstruction();
   void runOnStoreInstruction();
   void switchCallInstruction();
   void prepareMap2CheckInstructions();
+  void addWitnessInfo(std::string info);
   void getDebugInfo();
- 
+  int getLineNumber();
+
   bool SVCOMP;
   bool isTrackingFunction;
-  std::string target_function;  
+  std::string target_function;
   Function* currentFunction;
-  Function* caleeFunction;  
-  BasicBlock::iterator currentInstruction; 
+  Function* caleeFunction;
+  BasicBlock::iterator currentInstruction;
   Constant* map2check_target_function;
   Constant* map2check_pointer;
   Constant* map2check_malloc;
@@ -56,4 +60,11 @@ struct MemoryTrackPass : public FunctionPass {
   ConstantInt* scope_value;
   ConstantInt* line_value;
   LLVMContext* Ctx;
+};
+
+
+class MemoryTrackPassException : public std::runtime_error {
+ public:
+ MemoryTrackPassException(std::string message) : std::runtime_error(message) {}
+  virtual const char* what() const throw();
 };

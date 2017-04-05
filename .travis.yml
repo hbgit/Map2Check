@@ -15,7 +15,7 @@ script:
 
 notifications:
   email:
-    recipients:      
+    recipients:
       - rafa.sa.xp@gmail.com
-    on_success: never # default: change
+    on_success: always # default: change
     on_failure: always # default: always

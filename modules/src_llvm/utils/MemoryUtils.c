@@ -124,7 +124,8 @@ void map2check_add_store_pointer(void* var, void* value,unsigned scope, const ch
     break;
   }
 
-  LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name);
+  // TODO: Add current function name
+  LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, "function_example_map2check");
   mark_map_log(&list_map2check, &row);
 }
 
@@ -134,13 +135,14 @@ void map2check_pointer(void* x,unsigned scope, const char* name, int line){
     list_initialized = true;
   }
 
-  LIST_LOG_ROW row = new_list_row((long) x, 0, scope, true, false, line,name);
+  // TODO: Add current function name
+  LIST_LOG_ROW row = new_list_row((long) x, 0, scope, true, false, line,name, "function_example_map2check");
   mark_map_log(&list_map2check, &row);
 }
 
 void list_log_to_file(LIST_LOG* list) {
   FILE* output = fopen("list_log.csv", "w");
-  fprintf(output, "id;memory address;points to; scope;is free;is dynamic\n");
+  fprintf(output, "id;memory address;points to;scope;is free;is dynamic;function name\n");
   int i = 0;
   for(;i< list->size; i++) {
     LIST_LOG_ROW*row = &list->values[i];
@@ -150,12 +152,14 @@ void list_log_to_file(LIST_LOG* list) {
     fprintf(output, "%d;", row->scope);
     fprintf(output, "%d;", row->is_free);
     fprintf(output, "%d\n", row->is_dynamic);
+    fprintf(output, "%s\n", row->function_name);
   }
   fclose(output);
 }
 
 LIST_LOG_ROW new_list_row (long memory_address, long memory_address_points_to,
-			   unsigned scope, bool is_dynamic, bool is_free, unsigned line_number, const char* name) {
+			   unsigned scope, bool is_dynamic, bool is_free, unsigned line_number,
+         const char* name, const char* function_name) {
   LIST_LOG_ROW row;
   row.id = 0;
   row.is_dynamic = is_dynamic;
@@ -165,6 +169,7 @@ LIST_LOG_ROW new_list_row (long memory_address, long memory_address_points_to,
   row.memory_address_points_to = memory_address_points_to;
   row.scope = scope;
   row.var_name = name;
+  row.function_name = function_name;
 
   return row;
 }
@@ -223,6 +228,7 @@ void print_list_log(LIST_LOG* list) {
     printf("\t# IS FREE: %d \n", row.is_free);
     printf("\t# VAR_NAME: %s \n", row.var_name);
     printf("\t# LINE NUMBER: %d\n", row.line_number);
+    printf("\t# FUNCTION NAME: %s\n", row.function_name);
     printf("\n");
   }
 }
@@ -296,13 +302,9 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
     list_initialized = true;
   }
 
-  LIST_LOG_ROW row = new_list_row((long) ptr,
-				  (long) *addr,
-				  scope,
-				  false,
-				  true,
-				  line,
-				  name);
+  LIST_LOG_ROW row = new_list_row((long) ptr, (long) *addr, scope, false,
+				  true, line, name, function_name);
+
   bool error = map2check_is_invalid_free((long) *addr);
   mark_deallocation_log(&allocations_map2check, (long) *addr);
   mark_map_log(&list_map2check, &row);
@@ -314,9 +316,7 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
     printf("FAILED\n");
     map2check_ERROR();
   }
-
 }
-
 
 void map2check_target_function(const char* func_name, int scope, int line) {
   printf("ERROR on Function %s :: SCOPE: %d :: LINE: %d\n", func_name, scope, line);

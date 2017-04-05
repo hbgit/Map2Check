@@ -10,15 +10,29 @@
 #define FREE 1
 #define DYNAMIC 2
 
-typedef struct obj {
+typedef
+/**
+ * Struct to save ROWS form LIST_LOG
+ */
+struct obj {
+  /** Current ID on ListLog */
   unsigned id;
+   /** Variable name */
   const char* var_name;
+  /** Address of the pointer */
   long memory_address;
+  /** Address to where the pointer points to */
   long memory_address_points_to;
+  /** Current scope number (llvm ir uses numbered scopes) */
   unsigned scope;
+  /** True if address to where the pointer points to is dynamic */
   bool is_dynamic;
+  /** True if address to where the pointer points to is released */
   bool is_free;
+   /** Number where operation took place (on the C source) */
   unsigned line_number;
+  /** Name of the function where operation took place */
+  const char* function_name;
 } LIST_LOG_ROW;
 
 typedef struct obj1 {
@@ -93,10 +107,12 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, bool is_free);
  * @param  is_free                  Is the pointer freed?
  * @param  line_number              Line number where the operation occured (0 means that the information is lost)
  * @param  name                     Name for the pointer var
+ * @param  function_name            Name of the current function
  * @return                          Initialized LIST_LOG_ROW
  */
 LIST_LOG_ROW new_list_row  (long memory_address, long memory_address_points_to,
-  unsigned scope, bool is_dynamic, bool is_free, unsigned line_number, const char* name);
+  unsigned scope, bool is_dynamic, bool is_free, unsigned line_number,
+  const char* name, const char* function_name);
 
 /**
  * Initializes a LIST_LOG

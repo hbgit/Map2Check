@@ -23,15 +23,18 @@ struct MemoryTrackPass : public FunctionPass {
  MemoryTrackPass(bool SVCOMP = true) : FunctionPass(ID) {
     this->target_function = "";
     this->isTrackingFunction = false;
+    this->cleanWitnessInfoFile();
   };
  MemoryTrackPass(std::string function, bool SVCOMP =  true) : FunctionPass(ID) {
   this->SVCOMP = SVCOMP;
   this->target_function = function;
   this->isTrackingFunction = true;
+  this->cleanWitnessInfoFile();
   };
  virtual bool runOnFunction(Function &F);
 
  private:
+  void cleanWitnessInfoFile();
   void instrumentKlee(NonDetType nonDetType);
   void instrumentPointer();
   void instrumentTargetFunction();

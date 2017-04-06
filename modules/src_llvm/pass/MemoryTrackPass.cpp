@@ -1,9 +1,7 @@
 #include "MemoryTrackPass.h"
 using namespace llvm;
-
 std::string infoFile = "witnessInfo";
 std::string echoCommand = "echo";
-
 // TODO: Work with other types
 // FIX: It it not current function
 void MemoryTrackPass::instrumentKlee(NonDetType nonDetType) {
@@ -297,15 +295,16 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			NULL);
 }
 
-bool MemoryTrackPass::runOnFunction(Function &F) {
+
+void MemoryTrackPass::cleanWitnessInfoFile() {
   // Clean witnessInfo if it already exists
   std::ostringstream command;
   command.str("");
   command << echoCommand <<  " > "  << infoFile << "\n";
   errs() << command.str();
   this->addWitnessInfo(command.str());
-
-
+}
+bool MemoryTrackPass::runOnFunction(Function &F) {
   this->Ctx = &F.getContext();
   this->currentFunction = &F;
   this->prepareMap2CheckInstructions();

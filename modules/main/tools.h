@@ -9,52 +9,96 @@ using namespace std;
  * Namespace for all Map2Check Paths and Helpers
  */
 namespace Map2Check::Tools {
-  const string ktestBinary("./bin/ktest-tool"); /** Path to ktest-tool binary (from KLEE) */
-  const string clangBinary("./bin/clang"); /** Path to clang binary (from llvm) */
-  const string clangIncludeFolder("./include/clang"); /** Path to clang include folder (usually $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
-  const string listLogCSV("list_log.csv"); /** Path to generated list log file (check MemoryUtils implementation) */
+  /** Path to ktest-tool binary (from KLEE) */
+  const string ktestBinary("./bin/ktest-tool");
+  /** Path to clang binary (from llvm) */
+  const string clangBinary("./bin/clang");
+  /** Path to clang include folder (usually $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
+  const string clangIncludeFolder("./include/clang");
+  /** Path to generated list log file (check MemoryUtils implementation) */
+  const string listLogCSV("list_log.csv");
+  /** Path to generated map2check_property file (check MemoryUtils implementation) */
   const string propertyViolationFile("map2check_property");
+  /** Path to generated klee results (it is created where klee is called) */
   const string kleeResultFolder("./klee-last");
 
+  /** Represents what kind of property was violated */
   enum class PropertyViolated {
     TARGET_REACHED,
     FALSE_FREE
   };
 
-
+  /** Class used to check violated property */
   struct CheckViolatedProperty {
+    /** Current violated property */
     PropertyViolated propertyViolated;
+    /** Line where property was violated */
     unsigned line;
+    /** Name of the function where the property was violated */
     string function_name;
 
+    /**
+     * Reads file and initializes the object
+     * @param path File describing the property
+     */
     CheckViolatedProperty(std::string path);
+
+    /**
+     * Reads default file and initializes the object
+     */
     CheckViolatedProperty() : CheckViolatedProperty(propertyViolationFile) {}
   };
 
+  /** Represents the result from a Klee file */
   enum class KleeStatus {
     OK,
     ERROR
   };
 
+  /** Helper class, used to read and process all klee results */
+  class KleeResultHelper;
+
+  /** Represents the structure of a Klee file */
   struct KleeResult {
+    friend class KleeResultHelper;
+    /** Status of the result */
     KleeStatus kleeStatus;
+    /** Generated values*/
     vector<int> states;
+  private:
+    /** Name of case test */
     string name;
   };
 
   class KleeResultHelper {
   public:
+    /**
+     * Reads all klee files from folder and generate a vector containing all KleeResults
+     * @param path Path to klee results folder
+     */
     static vector<KleeResult> GetKleeResults(std::string path);
-    static vector<KleeResult> GetKleeResults() : GenKleeResults(kleeResultFolder) {};    
+    /**
+     * Reads all klee files from default folder and generate a vector containing all KleeResults
+     */
+    static vector<KleeResult> GetKleeResults();
   private:
-   void genKleeFilesListFromFolder(string kleeResultFolder);
-   static void convertKleeFileToTextFile(KleeResult* kleeResult);
-   vector<KleeResult> kleeResults;
+    /**
+     * Initialize all klee results with the Status and the Name of the Test
+     * @param kleeResultFolder Path to klee results folder
+     */
+     void genKleeResultsFromFolder(string kleeResultFolder);
+     /**
+      * For the current result, convert the klee result from binary to text
+      * and anotates the values and stores in kleeResult
+      * @param kleeResult Pointer to kleeResult to be managed
+      */
+     static void convertKleeFileToTextFileAndGetValues(KleeResult* kleeResult);
+     /** Vector structure containing the kleeResults */
+     vector<KleeResult> kleeResults;
+ };
 
-  }
 
-
-  /** Struct used to represend all rows from list log CSV */
+  /** Struct used to represent all rows from list log CSV */
   struct ListLogRow {
     string id;
     string memoryAddress;

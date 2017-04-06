@@ -73,13 +73,13 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(string pa
   using namespace boost;
   using namespace std   ;
 
+  // Open file as READ mode
   ifstream in(path.c_str());
   if (!in.is_open()) {
     throw Tools::CouldNotOpenFileException();
   }
 
    string line;
-
    while (getline(in,line)) {
 
      // TODO: Check if CSV has valid arguments

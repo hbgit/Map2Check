@@ -8,7 +8,63 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 
+#include <regex>
+
 namespace Tools = Map2Check::Tools;
+
+
+Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
+  Map2Check::Log::Debug("Started reading file: " + path );
+  ifstream in(path.c_str());
+  if (!in.is_open()) {
+    throw Tools::CheckViolatedPropertyException("Could not open file");
+  }
+
+  string line;
+  int fileLineNumber = 0;
+  regex reLineNumber("Line: (.*)");
+  regex reFunctionName("Function: (.*)");
+
+  smatch match;
+  string result;
+
+  while (getline(in,line)) {
+    switch (fileLineNumber) {
+      case 0:
+        if(line == "FALSE-FREE") {
+          Map2Check::Log::Debug("FALSE-FREE found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_FREE;
+        } else if(line == "TARGET-REACHED") {
+          Map2Check::Log::Debug("TARGET-REACHED found");
+          this->propertyViolated = Tools::PropertyViolated::TARGET_REACHED;
+        } else {
+          throw Tools::CheckViolatedPropertyException("Invalid Property");
+        }
+        break;
+      case 1:
+        if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+  	  	    int result = std::stoi(match.str(1));
+            this->line = result;
+  	        Map2Check::Log::Debug("Line number: " + match.str(1));
+        }
+        else {
+          throw Tools::CheckViolatedPropertyException("Could not find line number");
+        }
+        break;
+      case 2:
+        if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+            string result = match.str(1);
+            this->function_name = result;
+            Map2Check::Log::Debug("Function name: " + result);
+        } else {
+          throw Tools::CheckViolatedPropertyException("Could not find function name");
+        }
+        break;
+    }
+    fileLineNumber++;
+  }
+
+}
 
 std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(string path) {
   std::vector<Tools::ListLogRow> listLog;
@@ -54,6 +110,14 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(string pa
   return listLog;
 }
 
+
+const char* Tools::CheckViolatedPropertyException::what() const throw() {
+  std::ostringstream cnvt;
+  cnvt.str("");
+  cnvt << runtime_error::what();
+  Map2Check::Log::Error(cnvt.str());
+  return cnvt.str().c_str();
+}
 
 const char* Tools::CSVHelperException::what() const throw() {
   std::ostringstream cnvt;

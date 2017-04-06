@@ -13,6 +13,23 @@ namespace Map2Check::Tools {
   const string clangBinary("./bin/clang"); /** Path to clang binary (from llvm) */
   const string clangIncludeFolder("./include/clang"); /** Path to clang include folder (usually $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
   const string listLogCSV("list_log.csv"); /** Path to generated list log file (check MemoryUtils implementation) */
+  const string propertyViolationFile("map2check_property");
+
+  enum class PropertyViolated {
+    TARGET_REACHED,
+    FALSE_FREE
+  };
+
+
+  struct CheckViolatedProperty {
+    PropertyViolated propertyViolated;
+    unsigned line;
+    string function_name;
+
+    CheckViolatedProperty(std::string path);
+    CheckViolatedProperty() : CheckViolatedProperty(propertyViolationFile) {}
+  };
+
 
   /** Struct used to represend all rows from list log CSV */
   struct ListLogRow {
@@ -58,6 +75,12 @@ namespace Map2Check::Tools {
     }
   };
 
+
+  class CheckViolatedPropertyException : public runtime_error {
+    public:
+      CheckViolatedPropertyException(string message) : runtime_error(message) {}
+      virtual const char* what() const throw();
+  };
 
   class CSVHelperException : public runtime_error {
     public:

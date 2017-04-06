@@ -14,6 +14,7 @@ namespace Map2Check::Tools {
   const string clangIncludeFolder("./include/clang"); /** Path to clang include folder (usually $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
   const string listLogCSV("list_log.csv"); /** Path to generated list log file (check MemoryUtils implementation) */
   const string propertyViolationFile("map2check_property");
+  const string kleeResultFolder("./klee-last");
 
   enum class PropertyViolated {
     TARGET_REACHED,
@@ -29,6 +30,28 @@ namespace Map2Check::Tools {
     CheckViolatedProperty(std::string path);
     CheckViolatedProperty() : CheckViolatedProperty(propertyViolationFile) {}
   };
+
+  enum class KleeStatus {
+    OK,
+    ERROR
+  };
+
+  struct KleeResult {
+    KleeStatus kleeStatus;
+    vector<int> states;
+    string name;
+  };
+
+  class KleeResultHelper {
+  public:
+    static vector<KleeResult> GetKleeResults(std::string path);
+    static vector<KleeResult> GetKleeResults() : GenKleeResults(kleeResultFolder) {};    
+  private:
+   void genKleeFilesListFromFolder(string kleeResultFolder);
+   static void convertKleeFileToTextFile(KleeResult* kleeResult);
+   vector<KleeResult> kleeResults;
+
+  }
 
 
   /** Struct used to represend all rows from list log CSV */

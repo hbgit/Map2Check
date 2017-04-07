@@ -77,7 +77,7 @@ namespace Map2Check::Tools {
 
 
     std::string substituteWithResult(int line, std::string old_token, std::string result);
-    void changeTokenFromLine(int line, std::string old_token, std::string new_token);
+    // void changeTokenFromLine(int line, std::string old_token, std::string new_token);
   private:
     std::vector<std::string> cFileLines;
   };

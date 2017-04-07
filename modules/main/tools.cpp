@@ -7,6 +7,8 @@
 #include <algorithm>    // copy
 #include <iterator>     // ostream_operator
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/replace.hpp>
+
 #include <sstream>
 
 #include <regex>
@@ -34,6 +36,12 @@ Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
 
   Map2Check::Log::Debug(*this);
 
+}
+
+std::string Tools::SourceCodeHelper::substituteWithResult(int line, std::string old_token, std::string result) {
+  Map2Check::Log::Debug("Replacing '" + old_token + "' with '" + result "'");
+  string toReplace = this->getLine(line);
+  boost::replace_all(toReplace, old_token, new_token);
 }
 
 std::string Tools::SourceCodeHelper::getLine(unsigned line) {

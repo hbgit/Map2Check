@@ -49,6 +49,41 @@ namespace Map2Check::Tools {
     CheckViolatedProperty() : CheckViolatedProperty(propertyViolationFile) {}
   };
 
+  /** Helper class to manipulate and transform code based on a C source file */
+  class SourceCodeHelper {
+  public:
+    /**
+     * Reads all lines from a C source file and adds to a vector structure
+     * @param  c_src Path to C file
+     */
+    SourceCodeHelper(std::string pathToCSource);
+
+    operator std::string() const {
+        std::ostringstream cnvt;
+        cnvt.str("");
+        cnvt << "\n**** C SOURCE ****\n";
+        for (auto i = 0; i < this->cFileLines.size(); i++) {
+            cnvt << "\tLine " << i << ": " << this->cFileLines[i] << "\n";
+        }
+        return cnvt.str();
+    }
+
+    /**
+     * Return line from c_file
+     * @param  line line to be given
+     * @return      Returns a string representing the line of the C file
+     */
+    std::string getLine(unsigned line);
+
+
+    std::string substituteWithResult(int line, std::string old_token, std::string result);
+    void changeTokenFromLine(int line, std::string old_token, std::string new_token);
+  private:
+    std::vector<std::string> cFileLines;
+  };
+
+
+
   /** Represents the result from a Klee file */
   enum class KleeStatus {
     OK,
@@ -56,7 +91,7 @@ namespace Map2Check::Tools {
   };
 
   /** Helper class, used to read and process all klee results */
-  class KleeResultHelper;
+  // class KleeResultHelper;
 
   /** Represents the structure of a Klee file */
   struct KleeResult {
@@ -82,6 +117,8 @@ namespace Map2Check::Tools {
      */
     static vector<KleeResult> GetKleeResults();
   private:
+    KleeResultHelper() {}
+
     /**
      * Initialize all klee results with the Status and the Name of the Test
      * @param kleeResultFolder Path to klee results folder

@@ -1,5 +1,6 @@
 #include "tools.h"
 #include "log.h"
+#include "exceptions.hpp"
 
 #include <iostream>     // cout, endl
 #include <fstream>      // fstream
@@ -9,8 +10,159 @@
 #include <sstream>
 
 #include <regex>
+#include <boost/filesystem.hpp>
 
+namespace fs = boost::filesystem;
 namespace Tools = Map2Check::Tools;
+
+Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
+  Map2Check::Log::Debug("Reading C File");
+  std::ifstream sourceFile;
+  std::string line;
+  sourceFile.open(pathToCSource.c_str());
+
+  if(sourceFile.is_open()) {
+    while(std::getline (sourceFile,line))  {
+      this->cFileLines.push_back(line);
+    }
+    sourceFile.close();
+
+  }
+  else {
+    throw Map2Check::Exceptions::ErrorOpeningFileException(pathToCSource);
+  }
+
+  Map2Check::Log::Debug(*this);
+
+}
+
+std::string Tools::SourceCodeHelper::getLine(unsigned line) {
+  // precondition: line >= 1 AND line < this->cFileLines.size();
+  if (line < 1 || line >= cFileLines.size()) {
+    throw Map2Check::Exceptions::OutOfBounds();
+  }
+
+  return this->cFileLines[line - 1];
+}
+
+std::vector<Tools::KleeResult> Tools::KleeResultHelper::GetKleeResults(std::string path) {
+  KleeResultHelper kleeResultHelper;
+  kleeResultHelper.genKleeResultsFromFolder(path);
+  for(int i = 0; i < kleeResultHelper.kleeResults.size(); i++) {
+    Map2Check::Log::Debug("Converting klee file to text file");
+    Tools::KleeResultHelper::convertKleeFileToTextFileAndGetValues(&kleeResultHelper.kleeResults[i]);
+  }
+  return kleeResultHelper.kleeResults;
+}
+
+std::vector<Tools::KleeResult> Tools::KleeResultHelper::GetKleeResults() {
+  return Tools::KleeResultHelper::GetKleeResults(Tools::kleeResultFolder);
+}
+
+void Tools::KleeResultHelper::convertKleeFileToTextFileAndGetValues(Tools::KleeResult* kleeResult) {
+  Map2Check::Log::Debug("Converting ktest to test file");
+
+  std::ostringstream command;
+  command.str("");
+  command << Map2Check::Tools::ktestBinary << " --write-ints ";
+  command << kleeResult->name << ".ktest";
+  command << " >> " << kleeResult->name << ".test";
+
+  Map2Check::Log::Debug(command.str());
+  system(command.str().c_str());
+
+  std::regex reData("object .*: data: (.*)");
+  // TODO: Use regex to determine number of objects
+  //       and use fixed array list instead of vector
+
+  // std::regex reNumObjects("num objects: (.*)");
+  std::smatch match;
+  std::string result;
+
+  std::string line;
+  std::ostringstream filename;
+  filename.str("");
+  filename  << kleeResult->name << ".test";
+
+  std::ifstream testFile;
+  testFile.open(filename.str().c_str());
+
+  if(testFile.is_open()) {
+    while ( std::getline (testFile,line) )
+    {
+      if (std::regex_search(line, match, reData) && match.size() > 1) {
+	Map2Check::Log::Debug("Adding " + match.str(1) + " to " + kleeResult->name);
+	int result = std::stoi(match.str(1));
+	kleeResult->states.push_back(result);
+      }
+    }
+    testFile.close();
+
+  }
+  else {
+    throw Map2Check::Exceptions::ErrorOpeningFileException(filename.str() + ".test");
+  }
+}
+
+void Tools::KleeResultHelper::genKleeResultsFromFolder(std::string kleeResultFolder) {
+  Map2Check::Log::Debug("Obtaining files from folder: " + kleeResultFolder);
+
+  // Checks if folder exists
+  if (!fs::exists(kleeResultFolder) || !fs::is_directory(kleeResultFolder))
+  {
+    throw Map2Check::Exceptions::InvalidKleeFolderException(kleeResultFolder);
+  }
+
+  else {
+    Map2Check::Log::Debug("Folder does exist, continuing");
+    fs::directory_iterator end_iter;
+
+    std::regex ktest("(.*)\.ktest");
+    std::regex error("(.*)\.assert\.err");
+    for( fs::directory_iterator dir_iter(kleeResultFolder) ; dir_iter != end_iter ; ++dir_iter){
+      KleeResult result;
+    	result.name = "";
+
+      if (fs::is_regular_file(dir_iter->status())) {
+        string current_file = dir_iter->path().string();
+  	    // bool kleeError = false;
+
+        if(std::regex_match (current_file, ktest)) {
+  	        Map2Check::Log::Debug("Found ktest file: " + current_file);
+  	        std::size_t pos = current_file.find(".ktest");
+  	        result.name =  current_file.substr(0,pos);
+  	        result.kleeStatus = KleeStatus::OK;
+
+  	     } else if (std::regex_match (current_file, error)) {
+  	        Map2Check::Log::Debug("Found err file: " + current_file);
+  	        std::size_t pos = current_file.find(".assert.err");
+  	        result.name =  current_file.substr(0,pos);
+  	        result.kleeStatus = KleeStatus::ERROR;
+  	     }
+
+        if (result.name != "") {
+   	        string key = result.name;
+
+            std::vector<KleeResult>::iterator it;
+            it = std::find_if (kleeResults.begin(), kleeResults.end(), [key] (const KleeResult& o) -> bool {
+              return o.name == key;
+            });
+
+            if (it != kleeResults.end()) {
+              Map2Check::Log::Debug("Found old entry for " + it->name);
+              // If two files with the same test name exists, it means that the test was an error test
+              it->kleeStatus   = KleeStatus::ERROR;
+            }
+            else {
+		            Map2Check::Log::Debug("Didn't found old entry for " + result.name);
+		            kleeResults.push_back(result);
+            }
+        }
+      }
+
+    }
+  }
+}
 
 
 Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {

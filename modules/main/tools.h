@@ -17,6 +17,8 @@ namespace Map2Check::Tools {
   const string clangIncludeFolder("./include/clang");
   /** Path to generated list log file (check MemoryUtils implementation) */
   const string listLogCSV("list_log.csv");
+  /** Path to generated klee log file (check MemoryUtils implementation) */
+  const string kleeLogCSV("klee_log.csv");
   /** Path to generated map2check_property file (check MemoryUtils implementation) */
   const string propertyViolationFile("map2check_property");
   /** Path to generated klee results (it is created where klee is called) */
@@ -25,7 +27,8 @@ namespace Map2Check::Tools {
   /** Represents what kind of property was violated */
   enum class PropertyViolated {
     TARGET_REACHED,
-    FALSE_FREE
+    FALSE_FREE,
+    NONE
   };
 
   /** Class used to check violated property */
@@ -42,6 +45,18 @@ namespace Map2Check::Tools {
      * @param path File describing the property
      */
     CheckViolatedProperty(std::string path);
+
+
+    operator std::string() const {
+        std::ostringstream cnvt;
+        cnvt.str("");
+        // cnvt <<"Function: " << this->function_name;
+        switch(this->propertyViolated) {
+          case(PropertyViolated::FALSE_FREE):
+            cnvt << "FALSE-FREE: Operand of free must have zero pointer offset";
+        }
+        return cnvt.str();
+    }
 
     /**
      * Reads default file and initializes the object
@@ -83,57 +98,53 @@ namespace Map2Check::Tools {
   };
 
 
+  struct KleeLogRow {
+    string id;
+    string line;
+    string scope;
+    string functionName;
+    string step;
+    string value;
 
-  /** Represents the result from a Klee file */
-  enum class KleeStatus {
-    OK,
-    ERROR
+    std::string counterExampleHelper() {
+      std::ostringstream cnvt;
+      cnvt.str("");
+      cnvt << "Line: " << line << " :: ";
+      cnvt << "Function: " << functionName << " :: ";
+      cnvt << "Value: " << value;
+      return cnvt.str();
+    }
+
+    operator std::string() const {
+        std::ostringstream cnvt;
+        cnvt.str("");
+        cnvt << "\nKLEE LOG ROW\n";
+        cnvt << "\tID: " << this->id << "\n";
+        cnvt << "\tLine Number: " << this->line << "\n";
+        cnvt << "\tFunction Name: " << this->functionName << "\n";
+        cnvt << "\tValue: " << this->value << "\n";
+        cnvt << "\tStep : " << this->step << "\n";
+        return cnvt.str();
+    }
   };
 
-  /** Helper class, used to read and process all klee results */
-  // class KleeResultHelper;
-
-  /** Represents the structure of a Klee file */
-  struct KleeResult {
-    friend class KleeResultHelper;
-    /** Status of the result */
-    KleeStatus kleeStatus;
-    /** Generated values*/
-    vector<int> states;
-  private:
-    /** Name of case test */
-    string name;
-  };
-
-  class KleeResultHelper {
+  /** Class used to get all KleeLogRow from a CSV file */
+  class KleeLogHelper {
   public:
     /**
-     * Reads all klee files from folder and generate a vector containing all KleeResults
-     * @param path Path to klee results folder
+     * Reads a CSV file and returns a vector of KleeLogRow
+     * @param path CSV file path
+     * @return     vector of KleeLogRow
      */
-    static vector<KleeResult> GetKleeResults(std::string path);
+    static vector<KleeLogRow> getListLogFromCSV(string path);
     /**
-     * Reads all klee files from default folder and generate a vector containing all KleeResults
+     * Reads a CSV file (from default path) and returns a vector of KleeLogRow
+     * @return     vector of KleeLogRow
      */
-    static vector<KleeResult> GetKleeResults();
-  private:
-    KleeResultHelper() {}
-
-    /**
-     * Initialize all klee results with the Status and the Name of the Test
-     * @param kleeResultFolder Path to klee results folder
-     */
-     void genKleeResultsFromFolder(string kleeResultFolder);
-     /**
-      * For the current result, convert the klee result from binary to text
-      * and anotates the values and stores in kleeResult
-      * @param kleeResult Pointer to kleeResult to be managed
-      */
-     static void convertKleeFileToTextFileAndGetValues(KleeResult* kleeResult);
-     /** Vector structure containing the kleeResults */
-     vector<KleeResult> kleeResults;
- };
-
+    static vector<KleeLogRow> getListLogFromCSV() {
+      return KleeLogHelper::getListLogFromCSV(kleeLogCSV);
+    }
+  };
 
   /** Struct used to represent all rows from list log CSV */
   struct ListLogRow {
@@ -144,7 +155,19 @@ namespace Map2Check::Tools {
     string isFree;
     string isDynamic;
     string varName;
+    string lineNumber;
     string functionName;
+    string step;
+
+    std::string counterExampleHelper() {
+      std::ostringstream cnvt;
+      cnvt.str("");
+      cnvt << varName << " = " << pointsTo << "; ";
+      // cnvt << "Function: " << functionName << " :: ";
+      cnvt << "Is Free: " << isFree << " :: ";
+      cnvt << "Is Dynamic: " << isDynamic;
+      return cnvt.str();
+    }
 
     operator std::string() const {
         std::ostringstream cnvt;
@@ -156,7 +179,9 @@ namespace Map2Check::Tools {
         cnvt << "\tIs Free: " << this->isFree << "\n";
         cnvt << "\tIs Dynamic: " << this->isDynamic << "\n";
         cnvt << "\tVar Name: " << this->varName << "\n";
+        cnvt << "\tLine Number: " << this->lineNumber << "\n";
         cnvt << "\tFunction Name: " << this->functionName << "\n";
+        cnvt << "\tStep : " << this->step << "\n";
         return cnvt.str();
     }
   };

@@ -17,11 +17,13 @@ using namespace std;
 #include "caller.h"
 #include "verifier.h"
 #include "log.h"
+#include "tools.h"
+#include "counter_example.hpp"
 
 namespace
 {
-  const size_t ERROR_IN_COMMAND_LINE = 1;
   const size_t SUCCESS = 0;
+  const size_t ERROR_IN_COMMAND_LINE = 1;
   const size_t ERROR_UNHANDLED_EXCEPTION = 2;
 
 } // namespace
@@ -102,7 +104,7 @@ int main(int argc, char** argv)
 				  boost::end(vm["input-file"]
 					     .as< std::vector<string> >
 					     ()), pathfile);
-	    
+
 	    string extension = boost::filesystem::extension(pathfile);
 	    if(extension.compare(".bc") && extension.compare(".c")){
 	      help_msg();
@@ -118,13 +120,13 @@ int main(int argc, char** argv)
 	     * (5) Added ESBMC claims in the analyzed code
 	     * (6) Generating C code to execute the assertions
 	     **/
-	    
+
 	    if(extension.compare(".bc")) {
-	      caller = make_unique<Caller>(Caller::compileCFile(pathfile));	      
+	      caller = make_unique<Caller>(Caller::compileCFile(pathfile));
 	    } else {
 	      caller  =  make_unique<Caller>(pathfile);
 	    }
-	    
+
 	    caller->parseIrFile();
 
 	    Map2Check::Log::Info("Applying instrumentation");
@@ -137,15 +139,21 @@ int main(int argc, char** argv)
 	    else {
 	      caller->callPass();
 	    }
-	    
+
 	    caller->genByteCodeFile();
 	    caller->linkLLVM();
 
 	    Map2Check::Log::Info("Started klee execution");
 	    caller->callKlee();
 
-	    Map2Check::Log::Info("Started witness generation");
-	    Witness witness("./klee-last");
+      Map2Check::Log::Info("Started counter example generation");
+      Map2Check::CounterExample(std::string(pathfile));
+      // Map2Check::Tools::KleeLogHelper::getListLogFromCSV();
+      // Map2Check::Tools::ListLogHelper::getListLogFromCSV();
+      // Map2Check::CounterExample::generateCounterExample(std::string(pathfile));
+
+	    // Map2Check::Log::Info("Started witness generation");
+	    // Witness witness("./klee-last");
 	    return SUCCESS;
 	  }
 
@@ -157,7 +165,7 @@ int main(int argc, char** argv)
 	{
 	  Map2Check::Log::Fatal(e.what());
 	  std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
-	  std::cerr << desc << std::endl;	  
+	  std::cerr << desc << std::endl;
 	  return ERROR_IN_COMMAND_LINE;
 	}
 
@@ -168,7 +176,7 @@ int main(int argc, char** argv)
     {
       Map2Check::Log::Fatal(e.what());
       std::cerr << "Unhandled Exception reached the top of main: "
-		<< e.what() << ", application will now exit" << std::endl;      
+		<< e.what() << ", application will now exit" << std::endl;
       return ERROR_UNHANDLED_EXCEPTION;
 
     }

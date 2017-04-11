@@ -1,4 +1,5 @@
 #include <stdio.h>
+// #include <stdlib.h>
 #include <klee/klee.h>
 #include "MemoryUtils.h"
 
@@ -23,6 +24,99 @@ bool list_initialized = false;
 
 MEMORY_ALLOCATIONS_LOG allocations_map2check;
 bool allocations_initialized = false;
+
+KLEE_LOG klee_map2check;
+bool klee_initialized = false;
+
+unsigned current_step = 0;
+
+void add_klee_call_to_log(KLEE_LOG* log, KLEE_CALL call) {
+  log->size++;
+  KLEE_CALL* new_values = (KLEE_CALL*) realloc (log->values, log->size * sizeof(KLEE_CALL));
+  log->values = new_values;
+  log->values[log->size-1] = call;
+}
+
+void print_klee_log(KLEE_LOG* log) {
+  int i;
+  printf("******* KLEE LOG ******* \n");
+  for(i = 0; i < log->size; i++) {
+    printf("* ID: %d\n", i);
+    printf("\tLine: %d\n", log->values[i].line);
+    printf("\tScope: %d\n", log->values[i].scope);
+    printf("\tFunction: %s\n", log->values[i].function_name);
+    printf("\tStep: %d\n", log->values[i].step_on_execution);
+
+    // switch (log->values[i].type) {
+    //   case INTEGER:
+    //     // printf("\tValue: %d\n\n", *((int*)log->values[i].value));
+    // }
+
+  }
+}
+
+void klee_log_to_file(KLEE_LOG* log) {
+  FILE* output = fopen("klee_log.csv", "w");
+  // fprintf(output, "id;memory address;points to;scope;is free;is dynamic;function name\n");
+  int i = 0;
+  for(;i< log->size; i++) {
+    fprintf(output,"%d;", i);
+    fprintf(output,"%d;", log->values[i].line);
+    fprintf(output,"%d;", log->values[i].scope);
+    fprintf(output,"%s;", log->values[i].function_name);
+    fprintf(output,"%d;", log->values[i].step_on_execution);
+
+    switch (log->values[i].type) {
+      case INTEGER:
+        fprintf(output,"%d\n", (*(int*)log->values[i].value));
+    }
+  }
+  fclose(output);
+}
+
+void free_klee_log(KLEE_LOG* log) {
+  int i;
+  for(i = 0; i < log->size; i++) {
+    free(log->values[i].value);
+  }
+  free(log->values);
+}
+
+void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name) {
+  if (!klee_initialized) {
+    klee_map2check.size = 0;
+    klee_map2check.values = NULL;
+    klee_initialized = true;
+  }
+
+  int coiso = value;
+  // printf("RESULT = %d\n", value);
+  int* result = (int*) malloc(sizeof(int));
+  *result = value;
+  KLEE_CALL kleeCall = new_klee_call(INTEGER, line, scope, result,function_name);
+  add_klee_call_to_log(&klee_map2check, kleeCall);
+
+}
+KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope, void* value, const char* function_name) {
+  KLEE_CALL result;
+  result.type = type;
+  result.function_name = function_name;
+  result.line = line;
+  result.value = value;
+  result.scope = scope;
+  result.step_on_execution = current_step;
+  current_step++;
+  return result;
+}
+
+
+int map2check_non_det_int() {
+  int non_det;
+  klee_make_symbolic(&non_det,
+		     sizeof(non_det),
+		     "non_det_int");
+  return non_det;
+}
 
 bool mark_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log, long address) {
   MEMORY_ALLOCATIONS_ROW row = new_memory_row(address, false);
@@ -151,7 +245,9 @@ void list_log_to_file(LIST_LOG* list) {
     fprintf(output, "%d;", row->is_free);
     fprintf(output, "%d;", row->is_dynamic);
     fprintf(output, "%s;", row->var_name);
-    fprintf(output, "%s\n", row->function_name);
+    fprintf(output, "%d;", row->line_number);
+    fprintf(output, "%s;", row->function_name);
+    fprintf(output, "%d\n", row->step_on_execution);
   }
   fclose(output);
 }
@@ -169,6 +265,8 @@ LIST_LOG_ROW new_list_row (long memory_address, long memory_address_points_to,
   row.scope = scope;
   row.var_name = name;
   row.function_name = function_name;
+  row.step_on_execution = current_step;
+  current_step++;
 
   return row;
 }
@@ -236,15 +334,6 @@ void map2check_list_debug() {
   print_list_log(&list_map2check);
 }
 
-
-int map2check_non_det_int() {
-  int non_det;
-  klee_make_symbolic(&non_det,
-		     sizeof(non_det),
-		     "non_det_int");
-  return non_det;
-}
-
 void map2check_malloc(void* ptr, int size) {
   if(!allocations_initialized) {
     allocations_map2check = new_memory_allocation();
@@ -284,12 +373,16 @@ int map2check_is_invalid_free(long ptr) {
 void map2check_ERROR() {
   map2check_list_debug();
   list_log_to_file(&list_map2check);
+  klee_log_to_file(&klee_map2check);
+  // print_klee_log(&klee_map2check);
+
   free_list_log(&list_map2check);
+  free_klee_log(&klee_map2check);
   klee_assert(0);
 }
 
 
-void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,  const char* function_name) {
+void map2check_free( const char* name, void* ptr, unsigned scope, const unsigned line,  const char* function_name) {
   if(!allocations_initialized) {
     allocations_map2check = new_memory_allocation();
     allocations_initialized = true;
@@ -306,8 +399,6 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
 				  true, line, name, function_name);
 
   bool error = map2check_is_invalid_free((long) *addr);
-  mark_deallocation_log(&allocations_map2check, (long) *addr);
-  mark_map_log(&list_map2check, &row);
 
   if(error) {
     printf("VERIFICATION FAILED\n\n");
@@ -321,6 +412,10 @@ void map2check_free( const char* name, void* ptr, unsigned scope, unsigned line,
     fclose(output);
     map2check_ERROR();
   }
+
+  mark_deallocation_log(&allocations_map2check, (long) *addr);
+  mark_map_log(&list_map2check, &row);
+
 }
 
 void map2check_target_function(const char* func_name, int scope, int line) {

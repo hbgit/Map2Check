@@ -33,6 +33,7 @@ struct obj {
   unsigned line_number;
   /** Name of the function where operation took place */
   const char* function_name;
+  unsigned step_on_execution;
 } LIST_LOG_ROW;
 
 typedef struct obj1 {
@@ -49,6 +50,35 @@ typedef struct obj3 {
   MEMORY_ALLOCATIONS_ROW* values;
   unsigned size;
 } MEMORY_ALLOCATIONS_LOG;
+
+enum NONDET_TYPE {
+  INTEGER = 0
+};
+
+typedef struct obj4 {
+  enum NONDET_TYPE type;
+  unsigned line;
+  unsigned step_on_execution;
+  unsigned scope;
+  void* value;
+  const char* function_name;
+} KLEE_CALL;
+
+typedef struct obj5 {
+  KLEE_CALL* values;
+  unsigned size;
+} KLEE_LOG;
+
+
+KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope, void* value, const char* function_name);
+void add_klee_call_to_log(KLEE_LOG* log, KLEE_CALL call);
+// TODO: Check for better way to do this
+void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name);
+
+void print_klee_log(KLEE_LOG* log);
+void free_klee_log(KLEE_LOG* log);
+void klee_log_to_file(KLEE_LOG* log);
+
 
 /**
  * Creates a new MEMORY_ALLOCATIONS_LOG
@@ -166,5 +196,11 @@ void map2check_pointer(void* x, unsigned scope, const char* name, int line);
  * @param function_name  Name of the function where the operation occured.
  */
 void map2check_add_store_pointer(void* var, void* value, unsigned scope, const char* name, int line, const char* function_name);
+
+/**
+ * Generates a non det integer by using an indirect KLEE call
+ * @return An integer representing a non deterministic value
+ */
+int map2check_non_det_int();
 
 #endif

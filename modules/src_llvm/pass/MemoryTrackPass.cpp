@@ -7,7 +7,30 @@ std::string echoCommand = "echo";
 void MemoryTrackPass::instrumentKlee(NonDetType nonDetType) {
   Twine non_det("map2check_non_det_int");
   this->caleeFunction->setName(non_det);
+
+
 }
+
+void MemoryTrackPass::instrumentKleeInt() {
+  errs() << "Instrumenting Klee Integer\n";
+  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  j++;
+  IRBuilder<> builder((Instruction*)j);
+  Value* function_llvm = builder.CreateGlobalStringPtr
+      (currentFunction->getName());
+
+  Value* args[] = {
+    this->line_value,
+  	this->scope_value,
+    callInst,
+    function_llvm
+     };
+
+  builder.CreateCall(this->map2check_klee_int, args);
+
+}
+
 
 void MemoryTrackPass::addWitnessInfo(std::string info) {
   int result = system(info.c_str());
@@ -172,25 +195,12 @@ void MemoryTrackPass::switchCallInstruction() {
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")
 	  ) {
     this->instrumentKlee(NonDetType::INTEGER);
-    // Adding info for witness generation
-    std::ostringstream command;
-    command.str("");
-    command << echoCommand << " KLEE:" << this->getLineNumber();
-    command << " >> " << infoFile << "\n";
-    errs() << command.str();
-    this->addWitnessInfo(command.str());
+    this->instrumentKleeInt();
   }
   // TODO: FIX this hack
   else if ((this->caleeFunction->getName() == "map2check_non_det_int")
 	  ) {
-      // Adding info for witness generation
-      std::ostringstream command;
-      command.str("");
-      command << echoCommand << " KLEE:" << this->getLineNumber();
-      command << " >> " << infoFile << "\n";
-      errs() << command.str();
-
-      this->addWitnessInfo(command.str());
+      this->instrumentKleeInt();
   }
   else if (this->caleeFunction->getName() == this->target_function
 	   && this->isTrackingFunction) {
@@ -260,6 +270,15 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt32Ty(*this->Ctx),
 			Type::getInt32Ty(*this->Ctx),
 			NULL);
+
+    this->map2check_klee_int = F.getParent()->
+      getOrInsertFunction("map2check_klee_int",
+    		Type::getVoidTy(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+    		Type::getInt8PtrTy(*this->Ctx),
+    		NULL);
 
   this->map2check_pointer = F.getParent()->
     getOrInsertFunction("map2check_add_store_pointer",

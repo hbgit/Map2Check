@@ -8,6 +8,7 @@
 #include <boost/log/sources/record_ostream.hpp>
 // #include <boost/log/sinks/sink.hpp>
 #include <string>
+#include <iostream>
 
 namespace logging = boost::log;
 namespace src = boost::log::sources;
@@ -15,9 +16,9 @@ namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
 
 
-namespace Map2Check::Log {   
+namespace Map2Check::Log {
 
-  void Error(std::string msg) {   
+  void Error(std::string msg) {
     BOOST_LOG_TRIVIAL(error) << "\033[0;31m" << msg << "\033[0m";
   }
 
@@ -32,9 +33,10 @@ namespace Map2Check::Log {
   }
 
   void Info(std::string msg) {
-    BOOST_LOG_TRIVIAL(info) << "\033[0;32m" << msg << "\033[0m";
+    // BOOST_LOG_TRIVIAL(info) << "\033[0;32m" << msg << "\033[0m";
+    std::cout << "\033[0;32m" << msg << "\033[0m" << std::endl;
   }
-  
+
   void Fatal(std::string msg) {
     BOOST_LOG_TRIVIAL(fatal) << "\033[0;31m" << msg << "\033[0m";
   }

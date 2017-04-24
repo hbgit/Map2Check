@@ -54,6 +54,10 @@ namespace Map2Check::Tools {
         switch(this->propertyViolated) {
           case(PropertyViolated::FALSE_FREE):
             cnvt << "FALSE-FREE: Operand of free must have zero pointer offset";
+            break;
+          case(PropertyViolated::TARGET_REACHED):
+          cnvt << "FALSE-FREE: Operand of free must have zero pointer offset";
+          break;
         }
         return cnvt.str();
     }
@@ -90,10 +94,11 @@ namespace Map2Check::Tools {
      */
     std::string getLine(unsigned line);
 
-
+    std::string getFilePath();
     std::string substituteWithResult(int line, std::string old_token, std::string result);
     // void changeTokenFromLine(int line, std::string old_token, std::string new_token);
   private:
+    std::string path;
     std::vector<std::string> cFileLines;
   };
 

@@ -19,6 +19,7 @@ namespace Tools = Map2Check::Tools;
 
 Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
   Map2Check::Log::Debug("Reading C File");
+  this->path = pathToCSource;
   std::ifstream sourceFile;
   std::string line;
   sourceFile.open(pathToCSource.c_str());
@@ -36,6 +37,10 @@ Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
 
   Map2Check::Log::Debug(*this);
 
+}
+
+std::string Tools::SourceCodeHelper::getFilePath() {
+  return this->path;
 }
 
 //TODO: replace all should be replace first

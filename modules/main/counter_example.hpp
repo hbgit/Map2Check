@@ -7,16 +7,32 @@
 
 namespace Map2Check {
 
-  struct CounterExampleRow {
-    int lineNumber;
-    std::string lineC;
-    int step;
 
-    operator std::string() const {
+  class CounterExampleRow {
+  protected:
+    int step;
+    int state;
+    int ref;
+    virtual std::string convertToString() {
       std::ostringstream cnvt;
       cnvt.str("");
-      cnvt << "LINE " << this->lineNumber << ": " << this->lineC;
+      cnvt << "CounterExampleRow";
       return cnvt.str();
+    }
+    std::string fileName;
+
+  public:
+    CounterExampleRow(int step, int state, std::string fileName, int ref) : step(step), state(state), fileName(fileName), ref(ref) {}
+    void setState(int state) {
+      this->state = state;
+    }
+
+    virtual int getState() {
+      return this->state;
+    }
+
+    operator std::string() {
+      return this->convertToString();
     }
 
     bool operator < (const CounterExampleRow& row) const
@@ -24,13 +40,78 @@ namespace Map2Check {
         return (this->step < row.step);
     }
   };
+  class CounterExampleKleeRow : public CounterExampleRow {
+  protected:
+    Tools::KleeLogRow row;
+    std::string lineC;
+
+    virtual std::string convertToString() {
+      std::ostringstream cnvt;
+      cnvt.str("");
+      cnvt << "State " << this->state << " ";
+      cnvt << "file " << this->fileName << " ";
+      cnvt << "line " << this->row.line << " ";
+      cnvt << "function " << this->row.functionName << " ";
+
+      // TODO: Check thread
+      cnvt << "thread 0\n";
+
+      cnvt << "c::" << this->row.functionName << "\n";
+      cnvt << "----------------------------------------------------\n";
+      cnvt << "c::$(tmp)::value_nondet_int$" << this->row.id << "="<< this->row.value << " (" << this->ref << ")\n";
+
+      cnvt << "\n";
+      cnvt << "State " << this->state + 1 << " ";
+      cnvt << "file " << this->fileName << " ";
+      cnvt << "line " << this->row.line << " ";
+      cnvt << "function " << this->row.functionName << " ";
+
+      // TODO: Check thread
+      cnvt << "thread 0\n";
+
+      cnvt << "c::" << this->row.functionName << "\n";
+      cnvt << "----------------------------------------------------\n";
+      cnvt << "c::" << this->row.functionName << "::" << this->lineC << " (" << this->ref << ")\n";
+      return cnvt.str();
+    }
+  public:
+    CounterExampleKleeRow(Tools::KleeLogRow row, int step, int state, std::string fileName, int ref, std::string lineC) :
+      lineC(lineC), row(row), CounterExampleRow(step,state,fileName,ref) {}
+
+      virtual int getState() {
+        return this->state + 1;
+      }
+  };
+
+  class CounterExampleProperty : public CounterExampleRow {
+  public:
+    enum class ViolatedProperty {
+      FalseFree,
+      None
+    };
+  protected:
+    bool wasSucessfull;
+
+
+  };
+
+  // class CounterExampleVarAttrRow : public CounterExampleRow {
+  // protected:
+  //   std::string attribuition;
+  //
+  // public:
+  //   CounterExampleVarAttrRow(std::string attr, int step, int state, std::string fileName, int ref) :
+  //     attribuition(attr), row(row), CounterExampleRow(step,state,fileName,ref) {}
+  // };
+  //
 
   class CounterExample {
   public:
     CounterExample(std::string path);
   private:
-    std::vector<CounterExampleRow> counterExampleRows;
-    Tools::SourceCodeHelper* sourceCodeHelper;
+
+    std::vector<std::unique_ptr<CounterExampleRow> > counterExampleRows;
+    std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
     void processKleeLog();
     void processListLog();
     void processProperty();

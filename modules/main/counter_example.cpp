@@ -9,9 +9,9 @@ CounterExample::CounterExample(std::string path) {
   int currentState = 0;
   this->processKleeLog();
   this->processListLog();
-  this->processProperty();
 
   std::sort(this->counterExampleRows.begin(), this->counterExampleRows.end());
+  this->processProperty();
   Log::Info("Counter-example:\n");
   for(int i =0; i < this->counterExampleRows.size(); i++) {
     this->counterExampleRows[i]->setState(currentState);
@@ -20,15 +20,15 @@ CounterExample::CounterExample(std::string path) {
   }
 
 }
-
-
 void CounterExample::processProperty() {
   Tools::CheckViolatedProperty violated;
-  // CounterExampleRow row;
-  // row.step = this->counterExampleRows.size();
-  // row.lineC = (std::string) violated;
-  // row.lineNumber = violated.line  ;
-  // this->counterExampleRows.push_back(row);
+  int step = this->counterExampleRows.size();
+  std::cout << step;
+  int state = 0;
+  std::string path = violated.path_name;
+  Map2Check::Log::Debug("Current step: ");
+  std::unique_ptr<CounterExampleRow> row = std::make_unique<CounterExampleProperty>(step, state, path, 0, violated.propertyViolated, violated.line, violated.function_name);
+  this->counterExampleRows.push_back(std::move(row));
 }
 
 // TODO: Add Support to other non det type

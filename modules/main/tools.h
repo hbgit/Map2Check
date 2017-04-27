@@ -39,7 +39,7 @@ namespace Map2Check::Tools {
     unsigned line;
     /** Name of the function where the property was violated */
     string function_name;
-
+    string path_name;
     /**
      * Reads file and initializes the object
      * @param path File describing the property
@@ -47,20 +47,25 @@ namespace Map2Check::Tools {
     CheckViolatedProperty(std::string path);
 
 
-    operator std::string() const {
-        std::ostringstream cnvt;
-        cnvt.str("");
-        // cnvt <<"Function: " << this->function_name;
-        switch(this->propertyViolated) {
-          case(PropertyViolated::FALSE_FREE):
-            cnvt << "FALSE-FREE: Operand of free must have zero pointer offset";
-            break;
-          case(PropertyViolated::TARGET_REACHED):
-          cnvt << "FALSE-FREE: Operand of free must have zero pointer offset";
-          break;
-        }
-        return cnvt.str();
-    }
+    // operator std::string() const {
+    //     std::ostringstream cnvt;
+    //     cnvt.str("");
+    //     // cnvt <<"Function: " << this->function_name;
+    //     switch(this->propertyViolated) {
+    //       case(PropertyViolated::FALSE_FREE):
+    //         cnvt << "FALSE-FREE: Operand of free must have zero pointer offset";
+    //         break;
+    //       case(PropertyViolated::TARGET_REACHED):
+    //         //TODO: Add message for target reached
+    //         cnvt << "FALSE: Target Reached";
+    //         break;
+    //       case(PropertyViolated::NONE) {
+    //         cnvt << "TRUE";
+    //         break;
+    //       }
+    //     }
+    //     return cnvt.str();
+    // }
 
     /**
      * Reads default file and initializes the object

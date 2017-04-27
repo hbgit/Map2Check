@@ -37,7 +37,7 @@ namespace Map2Check {
 
     bool operator < (const CounterExampleRow& row) const
     {
-        return (this->step < row.step);
+        return (this->step >= row.step);
     }
   };
   class CounterExampleKleeRow : public CounterExampleRow {
@@ -84,15 +84,44 @@ namespace Map2Check {
   };
 
   class CounterExampleProperty : public CounterExampleRow {
-  public:
-    enum class ViolatedProperty {
-      FalseFree,
-      None
-    };
   protected:
-    bool wasSucessfull;
+    int lineNumber;
+    std::string functionName;
+    Tools::PropertyViolated propertyViolated;
 
+    virtual std::string convertToString() {
+      std::ostringstream cnvt;
+      cnvt.str("");
+      cnvt << "----------------------------------------------------\n";
+      switch(this->propertyViolated) {
+            case(Tools::PropertyViolated::FALSE_FREE):
+              cnvt << "Violated property:\n";
+              cnvt << "\tfile " << this->fileName << " ";
+              cnvt << "line " << this->lineNumber << " ";
+              cnvt << "function " << this->functionName << " ";
+              cnvt << "\tFALSE-FREE: Operand of free must have zero pointer offset\n\n";
+              cnvt << "VERIFICATION FAILED";
+              break;
+            case(Tools::PropertyViolated::TARGET_REACHED):
+              //TODO: Add message for target reached
+              cnvt << "Violated property:\n";
+              cnvt << "\tfile " << this->fileName << " ";
+              cnvt << "line " << this->lineNumber << " ";
+              cnvt << "function " << this->functionName << " ";
+              cnvt << "\tFALSE: Target Reached\n\n";
+              cnvt << "VERIFICATION FAILED";
+              break;
+            case(Tools::PropertyViolated::NONE):
+              cnvt << "VERIFICATION SUCCEDED";
+              break;
+      }
 
+      return cnvt.str();
+    }
+
+  public:
+      CounterExampleProperty(int step, int state, std::string fileName, int ref, Tools::PropertyViolated property, int lineNumber, std::string functionName) :
+        propertyViolated(property), lineNumber(lineNumber), functionName(functionName), CounterExampleRow(step,state,fileName,ref) {}
   };
 
   // class CounterExampleVarAttrRow : public CounterExampleRow {

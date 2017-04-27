@@ -69,6 +69,7 @@ std::string Tools::SourceCodeHelper::getLine(unsigned line) {
 
 Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
   Map2Check::Log::Debug("Started reading file: " + path );
+  this->path_name = path;
   ifstream in(path.c_str());
   if (!in.is_open()) {
     throw Tools::CheckViolatedPropertyException("Could not open file");

@@ -98,7 +98,7 @@ namespace Map2Check {
               cnvt << "Violated property:\n";
               cnvt << "\tfile " << this->fileName << " ";
               cnvt << "line " << this->lineNumber << " ";
-              cnvt << "function " << this->functionName << " ";
+              cnvt << "function " << this->functionName << "\n";
               cnvt << "\tFALSE-FREE: Operand of free must have zero pointer offset\n\n";
               cnvt << "VERIFICATION FAILED";
               break;
@@ -111,6 +111,15 @@ namespace Map2Check {
               cnvt << "\tFALSE: Target Reached\n\n";
               cnvt << "VERIFICATION FAILED";
               break;
+            case(Tools::PropertyViolated::FALSE_DEREF):
+              //TODO: Add message for target reached
+              cnvt << "Violated property:\n";
+              cnvt << "\tfile " << this->fileName << " ";
+              cnvt << "line " << this->lineNumber << " ";
+              cnvt << "function " << this->functionName << " ";
+              cnvt << "\tFALSE-DEREF: Reference to pointer was lost\n\n";
+              cnvt << "VERIFICATION FAILED";
+              break;  
             case(Tools::PropertyViolated::NONE):
               cnvt << "VERIFICATION SUCCEDED";
               break;

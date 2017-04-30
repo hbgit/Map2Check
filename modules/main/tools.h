@@ -17,17 +17,22 @@ namespace Map2Check::Tools {
   const string clangIncludeFolder("./include/clang");
   /** Path to generated list log file (check MemoryUtils implementation) */
   const string listLogCSV("list_log.csv");
+  /** Path to klee binary */
+  const string kleeBinary("./bin/klee");
   /** Path to generated klee log file (check MemoryUtils implementation) */
   const string kleeLogCSV("klee_log.csv");
   /** Path to generated map2check_property file (check MemoryUtils implementation) */
   const string propertyViolationFile("map2check_property");
   /** Path to generated klee results (it is created where klee is called) */
   const string kleeResultFolder("./klee-last");
+  /** Path to opt binary (from llvm) */
+  const string optBinary("./bin/opt");
 
   /** Represents what kind of property was violated */
   enum class PropertyViolated {
     TARGET_REACHED,
     FALSE_FREE,
+    FALSE_DEREF,
     NONE
   };
 

@@ -92,6 +92,12 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         } else if(line == "TARGET-REACHED") {
           Map2Check::Log::Debug("TARGET-REACHED found");
           this->propertyViolated = Tools::PropertyViolated::TARGET_REACHED;
+        } else if(line == "FALSE-DEREF") {
+          Map2Check::Log::Debug("FALSE-DEREF found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
+        } else if(line == "NONE") {
+          Map2Check::Log::Debug("NONE found");
+          this->propertyViolated = Tools::PropertyViolated::NONE;
         } else {
           throw Tools::CheckViolatedPropertyException("Invalid Property");
         }

@@ -61,7 +61,7 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_malloc;
   Constant* map2check_free;
   Constant*  map2check_klee_int;
-  Constant* free_list_log;
+  Constant* map2check_success;
   ConstantInt* scope_value;
   ConstantInt* line_value;
   LLVMContext* Ctx;

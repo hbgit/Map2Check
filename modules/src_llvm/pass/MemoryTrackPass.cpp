@@ -179,7 +179,7 @@ void MemoryTrackPass::instrumentReleaseMemory() {
 
   IRBuilder<> builder((Instruction*)i);
   //Value* args[] = {};
-  builder.CreateCall(this->free_list_log);
+  builder.CreateCall(this->map2check_success);
 }
 
 // TODO: use hash table instead of nested "if's"
@@ -308,8 +308,8 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt8PtrTy(*this->Ctx),
 			NULL);
 
-  this->free_list_log = F.getParent()->
-    getOrInsertFunction("map2check_free_list_log",
+  this->map2check_success = F.getParent()->
+    getOrInsertFunction("map2check_success",
 			Type::getVoidTy(*this->Ctx),
 			NULL);
 }

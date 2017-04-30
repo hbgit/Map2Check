@@ -67,6 +67,8 @@ void Caller::printdata() {
 
 int Caller::parseIrFile(){
   // Parse the input LLVM IR file into a module.
+  Map2Check::Log::Debug("Parsing file " + this->pathprogram);
+  system("pwd");
   StringRef filename = this->pathprogram;
 
   SMDiagnostic SM;
@@ -167,6 +169,7 @@ string Caller::compileCFile(std::string cprogram_path) {
   command << Map2Check::Tools::clangBinary << " -I"
 	  << Map2Check::Tools::clangIncludeFolder
           << " -c -emit-llvm -g -O0 "
+          << " -o compiled.bc "
           << cprogram_path
           << " >> clang.out";
 
@@ -174,17 +177,7 @@ string Caller::compileCFile(std::string cprogram_path) {
   if(result == -1) {
     throw ErrorCompilingCProgramException();
   }
-
-  std::ostringstream program;
-
-  std::regex programName("(.*)\.c");
-  if(std::regex_match (cprogram_path, programName)) {
-    Map2Check::Log::Debug("Match C file");
-    std::size_t pos = cprogram_path.find(".c");
-    program.str(cprogram_path.substr(0,pos));
-   }
-
-  return (program.str() + ".bc");
+  return ("compiled.bc");
 }
 
 const char* CallerException::what() const throw() {

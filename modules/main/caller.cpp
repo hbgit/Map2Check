@@ -92,6 +92,7 @@ int Caller::parseIrFile(){
 int Caller::callPass(){
 
   AnalysisPasses.add(new MemoryTrackPass());
+  // AnalysisPasses.add(llvm::op)
   AnalysisPasses.run(*M);
 
   return 1;
@@ -129,6 +130,8 @@ void Caller::linkLLVM() {
   const char* command2 = "./bin/llvm-link inter.bc lib/memoryutils.bc > result.bc";
   system(command2);
 
+  const char* command3 = "./bin/opt -O3 result.bc > optimized.bc";
+  system(command3);
 #ifndef DEBUG
   system("rm inter.bc");
   system("rm output.bc");
@@ -138,9 +141,11 @@ void Caller::linkLLVM() {
 // TODO: Implement using klee api
 void Caller::callKlee() {
   /* Execute klee */
-
-  const char* klee_command = "./bin/klee --allow-external-sym-calls result.bc  > kleeOutput.log";
-  system(klee_command);
+  std::ostringstream command;
+  command.str("");
+  command << Map2Check::Tools::kleeBinary;
+  command << " --allow-external-sym-calls --optimize optimized.bc  > kleeOutput.log";
+  system(command.str().c_str());
 }
 
 

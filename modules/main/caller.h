@@ -12,6 +12,7 @@ class Caller {
 
  protected:
   std::string pathprogram;
+  void optimizeProgram();
 
  public:
   Caller( std::string bcprogram_path );

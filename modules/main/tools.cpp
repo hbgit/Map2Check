@@ -95,7 +95,10 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         } else if(line == "FALSE-DEREF") {
           Map2Check::Log::Debug("FALSE-DEREF found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
-        } else if(line == "NONE") {
+        } else if(line == "FALSE-MEMTRACK") {
+          Map2Check::Log::Debug("FALSE-MEMTRACK found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
+        }else if(line == "NONE") {
           Map2Check::Log::Debug("NONE found");
           this->propertyViolated = Tools::PropertyViolated::NONE;
         } else {

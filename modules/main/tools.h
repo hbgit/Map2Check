@@ -33,6 +33,7 @@ namespace Map2Check::Tools {
     TARGET_REACHED,
     FALSE_FREE,
     FALSE_DEREF,
+    FALSE_MEMTRACK,
     NONE
   };
 

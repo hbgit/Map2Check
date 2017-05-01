@@ -120,6 +120,12 @@ namespace Map2Check {
               cnvt << "\tFALSE-DEREF: Reference to pointer was lost\n\n";
               cnvt << "VERIFICATION FAILED";
               break;  
+            case(Tools::PropertyViolated::FALSE_MEMTRACK):
+              //TODO: Add message for target reached
+              cnvt << "Violated property:\n";
+              cnvt << "\tFALSE-MEMTRACK\n\n";
+              cnvt << "VERIFICATION FAILED";
+              break;   
             case(Tools::PropertyViolated::NONE):
               cnvt << "VERIFICATION SUCCEDED";
               break;

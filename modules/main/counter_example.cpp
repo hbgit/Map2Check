@@ -45,6 +45,10 @@ std::string CounterExample::getViolatedProperty() {
     return "FALSE-DEREF";
   }
 
+  if(this->property == Tools::PropertyViolated::FALSE_MEMTRACK) {
+    return "FALSE-MEMTRACK";
+  }
+
   if(this->property == Tools::PropertyViolated::NONE) {
     return "TRUE";
   }

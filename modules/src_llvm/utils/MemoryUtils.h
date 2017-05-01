@@ -208,4 +208,6 @@ int map2check_non_det_int();
 
 void map2check_ERROR();
 
+bool valid_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log);
+
 #endif

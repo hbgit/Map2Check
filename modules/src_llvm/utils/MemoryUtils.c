@@ -439,11 +439,41 @@ void map2check_ERROR() {
 }
 
 void map2check_success() {
+  FILE* output = fopen("map2check_property", "w");
+  
+  if(!valid_allocation_log(&allocations_map2check)) {
+    fprintf(output, "FALSE-MEMTRACK");
+  } else {
+    fprintf(output, "NONE");
+  }
+
   free_list_log(&list_map2check);
   free_klee_log(&klee_map2check);
-  FILE* output = fopen("map2check_property", "w");
-  fprintf(output, "NONE");
   fclose(output);
+}
+
+
+bool valid_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log) {
+  int i = 0;
+  for(; i < allocation_log->size; i++) {
+    if(!allocation_log->values[i].is_free) {
+      long addr = allocation_log->values[i].addr;
+      bool foundReleased = false;
+      int j = i;
+      for (; j < allocation_log->size; j++) {
+        if (allocation_log->values[j].addr == addr) {
+          if (allocation_log->values[j].is_free) {
+            foundReleased = true;
+          }
+        }
+      }
+
+      if(!foundReleased) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 

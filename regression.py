@@ -4,6 +4,7 @@ import subprocess
 
 path = "../test/regression/"
 freeDir = path + "free/"
+targetDir = path + "target/"
 memtrackDir = path + "memtrack/"
 trueDir =  path + "true/"
 
@@ -12,6 +13,7 @@ errorList = []
 
 falseFree = os.listdir(freeDir)
 falseMemtrack = os.listdir(memtrackDir)
+targetReached = os.listdir(targetDir)
 trueValid = os.listdir(trueDir)
 
 for program in falseFree: 
@@ -23,6 +25,17 @@ for program in falseFree:
         errorList.append(freeDir + program)
     else:                                                                                                   
         successList.append(freeDir + program)     
+
+for program in targetReached: 
+    command = "./map2check -f __VERIFIER_error -e TARGET-REACHED "
+    command += targetDir + program
+    try:
+        cmnd_output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True);                         
+    except subprocess.CalledProcessError as exc:                                                                                                   
+        errorList.append(targetDir + program)
+    else:                                                                                                   
+        successList.append(targetDir + program)   
+
 
 for program in falseMemtrack:
     command = "./map2check -e FALSE-MEMTRACK "

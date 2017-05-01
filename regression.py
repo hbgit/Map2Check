@@ -17,50 +17,63 @@ targetReached = os.listdir(targetDir)
 trueValid = os.listdir(trueDir)
 
 for program in falseFree: 
+    
     command = "./map2check -e FALSE-FREE "
     command += freeDir + program
+    print("Running: " + command + "\n")
     try:
         cmnd_output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True);                         
     except subprocess.CalledProcessError as exc:                                                                                                   
+        print("FAIL\n")
         errorList.append(freeDir + program)
-    else:                                                                                                   
+    else:              
+        print("SUCCESS\n")                                                                                     
         successList.append(freeDir + program)     
 
 for program in targetReached: 
     command = "./map2check -f __VERIFIER_error -e TARGET-REACHED "
     command += targetDir + program
+    print("Running: " + command + "\n")
     try:
         cmnd_output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True);                         
     except subprocess.CalledProcessError as exc:                                                                                                   
+        print("FAIL\n")
         errorList.append(targetDir + program)
-    else:                                                                                                   
+    else:          
+        print("SUCCESS\n")                                                                                         
         successList.append(targetDir + program)   
 
 
 for program in falseMemtrack:
     command = "./map2check -e FALSE-MEMTRACK "
     command += memtrackDir + program
+    print("Running: " + command + "\n")
     try:
         cmnd_output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True);                         
     except subprocess.CalledProcessError as exc:                                                                                                   
+        print("FAIL\n")
         errorList.append(memtrackDir + program)
-    else:                                                                                                   
+    else:          
+        print("SUCCESS\n")                                                                                         
         successList.append(memtrackDir + program)     
 
 for program in trueValid:
     command = "./map2check -e TRUE "
     command += trueDir + program
+    print("Running: " + command + "\n")
     try:
         cmnd_output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True);                         
     except subprocess.CalledProcessError as exc:                                                                                                   
+        print("FAIL\n")
         errorList.append(trueDir + program)
-    else:                                                                                                   
+    else:               
+        print("SUCCESS\n")                                                                                      
         successList.append(trueDir + program)     
 
 
 print("################################\n\n")
 
-print("SUCCESS:\n") 
+print("OK:\n") 
 for program in successList:
     print("\t" + program + "\n")       
 

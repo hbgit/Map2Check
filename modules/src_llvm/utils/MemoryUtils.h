@@ -206,8 +206,27 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope, const c
  */
 int map2check_non_det_int();
 
+/**
+ * Releases allocated resources and generates property violated 
+ */
 void map2check_ERROR();
 
+/**
+ * Checks if all addresses of allocation log where dealocatted
+ * @param allocation_log  Address to a allocation log
+ * @return A bool representing if allocation log is valid (no memory leaks)
+ */ 
 bool valid_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log);
 
+
+/**
+ * Updates all variables that points to the address with new status
+ * @param list  Address to a list log
+ * @param address  Address to be updates
+ * @param status  Current memory status
+ */ 
+void updateReferenceListLog(LIST_LOG* list, long address, MEMORY status);
+
+
+MEMORY getType(LIST_LOG_ROW* row);
 #endif

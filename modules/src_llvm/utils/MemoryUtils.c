@@ -220,7 +220,8 @@ void map2check_add_store_pointer(void* var, void* value,unsigned scope, const ch
   }
   LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, function_name);
   void* oldAddress = getOldReference(name, &list_map2check);
-   mark_map_log(&list_map2check, &row);
+  mark_map_log(&list_map2check, &row);
+  updateReferenceListLog(&list_map2check,(long) value, status);
 
   status = check_address_allocation_log(&allocations_map2check, (long) oldAddress);
 
@@ -510,6 +511,7 @@ void map2check_free( const char* name, void* ptr, unsigned scope, const unsigned
 
   mark_deallocation_log(&allocations_map2check, (long) *addr);
   mark_map_log(&list_map2check, &row);
+  updateReferenceListLog(&list_map2check, (long) *addr, FREE);
 
 }
 
@@ -521,4 +523,71 @@ void map2check_target_function(const char* func_name, int scope, int line) {
   fprintf(output, "Function: %s\n", func_name);
   fclose(output);
   map2check_ERROR();
+}
+
+void updateReferenceListLog(LIST_LOG* list, long address, MEMORY status) {
+  int i = 0;
+  int currentSize = list->size;
+  for(; i < currentSize; i++) {
+    long currentAddress = list->values[i].memory_address_points_to;
+    long currentVarAddress = list->values[i].memory_address;
+    if((currentAddress == address ) && (status != getType(&list->values[i]))) {
+      int j = currentSize - 1;
+
+      for(;i <= j; j-- ) {
+        long otherAddress =  list->values[j].memory_address_points_to;
+        long otherVarAddress = list->values[j].memory_address;
+        int sameName = otherVarAddress == currentVarAddress;
+        if((otherAddress == address ) && (sameName)) {
+          MEMORY otherStatus = getType(&list->values[j]);
+          if (otherStatus != status) {
+            bool isDynamic;
+            bool isFree;
+
+            switch (status) {
+            case STATIC:
+              isDynamic = false;
+              isFree = false;
+              break;
+            case FREE:
+              isDynamic = false;
+              isFree = true;
+              break;
+            case DYNAMIC:
+              isDynamic = true;
+              isFree = false;
+              break;
+            }
+            LIST_LOG_ROW oldRow = list->values[j];
+            LIST_LOG_ROW row = new_list_row(oldRow.memory_address,
+                                            oldRow.memory_address_points_to, 
+                                            oldRow.scope, 
+                                            isDynamic, 
+                                            isFree, 
+                                            oldRow.line_number, 
+                                            oldRow.var_name, 
+                                            oldRow.function_name);
+  
+            mark_map_log(list, &row);
+          }
+
+          break;
+        }
+      }
+
+   
+    }
+  }
+    
+}
+
+MEMORY getType(LIST_LOG_ROW* row) {
+  if (row->is_free) {
+    return FREE;
+  } else if (row->is_dynamic) {
+    return DYNAMIC;
+  }
+
+  return STATIC;
+
 }

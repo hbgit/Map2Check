@@ -16,3 +16,5 @@ teste/*.bc
 .idea/**/*
 *.pyc
 .clang_complete
+.vs/*
+.vscode/*

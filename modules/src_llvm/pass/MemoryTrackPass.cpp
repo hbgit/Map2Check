@@ -98,45 +98,67 @@ void MemoryTrackPass::instrumentFree() {
   this->caleeFunction = callInst->getCalledFunction();
   this->getDebugInfo();
   LoadInst* li;
+  IRBuilder<> builder((Instruction*)j);
 
-  if (this->caleeFunction == NULL) {
+  auto function_name = this->currentFunction->getName();
+    Value* function_llvm = builder
+      .CreateGlobalStringPtr(function_name);
+
+  if (this->caleeFunction == NULL) {    
     Value* v = callInst->getCalledValue();
     this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-    li = dyn_cast<LoadInst>(callInst ->getArgOperand(0));
+    li = dyn_cast<LoadInst>(callInst->getArgOperand(0));
 
 
   }
   else {
     // Value* addr = callInst->getArgOperand(0)->stripPointerCasts();
+    errs () << "Calee function != NULL\n";
     li = dyn_cast<LoadInst>(callInst->
 				      getArgOperand(0)->
 				      stripPointerCasts());
+
+    
+  }  
+  if(li == NULL) {
+      errs () << "li = NULL\n";     
+
+      Value* args[] = { 
+	  	    callInst->getArgOperand(0),	  	    
+	  	    this->line_value,
+	  	    function_llvm
+      };
+
+      builder.CreateCall(map2check_free_resolved_address, args);
+
+      //  callInst->setCalledFunction(v);   
+
+      // li = dyn_cast<LoadInst>(callInst->getArgOperand(0));
+      // auto name = li->getPointerOperand()->getName();  
   }
+  else {
+    
+    auto name = li->getPointerOperand()->getName();      
+    Value* name_llvm = builder
+      .CreateGlobalStringPtr(name);    
 
-  auto name = li->getPointerOperand()->getName();
-  IRBuilder<> builder((Instruction*)j);
-  Value* name_llvm = builder
-    .CreateGlobalStringPtr(name);
+    Twine non_det("bitcast_map2check");
+    Value* pointerCast = CastInst
+      ::CreatePointerCast(li->getPointerOperand(),
+	  		Type::getInt8PtrTy(*this->Ctx),
+	  		non_det,
+	  		(Instruction*) j);
+      
+    Value* args[] = { name_llvm,
+	  	    pointerCast,
+	  	    this->scope_value,
+	  	    this->line_value,
+	  	    function_llvm
+    };
 
-  auto function_name = this->currentFunction->getName();
-  Value* function_llvm = builder
-    .CreateGlobalStringPtr(function_name);
-
-  Twine non_det("bitcast_map2check");
-  Value* pointerCast = CastInst
-    ::CreatePointerCast(li->getPointerOperand(),
-			Type::getInt8PtrTy(*this->Ctx),
-			non_det,
-			(Instruction*) j);
-
-  Value* args[] = { name_llvm,
-		    pointerCast,
-		    this->scope_value,
-		    this->line_value,
-		    function_llvm
-  };
-
-  builder.CreateCall(map2check_free, args);
+    builder.CreateCall(map2check_free, args);
+  }
+  
 }
 
 void MemoryTrackPass::getDebugInfo() {
@@ -146,11 +168,14 @@ void MemoryTrackPass::getDebugInfo() {
   if(location) {
     scope_number = location.getScope()->getMetadataID();
     line_number = location.getLine();
+
+    errs() << "LINE: " << line_number << "\n";
   }
   else {
     scope_number = 0;
     line_number  = 0;
   }
+
 
   this->scope_value = ConstantInt
     ::getSigned(Type::getInt32Ty(*this->Ctx), scope_number);
@@ -185,15 +210,16 @@ void MemoryTrackPass::instrumentReleaseMemory() {
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
   if (this->caleeFunction->getName() == "free") {
-
+    errs() << "Instrumenting free\n";
     this->instrumentFree();
   }
   else if (this->caleeFunction->getName() == "malloc") {
+    errs() << "Instrumenting malloc\n";
     this->instrumentMalloc();
   }
   // TODO: Resolve SVCOMP ISSUE
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")
-	  ) {
+	  ) {      
     this->instrumentKlee(NonDetType::INTEGER);
     this->instrumentKleeInt();
   }
@@ -235,6 +261,7 @@ void MemoryTrackPass::instrumentTargetFunction() {
 // TODO: make dynCast only one time
 void MemoryTrackPass::runOnCallInstruction() {
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  errs() << "Finding call function\n";
   this->caleeFunction = callInst->getCalledFunction();
 
   if (this->caleeFunction == NULL) {
@@ -270,6 +297,14 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt32Ty(*this->Ctx),
 			Type::getInt32Ty(*this->Ctx),
 			NULL);
+
+   this->map2check_free_resolved_address = F.getParent()->
+    getOrInsertFunction("map2check_free_resolved_address",
+			Type::getVoidTy(*this->Ctx),
+			Type::getInt8PtrTy(*this->Ctx),
+			Type::getInt32Ty(*this->Ctx),
+      Type::getInt8PtrTy(*this->Ctx),
+			NULL);   
 
     this->map2check_klee_int = F.getParent()->
       getOrInsertFunction("map2check_klee_int",

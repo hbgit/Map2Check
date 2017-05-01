@@ -224,8 +224,9 @@ bool valid_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log);
  * @param list  Address to a list log
  * @param address  Address to be updates
  * @param status  Current memory status
+ * @param line  Line where operation happened
  */ 
-void updateReferenceListLog(LIST_LOG* list, long address, MEMORY status);
+void updateReferenceListLog(LIST_LOG* list, long address, MEMORY status, unsigned line);
 
 
 MEMORY getType(LIST_LOG_ROW* row);

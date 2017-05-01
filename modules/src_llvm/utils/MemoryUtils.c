@@ -221,7 +221,7 @@ void map2check_add_store_pointer(void* var, void* value,unsigned scope, const ch
   LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, function_name);
   void* oldAddress = getOldReference(name, &list_map2check);
   mark_map_log(&list_map2check, &row);
-  updateReferenceListLog(&list_map2check,(long) value, status);
+  updateReferenceListLog(&list_map2check,(long) value, status, line);
 
   status = check_address_allocation_log(&allocations_map2check, (long) oldAddress);
 
@@ -511,7 +511,7 @@ void map2check_free( const char* name, void* ptr, unsigned scope, const unsigned
 
   mark_deallocation_log(&allocations_map2check, (long) *addr);
   mark_map_log(&list_map2check, &row);
-  updateReferenceListLog(&list_map2check, (long) *addr, FREE);
+  updateReferenceListLog(&list_map2check, (long) *addr, FREE, line);
 
 }
 
@@ -525,7 +525,7 @@ void map2check_target_function(const char* func_name, int scope, int line) {
   map2check_ERROR();
 }
 
-void updateReferenceListLog(LIST_LOG* list, long address, MEMORY status) {
+void updateReferenceListLog(LIST_LOG* list, long address, MEMORY status, unsigned line) {
   int i = 0;
   int currentSize = list->size;
   for(; i < currentSize; i++) {
@@ -564,7 +564,7 @@ void updateReferenceListLog(LIST_LOG* list, long address, MEMORY status) {
                                             oldRow.scope, 
                                             isDynamic, 
                                             isFree, 
-                                            oldRow.line_number, 
+                                            line, 
                                             oldRow.var_name, 
                                             oldRow.function_name);
   
@@ -590,4 +590,27 @@ MEMORY getType(LIST_LOG_ROW* row) {
 
   return STATIC;
 
+
+}
+
+void map2check_free_resolved_address(void* ptr, unsigned line, const char* function_name) { 
+
+  printf("Got %p\n", ptr);
+  bool error = map2check_is_invalid_free((long) ptr);
+
+  if(error) {
+    printf("VERIFICATION FAILED\n\n");
+    printf("FALSE-FREE: Operand of free must have zero pointer offset\n");
+    printf("Line %d in function %s\n\n", line, function_name);
+    printf("FAILED\n");
+    FILE* output = fopen("map2check_property", "w");
+    fprintf(output, "FALSE-FREE\n");
+    fprintf(output, "Line: %d\n", line);
+    fprintf(output, "Function: %s\n", function_name);
+    fclose(output);
+    map2check_ERROR();
+  }
+  mark_deallocation_log(&allocations_map2check, (long) ptr);  
+  updateReferenceListLog(&list_map2check, (long) ptr, FREE, line);
+  
 }

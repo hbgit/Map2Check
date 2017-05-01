@@ -149,7 +149,7 @@ void Caller::callKlee() {
   std::ostringstream command;
   command.str("");
   command << Map2Check::Tools::kleeBinary;
-  command << " --allow-external-sym-calls -exit-on-error --optimize optimized.bc  > kleeOutput.log";
+  command << " --allow-external-sym-calls -exit-on-error --optimize optimized.bc  > ExecutionOutput.log";
   system(command.str().c_str());
 }
 

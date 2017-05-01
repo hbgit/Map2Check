@@ -18,6 +18,8 @@ namespace Map2Check::Exceptions {
       string path;
   };
 
+  
+
   class ErrorOpeningFileException : public Map2CheckException {
     public:
       ErrorOpeningFileException(string path) : Map2CheckException("Could not open: " + path), path(path) {}

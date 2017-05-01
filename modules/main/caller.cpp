@@ -57,9 +57,13 @@ legacy::PassManager AnalysisPasses;
 
 
 Caller::Caller( std::string bcprogram_path ) {
-  this->pathprogram = bcprogram_path;
+  this->pathprogram = bcprogram_path;  
 }
 
+void Caller::cleanGarbage() {
+   const char* command ="rm -rf klee* list* clang.out map2check_property optimized.bc output.bc inter.bc result.bc witnessInfo compiled.bc";
+  system(command);
+}
 void Caller::printdata() {
   cout << "File Path:" << this->pathprogram << endl;
   this->parseIrFile();
@@ -68,7 +72,6 @@ void Caller::printdata() {
 int Caller::parseIrFile(){
   // Parse the input LLVM IR file into a module.
   Map2Check::Log::Debug("Parsing file " + this->pathprogram);
-  system("pwd");
   StringRef filename = this->pathprogram;
 
   SMDiagnostic SM;
@@ -134,10 +137,10 @@ void Caller::linkLLVM() {
 
   const char* command3 = "./bin/opt -O3 result.bc > optimized.bc";
   system(command3);
-#ifndef DEBUG
+
   system("rm inter.bc");
   system("rm output.bc");
-#endif
+
 }
 
 // TODO: Implement using klee api
@@ -146,7 +149,7 @@ void Caller::callKlee() {
   std::ostringstream command;
   command.str("");
   command << Map2Check::Tools::kleeBinary;
-  command << " --allow-external-sym-calls --optimize optimized.bc  > kleeOutput.log";
+  command << " --allow-external-sym-calls -exit-on-error --optimize optimized.bc  > kleeOutput.log";
   system(command.str().c_str());
 }
 

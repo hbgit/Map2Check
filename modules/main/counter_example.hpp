@@ -146,8 +146,9 @@ namespace Map2Check {
   class CounterExample {
   public:
     CounterExample(std::string path);
+    std::string getViolatedProperty();
   private:
-
+    Tools::PropertyViolated property;
     std::vector<std::unique_ptr<CounterExampleRow> > counterExampleRows;
     std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
     void processKleeLog();

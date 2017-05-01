@@ -127,6 +127,9 @@ void print_allocation_log(MEMORY_ALLOCATIONS_LOG* allocation_log);
  */
 MEMORY_ALLOCATIONS_ROW new_memory_row(long address, bool is_free);
 
+void* getOldReference(const char* varName, LIST_LOG* log);
+bool isDerefError(long address, LIST_LOG* log);
+
 
 /**
  * This method initializes a LIST_LOG_ROW with the defined parameters
@@ -202,5 +205,7 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope, const c
  * @return An integer representing a non deterministic value
  */
 int map2check_non_det_int();
+
+void map2check_ERROR();
 
 #endif

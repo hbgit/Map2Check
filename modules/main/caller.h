@@ -24,6 +24,7 @@ class Caller {
   int callPass(std::string target_function);
   void linkLLVM();
   void callKlee();
+  void cleanGarbage();
 };
 
 class CallerException : public runtime_error {

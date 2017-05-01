@@ -28,8 +28,30 @@ void CounterExample::processProperty() {
     std::string path = violated.path_name;    
     std::unique_ptr<CounterExampleRow> row = std::make_unique<CounterExampleProperty>(step, state, path, 0, violated.propertyViolated, violated.line, violated.function_name);
     this->counterExampleRows.push_back(std::move(row));
+    this->property = violated.propertyViolated;
   
 }
+
+std::string CounterExample::getViolatedProperty() {
+  if(this->property == Tools::PropertyViolated::FALSE_FREE) {
+    return "FALSE-FREE";
+  }
+
+  if(this->property == Tools::PropertyViolated::TARGET_REACHED) {
+    return "TARGET-REACHED";
+  }
+
+  if(this->property == Tools::PropertyViolated::FALSE_DEREF) {
+    return "FALSE-DEREF";
+  }
+
+  if(this->property == Tools::PropertyViolated::NONE) {
+    return "TRUE";
+  }
+
+  return "";
+}
+
 
 // TODO: Add Support to other non det type
 void CounterExample::processKleeLog() {

@@ -33,7 +33,7 @@ void MemoryTrackPass::instrumentKleeInt() {
 
 
 void MemoryTrackPass::addWitnessInfo(std::string info) {
-  int result = system(info.c_str());
+  // int result = system(info.c_str());
   // If result != 0 means that something gone wrong
 }
 
@@ -317,11 +317,11 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
 void MemoryTrackPass::cleanWitnessInfoFile() {
   // Clean witnessInfo if it already exists
-  std::ostringstream command;
-  command.str("");
-  command << echoCommand <<  " > "  << infoFile << "\n";
-  errs() << command.str();
-  this->addWitnessInfo(command.str());
+  // std::ostringstream command;
+  // command.str("");
+  // command << echoCommand <<  " > "  << infoFile << "\n";
+  // errs() << command.str();
+  // this->addWitnessInfo(command.str());
 }
 bool MemoryTrackPass::runOnFunction(Function &F) {
   this->Ctx = &F.getContext();

@@ -17,6 +17,7 @@ using namespace std;
 #include "caller.h"
 #include "verifier.h"
 #include "log.h"
+#include "exceptions.hpp"
 #include "tools.h"
 #include "counter_example.hpp"
 
@@ -68,6 +69,7 @@ int main(int argc, char** argv)
 	("help,h", "\tshow help")
 	("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
 	("target-function,f", po::value< string >(), "\tchecks if function can be executed")
+	("expected-result,e", po::value< string >(), "\tspecifies what output should be, used for tests")
 	;
 
       po::positional_options_description p;
@@ -95,8 +97,7 @@ int main(int argc, char** argv)
 
 	  if (vm.count("input-file")) {
 	    // TODO: Refactor for better reading
-	    cout << "Input file: "
-		 << vm["input-file"].as< std::vector<string> >() << "\n";
+	    // cout << "Input file: "<< vm["input-file"].as< std::vector<string> >() << "\n";
 	    std::string pathfile;
 	    pathfile = accumulate(boost::begin(vm["input-file"]
 					       .as< std::vector<string> >
@@ -130,11 +131,10 @@ int main(int argc, char** argv)
 	    caller->parseIrFile();
 
 	    Map2Check::Log::Info("Applying instrumentation");
-	    if (vm.count("target-function"))
-	      {
-		string function = vm["target-function"].as< string >();
-		Map2Check::Log::Debug("Starting pass with function " + function );
-		caller->callPass(function);
+	    if (vm.count("target-function")) {
+					string function = vm["target-function"].as< string >();
+					Map2Check::Log::Debug("Starting pass with function " + function );
+					caller->callPass(function);
 	      }
 	    else {
 	      caller->callPass();
@@ -147,13 +147,24 @@ int main(int argc, char** argv)
 	    caller->callKlee();
 
       Map2Check::Log::Info("Started counter example generation");
-      Map2Check::CounterExample(std::string(pathfile));
-      // Map2Check::Tools::KleeLogHelper::getListLogFromCSV();
-      // Map2Check::Tools::ListLogHelper::getListLogFromCSV();
-      // Map2Check::CounterExample::generateCounterExample(std::string(pathfile));
+       
+			std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
+	    
 
-	    // Map2Check::Log::Info("Started witness generation");
-	    // Witness witness("./klee-last");
+			caller->cleanGarbage();
+
+			if (vm.count("expected-result")) {
+					string function = vm["expected-result"].as< string >();
+					Map2Check::Log::Debug("Expected result: " + function );
+					
+					if (counterExample->getViolatedProperty() == function) {
+						return SUCCESS;
+					}
+					else {
+						 throw Map2Check::Exceptions::Map2CheckException("Unexpected result");
+					}
+			} 
+			
 	    return SUCCESS;
 	  }
 

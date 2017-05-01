@@ -1,5 +1,6 @@
 #include <stdio.h>
 // #include <stdlib.h>
+#include <string.h>
 #include <klee/klee.h>
 #include "MemoryUtils.h"
 
@@ -218,7 +219,65 @@ void map2check_add_store_pointer(void* var, void* value,unsigned scope, const ch
     break;
   }
   LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, function_name);
-  mark_map_log(&list_map2check, &row);
+  void* oldAddress = getOldReference(name, &list_map2check);
+   mark_map_log(&list_map2check, &row);
+
+  status = check_address_allocation_log(&allocations_map2check, (long) oldAddress);
+
+  // If memory address is dynamic we should check if another var points to that addres, if not
+  // it may be a deref  
+  if (status == DYNAMIC) {
+    // if(isDerefError((long) oldAddress, &list_map2check)) {
+    //   FILE* output = fopen("map2check_property", "w");
+    //   fprintf(output, "FALSE-DEREF\n");
+    //   fprintf(output, "Line: %d\n", line);
+    //   fprintf(output, "Function: %s\n", function_name);
+    //   fclose(output);
+    //   map2check_ERROR();
+    // }
+  }
+
+ 
+}
+
+bool isDerefError(long address, LIST_LOG* log) {
+  int i = log->size - 1;
+  for(;i >= 0 ; i--) {
+    LIST_LOG_ROW* row = &log->values[i];
+    if(row->memory_address_points_to == address) {
+       printf("SEARCHING FOR PREVIOUS CALL WITH VAR %s",row->var_name );
+       int j = log->size - 1;
+       for(; j > i; j--) {
+         LIST_LOG_ROW* row2 = &log->values[j];
+         if (!strcmp(row->var_name, row2->var_name)) {
+           printf("FOUND %ld",row2->memory_address_points_to );
+           if(row2->memory_address_points_to != address) {
+              return true;      
+           }
+           else {
+             break;
+           }
+         }
+       }
+    }
+  }
+
+  
+  return false;
+}
+
+void* getOldReference(const char* varName, LIST_LOG* log) {
+  int i = log->size - 1;
+  for(;i >= 0 ; i--) {
+    LIST_LOG_ROW* row = &log->values[i];
+
+    if (!strcmp(row->var_name, varName)) {
+      return row->memory_address_points_to;
+    }
+  }
+
+  //FIXME: Throw fatal
+  return 0;
 }
 
 void map2check_pointer(void* x,unsigned scope, const char* name, int line){
@@ -348,25 +407,23 @@ int map2check_is_invalid_free(long ptr) {
   int i = list_map2check.size - 1;
 
   for(; i >= 0; i--) {
-    long points_to = list_map2check.values[i]
-      .memory_address_points_to;
+    long points_to = list_map2check.values[i].memory_address_points_to;
 
     if (points_to == ptr) {
 
-      bool is_free = list_map2check
-	.values[i].is_free;
-      bool is_dynamic = list_map2check
-	.values[i].is_dynamic;
+      bool is_free = list_map2check.values[i].is_free;
+      bool is_dynamic = list_map2check.values[i].is_dynamic;
 
       if(is_free || (!is_dynamic)) {
-	return true;
+	      return true;
       }
       else {
-	return false;
+	      return false;
       }
     }
   }
 
+   //FIXME: Throw fatal
   return true;
 }
 
@@ -379,6 +436,14 @@ void map2check_ERROR() {
   free_list_log(&list_map2check);
   free_klee_log(&klee_map2check);
   klee_assert(0);
+}
+
+void map2check_success() {
+  free_list_log(&list_map2check);
+  free_klee_log(&klee_map2check);
+  FILE* output = fopen("map2check_property", "w");
+  fprintf(output, "NONE");
+  fclose(output);
 }
 
 

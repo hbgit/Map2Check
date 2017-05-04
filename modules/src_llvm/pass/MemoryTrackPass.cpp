@@ -203,8 +203,19 @@ void MemoryTrackPass::instrumentReleaseMemory() {
   i--;
 
   IRBuilder<> builder((Instruction*)i);
-  //Value* args[] = {};
   builder.CreateCall(this->map2check_success);
+}
+
+void MemoryTrackPass::instrumentInit() {
+  Function::iterator bb = this->currentFunction->begin();
+  // // bb--;
+
+  BasicBlock::iterator i = bb->begin();
+  // // i--;
+
+  IRBuilder<> builder((Instruction*)i);
+  //Value* args[] = {};
+  builder.CreateCall(this->map2check_init);
 }
 
 // TODO: use hash table instead of nested "if's"
@@ -298,6 +309,11 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt32Ty(*this->Ctx),
 			NULL);
 
+   this->map2check_init = F.getParent()->
+    getOrInsertFunction("map2check_init",
+			Type::getVoidTy(*this->Ctx),
+			NULL);   
+
    this->map2check_free_resolved_address = F.getParent()->
     getOrInsertFunction("map2check_free_resolved_address",
 			Type::getVoidTy(*this->Ctx),
@@ -381,6 +397,7 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
    }
 
    if(F.getName() == "main") {
+     this->instrumentInit();
      this->instrumentReleaseMemory();
    }
 

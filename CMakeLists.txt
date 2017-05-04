@@ -29,6 +29,8 @@ find_program(LLVM_CONFIG llvm-config
 find_program(CLANG clang-3.8
   HINTS ${LLVM_BUILD}/bin)
 
+find_program(LLVM_LINK llvm-link
+  HINTS ${LLVM_BUILD}/bin)
 
 if(NOT LLVM_CONFIG)
     message(FATAL_ERROR "LLVM not found!")
@@ -36,6 +38,10 @@ endif()
 
 if(NOT CLANG)
     message(FATAL_ERROR "CLANG not found!")
+endif()
+
+if(NOT LLVM_LINK)
+    message(FATAL_ERROR "LLVM-LINK not found!")
 endif()
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE LLVM_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)

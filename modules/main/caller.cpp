@@ -129,17 +129,17 @@ void Caller::genByteCodeFile() {
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
 
-  const char* command = "./bin/llvm-link output.bc lib/utils.bc > inter.bc";
+  const char* command = "./bin/llvm-link output.bc lib/Map2CheckFunctions.bc lib/AllocationLog.bc  lib/Container.bc lib/KleeLog.bc lib/ListLog.bc lib/PropertyGenerator.bc> result.bc";
   system(command);
 
-  const char* command2 = "./bin/llvm-link inter.bc lib/memoryutils.bc > result.bc";
-  system(command2);
+  // const char* command2 = "./bin/llvm-link inter.bc lib/memoryutils.bc > result.bc";
+  // system(command2);
 
   const char* command3 = "./bin/opt -O3 result.bc > optimized.bc";
   system(command3);
 
-  system("rm inter.bc");
-  system("rm output.bc");
+  // system("rm inter.bc");
+  // system("rm output.bc");
 
 }
 

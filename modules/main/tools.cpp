@@ -98,6 +98,9 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         } else if(line == "FALSE-MEMTRACK") {
           Map2Check::Log::Debug("FALSE-MEMTRACK found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
+        }else if(line == "UNKNOWN") {
+          Map2Check::Log::Debug("UNKNOWN found");
+          this->propertyViolated = Tools::PropertyViolated::UNKNOWN;  
         }else if(line == "NONE") {
           Map2Check::Log::Debug("NONE found");
           this->propertyViolated = Tools::PropertyViolated::NONE;

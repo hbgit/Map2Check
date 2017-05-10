@@ -21,7 +21,7 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
   *result = value;
   KLEE_CALL kleeCall = new_klee_call(INTEGER, line, scope, result,function_name, Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
-  printf("adding klee call\n");
+  
   append_element(&klee_log, &kleeCall);
 
 }
@@ -53,8 +53,7 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope, const c
   }
   LIST_LOG_ROW row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, function_name, Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
-//   long oldAddress = getOldReference(name, &list_log);
-  printf("Adding element list log\n")  ;
+
   append_element(&list_log, &row);
   update_reference_list_log((long)value, status, line);
 }
@@ -148,5 +147,65 @@ void map2check_exit() {
 }
 
 void update_reference_list_log(long address, enum MemoryAddressStatus status, unsigned line) {
+    int i = 0;
+    int currentSize = list_log.size;
+    for(; i < currentSize; i++) {
+        LIST_LOG_ROW* iRow = (LIST_LOG_ROW*) get_element_at(i, list_log); 
+        if(!iRow) {
+                    printf("error with jRow\n");
+                }
+        long currentAddress = iRow->memory_address_points_to;
+        long currentVarAddress = iRow->memory_address;
 
+        if((currentAddress == address ) && (status != get_type_from_list_log_row(iRow))) {
+            int j = currentSize - 1;
+
+            for(;i <= j; j-- ) {
+                LIST_LOG_ROW* jRow = (LIST_LOG_ROW*) get_element_at(j, list_log); 
+                if(!jRow) {
+                    printf("error with jRow\n");
+                }
+                long otherAddress =  jRow->memory_address_points_to;
+                long otherVarAddress = jRow->memory_address;
+                int sameVar = otherVarAddress == currentVarAddress;
+
+                if((otherAddress == address ) && (sameVar)) {
+                     enum MemoryAddressStatus otherStatus = get_type_from_list_log_row(jRow);
+                     if (otherStatus != status) {
+                        Bool isDynamic;
+                        Bool isFree;         
+
+                        switch (status) {            
+                           case STATIC:              
+                               isDynamic = FALSE;             
+                               isFree = FALSE;              
+                               break;            
+                           case FREE:             
+                               isDynamic = FALSE;              
+                               isFree = TRUE;              
+                               break;            
+                           case DYNAMIC:              
+                               isDynamic = TRUE;              
+                               isFree = FALSE;              
+                               break;            
+                        }
+                        
+                        LIST_LOG_ROW row = new_list_row(jRow->memory_address,
+                                            jRow->memory_address_points_to, 
+                                            jRow->scope, 
+                                            isDynamic, 
+                                            isFree, 
+                                            line, 
+                                            jRow->var_name, 
+                                            jRow->function_name,
+                                            Map2CheckCurrentStep);
+                        Map2CheckCurrentStep++;  
+                        append_element(&list_log, &row);
+                        
+                     }
+                     break;
+                }
+            }
+        }   
+    }
 }

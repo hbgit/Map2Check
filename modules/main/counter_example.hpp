@@ -40,6 +40,34 @@ namespace Map2Check {
         return (this->step >= row.step);
     }
   };
+
+
+  class CounterExampleListLogRow : public CounterExampleRow {
+    protected:
+      Tools::ListLogRow row;
+      std::string lineC;
+
+      virtual std::string convertToString() {
+        std::ostringstream cnvt;
+        cnvt.str("");
+
+        cnvt << "State " << this->state << " ";
+        cnvt << "file " << this->fileName << " ";
+        cnvt << "Line content " << this->lineC << "\n";
+
+        cnvt << (std::string) this->row;
+
+        return cnvt.str();
+
+      }
+
+    public:
+      CounterExampleListLogRow(Tools::ListLogRow row, int step, int state, std::string fileName, int ref, std::string lineC) :
+      lineC(lineC), row(row), CounterExampleRow(step,state,fileName,ref) {}
+  }; 
+
+
+
   class CounterExampleKleeRow : public CounterExampleRow {
   protected:
     Tools::KleeLogRow row;
@@ -149,10 +177,11 @@ namespace Map2Check {
   // };
   //
 
-  class CounterExample {
+  class CounterExample {  
   public:
-    CounterExample(std::string path);
+    CounterExample(std::string path);    
     std::string getViolatedProperty();
+    void printCounterExample(bool printListLog = false);
   private:
     Tools::PropertyViolated property;
     std::vector<std::unique_ptr<CounterExampleRow> > counterExampleRows;

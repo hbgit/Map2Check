@@ -70,6 +70,7 @@ int main(int argc, char** argv)
 	("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
 	("target-function,f", po::value< string >(), "\tchecks if function can be executed")
 	("expected-result,e", po::value< string >(), "\tspecifies what output should be, used for tests")
+	("print-list-log,p", po::value< string >(), "\tprints list log durint counter example")
 	;
 
       po::positional_options_description p;
@@ -149,7 +150,7 @@ int main(int argc, char** argv)
       Map2Check::Log::Info("Started counter example generation");
        
 			std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
-	    
+	    counterExample->printCounterExample();
 
 			caller->cleanGarbage();
 

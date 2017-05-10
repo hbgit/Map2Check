@@ -34,6 +34,7 @@ namespace Map2Check::Tools {
     FALSE_FREE,
     FALSE_DEREF,
     FALSE_MEMTRACK,
+    UNKNOWN,
     NONE
   };
 

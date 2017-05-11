@@ -1,4 +1,4 @@
-#include <stdio.h>
+// #include <stdio.h>
 
 int main() {
   int* A = malloc(sizeof(int));
@@ -13,4 +13,5 @@ int main() {
   }
 
   free(A);
+  return 0;
 }

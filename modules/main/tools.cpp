@@ -54,8 +54,9 @@ std::string Tools::SourceCodeHelper::substituteWithResult(int line, std::string 
 
 std::string Tools::SourceCodeHelper::getLine(unsigned line) {
   // precondition: line >= 1 AND line < this->cFileLines.size();
+  // Map2Check::Log::Debug("Line:" + 7);
   if (line < 1 || line >= cFileLines.size()) {
-    throw Map2Check::Exceptions::OutOfBounds();
+    return "";
   }
 
   return this->cFileLines[line - 1];

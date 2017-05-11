@@ -101,8 +101,8 @@ void CounterExample::processListLog() {
     std::string path = this->sourceCodeHelper->getFilePath();
     int state = 0;
     int lineNumber =  std::stoi(listLogRows[i].lineNumber);
+    Log::Debug("Line: " + listLogRows[i].lineNumber);
     std::string lineC = this->sourceCodeHelper->getLine(lineNumber);
-
      std::unique_ptr<CounterExampleRow> row = std::make_unique<CounterExampleListLogRow>(listLogRows[i], step, state, path, ref, lineC);
       this->counterExampleRows.push_back(std::move(row));
       ref++;

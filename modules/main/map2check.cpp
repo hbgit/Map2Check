@@ -152,15 +152,15 @@ int main(int argc, char** argv)
 			std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
 	    counterExample->printCounterExample();
 	
-			// if (vm.count("target-function")) {
-			// 		string function = vm["target-function"].as< string >();
-			// 		Map2Check::SVCompWitness svcomp(pathfile, "0ace98123", function);
-			// 		svcomp.Testify();
-	    //   }
-	    // else {
-	    //   Map2Check::SVCompWitness svcomp(pathfile, "0ace98123");
-			// 	svcomp.Testify();
-	    // }
+			if (vm.count("target-function")) {
+					string function = vm["target-function"].as< string >();
+					Map2Check::SVCompWitness svcomp(pathfile, "0ace98123", function);
+					svcomp.Testify();
+	      }
+	    else {
+	      Map2Check::SVCompWitness svcomp(pathfile, "0ace98123");
+				svcomp.Testify();
+	    }
 
 			caller->cleanGarbage();
 

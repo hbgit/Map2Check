@@ -84,8 +84,14 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, s
     std::vector<Tools::KleeLogRow> kleeLogRows = Tools::KleeLogHelper::getListLogFromCSV();
 
     if(kleeLogRows.size() == 0) {
+        std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
+        
         std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
-        startNode->AddElement(std::move(violationNode));
+        newNode->AddElement(std::move(violationNode));
+
+        std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
+        this->automata.AddEdge(std::move(newEdge));
+        this->automata.AddNode(std::move(newNode));
     }
     this->automata.AddNode(std::move(startNode));
 

@@ -5,6 +5,7 @@
 #include <memory>
 #include <sstream>
 
+#pragma once
 namespace Map2Check {
 
 

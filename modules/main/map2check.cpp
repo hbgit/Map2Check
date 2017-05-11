@@ -15,12 +15,13 @@ namespace po = boost::program_options;
 using namespace std;
 
 #include "caller.h"
-#include "verifier.h"
+// #include "verifier.h"
+#include "witness.hpp"
 #include "log.h"
 #include "exceptions.hpp"
 #include "tools.h"
 #include "counter_example.hpp"
-
+#include "witness.hpp"
 namespace
 {
   const size_t SUCCESS = 0;
@@ -147,10 +148,19 @@ int main(int argc, char** argv)
 	    Map2Check::Log::Info("Started klee execution");
 	    caller->callKlee();
 
-      Map2Check::Log::Info("Started counter example generation");
-       
+      Map2Check::Log::Info("Started counter example generation");       
 			std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
 	    counterExample->printCounterExample();
+	
+			// if (vm.count("target-function")) {
+			// 		string function = vm["target-function"].as< string >();
+			// 		Map2Check::SVCompWitness svcomp(pathfile, "0ace98123", function);
+			// 		svcomp.Testify();
+	    //   }
+	    // else {
+	    //   Map2Check::SVCompWitness svcomp(pathfile, "0ace98123");
+			// 	svcomp.Testify();
+	    // }
 
 			caller->cleanGarbage();
 

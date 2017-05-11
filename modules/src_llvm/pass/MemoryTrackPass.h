@@ -42,6 +42,7 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentFree();
   void instrumentKleeInt();
   void instrumentInit();
+  void instrumentReleaseMemoryOnCurrentInstruction();
   void instrumentReleaseMemory();
   void runOnCallInstruction();
   void runOnStoreInstruction();

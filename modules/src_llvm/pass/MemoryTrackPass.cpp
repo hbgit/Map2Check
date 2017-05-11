@@ -195,6 +195,14 @@ int MemoryTrackPass::getLineNumber() {
   return line_number;
 }
 
+void MemoryTrackPass::instrumentReleaseMemoryOnCurrentInstruction() {
+  auto j = this->currentInstruction;
+  // j--;
+  IRBuilder<> builder((Instruction*)j);
+  builder.CreateCall(this->map2check_success);
+  
+}
+
 void MemoryTrackPass::instrumentReleaseMemory() {
   Function::iterator bb = this->currentFunction->end();
   bb--;
@@ -227,6 +235,14 @@ void MemoryTrackPass::switchCallInstruction() {
   else if (this->caleeFunction->getName() == "malloc") {
     errs() << "Instrumenting malloc\n";
     this->instrumentMalloc();
+  }
+   else if (this->caleeFunction->getName() == "exit") {
+    errs() << "Instrumenting exit call\n";
+    this->instrumentReleaseMemoryOnCurrentInstruction();
+  }
+   else if (this->caleeFunction->getName() == "abort") {
+    errs() << "Instrumenting abort call\n";
+    this->instrumentReleaseMemoryOnCurrentInstruction();
   }
   // TODO: Resolve SVCOMP ISSUE
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")

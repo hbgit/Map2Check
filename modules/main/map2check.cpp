@@ -148,21 +148,25 @@ int main(int argc, char** argv)
 	    Map2Check::Log::Info("Started klee execution");
 	    caller->callKlee();
 
-      Map2Check::Log::Info("Started counter example generation");       
-			std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
+        Map2Check::Log::Info("Started counter example generation");
+        std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
 	    counterExample->printCounterExample();
-	
-			if (vm.count("target-function")) {
-					string function = vm["target-function"].as< string >();
-					Map2Check::SVCompWitness svcomp(pathfile, "0ace98123", function);
-					svcomp.Testify();
-	      }
-	    else {
-	      Map2Check::SVCompWitness svcomp(pathfile, "0ace98123");
-				svcomp.Testify();
-	    }
+        namespace tools = Map2Check::Tools;
+        tools::PropertyViolated propertyViolated = counterExample->getProperty();
+        if ((propertyViolated != tools::PropertyViolated::NONE) && (propertyViolated != tools::PropertyViolated::UNKNOWN)){
+            if (vm.count("target-function")) {
+                string function = vm["target-function"].as< string >();
+                Map2Check::SVCompWitness svcomp(pathfile, "0ace98123", function);
+                svcomp.Testify();
+            }
+            else {
+                Map2Check::SVCompWitness svcomp(pathfile, "0ace98123");
+                svcomp.Testify();
+            }
+        }
 
-			caller->cleanGarbage();
+
+            //caller->cleanGarbage();
 
 			if (vm.count("expected-result")) {
 					string function = vm["expected-result"].as< string >();

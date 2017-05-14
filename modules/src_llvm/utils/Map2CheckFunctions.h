@@ -79,6 +79,22 @@ void map2check_malloc(void* ptr, int size);
 void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line,  const char* function_name);
 
 
+/**
+ * @brief Tracksaddresses from memory heap
+ * @param name Name of the variable allocated
+ * @param ptr  Memory address allocated
+ * @param size Size of the allocated address
+ */
+void map2check_alloca(const char* name, void* ptr, int size);
+
+
+/**
+ * @brief Tracks addresses from memory heap
+ * @param name Name of the variable allocated
+ * @param ptr  Memory address allocated
+ */
+void map2check_function(const char* name, void* ptr);
+
 /*
 * Generates TRUE result
 */

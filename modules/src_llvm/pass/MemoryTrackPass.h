@@ -13,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 
 using namespace llvm;
 
@@ -24,13 +25,13 @@ struct MemoryTrackPass : public FunctionPass {
     this->target_function = "";
     this->isTrackingFunction = false;
     this->cleanWitnessInfoFile();
-  };
+  }
  MemoryTrackPass(std::string function, bool SVCOMP =  true) : FunctionPass(ID) {
   this->SVCOMP = SVCOMP;
   this->target_function = function;
   this->isTrackingFunction = true;
   this->cleanWitnessInfoFile();
-  };
+  }
  virtual bool runOnFunction(Function &F);
 
  private:
@@ -44,6 +45,9 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentInit();
   void instrumentReleaseMemoryOnCurrentInstruction();
   void instrumentReleaseMemory();
+  void instrumentAllocation();
+  void instrumentFunctionAddress();
+  void runOnAllocaInstruction();
   void runOnCallInstruction();
   void runOnStoreInstruction();
   void switchCallInstruction();
@@ -55,14 +59,21 @@ struct MemoryTrackPass : public FunctionPass {
   bool SVCOMP;
   bool isTrackingFunction;
   std::string target_function;
+  bool mainFunctionInitialized = false;
+  std::vector<Function*> functionsValues;
   Function* currentFunction;
+  DataLayout* currentDataLayout;
+  Function* mainFunction;
   Function* caleeFunction;
   BasicBlock::iterator currentInstruction;
+  BasicBlock::iterator lastInstructionMain;
   Constant* map2check_target_function;
   Constant* map2check_pointer;
   Constant* map2check_malloc;
   Constant* map2check_free;
   Constant* map2check_init;
+  Constant* map2check_alloca;
+  Constant* map2check_function;
   Constant* map2check_free_resolved_address;
   Constant*  map2check_klee_int;
   Constant* map2check_success;

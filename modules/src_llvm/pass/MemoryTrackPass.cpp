@@ -130,11 +130,6 @@ void MemoryTrackPass::instrumentFree() {
       };
 
       builder.CreateCall(map2check_free_resolved_address, args);
-
-      //  callInst->setCalledFunction(v);   
-
-      // li = dyn_cast<LoadInst>(callInst->getArgOperand(0));
-      // auto name = li->getPointerOperand()->getName();  
   }
   else {
     
@@ -169,7 +164,6 @@ void MemoryTrackPass::getDebugInfo() {
     scope_number = location.getScope()->getMetadataID();
     line_number = location.getLine();
 
-    errs() << "LINE: " << line_number << "\n";
   }
   else {
     scope_number = 0;
@@ -210,7 +204,9 @@ void MemoryTrackPass::instrumentReleaseMemory() {
   BasicBlock::iterator i = bb->end();
   i--;
 
+
   IRBuilder<> builder((Instruction*)i);
+
   builder.CreateCall(this->map2check_success);
 }
 
@@ -229,19 +225,19 @@ void MemoryTrackPass::instrumentInit() {
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
   if (this->caleeFunction->getName() == "free") {
-    errs() << "Instrumenting free\n";
+
     this->instrumentFree();
   }
   else if (this->caleeFunction->getName() == "malloc") {
-    errs() << "Instrumenting malloc\n";
+
     this->instrumentMalloc();
   }
    else if (this->caleeFunction->getName() == "exit") {
-    errs() << "Instrumenting exit call\n";
+
     this->instrumentReleaseMemoryOnCurrentInstruction();
   }
    else if (this->caleeFunction->getName() == "abort") {
-    errs() << "Instrumenting abort call\n";
+
     this->instrumentReleaseMemoryOnCurrentInstruction();
   }
   // TODO: Resolve SVCOMP ISSUE
@@ -274,21 +270,72 @@ void MemoryTrackPass::instrumentTargetFunction() {
 
   builder.CreateCall(map2check_target_function,
 		     args);
+}
 
-  // Adding info for witness generation
-  std::ostringstream command;
-  command.str("");
-  command << echoCommand << " TARGET:" << this->getLineNumber();
-  command << " >> " << infoFile << "\n";
-  errs() << command.str();
+void MemoryTrackPass::instrumentFunctionAddress() {
+    if(!this->mainFunctionInitialized) {
+        this->functionsValues.push_back(this->currentFunction);
+        return;
+    }
 
-  this->addWitnessInfo(command.str());
+    Function::iterator bb = this->mainFunction->begin();
+    // // bb--;
+
+    BasicBlock::iterator i = bb->begin();
+    i++;
+
+
+    IRBuilder<> builder((Instruction*)i);
+    for(int iterator = 0; iterator < this->functionsValues.size(); iterator++) {
+        Value* name_llvm = builder.CreateGlobalStringPtr
+          (this->functionsValues[iterator]->getName());
+
+        Twine non_det("bitcast_map2check");
+        Value* pointerCast = CastInst
+          ::CreatePointerCast(this->functionsValues[iterator],
+                Type::getInt8PtrTy(*this->Ctx),
+                non_det,
+                (Instruction*) i);
+
+        Value* args[] = {name_llvm, pointerCast};
+        builder.CreateCall(map2check_function, args);
+    }
+
+    this->functionsValues.clear();
+}
+
+
+void MemoryTrackPass::instrumentAllocation() {
+  AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
+
+  auto j = this->currentInstruction;
+  j++;
+
+  Module* M = this->currentFunction->getParent();
+  const DataLayout dataLayout = M->getDataLayout();
+  auto type = allocaInst->getType()->getPointerElementType();
+  unsigned typeSize = dataLayout.getTypeSizeInBits(type)/8;
+
+  IRBuilder<> builder((Instruction*)j);
+  Value* name_llvm = builder.CreateGlobalStringPtr
+    (allocaInst->getName());
+
+  ConstantInt* typeSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
+
+  Twine non_det("bitcast_map2check");
+  Value* pointerCast = CastInst
+    ::CreatePointerCast(allocaInst,
+          Type::getInt8PtrTy(*this->Ctx),
+          non_det,
+          (Instruction*) j);
+
+  Value* args[] = {name_llvm, pointerCast, typeSizeValue};
+  builder.CreateCall(map2check_alloca, args);
 }
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::runOnCallInstruction() {
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
-  errs() << "Finding call function\n";
   this->caleeFunction = callInst->getCalledFunction();
 
   if (this->caleeFunction == NULL) {
@@ -312,6 +359,20 @@ void MemoryTrackPass::runOnStoreInstruction() {
    if(storeInst->getValueOperand()->getType()->isPointerTy()) {
      this->instrumentPointer();
    }
+}
+
+void MemoryTrackPass::runOnAllocaInstruction() {
+  AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
+
+  // If it has a name, it is a variable (TODO: CONFIRM THIS)
+  if(allocaInst->hasName()) {
+
+        if (allocaInst->isStaticAlloca()) {
+            this->instrumentAllocation();
+        }
+  }
+
+
 }
 
 void MemoryTrackPass::prepareMap2CheckInstructions() {
@@ -365,6 +426,21 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt64Ty(*this->Ctx),
 			NULL);
 
+  this->map2check_alloca = F.getParent()->
+    getOrInsertFunction("map2check_alloca",
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            NULL);
+
+  this->map2check_function = F.getParent()->
+    getOrInsertFunction("map2check_function",
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            NULL);
+
   this->map2check_free = F.getParent()->
     getOrInsertFunction("map2check_free",
 			Type::getVoidTy(*this->Ctx),
@@ -383,40 +459,40 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
 
 void MemoryTrackPass::cleanWitnessInfoFile() {
-  // Clean witnessInfo if it already exists
-  // std::ostringstream command;
-  // command.str("");
-  // command << echoCommand <<  " > "  << infoFile << "\n";
-  // errs() << command.str();
-  // this->addWitnessInfo(command.str());
+
 }
 bool MemoryTrackPass::runOnFunction(Function &F) {
-  this->Ctx = &F.getContext();
-  this->currentFunction = &F;
-  this->prepareMap2CheckInstructions();
+    this->Ctx = &F.getContext();
+    this->currentFunction = &F;
 
+    this->prepareMap2CheckInstructions();
+
+    if(F.getName() == "main") {
+        this->functionsValues.push_back(this->currentFunction);
+        this->mainFunctionInitialized = true;
+        this->mainFunction = &F;
+      this->instrumentInit();
+      this->instrumentReleaseMemory();
+    }
+    this->instrumentFunctionAddress();
    for (Function::iterator bb = F.begin(),
 	  e = F.end(); bb != e; ++bb) {
       for (BasicBlock::iterator i = bb->begin(),
-	     e = bb->end(); i != e; ++i) {
-	this->currentInstruction = i;
+	     e = bb->end(); i != e; ++i) {       
+          this->currentInstruction = i;
 
-
-	if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
-	  this->getDebugInfo();
-	  this->runOnCallInstruction();
-	} else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
-	  this->getDebugInfo();
-	  this->runOnStoreInstruction();
-	}
+          if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
+              this->getDebugInfo();
+              this->runOnCallInstruction();
+          } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
+              this->getDebugInfo();
+              this->runOnStoreInstruction();
+          } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
+              this->getDebugInfo();
+              this->runOnAllocaInstruction();
+          }
       }
    }
-
-   if(F.getName() == "main") {
-     this->instrumentInit();
-     this->instrumentReleaseMemory();
-   }
-
    return true;
 }
 

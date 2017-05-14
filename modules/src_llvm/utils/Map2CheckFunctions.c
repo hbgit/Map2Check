@@ -1,5 +1,6 @@
 #include "Map2CheckFunctions.h"
 #include <klee/klee.h>
+#include <stdio.h>
 
 int Map2CheckCurrentStep;
 
@@ -26,6 +27,13 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
 
 }
 
+void map2check_function(const char* name, void* ptr) {
+    printf("Found address %p with name %s\n", ptr, name);
+}
+
+void map2check_alloca(const char* name, void* ptr, int size) {
+    printf("Found address %p with name %s and size %d\n", ptr, name, size );
+}
 
 void map2check_add_store_pointer(void* var, void* value, unsigned scope, const char* name, int line, const char* function_name) {
   

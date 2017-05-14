@@ -182,6 +182,10 @@ namespace Map2Check {
   public:
     CounterExample(std::string path);    
     std::string getViolatedProperty();
+    Tools::PropertyViolated getProperty() {
+        return this->property;
+    }
+
     void printCounterExample(bool printListLog = false);
   private:
     Tools::PropertyViolated property;

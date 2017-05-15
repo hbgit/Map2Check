@@ -27,7 +27,15 @@ set_target_properties(CounterExample PROPERTIES COMPILE_FLAGS "${VERIFIER_FLAGS}
 add_library(Witness OBJECT witness.cpp)
 set_target_properties(Witness PROPERTIES COMPILE_FLAGS ${VERIFIER_FLAGS})
 
-add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass> $<TARGET_OBJECTS:Witness> $<TARGET_OBJECTS:Caller> $<TARGET_OBJECTS:Tools> $<TARGET_OBJECTS:CounterExample> $<TARGET_OBJECTS:Exceptions> log.cpp )
+add_library(GenCryptoHash OBJECT gen_crypto_hash.cpp)
+set_target_properties(GenCryptoHash PROPERTIES COMPILE_FLAGS "${VERIFIER_FLAGS}")
+
+add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass> 
+				$<TARGET_OBJECTS:Witness> $<TARGET_OBJECTS:Caller> 
+				$<TARGET_OBJECTS:Tools> 
+				$<TARGET_OBJECTS:CounterExample> 
+				$<TARGET_OBJECTS:GenCryptoHash> 
+				$<TARGET_OBJECTS:Exceptions> log.cpp )
 
 
 target_link_libraries(map2check ${Boost_LIBRARIES} ${CUSTOM_LLVM_LIBS} ${LLVM_SYSTEMFLAGS})

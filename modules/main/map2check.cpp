@@ -22,6 +22,8 @@ using namespace std;
 #include "tools.h"
 #include "counter_example.hpp"
 #include "witness.hpp"
+#include "gen_crypto_hash.hpp"
+
 namespace
 {
   const size_t SUCCESS = 0;
@@ -153,14 +155,20 @@ int main(int argc, char** argv)
 	    counterExample->printCounterExample();
         namespace tools = Map2Check::Tools;
         tools::PropertyViolated propertyViolated = counterExample->getProperty();
+        
+        //Generating hash key to the witness
+        GenHash genhashkey;
+        genhashkey.setFilePath(pathfile);
+        genhashkey.generate_sha1_hash_for_file();
+        
         if ((propertyViolated != tools::PropertyViolated::NONE) && (propertyViolated != tools::PropertyViolated::UNKNOWN)){
             if (vm.count("target-function")) {
                 string function = vm["target-function"].as< string >();
-                Map2Check::SVCompWitness svcomp(pathfile, "0ace98123", function);
+                Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(), function);
                 svcomp.Testify();
             }
             else {
-                Map2Check::SVCompWitness svcomp(pathfile, "0ace98123");
+                Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile());
                 svcomp.Testify();
             }
         }

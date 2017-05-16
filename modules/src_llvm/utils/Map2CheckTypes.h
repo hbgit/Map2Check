@@ -22,6 +22,7 @@ enum NONDET_TYPE {
 
 enum Container_Type {
     LIST_LOG_CONTAINER,
+    HEAP_LOG_CONTAINER,
     ALLOCATION_LOG_CONTAINER,
     KLEE_LOG_CONTAINER
 };
@@ -111,6 +112,30 @@ struct obj4 {
     /** Pointer to structure holding the values */
     void* values;
 } MAP2CHECK_CONTAINER;
+
+
+typedef
+/**
+  * Struct to represent the Heap Log
+*/
+struct obj5 {
+    /** Current ID on HeapRow */
+   unsigned id;
+    /** Line where operation occurred */
+   unsigned line;
+   /** Current scope number (llvm ir uses numbered scopes) */
+   unsigned scope;
+   /** Pointer where the generated value is stored */
+   void* value;
+   /** Size of the memory address */
+   int size;
+   /** Size of primitives */
+   int size_of_primitive;
+   /** Name of the function where operation took place */
+   const char* function_name;
+} MEMORY_HEAP_ROW;
+
+
 
 
 #endif

@@ -13,6 +13,7 @@ Bool mark_deallocation_log(MAP2CHECK_CONTAINER* allocation_log, long address) {
     if(allocation_log->type != ALLOCATION_LOG_CONTAINER) {
         return FALSE;
     }
+
     MEMORY_ALLOCATIONS_ROW row = new_memory_row(address, TRUE);
 
     return append_element(allocation_log, &row);

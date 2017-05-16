@@ -36,12 +36,16 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
         case KLEE_LOG_CONTAINER:
             new_allocation_size = container->size * sizeof(KLEE_CALL);
             break;        
+        case HEAP_LOG_CONTAINER:
+            new_allocation_size = container->size * sizeof(MEMORY_HEAP_ROW);
+            break;
     }
     // printf("new allocation size: %d\n", new_allocation_size);
     void* temp_list = realloc(container->values, new_allocation_size);
     
     LIST_LOG_ROW* list;
     MEMORY_ALLOCATIONS_ROW* allocationLog;
+    MEMORY_HEAP_ROW* heapLog;
     KLEE_CALL* kleeLog;
     switch(container->type) {
         case LIST_LOG_CONTAINER:
@@ -53,9 +57,14 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
             allocationLog[container->size - 1] = *((MEMORY_ALLOCATIONS_ROW*) row);            
             break; 
         case KLEE_LOG_CONTAINER:
-            kleeLog = (KLEE_CALL*) temp_list;            
-            kleeLog[container->size - 1] = *((KLEE_CALL*) row);            
-            break;        
+            kleeLog = (KLEE_CALL*) temp_list;
+            kleeLog[container->size - 1] = *((KLEE_CALL*) row);
+            break;
+        case HEAP_LOG_CONTAINER:
+            heapLog = (MEMORY_HEAP_ROW*) temp_list;
+            heapLog[container->size - 1] = *((MEMORY_HEAP_ROW*) row);
+            break;
+
     }
 
     container->values = temp_list;
@@ -70,6 +79,7 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
     LIST_LOG_ROW* listLogRows; 
     MEMORY_ALLOCATIONS_ROW* allocationLog;
     KLEE_CALL* kleeLog;
+    MEMORY_HEAP_ROW* heapLog;
     switch(container.type) {
         case LIST_LOG_CONTAINER:            
             listLogRows = (LIST_LOG_ROW*) container.values;
@@ -80,6 +90,9 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
         case KLEE_LOG_CONTAINER:            
             kleeLog = (KLEE_CALL*) container.values;
             return (&kleeLog[index]);        
+        case HEAP_LOG_CONTAINER:
+            heapLog = (MEMORY_HEAP_ROW*) container.values;
+            return (&heapLog[index]);
     }
     return NULL;
 }

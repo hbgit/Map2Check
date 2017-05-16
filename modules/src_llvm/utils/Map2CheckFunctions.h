@@ -80,12 +80,13 @@ void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line, 
 
 
 /**
- * @brief Tracksaddresses from memory heap
- * @param name Name of the variable allocated
- * @param ptr  Memory address allocated
- * @param size Size of the allocated address
+ * @brief Tracks addresses from memory heap
+ * @param name               Name of the variable allocated
+ * @param ptr                Memory address allocated
+ * @param size               Size of the allocated address
+ * @param size_of_primitive  Size of the primitive on allocated address
  */
-void map2check_alloca(const char* name, void* ptr, int size);
+void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope);
 
 
 /**

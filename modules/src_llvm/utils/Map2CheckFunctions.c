@@ -31,8 +31,8 @@ void map2check_function(const char* name, void* ptr) {
     printf("Found address %p with name %s\n", ptr, name);
 }
 
-void map2check_alloca(const char* name, void* ptr, int size) {
-    printf("Found address %p with name %s and size %d\n", ptr, name, size );
+void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive) {
+    printf("Found address %p with name %s, size %d and primitive of size %d\n", ptr, name, size, size_of_primitive );
 }
 
 void map2check_add_store_pointer(void* var, void* value, unsigned scope, const char* name, int line, const char* function_name) {

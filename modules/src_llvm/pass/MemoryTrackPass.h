@@ -46,6 +46,7 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentReleaseMemoryOnCurrentInstruction();
   void instrumentReleaseMemory();
   void instrumentAllocation();
+  void instrumentGlobalAllocation(GlobalVariable* gloabal);
   void instrumentFunctionAddress();
   void runOnAllocaInstruction();
   void runOnCallInstruction();

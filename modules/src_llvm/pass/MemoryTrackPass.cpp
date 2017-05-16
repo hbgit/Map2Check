@@ -220,6 +220,48 @@ void MemoryTrackPass::instrumentInit() {
   IRBuilder<> builder((Instruction*)i);
   //Value* args[] = {};
   builder.CreateCall(this->map2check_init);
+  errs() << "Function: " << this->currentFunction->getName() << "\n";
+  Module* currentModule = this->currentFunction->getParent();
+
+  std::vector<GlobalVariable*> globals;
+  for(auto globalVar = currentModule->global_begin();
+           globalVar != currentModule->global_end();
+           globalVar++) {
+
+      GlobalVariable* variable = dyn_cast<GlobalVariable>(&*globalVar);
+      globals.push_back(variable);
+  }
+    for(int pos = 0; pos < globals.size(); pos++) {
+        GlobalVariable* variable = globals[pos];
+        errs () << "VAR: " << variable->getName() << "\n";
+        const DataLayout dataLayout = currentModule->getDataLayout();
+        auto type = variable->getType()->getPointerElementType();
+        unsigned typeSize = dataLayout.getTypeSizeInBits(type)/8;
+        unsigned primitiveSize = 0;
+
+        if(type->isArrayTy()) {
+            type = type->getArrayElementType();
+        }
+
+        if(type->isVectorTy()) {
+            type = type->getVectorElementType();
+        }
+
+        primitiveSize = dataLayout.getTypeSizeInBits(type)/8;
+
+        Value* name_llvm = builder.CreateGlobalStringPtr(variable->getName());
+
+        ConstantInt* typeSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
+        ConstantInt* primitiveSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
+
+
+        Twine non_det("bitcast_map2check");
+        Value* pointerCast = CastInst::CreatePointerCast(variable,Type::getInt8PtrTy(*this->Ctx),non_det,(Instruction*) i);
+
+        Value* args[] = {name_llvm, pointerCast, typeSizeValue, primitiveSizeValue};
+        builder.CreateCall(map2check_alloca, args);
+    }
+
 }
 
 // TODO: use hash table instead of nested "if's"
@@ -304,6 +346,9 @@ void MemoryTrackPass::instrumentFunctionAddress() {
     this->functionsValues.clear();
 }
 
+void MemoryTrackPass::instrumentGlobalAllocation(GlobalVariable* global) {
+
+}
 
 void MemoryTrackPass::instrumentAllocation() {
   AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
@@ -313,14 +358,29 @@ void MemoryTrackPass::instrumentAllocation() {
 
   Module* M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
-  auto type = allocaInst->getType()->getPointerElementType();
+
+
+  auto type = allocaInst->getType()->getPointerElementType();    
   unsigned typeSize = dataLayout.getTypeSizeInBits(type)/8;
 
+  unsigned primitiveSize = 0;
+
+  if(type->isArrayTy()) {
+      type = type->getArrayElementType();
+  }
+
+  if(type->isVectorTy()) {
+      type = type->getVectorElementType();
+  }
+
+  primitiveSize = dataLayout.getTypeSizeInBits(type)/8;
   IRBuilder<> builder((Instruction*)j);
   Value* name_llvm = builder.CreateGlobalStringPtr
     (allocaInst->getName());
 
   ConstantInt* typeSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
+  ConstantInt* primitiveSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
+
 
   Twine non_det("bitcast_map2check");
   Value* pointerCast = CastInst
@@ -329,7 +389,7 @@ void MemoryTrackPass::instrumentAllocation() {
           non_det,
           (Instruction*) j);
 
-  Value* args[] = {name_llvm, pointerCast, typeSizeValue};
+  Value* args[] = {name_llvm, pointerCast, typeSizeValue, primitiveSizeValue};
   builder.CreateCall(map2check_alloca, args);
 }
 
@@ -432,6 +492,7 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
             Type::getInt8PtrTy(*this->Ctx),
             Type::getInt8PtrTy(*this->Ctx),
             Type::getInt32Ty(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
             NULL);
 
   this->map2check_function = F.getParent()->
@@ -464,10 +525,11 @@ void MemoryTrackPass::cleanWitnessInfoFile() {
 bool MemoryTrackPass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;
-
+    Module* currentModule = this->currentFunction->getParent();    
     this->prepareMap2CheckInstructions();
 
     if(F.getName() == "main") {
+        //auto globalVars = currentModule->getGlobalList();
         this->functionsValues.push_back(this->currentFunction);
         this->mainFunctionInitialized = true;
         this->mainFunction = &F;

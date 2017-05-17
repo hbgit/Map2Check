@@ -8,7 +8,7 @@ Bool mark_heap_log(MAP2CHECK_CONTAINER* heap_log, MEMORY_HEAP_ROW row) {
     return append_element(heap_log, &row);
 }
 
-MEMORY_HEAP_ROW new_memory_row(int line, int scope, void* address, int size, int size_of_primitive, const char* function_name) {
+MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size, int size_of_primitive, const char* function_name) {
     MEMORY_HEAP_ROW row;
     row.function_name = function_name;
     row.line = line;

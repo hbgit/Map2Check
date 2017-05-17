@@ -35,7 +35,7 @@ Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address, long* l
  * @param  function_name        Name of the function where operation took place
  * @return                      Returns the initialized MEMORY_HEAP_ROW
  */
-MEMORY_HEAP_ROW new_memory_row(int line, int scope, void* address, int size, int size_of_primitive, const char* function_name);
+MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size, int size_of_primitive, const char* function_name);
 
 
 #endif

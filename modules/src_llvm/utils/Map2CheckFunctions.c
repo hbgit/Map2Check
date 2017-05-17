@@ -31,7 +31,7 @@ void map2check_function(const char* name, void* ptr) {
     printf("Found address %p with name %s\n", ptr, name);
 }
 
-void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive) {
+void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope) {
     printf("Found address %p with name %s, size %d and primitive of size %d\n", ptr, name, size, size_of_primitive );
 }
 
@@ -95,7 +95,6 @@ void map2check_free_resolved_address(void* ptr, unsigned line, const char* funct
 void map2check_malloc(void* ptr, int size) {
     MEMORY_ALLOCATIONS_ROW row =  new_memory_row((long) ptr, FALSE); 
     row.size = size;
-    printf("Adding element allocation log\n")  ;
     append_element(&allocation_log, &row);
 }
 

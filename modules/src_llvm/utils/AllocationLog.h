@@ -24,8 +24,10 @@ Bool mark_allocation_log(MAP2CHECK_CONTAINER* allocation_log, long address);
  */
 Bool mark_deallocation_log(MAP2CHECK_CONTAINER* allocation_log, long address);
 
+
 /**
- * Checks if an address exists in a MAP2CHECK_CONTAINER, it checks from the last added to the first
+ * @deprecated
+ * @brief Checks if an address exists in a MAP2CHECK_CONTAINER, it checks from the last added to the first
  * @param  allocation_log Pointer to the MAP2CHECK_CONTAINER
  * @param  address        Memory Address to be checked
  * @return                Returns the most recent status of the address
@@ -42,6 +44,14 @@ enum MemoryAddressStatus check_address_allocation_log(MAP2CHECK_CONTAINER* alloc
  * @return         Returns the initialized MEMORY_ALLOCATIONS_ROW
  */
 MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free);
+
+/**
+ * Checks if the address is a valid address
+ * @param allocation_log  Address to a allocation log
+ * @param address          Address to be validated
+ * @return A bool representing if address is valid
+ */
+Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address);
 
 
 /**

@@ -1,5 +1,5 @@
 /**********************************************************************
-* This file contains all methods that are used for the StaticLog      *
+* This file contains all methods that are used for the HeapLog      *
 * which is a structure that contains all heap memory operatio         *
 ***********************************************************************/
 #include "Map2CheckTypes.h"
@@ -10,7 +10,7 @@
 
 /**
  * Mark element as heap address to a MAP2CHECK_CONTAINER
- * @param  allocation_log Pointer to the MAP2CHECK_CONTAINER
+ * @param  heap_log       Pointer to the MAP2CHECK_CONTAINER
  * @param  row            Row of the MEMORY_HEAP_ROW to be added on the container
  * @return                Returns success of operation
  */
@@ -18,11 +18,12 @@ Bool mark_heap_log(MAP2CHECK_CONTAINER* heap_log, MEMORY_HEAP_ROW row);
 
 /**
  * Iterates over a Heap Log to check if a address is pointing to a valid heap address
- * @param  allocation_log Pointer to the MAP2CHECK_CONTAINER
+ * @param  heap_log Pointer to the MAP2CHECK_CONTAINER
  * @param  address        Heap address
+ * @param  last_address   Extra variable to get the last address of the memory space
  * @return                Returns if the address is valid
  */
-Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address);
+Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address, long* last_address);
 
 /**
  * This method initializes a MEMORY_HEAP_ROW with the defined parameters

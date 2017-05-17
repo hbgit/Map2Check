@@ -119,8 +119,6 @@ typedef
   * Struct to represent the Heap Log
 */
 struct obj5 {
-    /** Current ID on HeapRow */
-   unsigned id;
     /** Line where operation occurred */
    unsigned line;
    /** Current scope number (llvm ir uses numbered scopes) */

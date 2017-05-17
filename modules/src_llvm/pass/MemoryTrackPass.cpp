@@ -346,10 +346,6 @@ void MemoryTrackPass::instrumentFunctionAddress() {
     this->functionsValues.clear();
 }
 
-void MemoryTrackPass::instrumentGlobalAllocation(GlobalVariable* global) {
-
-}
-
 void MemoryTrackPass::instrumentAllocation() {
   AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
 

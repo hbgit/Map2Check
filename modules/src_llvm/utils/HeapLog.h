@@ -16,6 +16,13 @@
  */
 Bool mark_heap_log(MAP2CHECK_CONTAINER* heap_log, MEMORY_HEAP_ROW row);
 
+/**
+ * Iterates over a Heap Log to check if a address is pointing to a valid heap address
+ * @param  allocation_log Pointer to the MAP2CHECK_CONTAINER
+ * @param  address        Heap address
+ * @return                Returns if the address is valid
+ */
+Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address);
 
 /**
  * This method initializes a MEMORY_HEAP_ROW with the defined parameters

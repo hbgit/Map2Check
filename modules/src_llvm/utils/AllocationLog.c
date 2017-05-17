@@ -82,15 +82,18 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
 /* Very simple ideia, we iterate over all elements of the allocation log, beggining from
  * top, if the address that we are looking for is in the range of the element address memory
  * space and the element is not free, then it's TRUE otherwise FALSE
-*/
-Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address) {
-    printf("Checking for Deref\n");
+ * and we set last_address to the address of last memory address of the current heap space
+ * i.e. a int on space 0x10 on a 32bit would set the var to 0x13 (if the int has 4 bytes)
+ */
+Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address, long* last_address) {
+    printf("Checking for Dynamic Deref\n");
     int i = allocation_log->size - 1;
     long addressToCheck = (long) address;
     for(; i >= 0; i--) {
         MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log);
         long addressBottom = iRow->addr;
         long addressTop = addressBottom + iRow->size;
+        *last_address = addressTop;
         if(address <= addressToCheck < addressTop) {
             if(iRow->is_free){
                 return FALSE;
@@ -99,5 +102,6 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* addr
         }
     }
 
+    *last_address = 0;
     return FALSE;
 }

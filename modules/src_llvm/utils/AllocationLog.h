@@ -48,10 +48,11 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free);
 /**
  * Checks if the address is a valid address
  * @param allocation_log  Address to a allocation log
- * @param address          Address to be validated
+ * @param address         Address to be validated
+ * @param last_address    Extra variable to get the last address of the memory space
  * @return A bool representing if address is valid
  */
-Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address);
+Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address, long* last_address);
 
 
 /**

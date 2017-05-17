@@ -545,10 +545,13 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
           } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
               this->runOnStoreInstruction();
-          } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
+          }
+
+          else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
               this->runOnAllocaInstruction();
           }
+
       }
    }
    return true;

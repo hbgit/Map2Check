@@ -8,6 +8,7 @@
 #include "Container.h"
 #include "KleeLog.h"
 #include "ListLog.h"
+#include "HeapLog.h"
 #include "Map2CheckGlobals.h"
 #include "Map2CheckTypes.h"
 #include "PropertyGenerator.h"
@@ -88,13 +89,18 @@ void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line, 
  */
 void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope);
 
-
 /**
  * @brief Tracks addresses from memory heap
  * @param name Name of the variable allocated
  * @param ptr  Memory address allocated
  */
 void map2check_function(const char* name, void* ptr);
+
+/**
+ * @brief Checks for Deref
+ * @param ptr  Memory address to be checked
+ */
+void map2check_check_deref(void* ptr);
 
 /*
 * Generates TRUE result

@@ -153,23 +153,25 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(string pa
      // TODO: Check if CSV has valid arguments
      std::vector<std::string> tokens;
      boost::split(tokens, line, boost::is_any_of(";"));
-     Tools::KleeLogRow row;
-     string id = tokens[0];
-     string lineNumber = tokens[1];
-     string scope = tokens[2];
-     string functionName = tokens[3];
-     string step = tokens[4];
-     string value = tokens[5];
-     row.id = id;
-     row.line = lineNumber;
-     row.scope = scope;
-     row.functionName = functionName;
-     row.step = step;
-     row.value = value;
-     Map2Check::Log::Debug(row );
-     listLog.push_back(row);
-   }
 
+     if(!tokens.size()){
+         Tools::KleeLogRow row;
+         string id = tokens[0];
+         string lineNumber = tokens[1];
+         string scope = tokens[2];
+         string functionName = tokens[3];
+         string step = tokens[4];
+         string value = tokens[5];
+         row.id = id;
+         row.line = lineNumber;
+         row.scope = scope;
+         row.functionName = functionName;
+         row.step = step;
+         row.value = value;
+         Map2Check::Log::Debug(row );
+         listLog.push_back(row);
+     }
+   }
   return listLog;
 }
 

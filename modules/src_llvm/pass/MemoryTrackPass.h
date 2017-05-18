@@ -50,7 +50,6 @@ struct MemoryTrackPass : public FunctionPass {
   void runOnAllocaInstruction();
   void runOnCallInstruction();
   void runOnStoreInstruction();
-  void runOnLoadInstruction();
   void switchCallInstruction();
   void prepareMap2CheckInstructions();
   void addWitnessInfo(std::string info);
@@ -75,7 +74,6 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_init;
   Constant* map2check_alloca;
   Constant* map2check_function;
-  Constant* map2check_check_deref;
   Constant* map2check_free_resolved_address;
   Constant*  map2check_klee_int;
   Constant* map2check_success;

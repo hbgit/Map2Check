@@ -23,7 +23,7 @@ enum MemoryAddressStatus check_address_allocation_log(MAP2CHECK_CONTAINER* alloc
     int i = allocation_log->size - 1;
 
     for(; i >= 0; i--) {
-        //printf("Testing check address\n");
+        printf("Testing check address\n");
         MEMORY_ALLOCATIONS_ROW* row = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log); 
         if(row->addr == address) {
          if(row->is_free == TRUE) {
@@ -93,13 +93,11 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* addr
         MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log);
         long addressBottom = iRow->addr;
         long addressTop = addressBottom + iRow->size;
-
-        if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
+        *last_address = addressTop;
+        if(address <= addressToCheck < addressTop) {
             if(iRow->is_free){
-                *last_address = 0;
                 return FALSE;
             }
-            *last_address = addressTop;
             return TRUE;
         }
     }

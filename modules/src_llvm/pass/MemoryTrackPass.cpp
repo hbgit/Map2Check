@@ -427,26 +427,8 @@ void MemoryTrackPass::runOnAllocaInstruction() {
             this->instrumentAllocation();
         }
   }
-}
-
-void MemoryTrackPass::runOnLoadInstruction() {
-  LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction);
-
-  auto j = this->currentInstruction;
-  //j++;
-
-  Twine non_det("bitcast_map2check");
-  Value* pointerCast = CastInst
-    ::CreatePointerCast(loadInst->getPointerOperand(),
-          Type::getInt8PtrTy(*this->Ctx),
-          non_det,
-          (Instruction*) j);
-
-  IRBuilder<> builder((Instruction*)j);
 
 
-  Value* args[] = {pointerCast};
-  builder.CreateCall(map2check_check_deref, args);
 }
 
 void MemoryTrackPass::prepareMap2CheckInstructions() {
@@ -530,12 +512,6 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
     getOrInsertFunction("map2check_success",
 			Type::getVoidTy(*this->Ctx),
 			NULL);
-
-  this->map2check_check_deref = F.getParent()->
-    getOrInsertFunction("map2check_check_deref",
-            Type::getVoidTy(*this->Ctx),
-            Type::getInt8PtrTy(*this->Ctx),
-            NULL);
 }
 
 
@@ -569,12 +545,11 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
           } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
               this->runOnStoreInstruction();
-          } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
+          }
+
+          else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
-              //this->runOnAllocaInstruction();
-          } else if (LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction)) {
-              this->getDebugInfo();
-              //this->runOnLoadInstruction();
+              this->runOnAllocaInstruction();
           }
 
       }

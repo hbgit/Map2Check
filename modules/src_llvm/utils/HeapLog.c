@@ -30,7 +30,7 @@ Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address, long* l
         MEMORY_HEAP_ROW* iRow = (MEMORY_HEAP_ROW*) get_element_at(i, *heap_log);
         long addressBottom = (long) iRow->value;
         long addressTop = addressBottom + iRow->size;
-        if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
+        if(address <= addressToCheck < addressTop) {
             *last_address = addressTop;
             return TRUE;
         }

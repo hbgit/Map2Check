@@ -431,6 +431,28 @@ void MemoryTrackPass::runOnAllocaInstruction() {
 
 }
 
+
+void MemoryTrackPass::runOnLoadInstruction() {
+    LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction);
+
+    Value* v = loadInst->getPointerOperand()->stripPointerCasts();
+
+    auto j = this->currentInstruction;
+//    j--;
+
+    Twine non_det("bitcast_map2check");
+    Value* pointerCast = CastInst
+      ::CreatePointerCast(v,
+            Type::getInt8PtrTy(*this->Ctx),
+            non_det,
+            (Instruction*) j);
+//    j++;
+    IRBuilder<> builder((Instruction*)j);
+    Value* args[] = {pointerCast};
+    builder.CreateCall(map2check_load, args);
+    builder.CreateCall(map2check_check_deref);
+}
+
 void MemoryTrackPass::prepareMap2CheckInstructions() {
   Function& F = *this->currentFunction;
 
@@ -441,6 +463,12 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt32Ty(*this->Ctx),
 			Type::getInt32Ty(*this->Ctx),
 			NULL);
+
+  this->map2check_load = F.getParent()->
+    getOrInsertFunction("map2check_load",
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            NULL);
 
    this->map2check_init = F.getParent()->
     getOrInsertFunction("map2check_init",
@@ -474,6 +502,11 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt32Ty(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx),
 			NULL);
+
+  this->map2check_check_deref = F.getParent()->
+    getOrInsertFunction("map2check_check_deref",
+            Type::getVoidTy(*this->Ctx),
+            NULL);
 
   this->map2check_malloc = F.getParent()->
     getOrInsertFunction("map2check_malloc",
@@ -545,11 +578,12 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
           } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
               this->runOnStoreInstruction();
-          }
-
-          else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
+          } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
               this->runOnAllocaInstruction();
+          } else if(LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction)) {
+              this->getDebugInfo();
+              this->runOnLoadInstruction();
           }
 
       }

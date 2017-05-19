@@ -6,8 +6,9 @@ using namespace Map2Check;
 
 CounterExample::CounterExample(std::string path) {
   this->sourceCodeHelper = std::make_unique<Tools::SourceCodeHelper>(Tools::SourceCodeHelper(path));
-  
+
   this->processKleeLog();
+    //Log::Debug("started reading list log");
   this->processListLog();
   this->processProperty();
 }
@@ -66,9 +67,12 @@ std::string CounterExample::getViolatedProperty() {
 // FIXME: Add Support to other non det type
 void CounterExample::processKleeLog() {
   try{ 
+
     std::vector<Tools::KleeLogRow> kleeLogRows = Tools::KleeLogHelper::getListLogFromCSV();
+
     int ref = 0;
     for(int i = 0; i < kleeLogRows.size(); i++) {
+
       int step = std::stoi(kleeLogRows[i].step);
       std::string path = this->sourceCodeHelper->getFilePath();
 
@@ -84,6 +88,7 @@ void CounterExample::processKleeLog() {
       
       this->counterExampleRows.push_back(std::move(row));
       ref++;
+
     }
   }
   catch(Tools::CouldNotOpenFileException& e) {
@@ -93,6 +98,7 @@ void CounterExample::processKleeLog() {
 }
 
 void CounterExample::processListLog() {
+
   std::vector<Tools::ListLogRow> listLogRows = Tools::ListLogHelper::getListLogFromCSV();
   //TODO: Add flag to map2check to print listlog
   int ref = 0;

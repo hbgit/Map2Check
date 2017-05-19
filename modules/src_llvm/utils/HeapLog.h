@@ -23,7 +23,7 @@ Bool mark_heap_log(MAP2CHECK_CONTAINER* heap_log, MEMORY_HEAP_ROW row);
  * @param  last_address   Extra variable to get the last address of the memory space
  * @return                Returns if the address is valid
  */
-Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address, long* last_address);
+Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address);
 
 /**
  * This method initializes a MEMORY_HEAP_ROW with the defined parameters
@@ -36,6 +36,13 @@ Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address, long* l
  * @return                      Returns the initialized MEMORY_HEAP_ROW
  */
 MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size, int size_of_primitive, const char* function_name);
+
+/**
+ * Write elements from HEAP_LOG to a FILE
+ * @param row Pointer to the HEAP_LOG to be writed
+ */
+void heap_log_to_file(MAP2CHECK_CONTAINER* list);
+
 
 
 #endif

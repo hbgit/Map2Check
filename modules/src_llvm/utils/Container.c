@@ -14,9 +14,11 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
 
 Bool free_container(MAP2CHECK_CONTAINER* container) {
     int i;
-    // for(i = 0; i < container->size; i++) {
-    //     free(container->values[i]);
-    // }
+
+    // TODO: URGENT, RELEASE MEMORY
+    /*for(i = 0; i < container->size; i++) {
+         free(container->values[i]);
+    }*/
     free(container->values);
     return TRUE;
 }

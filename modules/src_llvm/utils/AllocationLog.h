@@ -52,7 +52,7 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free);
  * @param last_address    Extra variable to get the last address of the memory space
  * @return A bool representing if address is valid
  */
-Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address, long* last_address);
+Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address);
 
 
 /**

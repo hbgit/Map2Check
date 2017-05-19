@@ -23,7 +23,7 @@ enum MemoryAddressStatus check_address_allocation_log(MAP2CHECK_CONTAINER* alloc
     int i = allocation_log->size - 1;
 
     for(; i >= 0; i--) {
-        printf("Testing check address\n");
+        //printf("Testing check address\n");
         MEMORY_ALLOCATIONS_ROW* row = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log); 
         if(row->addr == address) {
          if(row->is_free == TRUE) {
@@ -53,7 +53,7 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free) {
 ** if we find that the address was released, then we go on
 ** if not we return FALSE. */
 Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
-  printf("Checking for MemTrack\n");
+  //printf("Checking for MemTrack\n");
   int i = 0;
   int size = allocation_log->size;
   for(; i < size; i++) {
@@ -71,7 +71,7 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
       }
 
       if(!foundReleased) {
-        printf("Address not released: %p\n", addr);
+        //printf("Address not released: %p\n", addr);
         return FALSE;
       }
     }
@@ -85,23 +85,24 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
  * and we set last_address to the address of last memory address of the current heap space
  * i.e. a int on space 0x10 on a 32bit would set the var to 0x13 (if the int has 4 bytes)
  */
-Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address, long* last_address) {
-    printf("Checking for Dynamic Deref\n");
+Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address) {
+    //printf("Checking for Dynamic Deref\n");
     int i = allocation_log->size - 1;
     long addressToCheck = (long) address;
     for(; i >= 0; i--) {
         MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log);
         long addressBottom = iRow->addr;
         long addressTop = addressBottom + iRow->size;
-        *last_address = addressTop;
-        if(address <= addressToCheck < addressTop) {
-            if(iRow->is_free){
+        //*last_address = addressTop;
+        if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
+            if(iRow->is_free){                
                 return FALSE;
             }
+            //*last_address = addressTop;
             return TRUE;
         }
     }
 
-    *last_address = 0;
+    //*last_address = 0;
     return FALSE;
 }

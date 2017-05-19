@@ -8,6 +8,7 @@
 #include "Container.h"
 #include "KleeLog.h"
 #include "ListLog.h"
+#include "HeapLog.h"
 #include "Map2CheckGlobals.h"
 #include "Map2CheckTypes.h"
 #include "PropertyGenerator.h"
@@ -15,6 +16,10 @@
 /** Initializes variables used in map2check */
 void map2check_init();
 
+/** Finalizes and exit program with error */
+void map2check_error();
+
+void map2check_check_deref();
 
 void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name);
 /**
@@ -80,6 +85,19 @@ void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line, 
 
 
 /**
+ * @brief Checks if address where the var will be stored is valid
+ * @param ptr               Pointer to where value will be stored
+ * @param size_of_destiny   Size of the value to be stored
+ */
+void map2check_store(void* ptr, unsigned size_of_destiny);
+
+/**
+ * @brief Checks if address to be loaded is valid
+ * @param ptr    Pointer to where value will be loaded
+ */
+void map2check_load(void* ptr);
+
+/**
  * @brief Tracks addresses from memory heap
  * @param name               Name of the variable allocated
  * @param ptr                Memory address allocated
@@ -96,7 +114,8 @@ void map2check_alloca(const char* name, void* ptr, int size, int size_of_primiti
  */
 void map2check_function(const char* name, void* ptr);
 
-/*
+/**
+ *
 * Generates TRUE result
 */
 void map2check_success();

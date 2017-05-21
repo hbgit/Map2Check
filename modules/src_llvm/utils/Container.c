@@ -13,13 +13,21 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
 }
 
 Bool free_container(MAP2CHECK_CONTAINER* container) {
-    int i;
+    switch (container->type) {
+        case LIST_LOG_CONTAINER:
+            free((LIST_LOG_ROW*)container->values);
+            break;
+        case ALLOCATION_LOG_CONTAINER:
+            free((MEMORY_ALLOCATIONS_ROW*)container->values);
+            break;
+        case KLEE_LOG_CONTAINER:
+            free((KLEE_CALL*)container->values);
+            break;
+        case HEAP_LOG_CONTAINER:
+            free((MEMORY_HEAP_ROW*)container->values);
+            break;
+        }
 
-    // TODO: URGENT, RELEASE MEMORY
-    /*for(i = 0; i < container->size; i++) {
-         free(container->values[i]);
-    }*/
-    free(container->values);
     return TRUE;
 }
 

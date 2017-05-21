@@ -94,8 +94,9 @@ void map2check_store(void* ptr, unsigned size_of_destiny);
 /**
  * @brief Checks if address to be loaded is valid
  * @param ptr    Pointer to where value will be loaded
+ * @param size   Size of the type to be loaded
  */
-void map2check_load(void* ptr);
+void map2check_load(void* ptr, int size);
 
 /**
  * @brief Tracks addresses from memory heap

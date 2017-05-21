@@ -85,7 +85,7 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
  * and we set last_address to the address of last memory address of the current heap space
  * i.e. a int on space 0x10 on a 32bit would set the var to 0x13 (if the int has 4 bytes)
  */
-Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address) {
+Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address, int size_to_destiny) {
     //printf("Checking for Dynamic Deref\n");
     /*if(!address){
         return TRUE;
@@ -95,7 +95,7 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* addr
     for(; i >= 0; i--) {
         MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log);
         unsigned addressBottom = iRow->addr;
-        unsigned addressTop = addressBottom + iRow->size;
+        unsigned addressTop = addressBottom + iRow->size - size_to_destiny + 1;
         //*last_address = addressTop;
         if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
             if(iRow->is_free){

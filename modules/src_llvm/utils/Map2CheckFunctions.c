@@ -42,10 +42,10 @@ void map2check_function(const char* name, void* ptr) {
 }
 
 const char* erro = "asd";
-void map2check_load(void* ptr) {
+void map2check_load(void* ptr, int size) {
     //long address;
-    if(!is_valid_heap_address(&heap_log, ptr)) {
-        if(!is_valid_allocation_address(&allocation_log, ptr)) {
+    if(!is_valid_heap_address(&heap_log, ptr, size)) {
+        if(!is_valid_allocation_address(&allocation_log, ptr,size)) {
             if(is_deref_error((long) ptr, &list_log)) {
                 ERROR_DEREF = TRUE;
             }

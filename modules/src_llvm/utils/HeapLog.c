@@ -23,13 +23,13 @@ MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size, int s
 /* Same ideia of is_valid_allocation_address from AllocationLog.c,
  * but the main difference is: there is no need to check if address is free
  */
-Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address) {
+Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address, int size_to_load) {
     int i = heap_log->size - 1;
     long addressToCheck = (long) address;
     for(; i >= 0; i--) {
         MEMORY_HEAP_ROW* iRow = (MEMORY_HEAP_ROW*) get_element_at(i, *heap_log);
         long addressBottom = (long) iRow->value;
-        long addressTop = addressBottom + iRow->size;
+        long addressTop = addressBottom + iRow->size - size_to_load + 1;
         if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
             //*last_address = addressTop;
             return TRUE;

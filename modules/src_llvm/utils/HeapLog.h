@@ -23,7 +23,7 @@ Bool mark_heap_log(MAP2CHECK_CONTAINER* heap_log, MEMORY_HEAP_ROW row);
  * @param  last_address   Extra variable to get the last address of the memory space
  * @return                Returns if the address is valid
  */
-Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address);
+Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address, int size_to_load);
 
 /**
  * This method initializes a MEMORY_HEAP_ROW with the defined parameters

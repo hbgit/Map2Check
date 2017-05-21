@@ -441,6 +441,13 @@ void MemoryTrackPass::runOnLoadInstruction() {
 
     Value* v = loadInst->getPointerOperand()->stripPointerCasts();
 
+    Module* M = this->currentFunction->getParent();
+    const DataLayout dataLayout = M->getDataLayout();
+
+    auto type = loadInst->getPointerOperand()->getType()->getPointerElementType();
+    unsigned typeSize = dataLayout.getTypeSizeInBits(type)/8;
+    ConstantInt* typeSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
+
     auto j = this->currentInstruction;
 //    j--;
 
@@ -452,7 +459,7 @@ void MemoryTrackPass::runOnLoadInstruction() {
             (Instruction*) j);
 //    j++;
     IRBuilder<> builder((Instruction*)j);
-    Value* args[] = {pointerCast};
+    Value* args[] = {pointerCast, typeSizeValue};
     builder.CreateCall(map2check_load, args);
     builder.CreateCall(map2check_check_deref);
 }
@@ -472,6 +479,7 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
     getOrInsertFunction("map2check_load",
             Type::getVoidTy(*this->Ctx),
             Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
             NULL);
 
    this->map2check_init = F.getParent()->

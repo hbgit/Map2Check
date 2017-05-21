@@ -174,13 +174,12 @@ int main(int argc, char** argv)
         }
 
 
-            //caller->cleanGarbage();
-
 			if (vm.count("expected-result")) {
 					string function = vm["expected-result"].as< string >();
 					Map2Check::Log::Debug("Expected result: " + function );
 					
 					if (counterExample->getViolatedProperty() == function) {
+                        caller->cleanGarbage();
 						return SUCCESS;
 					}
 					else {
@@ -188,6 +187,7 @@ int main(int argc, char** argv)
 					}
 			} 
 			
+            caller->cleanGarbage();
 	    return SUCCESS;
 	  }
 

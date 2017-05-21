@@ -1,5 +1,5 @@
 #include "AllocationLog.h"
-
+#include <stdio.h>
 Bool mark_allocation_log(MAP2CHECK_CONTAINER* allocation_log, long address) {
     if(allocation_log->type != ALLOCATION_LOG_CONTAINER) {
         return FALSE;
@@ -87,22 +87,39 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
  */
 Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address) {
     //printf("Checking for Dynamic Deref\n");
+    /*if(!address){
+        return TRUE;
+    }*/
     int i = allocation_log->size - 1;
-    long addressToCheck = (long) address;
+    unsigned addressToCheck = (long) address;
     for(; i >= 0; i--) {
         MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log);
-        long addressBottom = iRow->addr;
-        long addressTop = addressBottom + iRow->size;
+        unsigned addressBottom = iRow->addr;
+        unsigned addressTop = addressBottom + iRow->size;
         //*last_address = addressTop;
         if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
-            if(iRow->is_free){                
+            if(iRow->is_free){
+
                 return FALSE;
             }
             //*last_address = addressTop;
             return TRUE;
         }
     }
-
+    //printf("GOT FALSE\n");
     //*last_address = 0;
     return FALSE;
+}
+
+void allocation_log_to_file(MAP2CHECK_CONTAINER* list) {
+    FILE* output = fopen("allocation_log.csv", "w");
+  // fprintf(output, "id;memory address;points to;scope;is free;is dynamic;function name\n");
+  int i = 0;
+  for(;i< list->size; i++) {
+    MEMORY_ALLOCATIONS_ROW* row = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *list);
+    fprintf(output, "%p;", (void*)row->addr);
+    fprintf(output, "%u;", row->size);
+    fprintf(output, "%d\n", row->is_free);
+  }
+  fclose(output);
 }

@@ -24,7 +24,6 @@ MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size, int s
  * but the main difference is: there is no need to check if address is free
  */
 Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address) {
-//    printf("Checking for Heap Deref\n");
     int i = heap_log->size - 1;
     long addressToCheck = (long) address;
     for(; i >= 0; i--) {
@@ -32,11 +31,11 @@ Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address) {
         long addressBottom = (long) iRow->value;
         long addressTop = addressBottom + iRow->size;
         if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
-////            *last_address = addressTop;
+            //*last_address = addressTop;
             return TRUE;
         }
     }
-//    *last_address = 0;
+    //*last_address = 0;
     return FALSE;
 }
 

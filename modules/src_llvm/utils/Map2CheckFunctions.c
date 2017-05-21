@@ -17,6 +17,8 @@ void map2check_init() {
     allocation_log = new_container(ALLOCATION_LOG_CONTAINER);
     heap_log = new_container(HEAP_LOG_CONTAINER);
     write_property(UNKNOWN, 0, "");
+
+    //map2check_alloca("NULL",0,1,1,1,1);
 }
 
 void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name) {  
@@ -44,7 +46,9 @@ void map2check_load(void* ptr) {
     //long address;
     if(!is_valid_heap_address(&heap_log, ptr)) {
         if(!is_valid_allocation_address(&allocation_log, ptr)) {
-            //ERROR_DEREF = TRUE;
+            if(is_deref_error((long) ptr, &list_log)) {
+                ERROR_DEREF = TRUE;
+            }
         }
     }
 
@@ -112,6 +116,7 @@ void map2check_target_function(const char* func_name, int scope, int line) {
 
 void map2check_free_resolved_address(void* ptr, unsigned line, const char* function_name) {
     Bool error = is_invalid_free((long) ptr, &list_log);
+    //printf("Releasing resolved free\n");
      if(error) {
         write_property(FALSE_FREE, line, function_name);
         map2check_error();
@@ -131,6 +136,9 @@ void map2check_malloc(void* ptr, int size) {
     append_element(&allocation_log, row);
 }
 
+
+
+
 void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line,  const char* function_name) {
     
     long* addr = (long*) ptr;
@@ -141,12 +149,12 @@ void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line, 
 
 
     Map2CheckCurrentStep++;
-
     Bool error = is_invalid_free((long) *addr, &list_log);
-    //printf("Adding element list log\n")  ;
+
     append_element(&list_log, listRow);
 
     if(error) {        
+        //printf("Got error\n");
         write_property(FALSE_FREE, line, function_name);
         map2check_error();
      }  
@@ -190,6 +198,7 @@ void map2check_exit() {
     heap_log_to_file(&heap_log);
     free_container(&heap_log);
 
+    allocation_log_to_file(&allocation_log);
     free_container(&allocation_log);
 
 }

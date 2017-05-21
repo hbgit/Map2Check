@@ -18,11 +18,43 @@ long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
 
 //TODO: Implement method
 Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
-    return FALSE;
+    printf("Checking address: %d\n", address);
+    printf("Checking address: %p\n", (void*) address);
+
+
+    int i = log->size - 1;
+
+    for(; i >= 0; i--) {
+      LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
+
+
+      long points_to = row->memory_address_points_to;
+      long address_origin = row->memory_address;
+
+      if(address_origin == address) {
+          return FALSE;
+      }
+
+      if (points_to == address) {
+
+        Bool is_free = row->is_free;
+        Bool is_dynamic = row->is_dynamic;
+
+        if(is_free || (!is_dynamic)) {
+            return TRUE;
+        }
+        else {
+            return FALSE;
+        }
+      }
+    }
+
+    return TRUE;
 }
 
 Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
   int i = log->size - 1;
+  printf("Releasing Address: %p\n", (void*)address);
 
   for(; i >= 0; i--) {
     LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);

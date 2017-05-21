@@ -54,7 +54,7 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free);
  */
 Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address);
 
-
+void allocation_log_to_file(MAP2CHECK_CONTAINER* list);
 /**
  * Checks if all addresses of allocation log where dealocatted
  * @param allocation_log  Address to a allocation log

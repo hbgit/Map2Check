@@ -233,7 +233,7 @@ void MemoryTrackPass::instrumentInit() {
   }
     for(int pos = 0; pos < globals.size(); pos++) {
         GlobalVariable* variable = globals[pos];
-        errs () << "VAR: " << variable->getName() << "\n";
+//        errs () << "VAR: " << variable->getName() << "\n";
         const DataLayout dataLayout = currentModule->getDataLayout();
         auto type = variable->getType()->getPointerElementType();
         unsigned typeSize = dataLayout.getTypeSizeInBits(type)/8;
@@ -271,7 +271,9 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentFree();
   }
   else if (this->caleeFunction->getName() == "malloc") {
-
+    this->instrumentMalloc();
+  }
+  else if (this->caleeFunction->getName() == "calloc") {
     this->instrumentMalloc();
   }
    else if (this->caleeFunction->getName() == "exit") {
@@ -339,8 +341,9 @@ void MemoryTrackPass::instrumentFunctionAddress() {
                 non_det,
                 (Instruction*) i);
 
-        Value* args[] = {name_llvm, pointerCast};
-        builder.CreateCall(map2check_function, args);
+        Value* instrumentationArgs[] = {name_llvm, pointerCast};
+        builder.CreateCall(map2check_function, instrumentationArgs);
+
     }
 
     this->functionsValues.clear();
@@ -420,12 +423,13 @@ void MemoryTrackPass::runOnStoreInstruction() {
 void MemoryTrackPass::runOnAllocaInstruction() {
   AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
 
+  if (allocaInst->isStaticAlloca()) {
+      this->instrumentAllocation();
+  }
   // If it has a name, it is a variable (TODO: CONFIRM THIS)
   if(allocaInst->hasName()) {
 
-        if (allocaInst->isStaticAlloca()) {
-            this->instrumentAllocation();
-        }
+
   }
 
 
@@ -551,6 +555,59 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 void MemoryTrackPass::cleanWitnessInfoFile() {
 
 }
+
+void MemoryTrackPass::instrumentFunctionArgumentAddress() {
+    Function* F = this->currentFunction;
+    Module* M = this->currentFunction->getParent();
+    const DataLayout dataLayout = M->getDataLayout();
+
+    Function::iterator bb = this->currentFunction->begin();
+    // // bb--;
+
+    BasicBlock::iterator i = bb->begin();
+    i++;
+//    i++;
+
+    for(auto arg = F->arg_begin(); arg != F->arg_end(); arg++) {
+        Argument* functionArg = &(*arg);
+
+//        functionArg->
+        auto type = functionArg->getType();
+        unsigned typeSize = dataLayout.getTypeSizeInBits(type)/8;
+        IRBuilder<> builder((Instruction*)i);
+        Value* name_llvm = builder.CreateGlobalStringPtr
+          (functionArg->getName());
+
+        ConstantInt* typeSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
+        Value* argCast;
+        errs() << "Argument name: " << functionArg->getName() << "\n";
+
+        if(type->isPointerTy()) {
+            errs() << "\tIs Pointer type\n";
+            Twine mapcheck_bitcast_argument("mapcheck_bitcast_argument");
+            argCast = CastInst::CreatePointerCast(functionArg,
+                        Type::getInt8PtrTy(*this->Ctx),
+                        mapcheck_bitcast_argument,
+                        (Instruction*) i);
+
+        } else {
+            errs() << "\tNot Pointer type\n";
+            argCast = functionArg;
+        }
+
+
+
+
+
+//        ConstantInt* primitiveSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
+
+
+        Value* args[] = {name_llvm, argCast, typeSizeValue, typeSizeValue};
+        builder.CreateCall(map2check_alloca, args);
+    }
+
+}
+
 bool MemoryTrackPass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;
@@ -566,6 +623,7 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
       this->instrumentReleaseMemory();
     }
     this->instrumentFunctionAddress();
+//    this->instrumentFunctionArgumentAddress();
    for (Function::iterator bb = F.begin(),
 	  e = F.end(); bb != e; ++bb) {
       for (BasicBlock::iterator i = bb->begin(),

@@ -47,6 +47,7 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentReleaseMemory();
   void instrumentAllocation();
   void instrumentFunctionAddress();
+  void instrumentFunctionArgumentAddress();
   void runOnAllocaInstruction();
   void runOnCallInstruction();
   void runOnStoreInstruction();

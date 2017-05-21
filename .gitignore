@@ -18,3 +18,16 @@ teste/*.bc
 .clang_complete
 .vs/*
 .vscode/*
+*.user
+.cproject
+*.project
+Map2Check.creator
+*.config
+Map2Check.files
+*.includes
+release/allocation_log.csv
+release/compiled.ll
+*.log
+release/heap_log.csv
+*.ll
+release/witness.graphml

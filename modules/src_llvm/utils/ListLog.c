@@ -18,8 +18,6 @@ long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
 
 //TODO: Implement method
 Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
-    printf("Checking address: %d\n", address);
-    printf("Checking address: %p\n", (void*) address);
 
 
     int i = log->size - 1;
@@ -54,8 +52,6 @@ Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
 
 Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
   int i = log->size - 1;
-  printf("Releasing Address: %p\n", (void*)address);
-
   for(; i >= 0; i--) {
     LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
     long points_to = row->memory_address_points_to;

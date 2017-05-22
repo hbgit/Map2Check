@@ -71,6 +71,12 @@ void map2check_free_resolved_address(void* ptr, unsigned line, const char* funct
  */
 void map2check_malloc(void* ptr, int size);
 
+/**
+ * Tracks address that are resolved during free (this function is to be used for instrumentation)
+ * @param ptr         Address allocated
+ * @param size        Size of the allocated addres
+ */
+void map2check_calloc(void* ptr, int quantity, int size);
 
 /**
  * Tracks address that are freeed (this function is to be used for instrumentation)

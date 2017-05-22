@@ -35,17 +35,18 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
 }
 
 void map2check_function(const char* name, void* ptr) {
-//    printf("Found address %p with name %s\n", ptr, name);
+
     MEMORY_HEAP_ROW* row = malloc(sizeof(MEMORY_HEAP_ROW));
     *row = new_heap_row(1,1,ptr,1,1,name);
     append_element(&heap_log, row);
 }
 
 const char* erro = "asd";
-void map2check_load(void* ptr, int size) {
-    //long address;
+void map2check_load(void* ptr, int size) {    
     if(!is_valid_heap_address(&heap_log, ptr, size)) {
+
         if(!is_valid_allocation_address(&allocation_log, ptr,size)) {
+
             if(is_deref_error((long) ptr, &list_log)) {
                 ERROR_DEREF = TRUE;
             }
@@ -63,14 +64,15 @@ void map2check_check_deref() {
 }
 
 void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope) {
-//    printf("Found address %p with name %s, size %d and primitive of size %d\n", ptr, name, size, size_of_primitive );
+
     MEMORY_HEAP_ROW* row = malloc(sizeof(MEMORY_HEAP_ROW));
     *row = new_heap_row(line, scope, ptr,size,size_of_primitive,name);
     append_element(&heap_log, row);
 }
 
 void map2check_add_store_pointer(void* var, void* value, unsigned scope, const char* name, int line, const char* function_name) {
-  
+
+
   enum MemoryAddressStatus status = check_address_allocation_log(&allocation_log, (long) value);
   Bool isDynamic;
   Bool isFree;
@@ -116,7 +118,7 @@ void map2check_target_function(const char* func_name, int scope, int line) {
 
 void map2check_free_resolved_address(void* ptr, unsigned line, const char* function_name) {
     Bool error = is_invalid_free((long) ptr, &list_log);
-    //printf("Releasing resolved free\n");
+
      if(error) {
         write_property(FALSE_FREE, line, function_name);
         map2check_error();
@@ -137,7 +139,13 @@ void map2check_malloc(void* ptr, int size) {
 }
 
 
+void map2check_calloc(void* ptr, int quantity, int size) {
+    MEMORY_ALLOCATIONS_ROW* row =  malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
+    *row =  new_memory_row((long) ptr, FALSE);
+    row->size = quantity * size;
+    append_element(&allocation_log, row);
 
+}
 
 void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line,  const char* function_name) {
     
@@ -154,7 +162,7 @@ void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line, 
     append_element(&list_log, listRow);
 
     if(error) {        
-        //printf("Got error\n");
+
         write_property(FALSE_FREE, line, function_name);
         map2check_error();
      }  
@@ -209,7 +217,7 @@ void update_reference_list_log(long address, enum MemoryAddressStatus status, un
     for(; i < currentSize; i++) {
         LIST_LOG_ROW* iRow = (LIST_LOG_ROW*) get_element_at(i, list_log); 
         if(!iRow) {
-                    //printf("error with jRow\n");
+
                 }
         long currentAddress = iRow->memory_address_points_to;
         long currentVarAddress = iRow->memory_address;
@@ -220,7 +228,7 @@ void update_reference_list_log(long address, enum MemoryAddressStatus status, un
             for(;i <= j; j-- ) {
                 LIST_LOG_ROW* jRow = (LIST_LOG_ROW*) get_element_at(j, list_log); 
                 if(!jRow) {
-                    //printf("error with jRow\n");
+
                 }
                 long otherAddress =  jRow->memory_address_points_to;
                 long otherVarAddress = jRow->memory_address;

@@ -89,6 +89,22 @@ void MemoryTrackPass::instrumentMalloc() {
   builder.CreateCall(map2check_malloc, args);
 }
 
+/* For the porpose of memory checking calloc is basically
+ * a malloc with 2 args, the first is how many elements
+ * and the second is the size of the primitive element
+*/
+void MemoryTrackPass::instrumentCalloc() {
+  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  ++j;
+
+  IRBuilder<> builder((Instruction*)j);
+  auto quantityOfElements = callInst->getArgOperand(0);
+  auto sizeOfElements = callInst->getArgOperand(1);
+  Value* args[] = {callInst, quantityOfElements,sizeOfElements};
+  builder.CreateCall(map2check_calloc, args);
+}
+
 // TODO: make dynCast only one time
 void MemoryTrackPass::instrumentFree() {
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
@@ -274,7 +290,7 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentMalloc();
   }
   else if (this->caleeFunction->getName() == "calloc") {
-    this->instrumentMalloc();
+    this->instrumentCalloc();
   }
    else if (this->caleeFunction->getName() == "exit") {
 
@@ -417,7 +433,36 @@ void MemoryTrackPass::runOnStoreInstruction() {
   StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
    if(storeInst->getValueOperand()->getType()->isPointerTy()) {
      this->instrumentPointer();
+
+
    }
+
+   Value* var_address = storeInst->getPointerOperand();
+   Value* receives    = storeInst->getValueOperand();
+
+
+   Module* M = this->currentFunction->getParent();
+   const DataLayout dataLayout = M->getDataLayout();
+
+   auto type = receives->getType();
+   unsigned typeSize = dataLayout.getTypeSizeInBits(type)/8;
+   ConstantInt* typeSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
+
+   auto j = this->currentInstruction;
+//    j--;
+
+   Twine non_det("bitcast_map2check_store");
+   Value* pointerCast = CastInst
+     ::CreatePointerCast(var_address,
+           Type::getInt8PtrTy(*this->Ctx),
+           non_det,
+           (Instruction*) j);
+//    j++;
+   IRBuilder<> builder((Instruction*)j);
+   Value* args[] = {pointerCast, typeSizeValue};
+   builder.CreateCall(map2check_load, args);
+   builder.CreateCall(map2check_check_deref);
+
 }
 
 void MemoryTrackPass::runOnAllocaInstruction() {
@@ -526,6 +571,14 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 			Type::getInt8PtrTy(*this->Ctx),
 			Type::getInt64Ty(*this->Ctx),
 			NULL);
+
+  this->map2check_calloc = F.getParent()->
+    getOrInsertFunction("map2check_calloc",
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt64Ty(*this->Ctx),
+            Type::getInt64Ty(*this->Ctx),
+            NULL);
 
   this->map2check_alloca = F.getParent()->
     getOrInsertFunction("map2check_alloca",

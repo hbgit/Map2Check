@@ -40,6 +40,7 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentPointer();
   void instrumentTargetFunction();
   void instrumentMalloc();
+  void instrumentCalloc();
   void instrumentFree();
   void instrumentKleeInt();
   void instrumentInit();
@@ -72,6 +73,7 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_target_function;
   Constant* map2check_pointer;
   Constant* map2check_malloc;
+  Constant* map2check_calloc;
   Constant* map2check_free;
   Constant* map2check_init;
   Constant* map2check_alloca;

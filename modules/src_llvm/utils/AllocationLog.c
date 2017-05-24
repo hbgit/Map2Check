@@ -54,29 +54,34 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free) {
 ** if not we return FALSE. */
 Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
   //printf("Checking for MemTrack\n");
+  Bool MemTrackError = FALSE;
   int i = 0;
-  int size = allocation_log->size;
-  for(; i < size; i++) {
+  //int size = allocation_log->size;
+  for(; i < allocation_log->size; i++) {
       MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log); 
     if(!iRow->is_free) {
       long addr = iRow->addr;
       Bool foundReleased = FALSE;
-      int j = size - 1;
+      int j = allocation_log->size - 1;
       //FIXME: It should be from top
       for (; j > i; j--) {
           MEMORY_ALLOCATIONS_ROW* jRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(j, *allocation_log); 
         if (jRow->addr == addr && jRow->is_free ) {          
             foundReleased = TRUE;
+            break;
         }
       }
 
       if(!foundReleased) {
-        //printf("Address not released: %p\n", addr);
-        return FALSE;
+        free((void*) addr);
+        MEMORY_ALLOCATIONS_ROW* row =  malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
+        *row =  new_memory_row(addr, TRUE);
+        append_element(allocation_log, row);
+        MemTrackError = TRUE;
       }
     }
   }
-  return TRUE;
+  return !MemTrackError;
 }
 
 /* Very simple ideia, we iterate over all elements of the allocation log, beggining from
@@ -109,6 +114,10 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* addr
     //printf("GOT FALSE\n");
     //*last_address = 0;
     return FALSE;
+}
+
+void release_unreleased_addresses(MAP2CHECK_CONTAINER* list) {
+
 }
 
 void allocation_log_to_file(MAP2CHECK_CONTAINER* list) {

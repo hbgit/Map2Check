@@ -56,9 +56,10 @@ void map2check_load(void* ptr, int size) {
     //map2check_check_deref();
 }
 
-void map2check_check_deref() {
+void map2check_check_deref(int line, const char* function_name) {
     if(ERROR_DEREF) {
-        write_property(FALSE_DEREF, 0, "");
+        write_property(FALSE_DEREF, line, function_name);
+        valid_allocation_log(&allocation_log);
         map2check_error();
     }
 }
@@ -95,12 +96,29 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope, const c
      isDynamic = FALSE;
      isFree = FALSE; 
   }
-  LIST_LOG_ROW* row = malloc(sizeof(LIST_LOG_ROW));
-  *row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, function_name, Map2CheckCurrentStep);
-  Map2CheckCurrentStep++;
+  int i = list_log.size - 1;
+  Bool isRedundant = FALSE;
+  for(; i >= 0; i--) {
+    LIST_LOG_ROW* iRow = (LIST_LOG_ROW*) get_element_at(i, list_log);
+    if(iRow->memory_address == ((long) var)) {
+        if((iRow->memory_address_points_to == ((long) value)) &&
+                (iRow->is_free == isFree) &&
+                (iRow->is_dynamic == isDynamic)) {
+            isRedundant = TRUE;
+        }
+        break;
+    }
+  }
 
-  append_element(&list_log, row);
-  update_reference_list_log((long)value, status, line);
+  if(!isRedundant) {
+      LIST_LOG_ROW* row = malloc(sizeof(LIST_LOG_ROW));
+      *row = new_list_row((long) var,(long) value, scope, isDynamic, isFree, line, name, function_name, Map2CheckCurrentStep);
+      Map2CheckCurrentStep++;
+
+      append_element(&list_log, row);
+      update_reference_list_log((long)value, status, line);
+  }
+
 }
 
 int map2check_non_det_int() {

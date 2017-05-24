@@ -19,7 +19,12 @@ void map2check_init();
 /** Finalizes and exit program with error */
 void map2check_error();
 
-void map2check_check_deref();
+/**
+ * @brief Checks if current state of program is a deref error
+ * @param line           Line where deref error occurred
+ * @param function_name  Name of the function where operation occurred
+ */
+void map2check_check_deref(int line, const char* function_name);
 
 void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name);
 /**

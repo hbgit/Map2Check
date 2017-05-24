@@ -459,9 +459,13 @@ void MemoryTrackPass::runOnStoreInstruction() {
            (Instruction*) j);
 //    j++;
    IRBuilder<> builder((Instruction*)j);
-   Value* args[] = {pointerCast, typeSizeValue};
+   Value* args[] = {pointerCast, typeSizeValue};   
    builder.CreateCall(map2check_load, args);
-   builder.CreateCall(map2check_check_deref);
+
+   Value* function_name_llvm = builder.CreateGlobalStringPtr
+     (this->currentFunction->getName());
+   Value* args2[] = {this->line_value, function_name_llvm};
+   builder.CreateCall(map2check_check_deref, args2);
 
 }
 
@@ -506,7 +510,12 @@ void MemoryTrackPass::runOnLoadInstruction() {
     IRBuilder<> builder((Instruction*)j);
     Value* args[] = {pointerCast, typeSizeValue};
     builder.CreateCall(map2check_load, args);
-    builder.CreateCall(map2check_check_deref);
+
+    Value* function_name_llvm = builder.CreateGlobalStringPtr
+      (this->currentFunction->getName());
+    Value* args2[] = {this->line_value, function_name_llvm};
+    builder.CreateCall(map2check_check_deref, args2);
+
 }
 
 void MemoryTrackPass::prepareMap2CheckInstructions() {
@@ -563,6 +572,8 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
   this->map2check_check_deref = F.getParent()->
     getOrInsertFunction("map2check_check_deref",
             Type::getVoidTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
             NULL);
 
   this->map2check_malloc = F.getParent()->

@@ -35,12 +35,12 @@ LIST_LOG_ROW new_list_row  (long memory_address, long memory_address_points_to,
   unsigned scope, Bool is_dynamic, Bool is_free, unsigned line_number,
   const char* name, const char* function_name, unsigned step);
 
-
 /**
  * Write elements from LIST_LOG to a FILE
  * @param row Pointer to the LIST_LOG to be writed
  */
 void list_log_to_file(MAP2CHECK_CONTAINER* list);
+
 
 /**
  * Prints elements from a LIST_LOG

@@ -42,31 +42,7 @@ if property_file is None:
 if benchmark is None:
   print "Please, specify a benchmark to verify"
   exit(1)
-else:
-  # generating .bc
-  bc_benchmark = os.path.splitext(str(os.path.basename(bc_benchmark)))[0]+'.bc'
-  if not os.path.exists(bcs_files):
-    os.makedirs(bcs_files)
 
-  bc_benchmark = bcs_files + "/" + bc_benchmark
-  clang_command = clang_command + benchmark + " -o " + bc_benchmark
-  print "Building .bc"
-  print clang_command
-  
-  clang_args = shlex.split(clang_command)
-  pclang = subprocess.Popen(clang_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  (stdout, stderr) = pclang.communicate()
-
-# Add witness path
-#command_line += "--witness-output " + os.path.basename(benchmark) + ".graphml "
-
-# Add arch
-#if arch == 32:
-#  command_line += "--32 "
-#else:
-#  command_line += "--64 "
-
-# Parse property files
 is_memsafety = False
 is_reachability = False
 
@@ -74,6 +50,10 @@ f = open(property_file, 'r')
 property_file_content = f.read()
 
 if "CHECK( init(main()), LTL(G valid-free) )" in property_file_content:
+  is_memsafety = True
+elif "CHECK( init(main()), LTL(G valid-deref) )" in property_file_content:
+  is_memsafety = True
+elif "CHECK( init(main()), LTL(G valid-memtrack) )" in property_file_content:
   is_memsafety = True
 elif "CHECK( init(main()), LTL(G ! overflow) )" in property_file_content:
   is_overflow = True
@@ -106,18 +86,29 @@ if "Timed out" in stdout:
 
 
 # Error messages
-free_offset = "FALSE-FREE: Operand of free must have zero pointer offset"
+free_offset = "\tFALSE-FREE: Operand of free must have zero pointer offset"
+deref_offset = "\tFALSE-DEREF: Reference to pointer was lost"
+memtrack_offset = "\tFALSE-MEMTRACK"
+target_offset = "\tFALSE: Target Reached"
 
 if "VERIFICATION FAILED" in stdout:
     if free_offset in stdout:
       print "FALSE_FREE"
       exit(0)
     
-    if is_reachability:
+    if deref_offset in stdout:
+      print "FALSE_DEREF"
+      exit(0)
+
+    if memtrack_offset in stdout:
+      print "FALSE_MEMTRACK"
+      exit(0)  
+
+    if target_offset in stdout:
       print "FALSE"
       exit(0)
 
-if "VERIFICATION SUCCESSFUL" in stdout:
+if "VERIFICATION SUCCEDED" in stdout:
   print "TRUE"
   exit(0)
 

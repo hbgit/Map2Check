@@ -147,10 +147,9 @@ void map2check_free_resolved_address(void* ptr, unsigned line, const char* funct
         write_property(FALSE_FREE, line, function_name);
         map2check_error();
      }  
-    MEMORY_ALLOCATIONS_ROW* row =  malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
-    *row =  new_memory_row((long) ptr, TRUE);
-
-    append_element(&allocation_log, row);
+     MEMORY_ALLOCATIONS_ROW* row = find_row_with_address(&allocation_log, ptr);
+     row->size = 0;
+     row->is_free = TRUE;
     
     update_reference_list_log((long) ptr, FREE, line);
 }

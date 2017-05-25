@@ -23,7 +23,7 @@ enum MemoryAddressStatus check_address_allocation_log(MAP2CHECK_CONTAINER* alloc
     int i = allocation_log->size - 1;
 
     for(; i >= 0; i--) {
-        //printf("Testing check address\n");
+
         MEMORY_ALLOCATIONS_ROW* row = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log); 
         if(row->addr == address) {
          if(row->is_free == TRUE) {
@@ -53,7 +53,7 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free) {
 ** if we find that the address was released, then we go on
 ** if not we return FALSE. */
 Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
-  //printf("Checking for MemTrack\n");
+
   Bool MemTrackError = FALSE;
   int i = 0;
   //int size = allocation_log->size;
@@ -87,14 +87,14 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
 
 MEMORY_ALLOCATIONS_ROW* find_row_with_address(MAP2CHECK_CONTAINER* allocation_log, void* ptr) {
     int i = allocation_log->size - 1;
-    printf("Got here: %p\n", ptr);
+
     unsigned addressToCheck = (unsigned) ptr;
     for(; i >= 0; i--) {
         MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log);
-        printf("Got here3: %p\n", (void*) iRow->addr);
+
         unsigned addr = (unsigned) iRow->addr;
         if(addressToCheck == addr) {
-            printf("Got here2: %p\n", ptr);
+            //printf("Got here2: %p\n", ptr);
             return iRow;
         }
     }
@@ -109,7 +109,7 @@ MEMORY_ALLOCATIONS_ROW* find_row_with_address(MAP2CHECK_CONTAINER* allocation_lo
  * i.e. a int on space 0x10 on a 32bit would set the var to 0x13 (if the int has 4 bytes)
  */
 Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* address, int size_to_destiny) {
-    //printf("Checking for Dynamic Deref\n");
+
     /*if(!address){
         return TRUE;
     }*/
@@ -120,7 +120,7 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* addr
         unsigned addressBottom = iRow->addr;
         unsigned addressTop = addressBottom + iRow->size - size_to_destiny + 1;
         //*last_address = addressTop;
-        printf("\tTOP: %p, BOT: %p\n", (void*) addressTop, (void*) addressBottom);
+
         if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
             if(iRow->is_free){
                 return FALSE;
@@ -129,13 +129,19 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* addr
             return TRUE;
         }
     }
-    //printf("GOT FALSE\n");
+
     //*last_address = 0;
     return FALSE;
 }
 
 void release_unreleased_addresses(MAP2CHECK_CONTAINER* list) {
-
+    int i = 0;
+    for(;i< list->size; i++) {
+      MEMORY_ALLOCATIONS_ROW* row = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *list);
+      if(!row->is_free) {
+          free((void*) row->addr);
+      }
+    }
 }
 
 void allocation_log_to_file(MAP2CHECK_CONTAINER* list) {

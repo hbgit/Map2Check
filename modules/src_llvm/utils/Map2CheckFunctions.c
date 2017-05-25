@@ -47,15 +47,15 @@ void map2check_function(const char* name, void* ptr) {
 
 const char* erro = "asd";
 void map2check_load(void* ptr, int size) {
-    printf("Checking address: %p, size: %d\n", ptr, size);
+
     if(!is_valid_heap_address(&heap_log, ptr, size)) {
-        printf("Is invalid heap\n");
+
         if(!is_valid_allocation_address(&allocation_log, ptr,size)) {
-            printf("Is invalid allocation\n");
-            if(is_deref_error((long) ptr, &list_log)) {
-                printf("Is deref\n");
+
+            //if(is_deref_error((long) ptr, &list_log)) {
+                //printf("Is deref\n");
                 ERROR_DEREF = TRUE;
-            }
+            //}
         }
     }
 
@@ -155,18 +155,31 @@ void map2check_free_resolved_address(void* ptr, unsigned line, const char* funct
 }
 
 void map2check_malloc(void* ptr, int size) {
-    MEMORY_ALLOCATIONS_ROW* row =  malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
-    *row =  new_memory_row((long) ptr, FALSE);
-    row->size = size;
-    append_element(&allocation_log, row);
+    MEMORY_ALLOCATIONS_ROW* row = find_row_with_address(&allocation_log,ptr);
+    if(row != NULL) {
+        row->size = size;
+        row->is_free = FALSE;
+    } else {
+        row =  malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
+        *row =  new_memory_row((long) ptr, FALSE);
+        row->size = size;
+        append_element(&allocation_log, row);
+    }
+
 }
 
 
 void map2check_calloc(void* ptr, int quantity, int size) {
-    MEMORY_ALLOCATIONS_ROW* row =  malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
-    *row =  new_memory_row((long) ptr, FALSE);
-    row->size = quantity * size;
-    append_element(&allocation_log, row);
+    MEMORY_ALLOCATIONS_ROW* row = find_row_with_address(&allocation_log, ptr);
+    if(row != NULL) {
+        row->size = quantity * size;
+        row->is_free = FALSE;
+    } else {
+        row =  malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
+        *row =  new_memory_row((long) ptr, FALSE);
+        row->size = quantity * size;
+        append_element(&allocation_log, row);
+    }
 
 }
 

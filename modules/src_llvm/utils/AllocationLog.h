@@ -45,6 +45,9 @@ enum MemoryAddressStatus check_address_allocation_log(MAP2CHECK_CONTAINER* alloc
  */
 MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free);
 
+
+MEMORY_ALLOCATIONS_ROW* find_row_with_address(MAP2CHECK_CONTAINER* allocation_log, void* ptr);
+
 /**
  * Checks if the address is a valid address
  * @param allocation_log  Address to a allocation log

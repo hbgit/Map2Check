@@ -84,6 +84,24 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log) {
   return !MemTrackError;
 }
 
+
+MEMORY_ALLOCATIONS_ROW* find_row_with_address(MAP2CHECK_CONTAINER* allocation_log, void* ptr) {
+    int i = allocation_log->size - 1;
+    printf("Got here: %p\n", ptr);
+    unsigned addressToCheck = (unsigned) ptr;
+    for(; i >= 0; i--) {
+        MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log);
+        printf("Got here3: %p\n", (void*) iRow->addr);
+        unsigned addr = (unsigned) iRow->addr;
+        if(addressToCheck == addr) {
+            printf("Got here2: %p\n", ptr);
+            return iRow;
+        }
+    }
+    return NULL;
+}
+
+
 /* Very simple ideia, we iterate over all elements of the allocation log, beggining from
  * top, if the address that we are looking for is in the range of the element address memory
  * space and the element is not free, then it's TRUE otherwise FALSE
@@ -96,15 +114,15 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log, void* addr
         return TRUE;
     }*/
     int i = allocation_log->size - 1;
-    unsigned addressToCheck = (long) address;
+    unsigned addressToCheck = (unsigned) address;
     for(; i >= 0; i--) {
         MEMORY_ALLOCATIONS_ROW* iRow = (MEMORY_ALLOCATIONS_ROW*) get_element_at(i, *allocation_log);
         unsigned addressBottom = iRow->addr;
         unsigned addressTop = addressBottom + iRow->size - size_to_destiny + 1;
         //*last_address = addressTop;
+        printf("\tTOP: %p, BOT: %p\n", (void*) addressTop, (void*) addressBottom);
         if((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
             if(iRow->is_free){
-
                 return FALSE;
             }
             //*last_address = addressTop;

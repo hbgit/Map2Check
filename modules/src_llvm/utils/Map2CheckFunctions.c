@@ -29,8 +29,12 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
 
   KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
   *row = kleeCall;
-  
+
+//  printf("Generated value %d\n",  value);
+
   append_element(&klee_log, row);
+
+  klee_log_to_file(klee_log);
 
 }
 
@@ -42,12 +46,14 @@ void map2check_function(const char* name, void* ptr) {
 }
 
 const char* erro = "asd";
-void map2check_load(void* ptr, int size) {    
+void map2check_load(void* ptr, int size) {
+    printf("Checking address: %p, size: %d\n", ptr, size);
     if(!is_valid_heap_address(&heap_log, ptr, size)) {
-
+        printf("Is invalid heap\n");
         if(!is_valid_allocation_address(&allocation_log, ptr,size)) {
-
+            printf("Is invalid allocation\n");
             if(is_deref_error((long) ptr, &list_log)) {
+                printf("Is deref\n");
                 ERROR_DEREF = TRUE;
             }
         }
@@ -59,7 +65,7 @@ void map2check_load(void* ptr, int size) {
 void map2check_check_deref(int line, const char* function_name) {
     if(ERROR_DEREF) {
         write_property(FALSE_DEREF, line, function_name);
-        valid_allocation_log(&allocation_log);
+
         map2check_error();
     }
 }
@@ -184,10 +190,18 @@ void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line, 
         write_property(FALSE_FREE, line, function_name);
         map2check_error();
      }  
-    MEMORY_ALLOCATIONS_ROW* row = malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
-    *row =  new_memory_row((long) *addr, TRUE);
 
-    append_element(&allocation_log, row);
+    MEMORY_ALLOCATIONS_ROW* row = find_row_with_address(&allocation_log, (void*) *addr);
+    row->size = 0;
+    row->is_free = TRUE;
+
+//    MEMORY_ALLOCATIONS_ROW* row = malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
+//     *row =  new_memory_row((long) *addr, TRUE);
+
+//    append_element(&allocation_log, row);
+
+
+//    append_element(&allocation_log, row);
 
     update_reference_list_log((long) *addr, FREE, line);  
 }
@@ -214,7 +228,7 @@ void map2check_error() {
 }
 
 void map2check_exit() {
-
+//    printf("\n\n\n\n\n");
     klee_log_to_file(klee_log);
     free_container(&klee_log);
 
@@ -225,6 +239,7 @@ void map2check_exit() {
     free_container(&heap_log);
 
     allocation_log_to_file(&allocation_log);
+    valid_allocation_log(&allocation_log);
     free_container(&allocation_log);
 
 }

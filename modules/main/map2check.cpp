@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 					     ()), pathfile);
 
 	    string extension = boost::filesystem::extension(pathfile);
-	    if(extension.compare(".bc") && extension.compare(".c")){
+        if(extension.compare(".bc") && extension.compare(".c") && extension.compare(".i")){
 	      help_msg();
 	      cout << desc;
 	      return ERROR_IN_COMMAND_LINE;

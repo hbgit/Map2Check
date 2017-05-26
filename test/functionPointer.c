@@ -1,15 +1,13 @@
-#include <stdio.h>
 
-int addInt(int n, int m) {
-    return n + m;
-}
 
 int main() {
-    int (*functionPtr) (int,int);
-    printf("Adress of function: %p", &main);
-    functionPtr = &addInt;
+    int A[3];
+    A[2] = 7;
+    int b = A[3];
 
     return 0;
+
+
 }
 
 

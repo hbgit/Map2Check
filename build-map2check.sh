@@ -8,7 +8,7 @@ map2check() {
     cd $RUNDIR
     mkdir build
     cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX=../release/ -DCMAKE_BUILD_TYPE=Debug
+    cmake .. -DCMAKE_INSTALL_PREFIX=../release/ -DCMAKE_BUILD_TYPE=Release
     make all
     make test
     make install

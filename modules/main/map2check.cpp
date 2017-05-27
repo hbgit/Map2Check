@@ -75,7 +75,8 @@ int main(int argc, char** argv)
 	("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
 	("target-function,f", po::value< string >(), "\tchecks if function can be executed")
 	("expected-result,e", po::value< string >(), "\tspecifies what output should be, used for tests")
-    ("print-list-log,p", "\tprints list log durint counter example")
+    ("print-list-log,p", "\tprints list log during counter example")
+    ("generate-witness,w", "\tgenerate witness file")
     ("debug-info,d", "\tprints debug info")
     ("version,v", "\tprints map2check version")
 	;
@@ -171,40 +172,43 @@ int main(int argc, char** argv)
         namespace tools = Map2Check::Tools;
         tools::PropertyViolated propertyViolated = counterExample->getProperty();
         
-        //Generating hash key to the witness
-        GenHash genhashkey;
-        genhashkey.setFilePath(pathfile);
-        genhashkey.generate_sha1_hash_for_file();
-        
-        if ((propertyViolated != tools::PropertyViolated::NONE) && (propertyViolated != tools::PropertyViolated::UNKNOWN)){
-            if (vm.count("target-function")) {
-                string function = vm["target-function"].as< string >();
-                Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(), function);
-                svcomp.Testify();
+        if(vm.count("generate-witness")) {
+            //Generating hash key to the witness
+            GenHash genhashkey;
+            genhashkey.setFilePath(pathfile);
+            genhashkey.generate_sha1_hash_for_file();
+
+
+            if ((propertyViolated != tools::PropertyViolated::NONE) && (propertyViolated != tools::PropertyViolated::UNKNOWN)){
+                if (vm.count("target-function")) {
+                    string function = vm["target-function"].as< string >();
+                    Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(), function);
+                    svcomp.Testify();
+                }
+                else {
+                    Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile());
+                    svcomp.Testify();
+                }
             }
-            else {
-                Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile());
-                svcomp.Testify();
-            }
+
+
+                if (vm.count("expected-result")) {
+                        string function = vm["expected-result"].as< string >();
+                        Map2Check::Log::Debug("Expected result: " + function );
+
+                        if (counterExample->getViolatedProperty() == function) {
+                            caller->cleanGarbage();
+                            return SUCCESS;
+                        }
+                        else {
+                             throw Map2Check::Exceptions::Map2CheckException("Unexpected result");
+                        }
+                }
+
+                caller->cleanGarbage();
+            return SUCCESS;
+          }
         }
-
-
-			if (vm.count("expected-result")) {
-					string function = vm["expected-result"].as< string >();
-					Map2Check::Log::Debug("Expected result: " + function );
-					
-					if (counterExample->getViolatedProperty() == function) {
-                        caller->cleanGarbage();
-						return SUCCESS;
-					}
-					else {
-						 throw Map2Check::Exceptions::Map2CheckException("Unexpected result");
-					}
-			} 
-			
-            caller->cleanGarbage();
-	    return SUCCESS;
-	  }
 
 
 	  po::notify(vm); // throws on error, so do after help in case

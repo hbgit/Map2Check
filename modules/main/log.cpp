@@ -9,6 +9,7 @@
 // #include <boost/log/sinks/sink.hpp>
 #include <string>
 #include <iostream>
+#include "tools.h"
 
 namespace logging = boost::log;
 namespace src = boost::log::sources;
@@ -26,10 +27,16 @@ namespace Map2Check::Log {
     BOOST_LOG_TRIVIAL(warning) << "\033[1;33m" << msg << "\033[0m";
   }
 
+  void initLog() {
+      logging::core::get()->set_filter
+          (
+              logging::trivial::severity >= logging::trivial::info
+          );
+  }
+
   void Debug(std::string msg) {
-#ifdef DEBUG
-    BOOST_LOG_TRIVIAL(debug) << "\033[0;33m" << msg << "\033[0m";
-#endif
+      BOOST_LOG_TRIVIAL(debug) << "\033[0;33m" << msg << "\033[0m";
+
   }
 
   void Info(std::string msg) {

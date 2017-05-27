@@ -24,6 +24,8 @@ using namespace std;
 #include "witness.hpp"
 #include "gen_crypto_hash.hpp"
 
+#define Map2CheckVersion "Map2Check 1.0a"
+
 namespace
 {
   const size_t SUCCESS = 0;
@@ -42,7 +44,7 @@ ostream& operator<<(ostream& os, const std::vector<T>& v)
 
 void help_msg(){
 	cout << endl;
-	cout << "> > > \t Map2Check v7 \t < < <" << endl;
+    cout << "> > > \t  "<< Map2CheckVersion << " \t < < <" << endl;
 	cout << endl;
 	cout << "Usage: map2check [options] file.bc\n";
 	cout << endl;
@@ -51,7 +53,7 @@ void help_msg(){
 
 int main(int argc, char** argv)
 {
-  Map2Check::Log::Info("Started Map2Check");
+
   // TODO: Use unique ptr for caller
   std::unique_ptr<Caller> caller;
   namespace fs = boost::filesystem;
@@ -73,7 +75,9 @@ int main(int argc, char** argv)
 	("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
 	("target-function,f", po::value< string >(), "\tchecks if function can be executed")
 	("expected-result,e", po::value< string >(), "\tspecifies what output should be, used for tests")
-	("print-list-log,p", po::value< string >(), "\tprints list log durint counter example")
+    ("print-list-log,p", "\tprints list log durint counter example")
+    ("debug-info,d", "\tprints debug info")
+    ("version,v", "\tprints map2check version")
 	;
 
       po::positional_options_description p;
@@ -85,6 +89,11 @@ int main(int argc, char** argv)
 	  po::store(po::command_line_parser(argc, argv).
 		    options(desc).positional(p).run(), vm); // can throw
 
+      if ( vm.count("version")  )
+        {
+          cout << Map2CheckVersion << "\n";
+          return SUCCESS;
+        }
 	  if ( vm.count("help") == 0 && vm.count("input-file") == 0) {
 	    help_msg();
 	    cout << desc;
@@ -99,6 +108,12 @@ int main(int argc, char** argv)
 	      return SUCCESS;
 	    }
 
+
+
+      if ( !vm.count("debug-info")  ) {
+          Map2Check::Log::initLog();
+
+      }
 	  if (vm.count("input-file")) {
 	    // TODO: Refactor for better reading
 	    // cout << "Input file: "<< vm["input-file"].as< std::vector<string> >() << "\n";
@@ -125,7 +140,7 @@ int main(int argc, char** argv)
 	     * (5) Added ESBMC claims in the analyzed code
 	     * (6) Generating C code to execute the assertions
 	     **/
-
+        Map2Check::Log::Info("Started Map2Check");
 	    if(extension.compare(".bc")) {
 	      caller = make_unique<Caller>(Caller::compileCFile(pathfile));
 	    } else {

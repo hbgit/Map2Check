@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
-#include "log.h"
-#include "tools.h"
+#include "utils/log.hpp"
+#include "utils/tools.hpp"
 using namespace std;
 
 class Caller {

@@ -1,5 +1,5 @@
 #include "counter_example.hpp"
-#include "tools.h"
+
 #include <memory>
 #include <algorithm>
 using namespace Map2Check;

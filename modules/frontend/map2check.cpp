@@ -14,15 +14,14 @@ namespace po = boost::program_options;
 #include <memory>
 using namespace std;
 
-#include "caller.h"
+#include "caller.hpp"
 // #include "verifier.h"
-#include "witness.hpp"
-#include "log.h"
+#include "utils/log.hpp"
 #include "exceptions.hpp"
-#include "tools.h"
-#include "counter_example.hpp"
-#include "witness.hpp"
-#include "gen_crypto_hash.hpp"
+#include "utils/tools.hpp"
+#include "counter_example/counter_example.hpp"
+#include "witness/witness.hpp"
+#include "utils/gen_crypto_hash.hpp"
 
 #define Map2CheckVersion "Map2Check 1.0a"
 
@@ -46,7 +45,7 @@ void help_msg(){
 	cout << endl;
     cout << "> > > \t  "<< Map2CheckVersion << " \t < < <" << endl;
 	cout << endl;
-	cout << "Usage: map2check [options] file.bc\n";
+	cout << "Usage: map2check [options] file.[i|c]\n";
 	cout << endl;
 }
 

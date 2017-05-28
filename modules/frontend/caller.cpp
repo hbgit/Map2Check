@@ -1,7 +1,7 @@
 //Map2Check library
-#include "../src_llvm/pass/MemoryTrackPass.h"
+#include "../backend/pass/MemoryTrackPass.h"
 
-#include "caller.h"
+#include "caller.hpp"
 
 //LLVM
 #include <llvm/LinkAllPasses.h>

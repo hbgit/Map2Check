@@ -1,5 +1,5 @@
 #include "exceptions.hpp"
-#include "log.h"
+#include "utils/log.hpp"
 #include <sstream>
 using namespace Map2Check::Exceptions;
 

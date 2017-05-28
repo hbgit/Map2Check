@@ -1,3 +1,3 @@
 
-add_subdirectory(src_llvm)
-add_subdirectory(main)
+add_subdirectory(backend)
+add_subdirectory(frontend)

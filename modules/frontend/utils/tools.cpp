@@ -1,6 +1,6 @@
-#include "tools.h"
-#include "log.h"
-#include "exceptions.hpp"
+#include "tools.hpp"
+#include "log.hpp"
+#include "../exceptions.hpp"
 
 #include <iostream>     // cout, endl
 #include <fstream>      // fstream

@@ -1,6 +1,6 @@
 #include "witness.hpp"
-#include "log.h"
-#include "tools.h"
+#include "../utils/log.hpp"
+#include "../utils/tools.hpp"
 #include <algorithm>
 #include <memory>
 #include <fstream>

@@ -140,7 +140,11 @@ void map2check_target_function(const char* func_name, int scope, int line) {
     map2check_error();
 }
 
-void map2check_free_resolved_address(void* ptr, unsigned line, const char* function_name) {
+void map2check_free_resolved_address(void* ptr, unsigned line, const char* function_name, short int isNullValid) {
+    if((ptr == NULL) && (isNullValid))  {
+        return;
+    }
+
     Bool error = is_invalid_free((long) ptr, &list_log);
 
      if(error) {
@@ -152,6 +156,13 @@ void map2check_free_resolved_address(void* ptr, unsigned line, const char* funct
      row->is_free = TRUE;
     
     update_reference_list_log((long) ptr, FREE, line);
+}
+
+void map2check_posix(void* ptr, int size) {
+    void** temp = (void**) ptr;
+    void* addr = *temp;
+    map2check_malloc(addr, size);
+    map2check_add_store_pointer((void*) temp,addr,1,"coisao",1,"cocoiso");
 }
 
 void map2check_malloc(void* ptr, int size) {

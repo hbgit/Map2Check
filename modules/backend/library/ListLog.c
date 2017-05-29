@@ -52,6 +52,10 @@ Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
 
 Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
   int i = log->size - 1;
+  if(address == ((long) NULL)){
+      return FALSE;
+  }
+
   for(; i >= 0; i--) {
     LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
     long points_to = row->memory_address_points_to;

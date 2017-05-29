@@ -66,8 +66,9 @@ void map2check_target_function(const char* func_name, int scope, int line);
  * @param ptr         Address to be released
  * @param line        Line where store operation was called
  * @param func_name   Name of the function where the operation occured.
+ * @param isNullValid If value is not 0, ignores if ptr points to NULL
  */
-void map2check_free_resolved_address(void* ptr, unsigned line, const char* function_name); 
+void map2check_free_resolved_address(void* ptr, unsigned line, const char* function_name, short int isNullValid);
 
 /**
  * Tracks address that are resolved during free (this function is to be used for instrumentation)
@@ -75,6 +76,14 @@ void map2check_free_resolved_address(void* ptr, unsigned line, const char* funct
  * @param size        Size of the allocated addres
  */
 void map2check_malloc(void* ptr, int size);
+
+/**
+ * Tracks address that are resolved during free (this function is to be used for instrumentation)
+ * @param ptr         Address allocated
+ * @param size        Size of the allocated addres
+ */
+void map2check_posix(void* ptr, int size);
+
 
 /**
  * Tracks address that are resolved during free (this function is to be used for instrumentation)

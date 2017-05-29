@@ -22,7 +22,7 @@ void MemoryTrackPass::instrumentKleeInt() {
 
   Value* args[] = {
     this->line_value,
-  	this->scope_value,
+    this->scope_value,
     callInst,
     function_llvm
      };
@@ -67,13 +67,37 @@ void MemoryTrackPass::instrumentPointer() {
       (currentFunction->getName());
 
   Value* args[] = {varPointerCast, receivesPointerCast,
-		   this->scope_value,
-		   name_llvm,
-		   this->line_value,
+           this->scope_value,
+           name_llvm,
+           this->line_value,
        function_llvm
      };
 
   builder.CreateCall(this->map2check_pointer, args);
+}
+
+void MemoryTrackPass::instrumentPosixMemAllign() {
+    CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+
+    this->caleeFunction = callInst->getCalledFunction();
+
+    auto j = this->currentInstruction;
+    ++j;
+
+    //Adds map2check_malloc with allocated address and size
+    IRBuilder<> builder((Instruction*)j);
+    auto size = callInst->getArgOperand(2);
+    auto pointer = callInst->getOperand(0);
+
+    Twine bitcast("bitcast");
+
+    Value* varPointerCast = CastInst::CreatePointerCast
+      (pointer,
+       Type::getInt8PtrTy(*this->Ctx),
+       bitcast,(Instruction*) j);
+
+    Value* args[] = {varPointerCast, size};
+    builder.CreateCall(map2check_posix, args);
 }
 
 // TODO: make dynCast only one time
@@ -88,6 +112,61 @@ void MemoryTrackPass::instrumentMalloc() {
   Value* args[] = {callInst, size};
   builder.CreateCall(map2check_malloc, args);
 }
+
+void MemoryTrackPass::instrumentRealloc() {
+    CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+    auto j = this->currentInstruction;
+    IRBuilder<> freeBuilder((Instruction*)j);
+    auto function_name = this->currentFunction->getName();
+    Value* function_llvm = freeBuilder
+        .CreateGlobalStringPtr(function_name);
+
+    Value* nullValid = ConstantInt
+      ::getSigned(Type::getInt1Ty(*this->Ctx), 1);
+
+
+    Value* freeArgs[] = {
+          callInst->getArgOperand(0),
+          this->line_value,
+          function_llvm,
+          nullValid
+    };
+
+    freeBuilder.CreateCall(map2check_free_resolved_address, freeArgs);
+
+
+    ++j;
+
+    //Adds map2check_malloc with allocated address and size
+    IRBuilder<> builder((Instruction*)j);
+    auto size = callInst->getArgOperand(1);
+    Value* args[] = {callInst, size};
+    builder.CreateCall(map2check_malloc, args);
+}
+
+void MemoryTrackPass::instrumentAlloca() {
+  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  ++j;
+
+  //Adds map2check_malloc with allocated address and size
+  IRBuilder<> builder((Instruction*)j);
+  auto size = callInst->getArgOperand(0);
+
+  Twine non_det("bitcast_map2check_alloca");
+  Value* pointerCast = CastInst
+    ::CreatePointerCast(callInst,
+          Type::getInt8PtrTy(*this->Ctx),
+          non_det,
+          (Instruction*) j);
+  auto function_name = "";
+    Value* function_llvm = builder
+      .CreateGlobalStringPtr(function_name);
+  Value* args[] = {function_llvm, pointerCast, size,size};
+//  Value* args[] = {callInst, size};
+  builder.CreateCall(map2check_alloca, args);
+}
+
 
 /* For the porpose of memory checking calloc is basically
  * a malloc with 2 args, the first is how many elements
@@ -120,7 +199,7 @@ void MemoryTrackPass::instrumentFree() {
     Value* function_llvm = builder
       .CreateGlobalStringPtr(function_name);
 
-  if (this->caleeFunction == NULL) {    
+  if (this->caleeFunction == NULL) {
     Value* v = callInst->getCalledValue();
     this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
     li = dyn_cast<LoadInst>(callInst->getArgOperand(0));
@@ -131,45 +210,50 @@ void MemoryTrackPass::instrumentFree() {
     // Value* addr = callInst->getArgOperand(0)->stripPointerCasts();
     errs () << "Calee function != NULL\n";
     li = dyn_cast<LoadInst>(callInst->
-				      getArgOperand(0)->
-				      stripPointerCasts());
+                      getArgOperand(0)->
+                      stripPointerCasts());
 
-    
-  }  
+
+  }
   if(li == NULL) {
-      errs () << "li = NULL\n";     
 
-      Value* args[] = { 
-	  	    callInst->getArgOperand(0),	  	    
-	  	    this->line_value,
-	  	    function_llvm
+      Value* nullNotValid = ConstantInt
+        ::getSigned(Type::getInt1Ty(*this->Ctx), 0);
+
+
+      Value* args[] = {
+            callInst->getArgOperand(0),
+            this->line_value,
+            function_llvm,
+            nullNotValid
       };
 
       builder.CreateCall(map2check_free_resolved_address, args);
   }
   else {
-    
-    auto name = li->getPointerOperand()->getName();      
+
+    auto name = li->getPointerOperand()->getName();
     Value* name_llvm = builder
-      .CreateGlobalStringPtr(name);    
+      .CreateGlobalStringPtr(name);
 
     Twine non_det("bitcast_map2check");
     Value* pointerCast = CastInst
       ::CreatePointerCast(li->getPointerOperand(),
-	  		Type::getInt8PtrTy(*this->Ctx),
-	  		non_det,
-	  		(Instruction*) j);
-      
+            Type::getInt8PtrTy(*this->Ctx),
+            non_det,
+            (Instruction*) j);
+
     Value* args[] = { name_llvm,
-	  	    pointerCast,
-	  	    this->scope_value,
-	  	    this->line_value,
-	  	    function_llvm
+            pointerCast,
+            this->scope_value,
+            this->line_value,
+            function_llvm,
+
     };
 
     builder.CreateCall(map2check_free, args);
   }
-  
+
 }
 
 void MemoryTrackPass::getDebugInfo() {
@@ -210,7 +294,7 @@ void MemoryTrackPass::instrumentReleaseMemoryOnCurrentInstruction() {
   // j--;
   IRBuilder<> builder((Instruction*)j);
   builder.CreateCall(this->map2check_success);
-  
+
 }
 
 void MemoryTrackPass::instrumentReleaseMemory() {
@@ -283,11 +367,25 @@ void MemoryTrackPass::instrumentInit() {
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
   if (this->caleeFunction->getName() == "free") {
-
     this->instrumentFree();
+  }
+  else if (this->caleeFunction->getName() == "cfree") {
+    this->instrumentFree();
+  }
+  else if (this->caleeFunction->getName() == "posix_memalign") {
+    this->instrumentPosixMemAllign();
+  }
+  else if (this->caleeFunction->getName() == "realloc") {
+    this->instrumentRealloc();
   }
   else if (this->caleeFunction->getName() == "malloc") {
     this->instrumentMalloc();
+  }
+  else if (this->caleeFunction->getName() == "valloc") {
+    this->instrumentMalloc();
+  }
+  else if (this->caleeFunction->getName() == "alloca") {
+    this->instrumentAlloca();
   }
   else if (this->caleeFunction->getName() == "calloc") {
     this->instrumentCalloc();
@@ -302,17 +400,17 @@ void MemoryTrackPass::switchCallInstruction() {
   }
   // TODO: Resolve SVCOMP ISSUE
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")
-	  ) {      
+      ) {
     this->instrumentKlee(NonDetType::INTEGER);
     this->instrumentKleeInt();
   }
   // TODO: FIX this hack
   else if ((this->caleeFunction->getName() == "map2check_non_det_int")
-	  ) {
+      ) {
       this->instrumentKleeInt();
   }
   else if (this->caleeFunction->getName() == this->target_function
-	   && this->isTrackingFunction) {
+       && this->isTrackingFunction) {
     this->instrumentTargetFunction();
   }
 }
@@ -325,11 +423,11 @@ void MemoryTrackPass::instrumentTargetFunction() {
     (this->target_function);
 
   Value* args[] = {name_llvm,
-		   this->scope_value,
-		   this->line_value };
+           this->scope_value,
+           this->line_value };
 
   builder.CreateCall(map2check_target_function,
-		     args);
+             args);
 }
 
 void MemoryTrackPass::instrumentFunctionAddress() {
@@ -368,6 +466,7 @@ void MemoryTrackPass::instrumentFunctionAddress() {
 void MemoryTrackPass::instrumentAllocation() {
   AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
 
+
   auto j = this->currentInstruction;
   j++;
 
@@ -375,14 +474,18 @@ void MemoryTrackPass::instrumentAllocation() {
   const DataLayout dataLayout = M->getDataLayout();
 
 
-  auto type = allocaInst->getType()->getPointerElementType();    
+  auto type = allocaInst->getType()->getPointerElementType();
+
   unsigned typeSize = dataLayout.getTypeSizeInBits(type)/8;
 
   unsigned primitiveSize = 0;
 
   if(type->isArrayTy()) {
+
       type = type->getArrayElementType();
   }
+
+
 
   if(type->isVectorTy()) {
       type = type->getVectorElementType();
@@ -459,7 +562,7 @@ void MemoryTrackPass::runOnStoreInstruction() {
            (Instruction*) j);
 //    j++;
    IRBuilder<> builder((Instruction*)j);
-   Value* args[] = {pointerCast, typeSizeValue};   
+   Value* args[] = {pointerCast, typeSizeValue};
    builder.CreateCall(map2check_load, args);
 
    Value* function_name_llvm = builder.CreateGlobalStringPtr
@@ -469,16 +572,57 @@ void MemoryTrackPass::runOnStoreInstruction() {
 
 }
 
+void  MemoryTrackPass::instrumentArrayAlloca() {
+    errs() << "oioi\n";
+    AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
+    Value* v = allocaInst->getArraySize();
+//    Value* v = allocaInst->getOperand(0);
+
+    auto j = this->currentInstruction;
+    j++;
+
+    Module* M = this->currentFunction->getParent();
+    const DataLayout dataLayout = M->getDataLayout();
+
+    auto type = v->getType();
+    unsigned primitiveSize = 0;
+
+
+    primitiveSize = dataLayout.getTypeSizeInBits(type)/8;
+    IRBuilder<> builder((Instruction*)j);
+    Value* name_llvm = builder.CreateGlobalStringPtr
+      (allocaInst->getName());
+
+
+    ConstantInt* primitiveSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
+
+    Twine non_det("bitcast_map2check");
+    Value* pointerCast = CastInst
+      ::CreatePointerCast(allocaInst,
+            Type::getInt8PtrTy(*this->Ctx),
+            non_det,
+            (Instruction*) j);
+
+    Value* sizeCast = CastInst
+      ::CreateIntegerCast(v,
+            Type::getInt32Ty(*this->Ctx),
+            true,
+            non_det,
+            (Instruction*) j);
+
+
+    Value* args[] = {name_llvm, pointerCast, sizeCast, primitiveSizeValue};
+    builder.CreateCall(map2check_alloca, args);
+}
+
 void MemoryTrackPass::runOnAllocaInstruction() {
   AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
 
-  if (allocaInst->isStaticAlloca()) {
-      this->instrumentAllocation();
+  if(allocaInst->isArrayAllocation()) {
+    this->instrumentArrayAlloca();
   }
-  // If it has a name, it is a variable (TODO: CONFIRM THIS)
-  if(allocaInst->hasName()) {
-
-
+  else {
+    this->instrumentAllocation();
   }
 
 
@@ -523,11 +667,11 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
   this->map2check_target_function = F.getParent()->
     getOrInsertFunction("map2check_target_function",
-			Type::getVoidTy(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			Type::getInt32Ty(*this->Ctx),
-			Type::getInt32Ty(*this->Ctx),
-			NULL);
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            NULL);
 
   this->map2check_load = F.getParent()->
     getOrInsertFunction("map2check_load",
@@ -538,36 +682,37 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
    this->map2check_init = F.getParent()->
     getOrInsertFunction("map2check_init",
-			Type::getVoidTy(*this->Ctx),
-			NULL);   
+            Type::getVoidTy(*this->Ctx),
+            NULL);
 
    this->map2check_free_resolved_address = F.getParent()->
     getOrInsertFunction("map2check_free_resolved_address",
-			Type::getVoidTy(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			Type::getInt32Ty(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx),
-			NULL);   
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt1Ty(*this->Ctx),
+            NULL);
 
     this->map2check_klee_int = F.getParent()->
       getOrInsertFunction("map2check_klee_int",
-    		Type::getVoidTy(*this->Ctx),
+            Type::getVoidTy(*this->Ctx),
         Type::getInt32Ty(*this->Ctx),
         Type::getInt32Ty(*this->Ctx),
         Type::getInt32Ty(*this->Ctx),
-    		Type::getInt8PtrTy(*this->Ctx),
-    		NULL);
+            Type::getInt8PtrTy(*this->Ctx),
+            NULL);
 
   this->map2check_pointer = F.getParent()->
     getOrInsertFunction("map2check_add_store_pointer",
-			Type::getVoidTy(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			Type::getInt32Ty(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			Type::getInt32Ty(*this->Ctx),
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx),
-			NULL);
+            NULL);
 
   this->map2check_check_deref = F.getParent()->
     getOrInsertFunction("map2check_check_deref",
@@ -578,11 +723,17 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
   this->map2check_malloc = F.getParent()->
     getOrInsertFunction("map2check_malloc",
-			Type::getVoidTy(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			Type::getInt64Ty(*this->Ctx),
-			NULL);
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt64Ty(*this->Ctx),
+            NULL);
 
+  this->map2check_posix = F.getParent()->
+    getOrInsertFunction("map2check_posix",
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt64Ty(*this->Ctx),
+            NULL);
   this->map2check_calloc = F.getParent()->
     getOrInsertFunction("map2check_calloc",
             Type::getVoidTy(*this->Ctx),
@@ -609,18 +760,18 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
   this->map2check_free = F.getParent()->
     getOrInsertFunction("map2check_free",
-			Type::getVoidTy(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			Type::getInt32Ty(*this->Ctx),
-			Type::getInt32Ty(*this->Ctx),
-			Type::getInt8PtrTy(*this->Ctx),
-			NULL);
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            NULL);
 
   this->map2check_success = F.getParent()->
     getOrInsertFunction("map2check_success",
-			Type::getVoidTy(*this->Ctx),
-			NULL);
+            Type::getVoidTy(*this->Ctx),
+            NULL);
 }
 
 
@@ -683,7 +834,7 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
 bool MemoryTrackPass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;
-    Module* currentModule = this->currentFunction->getParent();    
+    Module* currentModule = this->currentFunction->getParent();
     this->prepareMap2CheckInstructions();
 
     if(F.getName() == "main") {
@@ -697,9 +848,9 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
     this->instrumentFunctionAddress();
 //    this->instrumentFunctionArgumentAddress();
    for (Function::iterator bb = F.begin(),
-	  e = F.end(); bb != e; ++bb) {
+      e = F.end(); bb != e; ++bb) {
       for (BasicBlock::iterator i = bb->begin(),
-	     e = bb->end(); i != e; ++i) {       
+         e = bb->end(); i != e; ++i) {
           this->currentInstruction = i;
 
           if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {

@@ -41,11 +41,15 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentTargetFunction();
   void instrumentMalloc();
   void instrumentCalloc();
+  void instrumentRealloc();
+  void instrumentPosixMemAllign();
   void instrumentFree();
   void instrumentKleeInt();
   void instrumentInit();
   void instrumentReleaseMemoryOnCurrentInstruction();
   void instrumentReleaseMemory();
+  void instrumentAlloca();
+  void instrumentArrayAlloca();
   void instrumentAllocation();
   void instrumentFunctionAddress();
   void instrumentFunctionArgumentAddress();
@@ -77,6 +81,7 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_free;
   Constant* map2check_init;
   Constant* map2check_alloca;
+  Constant* map2check_posix;
   Constant* map2check_load;
   Constant* map2check_check_deref;
   Constant* map2check_function;

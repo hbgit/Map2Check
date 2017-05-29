@@ -1,0 +1,33 @@
+input = [dynamicAlloc], [dynamicRelease], [staticAlloc];
+
+dynamicAlloc = "[DYNAMIC ALLOC]\n", {dynamicAllocFunction};
+dynamicAllocFunction = identifier, " ", sizeArg, " ", addrArg, "\n";
+
+dynamicRelease = "[DYNAMIC RELEASE]\n", {dynamicReleaseFunction};
+dynamicReleaseFunction = identifier, " ", addrArg, "\n";
+
+staticAlloc = "[STATIC ALLOC]\n", {staticAllocFunction};
+staticAllocFunction = identifier, " ", sizeArg, " ", addrArg, "\n";
+
+identifier = letter, {validChar};
+sizeArg = "%size=", arg, {op arg};
+argAddr = "%addr=", arg, {op arg};
+
+letter = "A" | "B" | "C" | "D" | "E" | "F" | "G"
+       | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+       | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+       | "V" | "W" | "X" | "Y" | "Z" | "a" | "b"
+       | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+       | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+       | "q" | "r" | "s" | "t" | "u" | "v" | "w"
+       | "x" | "y" | "z" ;
+
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;       
+number = ["-"], digit;
+
+validChar = [letter | digit | "_"];
+
+arg = [{number} | argIdentifier];
+argIdentifier = "\", identifier, {digit};
+
+op = ["+", "*", "-", "/"];

@@ -57,11 +57,14 @@ legacy::PassManager AnalysisPasses;
 
 
 Caller::Caller( std::string bcprogram_path ) {
+    this->cleanGarbage();
   this->pathprogram = bcprogram_path;  
+
 }
 
 void Caller::cleanGarbage() {
-   const char* command ="rm -rf klee* list* clang.out map2check_property optimized.bc output.bc inter.bc result.bc witnessInfo compiled.bc";
+
+   const char* command ="rm -rf klee* list* clang.out map2check_property optimized.bc output.bc inter.bc result.bc witnessInfo";
   system(command);
 }
 void Caller::printdata() {

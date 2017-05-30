@@ -5,6 +5,16 @@
 // #include <string.h>
 
 const char* violated_property_file = "map2check_property";
+const char* violated_property_file_unknown = "map2check_property_klee_unknown";
+
+void write_property_unknown() {
+    FILE* output = fopen(violated_property_file_unknown, "w");
+    fprintf(output, "UNKNOWN\n");
+    fclose(output);
+}
+
+
+
 void write_property(enum ViolatedProperty violated, int line, const char* function_name) {
     FILE* output = fopen("map2check_property", "w");
 

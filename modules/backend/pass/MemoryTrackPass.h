@@ -21,12 +21,13 @@ enum class NonDetType {INTEGER,STRING,FLOAT};
 
 struct MemoryTrackPass : public FunctionPass {
   static char ID;
- MemoryTrackPass(bool SVCOMP = true) : FunctionPass(ID) {
+ MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
     this->target_function = "MAP2CHECK_DEFAULT_TARGET_FUNCTION";
+    this->SVCOMP = SVCOMP;
     this->isTrackingFunction = false;
     this->cleanWitnessInfoFile();
   }
- MemoryTrackPass(std::string function, bool SVCOMP =  true) : FunctionPass(ID) {
+ MemoryTrackPass(std::string function, bool SVCOMP =  false) : FunctionPass(ID) {
   this->SVCOMP = SVCOMP;
   this->target_function = function;
   this->isTrackingFunction = true;

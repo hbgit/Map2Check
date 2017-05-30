@@ -77,6 +77,7 @@ int main(int argc, char** argv)
     ("print-list-log,p", "\tprints list log during counter example")
     ("generate-witness,w", "\tgenerate witness file")
     ("debug-info,d", "\tprints debug info")
+    ("assume-malloc-true,m", "\tassumes that all mallocs will not fail")
     ("version,v", "\tprints map2check version")
 	;
 
@@ -148,15 +149,16 @@ int main(int argc, char** argv)
 	    }
 
 	    caller->parseIrFile();
-
-	    Map2Check::Log::Info("Applying instrumentation");
-	    if (vm.count("target-function")) {
-					string function = vm["target-function"].as< string >();
-					Map2Check::Log::Debug("Starting pass with function " + function );
-					caller->callPass(function);
-	      }
-	    else {
-	      caller->callPass();
+        bool sv_comp = false;
+        if (vm.count("assume-malloc-true")) {
+                    sv_comp = true;
+        }
+        if (vm.count("target-function")) {
+                    string function = vm["target-function"].as< string >();
+                    Map2Check::Log::Debug("Starting pass with function " + function );
+                    caller->callPass(function, sv_comp);
+        } else {
+          caller->callPass(sv_comp);
 	    }
 
 	    caller->genByteCodeFile();

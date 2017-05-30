@@ -318,8 +318,9 @@ void MemoryTrackPass::instrumentInit() {
   // // i--;
 
   IRBuilder<> builder((Instruction*)i);
-  //Value* args[] = {};
-  builder.CreateCall(this->map2check_init);
+  Value* argument = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), this->SVCOMP ? 1 : 0);
+  Value* args[] = {argument};
+  builder.CreateCall(this->map2check_init, args);
   errs() << "Function: " << this->currentFunction->getName() << "\n";
   Module* currentModule = this->currentFunction->getParent();
 
@@ -683,6 +684,7 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
    this->map2check_init = F.getParent()->
     getOrInsertFunction("map2check_init",
             Type::getVoidTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
             NULL);
 
    this->map2check_free_resolved_address = F.getParent()->

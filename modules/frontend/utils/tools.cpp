@@ -71,6 +71,8 @@ std::string Tools::SourceCodeHelper::getLine(unsigned line) {
 Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
   Map2Check::Log::Debug("Started reading file: " + path );
   this->path_name = path;
+
+
   ifstream in(path.c_str());
   if (!in.is_open()) {
     throw Tools::CheckViolatedPropertyException("Could not open file");
@@ -83,6 +85,11 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
 
   smatch match;
   string result;
+  ifstream unknown("map2check_property_klee_unknown");
+  if (unknown.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
+      return;
+  }
 
   while (getline(in,line)) {
     switch (fileLineNumber) {

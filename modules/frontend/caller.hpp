@@ -20,8 +20,8 @@ class Caller {
   void printdata();
   int parseIrFile();
   void genByteCodeFile();
-  int callPass();
-  int callPass(std::string target_function);
+  int callPass(bool sv_comp = false);
+  int callPass(std::string target_function, bool sv_comp = false);
   void linkLLVM();
   void callKlee();
   void cleanGarbage();

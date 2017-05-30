@@ -14,7 +14,7 @@
 #include "PropertyGenerator.h"
 
 /** Initializes variables used in map2check */
-void map2check_init();
+void map2check_init(int isSvComp);
 
 /** Finalizes and exit program with error */
 void map2check_error();

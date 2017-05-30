@@ -9,13 +9,20 @@ MAP2CHECK_CONTAINER klee_log;
 MAP2CHECK_CONTAINER allocation_log;
 MAP2CHECK_CONTAINER heap_log;
 
+Bool sv_comp = FALSE;
+Bool gotError = FALSE;
+
 Bool ERROR_DEREF = FALSE;
-void map2check_init() {
+void map2check_init(int isSvComp) {
     Map2CheckCurrentStep = 0;
     list_log = new_container(LIST_LOG_CONTAINER);
     klee_log = new_container(KLEE_LOG_CONTAINER);
     allocation_log = new_container(ALLOCATION_LOG_CONTAINER);
     heap_log = new_container(HEAP_LOG_CONTAINER);
+
+    if(isSvComp) {
+        sv_comp = TRUE;
+    }
     write_property(UNKNOWN, 0, "");
 
     //map2check_alloca("NULL",0,1,1,1,1);
@@ -166,6 +173,17 @@ void map2check_posix(void* ptr, int size) {
 }
 
 void map2check_malloc(void* ptr, int size) {
+    int addr = (int) ptr;
+//    printf("%d\n", addr);
+
+    if(sv_comp && (addr == 0)) {
+
+//        write_property(UNKNOWN, 0, "");
+        write_property_unknown();
+        map2check_error();
+    }
+
+
     MEMORY_ALLOCATIONS_ROW* row = find_row_with_address(&allocation_log,ptr);
     if(row != NULL) {
         row->size = size;
@@ -181,17 +199,7 @@ void map2check_malloc(void* ptr, int size) {
 
 
 void map2check_calloc(void* ptr, int quantity, int size) {
-    MEMORY_ALLOCATIONS_ROW* row = find_row_with_address(&allocation_log, ptr);
-    if(row != NULL) {
-        row->size = quantity * size;
-        row->is_free = FALSE;
-    } else {
-        row =  malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
-        *row =  new_memory_row((long) ptr, FALSE);
-        row->size = quantity * size;
-        append_element(&allocation_log, row);
-    }
-
+    map2check_malloc(ptr, quantity*size);
 }
 
 void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line,  const char* function_name) {
@@ -230,24 +238,23 @@ void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line, 
 }
 
 void map2check_success() {
+
     if(!valid_allocation_log(&allocation_log)) {
         write_property(FALSE_MEMTRACK, 0, "");
         map2check_error();
 
-    } 
-    else {
-       write_property(NONE, 0, "");
+    } else {
+        write_property(NONE, 0, "");
+        map2check_exit();
     }
-
-    map2check_exit();
-
-
-    
 }
 
 void map2check_error() {
+    gotError = TRUE;
     map2check_exit();
     klee_assert(0);
+//
+
 }
 
 void map2check_exit() {

@@ -64,7 +64,7 @@ Caller::Caller( std::string bcprogram_path ) {
 
 void Caller::cleanGarbage() {
 
-   const char* command ="rm -rf klee* list* clang.out map2check_property optimized.bc output.bc inter.bc result.bc witnessInfo";
+   const char* command ="rm -rf klee-* list-* clang.out map2check_property map2check_property_klee_unknown optimized.bc output.bc inter.bc result.bc witnessInfo";
   system(command);
 }
 void Caller::printdata() {
@@ -97,17 +97,17 @@ int Caller::parseIrFile(){
   return 0;
 }
 
-int Caller::callPass(){
+int Caller::callPass(bool sv_comp){
 
-  AnalysisPasses.add(new MemoryTrackPass());
+  AnalysisPasses.add(new MemoryTrackPass(sv_comp));
   // AnalysisPasses.add(llvm::op)
   AnalysisPasses.run(*M);
 
   return 1;
 }
 
-int Caller::callPass(std::string target_function){
-  AnalysisPasses.add(new MemoryTrackPass(target_function));
+int Caller::callPass(std::string target_function, bool sv_comp){
+  AnalysisPasses.add(new MemoryTrackPass(target_function, sv_comp));
   AnalysisPasses.run(*M);
 
   return 1;
@@ -152,7 +152,7 @@ void Caller::callKlee() {
   std::ostringstream command;
   command.str("");
   command << Map2Check::Tools::kleeBinary;
-  command << " --allow-external-sym-calls -exit-on-error-type=Assert --optimize optimized.bc  > ExecutionOutput.log";
+  command << " --allow-external-sym-calls  -exit-on-error-type=Assert --optimize optimized.bc  > ExecutionOutput.log";
   system(command.str().c_str());
 }
 

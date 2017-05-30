@@ -126,6 +126,7 @@ void map2check_load(void* ptr, int size);
  * @param size_of_primitive  Size of the primitive on allocated address
  */
 void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope);
+void map2check_non_static_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope);
 
 
 /**

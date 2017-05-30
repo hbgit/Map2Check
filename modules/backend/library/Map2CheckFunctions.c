@@ -77,6 +77,10 @@ void map2check_check_deref(int line, const char* function_name) {
     }
 }
 
+void map2check_non_static_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope) {
+map2check_alloca(name,ptr,size*size_of_primitive, size_of_primitive,line,scope);
+}
+
 void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope) {
 
     MEMORY_HEAP_ROW* row = malloc(sizeof(MEMORY_HEAP_ROW));
@@ -196,6 +200,7 @@ void map2check_malloc(void* ptr, int size) {
     }
 
 }
+
 
 
 void map2check_calloc(void* ptr, int quantity, int size) {

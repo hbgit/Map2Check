@@ -573,8 +573,49 @@ void MemoryTrackPass::runOnStoreInstruction() {
 
 }
 
+void MemoryTrackPass::instrumentNotStaticArrayAlloca() {
+    AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
+    Value* v = allocaInst->getArraySize();
+//    Value* v = allocaInst->getOperand(0);
+
+    auto j = this->currentInstruction;
+    j++;
+
+    Module* M = this->currentFunction->getParent();
+    const DataLayout dataLayout = M->getDataLayout();
+
+    auto type = v->getType();
+    unsigned primitiveSize = 0;
+
+
+    primitiveSize = dataLayout.getTypeSizeInBits(type)/8;
+    IRBuilder<> builder((Instruction*)j);
+    Value* name_llvm = builder.CreateGlobalStringPtr
+      (allocaInst->getName());
+
+
+    ConstantInt* primitiveSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
+
+    Twine non_det("bitcast_map2check");
+    Value* pointerCast = CastInst
+      ::CreatePointerCast(allocaInst,
+            Type::getInt8PtrTy(*this->Ctx),
+            non_det,
+            (Instruction*) j);
+
+    Value* sizeCast = CastInst
+      ::CreateIntegerCast(v,
+            Type::getInt32Ty(*this->Ctx),
+            true,
+            non_det,
+            (Instruction*) j);
+
+    Value* args[] = {name_llvm, pointerCast, sizeCast, primitiveSizeValue};
+    builder.CreateCall(map2check_non_static_alloca, args);
+}
+
 void  MemoryTrackPass::instrumentArrayAlloca() {
-    errs() << "oioi\n";
+
     AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
     Value* v = allocaInst->getArraySize();
 //    Value* v = allocaInst->getOperand(0);
@@ -620,7 +661,14 @@ void MemoryTrackPass::runOnAllocaInstruction() {
   AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
 
   if(allocaInst->isArrayAllocation()) {
-    this->instrumentArrayAlloca();
+      if(allocaInst->isStaticAlloca()) {
+
+           this->instrumentArrayAlloca();
+      } else {
+          errs() << "not static\n";
+          this->instrumentNotStaticArrayAlloca();
+      }
+
   }
   else {
     this->instrumentAllocation();
@@ -746,6 +794,15 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
   this->map2check_alloca = F.getParent()->
     getOrInsertFunction("map2check_alloca",
+            Type::getVoidTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            Type::getInt32Ty(*this->Ctx),
+            NULL);
+
+  this->map2check_non_static_alloca = F.getParent()->
+    getOrInsertFunction("map2check_non_static_alloca",
             Type::getVoidTy(*this->Ctx),
             Type::getInt8PtrTy(*this->Ctx),
             Type::getInt8PtrTy(*this->Ctx),

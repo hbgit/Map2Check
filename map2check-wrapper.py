@@ -5,7 +5,7 @@ import argparse
 import shlex
 import subprocess
 
-tool_path = "./map2check "
+tool_path = "./map2check -m "
 # default args
 extra_tool = "timeout 895s "
 command_line = extra_tool + tool_path

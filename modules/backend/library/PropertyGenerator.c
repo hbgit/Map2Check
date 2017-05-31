@@ -6,6 +6,8 @@
 
 const char* violated_property_file = "map2check_property";
 const char* violated_property_file_unknown = "map2check_property_klee_unknown";
+const char* violated_property_file_memtrack = "map2check_property_klee_memtrack";
+const char* violated_property_file_deref = "map2check_property_klee_deref";
 
 void write_property_unknown() {
     FILE* output = fopen(violated_property_file_unknown, "w");
@@ -13,6 +15,19 @@ void write_property_unknown() {
     fclose(output);
 }
 
+void write_property_memtrack() {
+    FILE* output = fopen(violated_property_file_memtrack, "w");
+    fprintf(output, "FALSE-MEMTRACK\n");
+    fclose(output);
+}
+
+void write_property_deref(int line, char *func) {
+    FILE* output = fopen(violated_property_file_deref, "w");
+    fprintf(output, "FALSE-DEREF\n");
+    fprintf(output, "Line: %d\n", line);
+    fprintf(output, "Function: %s\n", func);
+    fclose(output);
+}
 
 
 void write_property(enum ViolatedProperty violated, int line, const char* function_name) {
@@ -31,11 +46,13 @@ void write_property(enum ViolatedProperty violated, int line, const char* functi
             fprintf(output, "Function: %s\n", function_name);
             break;
         case FALSE_DEREF:
+            write_property_deref(line,function_name);
             fprintf(output, "FALSE-DEREF\n");
             fprintf(output, "Line: %d\n", line);
             fprintf(output, "Function: %s\n", function_name);
             break;
         case FALSE_MEMTRACK:
+            write_property_memtrack();
             fprintf(output, "FALSE-MEMTRACK\n");
             break;
         case TARGET_REACHED:

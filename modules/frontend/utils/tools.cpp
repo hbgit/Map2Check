@@ -91,6 +91,18 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
       return;
   }
 
+  ifstream memtrack("map2check_property_klee_memtrack");
+  if (memtrack.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
+      return;
+  }
+
+  ifstream deref("map2check_property_klee_deref");
+  if (deref.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
+      return;
+  }
+
   while (getline(in,line)) {
     switch (fileLineNumber) {
       case 0:
@@ -108,7 +120,7 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
           this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
         }else if(line == "UNKNOWN") {
           Map2Check::Log::Debug("UNKNOWN found");
-          this->propertyViolated = Tools::PropertyViolated::UNKNOWN;  
+          this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
         }else if(line == "NONE") {
           Map2Check::Log::Debug("NONE found");
           this->propertyViolated = Tools::PropertyViolated::NONE;
@@ -118,9 +130,9 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         break;
       case 1:
         if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
-  	  	    int result = std::stoi(match.str(1));
+            int result = std::stoi(match.str(1));
             this->line = result;
-  	        Map2Check::Log::Debug("Line number: " + match.str(1));
+            Map2Check::Log::Debug("Line number: " + match.str(1));
         }
         else {
           throw Tools::CheckViolatedPropertyException("Could not find line number");

@@ -584,9 +584,9 @@ void MemoryTrackPass::instrumentNotStaticArrayAlloca() {
     Module* M = this->currentFunction->getParent();
     const DataLayout dataLayout = M->getDataLayout();
 
-    auto type = v->getType();
+    auto type = allocaInst->getType()->getPointerElementType();
     unsigned primitiveSize = 0;
-
+//    type->get
 
     primitiveSize = dataLayout.getTypeSizeInBits(type)/8;
     IRBuilder<> builder((Instruction*)j);

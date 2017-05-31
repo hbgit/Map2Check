@@ -64,7 +64,7 @@ Caller::Caller( std::string bcprogram_path ) {
 
 void Caller::cleanGarbage() {
 
-   const char* command ="rm -rf klee-* list-* clang.out map2check_property map2check_property_klee_unknown optimized.bc output.bc inter.bc result.bc witnessInfo";
+   const char* command ="rm -rf klee-* list-* clang.out *.csv map2check_property map2check_property_klee_unknown optimized.bc output.bc inter.bc result.bc witnessInfo";
   system(command);
 }
 void Caller::printdata() {

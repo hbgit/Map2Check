@@ -193,22 +193,24 @@ int main(int argc, char** argv)
             }
 
 
-                if (vm.count("expected-result")) {
-                        string function = vm["expected-result"].as< string >();
-                        Map2Check::Log::Debug("Expected result: " + function );
 
-                        if (counterExample->getViolatedProperty() == function) {
-                            caller->cleanGarbage();
-                            return SUCCESS;
-                        }
-                        else {
-                             throw Map2Check::Exceptions::Map2CheckException("Unexpected result");
-                        }
-                }
-
-                caller->cleanGarbage();
             return SUCCESS;
           }
+
+        if (vm.count("expected-result")) {
+                string function = vm["expected-result"].as< string >();
+                Map2Check::Log::Debug("Expected result: " + function );
+
+                if (counterExample->getViolatedProperty() == function) {
+                    caller->cleanGarbage();
+                    return SUCCESS;
+                }
+                else {
+                     throw Map2Check::Exceptions::Map2CheckException("Unexpected result");
+                }
+        }
+
+        caller->cleanGarbage();
         }
 
 
@@ -227,7 +229,7 @@ int main(int argc, char** argv)
 
     }
   catch(std::exception& e)
-    {
+    {      
       Map2Check::Log::Fatal(e.what());
       std::cerr << "Unhandled Exception reached the top of main: "
 		<< e.what() << ", application will now exit" << std::endl;

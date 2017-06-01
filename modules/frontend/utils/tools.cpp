@@ -93,6 +93,12 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
       return;
   }
 
+  ifstream false_free("map2check_property_klee_free");
+  if (false_free.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_FREE;
+      return;
+  }
+
   ifstream deref("map2check_property_klee_deref");
   if (deref.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;

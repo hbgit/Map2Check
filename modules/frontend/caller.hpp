@@ -15,6 +15,7 @@ class Caller {
   void optimizeProgram();
 
  public:
+  Caller() {}
   Caller( std::string bcprogram_path );
   static string compileCFile(std::string cprogram_path);
   void printdata();

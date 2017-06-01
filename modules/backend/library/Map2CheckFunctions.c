@@ -143,6 +143,13 @@ int map2check_non_det_int() {
   klee_make_symbolic(&non_det,
 		     sizeof(non_det),
 		     "non_det_int");
+
+  if((non_det % 2) == 0) {
+      non_det = (non_det/2) * 2;
+  } else {
+      non_det = (non_det/2) * 2 + 1;
+  }
+
   return non_det;
 }
 

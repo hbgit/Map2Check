@@ -85,15 +85,11 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
 
   smatch match;
   string result;
+
+
   ifstream unknown("map2check_property_klee_unknown");
   if (unknown.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
-      return;
-  }
-
-  ifstream memtrack("map2check_property_klee_memtrack");
-  if (memtrack.is_open()) {
-    this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
       return;
   }
 
@@ -102,6 +98,14 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
       return;
   }
+
+
+  ifstream memtrack("map2check_property_klee_memtrack");
+  if (memtrack.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
+      return;
+  }
+
 
   while (getline(in,line)) {
     switch (fileLineNumber) {

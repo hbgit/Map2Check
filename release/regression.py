@@ -19,7 +19,7 @@ targetReached = os.listdir(targetDir)
 trueValid = os.listdir(trueDir)
 
 for program in trueValid:
-    command = "./map2check -e TRUE "
+    command = "./map2check -e TRUE --assume-malloc-true "
     command += trueDir + program
     print("Running: " + command + "\n")
     try:
@@ -34,7 +34,7 @@ for program in trueValid:
 
 for program in falseFree: 
     
-    command = "./map2check -e FALSE-FREE "
+    command = "./map2check -e FALSE-FREE --assume-malloc-true "
     command += freeDir + program
     print("Running: " + command + "\n")
     try:
@@ -48,7 +48,7 @@ for program in falseFree:
 
 for program in falseDeref: 
     
-    command = "./map2check -e FALSE-DEREF "
+    command = "./map2check -e FALSE-DEREF --assume-malloc-true "
     command += derefDir + program
     print("Running: " + command + "\n")
     try:
@@ -61,7 +61,7 @@ for program in falseDeref:
         successList.append(derefDir + program)  
 
 for program in targetReached: 
-    command = "./map2check -f __VERIFIER_error -e TARGET-REACHED "
+    command = "./map2check -f __VERIFIER_error -e TARGET-REACHED --assume-malloc-true "
     command += targetDir + program
     print("Running: " + command + "\n")
     try:
@@ -75,7 +75,7 @@ for program in targetReached:
 
 
 for program in falseMemtrack:
-    command = "./map2check -e FALSE-MEMTRACK "
+    command = "./map2check -e FALSE-MEMTRACK --assume-malloc-true "
     command += memtrackDir + program
     print("Running: " + command + "\n")
     try:

@@ -219,39 +219,42 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(string pa
   // Open file as READ mode
   ifstream in(path.c_str());
   if (!in.is_open()) {
-    throw Tools::CouldNotOpenFileException();
+    return listLog;
   }
 
    string line;
    while (getline(in,line)) {
-
+       std::vector<std::string> tokens;
+       boost::split(tokens, line, boost::is_any_of(";"));
      // TODO: Check if CSV has valid arguments
-     std::vector<std::string> tokens;
-     boost::split(tokens, line, boost::is_any_of(";"));
-     Tools::ListLogRow row;
-     string id = tokens[0];
-     string memoryAddress = tokens[1];
-     string pointsTo = tokens[2];
-     string scope = tokens[3];
-     string isFree = tokens[4];
-     string isDynamic = tokens[5];
-     string varName = tokens[6];
-     string lineNumber = tokens[7];
-     string functionName = tokens[8];
-     string step = tokens[9];
+       if(tokens.size() == 10){
+           Tools::ListLogRow row;
+           string id = tokens[0];
+           string memoryAddress = tokens[1];
+           string pointsTo = tokens[2];
+           string scope = tokens[3];
+           string isFree = tokens[4];
+           string isDynamic = tokens[5];
+           string varName = tokens[6];
+           string lineNumber = tokens[7];
+           string functionName = tokens[8];
+           string step = tokens[9];
 
-     row.id = id;
-     row.memoryAddress = memoryAddress;
-     row.pointsTo = pointsTo;
-     row.scope = scope;
-     row.isFree = isFree;
-     row.isDynamic = isDynamic ;
-     row.varName = varName;
-     row.lineNumber = lineNumber;
-     row.functionName = functionName;
-     row.step = step;
-     Map2Check::Log::Debug(row );
-     listLog.push_back(row);
+           row.id = id;
+           row.memoryAddress = memoryAddress;
+           row.pointsTo = pointsTo;
+           row.scope = scope;
+           row.isFree = isFree;
+           row.isDynamic = isDynamic ;
+           row.varName = varName;
+           row.lineNumber = lineNumber;
+           row.functionName = functionName;
+           row.step = step;
+           Map2Check::Log::Debug(row );
+           listLog.push_back(row);
+       }
+
+
    }
 
   return listLog;

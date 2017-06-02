@@ -17,7 +17,8 @@ enum MemoryAddressStatus {
 };
 
 enum NONDET_TYPE {
-  INTEGER = 0
+  INTEGER = 0,
+  CHAR    = 1
 };
 
 enum Container_Type {

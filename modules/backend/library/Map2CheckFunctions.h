@@ -19,6 +19,7 @@ void map2check_init(int isSvComp);
 /** Finalizes and exit program with error */
 void map2check_error();
 
+
 /**
  * @brief Checks if current state of program is a deref error
  * @param line           Line where deref error occurred
@@ -128,7 +129,14 @@ void map2check_load(void* ptr, int size);
 void map2check_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope);
 void map2check_non_static_alloca(const char* name, void* ptr, int size, int size_of_primitive, int line, int scope);
 
+char map2check_non_det_char();
+void map2check_klee_char(unsigned line, unsigned scope, int value, const char* function_name);
 
+void* map2check_non_det_pointer();
+long map2check_non_det_long();
+void map2check_klee_pointer(unsigned line, unsigned scope, int value, const char* function_name);
+void map2check_assume(int expr);
+void __VERIFIER_error();
 /**
  * @brief Tracks addresses from memory heap
  * @param name Name of the variable allocated

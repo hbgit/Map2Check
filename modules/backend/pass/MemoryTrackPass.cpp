@@ -5,14 +5,42 @@ std::string echoCommand = "echo";
 // TODO: Work with other types
 // FIX: It it not current function
 void MemoryTrackPass::instrumentKlee(NonDetType nonDetType) {
-  Twine non_det("map2check_non_det_int");
-  this->caleeFunction->setName(non_det);
+    switch(nonDetType) {
+        case (NonDetType::INTEGER):
+        {
+            Twine non_det_int("map2check_non_det_int");
+            this->caleeFunction->setName(non_det_int);
+            break;
+        }
+        case (NonDetType::CHAR):{
+            Twine non_det_char("map2check_non_det_char");
+            this->caleeFunction->setName(non_det_char);
+            break;
+        }
+         case (NonDetType::POINTER):{
+            Twine non_det_pointer("map2check_non_det_pointer");
+            this->caleeFunction->setName(non_det_pointer);
+            break;
+         }
+         case (NonDetType::LONG):{
+             Twine non_det_long("map2check_non_det_long");
+            this->caleeFunction->setName(non_det_long);
+            break;
+        }
+         case (NonDetType::ASSUME):{
+            Twine assume("map2check_assume");
+            this->caleeFunction->setName(assume);
+            break;
+        }
+    }
+
+
 
 
 }
 
 void MemoryTrackPass::instrumentKleeInt() {
-  errs() << "Instrumenting Klee Integer\n";
+//  errs() << "Instrumenting Klee Integer\n";
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   j++;
@@ -28,7 +56,25 @@ void MemoryTrackPass::instrumentKleeInt() {
      };
 
   builder.CreateCall(this->map2check_klee_int, args);
+}
 
+void MemoryTrackPass::instrumentKleeChar() {
+  errs() << "Instrumenting Klee Char\n";
+  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  j++;
+  IRBuilder<> builder((Instruction*)j);
+  Value* function_llvm = builder.CreateGlobalStringPtr
+      (currentFunction->getName());
+
+  Value* args[] = {
+    this->line_value,
+    this->scope_value,
+    callInst,
+    function_llvm
+     };
+
+  builder.CreateCall(this->map2check_klee_char, args);
 }
 
 
@@ -142,6 +188,76 @@ void MemoryTrackPass::instrumentRealloc() {
     auto size = callInst->getArgOperand(1);
     Value* args[] = {callInst, size};
     builder.CreateCall(map2check_malloc, args);
+}
+
+void MemoryTrackPass::instrumentMemset() {
+    CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+    auto j = this->currentInstruction;
+
+    auto function_name = this->currentFunction->getName();
+
+
+    auto size = callInst->getArgOperand(2);
+    auto pointer = callInst->getOperand(0);
+
+    Twine bitcast("bitcast");
+
+    Value* varPointerCast = CastInst::CreatePointerCast
+      (pointer,
+       Type::getInt8PtrTy(*this->Ctx),
+       bitcast,(Instruction*) j);
+
+    IRBuilder<> builder((Instruction*)j);
+    Value* function_llvm = builder
+        .CreateGlobalStringPtr(function_name);
+    Value* args[] = {varPointerCast, size};
+    builder.CreateCall(map2check_load, args);
+    Value* args2[] = {this->line_value, function_llvm};
+    builder.CreateCall(map2check_check_deref, args2);
+}
+
+void MemoryTrackPass::instrumentMemcpy() {
+    CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+    auto j = this->currentInstruction;
+
+    auto function_name = this->currentFunction->getName();
+
+
+    auto size = callInst->getArgOperand(2);
+    auto pointer_destiny = callInst->getOperand(0);
+    auto pointer_origin = callInst->getOperand(1);
+
+    Twine bitcast("bitcast_memcpy");
+
+    Value* varPointerCast = CastInst::CreatePointerCast
+      (pointer_destiny,
+       Type::getInt8PtrTy(*this->Ctx),
+       bitcast,(Instruction*) j);
+
+    Value* sizeCast = CastInst::CreateIntegerCast(size, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
+
+
+    Value* varPointerCastOrigin = CastInst::CreatePointerCast
+      (pointer_origin,
+       Type::getInt8PtrTy(*this->Ctx),
+       bitcast,(Instruction*) j);
+
+    IRBuilder<> builder((Instruction*)j);
+    Value* function_llvm = builder
+        .CreateGlobalStringPtr(function_name);
+
+    Value* args2[] = {varPointerCastOrigin, sizeCast};
+    builder.CreateCall(map2check_load, args2);
+
+    Value* args3[] = {this->line_value, function_llvm};
+    builder.CreateCall(map2check_check_deref, args3);
+
+    Value* args[] = {varPointerCast, sizeCast};
+    builder.CreateCall(map2check_load, args);
+
+    builder.CreateCall(map2check_check_deref, args3);
+
+
 }
 
 void MemoryTrackPass::instrumentAlloca() {
@@ -379,6 +495,12 @@ void MemoryTrackPass::switchCallInstruction() {
   else if (this->caleeFunction->getName() == "realloc") {
     this->instrumentRealloc();
   }
+  else if (this->caleeFunction->getName() == "memset") {
+    this->instrumentMemset();
+  }
+  else if (this->caleeFunction->getName() == "memcpy") {
+    this->instrumentMemcpy();
+  }
   else if (this->caleeFunction->getName() == "malloc") {
     this->instrumentMalloc();
   }
@@ -400,15 +522,41 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentReleaseMemoryOnCurrentInstruction();
   }
   // TODO: Resolve SVCOMP ISSUE
-  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")
-      ) {
+  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")) {
     this->instrumentKlee(NonDetType::INTEGER);
     this->instrumentKleeInt();
   }
   // TODO: FIX this hack
-  else if ((this->caleeFunction->getName() == "map2check_non_det_int")
-      ) {
+  else if ((this->caleeFunction->getName() == "map2check_non_det_int")) {
       this->instrumentKleeInt();
+  }
+  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_char")) {
+    this->instrumentKlee(NonDetType::CHAR);
+    this->instrumentKleeChar();
+  }
+  else if ((this->caleeFunction->getName() == "map2check_non_det_char")) {
+      this->instrumentKleeChar();
+  }
+  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_pointer")) {
+    this->instrumentKlee(NonDetType::POINTER);
+//    this->instrumentKleePointer();
+  }
+  else if ((this->caleeFunction->getName() == "map2check_non_det_pointer")) {
+//      this->instrumentKleePointer();
+  }
+  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_long")) {
+    this->instrumentKlee(NonDetType::LONG);
+//    this->instrumentKleePointer();
+  }
+  else if ((this->caleeFunction->getName() == "map2check_non_det_long")) {
+//      this->instrumentKleePointer();
+  }
+  else if ((this->caleeFunction->getName() == "__VERIFIER_assume")) {
+    this->instrumentKlee(NonDetType::ASSUME);
+//    this->instrumentKleePointer();
+  }
+  else if ((this->caleeFunction->getName() == "map2check_assume")) {
+//      this->instrumentKleePointer();
   }
   else if (this->caleeFunction->getName() == this->target_function
        && this->isTrackingFunction) {
@@ -665,7 +813,7 @@ void MemoryTrackPass::runOnAllocaInstruction() {
 
            this->instrumentArrayAlloca();
       } else {
-          errs() << "not static\n";
+//          errs() << "not static\n";
           this->instrumentNotStaticArrayAlloca();
       }
 
@@ -752,6 +900,15 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
         Type::getInt32Ty(*this->Ctx),
             Type::getInt8PtrTy(*this->Ctx),
             NULL);
+
+  this->map2check_klee_char = F.getParent()->
+    getOrInsertFunction("map2check_klee_char",
+          Type::getVoidTy(*this->Ctx),
+      Type::getInt32Ty(*this->Ctx),
+      Type::getInt32Ty(*this->Ctx),
+      Type::getInt32Ty(*this->Ctx),
+          Type::getInt8PtrTy(*this->Ctx),
+          NULL);
 
   this->map2check_pointer = F.getParent()->
     getOrInsertFunction("map2check_add_store_pointer",

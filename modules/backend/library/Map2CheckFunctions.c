@@ -37,14 +37,25 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
   KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
   *row = kleeCall;
 
-//  printf("Generated value %d\n",  value);
-
   append_element(&klee_log, row);
-
   klee_log_to_file(klee_log);
 
 }
 
+
+void map2check_klee_char(unsigned line, unsigned scope, int value, const char* function_name) {
+  char* result = (char*) malloc(sizeof(char));
+  *result = (char) value;
+  KLEE_CALL kleeCall = new_klee_call(CHAR, line, scope, result,function_name, Map2CheckCurrentStep);
+  Map2CheckCurrentStep++;
+
+  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  *row = kleeCall;
+
+  append_element(&klee_log, row);
+  klee_log_to_file(klee_log);
+
+}
 void map2check_function(const char* name, void* ptr) {
 
     MEMORY_HEAP_ROW* row = malloc(sizeof(MEMORY_HEAP_ROW));
@@ -151,6 +162,39 @@ int map2check_non_det_int() {
   }
 
   return non_det;
+}
+
+char map2check_non_det_char() {
+  char non_det;
+  klee_make_symbolic(&non_det,
+             sizeof(non_det),
+             "non_det_char");
+
+  return non_det;
+}
+
+
+void* map2check_non_det_pointer() {
+    void* non_det;
+    klee_make_symbolic(&non_det,sizeof(non_det),"non_det_pointer");
+
+    return non_det;
+}
+
+void map2check_assume(int expr) {
+    klee_assume(expr);
+}
+
+long map2check_non_det_long() {
+    long non_det;
+    klee_make_symbolic(&non_det,sizeof(non_det),"non_det_long");
+
+    return non_det;
+}
+
+void __VERIFIER_error() {
+    map2check_success();
+    klee_assert(0);
 }
 
 void map2check_target_function(const char* func_name, int scope, int line) {

@@ -29,6 +29,10 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     switch (call->type) {
       case INTEGER:
         fprintf(output,"%d\n", (*(int*)call->value));
+        break;
+      case CHAR:
+        fprintf(output,"%d\n", (*(char*)call->value));
+        break;
     }
   }
   fclose(output);

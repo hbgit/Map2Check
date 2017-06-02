@@ -17,7 +17,12 @@
 
 using namespace llvm;
 
-enum class NonDetType {INTEGER,STRING,FLOAT};
+enum class NonDetType {INTEGER,
+                       POINTER,
+                       STRING,
+                       LONG,
+                       ASSUME,
+                       CHAR};
 
 struct MemoryTrackPass : public FunctionPass {
   static char ID;
@@ -37,15 +42,20 @@ struct MemoryTrackPass : public FunctionPass {
 
  private:
   void cleanWitnessInfoFile();
-  void instrumentKlee(NonDetType nonDetType);
+
   void instrumentPointer();
   void instrumentTargetFunction();
   void instrumentMalloc();
   void instrumentCalloc();
   void instrumentRealloc();
+  void instrumentMemset();
+  void instrumentMemcpy();
   void instrumentPosixMemAllign();
   void instrumentFree();
+  void instrumentKlee(NonDetType nonDetType);
   void instrumentKleeInt();
+  void instrumentKleeChar();
+  void instrumentKleePointer();
   void instrumentInit();
   void instrumentReleaseMemoryOnCurrentInstruction();
   void instrumentReleaseMemory();
@@ -90,6 +100,7 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_function;
   Constant* map2check_free_resolved_address;
   Constant*  map2check_klee_int;
+  Constant*  map2check_klee_char;
   Constant* map2check_success;
   ConstantInt* scope_value;
   ConstantInt* line_value;

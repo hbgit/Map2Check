@@ -54,7 +54,7 @@ namespace Map2Check {
 
         cnvt << "State " << this->state << " ";
         cnvt << "file " << this->fileName << " ";
-        cnvt << "Line content " << this->lineC << "\n";
+        cnvt << "Line content: " << this->lineC << "\n";
 
         cnvt << (std::string) this->row;
 

@@ -193,8 +193,15 @@ long map2check_non_det_long() {
 }
 
 void __VERIFIER_error() {
-    map2check_success();
-    klee_assert(0);
+
+    if(!valid_allocation_log(&allocation_log)) {
+        write_property(FALSE_MEMTRACK, 0, "");
+    } else {
+        write_property(NONE, 0, "");
+
+    }
+    map2check_exit();
+    exit(0);
 }
 
 void map2check_target_function(const char* func_name, int scope, int line) {

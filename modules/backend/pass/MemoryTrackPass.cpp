@@ -154,7 +154,12 @@ void MemoryTrackPass::instrumentMalloc() {
 
   //Adds map2check_malloc with allocated address and size
   IRBuilder<> builder((Instruction*)j);
-  auto size = callInst->getArgOperand(0);
+  Value* size = callInst->getArgOperand(0);
+  Twine bitcast("bitcast");
+    if(size == NULL){
+        errs() << "cocois\n";
+    }
+  Value* sizeCast = CastInst::CreateIntegerCast(size, Type::getInt32Ty(*this->Ctx), true, bitcast, (Instruction*) j);
   Value* args[] = {callInst, size};
   builder.CreateCall(map2check_malloc, args);
 }
@@ -504,9 +509,9 @@ void MemoryTrackPass::switchCallInstruction() {
   else if (this->caleeFunction->getName() == "malloc") {
     this->instrumentMalloc();
   }
-  else if (this->caleeFunction->getName() == "valloc") {
+  /*else if (this->caleeFunction->getName() == "valloc") {
     this->instrumentMalloc();
-  }
+  }*/
   else if (this->caleeFunction->getName() == "alloca") {
     this->instrumentAlloca();
   }
@@ -1061,7 +1066,9 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
       this->instrumentInit();
       this->instrumentReleaseMemory();
     }
+
     this->instrumentFunctionAddress();
+
 //    this->instrumentFunctionArgumentAddress();
    for (Function::iterator bb = F.begin(),
       e = F.end(); bb != e; ++bb) {
@@ -1078,10 +1085,12 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
           } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
               this->runOnAllocaInstruction();
+              //this->runOnAllocaInstruction();
           } else if(LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
               this->runOnLoadInstruction();
           }
+
 
       }
    }

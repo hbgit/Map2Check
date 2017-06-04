@@ -69,6 +69,7 @@ void Caller::cleanGarbage() {
                             map2check_property_klee_unknown \
                             map2check_property_klee_deref \
                             map2check_property_klee_memtrack \
+                            preprocessed.c \
                             map2check_property_klee_free \
                             optimized.bc output.bc inter.bc \
                             result.bc witnessInfo";
@@ -176,14 +177,22 @@ string Caller::compileCFile(std::string cprogram_path) {
       !fs::is_directory(Map2Check::Tools::clangIncludeFolder)) {
     throw InvalidClangIncludeException();
   }
-
+  std::ostringstream commandRemoveExternMalloc;
+  commandRemoveExternMalloc.str("");
+  commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
+  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/\\n/g' > preprocessed.c";
+  //std::cout << "teste " << commandRemoveExternMalloc.str() << "\n";
+  int resultRemove = system(commandRemoveExternMalloc.str().c_str());
+  if(resultRemove == -1) {
+    throw ErrorCompilingCProgramException();
+  }
   std::ostringstream command;
   command.str("");
   command << Map2Check::Tools::clangBinary << " -I"
 	  << Map2Check::Tools::clangIncludeFolder
           << " -c -emit-llvm -g -O0 "
           << " -o compiled.bc "
-          << cprogram_path
+          << "preprocessed.c"
           << " >> clang.out";
 
   int result = system(command.str().c_str());

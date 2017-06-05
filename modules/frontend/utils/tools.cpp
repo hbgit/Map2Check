@@ -96,12 +96,39 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
   ifstream false_free("map2check_property_klee_free");
   if (false_free.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_FREE;
+    getline(false_free,line);
+    getline(false_free,line);
+    if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+        int result = std::stoi(match.str(1));
+        this->line = result;
+        Map2Check::Log::Debug("Line number: " + match.str(1));
+    }
+    getline(false_free,line);
+    if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+        string result = match.str(1);
+        this->function_name = result;
+        Map2Check::Log::Debug("Function name: " + result);
+    }
+
       return;
   }
 
   ifstream deref("map2check_property_klee_deref");
   if (deref.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
+      getline(deref,line);
+      getline(deref,line);
+      if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+          int result = std::stoi(match.str(1));
+          this->line = result;
+          Map2Check::Log::Debug("Line number: " + match.str(1));
+      }
+      getline(deref,line);
+      if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+          string result = match.str(1);
+          this->function_name = result;
+          Map2Check::Log::Debug("Function name: " + result);
+      }
       return;
   }
 

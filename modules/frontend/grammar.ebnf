@@ -1,17 +1,19 @@
-input = [dynamicAlloc], [dynamicRelease], [staticAlloc];
+input = {[dynamicAlloc] | [dynamicRelease] | [staticAlloc] | [targetFunction] | [loadFunction] | [storeFunction]};
 
-dynamicAlloc = "[DYNAMIC ALLOC]\n", {dynamicAllocFunction};
+dynamicAlloc = "[DA] ", {dynamicAllocFunction};
 dynamicAllocFunction = identifier, " ", sizeArg, " ", addrArg, "\n";
 
-dynamicRelease = "[DYNAMIC RELEASE]\n", {dynamicReleaseFunction};
+dynamicRelease = "[DR] ", {dynamicReleaseFunction};
 dynamicReleaseFunction = identifier, " ", addrArg, "\n";
 
-staticAlloc = "[STATIC ALLOC]\n", {staticAllocFunction};
+staticAlloc = "[SA] ", {staticAllocFunction};
 staticAllocFunction = identifier, " ", sizeArg, " ", addrArg, "\n";
 
+targetFunction = "[TARGET] ", identifier;
+
 identifier = letter, {validChar};
-sizeArg = "%size=", arg, {op arg};
-argAddr = "%addr=", arg, {op arg};
+sizeArg = "%size=", arg;
+argAddr = "%addr=", arg;
 
 letter = "A" | "B" | "C" | "D" | "E" | "F" | "G"
        | "H" | "I" | "J" | "K" | "L" | "M" | "N"
@@ -27,7 +29,15 @@ number = ["-"], digit;
 
 validChar = [letter | digit | "_"];
 
-arg = [{number} | argIdentifier];
-argIdentifier = "\", identifier, {digit};
+arg = [{number} | argIdentifier | binOp, "(", arg, ",", arg, ")" | unaryOp, "(", arg, ")"];
+argIdentifier = ["%", {digit} | "%result"];
 
-op = ["+", "*", "-", "/"];
+binOp = ["MUL" | "SUB" | "ADD" | "DIV" | "AND" | "OR" | "XOR"];
+unaryOp = ["PTR" | "NOT"];
+
+
+(*  Examples
+**  [DA] calloc %size=MUL(%0,%1) %addr=%result
+**  [DR] free   %addr=%0
+
+*)

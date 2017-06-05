@@ -7,124 +7,92 @@
 
 using namespace Map2Check;
 
-void Node::AddElement(std::unique_ptr<NodeElement> element) {
-    this->elements.push_back(std::move(element));
+std::string DataElement::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "DataElement";
+    return cnvt.str();
 }
 
-void Edge::AddElement(std::unique_ptr<EdgeData> element) {
-    this->elements.push_back(std::move(element));
-}
+std::string WitnessType::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t<data key=\"witness-type\">";
 
-void Graph::AddElement(std::unique_ptr<DataElement> element) {
-    this->elements.push_back(std::move(element));
-}
-
-void Graph::AddNode(std::unique_ptr<Node> node) {
-    this->states.push_back(std::move(node));
-}
-
-void Graph::AddEdge(std::unique_ptr<Edge> edge) {
-     this->transitions.push_back(std::move(edge));
-}
-
-void SVCompWitness::Testify() {
-    ofstream outputFile("witness.graphml");
-    outputFile << (std::string) this->automata;
-}
-SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, std::string targetFunction) {
-    Map2Check::Log::Debug("Starting Witness Generation");
-
-    std::unique_ptr<DataElement> witnessType = std::make_unique<WitnessType>(WitnessTypeValues::VIOLATION);
-    this->automata.AddElement(std::move(witnessType));
-
-    std::unique_ptr<DataElement> sourceCodeType = std::make_unique<SourceCodeLang>(SupportedSourceCodeLang::C);
-    this->automata.AddElement(std::move(sourceCodeType));
-
-    std::unique_ptr<DataElement> producer = std::make_unique<Producer>();
-    this->automata.AddElement(std::move(producer));
-
-    std::unique_ptr<DataElement> specification;
-    Tools::CheckViolatedProperty violated;
-    switch(violated.propertyViolated) {
-        case Tools::PropertyViolated::FALSE_FREE:
-            specification = std::make_unique<Specification>(SpecificationType::FREE);
+    switch(this->witnessType) {
+        case WitnessTypeValues::CORRECTNESS:
+            cnvt << "correctness_witness";
             break;
-        case Tools::PropertyViolated::FALSE_DEREF:
-            specification = std::make_unique<Specification>(SpecificationType::DEREF);
-            break;    
-        case Tools::PropertyViolated::FALSE_MEMTRACK:
-            specification = std::make_unique<Specification>(SpecificationType::MEMLEAK);
-            break;    
-        case Tools::PropertyViolated::TARGET_REACHED:
-            specification = std::make_unique<Specification>(SpecificationType::TARGET, targetFunction);
-            break; 
-        default:
-            break;          
+        case WitnessTypeValues::VIOLATION:
+            cnvt << "violation_witness";
+            break;
     }
-    this->automata.AddElement(std::move(specification));
+    cnvt << "</data>";
+    return cnvt.str();
+}
 
-    std::unique_ptr<DataElement> programFile = std::make_unique<ProgramFile>(programPath);
-    this->automata.AddElement(std::move(programFile));
+std::string SourceCodeLang::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t<data key=\"sourcecodelang\">";
 
-    std::unique_ptr<DataElement> programHashElement = std::make_unique<ProgramHash>(programHash);
-    this->automata.AddElement(std::move(programHashElement));
-
-    std::unique_ptr<DataElement> architecture = std::make_unique<Architecture>(ArchitectureType::Bit32);
-    this->automata.AddElement(std::move(architecture));
-
-    Map2Check::Log::Debug("Starting Automata Generation");
-    unsigned lastState = 0;
-    std::string lastStateId = "s0";
-    std::unique_ptr<Node> startNode = std::make_unique<Node>("s0");
-    lastState++;
-
-    std::unique_ptr<NodeElement> entryNode = std::make_unique<EntryNode>();
-    startNode->AddElement(std::move(entryNode));
-    
-    std::vector<Tools::KleeLogRow> kleeLogRows = Tools::KleeLogHelper::getListLogFromCSV();
-
-    if(kleeLogRows.size() == 0) {
-        std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
-        
-        std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
-        newNode->AddElement(std::move(violationNode));
-
-        std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
-        this->automata.AddEdge(std::move(newEdge));
-        this->automata.AddNode(std::move(newNode));
+    switch(this->language) {
+        case SupportedSourceCodeLang::C:
+            cnvt << "C";
+            break;
     }
-    this->automata.AddNode(std::move(startNode));
+    cnvt << "</data>";
+    return cnvt.str();
+}
 
-    for(int i = 0; i < kleeLogRows.size(); i++) {
-        std::string lineNumber = kleeLogRows[i].line;
-        std::string value =  kleeLogRows[i].value;
-        std::string functionName =  kleeLogRows[i].functionName;
+std::string Producer::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t<data key=\"producer\">";
+    cnvt << "Map2Check";
+    cnvt << "</data>";
+    return cnvt.str();
+}
 
-        std::ostringstream cnvt;
-    	cnvt.str("");    
-        cnvt << "s" << lastState;
-        lastState++;
+std::string Specification::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t<data key=\"specification\">";
+    cnvt << this->value;
+    cnvt << "</data>";
+    return cnvt.str();
+}
 
-        std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
-        if(i == (kleeLogRows.size() - 1) ) {
-            std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
-            newNode->AddElement(std::move(violationNode));
-        }
+std::string ProgramFile::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t<data key=\"programfile\">";
+    cnvt << this->path;
+    cnvt << "</data>";
+    return cnvt.str();
+}
 
-        this->automata.AddNode(std::move(newNode));
+std::string ProgramHash::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t<data key=\"programhash\">";
+    cnvt << this->hash;
+    cnvt << "</data>";
+    return cnvt.str();
+}
 
-        std::unique_ptr<Edge> newEdge = std::make_unique<Edge>(lastStateId, cnvt.str());
-        lastStateId =  cnvt.str();
-
-        std::unique_ptr<EdgeData> assumption = std::make_unique<AssumptionEdgeData>(value, "__VERIFIER_nondet_int", functionName);
-        newEdge->AddElement(std::move(assumption));
-
-        std::unique_ptr<EdgeData> startLine = std::make_unique<StartLine>(lineNumber);
-        newEdge->AddElement(std::move(startLine));
-
-        this->automata.AddEdge(std::move(newEdge));
+std::string Architecture::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t<data key=\"architecture\">";
+    switch(this->type) {
+        case ArchitectureType::Bit32:
+            cnvt << "32bit";
+            break;
+        case ArchitectureType::Bit64:
+            cnvt << "64bit";
+            break;
     }
-
-    // Map2Check::Log::Debug((std::string) this->automata);
-
+    cnvt << "</data>";
+    return cnvt.str();
 }

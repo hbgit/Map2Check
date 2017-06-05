@@ -20,7 +20,8 @@ using namespace std;
 #include "exceptions.hpp"
 #include "utils/tools.hpp"
 #include "counter_example/counter_example.hpp"
-#include "witness/witness.hpp"
+#include "witness/witness_include.hpp"
+//#include "witness/witness.hpp"
 #include "utils/gen_crypto_hash.hpp"
 
 #define Map2CheckVersion "Map2Check 7.0a"

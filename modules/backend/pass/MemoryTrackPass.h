@@ -22,6 +22,7 @@ enum class NonDetType {INTEGER,
                        STRING,
                        LONG,
                        ASSUME,
+                       USHORT,
                        CHAR};
 
 struct MemoryTrackPass : public FunctionPass {

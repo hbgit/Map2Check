@@ -27,6 +27,11 @@ void MemoryTrackPass::instrumentKlee(NonDetType nonDetType) {
             this->caleeFunction->setName(non_det_long);
             break;
         }
+        case (NonDetType::USHORT):{
+         Twine non_det_ushort("map2check_non_det_ushort");
+         this->caleeFunction->setName(non_det_ushort);
+         break;
+        }
          case (NonDetType::ASSUME):{
             Twine assume("map2check_assume");
             this->caleeFunction->setName(assume);
@@ -488,6 +493,7 @@ void MemoryTrackPass::instrumentInit() {
 
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
+
   if (this->caleeFunction->getName() == "free") {
     this->instrumentFree();
   }
@@ -509,9 +515,9 @@ void MemoryTrackPass::switchCallInstruction() {
   else if (this->caleeFunction->getName() == "malloc") {
     this->instrumentMalloc();
   }
-  /*else if (this->caleeFunction->getName() == "valloc") {
+  else if (this->caleeFunction->getName() == "valloc") {
     this->instrumentMalloc();
-  }*/
+  }
   else if (this->caleeFunction->getName() == "alloca") {
     this->instrumentAlloca();
   }
@@ -537,10 +543,10 @@ void MemoryTrackPass::switchCallInstruction() {
   }
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_char")) {
     this->instrumentKlee(NonDetType::CHAR);
-    this->instrumentKleeChar();
+//    this->instrumentKleeChar();
   }
   else if ((this->caleeFunction->getName() == "map2check_non_det_char")) {
-      this->instrumentKleeChar();
+//      this->instrumentKleeChar();
   }
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_pointer")) {
     this->instrumentKlee(NonDetType::POINTER);
@@ -560,6 +566,14 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentKlee(NonDetType::ASSUME);
 //    this->instrumentKleePointer();
   }
+  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_ushort")) {
+    this->instrumentKlee(NonDetType::USHORT);
+//    this->instrumentKleePointer();
+  }
+  else if ((this->caleeFunction->getName() == "map2check_non_det_ushort")) {
+//      this->instrumentKleePointer();
+  }
+
   else if ((this->caleeFunction->getName() == "map2check_assume")) {
 //      this->instrumentKleePointer();
   }

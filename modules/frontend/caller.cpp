@@ -58,7 +58,7 @@ legacy::PassManager AnalysisPasses;
 
 Caller::Caller( std::string bcprogram_path ) {
     this->cleanGarbage();
-  this->pathprogram = bcprogram_path;  
+  this->pathprogram = bcprogram_path;
 
 }
 
@@ -182,7 +182,7 @@ string Caller::compileCFile(std::string cprogram_path) {
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
   commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/\\n/g' "
-                            << "  -e 's/.*void.*malloc(size_t size).*/\\n/g' "
+                            << "  -e 's/.*void \\*malloc(size_t size).*/\\n/g' "
                             <<" > preprocessed.c";
 
     std::cout << commandRemoveExternMalloc.str() << "\n";
@@ -193,7 +193,7 @@ string Caller::compileCFile(std::string cprogram_path) {
   std::ostringstream command;
   command.str("");
   command << Map2Check::Tools::clangBinary << " -I"
-	  << Map2Check::Tools::clangIncludeFolder
+      << Map2Check::Tools::clangIncludeFolder
           << " -c -emit-llvm -g -O0 "
           << " -o compiled.bc "
           << "preprocessed.c"

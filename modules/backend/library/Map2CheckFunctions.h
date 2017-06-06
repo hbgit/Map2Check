@@ -134,6 +134,7 @@ void map2check_klee_char(unsigned line, unsigned scope, int value, const char* f
 
 void* map2check_non_det_pointer();
 long map2check_non_det_long();
+unsigned short map2check_non_det_ushort();
 void map2check_klee_pointer(unsigned line, unsigned scope, int value, const char* function_name);
 void map2check_assume(int expr);
 void __VERIFIER_error();

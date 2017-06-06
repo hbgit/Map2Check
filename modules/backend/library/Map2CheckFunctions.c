@@ -173,6 +173,14 @@ char map2check_non_det_char() {
   return non_det;
 }
 
+unsigned short map2check_non_det_ushort() {
+  unsigned short non_det;
+  klee_make_symbolic(&non_det,
+             sizeof(non_det),
+             "non_det_ushort");
+
+  return non_det;
+}
 
 void* map2check_non_det_pointer() {
     void* non_det;

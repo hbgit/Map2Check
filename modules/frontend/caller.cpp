@@ -178,10 +178,14 @@ string Caller::compileCFile(std::string cprogram_path) {
     throw InvalidClangIncludeException();
   }
   std::ostringstream commandRemoveExternMalloc;
+//
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
-  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/\\n/g' > preprocessed.c";
-  //std::cout << "teste " << commandRemoveExternMalloc.str() << "\n";
+  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/\\n/g' "
+                            << "  -e 's/.*void.*malloc(size_t size).*/\\n/g' "
+                            <<" > preprocessed.c";
+
+    std::cout << commandRemoveExternMalloc.str() << "\n";
   int resultRemove = system(commandRemoveExternMalloc.str().c_str());
   if(resultRemove == -1) {
     throw ErrorCompilingCProgramException();

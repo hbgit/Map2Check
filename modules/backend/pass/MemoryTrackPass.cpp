@@ -45,7 +45,7 @@ void MemoryTrackPass::instrumentKlee(NonDetType nonDetType) {
 }
 
 void MemoryTrackPass::instrumentKleeInt() {
-//  errs() << "Instrumenting Klee Integer\n";
+
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   j++;
@@ -64,7 +64,7 @@ void MemoryTrackPass::instrumentKleeInt() {
 }
 
 void MemoryTrackPass::instrumentKleeChar() {
-  errs() << "Instrumenting Klee Char\n";
+
   CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   j++;
@@ -162,7 +162,7 @@ void MemoryTrackPass::instrumentMalloc() {
   Value* size = callInst->getArgOperand(0);
   Twine bitcast("bitcast");
     if(size == NULL){
-        errs() << "cocois\n";
+
     }
   Value* sizeCast = CastInst::CreateIntegerCast(size, Type::getInt32Ty(*this->Ctx), true, bitcast, (Instruction*) j);
   Value* args[] = {callInst, size};
@@ -447,7 +447,7 @@ void MemoryTrackPass::instrumentInit() {
   Value* argument = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), this->SVCOMP ? 1 : 0);
   Value* args[] = {argument};
   builder.CreateCall(this->map2check_init, args);
-  errs() << "Function: " << this->currentFunction->getName() << "\n";
+
   Module* currentModule = this->currentFunction->getParent();
 
   std::vector<GlobalVariable*> globals;
@@ -832,7 +832,6 @@ void MemoryTrackPass::runOnAllocaInstruction() {
 
            this->instrumentArrayAlloca();
       } else {
-//          errs() << "not static\n";
           this->instrumentNotStaticArrayAlloca();
       }
 
@@ -1038,10 +1037,10 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
 
         ConstantInt* typeSizeValue = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
         Value* argCast;
-        errs() << "Argument name: " << functionArg->getName() << "\n";
+
 
         if(type->isPointerTy()) {
-            errs() << "\tIs Pointer type\n";
+
             Twine mapcheck_bitcast_argument("mapcheck_bitcast_argument");
             argCast = CastInst::CreatePointerCast(functionArg,
                         Type::getInt8PtrTy(*this->Ctx),
@@ -1049,7 +1048,7 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
                         (Instruction*) i);
 
         } else {
-            errs() << "\tNot Pointer type\n";
+
             argCast = functionArg;
         }
 

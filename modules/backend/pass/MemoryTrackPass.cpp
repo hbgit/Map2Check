@@ -334,7 +334,7 @@ void MemoryTrackPass::instrumentFree() {
   }
   else {
     // Value* addr = callInst->getArgOperand(0)->stripPointerCasts();
-    errs () << "Calee function != NULL\n";
+
     li = dyn_cast<LoadInst>(callInst->
                       getArgOperand(0)->
                       stripPointerCasts());

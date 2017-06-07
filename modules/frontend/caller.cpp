@@ -160,7 +160,7 @@ void Caller::callKlee() {
   std::ostringstream command;
   command.str("");
   command << Map2Check::Tools::kleeBinary;
-  command << " --allow-external-sym-calls  -exit-on-error-type=Assert --optimize optimized.bc  > ExecutionOutput.log";
+  command << " -suppress-external-warnings --allow-external-sym-calls  -exit-on-error-type=Assert --optimize optimized.bc  > ExecutionOutput.log";
   system(command.str().c_str());
 }
 
@@ -185,7 +185,7 @@ string Caller::compileCFile(std::string cprogram_path) {
                             << "  -e 's/.*void \\*malloc(size_t size).*/\\n/g' "
                             <<" > preprocessed.c";
 
-    std::cout << commandRemoveExternMalloc.str() << "\n";
+//    std::cout << commandRemoveExternMalloc.str() << "\n";
   int resultRemove = system(commandRemoveExternMalloc.str().c_str());
   if(resultRemove == -1) {
     throw ErrorCompilingCProgramException();
@@ -194,6 +194,7 @@ string Caller::compileCFile(std::string cprogram_path) {
   command.str("");
   command << Map2Check::Tools::clangBinary << " -I"
       << Map2Check::Tools::clangIncludeFolder
+          << " -Wno-everything "
           << " -c -emit-llvm -g -O0 "
           << " -o compiled.bc "
           << "preprocessed.c"

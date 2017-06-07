@@ -276,7 +276,10 @@ void map2check_calloc(void* ptr, int quantity, int size) {
 void map2check_free(const char* name, void* ptr, unsigned scope, unsigned line,  const char* function_name) {
     
     long* addr = (long*) ptr;
-
+    void* points_to = (void*)*addr;
+    if(points_to == NULL) {
+        return;
+    }
     LIST_LOG_ROW* listRow = malloc(sizeof(LIST_LOG_ROW));
     *listRow = new_list_row((long) ptr, (long) *addr, scope, FALSE,
 				  TRUE, line, name, function_name, Map2CheckCurrentStep);

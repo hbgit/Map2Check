@@ -72,14 +72,16 @@ int main(int argc, char** argv)
       po::options_description desc("Options");
       desc.add_options()
 	("help,h", "\tshow help")
+    ("version,v", "\tprints map2check version")
 	("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
 	("target-function,f", po::value< string >(), "\tchecks if function can be executed")
 	("expected-result,e", po::value< string >(), "\tspecifies what output should be, used for tests")
     ("print-list-log,p", "\tprints list log during counter example")
     ("generate-witness,w", "\tgenerate witness file")
+    ("generate-instrumentated-only", "\tgenerate instrumentated file and stops")
     ("debug-info,d", "\tprints debug info")
     ("assume-malloc-true,m", "\tassumes that all mallocs will not fail")
-    ("version,v", "\tprints map2check version")
+
 	;
 
       po::positional_options_description p;
@@ -162,7 +164,13 @@ int main(int argc, char** argv)
           caller->callPass(sv_comp);
 	    }
 
+
+
 	    caller->genByteCodeFile();
+        if ( vm.count("generate-instrumentated-only")  )
+          {
+            return SUCCESS;
+          }
 	    caller->linkLLVM();
 
 	    Map2Check::Log::Info("Started klee execution");

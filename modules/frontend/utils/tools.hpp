@@ -135,12 +135,11 @@ namespace Map2Check::Tools {
     operator std::string() const {
         std::ostringstream cnvt;
         cnvt.str("");
-        cnvt << "\nKLEE LOG ROW\n";
-        cnvt << "\tID: " << this->id << "\n";
-        cnvt << "\tLine Number: " << this->line << "\n";
-        cnvt << "\tFunction Name: " << this->functionName << "\n";
-        cnvt << "\tValue: " << this->value << "\n";
-        cnvt << "\tStep : " << this->step << "\n";
+        cnvt << "  Call Function  : " << "__VERIFIER_nondet_int()"<< "\n";
+        cnvt << "  Value          : " << this->value << "\n";
+        cnvt << "  Line Number    : " << this->line << "\n";
+        cnvt << " Function Scope : " << this->functionName << "\n";
+
         return cnvt.str();
     }
   };
@@ -188,17 +187,14 @@ namespace Map2Check::Tools {
 
     operator std::string() const {
         std::ostringstream cnvt;
-        cnvt.str("");
-        cnvt << "\nLIST LOG ROW\n";
-        cnvt << "\tID: " << this->id << "\n";
-        cnvt << "\tAddress: " << this->memoryAddress << "\n";
-        cnvt << "\tPointsTo: " << this->pointsTo << "\n";
-        cnvt << "\tIs Free: " << this->isFree << "\n";
-        cnvt << "\tIs Dynamic: " << this->isDynamic << "\n";
-        cnvt << "\tVar Name: " << this->varName << "\n";
-        cnvt << "\tLine Number: " << this->lineNumber << "\n";
-        cnvt << "\tFunction Name: " << this->functionName << "\n";
-        cnvt << "\tStep : " << this->step << "\n";
+        cnvt.str("");        
+        cnvt << "  Address        : " << this->memoryAddress << "\n";
+        cnvt << "  PointsTo       : " << this->pointsTo << "\n";
+        cnvt << "  Is Free        : " << (this->isFree == "1" ? "TRUE" : "FALSE") << "\n";
+        cnvt << "  Is Dynamic     : " << (this->isDynamic == "1" ? "TRUE" : "FALSE") << "\n";
+        cnvt << "  Var Name       : " << this->varName << "\n";
+        cnvt << "  Line Number    : " << this->lineNumber << "\n";
+        cnvt << "  Function Scope : " << this->functionName << "\n";
         return cnvt.str();
     }
   };

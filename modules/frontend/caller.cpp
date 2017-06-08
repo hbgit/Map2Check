@@ -181,8 +181,8 @@ string Caller::compileCFile(std::string cprogram_path) {
 //
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
-  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/\\n/g' "
-                            << "  -e 's/.*void \\*malloc(size_t size).*/\\n/g' "
+  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*//g' "
+                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
                             <<" > preprocessed.c";
 
 //    std::cout << commandRemoveExternMalloc.str() << "\n";

@@ -52,10 +52,12 @@ namespace Map2Check {
         std::ostringstream cnvt;
         cnvt.str("");
 
-        cnvt << "State " << this->state << " ";
-        cnvt << "file " << this->fileName << " ";
-        cnvt << "Line content: " << this->lineC << "\n";
+        cnvt << "State " << this->state << ": ";
+        cnvt << "file " << this->fileName << "\n";
+        cnvt << "------------------------------------------------------------\n";
+        cnvt << ">>Memory list log\n\n";
 
+        cnvt << "  Line content   : " << this->lineC << "\n";
         cnvt << (std::string) this->row;
 
         return cnvt.str();
@@ -77,30 +79,13 @@ namespace Map2Check {
     virtual std::string convertToString() {
       std::ostringstream cnvt;
       cnvt.str("");
-      cnvt << "State " << this->state << " ";
-      cnvt << "file " << this->fileName << " ";
-      cnvt << "line " << this->row.line << " ";
-      cnvt << "function " << this->row.functionName << " ";
+      cnvt << "State " << this->state << ": ";
+      cnvt << "file " << this->fileName << "\n";
+      cnvt << "------------------------------------------------------------\n";
+      cnvt << ">>Symbolic log\n\n";
 
-      // TODO: Check thread
-      cnvt << "thread 0\n";
-
-      cnvt << "c::" << this->row.functionName << "\n";
-      cnvt << "----------------------------------------------------\n";
-      cnvt << "c::$(tmp)::value_nondet_int$" << this->row.id << "="<< this->row.value << " (" << this->ref << ")\n";
-
-      cnvt << "\n";
-      cnvt << "State " << this->state + 1 << " ";
-      cnvt << "file " << this->fileName << " ";
-      cnvt << "line " << this->row.line << " ";
-      cnvt << "function " << this->row.functionName << " ";
-
-      // TODO: Check thread
-      cnvt << "thread 0\n";
-
-      cnvt << "c::" << this->row.functionName << "\n";
-      cnvt << "----------------------------------------------------\n";
-      cnvt << "c::" << this->row.functionName << "::" << this->lineC << " (" << this->ref << ")\n";
+//      cnvt << "  Line content   : " << this->lineC << "\n";
+      cnvt << (std::string) this->row;
       return cnvt.str();
     }
   public:

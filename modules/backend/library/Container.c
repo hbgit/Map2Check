@@ -8,7 +8,6 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
     container.size = 0;
     container.values = NULL;
     container.type = type;
-
     return container;
 }
 

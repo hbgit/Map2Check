@@ -93,7 +93,7 @@ namespace Map2Check {
       lineC(lineC), row(row), CounterExampleRow(step,state,fileName,ref) {}
 
       virtual int getState() {
-        return this->state + 1;
+        return this->state;
       }
   };
 

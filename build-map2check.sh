@@ -6,7 +6,9 @@ RUNDIR=`pwd`
 
 map2check() {
     cd $RUNDIR
-    mkdir build
+    if [! -d build ]; then	
+	mkdir build
+    fi
     cd build
     cmake .. -DCMAKE_INSTALL_PREFIX=../release/ -DCMAKE_BUILD_TYPE=Release
     make all

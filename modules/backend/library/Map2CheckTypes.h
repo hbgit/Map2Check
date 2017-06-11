@@ -96,7 +96,7 @@ struct obj3 {
   /** Current scope number (llvm ir uses numbered scopes) */
   unsigned scope;
   /** Pointer where the generated value is stored */
-  void* value;
+  long value;
   /** Name of the function where operation took place */
   const char* function_name;
 } KLEE_CALL;

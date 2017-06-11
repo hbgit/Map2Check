@@ -28,10 +28,10 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
 
     switch (call->type) {
       case INTEGER:
-        fprintf(output,"%d\n", (*(int*)call->value));
+        fprintf(output,"%d\n", ((int)call->value));
         break;
       case CHAR:
-        fprintf(output,"%d\n", (*(char*)call->value));
+        fprintf(output,"%c\n", ((char)call->value));
         break;
     }
   }
@@ -39,7 +39,7 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
   return TRUE;
 }
 
-KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope, void* value, const char* function_name, unsigned step) {
+KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope, long value, const char* function_name, unsigned step) {
   KLEE_CALL result;
   result.type = type;
   result.function_name = function_name;

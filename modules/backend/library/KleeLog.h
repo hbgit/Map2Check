@@ -18,7 +18,16 @@
  */ 
 Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container);
 
-KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope, void* value, const char* function_name, unsigned step);
+/**
+ * Initializes a klee call
+ * @param type 
+ * @param line
+ * @param scope
+ * @param value
+ * @param function_name  
+ * @param step
+ */
+KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope, long value, const char* function_name, unsigned step);
 
 
 #endif

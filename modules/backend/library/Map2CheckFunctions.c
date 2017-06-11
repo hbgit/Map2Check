@@ -29,9 +29,9 @@ void map2check_init(int isSvComp) {
 }
 
 void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name) {  
-  int* result = (int*) malloc(sizeof(int));
-  *result = value;
-  KLEE_CALL kleeCall = new_klee_call(INTEGER, line, scope, result,function_name, Map2CheckCurrentStep);
+  /* int* result = (int*) malloc(sizeof(int)); */
+  /* *result = value; */
+  KLEE_CALL kleeCall = new_klee_call(INTEGER, line, scope, value, function_name, Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
   KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
@@ -39,14 +39,13 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
 
   append_element(&klee_log, row);
   klee_log_to_file(klee_log);
-
 }
 
 
 void map2check_klee_char(unsigned line, unsigned scope, int value, const char* function_name) {
-  char* result = (char*) malloc(sizeof(char));
-  *result = (char) value;
-  KLEE_CALL kleeCall = new_klee_call(CHAR, line, scope, result,function_name, Map2CheckCurrentStep);
+  /* char* result = (char*) malloc(sizeof(char)); */
+  /* *result = (char) value; */
+  KLEE_CALL kleeCall = new_klee_call(CHAR, line, scope, value,function_name, Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
   KLEE_CALL* row = malloc(sizeof(KLEE_CALL));

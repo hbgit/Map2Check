@@ -138,7 +138,7 @@ namespace Map2Check::Tools {
         cnvt << "  Call Function  : " << "__VERIFIER_nondet_int()"<< "\n";
         cnvt << "  Value          : " << this->value << "\n";
         cnvt << "  Line Number    : " << this->line << "\n";
-        cnvt << " Function Scope : " << this->functionName << "\n";
+        cnvt << "  Function Scope : " << this->functionName << "\n";
 
         return cnvt.str();
     }

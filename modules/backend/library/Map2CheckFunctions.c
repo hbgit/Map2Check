@@ -38,7 +38,7 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
   *row = kleeCall;
 
   append_element(&klee_log, row);
-  klee_log_to_file(klee_log);
+  /* klee_log_to_file(klee_log); */
 }
 
 
@@ -52,9 +52,48 @@ void map2check_klee_char(unsigned line, unsigned scope, int value, const char* f
   *row = kleeCall;
 
   append_element(&klee_log, row);
-  klee_log_to_file(klee_log);
-
+  /* klee_log_to_file(klee_log); */
 }
+
+void map2check_klee_pointer(unsigned line, unsigned scope, int value, const char* function_name) {
+  /* char* result = (char*) malloc(sizeof(char)); */
+  /* *result = (char) value; */
+  KLEE_CALL kleeCall = new_klee_call(POINTER, line, scope, value,function_name, Map2CheckCurrentStep);
+  Map2CheckCurrentStep++;
+
+  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  *row = kleeCall;
+
+  append_element(&klee_log, row);
+  /* klee_log_to_file(klee_log); */
+}
+
+void map2check_klee_ushort(unsigned line, unsigned scope, int value, const char* function_name) {
+  /* char* result = (char*) malloc(sizeof(char)); */
+  /* *result = (char) value; */
+  KLEE_CALL kleeCall = new_klee_call(USHORT, line, scope, value,function_name, Map2CheckCurrentStep);
+  Map2CheckCurrentStep++;
+
+  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  *row = kleeCall;
+
+  append_element(&klee_log, row);
+  /* klee_log_to_file(klee_log); */
+}
+
+void map2check_klee_long(unsigned line, unsigned scope, int value, const char* function_name) {
+  /* char* result = (char*) malloc(sizeof(char)); */
+  /* *result = (char) value; */
+  KLEE_CALL kleeCall = new_klee_call(USHORT, line, scope, value,function_name, Map2CheckCurrentStep);
+  Map2CheckCurrentStep++;
+
+  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  *row = kleeCall;
+
+  append_element(&klee_log, row);
+  /* klee_log_to_file(klee_log); */
+}
+
 void map2check_function(const char* name, void* ptr) {
 
     MEMORY_HEAP_ROW* row = malloc(sizeof(MEMORY_HEAP_ROW));

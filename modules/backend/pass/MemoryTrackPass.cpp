@@ -71,17 +71,85 @@ void MemoryTrackPass::instrumentKleeChar() {
   IRBuilder<> builder((Instruction*)j);
   Value* function_llvm = builder.CreateGlobalStringPtr
       (currentFunction->getName());
-
+  Twine bitcast("map2check_klee_char_cast");
+  Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
+  
   Value* args[] = {
     this->line_value,
     this->scope_value,
-    callInst,
+    // callInst,
+    charCast,
     function_llvm
      };
 
   builder.CreateCall(this->map2check_klee_char, args);
 }
 
+void MemoryTrackPass::instrumentKleePointer() {
+
+  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  j++;
+  IRBuilder<> builder((Instruction*)j);
+  Value* function_llvm = builder.CreateGlobalStringPtr
+      (currentFunction->getName());
+  Twine bitcast("map2check_klee_pointer_cast");
+  Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
+  
+  Value* args[] = {
+    this->line_value,
+    this->scope_value,
+    // callInst,
+    charCast,
+    function_llvm
+     };
+
+  builder.CreateCall(this->map2check_klee_pointer, args);
+}
+
+void MemoryTrackPass::instrumentKleeUshort() {
+
+  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  j++;
+  IRBuilder<> builder((Instruction*)j);
+  Value* function_llvm = builder.CreateGlobalStringPtr
+      (currentFunction->getName());
+  Twine bitcast("map2check_klee_ushort_cast");
+  Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
+  
+  Value* args[] = {
+    this->line_value,
+    this->scope_value,
+    // callInst,
+    charCast,
+    function_llvm
+     };
+
+  builder.CreateCall(this->map2check_klee_ushort, args);
+}
+
+void MemoryTrackPass::instrumentKleeLong() {
+
+  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  j++;
+  IRBuilder<> builder((Instruction*)j);
+  Value* function_llvm = builder.CreateGlobalStringPtr
+      (currentFunction->getName());
+  Twine bitcast("map2check_klee_long_cast");
+  Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
+  
+  Value* args[] = {
+    this->line_value,
+    this->scope_value,
+    // callInst,
+    charCast,
+    function_llvm
+     };
+
+  builder.CreateCall(this->map2check_klee_ushort, args);
+}
 
 void MemoryTrackPass::addWitnessInfo(std::string info) {
   // int result = system(info.c_str());
@@ -543,24 +611,24 @@ void MemoryTrackPass::switchCallInstruction() {
   }
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_char")) {
     this->instrumentKlee(NonDetType::CHAR);
-//    this->instrumentKleeChar();
+    this->instrumentKleeChar();
   }
   else if ((this->caleeFunction->getName() == "map2check_non_det_char")) {
-//      this->instrumentKleeChar();
+    this->instrumentKleeChar();
   }
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_pointer")) {
     this->instrumentKlee(NonDetType::POINTER);
-//    this->instrumentKleePointer();
+    this->instrumentKleePointer();
   }
   else if ((this->caleeFunction->getName() == "map2check_non_det_pointer")) {
-//      this->instrumentKleePointer();
+    this->instrumentKleePointer();
   }
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_long")) {
     this->instrumentKlee(NonDetType::LONG);
-//    this->instrumentKleePointer();
+    this->instrumentKleeLong();
   }
   else if ((this->caleeFunction->getName() == "map2check_non_det_long")) {
-//      this->instrumentKleePointer();
+    this->instrumentKleeLong();
   }
   else if ((this->caleeFunction->getName() == "__VERIFIER_assume")) {
     this->instrumentKlee(NonDetType::ASSUME);
@@ -568,10 +636,10 @@ void MemoryTrackPass::switchCallInstruction() {
   }
   else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_ushort")) {
     this->instrumentKlee(NonDetType::USHORT);
-//    this->instrumentKleePointer();
+   this->instrumentKleeUshort();
   }
   else if ((this->caleeFunction->getName() == "map2check_non_det_ushort")) {
-//      this->instrumentKleePointer();
+       this->instrumentKleeUshort();
   }
 
   else if ((this->caleeFunction->getName() == "map2check_assume")) {
@@ -919,14 +987,42 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
             Type::getInt8PtrTy(*this->Ctx),
             NULL);
 
+    this->map2check_klee_pointer = F.getParent()->
+      getOrInsertFunction("map2check_klee_pointer",
+            Type::getVoidTy(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            NULL);
+
+    this->map2check_klee_ushort = F.getParent()->
+      getOrInsertFunction("map2check_klee_ushort",
+            Type::getVoidTy(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+        Type::getInt32Ty(*this->Ctx),
+            Type::getInt8PtrTy(*this->Ctx),
+            NULL);
+
   this->map2check_klee_char = F.getParent()->
     getOrInsertFunction("map2check_klee_char",
-          Type::getVoidTy(*this->Ctx),
+			Type::getVoidTy(*this->Ctx),
       Type::getInt32Ty(*this->Ctx),
       Type::getInt32Ty(*this->Ctx),
       Type::getInt32Ty(*this->Ctx),
           Type::getInt8PtrTy(*this->Ctx),
           NULL);
+
+    this->map2check_klee_long = F.getParent()->
+    getOrInsertFunction("map2check_klee_long",
+			Type::getVoidTy(*this->Ctx),
+      Type::getInt32Ty(*this->Ctx),
+      Type::getInt32Ty(*this->Ctx),
+      Type::getInt32Ty(*this->Ctx),
+          Type::getInt8PtrTy(*this->Ctx),
+          NULL);
+
 
   this->map2check_pointer = F.getParent()->
     getOrInsertFunction("map2check_add_store_pointer",

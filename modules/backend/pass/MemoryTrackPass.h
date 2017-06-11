@@ -57,6 +57,8 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentKleeInt();
   void instrumentKleeChar();
   void instrumentKleePointer();
+  void instrumentKleeUshort();
+  void instrumentKleeLong();
   void instrumentInit();
   void instrumentReleaseMemoryOnCurrentInstruction();
   void instrumentReleaseMemory();
@@ -102,6 +104,9 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_free_resolved_address;
   Constant*  map2check_klee_int;
   Constant*  map2check_klee_char;
+  Constant*  map2check_klee_pointer;
+  Constant*  map2check_klee_ushort;
+  Constant*  map2check_klee_long;
   Constant* map2check_success;
   ConstantInt* scope_value;
   ConstantInt* line_value;

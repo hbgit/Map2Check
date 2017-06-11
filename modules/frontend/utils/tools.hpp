@@ -114,9 +114,19 @@ namespace Map2Check::Tools {
     std::vector<std::string> cFileLines;
   };
 
+  enum class KleeLogType {
+    INTEGER,
+    CHAR,    
+    POINTER,
+    USHORT,
+    LONG
+  };
+    
 
   struct KleeLogRow {
     string id;
+    KleeLogType type;
+    
     string line;
     string scope;
     string functionName;
@@ -135,8 +145,24 @@ namespace Map2Check::Tools {
     operator std::string() const {
         std::ostringstream cnvt;
         cnvt.str("");
-        cnvt << "  Call Function  : " << "__VERIFIER_nondet_int()"<< "\n";
-        cnvt << "  Value          : " << this->value << "\n";
+	switch(type) {
+	case KleeLogType::INTEGER:
+	  cnvt << "  Call Function  : " << "__VERIFIER_nondet_int()"<< "\n";
+	  break;
+	case KleeLogType::CHAR:
+	  cnvt << "  Call Function  : " << "__VERIFIER_nondet_char()"<< "\n";
+	  break;
+	case KleeLogType::POINTER:
+	  cnvt << "  Call Function  : " << "__VERIFIER_nondet_pointer()"<< "\n";
+	  break;
+	case KleeLogType::USHORT:
+	  cnvt << "  Call Function  : " << "__VERIFIER_nondet_ushort()"<< "\n";
+	  break;
+	case KleeLogType::LONG:
+	  cnvt << "  Call Function  : " << "__VERIFIER_nondet_long()"<< "\n";
+	  break;
+	}        
+	cnvt << "  Value          : " << this->value << "\n";        
         cnvt << "  Line Number    : " << this->line << "\n";
         cnvt << "  Function Scope : " << this->functionName << "\n";
 

@@ -25,15 +25,16 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     fprintf(output,"%d;", call->scope);
     fprintf(output,"%s;", call->function_name);
     fprintf(output,"%d;", call->step_on_execution);
-
-    switch (call->type) {
-      case INTEGER:
-        fprintf(output,"%d\n", ((int)call->value));
-        break;
-      case CHAR:
-        fprintf(output,"%c\n", ((char)call->value));
-        break;
-    }
+    fprintf(output,"%d;", ((int)call->value));
+    fprintf(output,"%d\n", ((int)call->type));
+    /* switch (call->type) { */
+    /*   case INTEGER: */
+    /*     fprintf(output,"%d\n", ((int)call->value)); */
+    /*     break; */
+    /*   case CHAR: */
+    /*     fprintf(output,"%d\n", ((int)call->value)); */
+    /*     break; */
+    /* } */
   }
   fclose(output);
   return TRUE;

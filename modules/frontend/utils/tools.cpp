@@ -211,7 +211,7 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(string pa
      std::vector<std::string> tokens;
      boost::split(tokens, line, boost::is_any_of(";"));
 
-     if(tokens.size() == 6){
+     if(tokens.size() == 7){
          Log::Debug("started klee log");
          Tools::KleeLogRow row;
          string id = tokens[0];
@@ -220,6 +220,24 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(string pa
          string functionName = tokens[3];
          string step = tokens[4];
          string value = tokens[5];
+	 string type = tokens[6];
+	 switch(stoi(type)) {
+	 case 0:
+	   row.type = KleeLogType::INTEGER;
+	   break;
+	 case 1: 
+	   row.type = KleeLogType::CHAR;
+	   break;
+	 case 2:
+	   row.type = KleeLogType::POINTER;
+	   break;
+	 case 3:
+	   row.type = KleeLogType::USHORT;
+	   break;
+	 case 4:
+	   row.type = KleeLogType::LONG;
+	   break;
+	 }
          row.id = id;
          row.line = lineNumber;
          row.scope = scope;

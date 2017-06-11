@@ -6,7 +6,7 @@ RUNDIR=`pwd`
 
 map2check() {
     cd $RUNDIR
-    if [! -d build ]; then	
+    if [ ! -d build ]; then	
 	mkdir build
     fi
     cd build

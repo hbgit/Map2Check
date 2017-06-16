@@ -140,14 +140,27 @@ void Caller::genByteCodeFile() {
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
 
-  const char* command = "./bin/llvm-link output.bc lib/Map2CheckFunctions.bc lib/AllocationLog.bc lib/HeapLog.bc lib/Container.bc lib/KleeLog.bc lib/ListLog.bc lib/PropertyGenerator.bc> result.bc";
-  system(command);
+  std::ostringstream command;
+  command.str("");
+  command << Map2Check::Tools::llvmLinkBinary;
+  command << " output.bc ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
+	  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc ${MAP2CHECK_PATH}/lib/Container.bc"
+	  << " ${MAP2CHECK_PATH}/lib/KleeLog.bc ${MAP2CHECK_PATH}/lib/ListLog.bc"
+	  << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc > result.bc";
+  // Map2Check::Log::Info("Compiling " + command.str());
+  system(command.str().c_str());
+
 
   // const char* command2 = "./bin/llvm-link inter.bc lib/memoryutils.bc > result.bc";
   // system(command2);
 
-  const char* command3 = "./bin/opt -O3 result.bc > optimized.bc";
-  system(command3);
+  std::ostringstream command3;
+  command3.str("");
+  command3 << Map2Check::Tools::optBinary;
+  command3 << " -O3 result.bc > optimized.bc";
+   // Map2Check::Log::Info("Compiling " + command3.str());
+  system(command3.str().c_str());
+
 
   // system("rm inter.bc");
   // system("rm output.bc");
@@ -170,12 +183,12 @@ string Caller::compileCFile(std::string cprogram_path) {
 
   if(!fs::exists(Map2Check::Tools::clangBinary) ||
      !fs::is_regular_file(Map2Check::Tools::clangBinary)) {
-    throw InvalidClangBinaryException();
+    // throw InvalidClangBinaryException();
   }
 
   if (!fs::exists(Map2Check::Tools::clangIncludeFolder) ||
       !fs::is_directory(Map2Check::Tools::clangIncludeFolder)) {
-    throw InvalidClangIncludeException();
+    // throw InvalidClangIncludeException();
   }
   std::ostringstream commandRemoveExternMalloc;
 //

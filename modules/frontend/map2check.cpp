@@ -50,6 +50,13 @@ void help_msg(){
 	cout << endl;
 }
 
+int MIN(int a, int b) {
+  if (a > b) {
+    return b;
+  }
+  return a;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -58,12 +65,48 @@ int main(int argc, char** argv)
   std::unique_ptr<Caller> caller;
   namespace fs = boost::filesystem;
 
+  
+  // TODO: Fix this function for other OS
+
+  char szTmp[32];
+  int len = 500;
+  char pBuf[len];
+  sprintf(szTmp, "/proc/%d/exe", getpid());
+  int bytes = MIN(readlink(szTmp, pBuf, len), len - 1);
+  std::string map2check_bin(argv[0]);
+  int deleteSpace = 0;
+  if(map2check_bin.size() > 9) {
+    deleteSpace = 10;
+  }
+  else {
+    deleteSpace = 9;
+  }
+  if(bytes >= 0) {
+    pBuf[bytes - deleteSpace] = '\0';
+  }
+  else {
+    // throw error
+  }
+
+  std::string map2check_env_var("MAP2CHECK_PATH=");
+  map2check_env_var += pBuf; 
+
+  
+  
+  putenv((char*) map2check_env_var.c_str() );
+
   // TODO: put those vars in a anonimous namespace
-  fs::path p("lib/klee/runtime");
-  fs::path klee_lib_path = fs::complete(p); // complete == absolute
-  std::string klee_env_var = "KLEE_RUNTIME_LIBRARY_PATH=" + klee_lib_path.string();
+  // fs::path p("${MAP2CHECK_PATH}/lib/klee/runtime");
+  // fs::path klee_lib_path = fs::complete(p); // complete == absolute
+  std::string klee_env_var("KLEE_RUNTIME_LIBRARY_PATH=");
+  klee_env_var += pBuf;
+  klee_env_var += "/lib/klee/runtime";
+
 
   putenv((char*) klee_env_var.c_str() );
+  std::system("echo $KLEE_RUNTIME_LIBRARY_PATH");
+  
+  
 
   try
     {

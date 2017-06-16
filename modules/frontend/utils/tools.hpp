@@ -10,15 +10,15 @@ using namespace std;
  */
 namespace Map2Check::Tools {
   /** Path to ktest-tool binary (from KLEE) */
-  const string ktestBinary("./bin/ktest-tool");
+  const string ktestBinary("${MAP2CHECK_PATH}/bin/ktest-tool");
   /** Path to clang binary (from llvm) */
-  const string clangBinary("./bin/clang");
+  const string clangBinary("${MAP2CHECK_PATH}/bin/clang");
   /** Path to clang include folder (usually $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
-  const string clangIncludeFolder("./include/clang");
+  const string clangIncludeFolder("${MAP2CHECK_PATH}/include/clang");
   /** Path to generated list log file (check MemoryUtils implementation) */
   const string listLogCSV("list_log.csv");
   /** Path to klee binary */
-  const string kleeBinary("./bin/klee");
+  const string kleeBinary("${MAP2CHECK_PATH}/bin/klee");
   /** Path to generated klee log file (check MemoryUtils implementation) */
   const string kleeLogCSV("klee_log.csv");
   /** Path to generated map2check_property file (check MemoryUtils implementation) */
@@ -26,7 +26,9 @@ namespace Map2Check::Tools {
   /** Path to generated klee results (it is created where klee is called) */
   const string kleeResultFolder("./klee-last");
   /** Path to opt binary (from llvm) */
-  const string optBinary("./bin/opt");
+  const string optBinary("${MAP2CHECK_PATH}/bin/opt");
+    /** Path to llvm-link binary (from llvm) */
+  const string llvmLinkBinary("${MAP2CHECK_PATH}/bin/llvm-link");
 
   /** Represents what kind of property was violated */
   enum class PropertyViolated {

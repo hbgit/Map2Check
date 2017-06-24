@@ -561,47 +561,8 @@ void MemoryTrackPass::instrumentInit() {
 
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
-
-  if (this->caleeFunction->getName() == "free") {
-    this->instrumentFree();
-  }
-  else if (this->caleeFunction->getName() == "cfree") {
-    this->instrumentFree();
-  }
-  else if (this->caleeFunction->getName() == "posix_memalign") {
-    this->instrumentPosixMemAllign();
-  }
-  else if (this->caleeFunction->getName() == "realloc") {
-    this->instrumentRealloc();
-  }
-  else if (this->caleeFunction->getName() == "memset") {
-    this->instrumentMemset();
-  }
-  else if (this->caleeFunction->getName() == "memcpy") {
-    this->instrumentMemcpy();
-  }
-  else if (this->caleeFunction->getName() == "malloc") {
-    this->instrumentMalloc();
-  }
-  else if (this->caleeFunction->getName() == "valloc") {
-    this->instrumentMalloc();
-  }
-  else if (this->caleeFunction->getName() == "alloca") {
-    this->instrumentAlloca();
-  }
-  else if (this->caleeFunction->getName() == "calloc") {
-    this->instrumentCalloc();
-  }
-   else if (this->caleeFunction->getName() == "exit") {
-
-    this->instrumentReleaseMemoryOnCurrentInstruction();
-  }
-   else if (this->caleeFunction->getName() == "abort") {
-
-    this->instrumentReleaseMemoryOnCurrentInstruction();
-  }
   // TODO: Resolve SVCOMP ISSUE
-  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")) {
+  if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")) {
     this->instrumentKlee(NonDetType::INTEGER);
     this->instrumentKleeInt();
   }
@@ -645,10 +606,52 @@ void MemoryTrackPass::switchCallInstruction() {
   else if ((this->caleeFunction->getName() == "map2check_assume")) {
 //      this->instrumentKleePointer();
   }
+   else if (this->caleeFunction->getName() == "exit") {
+
+    this->instrumentReleaseMemoryOnCurrentInstruction();
+  }
+   else if (this->caleeFunction->getName() == "abort") {
+
+    this->instrumentReleaseMemoryOnCurrentInstruction();
+  }
   else if (this->caleeFunction->getName() == this->target_function
        && this->isTrackingFunction) {
     this->instrumentTargetFunction();
   }
+  else if(this->isTrackingFunction) {
+    return;
+  }
+  else if (this->caleeFunction->getName() == "free") {
+    this->instrumentFree();
+  }
+  else if (this->caleeFunction->getName() == "cfree") {
+    this->instrumentFree();
+  }
+  else if (this->caleeFunction->getName() == "posix_memalign") {
+    this->instrumentPosixMemAllign();
+  }
+  else if (this->caleeFunction->getName() == "realloc") {
+    this->instrumentRealloc();
+  }
+  else if (this->caleeFunction->getName() == "memset") {
+    this->instrumentMemset();
+  }
+  else if (this->caleeFunction->getName() == "memcpy") {
+    this->instrumentMemcpy();
+  }
+  else if (this->caleeFunction->getName() == "malloc") {
+    this->instrumentMalloc();
+  }
+  else if (this->caleeFunction->getName() == "valloc") {
+    this->instrumentMalloc();
+  }
+  else if (this->caleeFunction->getName() == "alloca") {
+    this->instrumentAlloca();
+  }
+  else if (this->caleeFunction->getName() == "calloc") {
+    this->instrumentCalloc();
+  }
+    
 }
 
 void MemoryTrackPass::instrumentTargetFunction() {
@@ -1190,14 +1193,17 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
               this->runOnCallInstruction();
           } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
-              this->runOnStoreInstruction();
+	      if(!this->isTrackingFunction)
+		this->runOnStoreInstruction();
           } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
-              this->runOnAllocaInstruction();
+	      if(!this->isTrackingFunction)
+		this->runOnAllocaInstruction();
               //this->runOnAllocaInstruction();
           } else if(LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction)) {
               this->getDebugInfo();
-              this->runOnLoadInstruction();
+	      if(!this->isTrackingFunction)
+		this->runOnLoadInstruction();
           }
 
 

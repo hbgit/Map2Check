@@ -5,13 +5,6 @@
 
 ================ 
 
-          .-.          
-          /v\
-         // \\    > L I N U X - GPL <
-        /(   )\
-         ^^-^^
-         
-
 <b>Goal:</b> 
 <p align="justify">
      Map2Check is a tool of automatically generating and checking memory management unit tests in C programs. 
@@ -19,62 +12,48 @@
      Checking tools. Map2Check checks for properties related to memory safety, such as: memory leaks and invalid free.
 </p>
 
+Documentation available at https://map2check.github.io
+
 ================
 
 - Requirements for using the tool<br>
-To use this tool is necessary that the system contains the following software already installed properly:
-
-> - Linux OS
-
-
+To use this tool is necessary a Linux OS system. Our binary tool is avaliable at https://github.com/hbgit/Map2Check/releases
+ 
 ================
 
 
 <b>How to build Map2Check?</b>
 
 <p align="justify">
-First of all, you need to install the required packages:
+You can build Map2Check using our dockerfile, more details at https://map2check.github.io/docker.html
 </p>
 
-- <b>STEP 0:</b>
 
-> $ sudo apt install wget build-essential git cmake pkg-config libz-dev curl bison flex bc libcap-dev libboost-all-dev libncurses5-dev python-minimal python-pip unzip libgtest-dev
-
-
-- <b>STEP 1:</b>
+<b>Install Map2Check</b>
 
 <p align="justify">
-In order to install Map2Check on your PC, you should download and save the map2check.zip file on your disk. 
+In order to install Map2Check on your PC, you should download and save the map2check.zip file on your disk from https://github.com/hbgit/Map2Check/releases. 
 After that, you should type the following command:
 </p>
 
 > $ unzip map2check.zip
 
-or from https://github.com
+or from GitHub repository
 
 > $ git clone https://github.com/hbgit/Map2Check.git
 
-- <b>STEP 2:</b>
+<b>Testing tool</b>
 
 <p align="justify">
-Execute the script: $ ./map2check-build.sh
-This will create a folder named release containing the map2check executable and the required libraries
-</p>
-
-- <b>STEP 3:</b>
-
-<p align="justify">
-Testing tool. Map2Check can be invoked through a standard command-line interface. Map2Check should be called 
+Map2Check can be invoked through a standard command-line interface. Map2Check should be called 
 in the installation directory as follows:  
 </p>
 
-> $ ./map2check code_samples/samples/false_free_2.c 
+> $ ./map2check test/regression/free/960521-1_false-valid-free.c
 
 For help and others options: 
 
 > $ ./map2check -h
-
-
 
 ===========================
 
@@ -87,6 +66,12 @@ Maintainers:
 Questions and bug reports:  
   E-mail: map2check.tool@gmail.com
 
+          .-.          
+          /v\
+         // \\    > L I N U X - GPL <
+        /(   )\
+         ^^-^^
+         
 
 
 

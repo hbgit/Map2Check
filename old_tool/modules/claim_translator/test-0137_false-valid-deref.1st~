@@ -1,6 +1,0 @@
-99 ; Claim 3 ; ?  file code_samples/test-0137_false-valid-deref.c line 99 function gl_destroy?  dereference failure: free() of non-dynamic memory ;   !(SAME-OBJECT((signed char *)next - (unsigned int)(&NULL->linkage), &gl_list))
-105 ; Claim 14 ; ?  file code_samples/test-0137_false-valid-deref.c line 105 function val_from_node?  dereference failure: memory model not applicable (got `struct list_head', expected `struct node') ;   !(SAME-OBJECT(entry, &gl_list))
-105 ; Claim 15 ; ?  file code_samples/test-0137_false-valid-deref.c line 105 function val_from_node?  dereference failure: invalid pointer ;   !(INVALID-POINTER(entry))
-105 ; Claim 16 ; ?  file code_samples/test-0137_false-valid-deref.c line 105 function val_from_node?  dereference failure: dynamic object lower bound ;   !(POINTER_OFFSET(entry) < 0) || !(IS_DYNAMIC_OBJECT(entry))
-105 ; Claim 17 ; ?  file code_samples/test-0137_false-valid-deref.c line 105 function val_from_node?  dereference failure: dynamic object upper bound ;   !(POINTER_OFFSET(entry) >= DYNAMIC_SIZE(entry)) || !(IS_DYNAMIC_OBJECT(entry))
-145 ; Claim 41 ; ?  file code_samples/test-0137_false-valid-deref.c line 145 function gl_sort?  dereference failure: NULL pointer ;   !(SAME-OBJECT(dst.prev, NULL))

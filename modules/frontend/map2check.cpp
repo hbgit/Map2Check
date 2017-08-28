@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 
 
   putenv((char*) klee_env_var.c_str() );
-  std::system("echo $KLEE_RUNTIME_LIBRARY_PATH");
+  //std::system("echo $KLEE_RUNTIME_LIBRARY_PATH");
   
   
 

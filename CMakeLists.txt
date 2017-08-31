@@ -17,9 +17,17 @@ set(KLEE_INCLUDE ${PROJECT_SOURCE_DIR}/dependencies/klee/include)
 ##       and accept options from cmake input       ##
 #####################################################
 
+#set(Boost_USE_STATIC_LIBS        ON) # only find static libs
+#set(Boost_USE_MULTITHREADED      ON)
+#find_package(Boost REQUIRED COMPONENTS unit_test_framework log log_setup program_options system filesystem thread)
+
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
 find_package(Boost REQUIRED COMPONENTS unit_test_framework log log_setup program_options system filesystem thread)
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})  
+endif()
 
 find_program(LLVM_CONFIG llvm-config
   HINTS ${LLVM_BUILD}/bin

@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,15 +6,15 @@
 
 #IncludeRegexTransform: 
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/Internal/ADT/KTest.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/Internal/ADT/KTest.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/klee.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/klee.h
 stdint.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/stdint.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/stdint.h
 stddef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/stddef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/stddef.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/Runtest/intrinsics.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/Runtest/intrinsics.c
 assert.h
 -
 stdlib.h
@@ -30,7 +30,7 @@ sys/time.h
 time.h
 -
 klee/klee.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/Runtest/klee/klee.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/Runtest/klee/klee.h
 klee/Internal/ADT/KTest.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/Runtest/klee/Internal/ADT/KTest.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/Runtest/klee/Internal/ADT/KTest.h
 

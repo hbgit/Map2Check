@@ -2,10 +2,10 @@
 
 
 # LLVM_BUILD_* values available only from LLVM build tree.
-set(LLVM_BUILD_BINARY_DIR "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake")
-set(LLVM_BUILD_LIBRARY_DIR "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/./lib")
-set(LLVM_BUILD_MAIN_INCLUDE_DIR "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include")
-set(LLVM_BUILD_MAIN_SRC_DIR "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1")
+set(LLVM_BUILD_BINARY_DIR "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake")
+set(LLVM_BUILD_LIBRARY_DIR "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/./lib")
+set(LLVM_BUILD_MAIN_INCLUDE_DIR "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include")
+set(LLVM_BUILD_MAIN_SRC_DIR "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1")
 
 
 set(LLVM_VERSION_MAJOR 3)
@@ -101,14 +101,14 @@ set(LLVM_ON_WIN32 0)
 
 set(LLVM_LIBDIR_SUFFIX )
 
-set(LLVM_INCLUDE_DIRS "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include;/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/include")
-set(LLVM_LIBRARY_DIRS "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/./lib")
+set(LLVM_INCLUDE_DIRS "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include;/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/include")
+set(LLVM_LIBRARY_DIRS "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/./lib")
 set(LLVM_DEFINITIONS "-D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS")
-set(LLVM_CMAKE_DIR "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/cmake/modules")
-set(LLVM_TOOLS_BINARY_DIR "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/./bin")
+set(LLVM_CMAKE_DIR "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/cmake/modules")
+set(LLVM_TOOLS_BINARY_DIR "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/./bin")
 
 if(NOT TARGET LLVMSupport)
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/share/llvm/cmake/LLVMExports.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/share/llvm/cmake/LLVMExports.cmake")
 endif()
 
 include(${LLVM_CMAKE_DIR}/LLVM-Config.cmake)

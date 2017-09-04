@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,115 +6,115 @@
 
 #IncludeRegexTransform: 
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Analysis.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Analysis.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/BitReader.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/BitReader.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/BitWriter.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/BitWriter.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Core.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Core.h
 llvm-c/ErrorHandling.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/ErrorHandling.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/ErrorHandling.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Disassembler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Disassembler.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Support/DataTypes.h
 stddef.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/ErrorHandling.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/ErrorHandling.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/ExecutionEngine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/ExecutionEngine.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 llvm-c/Target.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Target.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Target.h
 llvm-c/TargetMachine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/TargetMachine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/TargetMachine.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Initialization.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Initialization.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/LinkTimeOptimizer.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/LinkTimeOptimizer.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Linker.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Linker.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Object.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Object.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 llvm/Config/llvm-config.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/llvm-config.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/llvm-config.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Target.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Target.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 llvm/Config/llvm-config.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/llvm-config.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/llvm-config.h
 llvm/Config/Targets.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
 llvm/Config/Targets.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
 llvm/Config/Targets.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
 llvm/Config/AsmPrinters.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/AsmPrinters.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/AsmPrinters.def
 llvm/Config/AsmParsers.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/AsmParsers.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/AsmParsers.def
 llvm/Config/Disassemblers.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Disassemblers.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Disassemblers.def
 llvm/Config/Targets.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
 llvm/Config/Targets.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
 llvm/Config/Targets.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Targets.def
 llvm/Config/AsmPrinters.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/AsmPrinters.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/AsmPrinters.def
 llvm/Config/AsmParsers.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/AsmParsers.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/AsmParsers.def
 llvm/Config/Disassemblers.def
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Disassemblers.def
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Config/Disassemblers.def
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/TargetMachine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/TargetMachine.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Types.h
 llvm-c/Target.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Target.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm-c/Target.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Transforms/IPO.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Transforms/IPO.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Transforms/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Transforms/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Transforms/PassManagerBuilder.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Transforms/PassManagerBuilder.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Transforms/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Transforms/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Transforms/Scalar.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Transforms/Scalar.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Transforms/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Transforms/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Transforms/Vectorize.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Transforms/Vectorize.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Transforms/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Transforms/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Types.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Support/DataTypes.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/lto.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/lto.h
 stddef.h
 -
 sys/types.h
@@ -122,13 +122,13 @@ sys/types.h
 stdbool.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/AIXDataTypesFix.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/AIXDataTypesFix.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/calc.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/calc.c
 llvm-c-test.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
 llvm-c/Core.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
 stdio.h
 -
 stdlib.h
@@ -138,13 +138,13 @@ string.h
 assert.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/disassemble.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/disassemble.c
 llvm-c-test.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
 llvm-c/Disassembler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Disassembler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Disassembler.h
 llvm-c/Target.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Target.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Target.h
 stdio.h
 -
 stdlib.h
@@ -152,61 +152,61 @@ stdlib.h
 string.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/helpers.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/helpers.c
 llvm-c-test.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
 stdio.h
 -
 string.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/include-all.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/include-all.c
 llvm-c/Analysis.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Analysis.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Analysis.h
 llvm-c/BitReader.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/BitReader.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/BitReader.h
 llvm-c/BitWriter.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/BitWriter.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/BitWriter.h
 llvm-c/Core.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
 llvm-c/Disassembler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Disassembler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Disassembler.h
 llvm-c/ExecutionEngine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/ExecutionEngine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/ExecutionEngine.h
 llvm-c/Initialization.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Initialization.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Initialization.h
 llvm-c/LinkTimeOptimizer.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/LinkTimeOptimizer.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/LinkTimeOptimizer.h
 llvm-c/Linker.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Linker.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Linker.h
 llvm-c/Object.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Object.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Object.h
 llvm-c/Target.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Target.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Target.h
 llvm-c/TargetMachine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/TargetMachine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/TargetMachine.h
 llvm-c/Transforms/IPO.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Transforms/IPO.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Transforms/IPO.h
 llvm-c/Transforms/PassManagerBuilder.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Transforms/PassManagerBuilder.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Transforms/PassManagerBuilder.h
 llvm-c/Transforms/Scalar.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Transforms/Scalar.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Transforms/Scalar.h
 llvm-c/Transforms/Vectorize.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Transforms/Vectorize.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Transforms/Vectorize.h
 llvm-c/lto.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/lto.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/lto.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
 stdbool.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/main.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/main.c
 llvm-c-test.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
 llvm-c/BitReader.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/BitReader.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/BitReader.h
 llvm-c/Core.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
 stdio.h
 -
 stdlib.h
@@ -214,19 +214,19 @@ stdlib.h
 string.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/metadata.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/metadata.c
 llvm-c-test.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
 llvm-c/Core.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/module.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/module.c
 llvm-c-test.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
 llvm-c/BitReader.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/BitReader.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/BitReader.h
 llvm-c/Core.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
 stdio.h
 -
 stdlib.h
@@ -234,21 +234,21 @@ stdlib.h
 string.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/object.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/object.c
 llvm-c-test.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c-test.h
 llvm-c/Core.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Core.h
 llvm-c/Object.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Object.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/Object.h
 stdio.h
 -
 stdlib.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/targets.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/targets.c
 llvm-c/TargetMachine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/TargetMachine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/llvm-c-test/llvm-c/TargetMachine.h
 stdio.h
 -
 

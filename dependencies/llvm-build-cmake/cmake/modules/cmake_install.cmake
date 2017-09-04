@@ -1,4 +1,4 @@
-# Install script for directory: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/cmake/modules
+# Install script for directory: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/cmake/modules
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,14 +29,14 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "1")
+  set(CMAKE_INSTALL_SO_NO_EXE "0")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/llvm/cmake/LLVMExports.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/llvm/cmake/LLVMExports.cmake"
-         "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/cmake/modules/CMakeFiles/Export/share/llvm/cmake/LLVMExports.cmake")
+         "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/cmake/modules/CMakeFiles/Export/share/llvm/cmake/LLVMExports.cmake")
     if(EXPORT_FILE_CHANGED)
       file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/llvm/cmake/LLVMExports-*.cmake")
       if(OLD_CONFIG_FILES)
@@ -45,21 +45,21 @@ if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/llvm/cmake" TYPE FILE FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/cmake/modules/CMakeFiles/Export/share/llvm/cmake/LLVMExports.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/llvm/cmake" TYPE FILE FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/cmake/modules/CMakeFiles/Export/share/llvm/cmake/LLVMExports.cmake")
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/llvm/cmake" TYPE FILE FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/cmake/modules/CMakeFiles/Export/share/llvm/cmake/LLVMExports-release.cmake")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/llvm/cmake" TYPE FILE FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/cmake/modules/CMakeFiles/Export/share/llvm/cmake/LLVMExports-release.cmake")
   endif()
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/llvm/cmake" TYPE FILE FILES
-    "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/cmake/modules/CMakeFiles/LLVMConfig.cmake"
-    "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/share/llvm/cmake/LLVMConfigVersion.cmake"
-    "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/cmake/modules/LLVM-Config.cmake"
+    "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/cmake/modules/CMakeFiles/LLVMConfig.cmake"
+    "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/share/llvm/cmake/LLVMConfigVersion.cmake"
+    "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/cmake/modules/LLVM-Config.cmake"
     )
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/llvm/cmake" TYPE DIRECTORY FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/cmake/modules/." FILES_MATCHING REGEX "/[^/]*\\.cmake$" REGEX "/\\.svn$" EXCLUDE REGEX "/LLVMConfig\\.cmake$" EXCLUDE REGEX "/LLVMConfigVersion\\.cmake$" EXCLUDE REGEX "/LLVM\\-Config\\.cmake$" EXCLUDE REGEX "/GetHostTriple\\.cmake$" EXCLUDE REGEX "/VersionFromVCS\\.cmake$" EXCLUDE REGEX "/CheckAtomic\\.cmake$" EXCLUDE)
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/llvm/cmake" TYPE DIRECTORY FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/cmake/modules/." FILES_MATCHING REGEX "/[^/]*\\.cmake$" REGEX "/\\.svn$" EXCLUDE REGEX "/LLVMConfig\\.cmake$" EXCLUDE REGEX "/LLVMConfigVersion\\.cmake$" EXCLUDE REGEX "/LLVM\\-Config\\.cmake$" EXCLUDE REGEX "/GetHostTriple\\.cmake$" EXCLUDE REGEX "/VersionFromVCS\\.cmake$" EXCLUDE REGEX "/CheckAtomic\\.cmake$" EXCLUDE)
 endif()
 

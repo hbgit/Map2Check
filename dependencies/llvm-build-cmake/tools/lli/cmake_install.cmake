@@ -1,4 +1,4 @@
-# Install script for directory: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/lli
+# Install script for directory: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/lli
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,11 +29,11 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "1")
+  set(CMAKE_INSTALL_SO_NO_EXE "0")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "lli")
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/bin/lli")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "lli" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/bin/lli")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/lli" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/lli")
     if(CMAKE_INSTALL_DO_STRIP)
@@ -44,7 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/lli/ChildTarget/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/lli/ChildTarget/cmake_install.cmake")
 
 endif()
 

@@ -24,8 +24,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/libclang.dir/Indexing.cpp.o"
   "CMakeFiles/libclang.dir/IndexingContext.cpp.o"
   "../../../../lib/libclang.pdb"
-  "../../../../lib/libclang.so"
   "../../../../lib/libclang.so.3.8"
+  "../../../../lib/libclang.so"
 )
 
 # Per-language clean rules from dependency scanning.

@@ -1,8 +1,8 @@
-The system is: Linux - 3.13.0-24-generic - x86_64
+The system is: Linux - 4.8.6-300.fc25.x86_64 - x86_64
 Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
 Compiler: /usr/bin/c++ 
 Build flags: 
-Id flags: 
+Id flags:  
 
 The output was:
 0
@@ -10,12 +10,12 @@ The output was:
 
 Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
 
-The CXX compiler identification is GNU, found in "/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/3.5.2/CompilerIdCXX/a.out"
+The CXX compiler identification is GNU, found in "/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/3.9.1/CompilerIdCXX/a.out"
 
 Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
 Compiler: /usr/bin/cc 
 Build flags: 
-Id flags: 
+Id flags:  
 
 The output was:
 0
@@ -23,108 +23,101 @@ The output was:
 
 Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
 
-The C compiler identification is GNU, found in "/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/3.5.2/CompilerIdC/a.out"
+The C compiler identification is GNU, found in "/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/3.9.1/CompilerIdC/a.out"
 
 Determining if the CXX compiler works passed with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_a18d4/fast"
-/usr/bin/make -f CMakeFiles/cmTC_a18d4.dir/build.make CMakeFiles/cmTC_a18d4.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_a18d4.dir/testCXXCompiler.cxx.o
-/usr/bin/c++      -o CMakeFiles/cmTC_a18d4.dir/testCXXCompiler.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
-Linking CXX executable cmTC_a18d4
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a18d4.dir/link.txt --verbose=1
-/usr/bin/c++        CMakeFiles/cmTC_a18d4.dir/testCXXCompiler.cxx.o  -o cmTC_a18d4 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_d50a3/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_d50a3.dir/build.make CMakeFiles/cmTC_d50a3.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_d50a3.dir/testCXXCompiler.cxx.o
+/usr/bin/c++     -o CMakeFiles/cmTC_d50a3.dir/testCXXCompiler.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_d50a3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d50a3.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_d50a3.dir/testCXXCompiler.cxx.o  -o cmTC_d50a3 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
 Detecting CXX compiler ABI info compiled with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_5e0cf/fast"
-/usr/bin/make -f CMakeFiles/cmTC_5e0cf.dir/build.make CMakeFiles/cmTC_5e0cf.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o
-/usr/bin/c++      -o CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp
-Linking CXX executable cmTC_5e0cf
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5e0cf.dir/link.txt --verbose=1
-/usr/bin/c++       -v CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_5e0cf -rdynamic  
+Run Build Command:"/usr/bin/gmake" "cmTC_50a99/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_50a99.dir/build.make CMakeFiles/cmTC_50a99.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/c++     -o CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_50a99
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_50a99.dir/link.txt --verbose=1
+/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_50a99 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/c++
-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper
-Target: x86_64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 6.2.0-5ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-6 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper
+Target: x86_64-redhat-linux
+Configured with: ../configure --enable-bootstrap --enable-languages=c,c++,objc,obj-c++,fortran,ada,go,lto --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-linker-hash-style=gnu --enable-plugin --enable-initfini-array --disable-libgcj --with-isl --enable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=i686 --build=x86_64-redhat-linux
 Thread model: posix
-gcc version 6.2.0 20161005 (Ubuntu 6.2.0-5ubuntu12) 
-COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/
-LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_5e0cf' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/6/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper -plugin-opt=-fresolution=/tmp/ccrDQtRj.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_5e0cf /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/6 -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/6/../../.. CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_5e0cf' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+gcc version 6.4.1 20170727 (Red Hat 6.4.1-1) (GCC) 
+COMPILER_PATH=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/:/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/:/usr/libexec/gcc/x86_64-redhat-linux/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/:/usr/lib/gcc/x86_64-redhat-linux/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-redhat-linux/6.4.1/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_50a99' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/libexec/gcc/x86_64-redhat-linux/6.4.1/collect2 -plugin /usr/libexec/gcc/x86_64-redhat-linux/6.4.1/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccZSEwfR.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_50a99 /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtbegin.o -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1 -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../.. CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtend.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_50a99' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
 Parsed CXX implicit link information from above output:
-  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
-  ignore line: [Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp]
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_5e0cf/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_5e0cf.dir/build.make CMakeFiles/cmTC_5e0cf.dir/build]
-  ignore line: [make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp']
-  ignore line: [Building CXX object CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [/usr/bin/c++      -o CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp]
-  ignore line: [Linking CXX executable cmTC_5e0cf]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5e0cf.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/c++       -v CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_5e0cf -rdynamic  ]
+  ignore line: [Run Build Command:"/usr/bin/gmake" "cmTC_50a99/fast"]
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_50a99.dir/build.make CMakeFiles/cmTC_50a99.dir/build]
+  ignore line: [gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp']
+  ignore line: [Building CXX object CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/c++     -o CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_50a99]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_50a99.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_50a99 ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/c++]
-  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper]
-  ignore line: [Target: x86_64-linux-gnu]
-  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 6.2.0-5ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-6 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper]
+  ignore line: [Target: x86_64-redhat-linux]
+  ignore line: [Configured with: ../configure --enable-bootstrap --enable-languages=c,c++,objc,obj-c++,fortran,ada,go,lto --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-linker-hash-style=gnu --enable-plugin --enable-initfini-array --disable-libgcj --with-isl --enable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=i686 --build=x86_64-redhat-linux]
   ignore line: [Thread model: posix]
-  ignore line: [gcc version 6.2.0 20161005 (Ubuntu 6.2.0-5ubuntu12) ]
-  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/]
-  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_5e0cf' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/6/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper -plugin-opt=-fresolution=/tmp/ccrDQtRj.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_5e0cf /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/6 -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/6/../../.. CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o]
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/collect2] ==> ignore
+  ignore line: [gcc version 6.4.1 20170727 (Red Hat 6.4.1-1) (GCC) ]
+  ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/:/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/:/usr/libexec/gcc/x86_64-redhat-linux/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/:/usr/lib/gcc/x86_64-redhat-linux/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-redhat-linux/6.4.1/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_50a99' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/libexec/gcc/x86_64-redhat-linux/6.4.1/collect2 -plugin /usr/libexec/gcc/x86_64-redhat-linux/6.4.1/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccZSEwfR.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_50a99 /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtbegin.o -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1 -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../.. CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtend.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crtn.o]
+    arg [/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/collect2] ==> ignore
     arg [-plugin] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so] ==> ignore
-    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/ccrDQtRj.res] ==> ignore
+    arg [/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccZSEwfR.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
-    arg [--sysroot=/] ==> ignore
     arg [--build-id] ==> ignore
+    arg [--no-add-needed] ==> ignore
     arg [--eh-frame-hdr] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
     arg [-m] ==> ignore
     arg [elf_x86_64] ==> ignore
-    arg [--hash-style=gnu] ==> ignore
-    arg [--as-needed] ==> ignore
     arg [-export-dynamic] ==> ignore
     arg [-dynamic-linker] ==> ignore
     arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
-    arg [-pie] ==> ignore
-    arg [-znow] ==> ignore
-    arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_5e0cf] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o] ==> ignore
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib]
-    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
-    arg [-L/lib/../lib] ==> dir [/lib/../lib]
-    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
-    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../..]
-    arg [CMakeFiles/cmTC_5e0cf.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [cmTC_50a99] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/6.4.1] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1]
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../..] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../..]
+    arg [CMakeFiles/cmTC_50a99.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
     arg [-lstdc++] ==> lib [stdc++]
     arg [-lm] ==> lib [m]
     arg [-lgcc_s] ==> lib [gcc_s]
@@ -132,39 +125,105 @@ Parsed CXX implicit link information from above output:
     arg [-lc] ==> lib [c]
     arg [-lgcc_s] ==> lib [gcc_s]
     arg [-lgcc] ==> lib [gcc]
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o] ==> ignore
-  remove lib [gcc_s]
-  remove lib [gcc]
-  remove lib [gcc_s]
-  remove lib [gcc]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6] ==> [/usr/lib/gcc/x86_64-linux-gnu/6]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib] ==> [/usr/lib]
-  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
-  collapse library dir [/lib/../lib] ==> [/lib]
-  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../..] ==> [/usr/lib]
-  implicit libs: [stdc++;m;c]
-  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/6;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crtn.o] ==> ignore
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1] ==> [/usr/lib/gcc/x86_64-redhat-linux/6.4.1]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64] ==> [/usr/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../..] ==> [/usr/lib]
+  implicit libs: [stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
+  implicit dirs: [/usr/lib/gcc/x86_64-redhat-linux/6.4.1;/usr/lib64;/lib64;/usr/lib]
   implicit fwks: []
 
 
 
 
-Detecting CXX [-std=c++14] compiler features compiled with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Detecting CXX [-std=c++1z] compiler features compiled with the following output:
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_94326/fast"
-/usr/bin/make -f CMakeFiles/cmTC_94326.dir/build.make CMakeFiles/cmTC_94326.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_94326.dir/feature_tests.cxx.o
-/usr/bin/c++     -std=c++14 -o CMakeFiles/cmTC_94326.dir/feature_tests.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_94326
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_94326.dir/link.txt --verbose=1
-/usr/bin/c++        CMakeFiles/cmTC_94326.dir/feature_tests.cxx.o  -o cmTC_94326 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_e2aae/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_e2aae.dir/build.make CMakeFiles/cmTC_e2aae.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_e2aae.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++1z -o CMakeFiles/cmTC_e2aae.dir/feature_tests.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_e2aae
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e2aae.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_e2aae.dir/feature_tests.cxx.o  -o cmTC_e2aae 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:1cxx_alignas
+    Feature record: CXX_FEATURE:1cxx_alignof
+    Feature record: CXX_FEATURE:1cxx_attributes
+    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:1cxx_binary_literals
+    Feature record: CXX_FEATURE:1cxx_constexpr
+    Feature record: CXX_FEATURE:1cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:1cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:1cxx_deleted_functions
+    Feature record: CXX_FEATURE:1cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:1cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:1cxx_generic_lambdas
+    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:1cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:1cxx_noexcept
+    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:1cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:1cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:1cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:1cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:1cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:1cxx_user_literals
+    Feature record: CXX_FEATURE:1cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates
+
+
+Detecting CXX [-std=c++14] compiler features compiled with the following output:
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_9f2e0/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_9f2e0.dir/build.make CMakeFiles/cmTC_9f2e0.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_9f2e0.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++14 -o CMakeFiles/cmTC_9f2e0.dir/feature_tests.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_9f2e0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9f2e0.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_9f2e0.dir/feature_tests.cxx.o  -o cmTC_9f2e0 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
@@ -227,17 +286,17 @@ make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/depende
 
 
 Detecting CXX [-std=c++11] compiler features compiled with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_0fc8e/fast"
-/usr/bin/make -f CMakeFiles/cmTC_0fc8e.dir/build.make CMakeFiles/cmTC_0fc8e.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_0fc8e.dir/feature_tests.cxx.o
-/usr/bin/c++     -std=c++11 -o CMakeFiles/cmTC_0fc8e.dir/feature_tests.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_0fc8e
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0fc8e.dir/link.txt --verbose=1
-/usr/bin/c++        CMakeFiles/cmTC_0fc8e.dir/feature_tests.cxx.o  -o cmTC_0fc8e -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_de0ae/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_de0ae.dir/build.make CMakeFiles/cmTC_de0ae.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_de0ae.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++11 -o CMakeFiles/cmTC_de0ae.dir/feature_tests.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_de0ae
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_de0ae.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_de0ae.dir/feature_tests.cxx.o  -o cmTC_de0ae 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
@@ -300,17 +359,17 @@ make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/depende
 
 
 Detecting CXX [-std=c++98] compiler features compiled with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_1b4ac/fast"
-/usr/bin/make -f CMakeFiles/cmTC_1b4ac.dir/build.make CMakeFiles/cmTC_1b4ac.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_1b4ac.dir/feature_tests.cxx.o
-/usr/bin/c++     -std=c++98 -o CMakeFiles/cmTC_1b4ac.dir/feature_tests.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_1b4ac
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1b4ac.dir/link.txt --verbose=1
-/usr/bin/c++        CMakeFiles/cmTC_1b4ac.dir/feature_tests.cxx.o  -o cmTC_1b4ac -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_b2e31/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_b2e31.dir/build.make CMakeFiles/cmTC_b2e31.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_b2e31.dir/feature_tests.cxx.o
+/usr/bin/c++    -std=c++98 -o CMakeFiles/cmTC_b2e31.dir/feature_tests.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_b2e31
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b2e31.dir/link.txt --verbose=1
+/usr/bin/c++       -rdynamic CMakeFiles/cmTC_b2e31.dir/feature_tests.cxx.o  -o cmTC_b2e31 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
@@ -371,105 +430,98 @@ make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/depende
     Feature record: CXX_FEATURE:0cxx_variadic_macros
     Feature record: CXX_FEATURE:0cxx_variadic_templates
 Determining if the C compiler works passed with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_5a1b2/fast"
-/usr/bin/make -f CMakeFiles/cmTC_5a1b2.dir/build.make CMakeFiles/cmTC_5a1b2.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_5a1b2.dir/testCCompiler.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_5a1b2.dir/testCCompiler.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/testCCompiler.c
-Linking C executable cmTC_5a1b2
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5a1b2.dir/link.txt --verbose=1
-/usr/bin/cc       CMakeFiles/cmTC_5a1b2.dir/testCCompiler.c.o  -o cmTC_5a1b2 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_6ee15/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_6ee15.dir/build.make CMakeFiles/cmTC_6ee15.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_6ee15.dir/testCCompiler.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_6ee15.dir/testCCompiler.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_6ee15
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6ee15.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_6ee15.dir/testCCompiler.c.o  -o cmTC_6ee15 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
 Detecting C compiler ABI info compiled with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_6a414/fast"
-/usr/bin/make -f CMakeFiles/cmTC_6a414.dir/build.make CMakeFiles/cmTC_6a414.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c
-Linking C executable cmTC_6a414
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6a414.dir/link.txt --verbose=1
-/usr/bin/cc      -v CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o  -o cmTC_6a414 -rdynamic  
+Run Build Command:"/usr/bin/gmake" "cmTC_3738f/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_3738f.dir/build.make CMakeFiles/cmTC_3738f.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_3738f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3738f.dir/link.txt --verbose=1
+/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o  -o cmTC_3738f 
 Using built-in specs.
 COLLECT_GCC=/usr/bin/cc
-COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper
-Target: x86_64-linux-gnu
-Configured with: ../src/configure -v --with-pkgversion='Ubuntu 6.2.0-5ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-6 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper
+Target: x86_64-redhat-linux
+Configured with: ../configure --enable-bootstrap --enable-languages=c,c++,objc,obj-c++,fortran,ada,go,lto --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-linker-hash-style=gnu --enable-plugin --enable-initfini-array --disable-libgcj --with-isl --enable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=i686 --build=x86_64-redhat-linux
 Thread model: posix
-gcc version 6.2.0 20161005 (Ubuntu 6.2.0-5ubuntu12) 
-COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/
-LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_6a414' '-rdynamic' '-mtune=generic' '-march=x86-64'
- /usr/lib/gcc/x86_64-linux-gnu/6/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper -plugin-opt=-fresolution=/tmp/cc8xUGNi.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_6a414 /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/6 -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/6/../../.. CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_6a414' '-rdynamic' '-mtune=generic' '-march=x86-64'
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+gcc version 6.4.1 20170727 (Red Hat 6.4.1-1) (GCC) 
+COMPILER_PATH=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/:/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/:/usr/libexec/gcc/x86_64-redhat-linux/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/:/usr/lib/gcc/x86_64-redhat-linux/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-redhat-linux/6.4.1/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_3738f' '-mtune=generic' '-march=x86-64'
+ /usr/libexec/gcc/x86_64-redhat-linux/6.4.1/collect2 -plugin /usr/libexec/gcc/x86_64-redhat-linux/6.4.1/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccnWWyrd.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_3738f /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtbegin.o -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1 -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../.. CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtend.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_3738f' '-mtune=generic' '-march=x86-64'
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
 Parsed C implicit link information from above output:
-  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
-  ignore line: [Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp]
+  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_6a414/fast"]
-  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_6a414.dir/build.make CMakeFiles/cmTC_6a414.dir/build]
-  ignore line: [make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp']
-  ignore line: [Building C object CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o]
-  ignore line: [/usr/bin/cc     -o CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c]
-  ignore line: [Linking C executable cmTC_6a414]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6a414.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/cc      -v CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o  -o cmTC_6a414 -rdynamic  ]
+  ignore line: [Run Build Command:"/usr/bin/gmake" "cmTC_3738f/fast"]
+  ignore line: [/usr/bin/gmake -f CMakeFiles/cmTC_3738f.dir/build.make CMakeFiles/cmTC_3738f.dir/build]
+  ignore line: [gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc    -o CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_3738f]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3738f.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o  -o cmTC_3738f ]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/cc]
-  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper]
-  ignore line: [Target: x86_64-linux-gnu]
-  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 6.2.0-5ubuntu12' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-6 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --enable-default-pie --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper]
+  ignore line: [Target: x86_64-redhat-linux]
+  ignore line: [Configured with: ../configure --enable-bootstrap --enable-languages=c,c++,objc,obj-c++,fortran,ada,go,lto --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-linker-hash-style=gnu --enable-plugin --enable-initfini-array --disable-libgcj --with-isl --enable-libmpx --enable-gnu-indirect-function --with-tune=generic --with-arch_32=i686 --build=x86_64-redhat-linux]
   ignore line: [Thread model: posix]
-  ignore line: [gcc version 6.2.0 20161005 (Ubuntu 6.2.0-5ubuntu12) ]
-  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/]
-  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/6/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/6/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_6a414' '-rdynamic' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib/gcc/x86_64-linux-gnu/6/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper -plugin-opt=-fresolution=/tmp/cc8xUGNi.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_6a414 /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/6 -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/6/../../.. CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o]
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/collect2] ==> ignore
+  ignore line: [gcc version 6.4.1 20170727 (Red Hat 6.4.1-1) (GCC) ]
+  ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/:/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/:/usr/libexec/gcc/x86_64-redhat-linux/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/:/usr/lib/gcc/x86_64-redhat-linux/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-redhat-linux/6.4.1/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_3738f' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/libexec/gcc/x86_64-redhat-linux/6.4.1/collect2 -plugin /usr/libexec/gcc/x86_64-redhat-linux/6.4.1/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccnWWyrd.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --no-add-needed --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_3738f /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crt1.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtbegin.o -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1 -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../.. CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtend.o /usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crtn.o]
+    arg [/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/collect2] ==> ignore
     arg [-plugin] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/liblto_plugin.so] ==> ignore
-    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/6/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/cc8xUGNi.res] ==> ignore
+    arg [/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/libexec/gcc/x86_64-redhat-linux/6.4.1/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccnWWyrd.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
-    arg [--sysroot=/] ==> ignore
     arg [--build-id] ==> ignore
+    arg [--no-add-needed] ==> ignore
     arg [--eh-frame-hdr] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
     arg [-m] ==> ignore
     arg [elf_x86_64] ==> ignore
-    arg [--hash-style=gnu] ==> ignore
-    arg [--as-needed] ==> ignore
     arg [-export-dynamic] ==> ignore
     arg [-dynamic-linker] ==> ignore
     arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
-    arg [-pie] ==> ignore
-    arg [-znow] ==> ignore
-    arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_6a414] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/Scrt1.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crti.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/crtbeginS.o] ==> ignore
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib]
-    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
-    arg [-L/lib/../lib] ==> dir [/lib/../lib]
-    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
-    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
-    arg [-L/usr/lib/gcc/x86_64-linux-gnu/6/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../..]
-    arg [CMakeFiles/cmTC_6a414.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [cmTC_3738f] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/6.4.1] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1]
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+    arg [-L/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../..] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../..]
+    arg [CMakeFiles/cmTC_3738f.dir/CMakeCCompilerABI.c.o] ==> ignore
     arg [-lgcc] ==> lib [gcc]
     arg [--as-needed] ==> ignore
     arg [-lgcc_s] ==> lib [gcc_s]
@@ -479,39 +531,32 @@ Parsed C implicit link information from above output:
     arg [--as-needed] ==> ignore
     arg [-lgcc_s] ==> lib [gcc_s]
     arg [--no-as-needed] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/crtendS.o] ==> ignore
-    arg [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu/crtn.o] ==> ignore
-  remove lib [gcc]
-  remove lib [gcc_s]
-  remove lib [gcc]
-  remove lib [gcc_s]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6] ==> [/usr/lib/gcc/x86_64-linux-gnu/6]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../../../lib] ==> [/usr/lib]
-  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
-  collapse library dir [/lib/../lib] ==> [/lib]
-  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
-  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/6/../../..] ==> [/usr/lib]
-  implicit libs: [c]
-  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/6;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64/crtn.o] ==> ignore
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1] ==> [/usr/lib/gcc/x86_64-redhat-linux/6.4.1]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../../../lib64] ==> [/usr/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+  collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/6.4.1/../../..] ==> [/usr/lib]
+  implicit libs: [gcc;gcc_s;c;gcc;gcc_s]
+  implicit dirs: [/usr/lib/gcc/x86_64-redhat-linux/6.4.1;/usr/lib64;/lib64;/usr/lib]
   implicit fwks: []
 
 
 
 
 Detecting C [-std=c11] compiler features compiled with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_7cd54/fast"
-/usr/bin/make -f CMakeFiles/cmTC_7cd54.dir/build.make CMakeFiles/cmTC_7cd54.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_7cd54.dir/feature_tests.c.o
-/usr/bin/cc    -std=c11 -o CMakeFiles/cmTC_7cd54.dir/feature_tests.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_7cd54
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7cd54.dir/link.txt --verbose=1
-/usr/bin/cc       CMakeFiles/cmTC_7cd54.dir/feature_tests.c.o  -o cmTC_7cd54 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_80f6f/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_80f6f.dir/build.make CMakeFiles/cmTC_80f6f.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_80f6f.dir/feature_tests.c.o
+/usr/bin/cc   -std=c11 -o CMakeFiles/cmTC_80f6f.dir/feature_tests.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_80f6f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_80f6f.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_80f6f.dir/feature_tests.c.o  -o cmTC_80f6f 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -521,17 +566,17 @@ make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/depende
 
 
 Detecting C [-std=c99] compiler features compiled with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_3e411/fast"
-/usr/bin/make -f CMakeFiles/cmTC_3e411.dir/build.make CMakeFiles/cmTC_3e411.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_3e411.dir/feature_tests.c.o
-/usr/bin/cc    -std=c99 -o CMakeFiles/cmTC_3e411.dir/feature_tests.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_3e411
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3e411.dir/link.txt --verbose=1
-/usr/bin/cc       CMakeFiles/cmTC_3e411.dir/feature_tests.c.o  -o cmTC_3e411 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_8c547/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_8c547.dir/build.make CMakeFiles/cmTC_8c547.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_8c547.dir/feature_tests.c.o
+/usr/bin/cc   -std=c99 -o CMakeFiles/cmTC_8c547.dir/feature_tests.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_8c547
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8c547.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_8c547.dir/feature_tests.c.o  -o cmTC_8c547 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -541,17 +586,17 @@ make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/depende
 
 
 Detecting C [-std=c90] compiler features compiled with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_def64/fast"
-/usr/bin/make -f CMakeFiles/cmTC_def64.dir/build.make CMakeFiles/cmTC_def64.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_def64.dir/feature_tests.c.o
-/usr/bin/cc    -std=c90 -o CMakeFiles/cmTC_def64.dir/feature_tests.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_def64
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_def64.dir/link.txt --verbose=1
-/usr/bin/cc       CMakeFiles/cmTC_def64.dir/feature_tests.c.o  -o cmTC_def64 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_5d9a9/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_5d9a9.dir/build.make CMakeFiles/cmTC_5d9a9.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_5d9a9.dir/feature_tests.c.o
+/usr/bin/cc   -std=c90 -o CMakeFiles/cmTC_5d9a9.dir/feature_tests.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_5d9a9
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5d9a9.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_5d9a9.dir/feature_tests.c.o  -o cmTC_5d9a9 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -559,193 +604,235 @@ make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/depende
     Feature record: C_FEATURE:0c_static_assert
     Feature record: C_FEATURE:0c_variadic_macros
 Performing C++ SOURCE FILE Test HAS__std_c__11_CXX succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_7e65e/fast"
-/usr/bin/make -f CMakeFiles/cmTC_7e65e.dir/build.make CMakeFiles/cmTC_7e65e.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_7e65e.dir/src.cxx.o
-/usr/bin/c++     -DHAS__std_c__11_CXX   -std=c++11 -o CMakeFiles/cmTC_7e65e.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_7e65e
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7e65e.dir/link.txt --verbose=1
-/usr/bin/c++    -DHAS__std_c__11_CXX    CMakeFiles/cmTC_7e65e.dir/src.cxx.o  -o cmTC_7e65e -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_33cf0/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_33cf0.dir/build.make CMakeFiles/cmTC_33cf0.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_33cf0.dir/src.cxx.o
+/usr/bin/c++    -DHAS__std_c__11_CXX   -std=c++11 -o CMakeFiles/cmTC_33cf0.dir/src.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_33cf0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_33cf0.dir/link.txt --verbose=1
+/usr/bin/c++   -DHAS__std_c__11_CXX    -rdynamic CMakeFiles/cmTC_33cf0.dir/src.cxx.o  -o cmTC_33cf0 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAS__Wall_CXX succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_0169f/fast"
-/usr/bin/make -f CMakeFiles/cmTC_0169f.dir/build.make CMakeFiles/cmTC_0169f.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_0169f.dir/src.cxx.o
-/usr/bin/c++     -std=c++11 -DHAS__Wall_CXX   -Wall -o CMakeFiles/cmTC_0169f.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_0169f
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0169f.dir/link.txt --verbose=1
-/usr/bin/c++    -std=c++11 -DHAS__Wall_CXX    CMakeFiles/cmTC_0169f.dir/src.cxx.o  -o cmTC_0169f -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_b75e8/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_b75e8.dir/build.make CMakeFiles/cmTC_b75e8.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_b75e8.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -DHAS__Wall_CXX   -Wall -o CMakeFiles/cmTC_b75e8.dir/src.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_b75e8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b75e8.dir/link.txt --verbose=1
+/usr/bin/c++   -std=c++11 -DHAS__Wall_CXX    -rdynamic CMakeFiles/cmTC_b75e8.dir/src.cxx.o  -o cmTC_b75e8 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAS__Wextra_CXX succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_470c3/fast"
-/usr/bin/make -f CMakeFiles/cmTC_470c3.dir/build.make CMakeFiles/cmTC_470c3.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_470c3.dir/src.cxx.o
-/usr/bin/c++     -std=c++11 -Wall -DHAS__Wextra_CXX   -Wextra -o CMakeFiles/cmTC_470c3.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_470c3
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_470c3.dir/link.txt --verbose=1
-/usr/bin/c++    -std=c++11 -Wall -DHAS__Wextra_CXX    CMakeFiles/cmTC_470c3.dir/src.cxx.o  -o cmTC_470c3 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_dd33d/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_dd33d.dir/build.make CMakeFiles/cmTC_dd33d.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_dd33d.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -Wall -DHAS__Wextra_CXX   -Wextra -o CMakeFiles/cmTC_dd33d.dir/src.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_dd33d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_dd33d.dir/link.txt --verbose=1
+/usr/bin/c++   -std=c++11 -Wall -DHAS__Wextra_CXX    -rdynamic CMakeFiles/cmTC_dd33d.dir/src.cxx.o  -o cmTC_dd33d 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAS__Wno_unused_parameter_CXX succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_81f6b/fast"
-/usr/bin/make -f CMakeFiles/cmTC_81f6b.dir/build.make CMakeFiles/cmTC_81f6b.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_81f6b.dir/src.cxx.o
-/usr/bin/c++     -std=c++11 -Wall -Wextra -DHAS__Wno_unused_parameter_CXX   -Wno-unused-parameter -o CMakeFiles/cmTC_81f6b.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_81f6b
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_81f6b.dir/link.txt --verbose=1
-/usr/bin/c++    -std=c++11 -Wall -Wextra -DHAS__Wno_unused_parameter_CXX    CMakeFiles/cmTC_81f6b.dir/src.cxx.o  -o cmTC_81f6b -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_20e93/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_20e93.dir/build.make CMakeFiles/cmTC_20e93.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_20e93.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -Wall -Wextra -DHAS__Wno_unused_parameter_CXX   -Wno-unused-parameter -o CMakeFiles/cmTC_20e93.dir/src.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_20e93
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_20e93.dir/link.txt --verbose=1
+/usr/bin/c++   -std=c++11 -Wall -Wextra -DHAS__Wno_unused_parameter_CXX    -rdynamic CMakeFiles/cmTC_20e93.dir/src.cxx.o  -o cmTC_20e93 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C SOURCE FILE Test HAS__Wall_C succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_b05ae/fast"
-/usr/bin/make -f CMakeFiles/cmTC_b05ae.dir/build.make CMakeFiles/cmTC_b05ae.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_b05ae.dir/src.c.o
-/usr/bin/cc    -DHAS__Wall_C   -Wall -o CMakeFiles/cmTC_b05ae.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_b05ae
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b05ae.dir/link.txt --verbose=1
-/usr/bin/cc   -DHAS__Wall_C    CMakeFiles/cmTC_b05ae.dir/src.c.o  -o cmTC_b05ae -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_71b75/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_71b75.dir/build.make CMakeFiles/cmTC_71b75.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_71b75.dir/src.c.o
+/usr/bin/cc   -DHAS__Wall_C   -Wall -o CMakeFiles/cmTC_71b75.dir/src.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_71b75
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_71b75.dir/link.txt --verbose=1
+/usr/bin/cc  -DHAS__Wall_C    -rdynamic CMakeFiles/cmTC_71b75.dir/src.c.o  -o cmTC_71b75 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main(void) { return 0; }
 Performing C SOURCE FILE Test HAS__Wextra_C succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_e7b3c/fast"
-/usr/bin/make -f CMakeFiles/cmTC_e7b3c.dir/build.make CMakeFiles/cmTC_e7b3c.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_e7b3c.dir/src.c.o
-/usr/bin/cc    -Wall -DHAS__Wextra_C   -Wextra -o CMakeFiles/cmTC_e7b3c.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_e7b3c
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e7b3c.dir/link.txt --verbose=1
-/usr/bin/cc   -Wall -DHAS__Wextra_C    CMakeFiles/cmTC_e7b3c.dir/src.c.o  -o cmTC_e7b3c -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_5ed4b/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_5ed4b.dir/build.make CMakeFiles/cmTC_5ed4b.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_5ed4b.dir/src.c.o
+/usr/bin/cc   -Wall -DHAS__Wextra_C   -Wextra -o CMakeFiles/cmTC_5ed4b.dir/src.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_5ed4b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5ed4b.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -DHAS__Wextra_C    -rdynamic CMakeFiles/cmTC_5ed4b.dir/src.c.o  -o cmTC_5ed4b 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main(void) { return 0; }
 Performing C SOURCE FILE Test HAS__Wno_unused_parameter_C succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_20f6c/fast"
-/usr/bin/make -f CMakeFiles/cmTC_20f6c.dir/build.make CMakeFiles/cmTC_20f6c.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_20f6c.dir/src.c.o
-/usr/bin/cc    -Wall -Wextra -DHAS__Wno_unused_parameter_C   -Wno-unused-parameter -o CMakeFiles/cmTC_20f6c.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_20f6c
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_20f6c.dir/link.txt --verbose=1
-/usr/bin/cc   -Wall -Wextra -DHAS__Wno_unused_parameter_C    CMakeFiles/cmTC_20f6c.dir/src.c.o  -o cmTC_20f6c -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_ae418/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_ae418.dir/build.make CMakeFiles/cmTC_ae418.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_ae418.dir/src.c.o
+/usr/bin/cc   -Wall -Wextra -DHAS__Wno_unused_parameter_C   -Wno-unused-parameter -o CMakeFiles/cmTC_ae418.dir/src.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_ae418
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ae418.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -Wextra -DHAS__Wno_unused_parameter_C    -rdynamic CMakeFiles/cmTC_ae418.dir/src.c.o  -o cmTC_ae418 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main(void) { return 0; }
 Performing C++ SOURCE FILE Test HAS__fno_exceptions succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_065e8/fast"
-/usr/bin/make -f CMakeFiles/cmTC_065e8.dir/build.make CMakeFiles/cmTC_065e8.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_065e8.dir/src.cxx.o
-/usr/bin/c++     -std=c++11 -Wall -Wextra -Wno-unused-parameter -DHAS__fno_exceptions   -fno-exceptions -o CMakeFiles/cmTC_065e8.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_065e8
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_065e8.dir/link.txt --verbose=1
-/usr/bin/c++    -std=c++11 -Wall -Wextra -Wno-unused-parameter -DHAS__fno_exceptions    CMakeFiles/cmTC_065e8.dir/src.cxx.o  -o cmTC_065e8 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_b31a9/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_b31a9.dir/build.make CMakeFiles/cmTC_b31a9.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_b31a9.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -Wall -Wextra -Wno-unused-parameter -DHAS__fno_exceptions   -fno-exceptions -o CMakeFiles/cmTC_b31a9.dir/src.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_b31a9
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b31a9.dir/link.txt --verbose=1
+/usr/bin/c++   -std=c++11 -Wall -Wextra -Wno-unused-parameter -DHAS__fno_exceptions    -rdynamic CMakeFiles/cmTC_b31a9.dir/src.cxx.o  -o cmTC_b31a9 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAS__fno_rtti succeeded with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_8d772/fast"
-/usr/bin/make -f CMakeFiles/cmTC_8d772.dir/build.make CMakeFiles/cmTC_8d772.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_8d772.dir/src.cxx.o
-/usr/bin/c++     -std=c++11 -Wall -Wextra -Wno-unused-parameter -DHAS__fno_rtti   -fno-rtti -o CMakeFiles/cmTC_8d772.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_8d772
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8d772.dir/link.txt --verbose=1
-/usr/bin/c++    -std=c++11 -Wall -Wextra -Wno-unused-parameter -DHAS__fno_rtti    CMakeFiles/cmTC_8d772.dir/src.cxx.o  -o cmTC_8d772 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_21dc3/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_21dc3.dir/build.make CMakeFiles/cmTC_21dc3.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_21dc3.dir/src.cxx.o
+/usr/bin/c++    -std=c++11 -Wall -Wextra -Wno-unused-parameter -DHAS__fno_rtti   -fno-rtti -o CMakeFiles/cmTC_21dc3.dir/src.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_21dc3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_21dc3.dir/link.txt --verbose=1
+/usr/bin/c++   -std=c++11 -Wall -Wextra -Wno-unused-parameter -DHAS__fno_rtti    -rdynamic CMakeFiles/cmTC_21dc3.dir/src.cxx.o  -o cmTC_21dc3 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Determining if the include file sys/capability.h exists passed with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_22162/fast"
-/usr/bin/make -f CMakeFiles/cmTC_22162.dir/build.make CMakeFiles/cmTC_22162.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_22162.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_22162.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-Linking C executable cmTC_22162
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_22162.dir/link.txt --verbose=1
-/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter     CMakeFiles/cmTC_22162.dir/CheckIncludeFile.c.o  -o cmTC_22162 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_9ff36/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_9ff36.dir/build.make CMakeFiles/cmTC_9ff36.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_9ff36.dir/CheckIncludeFile.c.o
+/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_9ff36.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_9ff36
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9ff36.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -Wextra -Wno-unused-parameter     -rdynamic CMakeFiles/cmTC_9ff36.dir/CheckIncludeFile.c.o  -o cmTC_9ff36 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
 Determining if the include file pty.h exists passed with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_065ef/fast"
-/usr/bin/make -f CMakeFiles/cmTC_065ef.dir/build.make CMakeFiles/cmTC_065ef.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_065ef.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_065ef.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-Linking C executable cmTC_065ef
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_065ef.dir/link.txt --verbose=1
-/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter     CMakeFiles/cmTC_065ef.dir/CheckIncludeFile.c.o  -o cmTC_065ef -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_7cd5e/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_7cd5e.dir/build.make CMakeFiles/cmTC_7cd5e.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_7cd5e.dir/CheckIncludeFile.c.o
+/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_7cd5e.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_7cd5e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7cd5e.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -Wextra -Wno-unused-parameter     -rdynamic CMakeFiles/cmTC_7cd5e.dir/CheckIncludeFile.c.o  -o cmTC_7cd5e 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
 Determining if the function mallinfo exists passed with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_efbf2/fast"
-/usr/bin/make -f CMakeFiles/cmTC_efbf2.dir/build.make CMakeFiles/cmTC_efbf2.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_efbf2.dir/CheckFunctionExists.c.o
-/usr/bin/cc    -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=mallinfo   -o CMakeFiles/cmTC_efbf2.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
-Linking C executable cmTC_efbf2
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_efbf2.dir/link.txt --verbose=1
-/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=mallinfo    CMakeFiles/cmTC_efbf2.dir/CheckFunctionExists.c.o  -o cmTC_efbf2 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_4be7c/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_4be7c.dir/build.make CMakeFiles/cmTC_4be7c.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_4be7c.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=mallinfo   -o CMakeFiles/cmTC_4be7c.dir/CheckFunctionExists.c.o   -c /usr/share/cmake/Modules/CheckFunctionExists.c
+Linking C executable cmTC_4be7c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4be7c.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=mallinfo    -rdynamic CMakeFiles/cmTC_4be7c.dir/CheckFunctionExists.c.o  -o cmTC_4be7c 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 
 Determining if the function __ctype_b_loc exists passed with the following output:
-Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_cb9e0/fast"
-/usr/bin/make -f CMakeFiles/cmTC_cb9e0.dir/build.make CMakeFiles/cmTC_cb9e0.dir/build
-make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_cb9e0.dir/CheckFunctionExists.c.o
-/usr/bin/cc    -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=__ctype_b_loc   -o CMakeFiles/cmTC_cb9e0.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
-Linking C executable cmTC_cb9e0
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cb9e0.dir/link.txt --verbose=1
-/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=__ctype_b_loc    CMakeFiles/cmTC_cb9e0.dir/CheckFunctionExists.c.o  -o cmTC_cb9e0 -rdynamic 
-make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Run Build Command:"/usr/bin/gmake" "cmTC_b51e3/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_b51e3.dir/build.make CMakeFiles/cmTC_b51e3.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_b51e3.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=__ctype_b_loc   -o CMakeFiles/cmTC_b51e3.dir/CheckFunctionExists.c.o   -c /usr/share/cmake/Modules/CheckFunctionExists.c
+Linking C executable cmTC_b51e3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b51e3.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -Wextra -Wno-unused-parameter -DCHECK_FUNCTION_EXISTS=__ctype_b_loc    -rdynamic CMakeFiles/cmTC_b51e3.dir/CheckFunctionExists.c.o  -o cmTC_b51e3 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file selinux/selinux.h exists passed with the following output:
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_c8d94/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_c8d94.dir/build.make CMakeFiles/cmTC_c8d94.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c8d94.dir/CheckIncludeFile.c.o
+/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_c8d94.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_c8d94
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c8d94.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -Wextra -Wno-unused-parameter     -rdynamic CMakeFiles/cmTC_c8d94.dir/CheckIncludeFile.c.o  -o cmTC_c8d94 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/acl.h exists passed with the following output:
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_fb132/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_fb132.dir/build.make CMakeFiles/cmTC_fb132.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_fb132.dir/CheckIncludeFile.c.o
+/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_fb132.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_fb132
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fb132.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -Wextra -Wno-unused-parameter     -rdynamic CMakeFiles/cmTC_fb132.dir/CheckIncludeFile.c.o  -o cmTC_fb132 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+
+
+Determining if the prototype setcon exists for SELINUX_SECURITY_CTX_WITH_CONST passed with the following output:
+Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/gmake" "cmTC_a96ba/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_a96ba.dir/build.make CMakeFiles/cmTC_a96ba.dir/build
+gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a96ba.dir/CheckPrototypeDefinition.c.o
+/usr/bin/cc   -Wall -Wextra -Wno-unused-parameter    -o CMakeFiles/cmTC_a96ba.dir/CheckPrototypeDefinition.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp/CheckPrototypeDefinition.c
+Linking C executable cmTC_a96ba
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a96ba.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -Wextra -Wno-unused-parameter     -rdynamic CMakeFiles/cmTC_a96ba.dir/CheckPrototypeDefinition.c.o  -o cmTC_a96ba 
+gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/CMakeFiles/CMakeTmp'
 
 

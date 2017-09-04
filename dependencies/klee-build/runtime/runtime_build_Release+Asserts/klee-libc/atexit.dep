@@ -1,2 +1,2 @@
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/runtime/runtime_build_Release+Asserts/klee-libc/atexit.bc: \
-  /home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/klee-libc/atexit.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/runtime/runtime_build_Release+Asserts/klee-libc/atexit.bc: \
+  /home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/klee-libc/atexit.c

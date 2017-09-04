@@ -1,4 +1,4 @@
-# Install script for directory: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/Transforms/ObjCARC
+# Install script for directory: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/Transforms/ObjCARC
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,10 +29,10 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "1")
+  set(CMAKE_INSTALL_SO_NO_EXE "0")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "LLVMObjCARCOpts")
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/libLLVMObjCARCOpts.a")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "LLVMObjCARCOpts" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/libLLVMObjCARCOpts.a")
 endif()
 

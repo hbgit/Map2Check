@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,29 +6,29 @@
 
 #IncludeRegexTransform: 
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/Types.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm-c/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm-c/llvm/Support/DataTypes.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/ArrayRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/ArrayRef.h
 llvm/ADT/Hashing.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/Hashing.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/Hashing.h
 llvm/ADT/None.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/None.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/None.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/SmallVector.h
 vector
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/Hashing.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/Hashing.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/DataTypes.h
 llvm/Support/Host.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Host.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Host.h
 llvm/Support/SwapByteOrder.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/SwapByteOrder.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/SwapByteOrder.h
 llvm/Support/type_traits.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/type_traits.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/type_traits.h
 algorithm
 -
 cassert
@@ -42,7 +42,7 @@ string
 utility
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/IntrusiveRefCntPtr.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/IntrusiveRefCntPtr.h
 atomic
 -
 cassert
@@ -50,15 +50,15 @@ cassert
 cstddef
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/None.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/None.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/Optional.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/Optional.h
 llvm/ADT/None.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/None.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/None.h
 llvm/Support/AlignOf.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/AlignOf.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/AlignOf.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
 cassert
 -
 new
@@ -66,19 +66,19 @@ new
 utility
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/PointerIntPair.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/PointerIntPair.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
 llvm/Support/PointerLikeTypeTraits.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/PointerLikeTypeTraits.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/PointerLikeTypeTraits.h
 cassert
 -
 limits
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/STLExtras.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/STLExtras.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
 algorithm
 -
 cassert
@@ -96,23 +96,23 @@ memory
 utility
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/SmallString.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/SmallString.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/SmallVector.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/StringRef.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/SmallVector.h
 llvm/ADT/iterator_range.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/iterator_range.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/iterator_range.h
 llvm/Support/AlignOf.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/AlignOf.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/AlignOf.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
 llvm/Support/MathExtras.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/MathExtras.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/MathExtras.h
 llvm/Support/type_traits.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/type_traits.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/type_traits.h
 algorithm
 -
 cassert
@@ -130,19 +130,19 @@ iterator
 memory
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/StringMap.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/StringMap.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/StringRef.h
 llvm/Support/Allocator.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Allocator.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Allocator.h
 cstring
 -
 utility
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/StringRef.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/Compiler.h
 algorithm
 -
 cassert
@@ -156,97 +156,97 @@ string
 utility
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/StringSet.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/StringSet.h
 llvm/ADT/StringMap.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/StringMap.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/StringMap.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/Twine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/Twine.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/SmallVector.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/ADT/StringRef.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/DataTypes.h
 llvm/Support/ErrorHandling.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/ErrorHandling.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/llvm/Support/ErrorHandling.h
 cassert
 -
 string
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/ADT/iterator_range.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/ADT/iterator_range.h
 utility
 -
 iterator
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/LibDriver/LibDriver.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/LibDriver/LibDriver.h
 llvm/ADT/ArrayRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/LibDriver/llvm/ADT/ArrayRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/LibDriver/llvm/ADT/ArrayRef.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/Archive.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/Archive.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/ADT/StringRef.h
 llvm/ADT/iterator_range.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/ADT/iterator_range.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/ADT/iterator_range.h
 llvm/Object/Binary.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Object/Binary.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Object/Binary.h
 llvm/Support/ErrorHandling.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/ErrorHandling.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/ErrorHandling.h
 llvm/Support/ErrorOr.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/ErrorOr.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/ErrorOr.h
 llvm/Support/FileSystem.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/FileSystem.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/FileSystem.h
 llvm/Support/MemoryBuffer.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/MemoryBuffer.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/MemoryBuffer.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/ArchiveWriter.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/ArchiveWriter.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/ADT/StringRef.h
 llvm/Object/Archive.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Object/Archive.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Object/Archive.h
 llvm/Support/FileSystem.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/FileSystem.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/FileSystem.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/Binary.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/Binary.h
 llvm/Object/Error.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Object/Error.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Object/Error.h
 llvm/Support/ErrorOr.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/ErrorOr.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/ErrorOr.h
 llvm/Support/FileSystem.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/FileSystem.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/FileSystem.h
 llvm/Support/MemoryBuffer.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/MemoryBuffer.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/llvm/Support/MemoryBuffer.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Object/Error.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Object/Error.h
 system_error
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/Arg.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/Arg.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/SmallVector.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/StringRef.h
 llvm/Option/Option.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/Option.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/Option.h
 string
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/ArgList.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/ArgList.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/SmallVector.h
 llvm/ADT/SmallString.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/SmallString.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/SmallString.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/StringRef.h
 llvm/ADT/Twine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/Twine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/Twine.h
 llvm/Option/Arg.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/Arg.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/Arg.h
 llvm/Option/OptSpecifier.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/OptSpecifier.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/OptSpecifier.h
 llvm/Option/Option.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/Option.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/Option.h
 list
 -
 memory
@@ -256,49 +256,49 @@ string
 vector
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/OptSpecifier.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/OptSpecifier.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Support/Compiler.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/OptTable.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/OptTable.h
 llvm/ADT/ArrayRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/ArrayRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/ArrayRef.h
 llvm/ADT/StringSet.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/StringSet.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/StringSet.h
 llvm/Option/OptSpecifier.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/OptSpecifier.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/OptSpecifier.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/Option.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/Option.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/SmallVector.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/ADT/StringRef.h
 llvm/Option/OptTable.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/OptTable.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Option/OptTable.h
 llvm/Support/ErrorHandling.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Support/ErrorHandling.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Option/llvm/Support/ErrorHandling.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/AIXDataTypesFix.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/AIXDataTypesFix.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/AlignOf.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/AlignOf.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
 cstddef
 -
 type_traits
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/Allocator.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/Allocator.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallVector.h
 llvm/Support/AlignOf.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/AlignOf.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/AlignOf.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 llvm/Support/MathExtras.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/MathExtras.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/MathExtras.h
 llvm/Support/Memory.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Memory.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Memory.h
 algorithm
 -
 cassert
@@ -308,31 +308,31 @@ cstddef
 cstdlib
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/CBindingWrapping.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/CBindingWrapping.h
 llvm/Support/Casting.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Casting.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Casting.h
 llvm-c/Types.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm-c/Types.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm-c/Types.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/Casting.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/Casting.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
 llvm/Support/type_traits.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/type_traits.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/type_traits.h
 cassert
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/CommandLine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/CommandLine.h
 llvm/ADT/ArrayRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/ArrayRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/ArrayRef.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallVector.h
 llvm/ADT/StringMap.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringMap.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringMap.h
 llvm/ADT/Twine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
 cassert
 -
 climits
@@ -344,27 +344,27 @@ utility
 vector
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/Compiler.h
 llvm/Config/llvm-config.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Config/llvm-config.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Config/llvm-config.h
 sanitizer/msan_interface.h
 -
 sanitizer/asan_interface.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/ErrorHandling.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/ErrorHandling.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringRef.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
 string
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/ErrorOr.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/ErrorOr.h
 llvm/ADT/PointerIntPair.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/PointerIntPair.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/PointerIntPair.h
 llvm/Support/AlignOf.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/AlignOf.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/AlignOf.h
 cassert
 -
 system_error
@@ -372,19 +372,19 @@ system_error
 type_traits
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/FileSystem.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/FileSystem.h
 llvm/ADT/IntrusiveRefCntPtr.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/IntrusiveRefCntPtr.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/IntrusiveRefCntPtr.h
 llvm/ADT/SmallString.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallString.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallString.h
 llvm/ADT/Twine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 llvm/Support/ErrorHandling.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/ErrorHandling.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/ErrorHandling.h
 llvm/Support/TimeValue.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/TimeValue.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/TimeValue.h
 ctime
 -
 iterator
@@ -402,9 +402,9 @@ vector
 sys/stat.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/Host.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/Host.h
 llvm/ADT/StringMap.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringMap.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringMap.h
 endian.h
 -
 machine/endian.h
@@ -412,11 +412,11 @@ machine/endian.h
 string
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/MathExtras.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/MathExtras.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
 llvm/Support/SwapByteOrder.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/SwapByteOrder.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/SwapByteOrder.h
 cassert
 -
 cstring
@@ -428,127 +428,127 @@ intrin.h
 android/api-level.h
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/Memory.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/Memory.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 string
 -
 system_error
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/MemoryBuffer.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/MemoryBuffer.h
 llvm/ADT/Twine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
 llvm/Support/CBindingWrapping.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/CBindingWrapping.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/CBindingWrapping.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 llvm/Support/ErrorOr.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/ErrorOr.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/ErrorOr.h
 memory
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/Path.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/Path.h
 llvm/ADT/SmallString.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallString.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallString.h
 llvm/ADT/Twine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 iterator
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/PointerLikeTypeTraits.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/PointerLikeTypeTraits.h
 llvm/Support/AlignOf.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/AlignOf.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/AlignOf.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/Process.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/Process.h
 llvm/ADT/ArrayRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/ArrayRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/ArrayRef.h
 llvm/ADT/Optional.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Optional.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Optional.h
 llvm/Config/llvm-config.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Config/llvm-config.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Config/llvm-config.h
 llvm/Support/Allocator.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Allocator.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Allocator.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 llvm/Support/TimeValue.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/TimeValue.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/TimeValue.h
 system_error
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/StringSaver.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/StringSaver.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringRef.h
 llvm/ADT/Twine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/Twine.h
 llvm/Support/Allocator.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Allocator.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Allocator.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/SwapByteOrder.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/SwapByteOrder.h
 llvm/Support/Compiler.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/Compiler.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 cstddef
 -
 limits
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/TimeValue.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/TimeValue.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 string
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/raw_ostream.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/raw_ostream.h
 llvm/ADT/SmallVector.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallVector.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/SmallVector.h
 llvm/ADT/StringRef.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringRef.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/ADT/StringRef.h
 llvm/Support/DataTypes.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/llvm/Support/DataTypes.h
 system_error
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/include/llvm/Support/type_traits.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/include/llvm/Support/type_traits.h
 type_traits
 -
 utility
 -
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/LibDriver.cpp
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/LibDriver.cpp
 llvm/LibDriver/LibDriver.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/LibDriver/LibDriver.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/LibDriver/LibDriver.h
 llvm/ADT/STLExtras.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/ADT/STLExtras.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/ADT/STLExtras.h
 llvm/Object/ArchiveWriter.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Object/ArchiveWriter.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Object/ArchiveWriter.h
 llvm/Option/Arg.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Option/Arg.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Option/Arg.h
 llvm/Option/ArgList.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Option/ArgList.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Option/ArgList.h
 llvm/Option/Option.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Option/Option.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Option/Option.h
 llvm/Support/CommandLine.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/CommandLine.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/CommandLine.h
 llvm/Support/StringSaver.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/StringSaver.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/StringSaver.h
 llvm/Support/Path.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/Path.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/Path.h
 llvm/Support/Process.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/Process.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/Process.h
 llvm/Support/raw_ostream.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/raw_ostream.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/llvm/Support/raw_ostream.h
 Options.inc
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/Options.inc
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/Options.inc
 Options.inc
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/Options.inc
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/Options.inc
 Options.inc
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/LibDriver/Options.inc
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/LibDriver/Options.inc
 
 include/llvm/Config/llvm-config.h
 

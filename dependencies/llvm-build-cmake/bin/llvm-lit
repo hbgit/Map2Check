@@ -4,8 +4,8 @@ import os
 import sys
 
 # Variables configured at build time.
-llvm_source_root = "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1"
-llvm_obj_root = "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake"
+llvm_source_root = "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1"
+llvm_obj_root = "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake"
 
 # Make sure we can find the lit package.
 sys.path.insert(0, os.path.join(llvm_source_root, 'utils', 'lit'))

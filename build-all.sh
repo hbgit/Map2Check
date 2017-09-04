@@ -87,49 +87,51 @@ build()
 	make -j `expr $CPUS + 1` CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" $@ || exit 1
 	return 0
 }
-check()
-{
-	if ! wget --version &>/dev/null; then
-		if ! curl --version &>/dev/null; then
-			echo "Need wget or curl to download files"
-			exit 1
-		fi
 
-		# try replace wget with curl
-		alias wget='curl -O'
-	fi
 
-	if ! python --version 2>&1 | grep -q 'Python 2'; then
-		echo "llvm-3.2 needs python 2 to build"
-		exit 1
-	fi
+#check()
+#{
+	#if ! wget --version &>/dev/null; then
+		#if ! curl --version &>/dev/null; then
+			#echo "Need wget or curl to download files"
+			#exit 1
+		#fi
 
-	if ! bison --version &>/dev/null; then
-		echo "STP needs bison program"
-		exit 1
-	fi
+		## try replace wget with curl
+		#alias wget='curl -O'
+	#fi
 
-	if ! flex --version &>/dev/null; then
-		echo "STP needs flex program"
-		exit 1
-	fi
+	#if ! python --version 2>&1 | grep -q 'Python 2'; then
+		#echo "llvm-3.2 needs python 2 to build"
+		#exit 1
+	#fi
 
-	if [ "x$WITH_LLVM" != "x" ]; then
-		if [ ! -d "$WITH_LLVM" ]; then
-			exitmsg "Invalid LLVM directory given: $WITH_LLVM"
-		fi
-	fi
-	if [ "x$WITH_LLVM_SRC" != "x" ]; then
-		if [ ! -d "$WITH_LLVM_SRC" ]; then
-			exitmsg "Invalid LLVM src directory given: $WITH_LLVM_SRC"
-		fi
-	fi
-	if [ "x$WITH_LLVM_DIR" != "x" ]; then
-		if [ ! -d "$WITH_LLVM_DIR" ]; then
-			exitmsg "Invalid LLVM src directory given: $WITH_LLVM_DIR"
-		fi
-	fi
-}
+	#if ! bison --version &>/dev/null; then
+		#echo "STP needs bison program"
+		#exit 1
+	#fi
+
+	#if ! flex --version &>/dev/null; then
+		#echo "STP needs flex program"
+		#exit 1
+	#fi
+
+	#if [ "x$WITH_LLVM" != "x" ]; then
+		#if [ ! -d "$WITH_LLVM" ]; then
+			#exitmsg "Invalid LLVM directory given: $WITH_LLVM"
+		#fi
+	#fi
+	#if [ "x$WITH_LLVM_SRC" != "x" ]; then
+		#if [ ! -d "$WITH_LLVM_SRC" ]; then
+			#exitmsg "Invalid LLVM src directory given: $WITH_LLVM_SRC"
+		#fi
+	#fi
+	#if [ "x$WITH_LLVM_DIR" != "x" ]; then
+		#if [ ! -d "$WITH_LLVM_DIR" ]; then
+			#exitmsg "Invalid LLVM src directory given: $WITH_LLVM_DIR"
+		#fi
+	#fi
+#}
 
 build_llvm()
 {
@@ -142,16 +144,15 @@ build_llvm()
 		tar -xf llvm-${LLVM_VERSION}.src.tar.xz || exit 1
 		tar -xf cfe-${LLVM_VERSION}.src.tar.xz || exit 1
 
-                # rename llvm folder
-                mv llvm-${LLVM_VERSION}.src llvm-${LLVM_VERSION}
+        # rename llvm folder
+		mv llvm-${LLVM_VERSION}.src llvm-${LLVM_VERSION}
 		# move clang to llvm/tools and rename to clang
 		mv cfe-${LLVM_VERSION}.src llvm-${LLVM_VERSION}/tools/clang
 
-
 		rm -f llvm-${LLVM_VERSION}.src.tar.xz &>/dev/null || exit 1
 		rm -f cfe-${LLVM_VERSION}.src.tar.xz &>/dev/null || exit 1
-  else
-    echo "LLVM folder already exists, proceding to compilation"
+	else
+		echo "LLVM folder already exists, proceding to compilation"
 	fi
 
 	mkdir -p $DEPENDENCIES/llvm-build-cmake
@@ -178,70 +179,105 @@ build_llvm()
 
 install_llvm()
 {
-  LLVM_LOCATION=$DEPENDENCIES/llvm-build-cmake
-  cp $LLVM_LOCATION/bin/clang $PREFIX/bin/clang || exit 1
+	LLVM_LOCATION=$DEPENDENCIES/llvm-build-cmake
+	cp $LLVM_LOCATION/bin/clang $PREFIX/bin/clang || exit 1
 	cp $LLVM_LOCATION/bin/opt $PREFIX/bin/opt || exit 1
 	cp $LLVM_LOCATION/bin/llvm-link $PREFIX/bin/llvm-link || exit 1
 	cp $LLVM_LOCATION/bin/llvm-nm $PREFIX/bin/llvm-nm || exit 1
 
-  export LLVM_DIR=$ABS_RUNDIR/llvm-build-cmake/share/llvm/cmake/
+	export LLVM_DIR=$ABS_RUNDIR/llvm-build-cmake/share/llvm/cmake/
 	export LLVM_BUILD_PATH=$ABS_RUNDIR/llvm-build-cmake/
-  export LLVM_SRC_PATH="$ABS_RUNDIR/llvm-${LLVM_VERSION}/"
+	export LLVM_SRC_PATH="$ABS_RUNDIR/llvm-${LLVM_VERSION}/"
 }
 
 clean_and_exit()
 {
-	CODE="$1"
+	CODE="$1"	
 
 	if [ "$2" = "git" ]; then
-		git clean -xdf
-	else
-		rm -rf *
+		#git clean -xdf		
+		rm -rf .git
+	#else
+		#rm -rf *
 	fi
 
-	exit $CODE
+	#exit $CODE
 }
 
 minisat()
 {
     cd $DEPENDENCIES
-  git_clone_or_pull https://github.com/stp/minisat.git minisat
-	cd $DEPENDENCIES/minisat
-	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags zlib`"
-	(build lr && make prefix=$PREFIX install-headers) || exit 1
-	cp `pwd`/build/release/lib/libminisat.a $PREFIX/lib/ || exit 1
-
-cd -
+    
+	if [ ! -d stp-2.1.2 ]; then
+		git clone https://github.com/stp/minisat.git
+	fi
+	cd minisat
+	if [ ! -d build ]; then
+		mkdir build 
+	fi
+	cd build
+	cmake ..
+	make
+	sudo make install # as root
+	sudo ldconfig # as root		
+	cd -	
+	clean_and_exit 1 "git"	
+	cd ..		
 }
 
 stp()
 {
     cd $DEPENDENCIES
-  git_clone_or_pull https://github.com/stp/stp.git stp
-	cd $DEPENDENCIES/stp || exitmsg "Cloning failed"
+	#git_clone_or_pull https://github.com/stp/stp.git stp
+	#cd $DEPENDENCIES/stp || exitmsg "Cloning failed"
 
-  echo $PREFIX
-	if [ ! -d CMakeFiles ]; then
-		cmake . -DCMAKE_INSTALL_PREFIX=$PREFIX \
-			-DSTP_TIMESTAMPS:BOOL="OFF" \
-			-DCMAKE_CXX_FLAGS_RELEASE=-O2 \
-			-DCMAKE_C_FLAGS_RELEASE=-O2 \
-			-DCMAKE_BUILD_TYPE=Release \
-			-DBUILD_SHARED_LIBS:BOOL=OFF \
-			-DENABLE_PYTHON_INTERFACE:BOOL=OFF #|| clean_and_exit 1 "git"
+	#echo $PREFIX
+	#if [ ! -d CMakeFiles ]; then
+		#cmake . -DCMAKE_INSTALL_PREFIX=$PREFIX \
+			#-DSTP_TIMESTAMPS:BOOL="OFF" \
+			#-DCMAKE_CXX_FLAGS_RELEASE=-O2 \
+			#-DCMAKE_C_FLAGS_RELEASE=-O2 \
+			#-DCMAKE_BUILD_TYPE=Release \
+			#-DBUILD_SHARED_LIBS:BOOL=OFF \
+			#-DENABLE_PYTHON_INTERFACE:BOOL=OFF #|| clean_and_exit 1 "git"
+	#fi
+
+	#(build "OPTIMIZE=-O2 CFLAGS_M32=install" && make install) || exit 1
+	# adicionar verificação se a pasta já existe
+	if [ ! -d stp-2.1.2 ]; then
+		wget https://github.com/stp/stp/archive/2.1.2.tar.gz
+		tar -xzf 2.1.2.tar.gz
 	fi
-
-	(build "OPTIMIZE=-O2 CFLAGS_M32=install" && make install) || exit 1
-  cd -
+	
+	cd stp-2.1.2
+	if [ ! -d build ]; then
+		mkdir build
+	fi
+	cd build
+		
+	cmake -G 'Unix Makefiles' \
+			-DCMAKE_INSTALL_PREFIX=$PREFIX \
+			-DBUILD_SHARED_LIBS=OFF \
+			-DBUILD_STATIC_BIN=ON \
+			-DENABLE_PYTHON_INTERFACE=OFF \
+			..
+	make install	
+	cd -
+	cd ..	
 }
 
 klee()
 {
     # build klee
     cd $DEPENDENCIES
-	git_clone_or_pull "-b 3.0.8 https://github.com/rafaelsa94/klee.git" klee || exitmsg "Cloning failed"
+    if [ ! -d klee ]; then
+		git_clone_or_pull "-b 3.0.8 https://github.com/rafaelsa94/klee.git" klee || exitmsg "Cloning failed"
+	fi
 
-	mkdir -p $DEPENDENCIES/klee-build/
+	if [ ! -d $DEPENDENCIES/klee-build ]; then
+		mkdir -p $DEPENDENCIES/klee-build/
+	fi
+	
 	cd $DEPENDENCIES/klee-build/
 
 	if [ ! -d CMakeFiles ]; then
@@ -251,8 +287,7 @@ klee()
 			-DENABLE_SOLVER_STP=ON \
 			-DSTP_DIR=`pwd`/../stp \
 			-DLLVM_CONFIG_BINARY=`pwd`/../llvm-build-cmake/bin/llvm-config \
-			-DENABLE_UNIT_TESTS=OFF \
-		|| clean_and_exit 1 "git"
+			-DENABLE_UNIT_TESTS=OFF 		
 	fi
 
 
@@ -262,25 +297,42 @@ klee()
 
 	pwd
 	(build && make install) || exit 1
+	
+	cd $DEPENDENCIES/klee
+	pwd		
+	clean_and_exit 1 "git"
+	
 	cd -
+		
+	#checking klee installation in lib64
+	if [ -d $PREFIX/lib64 ]; then
+		if [ -d $PREFIX/lib/klee ]; then
+			rm -rf $PREFIX/lib/klee
+			mv $PREFIX/lib64/* $PREFIX/lib/
+		fi
+		rm -rf $PREFIX/lib64
+	fi
+		
 }
 
 map2check() {
     cd $RUNDIR
-	make all
-	make release  
+	./build-map2check.sh
 
 }
 
 gtest() {
-	cd /usr/src/gtest
-	cmake CMakeLists.txt
-	make
+	tgest=$(locate -c libgtest)
+	if [ ! ${tgest} -gt 0  ]; then
+		cd /usr/src/gtest
+		cmake CMakeLists.txt
+		make
 
-	# copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder
-	cp *.a /usr/lib
-
-	cd -
+		# copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder
+		cp *.a /usr/lib
+	
+		cd -
+	fi
 }
 
 build_llvm
@@ -291,4 +343,4 @@ stp
 klee
 map2check
 
-  # echo $LD_LIBRARY_PATH
+# echo $LD_LIBRARY_PATH

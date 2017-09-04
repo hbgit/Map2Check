@@ -1,5 +1,5 @@
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/runtime/runtime_build_Release+Asserts/klee-libc/abort.bc: \
-  /home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/klee-libc/abort.c \
-  /home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/klee.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/runtime/runtime_build_Release+Asserts/klee-libc/abort.bc: \
+  /home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/klee-libc/abort.c \
+  /home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/klee.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/klee.h:
+/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/klee.h:

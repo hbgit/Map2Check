@@ -1,4 +1,4 @@
-# Install script for directory: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang
+# Install script for directory: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,29 +29,29 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "1")
+  set(CMAKE_INSTALL_SO_NO_EXE "0")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES
-    "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang"
-    "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c"
+    "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang"
+    "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c"
     FILES_MATCHING REGEX "/[^/]*\\.def$" REGEX "/[^/]*\\.h$" REGEX "/config\\.h$" EXCLUDE REGEX "/\\.svn$" EXCLUDE)
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/include/clang" FILES_MATCHING REGEX "/CMakeFiles$" EXCLUDE REGEX "/[^/]*\\.inc$" REGEX "/[^/]*\\.h$")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/include/clang" FILES_MATCHING REGEX "/CMakeFiles$" EXCLUDE REGEX "/[^/]*\\.inc$" REGEX "/[^/]*\\.h$")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "libclang-headers")
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c" FILES_MATCHING REGEX "/[^/]*\\.h$" REGEX "/\\.svn$" EXCLUDE)
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "libclang-headers" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c" FILES_MATCHING REGEX "/[^/]*\\.h$" REGEX "/\\.svn$" EXCLUDE)
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/clang/cmake/ClangTargets.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/clang/cmake/ClangTargets.cmake"
-         "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/CMakeFiles/Export/share/clang/cmake/ClangTargets.cmake")
+         "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/CMakeFiles/Export/share/clang/cmake/ClangTargets.cmake")
     if(EXPORT_FILE_CHANGED)
       file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/clang/cmake/ClangTargets-*.cmake")
       if(OLD_CONFIG_FILES)
@@ -60,24 +60,24 @@ if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/clang/cmake" TYPE FILE FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/CMakeFiles/Export/share/clang/cmake/ClangTargets.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/clang/cmake" TYPE FILE FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/CMakeFiles/Export/share/clang/cmake/ClangTargets.cmake")
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/clang/cmake" TYPE FILE FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/CMakeFiles/Export/share/clang/cmake/ClangTargets-release.cmake")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/clang/cmake" TYPE FILE FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/CMakeFiles/Export/share/clang/cmake/ClangTargets-release.cmake")
   endif()
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/clang/cmake" TYPE FILE FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/cmake/modules/ClangConfig.cmake")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/clang/cmake" TYPE FILE FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/cmake/modules/ClangConfig.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/utils/TableGen/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/include/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/lib/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/tools/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/runtime/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/docs/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/utils/TableGen/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/include/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/lib/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/tools/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/runtime/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/docs/cmake_install.cmake")
 
 endif()
 

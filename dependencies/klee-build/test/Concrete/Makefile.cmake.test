@@ -10,13 +10,13 @@
 # AUTOMATICALLY GENERATED. DO NOT EDIT!
 #
 #===------------------------------------------------------------------------===#
-LLVMCC := /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/bin/clang-3.8 -I/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include
-LLVMAS := /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/bin/llvm-as
-LLVMLINK := /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/bin/llvm-link
+LLVMCC := /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/bin/clang-3.8 -I/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include
+LLVMAS := /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/bin/llvm-as
+LLVMLINK := /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/bin/llvm-link
 LLVMCC.CFlags := -O0 -Wall
 
 # Make sure source files can match the pattern rules
-VPATH := /home/map2check/devel_tool/map_src_on_docker/dependencies/klee/test/Concrete
+VPATH := /home/hrocha/Documents/Projects/Map2Check/dependencies/klee/test/Concrete
 
 Output/.dir:
 	mkdir -p $@

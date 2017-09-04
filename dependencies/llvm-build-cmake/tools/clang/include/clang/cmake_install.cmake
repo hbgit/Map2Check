@@ -1,4 +1,4 @@
-# Install script for directory: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang
+# Install script for directory: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,17 +29,17 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "1")
+  set(CMAKE_INSTALL_SO_NO_EXE "0")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/include/clang/AST/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/include/clang/Basic/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/include/clang/Driver/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/include/clang/Parse/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/include/clang/Sema/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/tools/clang/include/clang/Serialization/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/include/clang/AST/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/include/clang/Basic/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/include/clang/Driver/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/include/clang/Parse/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/include/clang/Sema/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/tools/clang/include/clang/Serialization/cmake_install.cmake")
 
 endif()
 

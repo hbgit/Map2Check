@@ -29,10 +29,10 @@
 /* #undef HAVE_MALLOC_ZONE_STATISTICS */
 
 /* Define to 1 if you have the <selinux/selinux.h> header file. */
-/* #undef HAVE_SELINUX_SELINUX_H */
+#define HAVE_SELINUX_SELINUX_H 1
 
 /* Define to 1 if you have the <sys/acl.h> header file. */
-/* #undef HAVE_SYS_ACL_H */
+#define HAVE_SYS_ACL_H 1
 
 /* Define to 1 if you have the <sys/capability.h> header file. */
 #define HAVE_SYS_CAPABILITY_H 1
@@ -48,7 +48,7 @@
 
 /* Define to empty or 'const' depending on how SELinux qualifies its security
    context parameters. */
-/* #undef KLEE_SELINUX_CTX_CONST */
+#define KLEE_SELINUX_CTX_CONST const
 
 /* LLVM major version number */
 #define LLVM_VERSION_MAJOR 3
@@ -84,12 +84,12 @@
 the runtime directory is in the build tree. Instead we should just define a
 macro for that. That would simplify the C++ code.  */
 /* Root of the KLEE binary build directory */
-#define KLEE_DIR "/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build"
+#define KLEE_DIR "/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build"
 
 /* Install directory for KLEE binaries */
-#define KLEE_INSTALL_BIN_DIR "/home/map2check/devel_tool/map_src_on_docker/release/bin"
+#define KLEE_INSTALL_BIN_DIR "/home/hrocha/Documents/Projects/Map2Check/release/bin"
 
 /* Install directory for KLEE runtime */
-#define KLEE_INSTALL_RUNTIME_DIR "/home/map2check/devel_tool/map_src_on_docker/release/lib/klee/runtime"
+#define KLEE_INSTALL_RUNTIME_DIR "/home/hrocha/Documents/Projects/Map2Check/release/lib64/klee/runtime"
 
 #endif

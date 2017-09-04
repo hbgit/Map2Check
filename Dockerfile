@@ -1,6 +1,6 @@
 ############################################################
 # Dockerfile to build map2check container images
-# based on Ubuntu
+# based on Fedora 24
 # Usage:
 #  By docker https://hub.docker.com:
 #   $ docker pull hrocha/mapdevel
@@ -15,8 +15,10 @@
 #  You can check that the container still exists by running: $ docker ps -a
 #  You can restart the container by running: docker start -ai mapdevel
 #  You can run any command in running container just knowing its ID (or name): docker exec <container_id_or_name> echo "Hello from container!"
+#
+# TODO: Check to build LLVM 
 ############################################################
-FROM ubuntu:16.10
+FROM fedora:24
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
@@ -24,43 +26,55 @@ MAINTAINER <herberthb12@gmail.com>
 ENV BUILD_DIR=/home/map2check/devel_tool/build \
     MAP_SRC=/home/map2check/devel_tool/map_src_on_docker
 
-# Fix for docker for windows
-RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-
 # Update the repository sources list
-RUN apt-get update
+#RUN dnf update -y
+
+RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8
 
 ############depois tu me manda uma cópia do teu mirrors ###### BEGIN INSTALLATION ######################
 # Devel packages
-RUN apt-get install -y sudo \
-	python \
-	python-minimal \
+RUN dnf install -y sudo \
+	python \	
 	python-pip \
 	git \
-	libboost-all-dev \
-	libgtest-dev \
-	wget \
-	build-essential \
+	boost \
+	boost-devel \
+	boost-static \
+	gtest-devel \
+	wget \	
 	cmake \
-	pkg-config \
-	libz-dev \
+	pkgconfig \
+	zlib-devel \
+	zlib-static \
 	curl \
 	bison \
 	flex \
 	bc \
-	libcap-dev \
-	libncurses5-dev \
-	unzip
+	xz \
+	libcap-devel \
+	ncurses-devel \
+	libxcb-devel \
+	libstdc++-static \
+	unzip \
+	gcc \
+	gcc-c++ \
+	tar \
+	glibc-locale-source
+	
+
+# Utils tools
+RUN dnf group install -y "Development Tools" "Development Libraries"
+RUN dnf update vim-minimal
+RUN dnf install vim
 
 # Packages to Run tool
-RUN apt-get install -y python-pycparser \
+RUN dnf install -y python-pycparser \
 	python-pyparsing \
 	python-networkx \
 	uncrustify
 
 # Clean packages installation
-RUN apt-get clean
-
+RUN dnf clean all
 
 # Setting entrypoint
 # Create ``map2check`` user for container with password ``map2check``.

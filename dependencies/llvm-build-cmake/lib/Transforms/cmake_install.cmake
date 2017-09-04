@@ -1,4 +1,4 @@
-# Install script for directory: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/Transforms
+# Install script for directory: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/Transforms
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,19 +29,19 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "1")
+  set(CMAKE_INSTALL_SO_NO_EXE "0")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Transforms/Utils/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Transforms/Instrumentation/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Transforms/InstCombine/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Transforms/Scalar/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Transforms/IPO/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Transforms/Vectorize/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Transforms/Hello/cmake_install.cmake")
-  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Transforms/ObjCARC/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Transforms/Utils/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Transforms/Instrumentation/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Transforms/InstCombine/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Transforms/Scalar/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Transforms/IPO/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Transforms/Vectorize/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Transforms/Hello/cmake_install.cmake")
+  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Transforms/ObjCARC/cmake_install.cmake")
 
 endif()
 

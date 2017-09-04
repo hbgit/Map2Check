@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,39 +6,39 @@
 
 #IncludeRegexTransform: 
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/BuildSystem.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/BuildSystem.h
 clang-c/Platform.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/Platform.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/Platform.h
 clang-c/CXErrorCode.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/CXErrorCode.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/CXErrorCode.h
 clang-c/CXString.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/CXString.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/CXString.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/CXErrorCode.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/CXErrorCode.h
 clang-c/Platform.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/Platform.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/Platform.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/CXString.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/CXString.h
 clang-c/Platform.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/Platform.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/Platform.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/Index.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/Index.h
 time.h
 -
 clang-c/Platform.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/Platform.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/Platform.h
 clang-c/CXErrorCode.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/CXErrorCode.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/CXErrorCode.h
 clang-c/CXString.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/CXString.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/CXString.h
 clang-c/BuildSystem.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/BuildSystem.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/clang-c/BuildSystem.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/include/clang-c/Platform.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/include/clang-c/Platform.h
 
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/tools/c-arcmt-test/c-arcmt-test.c
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/tools/c-arcmt-test/c-arcmt-test.c
 clang-c/Index.h
-/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/tools/clang/tools/c-arcmt-test/clang-c/Index.h
+/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/tools/clang/tools/c-arcmt-test/clang-c/Index.h
 stdlib.h
 -
 stdio.h

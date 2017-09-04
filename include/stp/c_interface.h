@@ -48,10 +48,6 @@ typedef void* Type;
 typedef void* WholeCounterExample;
 #endif
 
-
-void process_argument(const char ch, VC bm);
-
-
 // o  : optimizations
 // c  : check counterexample
 // p  : print counterexample
@@ -394,7 +390,7 @@ enum exprkind_t
   UNDEFINED,
   SYMBOL,
   BVCONST,
-  BVNOT,
+  BVNEG,
   BVCONCAT,
   BVOR,
   BVAND,
@@ -406,9 +402,11 @@ enum exprkind_t
   BVLEFTSHIFT,
   BVRIGHTSHIFT,
   BVSRSHIFT,
+  BVVARSHIFT,
   BVPLUS,
   BVSUB,
   BVUMINUS,
+  BVMULTINVERSE,
   BVMULT,
   BVDIV,
   BVMOD,

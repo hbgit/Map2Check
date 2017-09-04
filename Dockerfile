@@ -29,8 +29,6 @@ ENV BUILD_DIR=/home/map2check/devel_tool/build \
 # Update the repository sources list
 #RUN dnf update -y
 
-RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8
-
 ############depois tu me manda uma cópia do teu mirrors ###### BEGIN INSTALLATION ######################
 # Devel packages
 RUN dnf install -y sudo \
@@ -59,13 +57,18 @@ RUN dnf install -y sudo \
 	gcc \
 	gcc-c++ \
 	tar \
-	glibc-locale-source
+	glibc-locale-source \
+	mlocate
 	
+# for locate tool
+RUN updatedb
+
+#RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8
 
 # Utils tools
 RUN dnf group install -y "Development Tools" "Development Libraries"
-RUN dnf update vim-minimal
-RUN dnf install vim
+RUN dnf update -y vim-minimal
+RUN dnf install -y vim
 
 # Packages to Run tool
 RUN dnf install -y python-pycparser \

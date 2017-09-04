@@ -10,6 +10,9 @@ map2check()
     cd $RUNDIR
     if [ ! -d build ]; then	
 		mkdir build
+	else
+		rm -rf build
+		mkdir build
     fi
     cd build
     cmake .. -DCMAKE_INSTALL_PREFIX=../release/ -DCMAKE_BUILD_TYPE=Release

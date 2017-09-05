@@ -30,13 +30,18 @@ cp_utils_file()
 	# Copying licenses
 	if [ ! -d $PREFIX/LICENSES ]; then	
 		mkdir $PREFIX/LICENSES
-		cp utils/*.TXT $PREFIX/LICENSES/
+		cp utils/*.TXT $PREFIX/LICENSES/		
     fi
     
     # Wrapper script
     if [ ! -f $PREFIX/map2check-wrapper.py ]; then	
 		cp utils/map2check-wrapper.py $PREFIX/
     fi
+    
+    # README FILE
+    if [ ! -f $PREFIX/README.md ]; then	
+		cp README.md $PREFIX/
+	fi
 }
 
 gtest() 

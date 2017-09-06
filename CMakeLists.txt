@@ -3,6 +3,11 @@ project(Map2Check)
 cmake_minimum_required(VERSION 3.5)
 message("Started Map2Check CMake")
 
+# static linking
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+SET(BUILD_SHARED_LIBRARIES OFF)
+SET(CMAKE_EXE_LINKER_FLAGS "-static")
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
@@ -28,6 +33,14 @@ find_package(Boost REQUIRED COMPONENTS unit_test_framework log log_setup program
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})  
 endif()
+
+# Handle NCURSES
+set(CURSES_NEED_NCURSES TRUE)
+if(CURSES_FOUND)
+  include_directories(${CURSES_INCLUDE_DIR})  
+  set(CURSES_LIBRARIES ${CURSES_LIBRARY})
+endif()
+
 
 find_program(LLVM_CONFIG llvm-config
   HINTS ${LLVM_BUILD}/bin

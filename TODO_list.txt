@@ -1,0 +1,3 @@
+TODO list
+
+1) Update Ubuntu docker file to adopt static packages to build the tool

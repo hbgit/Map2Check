@@ -51,6 +51,7 @@ RUN dnf install -y sudo \
 	xz \
 	libcap-devel \
 	ncurses-devel \
+	ncurses-static \
 	libxcb-devel \
 	libstdc++-static \
 	unzip \

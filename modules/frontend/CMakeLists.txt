@@ -1,5 +1,10 @@
 # include_directories Update project to use
 
+# static linking
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+SET(BUILD_SHARED_LIBRARIES OFF)
+SET(CMAKE_EXE_LINKER_FLAGS "-static")
+
 add_subdirectory(utils)
 add_subdirectory(witness)
 add_subdirectory(counter_example)
@@ -9,10 +14,16 @@ set(CALLER_FLAGS "-fexceptions -fpic ${LLVM_INCLUDE} -fexceptions")
 add_library(Caller OBJECT caller.cpp)
 set_target_properties(Caller PROPERTIES COMPILE_FLAGS ${CALLER_FLAGS})
 
-
-
 add_library(Exceptions OBJECT exceptions.cpp)
 set_target_properties(Exceptions PROPERTIES COMPILE_FLAGS ${CALLER_FLAGS})
+
+
+# Handle NCURSES
+set(CURSES_NEED_NCURSES TRUE)
+if(CURSES_FOUND)
+  include_directories(${CURSES_INCLUDE_DIR})  
+  set(CURSES_LIBRARIES ${CURSES_LIBRARY})
+endif()
 
 
 set(LLVM_LIB_PATH "${LLVM_BUILD}/lib/")
@@ -32,7 +43,7 @@ add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass>
 				$<TARGET_OBJECTS:Exceptions> utils/log.cpp )
 
 
-target_link_libraries(map2check ${Boost_LIBRARIES} ${CUSTOM_LLVM_LIBS} ${LLVM_SYSTEMFLAGS})
+target_link_libraries(map2check ${Boost_LIBRARIES} ${CURSES_LIBRARIES} ${CUSTOM_LLVM_LIBS} ${LLVM_SYSTEMFLAGS})
 
 
 install (TARGETS map2check DESTINATION .)

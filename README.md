@@ -38,6 +38,7 @@ After that, you should type the following command:
 </p>
 
 > $ unzip map2check.zip
+> $ cd release
 
 or from GitHub repository
 

@@ -38,6 +38,12 @@ cp_utils_file()
 		cp utils/map2check-wrapper.py $PREFIX/
     fi
     
+    # Samples to test map2check
+    if [ ! -d $PREFIX/sample ]; then	
+		mkdir $PREFIX/sample
+		cp -r sample/* $PREFIX/sample/
+    fi
+    
     # README FILE
     if [ ! -f $PREFIX/README.md ]; then	
 		cp README.md $PREFIX/

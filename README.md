@@ -51,7 +51,7 @@ Map2Check can be invoked through a standard command-line interface. Map2Check sh
 in the installation directory as follows:  
 </p>
 
-> $ ./map2check test/regression/free/960521-1_false-valid-free.c
+> $ ./map2check sample/sv-comp/960521-1_false-valid-free.c
 
 For help and others options: 
 

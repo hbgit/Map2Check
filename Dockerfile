@@ -41,6 +41,7 @@ RUN dnf install -y sudo \
 	gtest-devel \
 	wget \	
 	cmake \
+	make \
 	pkgconfig \
 	zlib-devel \
 	zlib-static \
@@ -54,6 +55,7 @@ RUN dnf install -y sudo \
 	ncurses-static \
 	libxcb-devel \
 	libstdc++-static \
+	glibc-static \
 	unzip \
 	gcc \
 	gcc-c++ \
@@ -67,15 +69,8 @@ RUN updatedb
 #RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8
 
 # Utils tools
-RUN dnf group install -y "Development Tools" "Development Libraries"
-RUN dnf update -y vim-minimal
-RUN dnf install -y vim
-
-# Packages to Run tool
-RUN dnf install -y python-pycparser \
-	python-pyparsing \
-	python-networkx \
-	uncrustify
+# RUN dnf update -y vim-minimal
+# RUN dnf install -y vim
 
 # Clean packages installation
 RUN dnf clean all

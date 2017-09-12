@@ -23,8 +23,8 @@ FROM fedora:24
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
 
-ENV BUILD_DIR=/home/map2check/devel_tool/build \
-    MAP_SRC=/home/map2check/devel_tool/map_src_on_docker
+#ENV BUILD_DIR=/home/map2check/devel_tool/build \
+#    MAP_SRC=/home/map2check/devel_tool/map_src_on_docker
 
 # Update the repository sources list
 #RUN dnf update -y
@@ -91,16 +91,16 @@ WORKDIR /home/map2check/devel_tool/
 ### Buildind Map2Check tool
 
 # Copy across source files needed for build
-RUN mkdir ${MAP_SRC}
-ADD / ${MAP_SRC}
+#RUN mkdir ${MAP_SRC}
+#ADD / ${MAP_SRC}
 
 # Set map2check user to be owner
-RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
+#RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 
 # Build Map2Check
-RUN cd ${MAP_SRC} && sudo ./build-map2check.sh
+#RUN cd ${MAP_SRC} && sudo ./build-map2check.sh
 
-RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
+#RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 VOLUME /home/map2check/devel_tool/
 
 # Revoke password-less sudo and Set up sudo access for the ``map2check`` user so it

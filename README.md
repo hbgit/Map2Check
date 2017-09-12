@@ -31,16 +31,12 @@ You can build Map2Check using our dockerfile, more details at https://map2check.
 <b>Install Map2Check</b>
 
 <p align="justify">
-In order to install Map2Check on your PC, you should download and save the map2check.zip file on your disk from https://github.com/hbgit/Map2Check/releases. 
+In order to install Map2Check on your PC, you should download and save the map2check zip file on your disk from https://github.com/hbgit/Map2Check/releases. 
 After that, you should type the following command:
 </p>
 
-> $ unzip map2check.zip
-> $ cd release
-
-or from GitHub repository
-
-> $ git clone https://github.com/hbgit/Map2Check.git
+> $ unzip v7.zip
+> $ cd Map2Check-7/release
 
 <b>Testing tool</b>
 

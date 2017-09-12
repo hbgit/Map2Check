@@ -4,6 +4,7 @@
 /modules export-ignore
 /dependencies export-ignore
 /utils export-ignore
+/sample export-ignore
 README.md export-ignore
 LICENSE export-ignore
 Dockerfile export-ignore

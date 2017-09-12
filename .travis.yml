@@ -7,7 +7,7 @@ services:
 
 before_install:
   - docker build -t hrocha/mapdevel .
-  - docker run --name=mapdevel -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash -c "ls; cd /home/map2check/devel_tool/mygitclone; ./build-map2check.sh; ./release/map2check -h"
+  - docker run --name=mapdevel -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash -c "ls; sudo chown -R map2check:map2check /home/map2check/devel_tool/mygitclone; cd /home/map2check/devel_tool/mygitclone; ls -alh; ./build-map2check.sh; ./release/map2check -h"
 
 # command to run tests
 script:

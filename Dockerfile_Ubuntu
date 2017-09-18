@@ -7,7 +7,7 @@
 #   $ mkdir $(pwd)/mapdevel
 #   $ docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/host:Z hrocha/mapdevel /bin/bash
 #  By gitclone https://github.com/hbgit/Map2Check:
-#   $ docker build -t hrocha/mapdevel .
+#   $ docker build -t hrocha/mapdevel -f Dockerfile_Ubuntu .
 #   $ docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash
 #
 # The docker user is "map2check" and the password is "map2check"
@@ -16,7 +16,7 @@
 #  You can restart the container by running: docker start -ai mapdevel
 #  You can run any command in running container just knowing its ID (or name): docker exec <container_id_or_name> echo "Hello from container!"
 ############################################################
-FROM ubuntu:16.10
+FROM ubuntu:16.04
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
@@ -80,7 +80,7 @@ ADD / ${MAP_SRC}
 RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 
 # Build Map2Check
-RUN cd ${MAP_SRC} && sudo ./build-all.sh
+RUN cd ${MAP_SRC} #&& sudo ./build-all.sh
 
 RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 VOLUME /home/map2check/devel_tool/

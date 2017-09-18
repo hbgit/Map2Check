@@ -39,7 +39,14 @@ mkdir -p $PREFIX/lib
 mkdir -p $PREFIX/include
 
 # create dependencies directory
-mkdir -p $DEPENDENCIES
+if [ -d "$FOLDER" ]; then
+	rm -rf $DEPENDENCIES/*
+	mkdir -p $DEPENDENCIES
+else
+	mkdir -p $DEPENDENCIES
+fi
+
+
 
 git_clone_or_pull()
 {
@@ -324,12 +331,12 @@ map2check() {
 gtest() {
 	tgest=$(locate -c libgtest)
 	if [ ! ${tgest} -gt 0  ]; then
-		cd /usr/src/gtest
-		cmake CMakeLists.txt
-		make
+		sudo cd /usr/src/gtest
+		sudo make CMakeLists.txt
+		sudo make
 
 		# copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder
-		cp *.a /usr/lib
+		sudo cp *.a /usr/lib
 	
 		cd -
 	fi

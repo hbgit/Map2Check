@@ -54,12 +54,12 @@ gtest()
 {
 	tgest=$(locate -c libgtest)
 	if [ ! ${tgest} -gt 0  ]; then
-		cd /usr/src/gtest
-		cmake CMakeLists.txt
-		make
+		sudo cd /usr/src/gtest
+		sudo cmake CMakeLists.txt
+		sudo make
 
 		# copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder
-		cp *.a /usr/lib
+		sudo cp *.a /usr/lib
 	
 		cd -
 	fi

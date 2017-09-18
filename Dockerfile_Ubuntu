@@ -50,13 +50,8 @@ RUN apt-get install -y sudo \
 	bc \
 	libcap-dev \
 	libncurses5-dev \
-	unzip
-
-# Packages to Run tool
-RUN apt-get install -y python-pycparser \
-	python-pyparsing \
-	python-networkx \
-	uncrustify
+	unzip \
+	locate
 
 # Clean packages installation
 RUN apt-get clean
@@ -85,7 +80,7 @@ ADD / ${MAP_SRC}
 RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 
 # Build Map2Check
-RUN cd ${MAP_SRC} && sudo ./build-map2check.sh
+RUN cd ${MAP_SRC} && sudo ./build-all.sh
 
 RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 VOLUME /home/map2check/devel_tool/

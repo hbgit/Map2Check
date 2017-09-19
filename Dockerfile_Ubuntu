@@ -51,7 +51,8 @@ RUN apt-get install -y sudo \
 	libcap-dev \
 	libncurses5-dev \
 	unzip \
-	locate
+	locate \
+    vim
 
 # Clean packages installation
 RUN apt-get clean
@@ -76,13 +77,13 @@ WORKDIR /home/map2check/devel_tool/
 RUN mkdir ${MAP_SRC}
 ADD / ${MAP_SRC}
 
-# Set map2check user to be owner
-RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
-
 # Build Map2Check
-RUN cd ${MAP_SRC} #&& sudo ./build-all.sh
+RUN cd ${MAP_SRC}
 
-RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
+# Set map2check user to be owner
+RUN sudo chown -R map2check:map2check .
+
+#RUN sudo chown -R map2check:map2check ${MAP_SRC}/*
 VOLUME /home/map2check/devel_tool/
 
 # Revoke password-less sudo and Set up sudo access for the ``map2check`` user so it

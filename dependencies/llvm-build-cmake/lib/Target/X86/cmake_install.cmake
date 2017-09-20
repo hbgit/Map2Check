@@ -1,4 +1,4 @@
-# Install script for directory: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/lib/Target/X86
+# Install script for directory: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/lib/Target/X86
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,21 +29,21 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "0")
+  set(CMAKE_INSTALL_SO_NO_EXE "1")
 endif()
 
-if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "LLVMX86CodeGen" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/libLLVMX86CodeGen.a")
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "LLVMX86CodeGen")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/libLLVMX86CodeGen.a")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Target/X86/AsmParser/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Target/X86/Disassembler/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Target/X86/InstPrinter/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Target/X86/MCTargetDesc/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Target/X86/TargetInfo/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/lib/Target/X86/Utils/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Target/X86/AsmParser/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Target/X86/Disassembler/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Target/X86/InstPrinter/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Target/X86/MCTargetDesc/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Target/X86/TargetInfo/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/Target/X86/Utils/cmake_install.cmake")
 
 endif()
 

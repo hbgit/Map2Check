@@ -39,12 +39,12 @@ mkdir -p $PREFIX/lib
 mkdir -p $PREFIX/include
 
 # create dependencies directory
-if [ -d "$FOLDER" ]; then
-	rm -rf $DEPENDENCIES/*
-	mkdir -p $DEPENDENCIES
-else
-	mkdir -p $DEPENDENCIES
-fi
+#if [ -d "$FOLDER" ]; then
+#	rm -rf $DEPENDENCIES/*
+#	mkdir -p $DEPENDENCIES
+#else
+#	mkdir -p $DEPENDENCIES
+#fi
 
 
 
@@ -158,12 +158,16 @@ build_llvm()
 
 		rm -f llvm-${LLVM_VERSION}.src.tar.xz &>/dev/null || exit 1
 		rm -f cfe-${LLVM_VERSION}.src.tar.xz &>/dev/null || exit 1
+		mv llvm-${LLVM_VERSION}  $DEPENDENCIES/llvm-${LLVM_VERSION}
 	else
 		echo "LLVM folder already exists, proceding to compilation"
+		if [ ! -d "$DEPENDENCIES/llvm-${LLVM_VERSION}" ]; then
+			mkdir -p $DEPENDENCIES/llvm-build-cmake
+		fi
 	fi
 
-	mkdir -p $DEPENDENCIES/llvm-build-cmake
-	mv llvm-${LLVM_VERSION}  $DEPENDENCIES/llvm-${LLVM_VERSION}
+#	mkdir -p $DEPENDENCIES/llvm-build-cmake
+#	mv llvm-${LLVM_VERSION}  $DEPENDENCIES/llvm-${LLVM_VERSION}
 	cd $DEPENDENCIES/llvm-build-cmake || exitmsg "downloading failed"
 
 	# configure llvm
@@ -215,7 +219,7 @@ minisat()
 {
     cd $DEPENDENCIES
     
-	if [ ! -d stp-2.1.2 ]; then
+	if [ ! -d "minisat" ]; then
 		git clone https://github.com/stp/minisat.git
 	fi
 	cd minisat
@@ -331,8 +335,8 @@ map2check() {
 gtest() {
 	tgest=$(locate -c libgtest)
 	if [ ! ${tgest} -gt 0  ]; then
-		sudo cd /usr/src/gtest
-		sudo make CMakeLists.txt
+		cd /usr/src/gtest
+		sudo cmake CMakeLists.txt
 		sudo make
 
 		# copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder
@@ -348,6 +352,6 @@ minisat
 gtest
 stp
 klee
-map2check
+#map2check
 
 # echo $LD_LIBRARY_PATH

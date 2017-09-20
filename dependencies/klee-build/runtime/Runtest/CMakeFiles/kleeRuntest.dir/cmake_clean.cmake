@@ -2,8 +2,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/kleeRuntest.dir/intrinsics.c.o"
   "CMakeFiles/kleeRuntest.dir/__/__/lib/Basic/KTest.cpp.o"
   "../../lib/libkleeRuntest.pdb"
-  "../../lib/libkleeRuntest.so.1.0"
   "../../lib/libkleeRuntest.so"
+  "../../lib/libkleeRuntest.so.1.0"
 )
 
 # Per-language clean rules from dependency scanning.

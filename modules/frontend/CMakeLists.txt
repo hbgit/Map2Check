@@ -1,9 +1,9 @@
 # include_directories Update project to use
 
 # static linking
-SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-SET(BUILD_SHARED_LIBRARIES OFF)
-SET(CMAKE_EXE_LINKER_FLAGS "-static")
+#SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+#SET(BUILD_SHARED_LIBRARIES OFF)
+#SET(CMAKE_EXE_LINKER_FLAGS "-static")
 
 add_subdirectory(utils)
 add_subdirectory(witness)
@@ -19,11 +19,11 @@ set_target_properties(Exceptions PROPERTIES COMPILE_FLAGS ${CALLER_FLAGS})
 
 
 # Handle NCURSES
-set(CURSES_NEED_NCURSES TRUE)
-if(CURSES_FOUND)
-  include_directories(${CURSES_INCLUDE_DIR})  
-  set(CURSES_LIBRARIES ${CURSES_LIBRARY})
-endif()
+#set(CURSES_NEED_NCURSES TRUE)
+#if(CURSES_FOUND)
+#  include_directories(${CURSES_INCLUDE_DIR})  
+#  set(CURSES_LIBRARIES ${CURSES_LIBRARY})
+#endif()
 
 
 set(LLVM_LIB_PATH "${LLVM_BUILD}/lib/")

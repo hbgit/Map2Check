@@ -1,8 +1,8 @@
-# Install script for directory: /home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools
+# Install script for directory: /home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/hrocha/Documents/Projects/Map2Check/release")
+  set(CMAKE_INSTALL_PREFIX "/home/map2check/devel_tool/map_src_on_docker/release")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -29,17 +29,17 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "0")
+  set(CMAKE_INSTALL_SO_NO_EXE "1")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/tools/gen-random-bout/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/tools/kleaver/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/tools/klee/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/tools/klee-replay/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/tools/klee-stats/cmake_install.cmake")
-  include("/home/hrocha/Documents/Projects/Map2Check/dependencies/klee-build/tools/ktest-tool/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/tools/gen-random-bout/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/tools/kleaver/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/tools/klee/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/tools/klee-replay/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/tools/klee-stats/cmake_install.cmake")
+  include("/home/map2check/devel_tool/map_src_on_docker/dependencies/klee-build/tools/ktest-tool/cmake_install.cmake")
 
 endif()
 

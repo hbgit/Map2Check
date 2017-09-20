@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,11 +6,11 @@
 
 #IncludeRegexTransform: 
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/Internal/ADT/KTest.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/Internal/ADT/KTest.h
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/lib/Basic/KTest.cpp
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/lib/Basic/KTest.cpp
 klee/Internal/ADT/KTest.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/lib/Basic/klee/Internal/ADT/KTest.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/lib/Basic/klee/Internal/ADT/KTest.h
 stdlib.h
 -
 string.h

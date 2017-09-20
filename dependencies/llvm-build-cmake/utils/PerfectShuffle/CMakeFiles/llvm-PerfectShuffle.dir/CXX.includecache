@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-3.8.1/utils/PerfectShuffle/PerfectShuffle.cpp
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/utils/PerfectShuffle/PerfectShuffle.cpp
 cassert
 -
 cstdlib

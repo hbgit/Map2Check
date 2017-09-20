@@ -1,156 +1,142 @@
 Determining if the include file malloc/malloc.h exists failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_7635c/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_7635c.dir/build.make CMakeFiles/cmTC_7635c.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_7635c.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_7635c.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:27: fatal error: malloc/malloc.h: No such file or directory
- #include <malloc/malloc.h>
-                           ^
+Run Build Command:"/usr/bin/make" "cmTC_c55c4/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c55c4.dir/build.make CMakeFiles/cmTC_c55c4.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c55c4.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_c55c4.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:27: fatal error: malloc/malloc.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_7635c.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_7635c.dir/CheckIncludeFile.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_7635c.dir/CheckIncludeFile.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_7635c/fast' failed
-gmake: *** [cmTC_7635c/fast] Error 2
+CMakeFiles/cmTC_c55c4.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_c55c4.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_c55c4.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_c55c4/fast' failed
+make: *** [cmTC_c55c4/fast] Error 2
 
 
 Determining if the include file ndir.h exists failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_99fe5/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_99fe5.dir/build.make CMakeFiles/cmTC_99fe5.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_99fe5.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_99fe5.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:18: fatal error: ndir.h: No such file or directory
- #include <ndir.h>
-                  ^
+Run Build Command:"/usr/bin/make" "cmTC_9df59/fast"
+/usr/bin/make -f CMakeFiles/cmTC_9df59.dir/build.make CMakeFiles/cmTC_9df59.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_9df59.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_9df59.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:18: fatal error: ndir.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_99fe5.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_99fe5.dir/CheckIncludeFile.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_99fe5.dir/CheckIncludeFile.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_99fe5/fast' failed
-gmake: *** [cmTC_99fe5/fast] Error 2
+CMakeFiles/cmTC_9df59.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_9df59.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_9df59.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_9df59/fast' failed
+make: *** [cmTC_9df59/fast] Error 2
 
 
 Determining if the include file sys/ndir.h exists failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_f8e12/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_f8e12.dir/build.make CMakeFiles/cmTC_f8e12.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_f8e12.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_f8e12.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:22: fatal error: sys/ndir.h: No such file or directory
- #include <sys/ndir.h>
-                      ^
+Run Build Command:"/usr/bin/make" "cmTC_f5b35/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f5b35.dir/build.make CMakeFiles/cmTC_f5b35.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_f5b35.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_f5b35.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:22: fatal error: sys/ndir.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_f8e12.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_f8e12.dir/CheckIncludeFile.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_f8e12.dir/CheckIncludeFile.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_f8e12/fast' failed
-gmake: *** [cmTC_f8e12/fast] Error 2
+CMakeFiles/cmTC_f5b35.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_f5b35.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_f5b35.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_f5b35/fast' failed
+make: *** [cmTC_f5b35/fast] Error 2
 
 
 Determining if the include file valgrind/valgrind.h exists failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_a2667/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_a2667.dir/build.make CMakeFiles/cmTC_a2667.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_a2667.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_a2667.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:31: fatal error: valgrind/valgrind.h: No such file or directory
- #include <valgrind/valgrind.h>
-                               ^
+Run Build Command:"/usr/bin/make" "cmTC_7e1aa/fast"
+/usr/bin/make -f CMakeFiles/cmTC_7e1aa.dir/build.make CMakeFiles/cmTC_7e1aa.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_7e1aa.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_7e1aa.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:31: fatal error: valgrind/valgrind.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_a2667.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a2667.dir/CheckIncludeFile.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_a2667.dir/CheckIncludeFile.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_a2667/fast' failed
-gmake: *** [cmTC_a2667/fast] Error 2
+CMakeFiles/cmTC_7e1aa.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_7e1aa.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_7e1aa.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_7e1aa/fast' failed
+make: *** [cmTC_7e1aa/fast] Error 2
 
 
 Determining if the include file mach/mach.h exists failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_66a6f/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_66a6f.dir/build.make CMakeFiles/cmTC_66a6f.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_66a6f.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_66a6f.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:23: fatal error: mach/mach.h: No such file or directory
- #include <mach/mach.h>
-                       ^
+Run Build Command:"/usr/bin/make" "cmTC_b0d1b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b0d1b.dir/build.make CMakeFiles/cmTC_b0d1b.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_b0d1b.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_b0d1b.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:23: fatal error: mach/mach.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_66a6f.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_66a6f.dir/CheckIncludeFile.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_66a6f.dir/CheckIncludeFile.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_66a6f/fast' failed
-gmake: *** [cmTC_66a6f/fast] Error 2
+CMakeFiles/cmTC_b0d1b.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_b0d1b.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_b0d1b.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_b0d1b/fast' failed
+make: *** [cmTC_b0d1b/fast] Error 2
 
 
 Determining if the include file mach-o/dyld.h exists failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_3f271/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_3f271.dir/build.make CMakeFiles/cmTC_3f271.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_3f271.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_3f271.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:25: fatal error: mach-o/dyld.h: No such file or directory
- #include <mach-o/dyld.h>
-                         ^
+Run Build Command:"/usr/bin/make" "cmTC_1d1a5/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1d1a5.dir/build.make CMakeFiles/cmTC_1d1a5.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_1d1a5.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_1d1a5.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:25: fatal error: mach-o/dyld.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_3f271.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_3f271.dir/CheckIncludeFile.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_3f271.dir/CheckIncludeFile.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_3f271/fast' failed
-gmake: *** [cmTC_3f271/fast] Error 2
+CMakeFiles/cmTC_1d1a5.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_1d1a5.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_1d1a5.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_1d1a5/fast' failed
+make: *** [cmTC_1d1a5/fast] Error 2
 
 
 Determining if the include file histedit.h exists failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_0bfc7/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_0bfc7.dir/build.make CMakeFiles/cmTC_0bfc7.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_0bfc7.dir/CheckIncludeFile.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_0bfc7.dir/CheckIncludeFile.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:22: fatal error: histedit.h: No such file or directory
- #include <histedit.h>
-                      ^
+Run Build Command:"/usr/bin/make" "cmTC_7ab32/fast"
+/usr/bin/make -f CMakeFiles/cmTC_7ab32.dir/build.make CMakeFiles/cmTC_7ab32.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_7ab32.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_7ab32.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:22: fatal error: histedit.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_0bfc7.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_0bfc7.dir/CheckIncludeFile.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_0bfc7.dir/CheckIncludeFile.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_0bfc7/fast' failed
-gmake: *** [cmTC_0bfc7/fast] Error 2
+CMakeFiles/cmTC_7ab32.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_7ab32.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_7ab32.dir/CheckIncludeFile.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_7ab32/fast' failed
+make: *** [cmTC_7ab32/fast] Error 2
 
 
 Determining if the arc4random exist failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_a647d/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_a647d.dir/build.make CMakeFiles/cmTC_a647d.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_a647d.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_a647d.dir/CheckSymbolExists.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘arc4random’ undeclared (first use in this function)
+Run Build Command:"/usr/bin/make" "cmTC_5a69c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5a69c.dir/build.make CMakeFiles/cmTC_5a69c.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_5a69c.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_5a69c.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function 'main':
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: 'arc4random' undeclared (first use in this function)
    return ((int*)(&arc4random))[argc];
-                   ^~~~~~~~~~
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
-CMakeFiles/cmTC_a647d.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a647d.dir/CheckSymbolExists.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_a647d.dir/CheckSymbolExists.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_a647d/fast' failed
-gmake: *** [cmTC_a647d/fast] Error 2
+                   ^
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+CMakeFiles/cmTC_5a69c.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_5a69c.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_5a69c.dir/CheckSymbolExists.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_5a69c/fast' failed
+make: *** [cmTC_5a69c/fast] Error 2
 
-File /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
 #include <stdlib.h>
 
@@ -166,24 +152,22 @@ int main(int argc, char** argv)
 }
 
 Determining if the mallctl exist failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_94b47/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_94b47.dir/build.make CMakeFiles/cmTC_94b47.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_94b47.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_94b47.dir/CheckSymbolExists.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:23: fatal error: malloc_np.h: No such file or directory
- #include <malloc_np.h>
-                       ^
+Run Build Command:"/usr/bin/make" "cmTC_dc796/fast"
+/usr/bin/make -f CMakeFiles/cmTC_dc796.dir/build.make CMakeFiles/cmTC_dc796.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_dc796.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_dc796.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:23: fatal error: malloc_np.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_94b47.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_94b47.dir/CheckSymbolExists.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_94b47.dir/CheckSymbolExists.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_94b47/fast' failed
-gmake: *** [cmTC_94b47/fast] Error 2
+CMakeFiles/cmTC_dc796.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_dc796.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_dc796.dir/CheckSymbolExists.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_dc796/fast' failed
+make: *** [cmTC_dc796/fast] Error 2
 
-File /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
 #include <malloc_np.h>
 
@@ -199,24 +183,22 @@ int main(int argc, char** argv)
 }
 
 Determining if the malloc_zone_statistics exist failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_3e075/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_3e075.dir/build.make CMakeFiles/cmTC_3e075.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_3e075.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_3e075.dir/CheckSymbolExists.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:27: fatal error: malloc/malloc.h: No such file or directory
- #include <malloc/malloc.h>
-                           ^
+Run Build Command:"/usr/bin/make" "cmTC_5b95b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5b95b.dir/build.make CMakeFiles/cmTC_5b95b.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_5b95b.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_5b95b.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:27: fatal error: malloc/malloc.h: No such file or directory
 compilation terminated.
-CMakeFiles/cmTC_3e075.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_3e075.dir/CheckSymbolExists.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_3e075.dir/CheckSymbolExists.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_3e075/fast' failed
-gmake: *** [cmTC_3e075/fast] Error 2
+CMakeFiles/cmTC_5b95b.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_5b95b.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_5b95b.dir/CheckSymbolExists.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_5b95b/fast' failed
+make: *** [cmTC_5b95b/fast] Error 2
 
-File /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
 #include <malloc/malloc.h>
 
@@ -232,25 +214,25 @@ int main(int argc, char** argv)
 }
 
 Determining if the strerror_s exist failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_0767a/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_0767a.dir/build.make CMakeFiles/cmTC_0767a.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_0767a.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_0767a.dir/CheckSymbolExists.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function ‘main’:
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: ‘strerror_s’ undeclared (first use in this function)
+Run Build Command:"/usr/bin/make" "cmTC_a8462/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a8462.dir/build.make CMakeFiles/cmTC_a8462.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a8462.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_a8462.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function 'main':
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: 'strerror_s' undeclared (first use in this function)
    return ((int*)(&strerror_s))[argc];
-                   ^~~~~~~~~~
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
-CMakeFiles/cmTC_0767a.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_0767a.dir/CheckSymbolExists.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_0767a.dir/CheckSymbolExists.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_0767a/fast' failed
-gmake: *** [cmTC_0767a/fast] Error 2
+                   ^
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+CMakeFiles/cmTC_a8462.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a8462.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_a8462.dir/CheckSymbolExists.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_a8462/fast' failed
+make: *** [cmTC_a8462/fast] Error 2
 
-File /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
 #include <string.h>
 
@@ -266,93 +248,93 @@ int main(int argc, char** argv)
 }
 
 Performing C SOURCE FILE Test C_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_c872c/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_c872c.dir/build.make CMakeFiles/cmTC_c872c.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_c872c.dir/src.c.o
-/usr/bin/cc   -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG   -Werror -Wcovered-switch-default -o CMakeFiles/cmTC_c872c.dir/src.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
-cc: error: unrecognized command line option '-Wcovered-switch-default'; did you mean '-Wno-switch-default'?
-CMakeFiles/cmTC_c872c.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_c872c.dir/src.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_c872c.dir/src.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_c872c/fast' failed
-gmake: *** [cmTC_c872c/fast] Error 2
+Run Build Command:"/usr/bin/make" "cmTC_a40ce/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a40ce.dir/build.make CMakeFiles/cmTC_a40ce.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a40ce.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG   -Werror -Wcovered-switch-default -o CMakeFiles/cmTC_a40ce.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+cc: error: unrecognized command line option '-Wcovered-switch-default'
+CMakeFiles/cmTC_a40ce.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a40ce.dir/src.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_a40ce.dir/src.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_a40ce/fast' failed
+make: *** [cmTC_a40ce/fast] Error 2
 
 Source file was:
 int main(void) { return 0; }
 Performing C++ SOURCE FILE Test CXX_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_24130/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_24130.dir/build.make CMakeFiles/cmTC_24130.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_24130.dir/src.cxx.o
-/usr/bin/c++    -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -DCXX_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG   -Werror -Wcovered-switch-default -o CMakeFiles/cmTC_24130.dir/src.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
-c++: error: unrecognized command line option '-Wcovered-switch-default'; did you mean '-Wno-switch-default'?
-CMakeFiles/cmTC_24130.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_24130.dir/src.cxx.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_24130.dir/src.cxx.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_24130/fast' failed
-gmake: *** [cmTC_24130/fast] Error 2
+Run Build Command:"/usr/bin/make" "cmTC_0b5af/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0b5af.dir/build.make CMakeFiles/cmTC_0b5af.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0b5af.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -DCXX_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG   -Werror -Wcovered-switch-default -o CMakeFiles/cmTC_0b5af.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Wcovered-switch-default'
+CMakeFiles/cmTC_0b5af.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_0b5af.dir/src.cxx.o' failed
+make[1]: *** [CMakeFiles/cmTC_0b5af.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_0b5af/fast' failed
+make: *** [cmTC_0b5af/fast] Error 2
 
 Source file was:
 int main() { return 0; }
 Performing C SOURCE FILE Test C_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_691ba/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_691ba.dir/build.make CMakeFiles/cmTC_691ba.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_691ba.dir/src.c.o
-/usr/bin/cc   -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG   -Werror -Wdelete-non-virtual-dtor -o CMakeFiles/cmTC_691ba.dir/src.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+Run Build Command:"/usr/bin/make" "cmTC_41fee/fast"
+/usr/bin/make -f CMakeFiles/cmTC_41fee.dir/build.make CMakeFiles/cmTC_41fee.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_41fee.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG   -Werror -Wdelete-non-virtual-dtor -o CMakeFiles/cmTC_41fee.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
 cc1: error: command line option '-Wdelete-non-virtual-dtor' is valid for C++/ObjC++ but not for C [-Werror]
 cc1: all warnings being treated as errors
-CMakeFiles/cmTC_691ba.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_691ba.dir/src.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_691ba.dir/src.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_691ba/fast' failed
-gmake: *** [cmTC_691ba/fast] Error 2
+CMakeFiles/cmTC_41fee.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_41fee.dir/src.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_41fee.dir/src.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_41fee/fast' failed
+make: *** [cmTC_41fee/fast] Error 2
 
 Source file was:
 int main(void) { return 0; }
 Performing C SOURCE FILE Test C_WCOMMENT_ALLOWS_LINE_WRAP failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_2d885/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_2d885.dir/build.make CMakeFiles/cmTC_2d885.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_2d885.dir/src.c.o
-/usr/bin/cc   -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_WCOMMENT_ALLOWS_LINE_WRAP  -Werror -Wcomment   -o CMakeFiles/cmTC_2d885.dir/src.c.o   -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c:1:1: error: multi-line comment [-Werror=comment]
+Run Build Command:"/usr/bin/make" "cmTC_a8c5d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a8c5d.dir/build.make CMakeFiles/cmTC_a8c5d.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a8c5d.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_WCOMMENT_ALLOWS_LINE_WRAP  -Werror -Wcomment   -o CMakeFiles/cmTC_a8c5d.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c:1:1: error: multi-line comment [-Werror=comment]
  // \
  ^
 cc1: all warnings being treated as errors
-CMakeFiles/cmTC_2d885.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_2d885.dir/src.c.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_2d885.dir/src.c.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_2d885/fast' failed
-gmake: *** [cmTC_2d885/fast] Error 2
+CMakeFiles/cmTC_a8c5d.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a8c5d.dir/src.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_a8c5d.dir/src.c.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_a8c5d/fast' failed
+make: *** [cmTC_a8c5d/fast] Error 2
 
 Source file was:
 // \
 //
 int main() {return 0;}
 Performing C++ SOURCE FILE Test CXX_SUPPORTS_NO_NESTED_ANON_TYPES_FLAG failed with the following output:
-Change Dir: /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
+Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/gmake" "cmTC_c4a3a/fast"
-/usr/bin/gmake -f CMakeFiles/cmTC_c4a3a.dir/build.make CMakeFiles/cmTC_c4a3a.dir/build
-gmake[1]: Entering directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_c4a3a.dir/src.cxx.o
-/usr/bin/c++    -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -fdata-sections -fno-common -Woverloaded-virtual -fno-strict-aliasing -DCXX_SUPPORTS_NO_NESTED_ANON_TYPES_FLAG   -Werror -Wnested-anon-types -o CMakeFiles/cmTC_c4a3a.dir/src.cxx.o -c /home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
-c++: error: unrecognized command line option '-Wnested-anon-types'; did you mean '-Wnested-externs'?
-CMakeFiles/cmTC_c4a3a.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_c4a3a.dir/src.cxx.o' failed
-gmake[1]: *** [CMakeFiles/cmTC_c4a3a.dir/src.cxx.o] Error 1
-gmake[1]: Leaving directory '/home/hrocha/Documents/Projects/Map2Check/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_c4a3a/fast' failed
-gmake: *** [cmTC_c4a3a/fast] Error 2
+Run Build Command:"/usr/bin/make" "cmTC_9cecf/fast"
+/usr/bin/make -f CMakeFiles/cmTC_9cecf.dir/build.make CMakeFiles/cmTC_9cecf.dir/build
+make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_9cecf.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -fdata-sections -fno-common -Woverloaded-virtual -fno-strict-aliasing -DCXX_SUPPORTS_NO_NESTED_ANON_TYPES_FLAG   -Werror -Wnested-anon-types -o CMakeFiles/cmTC_9cecf.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Wnested-anon-types'
+CMakeFiles/cmTC_9cecf.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_9cecf.dir/src.cxx.o' failed
+make[1]: *** [CMakeFiles/cmTC_9cecf.dir/src.cxx.o] Error 1
+make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_9cecf/fast' failed
+make: *** [cmTC_9cecf/fast] Error 2
 
 Source file was:
 int main() { return 0; }

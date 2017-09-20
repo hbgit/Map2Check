@@ -27,7 +27,7 @@
 #define GCC_INSTALL_PREFIX ""
 
 /* Define if we have libxml2 */
-#define CLANG_HAVE_LIBXML 1
+/* #undef CLANG_HAVE_LIBXML */
 
 /* The LLVM product name and version */
 #define BACKEND_PACKAGE_STRING "LLVM 3.8.1"

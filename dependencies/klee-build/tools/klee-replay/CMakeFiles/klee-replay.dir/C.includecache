@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,15 +6,15 @@
 
 #IncludeRegexTransform: 
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/Internal/ADT/KTest.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/Internal/ADT/KTest.h
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/klee.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/klee.h
 stdint.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/stdint.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/stdint.h
 stddef.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/include/klee/stddef.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/include/klee/stddef.h
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/fd.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/fd.h
 sys/types.h
 -
 sys/statfs.h
@@ -22,9 +22,9 @@ sys/statfs.h
 dirent.h
 -
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/fd_init.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/fd_init.c
 fd.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/fd.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/fd.h
 klee/klee.h
 -
 string.h
@@ -42,11 +42,11 @@ sys/syscall.h
 unistd.h
 -
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/klee_init_env.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/klee_init_env.c
 klee/klee.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/klee/klee.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/klee/klee.h
 fd.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/fd.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/fd.h
 stdlib.h
 -
 string.h
@@ -60,13 +60,13 @@ sys/syscall.h
 unistd.h
 -
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/fd_init.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/fd_init.c
 ../../runtime/POSIX/fd_init.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/fd_init.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/fd_init.c
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/file-creator.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/file-creator.c
 klee-replay.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/klee-replay.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/klee-replay.h
 stdio.h
 -
 stdlib.h
@@ -96,13 +96,13 @@ sys/time.h
 assert.h
 -
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/klee-replay.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/klee-replay.c
 klee-replay.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/klee-replay.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/klee-replay.h
 klee/Internal/ADT/KTest.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/klee/Internal/ADT/KTest.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/klee/Internal/ADT/KTest.h
 klee/Config/config.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/klee/Config/config.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/klee/Config/config.h
 assert.h
 -
 stdio.h
@@ -128,15 +128,15 @@ sys/wait.h
 sys/capability.h
 -
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/klee-replay.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/klee-replay.h
 ../../runtime/POSIX/fd.h
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/fd.h
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/fd.h
 sys/time.h
 -
 
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/tools/klee-replay/klee_init_env.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/tools/klee-replay/klee_init_env.c
 ../../runtime/POSIX/klee_init_env.c
-/home/hrocha/Documents/Projects/Map2Check/dependencies/klee/runtime/POSIX/klee_init_env.c
+/home/map2check/devel_tool/map_src_on_docker/dependencies/klee/runtime/POSIX/klee_init_env.c
 
 include/klee/Config/config.h
 

@@ -9,7 +9,7 @@
 
 # Compute paths
 get_filename_component(STP_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set(STP_INCLUDE_DIRS "/home/hrocha/Documents/Projects/Map2Check/release/include")
+set(STP_INCLUDE_DIRS "/home/map2check/devel_tool/map_src_on_docker/release/include")
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 include("${STP_CMAKE_DIR}/STPTargets.cmake")

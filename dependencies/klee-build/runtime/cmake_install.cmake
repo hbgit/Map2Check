@@ -32,7 +32,7 @@ if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
   set(CMAKE_INSTALL_SO_NO_EXE "1")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
    "/home/map2check/devel_tool/map_src_on_docker/release/lib/klee/runtime/kleeRuntimeIntrinsic.bc;/home/map2check/devel_tool/map_src_on_docker/release/lib/klee/runtime/klee-libc.bc")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)

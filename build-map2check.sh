@@ -18,8 +18,7 @@ map2check()
    
     cmake .. -DCMAKE_INSTALL_PREFIX=../release/ -DCMAKE_BUILD_TYPE=Release
     make all
-  exit 0 
-   make test
+    make test
     make install
     # make release  
     cd - 

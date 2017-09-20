@@ -32,7 +32,7 @@ if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
   set(CMAKE_INSTALL_SO_NO_EXE "1")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-ar")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-ar" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/bin/llvm-ar")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/llvm-ar" AND
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/llvm-ar")
@@ -42,19 +42,19 @@ if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-ar
   endif()
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-ranlib")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-ranlib" OR NOT CMAKE_INSTALL_COMPONENT)
   include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/cmake/modules/LLVMInstallSymlink.cmake")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-ranlib")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-ranlib" OR NOT CMAKE_INSTALL_COMPONENT)
   install_symlink(llvm-ranlib llvm-ar bin)
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-lib")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-lib" OR NOT CMAKE_INSTALL_COMPONENT)
   include("/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-3.8.1/cmake/modules/LLVMInstallSymlink.cmake")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-lib")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "llvm-lib" OR NOT CMAKE_INSTALL_COMPONENT)
   install_symlink(llvm-lib llvm-ar bin)
 endif()
 

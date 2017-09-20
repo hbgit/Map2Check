@@ -161,7 +161,10 @@ build_llvm()
 		mv llvm-${LLVM_VERSION}  $DEPENDENCIES/llvm-${LLVM_VERSION}
 	else
 		echo "LLVM folder already exists, proceding to compilation"
-		if [ ! -d "$DEPENDENCIES/llvm-${LLVM_VERSION}" ]; then
+		if [ -d "$DEPENDENCIES/llvm-${LLVM_VERSION}" ]; then
+			mkdir -p $DEPENDENCIES/llvm-build-cmake
+		else
+			rm -rf $DEPENDENCIES/llvm-build-cmake
 			mkdir -p $DEPENDENCIES/llvm-build-cmake
 		fi
 	fi

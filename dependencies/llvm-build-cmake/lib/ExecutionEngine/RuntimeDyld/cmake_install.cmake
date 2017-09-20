@@ -32,7 +32,7 @@ if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
   set(CMAKE_INSTALL_SO_NO_EXE "1")
 endif()
 
-if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "LLVMRuntimeDyld")
+if("${CMAKE_INSTALL_COMPONENT}" STREQUAL "LLVMRuntimeDyld" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/lib/libLLVMRuntimeDyld.a")
 endif()
 

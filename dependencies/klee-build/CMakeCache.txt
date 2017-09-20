@@ -354,9 +354,9 @@ CMAKE_CACHEFILE_DIR:INTERNAL=/home/map2check/devel_tool/map_src_on_docker/depend
 //Major version of cmake used to create the current loaded cache
 CMAKE_CACHE_MAJOR_VERSION:INTERNAL=3
 //Minor version of cmake used to create the current loaded cache
-CMAKE_CACHE_MINOR_VERSION:INTERNAL=5
+CMAKE_CACHE_MINOR_VERSION:INTERNAL=7
 //Patch version of cmake used to create the current loaded cache
-CMAKE_CACHE_PATCH_VERSION:INTERNAL=1
+CMAKE_CACHE_PATCH_VERSION:INTERNAL=2
 //ADVANCED property for variable: CMAKE_COLOR_MAKEFILE
 CMAKE_COLOR_MAKEFILE-ADVANCED:INTERNAL=1
 //Path to CMake executable.
@@ -471,7 +471,7 @@ CMAKE_OBJDUMP-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_RANLIB
 CMAKE_RANLIB-ADVANCED:INTERNAL=1
 //Path to CMake installation.
-CMAKE_ROOT:INTERNAL=/usr/share/cmake-3.5
+CMAKE_ROOT:INTERNAL=/usr/share/cmake-3.7
 //ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS
 CMAKE_SHARED_LINKER_FLAGS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_DEBUG
@@ -509,7 +509,7 @@ DOXYGEN_DOT_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: DOXYGEN_EXECUTABLE
 DOXYGEN_EXECUTABLE-ADVANCED:INTERNAL=1
 //Details about finding ZLIB
-FIND_PACKAGE_MESSAGE_DETAILS_ZLIB:INTERNAL=[/usr/lib/x86_64-linux-gnu/libz.so][/usr/include][v1.2.8()]
+FIND_PACKAGE_MESSAGE_DETAILS_ZLIB:INTERNAL=[/usr/lib/x86_64-linux-gnu/libz.so][/usr/include][v1.2.11()]
 //ADVANCED property for variable: GIT_EXECUTABLE
 GIT_EXECUTABLE-ADVANCED:INTERNAL=1
 //Test HAS__Wall_C

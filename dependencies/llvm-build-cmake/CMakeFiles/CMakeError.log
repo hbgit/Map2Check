@@ -1,140 +1,154 @@
 Determining if the include file malloc/malloc.h exists failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_c55c4/fast"
-/usr/bin/make -f CMakeFiles/cmTC_c55c4.dir/build.make CMakeFiles/cmTC_c55c4.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_fc6e8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_fc6e8.dir/build.make CMakeFiles/cmTC_fc6e8.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_c55c4.dir/CheckIncludeFile.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_c55c4.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_fc6e8.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_fc6e8.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:27: fatal error: malloc/malloc.h: No such file or directory
+ #include <malloc/malloc.h>
+                           ^
 compilation terminated.
-CMakeFiles/cmTC_c55c4.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_c55c4.dir/CheckIncludeFile.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_c55c4.dir/CheckIncludeFile.c.o] Error 1
+CMakeFiles/cmTC_fc6e8.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_fc6e8.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_fc6e8.dir/CheckIncludeFile.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_c55c4/fast' failed
-make: *** [cmTC_c55c4/fast] Error 2
+Makefile:126: recipe for target 'cmTC_fc6e8/fast' failed
+make: *** [cmTC_fc6e8/fast] Error 2
 
 
 Determining if the include file ndir.h exists failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_9df59/fast"
-/usr/bin/make -f CMakeFiles/cmTC_9df59.dir/build.make CMakeFiles/cmTC_9df59.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_a98b8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a98b8.dir/build.make CMakeFiles/cmTC_a98b8.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_9df59.dir/CheckIncludeFile.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_9df59.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_a98b8.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_a98b8.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:18: fatal error: ndir.h: No such file or directory
+ #include <ndir.h>
+                  ^
 compilation terminated.
-CMakeFiles/cmTC_9df59.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_9df59.dir/CheckIncludeFile.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_9df59.dir/CheckIncludeFile.c.o] Error 1
+CMakeFiles/cmTC_a98b8.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a98b8.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_a98b8.dir/CheckIncludeFile.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_9df59/fast' failed
-make: *** [cmTC_9df59/fast] Error 2
+Makefile:126: recipe for target 'cmTC_a98b8/fast' failed
+make: *** [cmTC_a98b8/fast] Error 2
 
 
 Determining if the include file sys/ndir.h exists failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_f5b35/fast"
-/usr/bin/make -f CMakeFiles/cmTC_f5b35.dir/build.make CMakeFiles/cmTC_f5b35.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_d35e8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d35e8.dir/build.make CMakeFiles/cmTC_d35e8.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_f5b35.dir/CheckIncludeFile.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_f5b35.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_d35e8.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_d35e8.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:22: fatal error: sys/ndir.h: No such file or directory
+ #include <sys/ndir.h>
+                      ^
 compilation terminated.
-CMakeFiles/cmTC_f5b35.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_f5b35.dir/CheckIncludeFile.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_f5b35.dir/CheckIncludeFile.c.o] Error 1
+CMakeFiles/cmTC_d35e8.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_d35e8.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_d35e8.dir/CheckIncludeFile.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_f5b35/fast' failed
-make: *** [cmTC_f5b35/fast] Error 2
+Makefile:126: recipe for target 'cmTC_d35e8/fast' failed
+make: *** [cmTC_d35e8/fast] Error 2
 
 
 Determining if the include file valgrind/valgrind.h exists failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_7e1aa/fast"
-/usr/bin/make -f CMakeFiles/cmTC_7e1aa.dir/build.make CMakeFiles/cmTC_7e1aa.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_e8d39/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e8d39.dir/build.make CMakeFiles/cmTC_e8d39.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_7e1aa.dir/CheckIncludeFile.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_7e1aa.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_e8d39.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_e8d39.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:31: fatal error: valgrind/valgrind.h: No such file or directory
+ #include <valgrind/valgrind.h>
+                               ^
 compilation terminated.
-CMakeFiles/cmTC_7e1aa.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_7e1aa.dir/CheckIncludeFile.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_7e1aa.dir/CheckIncludeFile.c.o] Error 1
+CMakeFiles/cmTC_e8d39.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_e8d39.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_e8d39.dir/CheckIncludeFile.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_7e1aa/fast' failed
-make: *** [cmTC_7e1aa/fast] Error 2
+Makefile:126: recipe for target 'cmTC_e8d39/fast' failed
+make: *** [cmTC_e8d39/fast] Error 2
 
 
 Determining if the include file mach/mach.h exists failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_b0d1b/fast"
-/usr/bin/make -f CMakeFiles/cmTC_b0d1b.dir/build.make CMakeFiles/cmTC_b0d1b.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_2393a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_2393a.dir/build.make CMakeFiles/cmTC_2393a.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_b0d1b.dir/CheckIncludeFile.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_b0d1b.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_2393a.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_2393a.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:23: fatal error: mach/mach.h: No such file or directory
+ #include <mach/mach.h>
+                       ^
 compilation terminated.
-CMakeFiles/cmTC_b0d1b.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_b0d1b.dir/CheckIncludeFile.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_b0d1b.dir/CheckIncludeFile.c.o] Error 1
+CMakeFiles/cmTC_2393a.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_2393a.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_2393a.dir/CheckIncludeFile.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_b0d1b/fast' failed
-make: *** [cmTC_b0d1b/fast] Error 2
+Makefile:126: recipe for target 'cmTC_2393a/fast' failed
+make: *** [cmTC_2393a/fast] Error 2
 
 
 Determining if the include file mach-o/dyld.h exists failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_1d1a5/fast"
-/usr/bin/make -f CMakeFiles/cmTC_1d1a5.dir/build.make CMakeFiles/cmTC_1d1a5.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_36f32/fast"
+/usr/bin/make -f CMakeFiles/cmTC_36f32.dir/build.make CMakeFiles/cmTC_36f32.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_1d1a5.dir/CheckIncludeFile.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_1d1a5.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_36f32.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_36f32.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:25: fatal error: mach-o/dyld.h: No such file or directory
+ #include <mach-o/dyld.h>
+                         ^
 compilation terminated.
-CMakeFiles/cmTC_1d1a5.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_1d1a5.dir/CheckIncludeFile.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_1d1a5.dir/CheckIncludeFile.c.o] Error 1
+CMakeFiles/cmTC_36f32.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_36f32.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_36f32.dir/CheckIncludeFile.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_1d1a5/fast' failed
-make: *** [cmTC_1d1a5/fast] Error 2
+Makefile:126: recipe for target 'cmTC_36f32/fast' failed
+make: *** [cmTC_36f32/fast] Error 2
 
 
 Determining if the include file histedit.h exists failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_7ab32/fast"
-/usr/bin/make -f CMakeFiles/cmTC_7ab32.dir/build.make CMakeFiles/cmTC_7ab32.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_de06c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_de06c.dir/build.make CMakeFiles/cmTC_de06c.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_7ab32.dir/CheckIncludeFile.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_7ab32.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Building C object CMakeFiles/cmTC_de06c.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_de06c.dir/CheckIncludeFile.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:22: fatal error: histedit.h: No such file or directory
+ #include <histedit.h>
+                      ^
 compilation terminated.
-CMakeFiles/cmTC_7ab32.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_7ab32.dir/CheckIncludeFile.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_7ab32.dir/CheckIncludeFile.c.o] Error 1
+CMakeFiles/cmTC_de06c.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_de06c.dir/CheckIncludeFile.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_de06c.dir/CheckIncludeFile.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_7ab32/fast' failed
-make: *** [cmTC_7ab32/fast] Error 2
+Makefile:126: recipe for target 'cmTC_de06c/fast' failed
+make: *** [cmTC_de06c/fast] Error 2
 
 
 Determining if the arc4random exist failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_5a69c/fast"
-/usr/bin/make -f CMakeFiles/cmTC_5a69c.dir/build.make CMakeFiles/cmTC_5a69c.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_36871/fast"
+/usr/bin/make -f CMakeFiles/cmTC_36871.dir/build.make CMakeFiles/cmTC_36871.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_5a69c.dir/CheckSymbolExists.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_5a69c.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Building C object CMakeFiles/cmTC_36871.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_36871.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function 'main':
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: 'arc4random' undeclared (first use in this function)
    return ((int*)(&arc4random))[argc];
-                   ^
+                   ^~~~~~~~~~
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
-CMakeFiles/cmTC_5a69c.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_5a69c.dir/CheckSymbolExists.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_5a69c.dir/CheckSymbolExists.c.o] Error 1
+CMakeFiles/cmTC_36871.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_36871.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_36871.dir/CheckSymbolExists.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_5a69c/fast' failed
-make: *** [cmTC_5a69c/fast] Error 2
+Makefile:126: recipe for target 'cmTC_36871/fast' failed
+make: *** [cmTC_36871/fast] Error 2
 
 File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
@@ -154,18 +168,20 @@ int main(int argc, char** argv)
 Determining if the mallctl exist failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_dc796/fast"
-/usr/bin/make -f CMakeFiles/cmTC_dc796.dir/build.make CMakeFiles/cmTC_dc796.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_7b4f0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_7b4f0.dir/build.make CMakeFiles/cmTC_7b4f0.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_dc796.dir/CheckSymbolExists.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_dc796.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Building C object CMakeFiles/cmTC_7b4f0.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_7b4f0.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:23: fatal error: malloc_np.h: No such file or directory
+ #include <malloc_np.h>
+                       ^
 compilation terminated.
-CMakeFiles/cmTC_dc796.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_dc796.dir/CheckSymbolExists.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_dc796.dir/CheckSymbolExists.c.o] Error 1
+CMakeFiles/cmTC_7b4f0.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_7b4f0.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_7b4f0.dir/CheckSymbolExists.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_dc796/fast' failed
-make: *** [cmTC_dc796/fast] Error 2
+Makefile:126: recipe for target 'cmTC_7b4f0/fast' failed
+make: *** [cmTC_7b4f0/fast] Error 2
 
 File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
@@ -185,18 +201,20 @@ int main(int argc, char** argv)
 Determining if the malloc_zone_statistics exist failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_5b95b/fast"
-/usr/bin/make -f CMakeFiles/cmTC_5b95b.dir/build.make CMakeFiles/cmTC_5b95b.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_ee555/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ee555.dir/build.make CMakeFiles/cmTC_ee555.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_5b95b.dir/CheckSymbolExists.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_5b95b.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Building C object CMakeFiles/cmTC_ee555.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_ee555.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:2:27: fatal error: malloc/malloc.h: No such file or directory
+ #include <malloc/malloc.h>
+                           ^
 compilation terminated.
-CMakeFiles/cmTC_5b95b.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_5b95b.dir/CheckSymbolExists.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_5b95b.dir/CheckSymbolExists.c.o] Error 1
+CMakeFiles/cmTC_ee555.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_ee555.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_ee555.dir/CheckSymbolExists.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_5b95b/fast' failed
-make: *** [cmTC_5b95b/fast] Error 2
+Makefile:126: recipe for target 'cmTC_ee555/fast' failed
+make: *** [cmTC_ee555/fast] Error 2
 
 File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
@@ -216,21 +234,21 @@ int main(int argc, char** argv)
 Determining if the strerror_s exist failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_a8462/fast"
-/usr/bin/make -f CMakeFiles/cmTC_a8462.dir/build.make CMakeFiles/cmTC_a8462.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_6ebd8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6ebd8.dir/build.make CMakeFiles/cmTC_6ebd8.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_a8462.dir/CheckSymbolExists.c.o
-/usr/bin/cc     -o CMakeFiles/cmTC_a8462.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Building C object CMakeFiles/cmTC_6ebd8.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_6ebd8.dir/CheckSymbolExists.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c: In function 'main':
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: error: 'strerror_s' undeclared (first use in this function)
    return ((int*)(&strerror_s))[argc];
-                   ^
+                   ^~~~~~~~~~
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
-CMakeFiles/cmTC_a8462.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a8462.dir/CheckSymbolExists.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_a8462.dir/CheckSymbolExists.c.o] Error 1
+CMakeFiles/cmTC_6ebd8.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_6ebd8.dir/CheckSymbolExists.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_6ebd8.dir/CheckSymbolExists.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_a8462/fast' failed
-make: *** [cmTC_a8462/fast] Error 2
+Makefile:126: recipe for target 'cmTC_6ebd8/fast' failed
+make: *** [cmTC_6ebd8/fast] Error 2
 
 File /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
@@ -250,72 +268,72 @@ int main(int argc, char** argv)
 Performing C SOURCE FILE Test C_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_a40ce/fast"
-/usr/bin/make -f CMakeFiles/cmTC_a40ce.dir/build.make CMakeFiles/cmTC_a40ce.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_4c3ac/fast"
+/usr/bin/make -f CMakeFiles/cmTC_4c3ac.dir/build.make CMakeFiles/cmTC_4c3ac.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_a40ce.dir/src.c.o
-/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG   -Werror -Wcovered-switch-default -o CMakeFiles/cmTC_a40ce.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
-cc: error: unrecognized command line option '-Wcovered-switch-default'
-CMakeFiles/cmTC_a40ce.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a40ce.dir/src.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_a40ce.dir/src.c.o] Error 1
+Building C object CMakeFiles/cmTC_4c3ac.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG   -Werror -Wcovered-switch-default -o CMakeFiles/cmTC_4c3ac.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+cc: error: unrecognized command line option '-Wcovered-switch-default'; did you mean '-Wno-switch-default'?
+CMakeFiles/cmTC_4c3ac.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_4c3ac.dir/src.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_4c3ac.dir/src.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_a40ce/fast' failed
-make: *** [cmTC_a40ce/fast] Error 2
+Makefile:126: recipe for target 'cmTC_4c3ac/fast' failed
+make: *** [cmTC_4c3ac/fast] Error 2
 
 Source file was:
 int main(void) { return 0; }
 Performing C++ SOURCE FILE Test CXX_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_0b5af/fast"
-/usr/bin/make -f CMakeFiles/cmTC_0b5af.dir/build.make CMakeFiles/cmTC_0b5af.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_44714/fast"
+/usr/bin/make -f CMakeFiles/cmTC_44714.dir/build.make CMakeFiles/cmTC_44714.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_0b5af.dir/src.cxx.o
-/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -DCXX_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG   -Werror -Wcovered-switch-default -o CMakeFiles/cmTC_0b5af.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
-c++: error: unrecognized command line option '-Wcovered-switch-default'
-CMakeFiles/cmTC_0b5af.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_0b5af.dir/src.cxx.o' failed
-make[1]: *** [CMakeFiles/cmTC_0b5af.dir/src.cxx.o] Error 1
+Building CXX object CMakeFiles/cmTC_44714.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -DCXX_SUPPORTS_COVERED_SWITCH_DEFAULT_FLAG   -Werror -Wcovered-switch-default -o CMakeFiles/cmTC_44714.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Wcovered-switch-default'; did you mean '-Wno-switch-default'?
+CMakeFiles/cmTC_44714.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_44714.dir/src.cxx.o' failed
+make[1]: *** [CMakeFiles/cmTC_44714.dir/src.cxx.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_0b5af/fast' failed
-make: *** [cmTC_0b5af/fast] Error 2
+Makefile:126: recipe for target 'cmTC_44714/fast' failed
+make: *** [cmTC_44714/fast] Error 2
 
 Source file was:
 int main() { return 0; }
 Performing C SOURCE FILE Test C_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_41fee/fast"
-/usr/bin/make -f CMakeFiles/cmTC_41fee.dir/build.make CMakeFiles/cmTC_41fee.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_ee94b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ee94b.dir/build.make CMakeFiles/cmTC_ee94b.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_41fee.dir/src.c.o
-/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG   -Werror -Wdelete-non-virtual-dtor -o CMakeFiles/cmTC_41fee.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+Building C object CMakeFiles/cmTC_ee94b.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_SUPPORTS_DELETE_NON_VIRTUAL_DTOR_FLAG   -Werror -Wdelete-non-virtual-dtor -o CMakeFiles/cmTC_ee94b.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
 cc1: error: command line option '-Wdelete-non-virtual-dtor' is valid for C++/ObjC++ but not for C [-Werror]
 cc1: all warnings being treated as errors
-CMakeFiles/cmTC_41fee.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_41fee.dir/src.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_41fee.dir/src.c.o] Error 1
+CMakeFiles/cmTC_ee94b.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_ee94b.dir/src.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_ee94b.dir/src.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_41fee/fast' failed
-make: *** [cmTC_41fee/fast] Error 2
+Makefile:126: recipe for target 'cmTC_ee94b/fast' failed
+make: *** [cmTC_ee94b/fast] Error 2
 
 Source file was:
 int main(void) { return 0; }
 Performing C SOURCE FILE Test C_WCOMMENT_ALLOWS_LINE_WRAP failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_a8c5d/fast"
-/usr/bin/make -f CMakeFiles/cmTC_a8c5d.dir/build.make CMakeFiles/cmTC_a8c5d.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_4f31e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_4f31e.dir/build.make CMakeFiles/cmTC_4f31e.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_a8c5d.dir/src.c.o
-/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_WCOMMENT_ALLOWS_LINE_WRAP  -Werror -Wcomment   -o CMakeFiles/cmTC_a8c5d.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
+Building C object CMakeFiles/cmTC_4f31e.dir/src.c.o
+/usr/bin/cc    -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wno-missing-field-initializers -pedantic -Wno-long-long -DC_WCOMMENT_ALLOWS_LINE_WRAP  -Werror -Wcomment   -o CMakeFiles/cmTC_4f31e.dir/src.c.o   -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c
 /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.c:1:1: error: multi-line comment [-Werror=comment]
  // \
  ^
 cc1: all warnings being treated as errors
-CMakeFiles/cmTC_a8c5d.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_a8c5d.dir/src.c.o' failed
-make[1]: *** [CMakeFiles/cmTC_a8c5d.dir/src.c.o] Error 1
+CMakeFiles/cmTC_4f31e.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_4f31e.dir/src.c.o' failed
+make[1]: *** [CMakeFiles/cmTC_4f31e.dir/src.c.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_a8c5d/fast' failed
-make: *** [cmTC_a8c5d/fast] Error 2
+Makefile:126: recipe for target 'cmTC_4f31e/fast' failed
+make: *** [cmTC_4f31e/fast] Error 2
 
 Source file was:
 // \
@@ -324,17 +342,17 @@ int main() {return 0;}
 Performing C++ SOURCE FILE Test CXX_SUPPORTS_NO_NESTED_ANON_TYPES_FLAG failed with the following output:
 Change Dir: /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_9cecf/fast"
-/usr/bin/make -f CMakeFiles/cmTC_9cecf.dir/build.make CMakeFiles/cmTC_9cecf.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_31af2/fast"
+/usr/bin/make -f CMakeFiles/cmTC_31af2.dir/build.make CMakeFiles/cmTC_31af2.dir/build
 make[1]: Entering directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_9cecf.dir/src.cxx.o
-/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -fdata-sections -fno-common -Woverloaded-virtual -fno-strict-aliasing -DCXX_SUPPORTS_NO_NESTED_ANON_TYPES_FLAG   -Werror -Wnested-anon-types -o CMakeFiles/cmTC_9cecf.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
-c++: error: unrecognized command line option '-Wnested-anon-types'
-CMakeFiles/cmTC_9cecf.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_9cecf.dir/src.cxx.o' failed
-make[1]: *** [CMakeFiles/cmTC_9cecf.dir/src.cxx.o] Error 1
+Building CXX object CMakeFiles/cmTC_31af2.dir/src.cxx.o
+/usr/bin/c++     -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -fdata-sections -fno-common -Woverloaded-virtual -fno-strict-aliasing -DCXX_SUPPORTS_NO_NESTED_ANON_TYPES_FLAG   -Werror -Wnested-anon-types -o CMakeFiles/cmTC_31af2.dir/src.cxx.o -c /home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp/src.cxx
+c++: error: unrecognized command line option '-Wnested-anon-types'; did you mean '-Wnested-externs'?
+CMakeFiles/cmTC_31af2.dir/build.make:65: recipe for target 'CMakeFiles/cmTC_31af2.dir/src.cxx.o' failed
+make[1]: *** [CMakeFiles/cmTC_31af2.dir/src.cxx.o] Error 1
 make[1]: Leaving directory '/home/map2check/devel_tool/map_src_on_docker/dependencies/llvm-build-cmake/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_9cecf/fast' failed
-make: *** [cmTC_9cecf/fast] Error 2
+Makefile:126: recipe for target 'cmTC_31af2/fast' failed
+make: *** [cmTC_31af2/fast] Error 2
 
 Source file was:
 int main() { return 0; }

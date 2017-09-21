@@ -219,11 +219,24 @@ int main(int argc, char** argv)
 	    Map2Check::Log::Info("Started klee execution");
 	    caller->callKlee();
 
-        Map2Check::Log::Info("Started counter example generation");
-        std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
-	    counterExample->printCounterExample();
-        namespace tools = Map2Check::Tools;
+	//Check verification result [TRUE or FALSE]
+	namespace tools = Map2Check::Tools;
+	std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
         tools::PropertyViolated propertyViolated = counterExample->getProperty();
+	if(propertyViolated == tools::PropertyViolated::NONE){ // This means that result was TRUE	   
+           cout << " \n";
+	   cout << "VERIFICATION SUCCEDED \n";
+	   cout << " \n";
+	   	   
+	}else{
+        
+            Map2Check::Log::Info("Started counter example generation");
+	    //std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
+	    counterExample->printCounterExample();
+            //namespace tools = Map2Check::Tools;
+            //tools::PropertyViolated propertyViolated = counterExample->getProperty();
+	}
+
         
         if(vm.count("generate-witness")) {
             //Generating hash key to the witness
@@ -242,7 +255,7 @@ int main(int argc, char** argv)
                     Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile());
                     svcomp.Testify();
                 }
-            }
+            }//TODO: Add correctness witness
 
 
 

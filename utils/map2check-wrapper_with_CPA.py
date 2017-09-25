@@ -14,6 +14,14 @@ clang_args = "-c -emit-llvm -O0 -g "
 clang_command = clang_path + clang_args
 bcs_files = "bcs_files"
 
+#remove old tmp files
+if not os.path.isdir("witness_file"):
+    os.system("mkdir witness_file")
+else:
+    if os.path.isfile("witness_file/witness.graphml"):
+        os.system("rm witness_file/witness.graphml")
+
+
 # Options
 
 parser = argparse.ArgumentParser()
@@ -30,6 +38,53 @@ version = args.version
 property_file = args.propertyfile
 benchmark = args.benchmark
 bc_benchmark = args.benchmark
+
+def check_witness(benchmark_name, typeResult, witnessPath):
+    global property_file
+    global benchmark
+    
+    if not os.path.isfile(witnessPath):
+        outputwrt = str(benchmark) + ";" + "ERROR"
+        os.system("echo \""+outputwrt+"\" >> cpa_witness_check_log.csv")
+        exit(1)
+
+    if typeResult == False:
+       command_line_cpa = "../../../witness_checker/CPAchecker/scripts/cpa.sh -noout -heap 10000M -predicateAnalysis "+\
+                          " -setprop cpa.composite.aggregateBasicBlocks=false "+\
+                          " -setprop cfa.simplifyCfa=false "+\
+                          " -setprop cfa.allowBranchSwapping=false "+\
+                          " -setprop cpa.predicate.ignoreIrrelevantVariables=false "+\
+                          " -setprop counterexample.export.assumptions.assumeLinearArithmetics=true "+\
+                          " -setprop analysis.traversal.byAutomatonVariable=__DISTANCE_TO_VIOLATION "+\
+                          " -setprop cpa.automaton.treatErrorsAsTargets=false "+\
+                          " -setprop WitnessAutomaton.cpa.automaton.treatErrorsAsTargets=true "+\
+                          " -setprop parser.transformTokensToLines=false "+\
+                          " -skipRecursion " +\
+                          " -spec " + property_file +\
+                          " -spec witness_file/witness.graphml "+\
+                          " " +  benchmark
+    #elif typeResult == True:
+
+
+       #print str(command_line_cpa)
+       args = shlex.split(command_line_cpa)
+
+       p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+       (stdout, stderr) = p.communicate()
+
+       # Parse output witness checker       
+       if "TRUE" in stdout:
+            outputwrt = str(benchmark) + ";" + "TRUE"
+            os.system("echo \""+outputwrt+"\" >> cpa_witness_check_log.csv")
+       elif "FALSE" in stdout:
+            print str(stdout)
+            outputwrt = str(benchmark) + ";" + "FALSE"
+            os.system("echo \""+outputwrt+"\" >> cpa_witness_check_log.csv")
+       else:
+            outputwrt = str(benchmark) + ";" + "UNKNOWN"
+            os.system("echo \""+outputwrt+"\" >> cpa_witness_check_log.csv")
+
+
 
 
 if version == True:
@@ -97,18 +152,22 @@ target_offset = "\tFALSE: Target Reached"
 if "VERIFICATION FAILED" in stdout:
     if free_offset in stdout:
       print "FALSE_FREE"
+      check_witness(benchmark, False, "witness_file/witness.graphml")
       exit(0)
     
     if deref_offset in stdout:
       print "FALSE_DEREF"
+      check_witness(benchmark, False, "witness_file/witness.graphml")
       exit(0)
 
     if memtrack_offset in stdout:
       print "FALSE_MEMTRACK"
+      check_witness(benchmark, False, "witness_file/witness.graphml")
       exit(0)  
 
     if target_offset in stdout:
       print "FALSE"
+      check_witness(benchmark, False, "witness_file/witness.graphml")
       exit(0)
 
 if "VERIFICATION SUCCEDED" in stdout:

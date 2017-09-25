@@ -222,11 +222,10 @@ int main(int argc, char** argv)
 	//Check verification result [TRUE or FALSE]
 	namespace tools = Map2Check::Tools;
 	std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
-        tools::PropertyViolated propertyViolated = counterExample->getProperty();
+    tools::PropertyViolated propertyViolated = counterExample->getProperty();
 	if(propertyViolated == tools::PropertyViolated::NONE){ // This means that result was TRUE	   
-           cout << " \n";
-	   cout << "VERIFICATION SUCCEDED \n";
-	   cout << " \n";
+        Map2Check::Log::Info(" \n");
+        Map2Check::Log::Info("VERIFICATION SUCCEDED \n");        
 	   	   
 	}else{
         

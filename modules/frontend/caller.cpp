@@ -1,5 +1,6 @@
 //Map2Check library
 #include "../backend/pass/MemoryTrackPass.h"
+#include "../backend/pass/GenerateAutomataTruePass.h"
 
 #include "caller.hpp"
 
@@ -106,19 +107,20 @@ int Caller::parseIrFile(){
 }
 
 int Caller::callPass(bool sv_comp){
+    // TODO: Added pass to generate_automata_true
+    AnalysisPasses.add(new MemoryTrackPass(sv_comp));
+    AnalysisPasses.run(*M);
 
-  AnalysisPasses.add(new MemoryTrackPass(sv_comp));
-  // AnalysisPasses.add(llvm::op)
-  AnalysisPasses.run(*M);
-
-  return 1;
+    return 1;
 }
 
 int Caller::callPass(std::string target_function, bool sv_comp){
-  AnalysisPasses.add(new MemoryTrackPass(target_function, sv_comp));
-  AnalysisPasses.run(*M);
 
-  return 1;
+    AnalysisPasses.add(new GenerateAutomataTruePass(target_function));
+    AnalysisPasses.add(new MemoryTrackPass(target_function, sv_comp));
+    AnalysisPasses.run(*M);
+
+    return 1;
 }
 
 void Caller::genByteCodeFile() {

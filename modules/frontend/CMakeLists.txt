@@ -34,6 +34,7 @@ set(CMAKE_CXX_FLAGS  "${VERIFIER_FLAGS}" )
 
 
 add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass> 
+                $<TARGET_OBJECTS:GenerateAutomataTruePass> 
 				$<TARGET_OBJECTS:Witness> $<TARGET_OBJECTS:Edge>
 				$<TARGET_OBJECTS:Graph> $<TARGET_OBJECTS:Node>
 				$<TARGET_OBJECTS:Caller> 

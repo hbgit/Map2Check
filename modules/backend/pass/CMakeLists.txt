@@ -14,3 +14,11 @@ set_target_properties(NonDetPass PROPERTIES
 add_library(DebugInfo OBJECT DebugInfo.cpp)
 set_target_properties(DebugInfo PROPERTIES
   COMPILE_FLAGS ${PASS_FLAGS})
+
+add_library(Map2CheckLibrary OBJECT Map2CheckLibrary.cpp)
+set_target_properties(Map2CheckLibrary PROPERTIES
+  COMPILE_FLAGS ${PASS_FLAGS})
+
+add_library(TargetPass OBJECT TargetPass.cpp)
+set_target_properties(TargetPass PROPERTIES
+  COMPILE_FLAGS ${PASS_FLAGS})

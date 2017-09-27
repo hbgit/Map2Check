@@ -36,6 +36,9 @@ struct NonDetPass : public FunctionPass {
  virtual bool runOnFunction(Function &F);
 protected:
   void instrumentInstruction();
+  /**
+   * @brief Checks if current function is a non det call and instruments it
+   */
   void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
   Value* getFunctionNameValue() { return this->functionName; }
   

@@ -32,6 +32,7 @@ struct MemoryTrackPass : public FunctionPass {
     this->SVCOMP = SVCOMP;
     this->isTrackingFunction = false;
     this->cleanWitnessInfoFile();
+
   }
  MemoryTrackPass(std::string function, bool SVCOMP =  false) : FunctionPass(ID) {
   this->SVCOMP = SVCOMP;
@@ -102,11 +103,6 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_check_deref;
   Constant* map2check_function;
   Constant* map2check_free_resolved_address;
-  Constant*  map2check_klee_int;
-  Constant*  map2check_klee_char;
-  Constant*  map2check_klee_pointer;
-  Constant*  map2check_klee_ushort;
-  Constant*  map2check_klee_long;
   Constant* map2check_success;
   ConstantInt* scope_value;
   ConstantInt* line_value;

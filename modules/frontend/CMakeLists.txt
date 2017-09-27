@@ -33,7 +33,8 @@ set(CMAKE_CXX_FLAGS  "${VERIFIER_FLAGS}" )
 # add_library(Verifier OBJECT verifier.cpp)
 
 
-add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass> 
+add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass>
+                $<TARGET_OBJECTS:NonDetPass> $<TARGET_OBJECTS:DebugInfo>   
 				$<TARGET_OBJECTS:Witness> $<TARGET_OBJECTS:Edge>
 				$<TARGET_OBJECTS:Graph> $<TARGET_OBJECTS:Node>
 				$<TARGET_OBJECTS:Caller> 

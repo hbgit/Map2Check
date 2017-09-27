@@ -32,13 +32,12 @@ enum class NonDetType {INTEGER,
 
 struct NonDetPass : public FunctionPass {
   static char ID;
- NonDetPass() : FunctionPass(ID) {
-  }
+ NonDetPass() : FunctionPass(ID) { }
  virtual bool runOnFunction(Function &F);
 protected:
   void instrumentInstruction();
-  void runOnCallInstruction(CallInst* callInst);
-  Value* getFunctionNameValue();
+  void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
+  Value* getFunctionNameValue() { return this->functionName; }
   
 private:
   void instrumentKlee(NonDetType type, Function *caleeFunction);
@@ -49,8 +48,10 @@ private:
   void instrumentKleeUshort(CallInst* callInst, LLVMContext* Ctx);
 
   std::unique_ptr<KleeFunctions> kleeFunctions;
-  Value* functionName;
+  Value* functionName = NULL;
+  BasicBlock::iterator currentInstruction;
 };
+
 
 
 class NonDetPassException : public std::runtime_error {
@@ -58,3 +59,5 @@ class NonDetPassException : public std::runtime_error {
  NonDetPassException(std::string message) : std::runtime_error(message) {}
   virtual const char* what() const throw();
 };
+
+

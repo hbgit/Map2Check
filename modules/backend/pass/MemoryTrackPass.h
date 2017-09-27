@@ -16,7 +16,7 @@
 #include <vector>
 
 using namespace llvm;
-
+/*
 enum class NonDetType {INTEGER,
                        POINTER,
                        STRING,
@@ -24,7 +24,7 @@ enum class NonDetType {INTEGER,
                        ASSUME,
                        USHORT,
                        CHAR};
-
+*/
 struct MemoryTrackPass : public FunctionPass {
   static char ID;
  MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
@@ -54,12 +54,14 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentMemcpy();
   void instrumentPosixMemAllign();
   void instrumentFree();
+  /*
   void instrumentKlee(NonDetType nonDetType);
   void instrumentKleeInt();
   void instrumentKleeChar();
   void instrumentKleePointer();
   void instrumentKleeUshort();
   void instrumentKleeLong();
+  */
   void instrumentInit();
   void instrumentReleaseMemoryOnCurrentInstruction();
   void instrumentReleaseMemory();

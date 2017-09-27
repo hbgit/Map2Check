@@ -1,7 +1,9 @@
 #include "DebugInfo.hpp"
 
-DebugInfo::DebugInfo(Context* ctx, Instruction* i) {
+DebugInfo::DebugInfo(LLVMContext* ctx, Instruction* i) {
   DebugLoc location = i->getDebugLoc();
+  unsigned scope_number;
+  unsigned line_number;
 
   if(location) {
     scope_number = location.getScope()->getMetadataID();
@@ -14,9 +16,9 @@ DebugInfo::DebugInfo(Context* ctx, Instruction* i) {
   }
 
   this->scopeNumberValue = ConstantInt
-    ::getSigned(Type::getInt32Ty(*this->Ctx), scope_number);
+    ::getSigned(Type::getInt32Ty(*ctx), scope_number);
   this->lineNumberValue = ConstantInt
-    ::getSigned(Type::getInt32Ty(*this->Ctx), line_number);
+    ::getSigned(Type::getInt32Ty(*ctx), line_number);
 }
 
 Value* DebugInfo::getScopeNumberValue() { return this->scopeNumberValue; }

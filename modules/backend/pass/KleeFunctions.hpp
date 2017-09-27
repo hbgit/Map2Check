@@ -31,8 +31,8 @@ public:
   Constant* getKleeLongFunction() { return this->KleeLong; }
   Constant* getKleeUshortFunction() { return this->KleeUshort; }
   
-  KleeFunctions(Function &F, LLVMContext* Ctx) {    
-    this->KleeInteger = F.getParent()->
+  KleeFunctions(Function *F, LLVMContext* Ctx) {
+    this->KleeInteger = F->getParent()->
       getOrInsertFunction("map2check_klee_int",
             Type::getVoidTy(*Ctx),
         Type::getInt32Ty(*Ctx),
@@ -41,7 +41,7 @@ public:
             Type::getInt8PtrTy(*Ctx),
             NULL);
 
-    this->KleePointer = F.getParent()->
+    this->KleePointer = F->getParent()->
       getOrInsertFunction("map2check_klee_pointer",
             Type::getVoidTy(*Ctx),
         Type::getInt32Ty(*Ctx),
@@ -50,7 +50,7 @@ public:
             Type::getInt8PtrTy(*Ctx),
             NULL);
 
-    this->KleeUshort = F.getParent()->
+    this->KleeUshort = F->getParent()->
       getOrInsertFunction("map2check_klee_ushort",
             Type::getVoidTy(*Ctx),
         Type::getInt32Ty(*Ctx),
@@ -59,7 +59,7 @@ public:
             Type::getInt8PtrTy(*Ctx),
             NULL);
 
-  this->KleeChar = F.getParent()->
+  this->KleeChar = F->getParent()->
     getOrInsertFunction("map2check_klee_char",
 			Type::getVoidTy(*Ctx),
       Type::getInt32Ty(*Ctx),
@@ -68,7 +68,7 @@ public:
           Type::getInt8PtrTy(*Ctx),
           NULL);
 
-    this->KleeLong = F.getParent()->
+    this->KleeLong = F->getParent()->
     getOrInsertFunction("map2check_klee_long",
 			Type::getVoidTy(*Ctx),
       Type::getInt32Ty(*Ctx),

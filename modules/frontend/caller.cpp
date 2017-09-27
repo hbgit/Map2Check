@@ -1,6 +1,10 @@
 //Map2Check library
 #include "../backend/pass/MemoryTrackPass.h"
 #include "../backend/pass/GenerateAutomataTruePass.h"
+#include "../backend/pass/NonDetPass.hpp"
+#include "../backend/pass/Map2CheckLibrary.hpp"
+#include "../backend/pass/TargetPass.h"
+
 
 #include "caller.hpp"
 
@@ -107,20 +111,24 @@ int Caller::parseIrFile(){
 }
 
 int Caller::callPass(bool sv_comp){
-    // TODO: Added pass to generate_automata_true
+    // TODO: Added pass to generate_automata_true    
+    AnalysisPasses.add(new NonDetPass());
     AnalysisPasses.add(new MemoryTrackPass(sv_comp));
+    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
     AnalysisPasses.run(*M);
-
     return 1;
 }
 
 int Caller::callPass(std::string target_function, bool sv_comp){
 
-    AnalysisPasses.add(new GenerateAutomataTruePass(target_function));
-    AnalysisPasses.add(new MemoryTrackPass(target_function, sv_comp));
-    AnalysisPasses.run(*M);
-
-    return 1;
+  AnalysisPasses.add(new GenerateAutomataTruePass(target_function)); //DOING
+  AnalysisPasses.add(new NonDetPass());
+  Map2Check::Log::Debug("Starting target pass with function " + target_function );
+  AnalysisPasses.add(new TargetPass(target_function));
+  Map2Check::Log::Debug("Final target pass");
+  AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
+  AnalysisPasses.run(*M);
+  return 1;
 }
 
 void Caller::genByteCodeFile() {

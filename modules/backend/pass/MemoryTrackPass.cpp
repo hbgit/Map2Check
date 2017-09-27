@@ -4,152 +4,6 @@ std::string infoFile = "witnessInfo";
 std::string echoCommand = "echo";
 // TODO: Work with other types
 // FIX: It it not current function
-void MemoryTrackPass::instrumentKlee(NonDetType nonDetType) {
-    switch(nonDetType) {
-        case (NonDetType::INTEGER):
-        {
-            Twine non_det_int("map2check_non_det_int");
-            this->caleeFunction->setName(non_det_int);
-            break;
-        }
-        case (NonDetType::CHAR):{
-            Twine non_det_char("map2check_non_det_char");
-            this->caleeFunction->setName(non_det_char);
-            break;
-        }
-         case (NonDetType::POINTER):{
-            Twine non_det_pointer("map2check_non_det_pointer");
-            this->caleeFunction->setName(non_det_pointer);
-            break;
-         }
-         case (NonDetType::LONG):{
-             Twine non_det_long("map2check_non_det_long");
-            this->caleeFunction->setName(non_det_long);
-            break;
-        }
-        case (NonDetType::USHORT):{
-         Twine non_det_ushort("map2check_non_det_ushort");
-         this->caleeFunction->setName(non_det_ushort);
-         break;
-        }
-         case (NonDetType::ASSUME):{
-            Twine assume("map2check_assume");
-            this->caleeFunction->setName(assume);
-            break;
-        }
-    }
-
-
-
-
-}
-
-void MemoryTrackPass::instrumentKleeInt() {
-
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder((Instruction*)j);
-  Value* function_llvm = builder.CreateGlobalStringPtr
-      (currentFunction->getName());
-
-  Value* args[] = {
-    this->line_value,
-    this->scope_value,
-    callInst,
-    function_llvm
-     };
-
-  builder.CreateCall(this->map2check_klee_int, args);
-}
-
-void MemoryTrackPass::instrumentKleeChar() {
-
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder((Instruction*)j);
-  Value* function_llvm = builder.CreateGlobalStringPtr
-      (currentFunction->getName());
-  Twine bitcast("map2check_klee_char_cast");
-  Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
-  
-  Value* args[] = {
-    this->line_value,
-    this->scope_value,
-    // callInst,
-    charCast,
-    function_llvm
-     };
-
-  builder.CreateCall(this->map2check_klee_char, args);
-}
-
-void MemoryTrackPass::instrumentKleePointer() {
-
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder((Instruction*)j);
-  Value* function_llvm = builder.CreateGlobalStringPtr
-      (currentFunction->getName());
-  Twine bitcast("map2check_klee_pointer_cast");
-  Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
-  
-  Value* args[] = {
-    this->line_value,
-    this->scope_value,
-    // callInst,
-    charCast,
-    function_llvm
-     };
-
-  builder.CreateCall(this->map2check_klee_pointer, args);
-}
-
-void MemoryTrackPass::instrumentKleeUshort() {
-
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder((Instruction*)j);
-  Value* function_llvm = builder.CreateGlobalStringPtr
-      (currentFunction->getName());
-  Twine bitcast("map2check_klee_ushort_cast");
-  Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
-  
-  Value* args[] = {
-    this->line_value,
-    this->scope_value,
-    // callInst,
-    charCast,
-    function_llvm
-     };
-
-  builder.CreateCall(this->map2check_klee_ushort, args);
-}
-
-void MemoryTrackPass::instrumentKleeLong() {
-
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder((Instruction*)j);
-  Value* function_llvm = builder.CreateGlobalStringPtr
-      (currentFunction->getName());
-  Twine bitcast("map2check_klee_long_cast");
-  Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*this->Ctx), false, bitcast, (Instruction*) j);
-  
-  Value* args[] = {
-    this->line_value,
-    this->scope_value,
-    // callInst,
-    charCast,
-    function_llvm
-     };
-
-  builder.CreateCall(this->map2check_klee_ushort, args);
-}
 
 void MemoryTrackPass::addWitnessInfo(std::string info) {
   // int result = system(info.c_str());
@@ -483,39 +337,16 @@ int MemoryTrackPass::getLineNumber() {
   return line_number;
 }
 
-void MemoryTrackPass::instrumentReleaseMemoryOnCurrentInstruction() {
-  auto j = this->currentInstruction;
-  // j--;
-  IRBuilder<> builder((Instruction*)j);
-  builder.CreateCall(this->map2check_success);
-
-}
-
-void MemoryTrackPass::instrumentReleaseMemory() {
-  Function::iterator bb = this->currentFunction->end();
-  bb--;
-
-  BasicBlock::iterator i = bb->end();
-  i--;
-
-
-  IRBuilder<> builder((Instruction*)i);
-
-  builder.CreateCall(this->map2check_success);
-}
 
 void MemoryTrackPass::instrumentInit() {
   Function::iterator bb = this->currentFunction->begin();
   // // bb--;
 
   BasicBlock::iterator i = bb->begin();
+
   // // i--;
 
   IRBuilder<> builder((Instruction*)i);
-  Value* argument = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), this->SVCOMP ? 1 : 0);
-  Value* args[] = {argument};
-  builder.CreateCall(this->map2check_init, args);
-
   Module* currentModule = this->currentFunction->getParent();
 
   std::vector<GlobalVariable*> globals;
@@ -561,67 +392,8 @@ void MemoryTrackPass::instrumentInit() {
 
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
-  // TODO: Resolve SVCOMP ISSUE
-  if ((this->caleeFunction->getName() == "__VERIFIER_nondet_int")) {
-    this->instrumentKlee(NonDetType::INTEGER);
-    this->instrumentKleeInt();
-  }
-  // TODO: FIX this hack
-  else if ((this->caleeFunction->getName() == "map2check_non_det_int")) {
-      this->instrumentKleeInt();
-  }
-  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_char")) {
-    this->instrumentKlee(NonDetType::CHAR);
-    this->instrumentKleeChar();
-  }
-  else if ((this->caleeFunction->getName() == "map2check_non_det_char")) {
-    this->instrumentKleeChar();
-  }
-  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_pointer")) {
-    this->instrumentKlee(NonDetType::POINTER);
-    this->instrumentKleePointer();
-  }
-  else if ((this->caleeFunction->getName() == "map2check_non_det_pointer")) {
-    this->instrumentKleePointer();
-  }
-  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_long")) {
-    this->instrumentKlee(NonDetType::LONG);
-    this->instrumentKleeLong();
-  }
-  else if ((this->caleeFunction->getName() == "map2check_non_det_long")) {
-    this->instrumentKleeLong();
-  }
-  else if ((this->caleeFunction->getName() == "__VERIFIER_assume")) {
-    this->instrumentKlee(NonDetType::ASSUME);
-//    this->instrumentKleePointer();
-  }
-  else if ((this->caleeFunction->getName() == "__VERIFIER_nondet_ushort")) {
-    this->instrumentKlee(NonDetType::USHORT);
-   this->instrumentKleeUshort();
-  }
-  else if ((this->caleeFunction->getName() == "map2check_non_det_ushort")) {
-       this->instrumentKleeUshort();
-  }
-
-  else if ((this->caleeFunction->getName() == "map2check_assume")) {
-//      this->instrumentKleePointer();
-  }
-   else if (this->caleeFunction->getName() == "exit") {
-
-    this->instrumentReleaseMemoryOnCurrentInstruction();
-  }
-   else if (this->caleeFunction->getName() == "abort") {
-
-    this->instrumentReleaseMemoryOnCurrentInstruction();
-  }
-  else if (this->caleeFunction->getName() == this->target_function
-       && this->isTrackingFunction) {
-    this->instrumentTargetFunction();
-  }
-  else if(this->isTrackingFunction) {
-    return;
-  }
-  else if (this->caleeFunction->getName() == "free") {
+  // TODO: Resolve SVCOMP ISSUE  
+  if (this->caleeFunction->getName() == "free") {
     this->instrumentFree();
   }
   else if (this->caleeFunction->getName() == "cfree") {
@@ -654,20 +426,6 @@ void MemoryTrackPass::switchCallInstruction() {
     
 }
 
-void MemoryTrackPass::instrumentTargetFunction() {
-  auto j = this->currentInstruction;
-
-  IRBuilder<> builder((Instruction*)j);
-  Value* name_llvm = builder.CreateGlobalStringPtr
-    (this->target_function);
-
-  Value* args[] = {name_llvm,
-           this->scope_value,
-           this->line_value };
-
-  builder.CreateCall(map2check_target_function,
-             args);
-}
 
 void MemoryTrackPass::instrumentFunctionAddress() {
     if(!this->mainFunctionInitialized) {
@@ -951,14 +709,6 @@ void MemoryTrackPass::runOnLoadInstruction() {
 void MemoryTrackPass::prepareMap2CheckInstructions() {
   Function& F = *this->currentFunction;
 
-  this->map2check_target_function = F.getParent()->
-    getOrInsertFunction("map2check_target_function",
-            Type::getVoidTy(*this->Ctx),
-            Type::getInt8PtrTy(*this->Ctx),
-            Type::getInt32Ty(*this->Ctx),
-            Type::getInt32Ty(*this->Ctx),
-            NULL);
-
   this->map2check_load = F.getParent()->
     getOrInsertFunction("map2check_load",
             Type::getVoidTy(*this->Ctx),
@@ -966,11 +716,6 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
             Type::getInt32Ty(*this->Ctx),
             NULL);
 
-   this->map2check_init = F.getParent()->
-    getOrInsertFunction("map2check_init",
-            Type::getVoidTy(*this->Ctx),
-            Type::getInt32Ty(*this->Ctx),
-            NULL);
 
    this->map2check_free_resolved_address = F.getParent()->
     getOrInsertFunction("map2check_free_resolved_address",
@@ -980,52 +725,6 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
             Type::getInt8PtrTy(*this->Ctx),
             Type::getInt1Ty(*this->Ctx),
             NULL);
-
-    this->map2check_klee_int = F.getParent()->
-      getOrInsertFunction("map2check_klee_int",
-            Type::getVoidTy(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-            Type::getInt8PtrTy(*this->Ctx),
-            NULL);
-
-    this->map2check_klee_pointer = F.getParent()->
-      getOrInsertFunction("map2check_klee_pointer",
-            Type::getVoidTy(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-            Type::getInt8PtrTy(*this->Ctx),
-            NULL);
-
-    this->map2check_klee_ushort = F.getParent()->
-      getOrInsertFunction("map2check_klee_ushort",
-            Type::getVoidTy(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-        Type::getInt32Ty(*this->Ctx),
-            Type::getInt8PtrTy(*this->Ctx),
-            NULL);
-
-  this->map2check_klee_char = F.getParent()->
-    getOrInsertFunction("map2check_klee_char",
-			Type::getVoidTy(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx),
-          Type::getInt8PtrTy(*this->Ctx),
-          NULL);
-
-    this->map2check_klee_long = F.getParent()->
-    getOrInsertFunction("map2check_klee_long",
-			Type::getVoidTy(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx),
-          Type::getInt8PtrTy(*this->Ctx),
-          NULL);
-
 
   this->map2check_pointer = F.getParent()->
     getOrInsertFunction("map2check_add_store_pointer",
@@ -1101,16 +800,8 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
             Type::getInt8PtrTy(*this->Ctx),
             NULL);
 
-  this->map2check_success = F.getParent()->
-    getOrInsertFunction("map2check_success",
-            Type::getVoidTy(*this->Ctx),
-            NULL);
 }
 
-
-void MemoryTrackPass::cleanWitnessInfoFile() {
-
-}
 
 void MemoryTrackPass::instrumentFunctionArgumentAddress() {
     Function* F = this->currentFunction;
@@ -1123,6 +814,7 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
     BasicBlock::iterator i = bb->begin();
     i++;
 //    i++;
+
 
     for(auto arg = F->arg_begin(); arg != F->arg_end(); arg++) {
         Argument* functionArg = &(*arg);
@@ -1169,19 +861,16 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
     this->currentFunction = &F;
     Module* currentModule = this->currentFunction->getParent();
     this->prepareMap2CheckInstructions();
+    this->instrumentInit();
 
     if(F.getName() == "main") {
         //auto globalVars = currentModule->getGlobalList();
         this->functionsValues.push_back(this->currentFunction);
         this->mainFunctionInitialized = true;
         this->mainFunction = &F;
-      this->instrumentInit();
-      this->instrumentReleaseMemory();
     }
 
     this->instrumentFunctionAddress();
-
-//    this->instrumentFunctionArgumentAddress();
    for (Function::iterator bb = F.begin(),
       e = F.end(); bb != e; ++bb) {
       for (BasicBlock::iterator i = bb->begin(),
@@ -1192,18 +881,15 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
               this->getDebugInfo();
               this->runOnCallInstruction();
           } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
-              this->getDebugInfo();
-	      if(!this->isTrackingFunction)
-		this->runOnStoreInstruction();
+              this->getDebugInfo();	      
+              this->runOnStoreInstruction();
           } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
-              this->getDebugInfo();
-	      if(!this->isTrackingFunction)
-		this->runOnAllocaInstruction();
-              //this->runOnAllocaInstruction();
+              this->getDebugInfo();	      
+              this->runOnAllocaInstruction();
+
           } else if(LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction)) {
-              this->getDebugInfo();
-	      if(!this->isTrackingFunction)
-		this->runOnLoadInstruction();
+              this->getDebugInfo();	      
+              this->runOnLoadInstruction();
           }
 
 

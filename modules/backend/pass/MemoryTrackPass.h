@@ -17,35 +17,16 @@
 
 using namespace llvm;
 
-enum class NonDetType {INTEGER,
-                       POINTER,
-                       STRING,
-                       LONG,
-                       ASSUME,
-                       USHORT,
-                       CHAR};
-
 struct MemoryTrackPass : public FunctionPass {
   static char ID;
- MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
-    this->target_function = "MAP2CHECK_DEFAULT_TARGET_FUNCTION";
+ MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {    
     this->SVCOMP = SVCOMP;
-    this->isTrackingFunction = false;
-    this->cleanWitnessInfoFile();
-  }
- MemoryTrackPass(std::string function, bool SVCOMP =  false) : FunctionPass(ID) {
-  this->SVCOMP = SVCOMP;
-  this->target_function = function;
-  this->isTrackingFunction = true;
-  this->cleanWitnessInfoFile();
   }
  virtual bool runOnFunction(Function &F);
 
  private:
-  void cleanWitnessInfoFile();
 
-  void instrumentPointer();
-  void instrumentTargetFunction();
+  void instrumentPointer();  
   void instrumentMalloc();
   void instrumentCalloc();
   void instrumentRealloc();
@@ -53,15 +34,7 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentMemcpy();
   void instrumentPosixMemAllign();
   void instrumentFree();
-  void instrumentKlee(NonDetType nonDetType);
-  void instrumentKleeInt();
-  void instrumentKleeChar();
-  void instrumentKleePointer();
-  void instrumentKleeUshort();
-  void instrumentKleeLong();
   void instrumentInit();
-  void instrumentReleaseMemoryOnCurrentInstruction();
-  void instrumentReleaseMemory();
   void instrumentAlloca();
   void instrumentArrayAlloca();
   void instrumentNotStaticArrayAlloca();
@@ -79,8 +52,6 @@ struct MemoryTrackPass : public FunctionPass {
   int getLineNumber();
 
   bool SVCOMP;
-  bool isTrackingFunction;
-  std::string target_function;
   bool mainFunctionInitialized = false;
   std::vector<Function*> functionsValues;
   Function* currentFunction;
@@ -89,12 +60,10 @@ struct MemoryTrackPass : public FunctionPass {
   Function* caleeFunction;
   BasicBlock::iterator currentInstruction;
   BasicBlock::iterator lastInstructionMain;
-  Constant* map2check_target_function;
   Constant* map2check_pointer;
   Constant* map2check_malloc;
   Constant* map2check_calloc;
   Constant* map2check_free;
-  Constant* map2check_init;
   Constant* map2check_alloca;
   Constant* map2check_non_static_alloca;
   Constant* map2check_posix;
@@ -102,12 +71,6 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_check_deref;
   Constant* map2check_function;
   Constant* map2check_free_resolved_address;
-  Constant*  map2check_klee_int;
-  Constant*  map2check_klee_char;
-  Constant*  map2check_klee_pointer;
-  Constant*  map2check_klee_ushort;
-  Constant*  map2check_klee_long;
-  Constant* map2check_success;
   ConstantInt* scope_value;
   ConstantInt* line_value;
   LLVMContext* Ctx;

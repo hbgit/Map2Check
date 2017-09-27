@@ -337,39 +337,16 @@ int MemoryTrackPass::getLineNumber() {
   return line_number;
 }
 
-void MemoryTrackPass::instrumentReleaseMemoryOnCurrentInstruction() {
-  auto j = this->currentInstruction;
-  // j--;
-  IRBuilder<> builder((Instruction*)j);
-  builder.CreateCall(this->map2check_success);
-
-}
-
-void MemoryTrackPass::instrumentReleaseMemory() {
-  Function::iterator bb = this->currentFunction->end();
-  bb--;
-
-  BasicBlock::iterator i = bb->end();
-  i--;
-
-
-  IRBuilder<> builder((Instruction*)i);
-
-  builder.CreateCall(this->map2check_success);
-}
 
 void MemoryTrackPass::instrumentInit() {
   Function::iterator bb = this->currentFunction->begin();
   // // bb--;
 
   BasicBlock::iterator i = bb->begin();
+
   // // i--;
 
   IRBuilder<> builder((Instruction*)i);
-  Value* argument = ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), this->SVCOMP ? 1 : 0);
-  Value* args[] = {argument};
-  builder.CreateCall(this->map2check_init, args);
-
   Module* currentModule = this->currentFunction->getParent();
 
   std::vector<GlobalVariable*> globals;
@@ -415,21 +392,8 @@ void MemoryTrackPass::instrumentInit() {
 
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
-  // TODO: Resolve SVCOMP ISSUE
-  if (this->caleeFunction->getName() == "exit") {
-    this->instrumentReleaseMemoryOnCurrentInstruction();
-  }
-   else if (this->caleeFunction->getName() == "abort") {
-    this->instrumentReleaseMemoryOnCurrentInstruction();
-  }
-  else if (this->caleeFunction->getName() == this->target_function
-       && this->isTrackingFunction) {
-    this->instrumentTargetFunction();
-  }
-  else if(this->isTrackingFunction) {
-    return;
-  }
-  else if (this->caleeFunction->getName() == "free") {
+  // TODO: Resolve SVCOMP ISSUE  
+  if (this->caleeFunction->getName() == "free") {
     this->instrumentFree();
   }
   else if (this->caleeFunction->getName() == "cfree") {
@@ -462,20 +426,6 @@ void MemoryTrackPass::switchCallInstruction() {
     
 }
 
-void MemoryTrackPass::instrumentTargetFunction() {
-  auto j = this->currentInstruction;
-
-  IRBuilder<> builder((Instruction*)j);
-  Value* name_llvm = builder.CreateGlobalStringPtr
-    (this->target_function);
-
-  Value* args[] = {name_llvm,
-           this->scope_value,
-           this->line_value };
-
-  builder.CreateCall(map2check_target_function,
-             args);
-}
 
 void MemoryTrackPass::instrumentFunctionAddress() {
     if(!this->mainFunctionInitialized) {
@@ -759,14 +709,6 @@ void MemoryTrackPass::runOnLoadInstruction() {
 void MemoryTrackPass::prepareMap2CheckInstructions() {
   Function& F = *this->currentFunction;
 
-  this->map2check_target_function = F.getParent()->
-    getOrInsertFunction("map2check_target_function",
-            Type::getVoidTy(*this->Ctx),
-            Type::getInt8PtrTy(*this->Ctx),
-            Type::getInt32Ty(*this->Ctx),
-            Type::getInt32Ty(*this->Ctx),
-            NULL);
-
   this->map2check_load = F.getParent()->
     getOrInsertFunction("map2check_load",
             Type::getVoidTy(*this->Ctx),
@@ -774,11 +716,6 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
             Type::getInt32Ty(*this->Ctx),
             NULL);
 
-   this->map2check_init = F.getParent()->
-    getOrInsertFunction("map2check_init",
-            Type::getVoidTy(*this->Ctx),
-            Type::getInt32Ty(*this->Ctx),
-            NULL);
 
    this->map2check_free_resolved_address = F.getParent()->
     getOrInsertFunction("map2check_free_resolved_address",
@@ -863,16 +800,8 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
             Type::getInt8PtrTy(*this->Ctx),
             NULL);
 
-  this->map2check_success = F.getParent()->
-    getOrInsertFunction("map2check_success",
-            Type::getVoidTy(*this->Ctx),
-            NULL);
 }
 
-
-void MemoryTrackPass::cleanWitnessInfoFile() {
-
-}
 
 void MemoryTrackPass::instrumentFunctionArgumentAddress() {
     Function* F = this->currentFunction;
@@ -885,6 +814,7 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
     BasicBlock::iterator i = bb->begin();
     i++;
 //    i++;
+
 
     for(auto arg = F->arg_begin(); arg != F->arg_end(); arg++) {
         Argument* functionArg = &(*arg);
@@ -931,19 +861,16 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
     this->currentFunction = &F;
     Module* currentModule = this->currentFunction->getParent();
     this->prepareMap2CheckInstructions();
+    this->instrumentInit();
 
     if(F.getName() == "main") {
         //auto globalVars = currentModule->getGlobalList();
         this->functionsValues.push_back(this->currentFunction);
         this->mainFunctionInitialized = true;
         this->mainFunction = &F;
-      this->instrumentInit();
-      this->instrumentReleaseMemory();
     }
 
     this->instrumentFunctionAddress();
-
-//    this->instrumentFunctionArgumentAddress();
    for (Function::iterator bb = F.begin(),
       e = F.end(); bb != e; ++bb) {
       for (BasicBlock::iterator i = bb->begin(),
@@ -954,18 +881,15 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
               this->getDebugInfo();
               this->runOnCallInstruction();
           } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
-              this->getDebugInfo();
-	      if(!this->isTrackingFunction)
-		this->runOnStoreInstruction();
+              this->getDebugInfo();	      
+              this->runOnStoreInstruction();
           } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
-              this->getDebugInfo();
-	      if(!this->isTrackingFunction)
-		this->runOnAllocaInstruction();
-              //this->runOnAllocaInstruction();
+              this->getDebugInfo();	      
+              this->runOnAllocaInstruction();
+
           } else if(LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction)) {
-              this->getDebugInfo();
-	      if(!this->isTrackingFunction)
-		this->runOnLoadInstruction();
+              this->getDebugInfo();	      
+              this->runOnLoadInstruction();
           }
 
 

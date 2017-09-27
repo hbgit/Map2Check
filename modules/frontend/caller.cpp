@@ -1,6 +1,8 @@
 //Map2Check library
 #include "../backend/pass/MemoryTrackPass.h"
 #include "../backend/pass/NonDetPass.hpp"
+#include "../backend/pass/Map2CheckLibrary.hpp"
+#include "../backend/pass/TargetPass.h"
 
 #include "caller.hpp"
 
@@ -107,18 +109,21 @@ int Caller::parseIrFile(){
 }
 
 int Caller::callPass(bool sv_comp){
-	AnalysisPasses.add(new NonDetPass());
 
-  AnalysisPasses.add(new MemoryTrackPass(sv_comp));
-  // AnalysisPasses.add(llvm::op)
-  AnalysisPasses.run(*M);
-
-  return 1;
+    AnalysisPasses.add(new NonDetPass());
+    AnalysisPasses.add(new MemoryTrackPass(sv_comp));
+    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
+    AnalysisPasses.run(*M);
+    return 1;
 }
 
 int Caller::callPass(std::string target_function, bool sv_comp){
+
   AnalysisPasses.add(new NonDetPass());
-  AnalysisPasses.add(new MemoryTrackPass(target_function, sv_comp));
+  Map2Check::Log::Debug("Starting target pass with function " + target_function );
+  AnalysisPasses.add(new TargetPass(target_function));
+  Map2Check::Log::Debug("Final target pass");
+  AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
   AnalysisPasses.run(*M);
 
   return 1;

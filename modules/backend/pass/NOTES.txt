@@ -1,0 +1,15 @@
+>>>>>> HOW CREATE A LLVM PASS TO MAP2CHECK
+
+1) You can adopt an already done as template
+
+2) You need to set the ID number, e.g., char GenerateInvPass::ID = 1.
+
+3) Update the Map2Check/modules/backend/pass/CMakeLists.txt file
+
+4) Update the Map2Check/modules/frontend/CMakeLists.txt, e.g.:
+	add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass> 
+				$<TARGET_OBJECTS:NewPass> 
+				...
+				)
+5) Apply your new pass in the caller.cpp file, e.g.:
+	int Caller::callPass()

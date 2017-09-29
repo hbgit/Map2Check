@@ -5,6 +5,10 @@ bool GenerateAutomataTruePass::runOnFunction(Function &F) {
     this->currentFunction = &F;  
 
     errs() << "========== Function: " << this->currentFunction->getName() << "\n";
+    if(this->currentFunction->getName() == "main")
+    {
+        errs() << ">>> Entry Point \n";
+    }
     //for (auto& B : F) {
     // errs() << B.getName();
     /**
@@ -60,6 +64,7 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     //BasicBlock::iterator instFromBB;
     this->firstBlockInst = B.begin();
     this->lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
+    bool enableDataBlk = false;
 
     if(B.size() > 1)
     {
@@ -76,17 +81,30 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
                 errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
             }
         }
+        enableDataBlk = true;
 
     }else{
-        errs() << "First and Last InstBB: "<< this->firstBlockInst->getOpcodeName() << "\n";        
-        this->lastBlockInst = this->firstBlockInst;
-    }
-    //this->visitInstruction(i);
-    DebugInfo debugInfo(Ctx, (Instruction*)this->lastBlockInst);
-    //errs() << "Line number to the next block: " << *debugInfo.getLineNumberValue() <<"\n";
-    errs() << ">>>Line number to the next block: " << debugInfo.getLineNumberInt() <<"\n";
+        //In case this unique instruction be a "br" then we remove this basic block 
+        if(auto* tI = dyn_cast<TerminatorInst>(&*this->lastBlockInst))
+        {
+            if(tI->getOpcodeName() != "br")
+            {
+                errs() << "First and Last InstBB: "<< this->firstBlockInst->getOpcodeName() << "\n";        
+                this->lastBlockInst = this->firstBlockInst;
+                enableDataBlk = true;
+            }
+        }
 
-    std::cout << "---This is a block divider--- block with: " << B.size() << " instructions" << std::endl;    
+    }
+
+    if(enableDataBlk)
+    {
+        //this->visitInstruction(i);
+        DebugInfo debugInfo(Ctx, (Instruction*)this->lastBlockInst);
+        //errs() << "Line number to the next block: " << *debugInfo.getLineNumberValue() <<"\n";
+        errs() << ">>>Line number to the next block: " << debugInfo.getLineNumberInt() <<"\n";
+        std::cout << "---This is a block divider--- block with: " << B.size() << " instructions" << std::endl;    
+    }
 }
 
 void GenerateAutomataTruePass::visitInstruction(BasicBlock::iterator i)

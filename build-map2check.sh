@@ -11,8 +11,9 @@ map2check()
     if [ ! -d build ]; then	
 		mkdir build
     else
-		rm -rf build
-		mkdir build
+		#rm -rf build
+		#mkdir build
+        echo "build dir OKAY"
     fi
     cd build
    

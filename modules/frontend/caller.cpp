@@ -122,11 +122,11 @@ int Caller::callPass(bool sv_comp){
 int Caller::callPass(std::string target_function, bool sv_comp){
 
   AnalysisPasses.add(new GenerateAutomataTruePass(target_function)); //DOING
-  AnalysisPasses.add(new NonDetPass());
+  /**AnalysisPasses.add(new NonDetPass());
   Map2Check::Log::Debug("Starting target pass with function " + target_function );
   AnalysisPasses.add(new TargetPass(target_function));
   Map2Check::Log::Debug("Final target pass");
-  AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
+  AnalysisPasses.add(new Map2CheckLibrary(sv_comp));**/
   AnalysisPasses.run(*M);
   return 1;
 }

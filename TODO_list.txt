@@ -2,3 +2,4 @@ TODO LIST:
 
 1) Update Ubuntu docker file to adopt static packages to build the tool
 2) Split LLVM pass by feature
+3) Remove exit command from map2check.cpp line 211

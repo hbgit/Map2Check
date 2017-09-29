@@ -1,0 +1,11 @@
+digraph "CFG for '__VERIFIER_assert' function" {
+	label="CFG for '__VERIFIER_assert' function";
+
+	Node0x55ac1fd71b80 [shape=record,label="{%1:\l  %2 = alloca i32, align 4\l  store i32 %0, i32* %2, align 4\l  %3 = load i32, i32* %2, align 4\l  %4 = icmp ne i32 %3, 0\l  br i1 %4, label %7, label %5\l|{<s0>T|<s1>F}}"];
+	Node0x55ac1fd71b80:s0 -> Node0x55ac1fd72480;
+	Node0x55ac1fd71b80:s1 -> Node0x55ac1fd72510;
+	Node0x55ac1fd72510 [shape=record,label="{%5:\l\l  br label %6\l}"];
+	Node0x55ac1fd72510 -> Node0x55ac1fd72630;
+	Node0x55ac1fd72630 [shape=record,label="{%6:\l\l  call void (...) @__VERIFIER_error() #3\l  unreachable\l}"];
+	Node0x55ac1fd72480 [shape=record,label="{%7:\l\l  ret void\l}"];
+}

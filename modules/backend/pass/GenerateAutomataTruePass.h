@@ -15,44 +15,46 @@
 #include <stdexcept>
 #include <vector>
 
+//From Map2Check Project
+#include "DebugInfo.hpp"
+
 using namespace llvm;
 
 struct GenerateAutomataTruePass : public FunctionPass 
 {
     static char ID;
+    GenerateAutomataTruePass() : FunctionPass(ID) {}
     GenerateAutomataTruePass(std::string function) : FunctionPass(ID) 
     {
         this->target_function = function;
-        this->isTrackingFunction = false;    
+        this->isTrackingFunction = true;    
     }
- 
-    virtual bool runOnFunction(Function &F) override;
 
- private:
-	//methods
-	//attr
-	bool isTrackingFunction;
-	bool intervals;
-	std::string target_function;
-	bool mainFunctionInitialized = false;
-	std::vector<Function*> functionsValues;
-	Function* currentFunction;
-	DataLayout* currentDataLayout;
-	Function* mainFunction;  
-	BasicBlock::iterator currentInstruction;
-	BasicBlock::iterator lastInstructionMain;  
-	ConstantInt* scope_value;
-	ConstantInt* line_value;
-	LLVMContext* Ctx;
+    virtual bool runOnFunction(Function &F);
+
+    protected:   
+    void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
+    void visitInstruction(BasicBlock::iterator i);
+
+    private:
+    //methods
+    //attr
+    bool isTrackingFunction;
+    bool intervals;
+    std::string target_function;
+    bool mainFunctionInitialized = false;
+    std::vector<Function*> functionsValues;
+    Function* currentFunction;
+    DataLayout* currentDataLayout;
+    Function* mainFunction;  
+    BasicBlock::iterator currentInstruction;
+    BasicBlock::iterator lastInstructionMain;  
+    BasicBlock::iterator lastBlockInst;  
+    BasicBlock::iterator firstBlockInst;  
+
+    ConstantInt* scope_value;
+    ConstantInt* line_value;
+    LLVMContext* Ctx;
 };
 
 
-//char GenerateAutomataTruePass::ID = 1;
-//static RegisterPass<GenerateAutomataTruePass> X("generate_automata_true", "Generate Automata True", false, false);
-
-
-class GenerateAutomataTruePassException : public std::runtime_error {
- public:
- GenerateAutomataTruePassException(std::string message) : std::runtime_error(message) {}
-  virtual const char* what() const throw();
-};

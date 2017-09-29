@@ -4,6 +4,12 @@
 // llvm-dis newbbfunc.bc
 // cat newbbfunc.ll
 
+// CFG view
+// clang -emit-llvm -c file.c
+// llvm-dis file.bc
+// opt -cfg-dot file.ll
+// dot -Tpng *.dot > graph.png
+
 int main()
 {
     int a = 1;

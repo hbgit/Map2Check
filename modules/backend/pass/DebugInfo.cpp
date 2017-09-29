@@ -17,9 +17,17 @@ DebugInfo::DebugInfo(LLVMContext* ctx, Instruction* i) {
 
   this->scopeNumberValue = ConstantInt
     ::getSigned(Type::getInt32Ty(*ctx), scope_number);
+  
   this->lineNumberValue = ConstantInt
     ::getSigned(Type::getInt32Ty(*ctx), line_number);
+
+  this->lineNumInt = line_number;
+
 }
 
 Value* DebugInfo::getScopeNumberValue() { return this->scopeNumberValue; }
+
 Value* DebugInfo::getLineNumberValue() { return this->lineNumberValue; }
+
+unsigned DebugInfo::getLineNumberInt(){ return this->lineNumInt; }
+

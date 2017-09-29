@@ -21,8 +21,10 @@ struct DebugInfo {
   DebugInfo(LLVMContext* Ctx, Instruction* i);
   Value* getScopeNumberValue();
   Value* getLineNumberValue();
+  unsigned getLineNumberInt();
 
 private:
   Value* scopeNumberValue = NULL;
   Value* lineNumberValue = NULL;
+  unsigned lineNumInt = 0;
 };

@@ -66,6 +66,8 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     this->lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
     bool enableDataBlk = false;
 
+    //TODO: Create a method to remove the block on CFG that goes to ERROR location
+
     if(B.size() > 1)
     {
         errs() << "First InstBB: " << this->firstBlockInst->getOpcodeName() << "\n";

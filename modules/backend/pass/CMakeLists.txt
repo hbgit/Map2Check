@@ -22,3 +22,7 @@ set_target_properties(Map2CheckLibrary PROPERTIES
 add_library(TargetPass OBJECT TargetPass.cpp)
 set_target_properties(TargetPass PROPERTIES
   COMPILE_FLAGS ${PASS_FLAGS})
+
+add_library(OverflowPass OBJECT OverflowPass.cpp)
+set_target_properties(OverflowPass PROPERTIES
+  COMPILE_FLAGS ${PASS_FLAGS})

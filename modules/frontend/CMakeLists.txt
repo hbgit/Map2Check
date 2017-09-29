@@ -36,6 +36,7 @@ set(CMAKE_CXX_FLAGS  "${VERIFIER_FLAGS}" )
 add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass>
                 $<TARGET_OBJECTS:NonDetPass> $<TARGET_OBJECTS:DebugInfo>
 		$<TARGET_OBJECTS:Map2CheckLibrary> $<TARGET_OBJECTS:TargetPass>
+		$<TARGET_OBJECTS:OverflowPass>
 		$<TARGET_OBJECTS:Witness> $<TARGET_OBJECTS:Edge> $<TARGET_OBJECTS:Graph> $<TARGET_OBJECTS:Node>
 		$<TARGET_OBJECTS:Caller> $<TARGET_OBJECTS:Tools>
 		$<TARGET_OBJECTS:CounterExample> $<TARGET_OBJECTS:GenCryptoHash>

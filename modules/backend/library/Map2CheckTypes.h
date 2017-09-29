@@ -9,6 +9,15 @@
 #define FALSE 0
 #define TRUE 1
 
+enum PRIMITIVE_TYPE {
+  INTEGER = 0,
+  CHAR    = 1,
+  POINTER = 2,
+  USHORT  = 3,
+  SHORT   = 4
+};
+
+
 enum MemoryAddressStatus {
     STATIC = 0,
     FREE = 1,

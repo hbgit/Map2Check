@@ -9,6 +9,7 @@ const char* violated_property_file_unknown = "map2check_property_klee_unknown";
 const char* violated_property_file_memtrack = "map2check_property_klee_memtrack";
 const char* violated_property_file_deref = "map2check_property_klee_deref";
 const char* violated_property_file_free = "map2check_property_klee_free";
+const char* violated_property_file_overflow = "map2check_property_overflow";
 
 
 void write_property_unknown() {

@@ -60,13 +60,13 @@ int MIN(int a, int b) {
 
 int main(int argc, char** argv)
 {
-
-  // TODO: Use unique ptr for caller
   std::unique_ptr<Caller> caller;
   namespace fs = boost::filesystem;
 
   
-  // TODO: Fix this function for other OS
+  #ifndef __unix__
+    throw Map2Check::Exceptions::Map2CheckException("Map2Check only supports unix environments");
+  #endif
 
   char szTmp[32];
   int len = 500;
@@ -118,6 +118,7 @@ int main(int argc, char** argv)
     ("version,v", "\tprints map2check version")
 	("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
 	("target-function,f", po::value< string >(), "\tchecks if function can be executed")
+    ("check-overflow,o", "\tchecks if an integer overflow can occur")
 	("expected-result,e", po::value< string >(), "\tspecifies what output should be, used for tests")
     ("print-list-log,p", "\tprints list log during counter example")
     ("generate-witness,w", "\tgenerate witness file")
@@ -199,13 +200,41 @@ int main(int argc, char** argv)
         if (vm.count("assume-malloc-true")) {
                     sv_comp = true;
         }
+
+        /* Checks for which mode map2check will operate, can throw error if user calls multiple modes at once */
+        // BEGIN CHECKING OPERATION MODE
+
+        Map2CheckMode map2checkMode = Map2CheckMode::MEMTRACK_MODE;
+
         if (vm.count("target-function")) {
-                    string function = vm["target-function"].as< string >();
-                    Map2Check::Log::Debug("Starting pass with function " + function );
-                    caller->callPass(function, sv_comp);
-        } else {
-          caller->callPass(sv_comp);
-	    }
+            if(map2checkMode != Map2CheckMode::MEMTRACK_MODE) {
+                throw Map2Check::Exceptions::Map2CheckException("Map2Check does not support multiple analysis at the same time");
+            }
+            map2checkMode = Map2CheckMode::REACHABILITY_MODE;
+        }
+
+        if (vm.count("check-overflow")) {
+            if(map2checkMode != Map2CheckMode::MEMTRACK_MODE) {
+                throw Map2Check::Exceptions::Map2CheckException("Map2Check does not support multiple analysis at the same time");
+            }
+            map2checkMode = Map2CheckMode::OVERFLOW_MODE;
+        }
+
+        switch(map2checkMode) {
+        case (Map2CheckMode::REACHABILITY_MODE):  {
+            string function = vm["target-function"].as< string >();
+            caller->callPass(map2checkMode, function, sv_comp);
+            break;
+        }
+        default: {
+            caller->callPass(map2checkMode, sv_comp);
+        }
+
+
+        }
+
+        // END CHECKING OPERATION MODE
+
 
 
 

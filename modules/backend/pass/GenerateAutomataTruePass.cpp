@@ -67,36 +67,41 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     bool enableDataBlk = false;
 
     //TODO: Create a method to remove the block on CFG that goes to ERROR location
-
-    if(B.size() > 1)
+    //errs() << this->checkBBHasLError(B) << "\n";
+    if(!this->checkBBHasLError(B))
     {
-        errs() << "First InstBB: " << this->firstBlockInst->getOpcodeName() << "\n";
-        //Checking if the last instruction in the basic block is a br instruction,i.e., 
-        //this br instrucion 
-        if(auto* tI = dyn_cast<TerminatorInst>(&*this->lastBlockInst))
-        {
-            if(tI->getOpcodeName() == "br")
-            {
-                --this->lastBlockInst;
-                errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
-            }else{
-                errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
-            }
-        }
-        enableDataBlk = true;
 
-    }else{
-        //In case this unique instruction be a "br" then we remove this basic block 
-        if(auto* tI = dyn_cast<TerminatorInst>(&*this->lastBlockInst))
-        {
-            if(tI->getOpcodeName() != "br")
-            {
-                errs() << "First and Last InstBB: "<< this->firstBlockInst->getOpcodeName() << "\n";        
-                this->lastBlockInst = this->firstBlockInst;
-                enableDataBlk = true;
-            }
-        }
 
+        if(B.size() > 1)
+        {
+            errs() << "First InstBB: " << this->firstBlockInst->getOpcodeName() << "\n";
+            //Checking if the last instruction in the basic block is a br instruction,i.e., 
+            //this br instrucion 
+            if(auto* tI = dyn_cast<TerminatorInst>(&*this->lastBlockInst))
+            {
+                if(tI->getOpcodeName() == "br")
+                {
+                    --this->lastBlockInst;
+                    errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
+                }else{
+                    errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
+                }
+            }
+            enableDataBlk = true;
+
+        }else{
+            //In case this unique instruction be a "br" then we remove this basic block 
+            if(auto* tI = dyn_cast<TerminatorInst>(&*this->lastBlockInst))
+            {
+                if(tI->getOpcodeName() != "br")
+                {
+                    errs() << "First and Last InstBB: "<< this->firstBlockInst->getOpcodeName() << "\n";        
+                    this->lastBlockInst = this->firstBlockInst;
+                    enableDataBlk = true;
+                }
+            }
+
+        }
     }
 
     if(enableDataBlk)
@@ -109,10 +114,23 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     }
 }
 
-void GenerateAutomataTruePass::visitInstruction(BasicBlock::iterator i)
+//To identify a block with a error location by __VERIFIER_error call function
+bool GenerateAutomataTruePass::checkBBHasLError(BasicBlock& nowB)
 {
+    for( auto& I : nowB )
+    {
+        if(CallInst* callInst = dyn_cast<CallInst>(&I))
+        {
+            //errs() << callInst->getCalledFunction()->getName() << "\n";
+            if(callInst->getCalledFunction()->getName() ==  "__VERIFIER_error")
+            {
+                return true;
+            }
+        }
+    }
     //std::cout << i.begin << "\n";
-    std::cout << i->getOpcodeName(i->getOpcode()) << std::endl;
+    //std::cout << i->getOpcodeName(i->getOpcode()) << std::endl;
+    return false;
 }
 
 char GenerateAutomataTruePass::ID = 5;

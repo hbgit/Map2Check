@@ -34,7 +34,7 @@ struct GenerateAutomataTruePass : public FunctionPass
 
     protected:   
     void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
-    void visitInstruction(BasicBlock::iterator i);
+    bool checkBBHasLError(BasicBlock& nowB);
 
     private:
     //methods

@@ -22,7 +22,7 @@ struct MemoryTrackPass : public FunctionPass {
  MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {    
     this->SVCOMP = SVCOMP;
   }
- virtual bool runOnFunction(Function &F);
+  virtual bool runOnFunction(Function &F);
 
  private:
 

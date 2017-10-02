@@ -18,15 +18,20 @@
 
 #include <memory>
 
+#include "DebugInfo.hpp"
+#include "OperationsFunctions.hpp"
+
+
 using namespace llvm;
 
 struct OverflowPass : public FunctionPass {
-    static char ID;
-    OverflowPass() : FunctionPass(ID) { }
-    virtual bool runOnFunction(Function &F);
-protected:
-    Value* getFunctionNameValue() { return this->functionName; }
-private:
-    Value* functionName = NULL;
-    BasicBlock::iterator currentInstruction;
+  static char ID;
+ OverflowPass() : FunctionPass(ID) { }
+  virtual bool runOnFunction(Function &F);
+ protected:
+  Value* getFunctionNameValue() { return this->functionName; }
+ private:
+  std::unique_ptr<OperationsFunctions > operationsFunctions;
+  Value* functionName = NULL;
+  /* BasicBlock::iterator currentInstruction; */
 };

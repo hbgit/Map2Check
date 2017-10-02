@@ -133,7 +133,16 @@ namespace Map2Check {
               cnvt << "function " << this->functionName << "\n";
               cnvt << "\tFALSE-DEREF: Reference to pointer was lost\n\n";
               cnvt << "VERIFICATION FAILED";
-              break;  
+              break;
+            case(Tools::PropertyViolated::FALSE_OVERFLOW):
+              //TODO: Add message for target reached
+              cnvt << "Violated property:\n";
+              cnvt << "\tfile " << this->fileName << " ";
+              cnvt << "line " << this->lineNumber << " ";
+              cnvt << "function " << this->functionName << "\n";
+              cnvt << "\tOVERFLOW\n\n";
+              cnvt << "VERIFICATION FAILED";
+              break;  	      
             case(Tools::PropertyViolated::FALSE_MEMTRACK):
               //TODO: Add message for target reached
               cnvt << "Violated property:\n";

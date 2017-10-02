@@ -132,12 +132,33 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
       return;
   }
 
+  ifstream overflowFile("map2check_property_overflow");
+  if (overflowFile.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
+      getline(overflowFile,line);
+      getline(overflowFile,line);
+      if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+          int result = std::stoi(match.str(1));
+          this->line = result;
+          Map2Check::Log::Debug("Line number: " + match.str(1));
+      }
+      getline(overflowFile,line);
+      if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+          string result = match.str(1);
+          this->function_name = result;
+          Map2Check::Log::Debug("Function name: " + result);
+      }
+      return;
+  }
+
 
   ifstream memtrack("map2check_property_klee_memtrack");
   if (memtrack.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
       return;
   }
+
+  
 
 
   while (getline(in,line)) {
@@ -155,6 +176,9 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         } else if(line == "FALSE-MEMTRACK") {
           Map2Check::Log::Debug("FALSE-MEMTRACK found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
+	} else if(line == "OVERFLOW") {
+          Map2Check::Log::Debug("OVERFLOW found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
         }else if(line == "UNKNOWN") {
           Map2Check::Log::Debug("UNKNOWN found");
           this->propertyViolated = Tools::PropertyViolated::UNKNOWN;

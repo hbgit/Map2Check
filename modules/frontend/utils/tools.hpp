@@ -31,13 +31,14 @@ namespace Map2Check::Tools {
   const string llvmLinkBinary("${MAP2CHECK_PATH}/bin/llvm-link");
 
   /** Represents what kind of property was violated */
-  enum class PropertyViolated {
+   enum class PropertyViolated { 
+    FALSE_OVERFLOW,
     TARGET_REACHED,
     FALSE_FREE,
     FALSE_DEREF,
     FALSE_MEMTRACK,
     UNKNOWN,
-    NONE
+    NONE    
   };
 
   /** Class used to check violated property */

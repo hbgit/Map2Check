@@ -146,6 +146,10 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, s
             specification = std::make_unique<Specification>(SpecificationType::TARGET, targetFunction);
             this->automata = std::make_unique<ViolationWitnessGraph>();
             break;
+        case Tools::PropertyViolated::FALSE_OVERFLOW:
+            specification = std::make_unique<Specification>(SpecificationType::SPECOVERFLOW);
+            this->automata = std::make_unique<ViolationWitnessGraph>();
+            break;
         default:
             this->automata = std::make_unique<CorrectnessWitnessGraph>();
             violationWitness = false;

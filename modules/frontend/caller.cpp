@@ -64,6 +64,7 @@ Caller::Caller( std::string bcprogram_path ) {
     this->cleanGarbage();
   this->pathprogram = bcprogram_path;
 
+
 }
 
 void Caller::cleanGarbage() {
@@ -73,6 +74,7 @@ void Caller::cleanGarbage() {
                             map2check_property_klee_unknown \
                             map2check_property_klee_deref \
                             map2check_property_klee_memtrack \
+                            map2check_property_overflow \
                             preprocessed.c \
                             map2check_property_klee_free \
                             optimized.bc output.bc inter.bc \
@@ -174,7 +176,8 @@ void Caller::linkLLVM() {
   command << " output.bc ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
 	  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc ${MAP2CHECK_PATH}/lib/Container.bc"
 	  << " ${MAP2CHECK_PATH}/lib/KleeLog.bc ${MAP2CHECK_PATH}/lib/ListLog.bc"
-	  << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc > result.bc";
+	  << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc ${MAP2CHECK_PATH}/lib/BinaryOperation.bc "
+          << "  > result.bc";
   // Map2Check::Log::Info("Compiling " + command.str());
   system(command.str().c_str());
 

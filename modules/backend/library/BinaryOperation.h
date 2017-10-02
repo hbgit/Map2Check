@@ -3,49 +3,56 @@
  */
 
 #include "Map2CheckTypes.h"
-
+#include "Map2CheckFunctions.h"
 #ifndef BinaryOperation_H
 #define BinaryOperation_H
 
 /**
- * @brief Checks ADD operations and adds cases where operation would fail.
- * @param param1 Pointer to first operand
- * @param param1Type Type of first operand (for pointer cast)
- * @param param2 Pointer to second operand
- * @param param2Type Type of second operand (for pointer cast)
+ * @brief Checks ADD (on two integers) operations and adds cases where operation would fail.
+ * @param param1 First operand
+ * @param param2 Second operand
+ * @param line Line where operation occured
+ * @param scope Scope where operation occured
+ * @param function_name Name of the function which operation occured
  */
-void map2check_binop_add(void* param1, PRIMITIVE_TYPE param1Type,
-                         void* param2, PRIMITIVE_TYPE param2Type);
+void map2check_binop_add(int param1, int param2,
+			 unsigned line, unsigned scope,
+			 char* function_name);
+/**
+ * @brief Checks SUB (on two integers) operations and adds cases where operation would fail.
+ * @param param1 First operand
+ * @param param2 Second operand
+ * @param line Line where operation occured
+ * @param scope Scope where operation occured
+ * @param function_name Name of the function which operation occured
+ * */
+void map2check_binop_sub(int param1, int param2,
+	 unsigned line, unsigned scope,
+ char* function_name);
 
 /**
- * @brief Checks SUB operations and adds cases where operation would fail.
- * @param param1 Pointer to first operand
- * @param param1Type Type of first operand (for pointer cast)
- * @param param2 Pointer to second operand
- * @param param2Type Type of second operand (for pointer cast)
- */
-void map2check_binop_sub(void* param1, PRIMITIVE_TYPE param1Type,
-                         void* param2, PRIMITIVE_TYPE param2Type);
+ * @brief Checks MUL (on two integers) operations and adds cases where operation would fail.
+ * @param param1 First operand
+ * @param param2 Second operand
+ * @param line Line where operation occured
+ * @param scope Scope where operation occured
+ * @param function_name Name of the function which operation occured
+ * */
+void map2check_binop_mul(int param1, int param2,
+                         unsigned line, unsigned scope,
+                         char* function_name);
 
 /**
- * @brief Checks MUL operations and adds cases where operation would fail.
- * @param param1 Pointer to first operand
- * @param param1Type Type of first operand (for pointer cast)
- * @param param2 Pointer to second operand
- * @param param2Type Type of second operand (for pointer cast)
- */
-void map2check_binop_mul(void* param1, PRIMITIVE_TYPE param1Type,
-                         void* param2, PRIMITIVE_TYPE param2Type);
-
-/**
- * @brief Checks DIV operations and adds cases where operation would fail.
- * @param param1 Pointer to first operand
- * @param param1Type Type of first operand (for pointer cast)
- * @param param2 Pointer to second operand
- * @param param2Type Type of second operand (for pointer cast)
- */
-void map2check_binop_div(void* param1, PRIMITIVE_TYPE param1Type,
-                         void* param2, PRIMITIVE_TYPE param2Type);
+ * @brief Checks DIV (on two integers) operations and adds cases where operation would fail.
+ * @param param1 First operand
+ * @param param2 Second operand
+ * @param line Line where operation occured
+ * @param scope Scope where operation occured
+ * @param function_name Name of the function which operation occured
+ * */
+void map2check_binop_sdiv(int param1, int param2,
+                         unsigned line, unsigned scope,
+                         char* function_name);
 
 
 

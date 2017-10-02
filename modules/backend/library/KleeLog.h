@@ -1,7 +1,7 @@
 /**********************************************************************
-* This file contains all methods that are used for the KleeLog which  *
-* is a structure that contains all klee operations
-***********************************************************************/
+ * This file contains all methods that are used for the KleeLog which  *
+ * is a structure that contains all klee operations
+ ***********************************************************************/
 
 #include "Map2CheckTypes.h"
 #include "Map2CheckGlobals.h"

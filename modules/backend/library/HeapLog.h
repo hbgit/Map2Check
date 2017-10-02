@@ -1,7 +1,7 @@
 /**********************************************************************
-* This file contains all methods that are used for the HeapLog      *
-* which is a structure that contains all heap memory operatio         *
-***********************************************************************/
+ * This file contains all methods that are used for the HeapLog      *
+ * which is a structure that contains all heap memory operatio         *
+ ***********************************************************************/
 #include "Map2CheckTypes.h"
 #include "Container.h"
 

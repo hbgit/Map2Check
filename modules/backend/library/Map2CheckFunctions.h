@@ -1,6 +1,6 @@
 /**********************************************************************
-* This file describes all methods that are instrumented on C programs *
-***********************************************************************/
+ * This file describes all methods that are instrumented on C programs *
+ ***********************************************************************/
 #ifndef Map2CheckFunctions_H
 #define Map2CheckFunctions_H
 
@@ -147,8 +147,8 @@ void map2check_function(const char* name, void* ptr);
 
 /**
  *
-* Generates TRUE result
-*/
+ * Generates TRUE result
+ */
 void map2check_success();
 
 /**

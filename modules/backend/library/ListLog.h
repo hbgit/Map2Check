@@ -1,7 +1,7 @@
 /**********************************************************************
-* This file contains all methods that are used for the ListLog which  *
-* is a structure that contains all pointer operations
-***********************************************************************/
+ * This file contains all methods that are used for the ListLog which  *
+ * is a structure that contains all pointer operations
+ ***********************************************************************/
 
 #ifndef ListLog_H
 #define ListLog_H
@@ -32,8 +32,8 @@ Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log);
  * @return                          Initialized LIST_LOG_ROW
  */
 LIST_LOG_ROW new_list_row  (long memory_address, long memory_address_points_to,
-  unsigned scope, Bool is_dynamic, Bool is_free, unsigned line_number,
-  const char* name, const char* function_name, unsigned step);
+			    unsigned scope, Bool is_dynamic, Bool is_free, unsigned line_number,
+			    const char* name, const char* function_name, unsigned step);
 
 /**
  * Write elements from LIST_LOG to a FILE

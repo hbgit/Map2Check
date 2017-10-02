@@ -121,7 +121,7 @@ int Caller::callPass(bool sv_comp){
 
 int Caller::callPass(std::string target_function, bool sv_comp){
 
-  AnalysisPasses.add(new GenerateAutomataTruePass(target_function)); //DOING
+  AnalysisPasses.add(new GenerateAutomataTruePass(target_function, this->cprogram_fullpath)); //DOING
   /**AnalysisPasses.add(new NonDetPass());
   Map2Check::Log::Debug("Starting target pass with function " + target_function );
   AnalysisPasses.add(new TargetPass(target_function));
@@ -190,7 +190,7 @@ void Caller::callKlee() {
 
 string Caller::compileCFile(std::string cprogram_path) {
   Map2Check::Log::Info("Compiling " + cprogram_path);
-
+  
   if(!fs::exists(Map2Check::Tools::clangBinary) ||
      !fs::is_regular_file(Map2Check::Tools::clangBinary)) {
     // throw InvalidClangBinaryException();

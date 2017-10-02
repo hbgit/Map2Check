@@ -193,6 +193,8 @@ int main(int argc, char** argv)
                 } else {
                     caller  =  make_unique<Caller>(pathfile);
                 }
+                
+                caller->cprogram_fullpath = pathfile;
 
                 caller->parseIrFile();
                 bool sv_comp = false;

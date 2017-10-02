@@ -13,10 +13,12 @@ class Caller {
  protected:
   std::string pathprogram;
   void optimizeProgram();
-
+  
+ 
  public:
   Caller() {}
   Caller( std::string bcprogram_path );
+  std::string cprogram_fullpath;  
   static string compileCFile(std::string cprogram_path);
   void printdata();
   int parseIrFile();

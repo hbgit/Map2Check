@@ -6,6 +6,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Metadata.h>
+#include <llvm/IR/IntrinsicInst.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/Support/raw_ostream.h>
 
@@ -22,9 +23,11 @@ struct DebugInfo {
   Value* getScopeNumberValue();
   Value* getLineNumberValue();
   unsigned getLineNumberInt();
+  StringRef getVarName();
 
 private:
   Value* scopeNumberValue = NULL;
   Value* lineNumberValue = NULL;
   unsigned lineNumInt = 0;
+  StringRef varName;
 };

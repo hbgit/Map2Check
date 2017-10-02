@@ -17,17 +17,21 @@
 
 //From Map2Check Project
 #include "DebugInfo.hpp"
+#include "../../frontend/utils/tools.hpp"
 
 using namespace llvm;
+namespace Tools = Map2Check::Tools;
 
 struct GenerateAutomataTruePass : public FunctionPass 
 {
     static char ID;
     GenerateAutomataTruePass() : FunctionPass(ID) {}
-    GenerateAutomataTruePass(std::string function) : FunctionPass(ID) 
+    GenerateAutomataTruePass(std::string function, std::string cprogram_path) : FunctionPass(ID) 
     {
         this->target_function = function;
+        this->cprogram_path = cprogram_path;
         this->isTrackingFunction = true;    
+        this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(Tools::SourceCodeHelper(cprogram_path));
     }
 
     virtual bool runOnFunction(Function &F);
@@ -40,12 +44,14 @@ struct GenerateAutomataTruePass : public FunctionPass
     private:
     //methods
     //attr
+    std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
     bool isTrackingFunction;
     bool intervals;
     StringRef labelBranchCondTrue;
     StringRef labelBranchCondFalse;
     StringRef labelBasicBlock;
     std::string target_function;
+    std::string cprogram_path;
     bool mainFunctionInitialized = false;
     std::vector<Function*> functionsValues;
     Function* currentFunction;

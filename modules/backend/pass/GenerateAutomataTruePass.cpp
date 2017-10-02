@@ -139,6 +139,10 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
             errs() << bI->getPredicate() << "\n";
             errs() << *bI->getOperand(0) << "\n";
             errs() << *bI->getOperand(1) << "\n";
+            DebugInfo debugInfoBi(this->Ctx, bI);
+            errs() << debugInfoBi.getVarName() << " <> " << debugInfoBi.getLineNumberInt() << "\n";
+            errs() << this->cprogram_path << "\n";
+            errs() << this->sourceCodeHelper->getLine(debugInfoBi.getLineNumberInt()) << "\n";
         }
 
 

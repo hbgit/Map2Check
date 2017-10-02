@@ -35,12 +35,16 @@ struct GenerateAutomataTruePass : public FunctionPass
     protected:   
     void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
     bool checkBBHasLError(BasicBlock& nowB);
+    bool isBranchCond(BasicBlock& B);
 
     private:
     //methods
     //attr
     bool isTrackingFunction;
     bool intervals;
+    StringRef labelBranchCondTrue;
+    StringRef labelBranchCondFalse;
+    StringRef labelBasicBlock;
     std::string target_function;
     bool mainFunctionInitialized = false;
     std::vector<Function*> functionsValues;

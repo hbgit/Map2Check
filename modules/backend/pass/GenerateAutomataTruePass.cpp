@@ -65,12 +65,23 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     this->firstBlockInst = B.begin();
     this->lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
     bool enableDataBlk = false;
+    if(!B.hasName()){
+        B.printAsOperand(errs(), false);
+        StringRef bbName(B.getName());
+        this->labelBasicBlock = bbName;
+        errs() << "<<< Basic Block Name" << this->labelBasicBlock << "\n";
+    }else{
+        this->labelBasicBlock = B.getName();
+        errs() << "<<< Basic Block Name" << this->labelBasicBlock << "\n";
+    }
 
-    //TODO: Create a method to remove the block on CFG that goes to ERROR location
+
     //errs() << this->checkBBHasLError(B) << "\n";
     if(!this->checkBBHasLError(B))
     {
 
+        // TODO: Create a method to get info from branches in the block for condition-true and false     
+        this->isBranchCond(B);
 
         if(B.size() > 1)
         {
@@ -112,6 +123,57 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
         errs() << ">>>Line number to the next block: " << debugInfo.getLineNumberInt() <<"\n";
         std::cout << "---This is a block divider--- block with: " << B.size() << " instructions" << std::endl;    
     }
+}
+
+// Identify if the block has a branch and define the condition to true and false
+bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
+{
+    //errs() << bbName << "\n";
+
+    for( auto& I : B )
+    {        
+        
+        if(auto* bI = dyn_cast<ICmpInst>(&I))
+        {
+            bI->dump();
+            errs() << bI->getPredicate() << "\n";
+            errs() << *bI->getOperand(0) << "\n";
+            errs() << *bI->getOperand(1) << "\n";
+        }
+
+
+        if(auto* tI = dyn_cast<TerminatorInst>(&I))
+        {
+            if(tI->getOpcodeName() == "br")
+            {
+                //errs() << tI->getSuccessor(1)->getValueName() << "\n";
+                //errs() << tI->successors().begin()->getValueName() << "\n";
+                    
+                errs() << tI->getOpcodeName() << ":::::::::::::::: \n";
+                tI->dump();
+                if(tI->getNumSuccessors() > 1)
+                {
+                    BasicBlock::iterator trueCond = tI->getSuccessor(0)->begin();
+                    DebugInfo debugInfoT(this->Ctx, (Instruction*)trueCond);
+                    errs() << "True Cond in:" << debugInfoT.getLineNumberInt() << "\n";
+                    
+                    BasicBlock::iterator falseCond = tI->getSuccessor(1)->begin();
+                    DebugInfo debugInfoF(this->Ctx, (Instruction*)falseCond);
+                    errs() << "False Cond in:" << debugInfoF.getLineNumberInt() << "\n";
+
+                }
+
+            }
+            /**
+            if(tI->getOpcodeName() == "br")
+            {
+            }**/
+        }
+ 
+        //errs() << I.getOpcodeName() << "\n";
+    }
+
+    return false;
 }
 
 //To identify a block with a error location by __VERIFIER_error call function

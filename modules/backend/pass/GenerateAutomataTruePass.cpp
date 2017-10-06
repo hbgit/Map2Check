@@ -28,26 +28,12 @@ bool GenerateAutomataTruePass::runOnFunction(Function &F) {
     }
     }  **/  
 
-    // }
-    //
-    //Function::iterator functionIterator = F.begin();
-    //BasicBlock::iterator instructionIterator = functionIterator->begin();
-
-    //IRBuilder<> builder((Instruction*)&*instructionIterator);
-    //errs() << F.getEntryBlock().getName() << "\n";
     for(auto& B: F)
     {
 
         //BasicBlock basicB = i;  
         this->runOnBasicBlock(B, this->Ctx); 
-        /**
-          if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
-          currentInstruction = i;
-          this->runOnCallInstruction(callInst, &F.getContext());
-          }**/
     }
-    //}
-    errs() << "\n";
 
     return true;
 }
@@ -65,15 +51,16 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     this->firstBlockInst = B.begin();
     this->lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
     bool enableDataBlk = false;
+    /**
     if(!B.hasName()){
         B.printAsOperand(errs(), false);
         StringRef bbName(B.getName());
         this->labelBasicBlock = bbName;
-        errs() << "<<< Basic Block Name" << this->labelBasicBlock << "\n";
+        //errs() << "<<< Basic Block Name" << this->labelBasicBlock << "\n";
     }else{
         this->labelBasicBlock = B.getName();
-        errs() << "<<< Basic Block Name" << this->labelBasicBlock << "\n";
-    }
+        //errs() << "<<< Basic Block Name" << this->labelBasicBlock << "\n";
+    }**/
 
 
     //errs() << this->checkBBHasLError(B) << "\n";
@@ -85,7 +72,10 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
         if(B.size() > 1)
         {
-            errs() << "First InstBB: " << this->firstBlockInst->getOpcodeName() << "\n";
+            //errs() << "First InstBB: " << this->firstBlockInst->getOpcodeName() << "\n";
+            //DebugInfo debugInfoFi(this->Ctx, (Instruction*)this->firstBlockInst);
+            //errs() << this->sourceCodeHelper->getLine(debugInfoFi.getLineNumberInt()) << "\n";
+
             //Checking if the last instruction in the basic block is a br instruction,i.e., 
             //this br instrucion 
             if(auto* tI = dyn_cast<TerminatorInst>(&*this->lastBlockInst))
@@ -93,9 +83,17 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
                 if(tI->getOpcodeName() == "br")
                 {
                     --this->lastBlockInst;
-                    errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
+                    //errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
+                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->lastBlockInst);
+                    errs() << "startline : " << debugInfoLa.getLineNumberInt() << "\n"; 
+                    errs() << "sourcecode: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+
                 }else{
-                    errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
+                    //errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
+                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->lastBlockInst);
+                    errs() << "startline : " << debugInfoLa.getLineNumberInt() << "\n"; 
+                    errs() << "sourcecode: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+
                 }
             }
             enableDataBlk = true;
@@ -106,8 +104,12 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
             {
                 if(tI->getOpcodeName() != "br")
                 {
-                    errs() << "First and Last InstBB: "<< this->firstBlockInst->getOpcodeName() << "\n";        
+                    //errs() << "First and Last InstBB: "<< this->firstBlockInst->getOpcodeName() << "\n";        
                     this->lastBlockInst = this->firstBlockInst;
+                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->lastBlockInst);
+                    errs() << "startline : " << debugInfoLa.getLineNumberInt() << "\n"; 
+                    errs() << "sourcecode: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+
                     enableDataBlk = true;
                 }
             }
@@ -121,7 +123,8 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
         DebugInfo debugInfo(Ctx, (Instruction*)this->lastBlockInst);
         //errs() << "Line number to the next block: " << *debugInfo.getLineNumberValue() <<"\n";
         errs() << ">>>Line number to the next block: " << debugInfo.getLineNumberInt() <<"\n";
-        std::cout << "---This is a block divider--- block with: " << B.size() << " instructions" << std::endl;    
+        //std::cout << "---This is a block divider--- block with: " << B.size() << " instructions" << std::endl;    
+        errs() << "---------------------- \n";
     }
 }
 
@@ -129,16 +132,29 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 {
     //errs() << bbName << "\n";
+    StringRef actualNameInt;
 
     for( auto& I : B )
-    {        
+    {      
+        if(!I.hasName()){
+            I.printAsOperand(errs(), false);
+            //StringRef bbName(I.getName());
+            //errs() << I.getName() << "\n";
+            actualNameInt = I.getName();
+        }else{
+            //errs() << I.getName() << "\n";
+            actualNameInt = I.getName();
+        }
+
+
 
         if(auto* bI = dyn_cast<ICmpInst>(&I))
         {
-            errs() << this->convertLLPredicatetoXmlText(I) << "\n";
-
-
-
+            //errs() << this->convertLLPredicatetoXmlText(I) << "\n";
+            //
+            //TODO: Create a skip when the Branch was an assertion
+            //errs() << bI->getName() << "\n";
+            errs() << "control : " << this->convertLLPredicatetoXmlText(I) << "\n";
 
             //DebugInfo debugInfoBi(this->Ctx, bI);
             //errs() << debugInfoBi.getVarName() << " <> " << debugInfoBi.getLineNumberInt() << "\n";
@@ -189,7 +205,7 @@ std::string GenerateAutomataTruePass::convertLLPredicatetoXmlText(Instruction& I
     if(auto* bI = dyn_cast<ICmpInst>(&I))
     {
 
-        bI->dump();
+        //bI->dump();
         //errs() << bI->getSignedPredicate() << "\n";
         //errs() << this->getPredicateSymOnXmlText(*bI) << "\n";
         predicateInXml = this->getPredicateSymOnXmlText(*bI);
@@ -249,10 +265,10 @@ std::string GenerateAutomataTruePass::getPredicateSymOnXmlText(ICmpInst& icmpIns
     ICmpInst::Predicate pr = icmpInst.getSignedPredicate();
     if(pr == ICmpInst::ICMP_EQ)
     {
-        predicateText="&eq;";
+        predicateText="==";
     }else if(pr == ICmpInst::ICMP_NE)
     {
-        predicateText="&ne;";
+        predicateText="!";
     }else if(pr == ICmpInst::ICMP_SGT)
     {
         predicateText="&gt;";

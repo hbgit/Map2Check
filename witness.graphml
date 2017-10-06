@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<key attr.name="isEntryNode" attr.type="boolean" for="node" id="entry">
+		<default>false</default>
+	</key>
+	<key attr.name="isViolationNode" attr.type="boolean" for="node" id="violation">
+		<default>false</default>
+	</key>
+	<key attr.name="witness-type" attr.type="string" for="graph" id="witness-type"/>
+	<key attr.name="sourcecodelang" attr.type="string" for="graph" id="sourcecodelang"/>
+	<key attr.name="producer" attr.type="string" for="graph" id="producer"/>
+	<key attr.name="specification" attr.type="string" for="graph" id="specification"/>
+	<key attr.name="programFile" attr.type="string" for="graph" id="programfile"/>
+	<key attr.name="programHash" attr.type="string" for="graph" id="programhash"/>
+	<key attr.name="architecture" attr.type="string" for="graph" id="architecture"/>
+	<key attr.name="startline" attr.type="int" for="edge" id="startline"/>
+	<key attr.name="assumption" attr.type="string" for="edge" id="assumption"/>
+	<key attr.name="assumption.scope" attr.type="string" for="edge" id="assumption.scope"/>
+	<key attr.name="assumption.resultfunction" attr.type="string" for="edge" id="assumption.resultfunction"/>
+	<graph edgedefault="directed">
+		<data key="witness-type">violation_witness</data>
+		<data key="sourcecodelang">C</data>
+		<data key="producer">Map2Check</data>
+		<data key="specification">CHECK( init(main()), LTL(G valid-free) )</data>
+		<data key="programfile">sample/sv-comp/960521-1_false-valid-free.c</data>
+		<data key="programhash">fadf7d34d6bb05cf6f7ded2e4c7162fa59404bda</data>
+		<data key="architecture">32bit</data>
+		<node id="s1">
+			<data key="violation">true</data>
+		</node>
+		<node id="s0">
+			<data key="entry">true</data>
+		</node>
+		<edge source="s0" target="s1"/>
+	</graph>
+</graphml>

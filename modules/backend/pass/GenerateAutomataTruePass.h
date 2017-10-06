@@ -40,6 +40,8 @@ struct GenerateAutomataTruePass : public FunctionPass
     void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
     bool checkBBHasLError(BasicBlock& nowB);
     bool isBranchCond(BasicBlock& B);
+    std::string convertLLPredicatetoXmlText(Instruction& I);
+    std::string getPredicateSymOnXmlText(ICmpInst& icmpInst);
 
     private:
     //methods

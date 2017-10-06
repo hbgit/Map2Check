@@ -132,52 +132,149 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 
     for( auto& I : B )
     {        
-        
+
         if(auto* bI = dyn_cast<ICmpInst>(&I))
         {
-            bI->dump();
-            errs() << bI->getPredicate() << "\n";
-            errs() << *bI->getOperand(0) << "\n";
-            errs() << *bI->getOperand(1) << "\n";
-            DebugInfo debugInfoBi(this->Ctx, bI);
-            errs() << debugInfoBi.getVarName() << " <> " << debugInfoBi.getLineNumberInt() << "\n";
-            errs() << this->cprogram_path << "\n";
-            errs() << this->sourceCodeHelper->getLine(debugInfoBi.getLineNumberInt()) << "\n";
+            errs() << this->convertLLPredicatetoXmlText(I) << "\n";
+
+
+
+
+            //DebugInfo debugInfoBi(this->Ctx, bI);
+            //errs() << debugInfoBi.getVarName() << " <> " << debugInfoBi.getLineNumberInt() << "\n";
+            //errs() << this->cprogram_path << "\n";
+            //errs() << this->sourceCodeHelper->getLine(debugInfoBi.getLineNumberInt()) << "\n";
         }
 
 
-        if(auto* tI = dyn_cast<TerminatorInst>(&I))
+        /**if(auto* tI = dyn_cast<TerminatorInst>(&I))
+          {
+          if(tI->getOpcodeName() == "br")
+          {
+        //errs() << tI->getSuccessor(1)->getValueName() << "\n";
+        //errs() << tI->successors().begin()->getValueName() << "\n";
+
+        errs() << tI->getOpcodeName() << ":::::::::::::::: \n";
+        tI->dump();
+        if(tI->getNumSuccessors() > 1)
         {
-            if(tI->getOpcodeName() == "br")
-            {
-                //errs() << tI->getSuccessor(1)->getValueName() << "\n";
-                //errs() << tI->successors().begin()->getValueName() << "\n";
-                    
-                errs() << tI->getOpcodeName() << ":::::::::::::::: \n";
-                tI->dump();
-                if(tI->getNumSuccessors() > 1)
-                {
-                    BasicBlock::iterator trueCond = tI->getSuccessor(0)->begin();
-                    DebugInfo debugInfoT(this->Ctx, (Instruction*)trueCond);
-                    errs() << "True Cond in:" << debugInfoT.getLineNumberInt() << "\n";
-                    
-                    BasicBlock::iterator falseCond = tI->getSuccessor(1)->begin();
-                    DebugInfo debugInfoF(this->Ctx, (Instruction*)falseCond);
-                    errs() << "False Cond in:" << debugInfoF.getLineNumberInt() << "\n";
+        BasicBlock::iterator trueCond = tI->getSuccessor(0)->begin();
+        DebugInfo debugInfoT(this->Ctx, (Instruction*)trueCond);
+        errs() << "True Cond in:" << debugInfoT.getLineNumberInt() << "\n";
 
-                }
+        BasicBlock::iterator falseCond = tI->getSuccessor(1)->begin();
+        DebugInfo debugInfoF(this->Ctx, (Instruction*)falseCond);
+        errs() << "False Cond in:" << debugInfoF.getLineNumberInt() << "\n";
 
-            }
-            /**
-            if(tI->getOpcodeName() == "br")
-            {
-            }**/
         }
- 
+
+        }
+        }**/
+
         //errs() << I.getOpcodeName() << "\n";
     }
 
     return false;
+}
+
+
+std::string GenerateAutomataTruePass::convertLLPredicatetoXmlText(Instruction& I)
+{
+    std::string lvaluep;
+    std::string rvaluep;
+    std::string predicateInXml;
+    std::string fullExpPredicateInXml;
+    std::ostringstream osstrtmp;
+
+    if(auto* bI = dyn_cast<ICmpInst>(&I))
+    {
+
+        bI->dump();
+        //errs() << bI->getSignedPredicate() << "\n";
+        //errs() << this->getPredicateSymOnXmlText(*bI) << "\n";
+        predicateInXml = this->getPredicateSymOnXmlText(*bI);
+        //errs() << *bI->getOperand(0) << "\n";
+        //errs() << bI->getOperand(0)->getValueName() << "\n";
+
+        //Getting left value from predicate 
+        if(isa<LoadInst>(bI->getOperand(0))) {
+            LoadInst *LD100 = cast<LoadInst>(bI->getOperand(0));
+            Value *C100 = LD100->getPointerOperand();
+            lvaluep = C100->getName().str(); 
+            //errs() << "LVALUEP: " << lvaluep << "\n";
+
+        } else if (ConstantInt* CI = dyn_cast<ConstantInt>(bI->getOperand(0))) {
+            if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.
+                //constIntValue = CI->getSExtValue();
+                osstrtmp << CI->getSExtValue();
+                rvaluep = osstrtmp.str();
+                //errs() << "LVALUEP:" << lvaluep << "\n";
+            }
+        }
+
+
+        //Instruction tmpI = (Instruction) &*bI->getOperand(0);
+        //errs() << *bI->getOperand(1) << "\n";
+
+        if(isa<LoadInst>(bI->getOperand(1))) {
+            LoadInst *LD101 = cast<LoadInst>(bI->getOperand(1));
+            Value *C101 = LD101->getPointerOperand(); //HERE COMPILATION ERROR
+            rvaluep = C101->getName().str();
+            //errs() << "RVALUEP:" << rvaluep << "\n";
+        }
+        //errs() << bI->getOperand(1)->getName().str() << "\n";
+        else if (ConstantInt* CI = dyn_cast<ConstantInt>(bI->getOperand(1))) {
+            if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.
+                //constIntValue = CI->getSExtValue();
+                osstrtmp << CI->getSExtValue();
+                rvaluep = osstrtmp.str();
+                //errs() << "RVALUEP:" << rvaluep << "\n";
+            }
+        }
+
+
+        //Generate full predicate expression
+        fullExpPredicateInXml = "[" + lvaluep + " " + predicateInXml + " " + rvaluep + "]";
+        //errs() << fullExpPredicateInXml << "\n";
+        return fullExpPredicateInXml;
+
+    }
+    return "[]";
+}
+
+std::string GenerateAutomataTruePass::getPredicateSymOnXmlText(ICmpInst& icmpInst)
+{
+    std::string predicateText = "";
+
+    ICmpInst::Predicate pr = icmpInst.getSignedPredicate();
+    if(pr == ICmpInst::ICMP_EQ)
+    {
+        predicateText="&eq;";
+    }else if(pr == ICmpInst::ICMP_NE)
+    {
+        predicateText="&ne;";
+    }else if(pr == ICmpInst::ICMP_SGT)
+    {
+        predicateText="&gt;";
+    }else if(pr == ICmpInst::ICMP_SGE)
+    {
+        predicateText="&ge;";
+    }else if(pr == ICmpInst::ICMP_SLT)
+    {
+        predicateText="&lt;";
+    }else if(pr == ICmpInst::ICMP_SLE)
+    {
+        predicateText="&le;";
+    }
+    /**switch(pr){
+        case ICmpInst::ICMP_SGT: predicateText="&gt;"; break;
+        case ICmpInst::ICMP_SLT: predicateText="&lt;"; break;
+        case ICmpInst::ICMP_SGE: predicateText="&ge;"; break;
+        case ICmpInst::ICMP_SLE: predicateText="&le;"; break;
+    }**/
+
+    return predicateText;
+
 }
 
 //To identify a block with a error location by __VERIFIER_error call function

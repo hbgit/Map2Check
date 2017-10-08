@@ -42,11 +42,13 @@ struct GenerateAutomataTruePass : public FunctionPass
     bool isBranchCond(BasicBlock& B);
     std::string convertLLPredicatetoXmlText(Instruction& I);
     std::string getPredicateSymOnXmlText(ICmpInst& icmpInst);
+    void identifyAssertLoc(BasicBlock& B);
 
     private:
     //methods
     //attr
     std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
+    std::vector<int> assertListLoc;
     bool isTrackingFunction;
     bool intervals;
     StringRef labelBranchCondTrue;

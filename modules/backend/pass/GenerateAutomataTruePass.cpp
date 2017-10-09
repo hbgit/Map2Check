@@ -94,9 +94,23 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
                 }else{
                     //errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
+                    //errs() << this->lastBlockInst->getOpcodeName() << "\n";
+                    //empty line in the source code
                     DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->lastBlockInst);
-                    errs() << "startline  2: " << debugInfoLa.getLineNumberInt() << "\n"; 
-                    errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+
+                    if(this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()).empty())
+                    {
+                        //errs() << "Empty \n" ;
+                        int numline = debugInfoLa.getLineNumberInt() - 1;
+                        errs() << "startline  2: " << numline << "\n";
+                        //errs() << "startline  2: " << debugInfoLa.getLineNumberInt() << "\n"; 
+                        errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(numline) << "\n";
+
+                    }else{
+                        errs() << "startline  2: " << debugInfoLa.getLineNumberInt() << "\n"; 
+                        errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+                                                
+                    }
 
                 }
             }

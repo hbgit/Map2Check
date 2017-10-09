@@ -195,6 +195,8 @@ int main(int argc, char** argv)
 	      caller  =  make_unique<Caller>(pathfile);
 	    }
 
+		caller->cprogram_fullpath = pathfile;
+		
 	    caller->parseIrFile();
         bool sv_comp = false;
         if (vm.count("assume-malloc-true")) {
@@ -234,7 +236,8 @@ int main(int argc, char** argv)
         }
 
         // END CHECKING OPERATION MODE
-
+		//STOP execution to test GenerateAutomataTruePass                
+        exit (EXIT_FAILURE);
 
 
 
@@ -284,8 +287,6 @@ int main(int argc, char** argv)
                     svcomp.Testify();
                 }
             }//TODO: Add correctness witness
-
-
 
             return SUCCESS;
           }

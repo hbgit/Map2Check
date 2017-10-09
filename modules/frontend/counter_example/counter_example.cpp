@@ -59,6 +59,10 @@ std::string CounterExample::getViolatedProperty() {
   if(this->property == Tools::PropertyViolated::UNKNOWN) {
     return "UNKNOWN";
   }
+
+  if(this->property == Tools::PropertyViolated::FALSE_OVERFLOW) {
+    return "OVERFLOW";
+  }
   // FIXME: Throw exception
   return "";
 }

@@ -1,7 +1,7 @@
 /**********************************************************************
-* This file describes all methods that are used for generation of the *
-* file containing the property that was violated (or none)
-***********************************************************************/
+ * This file describes all methods that are used for generation of the *
+ * file containing the property that was violated (or none)
+ ***********************************************************************/
 
 #ifndef PropertyGenerator_H
 #define PropertyGenerator_H
@@ -18,5 +18,6 @@ void write_property_unknown();
 void write_property_deref();
 void write_property_memtrack();
 void write_property_free( int line, const char* function_name);
+void write_property_overflow( int line, const char* function_name);
 
 #endif

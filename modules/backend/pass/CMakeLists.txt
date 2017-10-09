@@ -27,3 +27,8 @@ set_target_properties(TargetPass PROPERTIES
 add_library(GenerateAutomataTruePass OBJECT GenerateAutomataTruePass.cpp)
 set_target_properties(GenerateAutomataTruePass PROPERTIES 
 	COMPILE_FLAGS ${PASS_FLAGS})
+
+add_library(OverflowPass OBJECT OverflowPass.cpp)
+set_target_properties(OverflowPass PROPERTIES
+  COMPILE_FLAGS ${PASS_FLAGS})
+

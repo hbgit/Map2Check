@@ -58,7 +58,8 @@ namespace Map2Check {
         FREE,
         MEMLEAK,
         DEREF,
-        TARGET
+        TARGET,
+        SPECOVERFLOW
     };
 
     class Specification : public DataElement {
@@ -67,6 +68,7 @@ namespace Map2Check {
             virtual std::string convertToString();
 
         public:
+        //TODO: SHOULD THROW ERROR
             Specification(SpecificationType type) : DataElement() {
                 switch(type) {
                     case SpecificationType::FREE: 
@@ -80,10 +82,14 @@ namespace Map2Check {
                         break;
                     case SpecificationType::TARGET:
                         this->value = "ERROR";                        
-                        break;    
+                        break;
+                    case SpecificationType::SPECOVERFLOW:
+                        this->value = "CHECK( init(main()), LTL(G ! overflow) )";
+                        break;
                 }
 
             }
+        //TODO: SHOULD THROW ERROR
             Specification(SpecificationType type, std::string target) : DataElement() {
                 switch(type) {
                     case SpecificationType::FREE: 
@@ -95,6 +101,9 @@ namespace Map2Check {
                     case SpecificationType::DEREF:
                         this->value = "ERROR";
                         break;
+                    case SpecificationType::SPECOVERFLOW:
+                        this->value = "ERROR";
+                        break;
                     case SpecificationType::TARGET:
                         std::ostringstream cnvt;
                         cnvt.str("");
@@ -102,7 +111,7 @@ namespace Map2Check {
                         cnvt << target;
                         cnvt << "())) )";
                         this->value = cnvt.str();
-                        break;    
+                        break;
                 }
             }
     };

@@ -20,21 +20,21 @@ using namespace llvm;
 
 struct TargetPass : public FunctionPass
 {
-    static char ID;
-    TargetPass() : FunctionPass(ID) {}
-    TargetPass(std::string FunctionName) : FunctionPass(ID) {
-        targetFunctionName = FunctionName;
-    }
-    virtual bool runOnFunction(Function &F);
+  static char ID;
+ TargetPass() : FunctionPass(ID) {}
+ TargetPass(std::string FunctionName) : FunctionPass(ID) {
+    targetFunctionName = FunctionName;
+  }
+  virtual bool runOnFunction(Function &F);
 
-protected:
-    Value* getFunctionNameValue() { return this->functionName; }
-    void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
-    void instrumentErrorInstruction(CallInst* callInst, LLVMContext* Ctx);
+ protected:
+  Value* getFunctionNameValue() { return this->functionName; }
+  void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
+  void instrumentErrorInstruction(CallInst* callInst, LLVMContext* Ctx);
 
-private:
-    BasicBlock::iterator currentInstruction;
-    Constant *targetFunctionMap2Check = NULL;
-    Value* functionName = NULL;
-    std::string targetFunctionName;
+ private:
+  BasicBlock::iterator currentInstruction;
+  Constant *targetFunctionMap2Check = NULL;
+  Value* functionName = NULL;
+  std::string targetFunctionName;
 };

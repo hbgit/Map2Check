@@ -4,6 +4,7 @@
 #include "../backend/pass/NonDetPass.hpp"
 #include "../backend/pass/Map2CheckLibrary.hpp"
 #include "../backend/pass/TargetPass.h"
+#include "../backend/pass/OverflowPass.h"
 
 
 #include "caller.hpp"
@@ -65,6 +66,7 @@ Caller::Caller( std::string bcprogram_path ) {
     this->cleanGarbage();
   this->pathprogram = bcprogram_path;
 
+
 }
 
 void Caller::cleanGarbage() {
@@ -74,6 +76,7 @@ void Caller::cleanGarbage() {
                             map2check_property_klee_unknown \
                             map2check_property_klee_deref \
                             map2check_property_klee_memtrack \
+                            map2check_property_overflow \
                             preprocessed.c \
                             map2check_property_klee_free \
                             optimized.bc output.bc inter.bc \
@@ -110,25 +113,49 @@ int Caller::parseIrFile(){
   return 0;
 }
 
-int Caller::callPass(bool sv_comp){
+int Caller::callPass(Map2CheckMode mode, bool sv_comp){
+    Map2Check::Log::Debug("Applying NonDetPass\n");
+
     // TODO: Added pass to generate_automata_true    
+    // AnalysisPasses.add(new GenerateAutomataTruePass(target_function, this->cprogram_fullpath)); //DOING    
+
     AnalysisPasses.add(new NonDetPass());
-    AnalysisPasses.add(new MemoryTrackPass(sv_comp));
+    switch(mode) {
+    case (Map2CheckMode::MEMTRACK_MODE):
+        Map2Check::Log::Debug("Applying MemoryTrackPass\n");
+        AnalysisPasses.add(new MemoryTrackPass(sv_comp));
+        break;
+    case (Map2CheckMode::OVERFLOW_MODE):
+        Map2Check::Log::Debug("Applying OverflowPass\n");
+        AnalysisPasses.add(new OverflowPass());
+        break;
+    default:
+        throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
+    }
+    Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
     AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
     AnalysisPasses.run(*M);
     return 1;
 }
 
-int Caller::callPass(std::string target_function, bool sv_comp){
 
-  AnalysisPasses.add(new GenerateAutomataTruePass(target_function, this->cprogram_fullpath)); //DOING
-  /**AnalysisPasses.add(new NonDetPass());
-  Map2Check::Log::Debug("Starting target pass with function " + target_function );
-  AnalysisPasses.add(new TargetPass(target_function));
-  Map2Check::Log::Debug("Final target pass");
-  AnalysisPasses.add(new Map2CheckLibrary(sv_comp));**/
-  AnalysisPasses.run(*M);
-  return 1;
+int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_comp){
+    Map2Check::Log::Debug("Applying NonDetPass\n");
+    AnalysisPasses.add(new NonDetPass());
+    switch(mode) {
+    case (Map2CheckMode::REACHABILITY_MODE):
+        Map2Check::Log::Debug("Starting target pass with function " + target_function );
+        AnalysisPasses.add(new TargetPass(target_function));
+        break;
+    default:
+        throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
+    }
+
+    Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
+    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
+    AnalysisPasses.run(*M);
+    return 1;
+
 }
 
 void Caller::genByteCodeFile() {
@@ -156,7 +183,8 @@ void Caller::linkLLVM() {
   command << " output.bc ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
 	  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc ${MAP2CHECK_PATH}/lib/Container.bc"
 	  << " ${MAP2CHECK_PATH}/lib/KleeLog.bc ${MAP2CHECK_PATH}/lib/ListLog.bc"
-	  << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc > result.bc";
+	  << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc ${MAP2CHECK_PATH}/lib/BinaryOperation.bc "
+          << "  > result.bc";
   // Map2Check::Log::Info("Compiling " + command.str());
   system(command.str().c_str());
 
@@ -217,11 +245,12 @@ string Caller::compileCFile(std::string cprogram_path) {
   command.str("");
   command << Map2Check::Tools::clangBinary << " -I"
       << Map2Check::Tools::clangIncludeFolder
-          << " -Wno-everything "
+          //<< " -Wno-everything "
+          //<< " -Winteger-overflow "
           << " -c -emit-llvm -g -O0 "
           << " -o compiled.bc "
           << "preprocessed.c"
-          << " >> clang.out";
+          << " > clang.out 2>&1";
 
   int result = system(command.str().c_str());
   if(result == -1) {

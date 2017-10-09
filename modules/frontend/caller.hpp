@@ -8,13 +8,20 @@
 #include "utils/tools.hpp"
 using namespace std;
 
+enum class Map2CheckMode
+{
+    MEMTRACK_MODE,
+    REACHABILITY_MODE,
+    OVERFLOW_MODE
+};
+
 class Caller {
 
  protected:
   std::string pathprogram;
   void optimizeProgram();
-  
- 
+
+
  public:
   Caller() {}
   Caller( std::string bcprogram_path );
@@ -23,8 +30,8 @@ class Caller {
   void printdata();
   int parseIrFile();
   void genByteCodeFile();
-  int callPass(bool sv_comp = false);
-  int callPass(std::string target_function, bool sv_comp = false);
+  int callPass(Map2CheckMode mode, bool sv_comp = false);
+  int callPass(Map2CheckMode mode, std::string target_function, bool sv_comp = false);
   void linkLLVM();
   void callKlee();
   void cleanGarbage();

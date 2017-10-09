@@ -1,6 +1,6 @@
 /**********************************************************************
-* This file contains a data structure to hold ListLogs and AllocationLogs
-***********************************************************************/
+ * This file contains a data structure to hold ListLogs and AllocationLogs
+ ***********************************************************************/
 
 #include "Map2CheckTypes.h"
 

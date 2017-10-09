@@ -4,9 +4,9 @@
 const char* list_log_file = "list_log.csv";
 
 long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
-    int i = log->size - 1;
-    for(;i >= 0 ; i--) {
-        LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
+  int i = log->size - 1;
+  for(;i >= 0 ; i--) {
+    LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
 
     if (row->memory_address == var_address) {
       return row->memory_address_points_to;
@@ -20,40 +20,40 @@ long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
 Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
 
 
-    int i = log->size - 1;
+  int i = log->size - 1;
 
-    for(; i >= 0; i--) {
-      LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
+  for(; i >= 0; i--) {
+    LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
 
 
-      long points_to = row->memory_address_points_to;
-      long address_origin = row->memory_address;
+    long points_to = row->memory_address_points_to;
+    long address_origin = row->memory_address;
 
-      if(address_origin == address) {
-          return FALSE;
-      }
-
-      if (points_to == address) {
-
-        Bool is_free = row->is_free;
-        Bool is_dynamic = row->is_dynamic;
-
-        if(is_free || (!is_dynamic)) {
-            return TRUE;
-        }
-        else {
-            return FALSE;
-        }
-      }
+    if(address_origin == address) {
+      return FALSE;
     }
 
-    return TRUE;
+    if (points_to == address) {
+
+      Bool is_free = row->is_free;
+      Bool is_dynamic = row->is_dynamic;
+
+      if(is_free || (!is_dynamic)) {
+	return TRUE;
+      }
+      else {
+	return FALSE;
+      }
+    }
+  }
+
+  return TRUE;
 }
 
 Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
   int i = log->size - 1;
   if(address == ((long) NULL)){
-      return FALSE;
+    return FALSE;
   }
 
   for(; i >= 0; i--) {
@@ -66,10 +66,10 @@ Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
       Bool is_dynamic = row->is_dynamic;
 
       if(is_free || (!is_dynamic)) {
-	      return TRUE;
+	return TRUE;
       }
       else {
-	      return FALSE;
+	return FALSE;
       }
     }
   }
@@ -79,24 +79,24 @@ Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
 
 
 LIST_LOG_ROW new_list_row  (long memory_address, long memory_address_points_to,
-  unsigned scope, Bool is_dynamic, Bool is_free, unsigned line_number,
-  const char* name, const char* function_name, unsigned step) {
-    LIST_LOG_ROW row;
-    row.id = 0;
-    row.is_dynamic = is_dynamic;
-    row.is_free = is_free;
-    row.line_number = line_number;
-    row.memory_address = memory_address;
-    row.memory_address_points_to = memory_address_points_to;
-    row.scope = scope;
-    row.var_name = name;
-    row.function_name = function_name;
-    row.step_on_execution = step;
-    return row;
+			    unsigned scope, Bool is_dynamic, Bool is_free, unsigned line_number,
+			    const char* name, const char* function_name, unsigned step) {
+  LIST_LOG_ROW row;
+  row.id = 0;
+  row.is_dynamic = is_dynamic;
+  row.is_free = is_free;
+  row.line_number = line_number;
+  row.memory_address = memory_address;
+  row.memory_address_points_to = memory_address_points_to;
+  row.scope = scope;
+  row.var_name = name;
+  row.function_name = function_name;
+  row.step_on_execution = step;
+  return row;
 }
 
 void list_log_to_file(MAP2CHECK_CONTAINER* list) {
-    FILE* output = fopen(list_log_file, "w");
+  FILE* output = fopen(list_log_file, "w");
   // fprintf(output, "id;memory address;points to;scope;is free;is dynamic;function name\n");
   int i = 0;
   for(;i< list->size; i++) {

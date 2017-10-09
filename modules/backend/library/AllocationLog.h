@@ -1,7 +1,7 @@
 /**********************************************************************
-* This file contains all methods that are used for the AllocationLog  *
-* which is a structure that contains all memory operations            *
-***********************************************************************/
+ * This file contains all methods that are used for the AllocationLog  *
+ * which is a structure that contains all memory operations            *
+ ***********************************************************************/
 #include "Map2CheckTypes.h"
 #include "Container.h"
 

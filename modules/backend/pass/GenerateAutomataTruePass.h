@@ -22,6 +22,23 @@
 using namespace llvm;
 namespace Tools = Map2Check::Tools;
 
+//Struct to save automata data
+typedef struct obj1
+{
+
+  /** Current ID */
+  unsigned id;
+  // start line
+  long startline;
+  // is a control condition 
+  Bool is_control;
+  // source code snap
+  std::string sourcecode;
+  // is a enter loop
+  Bool is_enterloop;
+} LIST_AUTOMATA;
+
+
 struct GenerateAutomataTruePass : public FunctionPass 
 {
     static char ID;
@@ -47,6 +64,7 @@ struct GenerateAutomataTruePass : public FunctionPass
     private:
     //methods
     //attr
+
     std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
     std::vector<int> assertListLoc;
     bool isTrackingFunction;

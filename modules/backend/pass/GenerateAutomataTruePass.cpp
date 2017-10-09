@@ -1,5 +1,7 @@
 #include "GenerateAutomataTruePass.h"
 
+const char* list_autotr_file = "list_true_automata.csv";
+
 bool GenerateAutomataTruePass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;  

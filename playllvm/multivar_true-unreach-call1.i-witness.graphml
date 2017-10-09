@@ -63,78 +63,64 @@ xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns/graphml">
 <node id="N10"/>
 <node id="N11"/>
 <edge id="E0" source="N0" target="N1">
-<data key="endline">10</data>
 <data key="startline">10</data>
 <data key="sourcecode">unsigned int x = __VERIFIER_nondet_uint();</data>
 </edge>
 <edge id="E1" source="N1" target="N2">
-<data key="endline">10</data>
 <data key="startline">10</data>
 <data key="sourcecode">__VERIFIER_nondet_uint()</data>
 </edge>
 <edge id="E2" source="N2" target="N3">
-<data key="endline">11</data>
 <data key="enterLoopHead">true</data>
 <data key="startline">11</data>
 <data key="sourcecode">unsigned int y = x;</data>
 </edge>
 <edge id="E3" source="N3" target="N4">
-<data key="endline">12</data>
 <data key="startline">12</data>
 <data key="control">condition-true</data>
 <data key="sourcecode">[x &lt; 1024]</data>
 </edge>
 <edge id="E4" source="N3" target="N5">
-<data key="endline">12</data>
 <data key="startline">12</data>
 <data key="control">condition-false</data>
 <data key="sourcecode">[!(x &lt; 1024)]</data>
 </edge>
 <edge id="E5" source="N4" target="N6">
-<data key="endline">16</data>
 <data key="startline">16</data>
 <data key="sourcecode">__VERIFIER_assert(x == y)</data>
 </edge>
 <edge id="E6" source="N4" target="N7">
-<data key="endline">16</data>
 <data key="startline">16</data>
 <data key="sourcecode">__VERIFIER_assert(x == y)</data>
 </edge>
 <edge id="E7" source="N5" target="N8">
-<data key="endline">13</data>
 <data key="startline">13</data>
 <data key="sourcecode">x++</data>
 </edge>
 <edge id="E8" source="N7" target="N9">
-<data key="endline">4</data>
 <data key="startline">4</data>
 <data key="control">condition-true</data>
 <data key="sourcecode">[!(cond)]</data>
 </edge>
 <edge id="E9" source="N7" target="N10">
-<data key="endline">4</data>
 <data key="startline">4</data>
 <data key="control">condition-false</data>
 <data key="sourcecode">[!(!(cond))]</data>
 </edge>
 <edge id="E10" source="N8" target="N3">
-<data key="endline">14</data>
 <data key="enterLoopHead">true</data>
 <data key="startline">14</data>
 <data key="sourcecode">y++</data>
 </edge>
 <edge id="E11" source="N9" target="N11">
-<data key="endline">5</data>
 <data key="startline">5</data>
 <data key="sourcecode">__VERIFIER_error()</data>
 </edge>
 <edge id="E12" source="N9" target="N10">
-<data key="endline">5</data>
 <data key="startline">5</data>
 <data key="sourcecode">__VERIFIER_error()</data>
 </edge>
 <edge id="E13" source="N10" target="N6">
-<data key="endline">16</data>
 <data key="startline">16</data>
 <data key="sourcecode">__VERIFIER_assert(x == y)</data>
 </edge>

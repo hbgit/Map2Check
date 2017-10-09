@@ -57,7 +57,7 @@
    <data key="entry">true</data>
   </node>
   <node id="N22">
-   <data key="invariant">(y == x)</data>
+   <data key="invariant">y == x</data>
    <data key="invariant.scope">main</data>
   </node>
   <edge source="N9" target="N22">

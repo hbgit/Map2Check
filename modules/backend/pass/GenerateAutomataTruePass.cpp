@@ -6,38 +6,55 @@ bool GenerateAutomataTruePass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;  
 
-    errs() << "========== Function: " << this->currentFunction->getName() << "\n";
-    if(this->currentFunction->getName() == "main")
-    {
-        errs() << ">>> Entry Point \n";
-    }
-    //for (auto& B : F) {
-    // errs() << B.getName();
-    /**
-      for (auto& I : B) {     			
-
-    //I.dump();
-
-    if(auto* iCmpInst = dyn_cast<ICmpInst>(&I))
-    {
-    //if ( strcmp(I.getOperand(0)->getName().str().c_str(), "icmp") == 0 ){					
-    I.dump();				
-    errs() << " <<< \n";				
-
-    errs() << iCmpInst->getOpcodeName() << '\t'; 
-    errs() << iCmpInst->getPredicate() << '\t'; 				
-
-    }
-    }  **/  
+    //errs() << "========== Function: " << this->currentFunction->getName() << "\n";
+    this->st_currentFunctionName = this->currentFunction->getName();
 
     for(auto& B: F)
     {
 
         //BasicBlock basicB = i;  
         this->runOnBasicBlock(B, this->Ctx); 
+        this->printStateData();
+
     }
 
     return true;
+}
+
+/**
+void GenerateAutomataTruePass::resetStateData()
+{
+    st_lastBlockInst=;  
+    std::string st_currentFunctionName;
+    int st_numLineEntryPoint;
+    int st_startline;
+    int st_numLine2NextSt;
+    std::string st_sourceCodeLine;
+    std::string st_controlCode;
+    bool st_isEntryPoint = false;
+
+}**/
+
+
+void GenerateAutomataTruePass::printStateData()
+{
+    if(this->enableDataBlk)
+    {  
+        ofstream filest;
+        filest.open("automata_list_log.csv", std::ios_base::app);
+        filest << this->st_currentFunctionName << "@";
+        filest << this->st_startline << "@";
+        filest << this->st_sourceCodeLine << "@";
+        if(this->st_isControl){
+            filest << this->st_controlCode << "@1@";
+        }else{
+            filest << "NONE@0@";
+        }
+        filest << this->st_isEntryPoint << "\n";
+        filest.close();
+    }
+
+    //To write the automata the flow should be using the function name and its call
 }
 
 
@@ -51,20 +68,10 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
     //BasicBlock::iterator instFromBB;
     this->firstBlockInst = B.begin();
-    this->lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
-    bool enableDataBlk = false;
+    this->st_lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
+    this->enableDataBlk = false;
     bool isCond = false;
-    /**
-    if(!B.hasName()){
-        B.printAsOperand(errs(), false);
-        StringRef bbName(B.getName());
-        this->labelBasicBlock = bbName;
-        //errs() << "<<< Basic Block Name" << this->labelBasicBlock << "\n";
-    }else{
-        this->labelBasicBlock = B.getName();
-        //errs() << "<<< Basic Block Name" << this->labelBasicBlock << "\n";
-    }**/
-
+    
 
     //Identifying asserts on analayzed code
     this->identifyAssertLoc(B);   
@@ -74,6 +81,7 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
         // Create a method to get info from branches in the block for condition-true and false     
         isCond = this->isBranchCond(B);
+        this->st_isControl = isCond;
 
         if(B.size() > 1)
         {
@@ -83,68 +91,87 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
             //Checking if the last instruction in the basic block is a br instruction,i.e., 
             //this br instrucion 
-            //TODO: Identify if the last line of the file is a valid code to witness
-            if(auto* tI = dyn_cast<TerminatorInst>(&*this->lastBlockInst))
+            //Identify if the last line of the file is a valid code to witness
+            if(auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst))
             {
                 if(tI->getOpcodeName() == "br")
                 {
-                    --this->lastBlockInst;
+                    --this->st_lastBlockInst;
                     //errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
-                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->lastBlockInst);
-                    errs() << "startline  1: " << debugInfoLa.getLineNumberInt() << "\n"; 
-                    errs() << "sourcecode 1: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
+                    //errs() << "startline  1: " << debugInfoLa.getLineNumberInt() << "\n"; 
+                    this->st_startline = debugInfoLa.getLineNumberInt();
+                    //errs() << "sourcecode 1: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+                    this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
+
 
                 }else{
                     //errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
                     //errs() << this->lastBlockInst->getOpcodeName() << "\n";
                     //empty line in the source code
-                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->lastBlockInst);
+                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
 
                     if(this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()).empty())
                     {
                         //errs() << "Empty \n" ;
                         int numline = debugInfoLa.getLineNumberInt() - 1;
-                        errs() << "startline  2: " << numline << "\n";
+                        //errs() << "startline  2: " << numline << "\n";
+                        this->st_startline = numline;
                         //errs() << "startline  2: " << debugInfoLa.getLineNumberInt() << "\n"; 
-                        errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(numline) << "\n";
+                        //errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(numline) << "\n";
+                        this->st_sourceCodeLine = this->sourceCodeHelper->getLine(numline);
 
                     }else{
-                        errs() << "startline  2: " << debugInfoLa.getLineNumberInt() << "\n"; 
-                        errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+                        //errs() << "startline  2: " << debugInfoLa.getLineNumberInt() << "\n"; 
+                        this->st_startline = debugInfoLa.getLineNumberInt();
+                        //errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+                        this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
                                                 
                     }
 
                 }
             }
-            enableDataBlk = true;
+            this->enableDataBlk = true;
 
         }else{
             //In case this unique instruction be a "br" then we remove this basic block 
-            if(auto* tI = dyn_cast<TerminatorInst>(&*this->lastBlockInst))
+            if(auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst))
             {
                 if(tI->getOpcodeName() != "br")
                 {
                     //errs() << "First and Last InstBB: "<< this->firstBlockInst->getOpcodeName() << "\n";        
-                    this->lastBlockInst = this->firstBlockInst;
-                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->lastBlockInst);
-                    errs() << "startline  3: " << debugInfoLa.getLineNumberInt() << "\n"; 
-                    errs() << "sourcecode 3: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
-
-                    enableDataBlk = true;
+                    this->st_lastBlockInst = this->firstBlockInst;
+                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
+                    //errs() << "startline  3: " << debugInfoLa.getLineNumberInt() << "\n"; 
+                    this->st_startline = debugInfoLa.getLineNumberInt();
+                    //errs() << "sourcecode 3: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+                    this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
+                    this->enableDataBlk = true;
                 }
             }
 
         }
     }
 
-    if(enableDataBlk)
+    if(this->enableDataBlk)
     {
         //this->visitInstruction(i);
-        DebugInfo debugInfo(Ctx, (Instruction*)this->lastBlockInst);
+        if(this->currentFunction->getName() == "main") 
+        {
+            if(this->countEntryPoint == 1 && this->st_isEntryPoint == false)
+            {
+                this->st_isEntryPoint = true;
+                this->countEntryPoint++;
+            }else{
+                this->st_isEntryPoint = false;
+            }                        
+        }
+        //DebugInfo debugInfo(Ctx, (Instruction*)this->st_lastBlockInst);
         //errs() << "Line number to the next block: " << *debugInfo.getLineNumberValue() <<"\n";
-        errs() << ">>>Line number to the next block: " << debugInfo.getLineNumberInt() <<"\n";
+        //errs() << ">>>Line number to the next block: " << debugInfo.getLineNumberInt() <<"\n";
+        //this->st_numLine2NextSt = debugInfo.getLineNumberInt();
         //std::cout << "---This is a block divider--- block with: " << B.size() << " instructions" << std::endl;    
-        errs() << "---------------------- \n";
+        //errs() << "---------------------- \n";
     }
 }
 
@@ -187,7 +214,8 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
             iT =  std::find(this->assertListLoc.begin(), this->assertListLoc.end(), debugInfoBi.getLineNumberInt()); 
             if ( !(iT != this->assertListLoc.end()) )
             {
-                errs() << "control : " << this->convertLLPredicatetoXmlText(I) << "\n";
+                //errs() << "control : " << this->convertLLPredicatetoXmlText(I) << "\n";
+                this->st_controlCode = this->convertLLPredicatetoXmlText(I);
                 return true;
             }
             /**else{

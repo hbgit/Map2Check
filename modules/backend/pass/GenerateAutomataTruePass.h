@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <stdexcept>
 #include <vector>
 
@@ -21,22 +22,6 @@
 
 using namespace llvm;
 namespace Tools = Map2Check::Tools;
-
-//Struct to save automata data
-typedef struct obj1
-{
-
-  /** Current ID */
-  unsigned id;
-  // start line
-  long startline;
-  // is a control condition 
-  Bool is_control;
-  // source code snap
-  std::string sourcecode;
-  // is a enter loop
-  Bool is_enterloop;
-} LIST_AUTOMATA;
 
 
 struct GenerateAutomataTruePass : public FunctionPass 
@@ -60,11 +45,25 @@ struct GenerateAutomataTruePass : public FunctionPass
     std::string convertLLPredicatetoXmlText(Instruction& I);
     std::string getPredicateSymOnXmlText(ICmpInst& icmpInst);
     void identifyAssertLoc(BasicBlock& B);
+    void printStateData();
+    void resetStateData();
 
-    private:
-    //methods
-    //attr
+    private:    
+    //attr to automata state
+    BasicBlock::iterator st_lastBlockInst;  
+    std::string st_currentFunctionName;
+    int st_numLineEntryPoint;
+    int st_startline;
+    int st_numLine2NextSt=0;
+    std::string st_sourceCodeLine;
+    std::string st_controlCode;
+    bool st_isControl = false;
+    bool st_isEntryPoint = false;
 
+    //others
+    bool enableDataBlk = false;
+    int countEntryPoint = 1;
+    Function* currentFunction;
     std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
     std::vector<int> assertListLoc;
     bool isTrackingFunction;
@@ -76,12 +75,10 @@ struct GenerateAutomataTruePass : public FunctionPass
     std::string cprogram_path;
     bool mainFunctionInitialized = false;
     std::vector<Function*> functionsValues;
-    Function* currentFunction;
     DataLayout* currentDataLayout;
     Function* mainFunction;  
     BasicBlock::iterator currentInstruction;
     BasicBlock::iterator lastInstructionMain;  
-    BasicBlock::iterator lastBlockInst;  
     BasicBlock::iterator firstBlockInst;  
 
     ConstantInt* scope_value;

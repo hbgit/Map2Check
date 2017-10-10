@@ -1,0 +1,6 @@
+__VERIFIER_assert@4@  if (!(cond)) {@[ ! 0]@1@0
+__VERIFIER_assert@7@  return;@NONE@0@0
+main@11@  unsigned int y = x;@NONE@0@1
+main@12@  while (x < 1024) {@[x &lt; 1024]@1@0
+main@14@    y++;@NONE@0@0
+main@16@  __VERIFIER_assert(x == y);@NONE@0@0

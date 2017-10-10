@@ -137,12 +137,12 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
 
 
 int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_comp){
-    Map2Check::Log::Debug("Applying NonDetPass\n");
-    
-    // TODO: Added pass to generate_automata_true    
-    AnalysisPasses.add(new GenerateAutomataTruePass(target_function, this->cprogram_fullpath)); //DOING    
-    
-    /**AnalysisPasses.add(new NonDetPass());
+
+    //Pass to generate_automata_true    
+    AnalysisPasses.add(new GenerateAutomataTruePass(target_function, this->cprogram_fullpath));
+
+    Map2Check::Log::Debug("Applying NonDetPass\n");       
+    AnalysisPasses.add(new NonDetPass());
     switch(mode) {
     case (Map2CheckMode::REACHABILITY_MODE):
         Map2Check::Log::Debug("Starting target pass with function " + target_function );
@@ -153,7 +153,7 @@ int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_co
     }
 
     Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
-    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));**/
+    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
     AnalysisPasses.run(*M);
     return 1;
 

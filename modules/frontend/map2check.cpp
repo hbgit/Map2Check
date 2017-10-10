@@ -236,11 +236,7 @@ int main(int argc, char** argv)
         }
 
         // END CHECKING OPERATION MODE
-		//STOP execution to test GenerateAutomataTruePass                
-        exit (EXIT_FAILURE);
-
-
-
+		
 	    caller->genByteCodeFile();
         if ( vm.count("generate-instrumentated-only")  )
           {

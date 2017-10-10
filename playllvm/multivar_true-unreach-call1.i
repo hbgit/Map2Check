@@ -8,7 +8,7 @@ void __VERIFIER_assert(int cond) {
 }
 int main(void) {
   unsigned int x = __VERIFIER_nondet_uint();
-  unsigned int y = x;
+  unsigned int y = x;  
   while (x < 1024) {
     x++;
     y++;

@@ -137,10 +137,9 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
 
 
 int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_comp){
-
-    //Pass to generate_automata_true    
-    AnalysisPasses.add(new GenerateAutomataTruePass(target_function, this->cprogram_fullpath));
-
+	//Pass to generate_automata_true    
+    AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));
+   
     Map2Check::Log::Debug("Applying NonDetPass\n");       
     AnalysisPasses.add(new NonDetPass());
     switch(mode) {
@@ -153,7 +152,8 @@ int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_co
     }
 
     Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
-    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
+    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));   
+    
     AnalysisPasses.run(*M);
     return 1;
 

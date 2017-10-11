@@ -1,48 +1,29 @@
 #include "GenerateAutomataTruePass.h"
 
-const char* list_autotr_file = "list_true_automata.csv";
-
 bool GenerateAutomataTruePass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;  
 
-    //errs() << "========== Function: " << this->currentFunction->getName() << "\n";
     this->st_currentFunctionName = this->currentFunction->getName();
 
     for(auto& B: F)
     {
 
-        //BasicBlock basicB = i;  
         this->runOnBasicBlock(B, this->Ctx); 
         this->printStateData();
 
     }
 
-    return true;
+    return false;
 }
-
-/**
-void GenerateAutomataTruePass::resetStateData()
-{
-    st_lastBlockInst=;  
-    std::string st_currentFunctionName;
-    int st_numLineEntryPoint;
-    int st_startline;
-    int st_numLine2NextSt;
-    std::string st_sourceCodeLine;
-    std::string st_controlCode;
-    bool st_isEntryPoint = false;
-
-}**/
-
 
 void GenerateAutomataTruePass::printStateData()
 {
     if(this->enableDataBlk)
     {  
         ofstream filest;
-        filest.open("automata_list_log.csv", std::ios_base::app);
-        filest << this->st_currentFunctionName << "@";
+        filest.open("automata_list_log.st", std::ios_base::app);
+        filest << this->st_currentFunctionName << "@";        
         filest << this->st_startline << "@";
         filest << this->st_sourceCodeLine << "@";
         if(this->st_isControl){
@@ -59,20 +40,13 @@ void GenerateAutomataTruePass::printStateData()
 
 
 void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) 
-{
-    //B.dump();    
-    //Instruction I = dyn_cast<Instruction>(&B.end());
-    // Get the first and the last instruction of the BasicBlock 
-    // Check if the Block has size greater then 1, otherwise the last instruction 
-    // will be the first one 
-
-    //BasicBlock::iterator instFromBB;
+{    
+    
     this->firstBlockInst = B.begin();
     this->st_lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
     this->enableDataBlk = false;
     bool isCond = false;
     
-
     //Identifying asserts on analayzed code
     this->identifyAssertLoc(B);   
 
@@ -85,48 +59,29 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
         if(B.size() > 1)
         {
-            //errs() << "First InstBB: " << this->firstBlockInst->getOpcodeName() << "\n";
-            //DebugInfo debugInfoFi(this->Ctx, (Instruction*)this->firstBlockInst);
-            //errs() << this->sourceCodeHelper->getLine(debugInfoFi.getLineNumberInt()) << "\n";
-
-            //Checking if the last instruction in the basic block is a br instruction,i.e., 
-            //this br instrucion 
-            //Identify if the last line of the file is a valid code to witness
+            
             if(auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst))
             {
                 if(tI->getOpcodeName() == "br")
                 {
-                    --this->st_lastBlockInst;
-                    //errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
-                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
-                    //errs() << "startline  1: " << debugInfoLa.getLineNumberInt() << "\n"; 
-                    this->st_startline = debugInfoLa.getLineNumberInt();
-                    //errs() << "sourcecode 1: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+                    --this->st_lastBlockInst;            
+                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
+                    this->st_startline = debugInfoLa.getLineNumberInt();            
                     this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
 
-
                 }else{
-                    //errs() << "Last  InstBB: " << this->lastBlockInst->getOpcodeName() << "\n";                
-                    //errs() << this->lastBlockInst->getOpcodeName() << "\n";
                     //empty line in the source code
                     DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
 
                     if(this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()).empty())
                     {
-                        //errs() << "Empty \n" ;
                         int numline = debugInfoLa.getLineNumberInt() - 1;
-                        //errs() << "startline  2: " << numline << "\n";
                         this->st_startline = numline;
-                        //errs() << "startline  2: " << debugInfoLa.getLineNumberInt() << "\n"; 
-                        //errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(numline) << "\n";
                         this->st_sourceCodeLine = this->sourceCodeHelper->getLine(numline);
 
                     }else{
-                        //errs() << "startline  2: " << debugInfoLa.getLineNumberInt() << "\n"; 
                         this->st_startline = debugInfoLa.getLineNumberInt();
-                        //errs() << "sourcecode 2: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
-                        this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
-                                                
+                        this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());                                              
                     }
 
                 }
@@ -139,12 +94,9 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
             {
                 if(tI->getOpcodeName() != "br")
                 {
-                    //errs() << "First and Last InstBB: "<< this->firstBlockInst->getOpcodeName() << "\n";        
                     this->st_lastBlockInst = this->firstBlockInst;
                     DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
-                    //errs() << "startline  3: " << debugInfoLa.getLineNumberInt() << "\n"; 
-                    this->st_startline = debugInfoLa.getLineNumberInt();
-                    //errs() << "sourcecode 3: " << this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()) << "\n";
+					this->st_startline = debugInfoLa.getLineNumberInt();
                     this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
                     this->enableDataBlk = true;
                 }
@@ -166,12 +118,7 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
                 this->st_isEntryPoint = false;
             }                        
         }
-        //DebugInfo debugInfo(Ctx, (Instruction*)this->st_lastBlockInst);
-        //errs() << "Line number to the next block: " << *debugInfo.getLineNumberValue() <<"\n";
-        //errs() << ">>>Line number to the next block: " << debugInfo.getLineNumberInt() <<"\n";
-        //this->st_numLine2NextSt = debugInfo.getLineNumberInt();
-        //std::cout << "---This is a block divider--- block with: " << B.size() << " instructions" << std::endl;    
-        //errs() << "---------------------- \n";
+        
     }
 }
 
@@ -179,13 +126,14 @@ void GenerateAutomataTruePass::identifyAssertLoc(BasicBlock& B)
 {
     for( auto& I : B )
     {
-        if(auto* cI = dyn_cast<CallInst>(&I))
-        {
-            //errs() << cI->getCalledValue()->getName() << "\n";
-            if(cI->getCalledValue()->getName() == "__VERIFIER_assert")
+        if(auto* cI = dyn_cast<CallInst>(&I))        
+        {   			
+			Value* v = cI->getCalledValue();	
+			Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());			
+			//errs() << caleeFunction->getName() << "\n";			
+            if(caleeFunction->getName() == "__VERIFIER_assert")
             {
-                DebugInfo debugInfoCi(this->Ctx, cI);
-                //errs() << debugInfoCi.getLineNumberInt() << "\n";
+                DebugInfo debugInfoCi(this->Ctx, cI);         
                 this->assertListLoc.push_back(debugInfoCi.getLineNumberInt());
             }
 
@@ -364,7 +312,9 @@ bool GenerateAutomataTruePass::checkBBHasLError(BasicBlock& nowB)
         if(CallInst* callInst = dyn_cast<CallInst>(&I))
         {
             //errs() << callInst->getCalledFunction()->getName() << "\n";
-            if(callInst->getCalledFunction()->getName() ==  "__VERIFIER_error")
+            Value* v = callInst->getCalledValue();	
+			Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+            if(caleeFunction->getName() ==  "__VERIFIER_error")
             {
                 return true;
             }
@@ -375,7 +325,7 @@ bool GenerateAutomataTruePass::checkBBHasLError(BasicBlock& nowB)
     return false;
 }
 
-char GenerateAutomataTruePass::ID = 5;
+char GenerateAutomataTruePass::ID = 20;
 static RegisterPass<GenerateAutomataTruePass> X("generate_automata_true", "Generate Automata True");
 
 

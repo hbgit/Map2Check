@@ -1,2 +1,0 @@
-KLEE: ERROR: /home/map2check/devel_tool/mygitclone/preprocessed.c:10: failed external call: __VERIFIER_nondet_uint
-KLEE: NOTE: now ignoring this error at this location

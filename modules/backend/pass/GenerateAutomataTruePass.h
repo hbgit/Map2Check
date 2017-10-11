@@ -28,11 +28,9 @@ struct GenerateAutomataTruePass : public FunctionPass
 {
     static char ID;
     GenerateAutomataTruePass() : FunctionPass(ID) {}
-    GenerateAutomataTruePass(std::string function, std::string cprogram_path) : FunctionPass(ID) 
-    {
-        this->target_function = function;
-        this->cprogram_path = cprogram_path;
-        this->isTrackingFunction = true;    
+    GenerateAutomataTruePass(std::string cprogram_path) : FunctionPass(ID) 
+    {        
+        this->cprogram_path = cprogram_path;        
         this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(Tools::SourceCodeHelper(cprogram_path));
     }
 
@@ -65,24 +63,11 @@ struct GenerateAutomataTruePass : public FunctionPass
     int countEntryPoint = 1;
     Function* currentFunction;
     std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
-    std::vector<int> assertListLoc;
-    bool isTrackingFunction;
-    bool intervals;
-    StringRef labelBranchCondTrue;
-    StringRef labelBranchCondFalse;
-    StringRef labelBasicBlock;
-    std::string target_function;
-    std::string cprogram_path;
-    bool mainFunctionInitialized = false;
-    std::vector<Function*> functionsValues;
-    DataLayout* currentDataLayout;
-    Function* mainFunction;  
+    std::vector<int> assertListLoc;        
+    std::string cprogram_path;    
     BasicBlock::iterator currentInstruction;
     BasicBlock::iterator lastInstructionMain;  
     BasicBlock::iterator firstBlockInst;  
-
-    ConstantInt* scope_value;
-    ConstantInt* line_value;
     LLVMContext* Ctx;
 };
 

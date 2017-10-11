@@ -9,6 +9,7 @@ void __VERIFIER_assert(int cond) {
 int main(void) {
   unsigned int x = __VERIFIER_nondet_uint();
   unsigned int y = x;  
+  __VERIFIER_assume(x < 1024);
   while (x < 1024) {
     x++;
     y++;

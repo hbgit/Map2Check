@@ -122,7 +122,8 @@ namespace Map2Check::Tools {
     CHAR,    
     POINTER,
     USHORT,
-    LONG
+    LONG,
+    UNSIGNED
   };
     
 
@@ -147,7 +148,7 @@ namespace Map2Check::Tools {
 
     operator std::string() const {
         std::ostringstream cnvt;
-        cnvt.str("");
+        cnvt.str("");        
 	switch(type) {
 	case KleeLogType::INTEGER:
 	  cnvt << "  Call Function  : " << "__VERIFIER_nondet_int()"<< "\n";
@@ -163,6 +164,9 @@ namespace Map2Check::Tools {
 	  break;
 	case KleeLogType::LONG:
 	  cnvt << "  Call Function  : " << "__VERIFIER_nondet_long()"<< "\n";
+	  break;
+	case KleeLogType::UNSIGNED:
+	  cnvt << "  Call Function  : " << "__VERIFIER_nondet_uint()"<< "\n";
 	  break;
 	}        
 	cnvt << "  Value          : " << this->value << "\n";        

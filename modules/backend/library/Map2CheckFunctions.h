@@ -28,6 +28,7 @@ void map2check_error();
 void map2check_check_deref(int line, const char* function_name);
 
 void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name);
+void map2check_klee_unsigned(unsigned line, unsigned scope, unsigned value, const char* function_name);
 /**
  * Track pointer pointer for LIST_LOG (this function is to be used for instrumentation)
  * @param x     Address of current pointer
@@ -53,6 +54,7 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope, const c
  * @return An integer representing a non deterministic value
  */
 int map2check_non_det_int();
+int map2check_non_det_uint();
 
 /**
  * Tracks execution of a specific function (this function is to be used for instrumentation)

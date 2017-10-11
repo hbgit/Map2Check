@@ -18,6 +18,7 @@
 class KleeFunctions {
 
   Constant* KleeInteger = NULL;
+  Constant* KleeUnsigned = NULL;
   Constant* KleeChar = NULL;
   Constant* KleePointer = NULL;
   Constant* KleeLong = NULL;
@@ -26,6 +27,7 @@ class KleeFunctions {
 
 public:
   Constant* getKleeIntegerFunction() { return this->KleeInteger; }
+  Constant* getKleeUnsignedFunction() { return this->KleeUnsigned; }
   Constant* getKleeCharFunction() { return this->KleeChar; }
   Constant* getKleePointerFunction() { return this->KleePointer; }
   Constant* getKleeLongFunction() { return this->KleeLong; }
@@ -34,6 +36,15 @@ public:
   KleeFunctions(Function *F, LLVMContext* Ctx) {
     this->KleeInteger = F->getParent()->
       getOrInsertFunction("map2check_klee_int",
+            Type::getVoidTy(*Ctx),
+        Type::getInt32Ty(*Ctx),
+        Type::getInt32Ty(*Ctx),
+        Type::getInt32Ty(*Ctx),
+            Type::getInt8PtrTy(*Ctx),
+            NULL);
+            
+    this->KleeUnsigned = F->getParent()->
+      getOrInsertFunction("map2check_klee_unsigned",
             Type::getVoidTy(*Ctx),
         Type::getInt32Ty(*Ctx),
         Type::getInt32Ty(*Ctx),

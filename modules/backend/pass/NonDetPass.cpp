@@ -47,6 +47,16 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext* Ctx) {
   else if ((caleeFunction->getName() == "map2check_non_det_int")) {
 	  this->instrumentKleeInt(callInst, Ctx);
   }
+  
+  else if ((caleeFunction->getName() == "__VERIFIER_nondet_uint")) {
+    this->instrumentKlee(NonDetType::UNSIGNED, caleeFunction);
+    this->instrumentKleeUnsigned(callInst, Ctx);
+  }
+  
+  else if ((caleeFunction->getName() == "map2check_non_det_uint")) {
+    this->instrumentKlee(NonDetType::UNSIGNED, caleeFunction);
+    this->instrumentKleeUnsigned(callInst, Ctx);
+  }
 
   else if ((caleeFunction->getName() == "__VERIFIER_nondet_char")) {
     this->instrumentKlee(NonDetType::CHAR, caleeFunction);
@@ -94,6 +104,12 @@ void NonDetPass::instrumentKlee(NonDetType nonDetType, Function *caleeFunction) 
             caleeFunction->setName(non_det_int);
             break;
         }
+        case (NonDetType::UNSIGNED):
+        {
+            Twine non_det_uint("map2check_non_det_uint");
+            caleeFunction->setName(non_det_uint);
+            break;
+        }
          case (NonDetType::CHAR):{
              Twine non_det_char("map2check_non_det_char");
              caleeFunction->setName(non_det_char);
@@ -138,6 +154,25 @@ void NonDetPass::instrumentKleeInt(CallInst* callInst, LLVMContext* Ctx) {
 
 
   Constant* KleeFunction = this->kleeFunctions->getKleeIntegerFunction();
+  builder.CreateCall(KleeFunction, args);
+}
+
+void NonDetPass::instrumentKleeUnsigned(CallInst* callInst, LLVMContext* Ctx) {
+  auto j = this->currentInstruction;
+  j++;
+  IRBuilder<> builder((Instruction*)j);
+  Value* function_llvm = this->getFunctionNameValue();
+  DebugInfo debugInfo(Ctx, callInst);
+
+  Value* args[] = {
+    debugInfo.getLineNumberValue(),
+    debugInfo.getScopeNumberValue(),
+    callInst,
+    function_llvm
+     };
+
+
+  Constant* KleeFunction = this->kleeFunctions->getKleeUnsignedFunction();
   builder.CreateCall(KleeFunction, args);
 }
 

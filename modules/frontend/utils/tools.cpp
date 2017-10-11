@@ -244,7 +244,7 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(string pa
          string functionName = tokens[3];
          string step = tokens[4];
          string value = tokens[5];
-	 string type = tokens[6];
+	 string type = tokens[6];	 
 	 switch(stoi(type)) {
 	 case 0:
 	   row.type = KleeLogType::INTEGER;
@@ -260,6 +260,9 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(string pa
 	   break;
 	 case 4:
 	   row.type = KleeLogType::LONG;
+	   break;
+	 case 5:
+	   row.type = KleeLogType::UNSIGNED;
 	   break;
 	 }
          row.id = id;

@@ -23,6 +23,7 @@
 using namespace llvm;
 
 enum class NonDetType {INTEGER,
+					   UNSIGNED,
                        POINTER,
                        STRING,
                        LONG,
@@ -45,6 +46,7 @@ protected:
 private:
   void instrumentKlee(NonDetType type, Function *caleeFunction);
   void instrumentKleeInt(CallInst* callInst, LLVMContext* Ctx);
+  void instrumentKleeUnsigned(CallInst* callInst, LLVMContext* Ctx);
   void instrumentKleeChar(CallInst* callInst, LLVMContext* Ctx);
   void instrumentKleePointer(CallInst* callInst, LLVMContext* Ctx);
   void instrumentKleeLong(CallInst* callInst,LLVMContext* Ctx);

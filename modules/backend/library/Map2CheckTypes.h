@@ -14,7 +14,8 @@ enum PRIMITIVE_TYPE {
   PRIMITIVE_CHAR    = 1,
   PRIMITIVE_POINTER = 2,
   PRIMITIVE_USHORT  = 3,
-  PRIMITIVE_SHORT   = 4
+  PRIMITIVE_SHORT   = 4,
+  PRIMITIVE_UNSIGNED = 5
 };
 
 
@@ -29,7 +30,9 @@ enum NONDET_TYPE {
   INTEGER = 0,
   CHAR    = 1,
   POINTER = 2,
-  USHORT  = 3
+  USHORT  = 3,
+  LONG    = 4,
+  UNSIGNED = 5
 };
 
 enum Container_Type {

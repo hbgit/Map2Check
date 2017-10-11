@@ -41,6 +41,17 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
   /* klee_log_to_file(klee_log); */
 }
 
+void map2check_klee_unsigned(unsigned line, unsigned scope, unsigned value, const char* function_name) {    
+  KLEE_CALL kleeCall = new_klee_call(UNSIGNED, line, scope, value, function_name, Map2CheckCurrentStep);
+  Map2CheckCurrentStep++;
+
+  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  *row = kleeCall;
+
+  append_element(&klee_log, row);
+  /* klee_log_to_file(klee_log); */
+}
+
 
 void map2check_klee_char(unsigned line, unsigned scope, int value, const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
@@ -84,7 +95,7 @@ void map2check_klee_ushort(unsigned line, unsigned scope, int value, const char*
 void map2check_klee_long(unsigned line, unsigned scope, int value, const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
-  KLEE_CALL kleeCall = new_klee_call(USHORT, line, scope, value,function_name, Map2CheckCurrentStep);
+  KLEE_CALL kleeCall = new_klee_call(LONG, line, scope, value,function_name, Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
   KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
@@ -201,6 +212,22 @@ int map2check_non_det_int() {
 
   return non_det;
 }
+
+int map2check_non_det_uint() {
+  unsigned non_det;
+  klee_make_symbolic(&non_det,
+		     sizeof(non_det),
+		     "non_det_uint");
+
+  if((non_det % 2) == 0) {
+    non_det = (non_det/2) * 2;
+  } else {
+    non_det = (non_det/2) * 2 + 1;
+  }
+
+  return non_det;
+}
+
 
 char map2check_non_det_char() {
   char non_det;

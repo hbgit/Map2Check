@@ -24,7 +24,7 @@ using namespace std;
 //#include "witness/witness.hpp"
 #include "utils/gen_crypto_hash.hpp"
 
-#define Map2CheckVersion "Map2Check 7.0a"
+#define Map2CheckVersion "Map2Check 7.0a : Mon Oct  9 14:19:28 -04 2017"
 
 namespace
 {
@@ -255,6 +255,10 @@ int main(int argc, char** argv)
         Map2Check::Log::Info(" \n");
         Map2Check::Log::Info("VERIFICATION SUCCEDED \n");        
 	   	   
+	}else if(propertyViolated == tools::PropertyViolated::UNKNOWN)
+	{
+		Map2Check::Log::Info("Unable to prove or falsify the program. \n");
+        Map2Check::Log::Info("VERIFICATION UNKNOWN \n"); 
 	}else{
         
             Map2Check::Log::Info("Started counter example generation");

@@ -256,6 +256,10 @@ int main(int argc, char** argv)
         Map2Check::Log::Info(" \n");
         Map2Check::Log::Info("VERIFICATION SUCCEDED \n");        
 	   	   
+	}else if(propertyViolated == tools::PropertyViolated::UNKNOWN)
+	{
+		Map2Check::Log::Info("Unable to prove or falsify the program. \n");
+        Map2Check::Log::Info("VERIFICATION UNKNOWN \n"); 
 	}else{
         
             Map2Check::Log::Info("Started counter example generation");

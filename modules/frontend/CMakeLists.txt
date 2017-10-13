@@ -35,6 +35,7 @@ set(CMAKE_CXX_FLAGS  "${VERIFIER_FLAGS}" )
 
 add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass>
 				$<TARGET_OBJECTS:GenerateAutomataTruePass>
+				$<TARGET_OBJECTS:TrackBasicBlockPass>
                 $<TARGET_OBJECTS:NonDetPass> $<TARGET_OBJECTS:DebugInfo>
 		$<TARGET_OBJECTS:Map2CheckLibrary> $<TARGET_OBJECTS:TargetPass>
 		$<TARGET_OBJECTS:OverflowPass>

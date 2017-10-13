@@ -1,6 +1,7 @@
 //Map2Check library
 #include "../backend/pass/MemoryTrackPass.h"
 #include "../backend/pass/GenerateAutomataTruePass.h"
+#include "../backend/pass/TrackBasicBlockPass.hpp"
 #include "../backend/pass/NonDetPass.hpp"
 #include "../backend/pass/Map2CheckLibrary.hpp"
 #include "../backend/pass/TargetPass.h"
@@ -139,6 +140,8 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
 int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_comp){
 	//Pass to generate_automata_true    
     AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));
+    Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
+    AnalysisPasses.add(new TrackBasicBlockPass());
    
     Map2Check::Log::Debug("Applying NonDetPass\n");       
     AnalysisPasses.add(new NonDetPass());

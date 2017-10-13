@@ -31,4 +31,8 @@ set_target_properties(GenerateAutomataTruePass PROPERTIES
 add_library(OverflowPass OBJECT OverflowPass.cpp)
 set_target_properties(OverflowPass PROPERTIES
   COMPILE_FLAGS ${PASS_FLAGS})
+  
+add_library(TrackBasicBlockPass OBJECT TrackBasicBlockPass.cpp)
+set_target_properties(TrackBasicBlockPass PROPERTIES 
+	COMPILE_FLAGS ${PASS_FLAGS})
 

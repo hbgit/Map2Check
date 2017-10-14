@@ -12,6 +12,7 @@ execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/Heap
 execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/PropertyGenerator.c)
 execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/Map2CheckFunctions.c)
 execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/BinaryOperation.c)
+execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/TrackBBLog.c)
 
 
 # execute_process(COMMAND ${LLVM_LINK} ${PROJECT_BINARY_DIR}/AllocationLog.bc  ${PROJECT_BINARY_DIR}/Map2CheckFunctions.bc >  ${PROJECT_BINARY_DIR}/Result.bc )
@@ -26,3 +27,4 @@ install(FILES ${PROJECT_BINARY_DIR}/HeapLog.bc DESTINATION lib)
 install(FILES ${PROJECT_BINARY_DIR}/PropertyGenerator.bc DESTINATION lib)
 install(FILES ${PROJECT_BINARY_DIR}/Map2CheckFunctions.bc DESTINATION lib)
 install(FILES ${PROJECT_BINARY_DIR}/BinaryOperation.bc DESTINATION lib)
+install(FILES ${PROJECT_BINARY_DIR}/TrackBBLog.bc DESTINATION lib)

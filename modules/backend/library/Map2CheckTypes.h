@@ -39,7 +39,8 @@ enum Container_Type {
   LIST_LOG_CONTAINER,
   HEAP_LOG_CONTAINER,
   ALLOCATION_LOG_CONTAINER,
-  KLEE_LOG_CONTAINER
+  KLEE_LOG_CONTAINER,
+  TRACKBB_LOG_CONTAINER
 };
 
 enum ViolatedProperty {
@@ -150,6 +151,16 @@ struct obj5 {
 } MEMORY_HEAP_ROW;
 
 
+typedef
+/**
+ * Struct to represent the Track BB Log
+ */
+struct obj6 {
+  /** Line where operation occurred */
+  unsigned line;  
+  /** Name of the function where operation took place */
+  const char* function_name;
+} TRACK_BB_ROW;
 
 
 #endif

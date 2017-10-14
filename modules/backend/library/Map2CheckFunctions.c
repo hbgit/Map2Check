@@ -8,6 +8,7 @@ MAP2CHECK_CONTAINER list_log;
 MAP2CHECK_CONTAINER klee_log;
 MAP2CHECK_CONTAINER allocation_log;
 MAP2CHECK_CONTAINER heap_log;
+MAP2CHECK_CONTAINER trackbb_log;
 
 Bool sv_comp = FALSE;
 Bool gotError = FALSE;
@@ -19,6 +20,7 @@ void map2check_init(int isSvComp) {
   klee_log = new_container(KLEE_LOG_CONTAINER);
   allocation_log = new_container(ALLOCATION_LOG_CONTAINER);
   heap_log = new_container(HEAP_LOG_CONTAINER);
+  trackbb_log = new_container(TRACKBB_LOG_CONTAINER);
 
   if(isSvComp) {
     sv_comp = TRUE;
@@ -26,6 +28,12 @@ void map2check_init(int isSvComp) {
   write_property(UNKNOWN, 0, "");
 
   //map2check_alloca("NULL",0,1,1,1,1);
+}
+
+void map2check_track_bb(unsigned line, const char* function_name) {    
+  TRACK_BB_ROW* row = malloc(sizeof(TRACK_BB_ROW));
+  *row = trackbb_new_row(line, function_name);
+  append_element(&trackbb_log, row);
 }
 
 void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name) {  
@@ -405,6 +413,7 @@ void map2check_exit() {
   free_container(&list_log);
 
   heap_log_to_file(&heap_log);
+  trackbb_log_to_file(&trackbb_log);
   free_container(&heap_log);
 
   allocation_log_to_file(&allocation_log);

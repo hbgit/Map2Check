@@ -3,7 +3,7 @@
 bool TrackBasicBlockPass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;      
-    
+    this->libraryFunctions =  make_unique<LibraryFunctions>(&F, &F.getContext());
     for(auto& B: F)
     {
 
@@ -33,13 +33,15 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 			--this->st_lastBlockInst;            
 			DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
 			this->numLineBlk = debugInfoLa.getLineNumberInt();            
-			errs() << this->numLineBlk << "\n";			
+			errs() << this->numLineBlk << " 1 \n";	
+			this->instrumentLastInstBB(this->st_lastBlockInst);		
 
 		}else{
 			//empty line in the source code
 			DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
 			this->numLineBlk = debugInfoLa.getLineNumberInt();
-			errs() << this->numLineBlk << "\n";			
+			errs() << this->numLineBlk << " 2 \n";			
+			this->instrumentLastInstBB(this->st_lastBlockInst);
 		}
 	}		
     
@@ -47,15 +49,26 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
 void TrackBasicBlockPass::instrumentLastInstBB(BasicBlock::iterator& iT)
 {	
-	auto j = iT;
-	j++;
-	Twine track_bb("map2check_track_bb");
-	Function *caleeFunction;
-	caleeFunction->setName(track_bb);
+	/**auto j = iT;
+		
+	errs() << iT->getOpcodeName() << "\n";
+	if(iT->getOpcodeName() == "ret")
+	{
+		++j;
+	}else{
+		--j;
+	}**/
 	
-	IRBuilder<> builder((Instruction*)j);
+	//Twine track_bb("map2check_track_bb");
+	//Function *caleeFunction;
+	//caleeFunction->setName(track_bb);
+	errs() << "inst 1 \n";
+	
+	IRBuilder<> builder((Instruction*)iT);
+	errs() << "inst 2 \n";
 	Value* function_llvm = this->getFunctionNameValue();
 	DebugInfo debugInfo(this->Ctx, (Instruction*)iT);
+	
 
 	Value* args[] = {
 		debugInfo.getLineNumberValue(),	
@@ -63,6 +76,7 @@ void TrackBasicBlockPass::instrumentLastInstBB(BasicBlock::iterator& iT)
 	};
 		
 	builder.CreateCall(this->libraryFunctions->getTrackBBFunction(), args);
+	errs() << "inst 3 \n";
 }
 
 char TrackBasicBlockPass::ID = 12;

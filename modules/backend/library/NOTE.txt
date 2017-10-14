@@ -1,0 +1,14 @@
+Adding a new function to the map2check library
+
+1) The function name with its args should be added using a LLVM PASS
+	see TrackBasicBlockPass.cpp and TrackBasicBlockPass.hpp in modules/backend/pass/
+	
+2) Create the files to run the function in the execution time
+	see TrackBBLog.c and TrackBBLog.h, as well as, added the file to CMakeLists here
+	
+3) If the new function to be added needs track data from code, you should use 
+	the Container struct:
+	3.1) Create a type using Map2CheckTypes.h and a Container Type in "enum Container_Type {"
+	3.2) Update Container.c according to the code
+	3.3) Update Map2CheckFunctions.c and Map2CheckFunctions.h to track the data from code
+	3.4) Update the function void Caller::linkLLVM() in modules/frontend/caller.cpp to add the new function

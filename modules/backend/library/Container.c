@@ -25,6 +25,9 @@ Bool free_container(MAP2CHECK_CONTAINER* container) {
   case HEAP_LOG_CONTAINER:
     free((MEMORY_HEAP_ROW*)container->values);
     break;
+  case TRACKBB_LOG_CONTAINER:
+    free((TRACK_BB_ROW*)container->values);
+    break;
   }
 
   return TRUE;
@@ -48,6 +51,9 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
   case HEAP_LOG_CONTAINER:
     new_allocation_size = container->size * sizeof(MEMORY_HEAP_ROW);
     break;
+  case TRACKBB_LOG_CONTAINER:
+    new_allocation_size = container->size * sizeof(TRACK_BB_ROW);
+    break;
   }
   // printf("new allocation size: %d\n", new_allocation_size);
   void* temp_list = realloc(container->values, new_allocation_size);
@@ -55,6 +61,7 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
   LIST_LOG_ROW* list;
   MEMORY_ALLOCATIONS_ROW* allocationLog;
   MEMORY_HEAP_ROW* heapLog;
+  TRACK_BB_ROW* trackBBLog;
   KLEE_CALL* kleeLog;
   switch(container->type) {
   case LIST_LOG_CONTAINER:
@@ -73,6 +80,10 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
     heapLog = (MEMORY_HEAP_ROW*) temp_list;
     heapLog[container->size - 1] = *((MEMORY_HEAP_ROW*) row);
     break;
+  case TRACKBB_LOG_CONTAINER:
+    trackBBLog = (TRACK_BB_ROW*) temp_list;
+    trackBBLog[container->size - 1] = *((TRACK_BB_ROW*) row);
+    break;
 
   }
 
@@ -89,6 +100,7 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
   MEMORY_ALLOCATIONS_ROW* allocationLog;
   KLEE_CALL* kleeLog;
   MEMORY_HEAP_ROW* heapLog;
+  TRACK_BB_ROW* trackBBLog;
   switch(container.type) {
   case LIST_LOG_CONTAINER:            
     listLogRows = (LIST_LOG_ROW*) container.values;
@@ -102,6 +114,9 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
   case HEAP_LOG_CONTAINER:
     heapLog = (MEMORY_HEAP_ROW*) container.values;
     return (&heapLog[index]);
+  case TRACKBB_LOG_CONTAINER:
+    trackBBLog = (TRACK_BB_ROW*) container.values;
+    return (&trackBBLog[index]);
   }
   return NULL;
 }

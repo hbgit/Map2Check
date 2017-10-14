@@ -1,6 +1,7 @@
 #include "Map2CheckFunctions.h"
 #include <klee/klee.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int Map2CheckCurrentStep;
 
@@ -31,9 +32,13 @@ void map2check_init(int isSvComp) {
 }
 
 void map2check_track_bb(unsigned line, const char* function_name) {    
+  
   TRACK_BB_ROW* row = malloc(sizeof(TRACK_BB_ROW));
+  
   *row = trackbb_new_row(line, function_name);
+  
   append_element(&trackbb_log, row);
+  
 }
 
 void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name) {  

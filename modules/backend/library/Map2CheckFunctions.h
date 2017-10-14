@@ -9,6 +9,7 @@
 #include "KleeLog.h"
 #include "ListLog.h"
 #include "HeapLog.h"
+#include "TrackBBLog.h"
 #include "Map2CheckGlobals.h"
 #include "Map2CheckTypes.h"
 #include "PropertyGenerator.h"
@@ -18,6 +19,8 @@ void map2check_init(int isSvComp);
 
 /** Finalizes and exit program with error */
 void map2check_error();
+
+void map2check_track_bb(unsigned line, const char* function_name);
 
 
 /**

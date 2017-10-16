@@ -84,8 +84,8 @@ xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns/graphml">
 <data key="sourcecode">[!(x &lt; 1024)]</data>
 </edge>
 <edge id="E5" source="N4" target="N6">
-<data key="startline">16</data>
-<data key="sourcecode">__VERIFIER_assert(x == y)</data>
+<data key="startline">18</data>
+<data key="sourcecode">}</data>
 </edge>
 <edge id="E6" source="N4" target="N7">
 <data key="startline">16</data>

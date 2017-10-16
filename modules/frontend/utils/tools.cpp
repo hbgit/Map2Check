@@ -381,6 +381,44 @@ std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV
 }
 
 
+std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(string path) {
+  std::vector<Tools::TrackBBLogRow> listLog;
+  Map2Check::Log::Debug("Started reading file: " + path );
+
+  using namespace boost;
+  using namespace std;
+
+  // Open file as READ mode
+  ifstream in(path.c_str());
+  if (!in.is_open()) {
+    return listLog;
+  }
+
+   string line;
+   while (getline(in,line)) {
+       
+       std::vector<std::string> tokens;
+       boost::split(tokens, line, boost::is_any_of(";"));     
+       
+       if(tokens.size() == 2){
+           Tools::TrackBBLogRow row;
+           string numLineInBB = tokens[0];
+           string functionName = tokens[1];           
+           
+           row.numLineInBB = numLineInBB;
+           row.functionName = functionName;           
+           
+           //Map2Check::Log::Debug(row );
+           listLog.push_back(row);
+       }
+
+
+   }
+
+  return listLog;
+}
+
+
 
 const char* Tools::CheckViolatedPropertyException::what() const throw() {
   std::ostringstream cnvt;

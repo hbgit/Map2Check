@@ -23,6 +23,8 @@ namespace Map2Check::Tools {
   const string kleeLogCSV("klee_log.csv");
   /** Path to generated Correctness log file (check MemoryUtils implementation) */
   const string stateTrueLogCSV("automata_list_log.st");
+  /** Path to generated Correctness log file (check MemoryUtils implementation) */
+  const string trackBBLogCSV("track_bb_log.st");  
   /** Path to generated map2check_property file (check MemoryUtils implementation) */
   const string propertyViolationFile("map2check_property");
   /** Path to generated klee results (it is created where klee is called) */
@@ -278,6 +280,30 @@ namespace Map2Check::Tools {
      */
     static vector<StateTrueLogRow> getListLogFromCSV() {
       return StateTrueLogHelper::getListLogFromCSV(stateTrueLogCSV);
+    }
+  };
+  
+  /** Struct used to represent all rows from track_bb_log.st for true automata log CSV */
+  struct TrackBBLogRow {        
+    string numLineInBB;
+    string functionName;      
+  };
+  
+  /** Class used to get all TrackBBLogRow from a CSV file */
+  class TrackBBLogHelper {
+  public:
+    /**
+     * Reads a CSV file and returns a vector of TrackBBLogRow
+     * @param path CSV file path
+     * @return     vector of TrackBBLogRow
+     */
+    static vector<TrackBBLogRow> getListLogFromCSV(string path);
+    /**
+     * Reads a CSV file (from default path) and returns a vector of TrackBBLogRow
+     * @return     vector of TrackBBLogRow
+     */
+    static vector<TrackBBLogRow> getListLogFromCSV() {
+      return TrackBBLogHelper::getListLogFromCSV(trackBBLogCSV);
     }
   };
 

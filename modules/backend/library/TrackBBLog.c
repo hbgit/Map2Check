@@ -14,6 +14,23 @@ TRACK_BB_ROW trackbb_new_row(unsigned line, const char* function_name) {
   
 }
 
+
+Bool is_in_tracked(unsigned line, MAP2CHECK_CONTAINER* log)
+{
+	int i = log->size - 1;
+	for(; i >= 0; i--) 
+	{
+		TRACK_BB_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
+		unsigned lineN = row->line;
+		if(lineN == line)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
 void trackbb_log_to_file(MAP2CHECK_CONTAINER* list) {
   FILE* output = fopen(trackbb_log_file, "w");  
   int i = 0;

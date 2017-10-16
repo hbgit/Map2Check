@@ -33,11 +33,12 @@ void map2check_init(int isSvComp) {
 
 void map2check_track_bb(unsigned line, const char* function_name) {    
   
-  TRACK_BB_ROW* row = malloc(sizeof(TRACK_BB_ROW));
+  if(!(is_in_tracked(line, &trackbb_log))){
+		TRACK_BB_ROW* row = malloc(sizeof(TRACK_BB_ROW));  
+		*row = trackbb_new_row(line, function_name);
+		append_element(&trackbb_log, row);
+  }
   
-  *row = trackbb_new_row(line, function_name);
-  
-  append_element(&trackbb_log, row);
   
 }
 

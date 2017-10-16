@@ -85,6 +85,7 @@ std::string CorrectnessWitnessGraph::convertToString() {
     cnvt << "\t</key>\n";
 
     cnvt << "\t<key attr.name=\"witness-type\" attr.type=\"string\" for=\"graph\" id=\"witness-type\"/>\n";
+    cnvt << "\t<key attr.name=\"invariant\" attr.type=\"string\" for=\"node\" id=\"invariant\"/>";
     cnvt << "\t<key attr.name=\"sourcecodelang\" attr.type=\"string\" for=\"graph\" id=\"sourcecodelang\"/>\n";
     cnvt << "\t<key attr.name=\"producer\" attr.type=\"string\" for=\"graph\" id=\"producer\"/>\n";
     cnvt << "\t<key attr.name=\"specification\" attr.type=\"string\" for=\"graph\" id=\"specification\"/>\n";
@@ -123,6 +124,8 @@ void SVCompWitness::Testify() {
     ofstream outputFile("witness.graphml");
     outputFile << (std::string) (*this->automata);
 }
+
+
 SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, std::string targetFunction) {
     Map2Check::Log::Debug("Starting Witness Generation");
 
@@ -184,8 +187,26 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, s
     if(violationWitness) {
        this->makeViolationAutomata();
     }
+    /**else{
+	   this->makeCorrectnessAutomata();
+	}**/
 
 
+}
+
+void SVCompWitness::makeCorrectnessAutomata() 
+{
+	Map2Check::Log::Debug("Starting Automata Generation");
+    unsigned lastState = 0;
+    std::string lastStateId = "s0";
+    std::unique_ptr<Node> startNode = std::make_unique<Node>("s0");
+    lastState++;
+    
+    std::unique_ptr<NodeElement> entryNode = std::make_unique<EntryNode>();
+    startNode->AddElement(std::move(entryNode));
+
+    std::vector<Tools::StateTrueLogRow> stateTrueLogRows = Tools::StateTrueLogHelper::getListLogFromCSV();
+    
 }
 
 void SVCompWitness::makeViolationAutomata() {

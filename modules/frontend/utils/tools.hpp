@@ -249,6 +249,35 @@ namespace Map2Check::Tools {
       return ListLogHelper::getListLogFromCSV(listLogCSV);
     }
   };
+  
+  /** Struct used to represent all rows from state true automata log CSV */
+  struct StateTrueLogRow {    
+    string functionName;
+    string numLineBeginBB;
+    string numLineStart;
+    string sourceCode;
+    string controlCode;
+    string hasControlCode;
+    string isEntryPoint;  
+  };
+  
+  /** Class used to get all StateTrueLogRow from a CSV file */
+  class StateTrueLogHelper {
+  public:
+    /**
+     * Reads a CSV file and returns a vector of StateTrueLogRow
+     * @param path CSV file path
+     * @return     vector of StateTrueLogRow
+     */
+    static vector<StateTrueLogRow> getListLogFromCSV(string path);
+    /**
+     * Reads a CSV file (from default path) and returns a vector of StateTrueLogRow
+     * @return     vector of StateTrueLogRow
+     */
+    static vector<StateTrueLogRow> getListLogFromCSV() {
+      return StateTrueLogHelper::getListLogFromCSV(listLogCSV);
+    }
+  };
 
 
   class CheckViolatedPropertyException : public runtime_error {

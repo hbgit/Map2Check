@@ -62,10 +62,10 @@ void TrackBasicBlockPass::instrumentLastInstBB(BasicBlock::iterator& iT)
 	//Twine track_bb("map2check_track_bb");
 	//Function *caleeFunction;
 	//caleeFunction->setName(track_bb);
-	errs() << "inst 1 \n";
+	//errs() << "inst 1 \n";
 	
 	IRBuilder<> builder((Instruction*)iT);
-	errs() << "inst 2 \n";
+	//errs() << "inst 2 \n";
 	Value* function_llvm = this->getFunctionNameValue();
 	DebugInfo debugInfo(this->Ctx, (Instruction*)iT);
 	
@@ -76,7 +76,7 @@ void TrackBasicBlockPass::instrumentLastInstBB(BasicBlock::iterator& iT)
 	};
 		
 	builder.CreateCall(this->libraryFunctions->getTrackBBFunction(), args);
-	errs() << "inst 3 \n";
+	//errs() << "inst 3 \n";
 }
 
 char TrackBasicBlockPass::ID = 12;

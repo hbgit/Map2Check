@@ -41,6 +41,7 @@ class SVCompWitness {
 protected:
     std::unique_ptr<Graph> automata;
     void makeViolationAutomata();
+    void makeCorrectnessAutomata();
 public:
     SVCompWitness(std::string programPath, std::string programHash, std::string targetFunction = "");
     void Testify();

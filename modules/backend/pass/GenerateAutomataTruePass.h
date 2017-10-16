@@ -48,10 +48,11 @@ struct GenerateAutomataTruePass : public FunctionPass
 
     private:    
     //attr to automata state
-    BasicBlock::iterator st_lastBlockInst;  
+    BasicBlock::iterator st_lastBlockInst;      
     std::string st_currentFunctionName;
     int st_numLineEntryPoint;
     int st_startline;
+    int st_numLineBeginBB;
     int st_numLine2NextSt=0;
     std::string st_sourceCodeLine;
     std::string st_controlCode;

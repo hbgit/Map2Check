@@ -24,6 +24,7 @@ void GenerateAutomataTruePass::printStateData()
         ofstream filest;
         filest.open("automata_list_log.st", std::ios_base::app);
         filest << this->st_currentFunctionName << "@";        
+        filest << this->st_numLineBeginBB << "@";                
         filest << this->st_startline << "@";
         filest << this->st_sourceCodeLine << "@";
         if(this->st_isControl){
@@ -42,10 +43,14 @@ void GenerateAutomataTruePass::printStateData()
 void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) 
 {    
     
-    this->firstBlockInst = B.begin();
+    this->firstBlockInst = B.begin();    
     this->st_lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
     this->enableDataBlk = false;
     bool isCond = false;
+    
+    // Getting data from BB begin
+    DebugInfo debugInfoFi(this->Ctx, (Instruction*)this->firstBlockInst);            
+    this->st_numLineBeginBB = debugInfoFi.getLineNumberInt();
     
     //Identifying asserts on analayzed code
     this->identifyAssertLoc(B);   

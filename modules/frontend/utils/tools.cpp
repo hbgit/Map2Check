@@ -333,6 +333,53 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(string pa
 }
 
 
+std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV(string path) {
+  std::vector<Tools::StateTrueLogRow> listLog;
+  Map2Check::Log::Debug("Started reading file: " + path );
+
+  using namespace boost;
+  using namespace std;
+
+  // Open file as READ mode
+  ifstream in(path.c_str());
+  if (!in.is_open()) {
+    return listLog;
+  }
+
+   string line;
+   while (getline(in,line)) {
+       std::vector<std::string> tokens;
+       boost::split(tokens, line, boost::is_any_of("@"));     
+       if(tokens.size() == 7){
+           Tools::StateTrueLogRow row;
+           string functionName = tokens[0];
+           string numLineBeginBB = tokens[1];
+           string numLineStart = tokens[2];
+           string sourceCode = tokens[3];
+           string controlCode = tokens[4];
+           string hasControlCode = tokens[5];
+           string isEntryPoint = tokens[6];
+           
+           row.functionName = functionName;
+           row.numLineBeginBB = numLineBeginBB;
+           row.numLineStart = numLineStart;
+           row.sourceCode = sourceCode;
+           row.controlCode = controlCode;
+           row.hasControlCode = hasControlCode;
+           row.isEntryPoint = isEntryPoint;
+           
+           //Map2Check::Log::Debug(row );
+           listLog.push_back(row);
+       }
+
+
+   }
+
+  return listLog;
+}
+
+
+
 const char* Tools::CheckViolatedPropertyException::what() const throw() {
   std::ostringstream cnvt;
   cnvt.str("");

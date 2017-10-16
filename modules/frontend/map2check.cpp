@@ -261,11 +261,8 @@ int main(int argc, char** argv)
         Map2Check::Log::Info("VERIFICATION UNKNOWN \n"); 
 	}else{
         
-            Map2Check::Log::Info("Started counter example generation");
-	    //std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
-	    counterExample->printCounterExample();
-            //namespace tools = Map2Check::Tools;
-            //tools::PropertyViolated propertyViolated = counterExample->getProperty();
+        Map2Check::Log::Info("Started counter example generation");	    
+	    counterExample->printCounterExample();            
 	}
 
         
@@ -274,8 +271,7 @@ int main(int argc, char** argv)
             GenHash genhashkey;
             genhashkey.setFilePath(pathfile);
             genhashkey.generate_sha1_hash_for_file();
-
-
+            
             if ((propertyViolated != tools::PropertyViolated::NONE) && (propertyViolated != tools::PropertyViolated::UNKNOWN)){
                 if (vm.count("target-function")) {
                     string function = vm["target-function"].as< string >();
@@ -286,7 +282,30 @@ int main(int argc, char** argv)
                     Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile());
                     svcomp.Testify();
                 }
-            }//TODO: Add correctness witness
+            }else if (propertyViolated == tools::PropertyViolated::NONE)
+            {
+				//Correctness witness
+				Map2Check::Log::Debug("Starting Correctness Automata Generation");
+				if (vm.count("target-function")) {
+                    string function = vm["target-function"].as< string >();
+                    Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(), function, "target-function");                    
+                    svcomp.Testify();
+                }
+                else {                    
+                    if(map2checkMode == Map2CheckMode::OVERFLOW_MODE)
+                    {						
+						Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(),"","overflow");
+						svcomp.Testify();
+					}else{						
+						Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(),"","safetyMemory");
+						svcomp.Testify();
+					}
+                    
+                    
+                }
+				
+			}
+            
 
             return SUCCESS;
           }

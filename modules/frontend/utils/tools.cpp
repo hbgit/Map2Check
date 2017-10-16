@@ -348,8 +348,10 @@ std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV
 
    string line;
    while (getline(in,line)) {
+       
        std::vector<std::string> tokens;
        boost::split(tokens, line, boost::is_any_of("@"));     
+       
        if(tokens.size() == 7){
            Tools::StateTrueLogRow row;
            string functionName = tokens[0];

@@ -59,7 +59,8 @@ namespace Map2Check {
         MEMLEAK,
         DEREF,
         TARGET,
-        SPECOVERFLOW
+        SPECOVERFLOW,
+        MEMSAFETY
     };
 
     class Specification : public DataElement {
@@ -85,6 +86,9 @@ namespace Map2Check {
                         break;
                     case SpecificationType::SPECOVERFLOW:
                         this->value = "CHECK( init(main()), LTL(G ! overflow) )";
+                        break;
+                    case SpecificationType::MEMSAFETY:
+                        this->value = "CHECK( init(main()), LTL(G valid-free) )\nCHECK( init(main()), LTL(G valid-deref) )\nCHECK( init(main()), LTL(G valid-memtrack) )";
                         break;
                 }
 

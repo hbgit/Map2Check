@@ -74,7 +74,7 @@ std::string ViolationWitnessGraph::convertToString() {
     return cnvt.str();
 }
 
-std::string CorrectnessWitnessGraph::convertToString() {
+std::string CorrectnessWitnessGraph::convertToString() {    
     std::ostringstream cnvt;
     cnvt.str("");
     cnvt << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
@@ -85,7 +85,7 @@ std::string CorrectnessWitnessGraph::convertToString() {
     cnvt << "\t</key>\n";
 
     cnvt << "\t<key attr.name=\"witness-type\" attr.type=\"string\" for=\"graph\" id=\"witness-type\"/>\n";
-    cnvt << "\t<key attr.name=\"invariant\" attr.type=\"string\" for=\"node\" id=\"invariant\"/>";
+    cnvt << "\t<key attr.name=\"invariant\" attr.type=\"string\" for=\"node\" id=\"invariant\"/>\n";
     cnvt << "\t<key attr.name=\"sourcecodelang\" attr.type=\"string\" for=\"graph\" id=\"sourcecodelang\"/>\n";
     cnvt << "\t<key attr.name=\"producer\" attr.type=\"string\" for=\"graph\" id=\"producer\"/>\n";
     cnvt << "\t<key attr.name=\"specification\" attr.type=\"string\" for=\"graph\" id=\"specification\"/>\n";
@@ -98,12 +98,12 @@ std::string CorrectnessWitnessGraph::convertToString() {
     cnvt << "\t<key attr.name=\"assumption.resultfunction\" attr.type=\"string\" for=\"edge\" id=\"assumption.resultfunction\"/>\n";
 
     cnvt << "\t<graph edgedefault=\"directed\">\n";
-
-    for (int i = 0; i < this->elements.size(); i++ ) {
-            cnvt << (std::string) *this->elements[i];
+	    
+    for (int i = 0; i < this->elements.size(); i++ ) {            
+            cnvt << (std::string) *this->elements[i];            
             cnvt << "\n";
     }
-
+	
     for (int i = 0; i < this->states.size(); i++ ) {
             cnvt << (std::string) *this->states[i];
             cnvt << "\n";
@@ -112,7 +112,7 @@ std::string CorrectnessWitnessGraph::convertToString() {
     for (int i = 0; i < this->transitions.size(); i++ ) {
             cnvt << (std::string) *this->transitions[i];
             cnvt << "\n";
-    }
+    }    
 
     cnvt << "\t</graph>\n";
     cnvt << "</graphml>";
@@ -121,17 +121,18 @@ std::string CorrectnessWitnessGraph::convertToString() {
 }
 
 void SVCompWitness::Testify() {
-    ofstream outputFile("witness.graphml");
+    ofstream outputFile("witness.graphml");       
     outputFile << (std::string) (*this->automata);
 }
 
 
-SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, std::string targetFunction) {
+SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, std::string targetFunction, std::string specTrueString) {
     Map2Check::Log::Debug("Starting Witness Generation");
 
     std::unique_ptr<DataElement> specification;
     Tools::CheckViolatedProperty violated;
     bool violationWitness = true;
+    //TODO: Add the spection to automa true, what is the property was I checking?
     switch(violated.propertyViolated) {
         case Tools::PropertyViolated::FALSE_FREE:
             specification = std::make_unique<Specification>(SpecificationType::FREE);
@@ -155,18 +156,29 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, s
             break;
         default:
             this->automata = std::make_unique<CorrectnessWitnessGraph>();
-            violationWitness = false;
+            violationWitness = false;            
             break;
     }
+    
     std::unique_ptr<DataElement> witnessType;
     if(violationWitness) {
        witnessType = std::make_unique<WitnessType>(WitnessTypeValues::VIOLATION);
     } else {
        witnessType = std::make_unique<WitnessType>(WitnessTypeValues::CORRECTNESS);
+       if(specTrueString == "target-function")
+       {
+		   cout << specTrueString << "\n";
+		   specification = std::make_unique<Specification>(SpecificationType::TARGET, targetFunction);
+	   }else if(specTrueString == "overflow")
+	   {
+		   specification = std::make_unique<Specification>(SpecificationType::SPECOVERFLOW);
+	   }else{
+		   specification = std::make_unique<Specification>(SpecificationType::MEMSAFETY);
+	   }
     }
 
     this->automata->AddElement(std::move(witnessType));
-
+    
     std::unique_ptr<DataElement> sourceCodeType = std::make_unique<SourceCodeLang>(SupportedSourceCodeLang::C);
     this->automata->AddElement(std::move(sourceCodeType));
 
@@ -186,17 +198,16 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, s
 
     if(violationWitness) {
        this->makeViolationAutomata();
-    }
-    /**else{
+    }else{	   
 	   this->makeCorrectnessAutomata();
-	}**/
+	}
 
 
 }
 
 void SVCompWitness::makeCorrectnessAutomata() 
 {
-	Map2Check::Log::Debug("Starting Automata Generation");
+	Map2Check::Log::Debug("Starting Correctness Automata Generation");
     unsigned lastState = 0;
     std::string lastStateId = "s0";
     std::unique_ptr<Node> startNode = std::make_unique<Node>("s0");
@@ -206,6 +217,24 @@ void SVCompWitness::makeCorrectnessAutomata()
     startNode->AddElement(std::move(entryNode));
 
     std::vector<Tools::StateTrueLogRow> stateTrueLogRows = Tools::StateTrueLogHelper::getListLogFromCSV();
+    
+    //if(stateTrueLogRows.size() == 0) {
+        std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
+
+        //std::unique_ptr<NodeElement> correctnessNode = std::make_unique<ViolationNode>();
+        //newNode->AddElement(std::move(correctnessNode));
+
+        std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
+        this->automata->AddEdge(std::move(newEdge));
+        this->automata->AddNode(std::move(newNode));
+    //}
+    
+    this->automata->AddNode(std::move(startNode));
+    std::cout << (std::string) (*this->automata) << "\n";
+    
+    for(int i = 0; i < stateTrueLogRows.size(); i++) {
+		std::cout << stateTrueLogRows[i].functionName << "\n";
+	}
     
 }
 

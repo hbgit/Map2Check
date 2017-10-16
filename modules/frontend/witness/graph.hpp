@@ -43,7 +43,7 @@ protected:
     void makeViolationAutomata();
     void makeCorrectnessAutomata();
 public:
-    SVCompWitness(std::string programPath, std::string programHash, std::string targetFunction = "");
+    SVCompWitness(std::string programPath, std::string programHash, std::string targetFunction = "", std::string specTrueString = "");     
     void Testify();
 
 };

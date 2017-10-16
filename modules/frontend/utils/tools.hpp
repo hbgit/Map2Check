@@ -21,6 +21,8 @@ namespace Map2Check::Tools {
   const string kleeBinary("${MAP2CHECK_PATH}/bin/klee");
   /** Path to generated klee log file (check MemoryUtils implementation) */
   const string kleeLogCSV("klee_log.csv");
+  /** Path to generated Correctness log file (check MemoryUtils implementation) */
+  const string stateTrueLogCSV("automata_list_log.st");
   /** Path to generated map2check_property file (check MemoryUtils implementation) */
   const string propertyViolationFile("map2check_property");
   /** Path to generated klee results (it is created where klee is called) */
@@ -275,7 +277,7 @@ namespace Map2Check::Tools {
      * @return     vector of StateTrueLogRow
      */
     static vector<StateTrueLogRow> getListLogFromCSV() {
-      return StateTrueLogHelper::getListLogFromCSV(listLogCSV);
+      return StateTrueLogHelper::getListLogFromCSV(stateTrueLogCSV);
     }
   };
 

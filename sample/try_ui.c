@@ -6,8 +6,10 @@ main()
     __VERIFIER_assume(a<b);
     //__VERIFIER_assume(b>0);
 
-    if(a < b)
+    if(1 > 3)
     {
         __VERIFIER_error();
-    }
+    }else if(a<b){
+		a = a+b;
+	}
 }

@@ -12,7 +12,7 @@ int main(void) {
   __VERIFIER_assume(x < 5);
   while (x < 5) {
     x++;
-    y++;
+    y++;    
   }
   __VERIFIER_assert(x == y);
 }

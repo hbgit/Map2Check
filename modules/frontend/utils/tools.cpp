@@ -352,7 +352,7 @@ std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV
        std::vector<std::string> tokens;
        boost::split(tokens, line, boost::is_any_of("@"));     
        
-       if(tokens.size() == 7){
+       if(tokens.size() == 9){
            Tools::StateTrueLogRow row;
            string functionName = tokens[0];
            string numLineBeginBB = tokens[1];
@@ -360,7 +360,9 @@ std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV
            string sourceCode = tokens[3];
            string controlCode = tokens[4];
            string hasControlCode = tokens[5];
-           string isEntryPoint = tokens[6];
+           string numLineControlTrue = tokens[6];
+           string numLineControlFalse = tokens[7];
+           string isEntryPoint = tokens[8];
            
            row.functionName = functionName;
            row.numLineBeginBB = numLineBeginBB;
@@ -368,6 +370,8 @@ std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV
            row.sourceCode = sourceCode;
            row.controlCode = controlCode;
            row.hasControlCode = hasControlCode;
+           row.numLineControlTrue = numLineControlTrue;
+           row.numLineControlFalse = numLineControlFalse;
            row.isEntryPoint = isEntryPoint;
            
            //Map2Check::Log::Debug(row );

@@ -59,12 +59,15 @@ struct GenerateAutomataTruePass : public FunctionPass
     int st_numLine2NextSt=0;
     std::string st_sourceCodeLine;
     std::string st_controlCode;
+    int st_numLineGoControl_1true;
+    int st_numLineGoControl_2false;
     bool st_isControl = false;
     bool st_isEntryPoint = false;
 
     //others
     int numLineBlk_ori;
     int numLineBlk_AA;
+    int numLineControlSt;
     bool enableDataBlk = false;
     int countEntryPoint = 1;
     Function* currentFunction;

@@ -262,6 +262,8 @@ namespace Map2Check::Tools {
     string sourceCode;
     string controlCode;
     string hasControlCode;
+    string numLineControlTrue;
+    string numLineControlFalse;
     string isEntryPoint;  
   };
   

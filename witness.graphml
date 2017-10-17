@@ -23,7 +23,7 @@
 		<data key="producer">Map2Check</data>
 		<data key="specification">CHECK( init(main()), LTL(G ! call(__VERIFIER_error())) )</data>
 		<data key="programfile">playllvm/multivar_true-unreach-call1.i</data>
-		<data key="programhash">76a4e0f2d313f7a01a98a7f05ea036d0dc3e2909</data>
+		<data key="programhash">67187287abb86f0e22480136762d686d446c7aab</data>
 		<data key="architecture">32bit</data>
 		<node id="s0">
 			<data key="entry">true</data>
@@ -31,22 +31,27 @@
 		<node id="s1"/>
 		<node id="s2"/>
 		<node id="s3"/>
+		<node id="s3"/>
 		<node id="s4"/>
 		<node id="s5"/>
 		<node id="s6"/>
 		<edge source="s0" target="s1">
 			<data key="startline">11</data>
 			<data key="sourcecode">  unsigned int y = x;  </data>
-			<data key="control">[x &lt; 5]</data>
 		</edge>
 		<edge source="s1" target="s2">
 			<data key="startline">13</data>
-			<data key="sourcecode">  while (x < 5) {</data>
-			<data key="control">[x &lt; 5]</data>
+			<data key="sourcecode">[x &lt; 5]</data>
+			<data key="control">condition-true</data>
+		</edge>
+		<edge source="s1" target="s3">
+			<data key="startline">13</data>
+			<data key="sourcecode">[x &lt; 5]</data>
+			<data key="control">condition-false</data>
 		</edge>
 		<edge source="s2" target="s3">
 			<data key="startline">15</data>
-			<data key="sourcecode">    y++;</data>
+			<data key="sourcecode">    y++;    </data>
 		</edge>
 		<edge source="s3" target="s4">
 			<data key="startline">17</data>
@@ -54,8 +59,8 @@
 		</edge>
 		<edge source="s4" target="s5">
 			<data key="startline">4</data>
-			<data key="sourcecode">  if (!(cond)) {</data>
-			<data key="control">[ ! 0]</data>
+			<data key="sourcecode">[ ! 0]</data>
+			<data key="control">condition-true</data>
 		</edge>
 		<edge source="s5" target="s6">
 			<data key="startline">7</data>

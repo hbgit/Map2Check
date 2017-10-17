@@ -23,6 +23,26 @@ protected:
 
 };
 
+class SourceCode : public EdgeData {
+protected:
+    std::string sourcecode;
+    virtual std::string convertToString();
+
+ public:
+    SourceCode(std::string sourcecode) : sourcecode(sourcecode), EdgeData() {}
+
+};
+
+class Control : public EdgeData {
+protected:
+    std::string control;
+    virtual std::string convertToString();
+
+ public:
+    Control(std::string control) : control(control), EdgeData() {}
+
+};
+
 class AssumptionEdgeData : public EdgeData {
 protected:
     std::string result;

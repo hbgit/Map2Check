@@ -23,6 +23,26 @@ std::string StartLine::convertToString() {
     return cnvt.str();
 }
 
+std::string SourceCode::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t\t<data key=\"sourcecode\">";
+    cnvt << this->sourcecode;
+    cnvt << "</data>";
+
+    return cnvt.str();
+}
+
+std::string Control::convertToString() {
+    std::ostringstream cnvt;
+    cnvt.str("");
+    cnvt << "\t\t\t<data key=\"control\">";
+    cnvt << this->control;
+    cnvt << "</data>";
+
+    return cnvt.str();
+}
+
 std::string AssumptionEdgeData::convertToString() {
     std::ostringstream cnvt;
     cnvt.str("");

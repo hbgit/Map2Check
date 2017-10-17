@@ -83,16 +83,19 @@ std::string CorrectnessWitnessGraph::convertToString() {
     cnvt << "\t<key attr.name=\"isEntryNode\" attr.type=\"boolean\" for=\"node\" id=\"entry\">\n";
     cnvt << "\t\t<default>false</default>\n";
     cnvt << "\t</key>\n";
-
-    cnvt << "\t<key attr.name=\"witness-type\" attr.type=\"string\" for=\"graph\" id=\"witness-type\"/>\n";
-    cnvt << "\t<key attr.name=\"invariant\" attr.type=\"string\" for=\"node\" id=\"invariant\"/>\n";
-    cnvt << "\t<key attr.name=\"sourcecodelang\" attr.type=\"string\" for=\"graph\" id=\"sourcecodelang\"/>\n";
+	cnvt << "\t<key attr.name=\"invariant\" attr.type=\"string\" for=\"node\" id=\"invariant\"/>\n";
+	
+    cnvt << "\t<key attr.name=\"witness-type\" attr.type=\"string\" for=\"graph\" id=\"witness-type\"/>\n";    
+    cnvt << "\t<key attr.name=\"sourcecodelang\" attr.type=\"string\" for=\"graph\" id=\"sourcecodelang\"/>\n";    
     cnvt << "\t<key attr.name=\"producer\" attr.type=\"string\" for=\"graph\" id=\"producer\"/>\n";
     cnvt << "\t<key attr.name=\"specification\" attr.type=\"string\" for=\"graph\" id=\"specification\"/>\n";
     cnvt << "\t<key attr.name=\"programFile\" attr.type=\"string\" for=\"graph\" id=\"programfile\"/>\n";
     cnvt << "\t<key attr.name=\"programHash\" attr.type=\"string\" for=\"graph\" id=\"programhash\"/>\n";
     cnvt << "\t<key attr.name=\"architecture\" attr.type=\"string\" for=\"graph\" id=\"architecture\"/>\n";
+    
     cnvt << "\t<key attr.name=\"startline\" attr.type=\"int\" for=\"edge\" id=\"startline\"/>\n";
+    cnvt << "\t<key attr.name=\"sourcecode\" attr.type=\"string\" for=\"edge\" id=\"sourcecode\"/>\n";
+    cnvt << "\t<key attr.name=\"control\" attr.type=\"string\" for=\"edge\" id=\"control\"/>\n";
     cnvt << "\t<key attr.name=\"assumption\" attr.type=\"string\" for=\"edge\" id=\"assumption\"/>\n";
     cnvt << "\t<key attr.name=\"assumption.scope\" attr.type=\"string\" for=\"edge\" id=\"assumption.scope\"/>\n";
     cnvt << "\t<key attr.name=\"assumption.resultfunction\" attr.type=\"string\" for=\"edge\" id=\"assumption.resultfunction\"/>\n";
@@ -277,6 +280,17 @@ void SVCompWitness::makeCorrectnessAutomata()
 					newEdge->AddElement(std::move(startLine));
 					
 					// attribute sourcecode
+					std::unique_ptr<EdgeData> sourcecode = std::make_unique<SourceCode>(stateTrueLogRows[i].sourceCode);
+					newEdge->AddElement(std::move(sourcecode));
+					
+					if(std::stoi(stateTrueLogRows[i].hasControlCode))
+					{
+						// attribute control
+						// TODO: validate if all control was correct
+						// and create its negation
+						std::unique_ptr<EdgeData> control = std::make_unique<Control>(stateTrueLogRows[i].controlCode);
+						newEdge->AddElement(std::move(control));
+					}
 					
 					this->automata->AddEdge(std::move(newEdge));
 				}

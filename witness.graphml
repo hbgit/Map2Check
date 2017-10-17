@@ -3,8 +3,8 @@
 	<key attr.name="isEntryNode" attr.type="boolean" for="node" id="entry">
 		<default>false</default>
 	</key>
-	<key attr.name="witness-type" attr.type="string" for="graph" id="witness-type"/>
 	<key attr.name="invariant" attr.type="string" for="node" id="invariant"/>
+	<key attr.name="witness-type" attr.type="string" for="graph" id="witness-type"/>
 	<key attr.name="sourcecodelang" attr.type="string" for="graph" id="sourcecodelang"/>
 	<key attr.name="producer" attr.type="string" for="graph" id="producer"/>
 	<key attr.name="specification" attr.type="string" for="graph" id="specification"/>
@@ -12,6 +12,8 @@
 	<key attr.name="programHash" attr.type="string" for="graph" id="programhash"/>
 	<key attr.name="architecture" attr.type="string" for="graph" id="architecture"/>
 	<key attr.name="startline" attr.type="int" for="edge" id="startline"/>
+	<key attr.name="sourcecode" attr.type="string" for="edge" id="sourcecode"/>
+	<key attr.name="control" attr.type="string" for="edge" id="control"/>
 	<key attr.name="assumption" attr.type="string" for="edge" id="assumption"/>
 	<key attr.name="assumption.scope" attr.type="string" for="edge" id="assumption.scope"/>
 	<key attr.name="assumption.resultfunction" attr.type="string" for="edge" id="assumption.resultfunction"/>
@@ -34,21 +36,30 @@
 		<node id="s6"/>
 		<edge source="s0" target="s1">
 			<data key="startline">11</data>
+			<data key="sourcecode">  unsigned int y = x;  </data>
+			<data key="control">[x &lt; 5]</data>
 		</edge>
 		<edge source="s1" target="s2">
 			<data key="startline">13</data>
+			<data key="sourcecode">  while (x < 5) {</data>
+			<data key="control">[x &lt; 5]</data>
 		</edge>
 		<edge source="s2" target="s3">
 			<data key="startline">15</data>
+			<data key="sourcecode">    y++;</data>
 		</edge>
 		<edge source="s3" target="s4">
 			<data key="startline">17</data>
+			<data key="sourcecode">  __VERIFIER_assert(x == y);</data>
 		</edge>
 		<edge source="s4" target="s5">
 			<data key="startline">4</data>
+			<data key="sourcecode">  if (!(cond)) {</data>
+			<data key="control">[ ! 0]</data>
 		</edge>
 		<edge source="s5" target="s6">
 			<data key="startline">7</data>
+			<data key="sourcecode">  return;</data>
 		</edge>
 	</graph>
 </graphml>

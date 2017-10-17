@@ -71,24 +71,28 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
             {
                 if(tI->getOpcodeName() == "br")
                 {
-                    --this->st_lastBlockInst;            
-                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
-                    this->st_startline = debugInfoLa.getLineNumberInt();            
-                    this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
+                    --this->st_lastBlockInst; 
+                    this->checkAndSkipAssume();           
+                   
+                    //DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
+                    //this->st_startline = debugInfoLa.getLineNumberInt();            
+                    //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
 
                 }else{
-                    //empty line in the source code
+                    
                     DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
 
                     if(this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt()).empty())
                     {
-                        int numline = debugInfoLa.getLineNumberInt() - 1;
-                        this->st_startline = numline;
-                        this->st_sourceCodeLine = this->sourceCodeHelper->getLine(numline);
+                        //int numline = debugInfoLa.getLineNumberInt() - 1;                        
+                        //this->st_startline = numline;
+                        //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(numline);
+                        this->skipEmptyLine();
 
                     }else{
-                        this->st_startline = debugInfoLa.getLineNumberInt();
-                        this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());                                              
+                        //this->st_startline = debugInfoLa.getLineNumberInt();
+                        //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());                                              
+                        this->checkAndSkipAssume();
                     }
 
                 }
@@ -102,9 +106,12 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
                 if(tI->getOpcodeName() != "br")
                 {
                     this->st_lastBlockInst = this->firstBlockInst;
-                    DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
-					this->st_startline = debugInfoLa.getLineNumberInt();
-                    this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
+                    
+                    //DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
+					//this->st_startline = debugInfoLa.getLineNumberInt();
+                    //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
+                    this->checkAndSkipAssume();
+                    
                     this->enableDataBlk = true;
                 }
             }
@@ -127,6 +134,80 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
         }
         
     }
+}
+
+bool GenerateAutomataTruePass::checkInstBBIsAssume(BasicBlock::iterator& iT)
+{	
+	if(auto* cI = dyn_cast<CallInst>((Instruction*)iT))        
+	{   
+		
+		Value* v = cI->getCalledValue();	
+		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());								
+		
+		if(caleeFunction->getName() == "__VERIFIER_assume" ||
+		   caleeFunction->getName() == "map2check_assume"  )
+		{		
+			return true;
+		}else{
+			return false;
+		}		
+
+	}
+	return false;
+}
+
+//Checking if the instruction is an ASSUME to skip			
+void GenerateAutomataTruePass::checkAndSkipAssume()
+{
+	DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
+	this->numLineBlk_ori = debugInfoLa.getLineNumberInt();
+	bool flagAssume = false;
+	
+	if(this->checkInstBBIsAssume(this->st_lastBlockInst))
+	{
+		flagAssume = true;
+	}else{
+		this->st_startline = this->numLineBlk_ori;            
+        this->st_sourceCodeLine = this->sourceCodeHelper->getLine(this->numLineBlk_ori);
+	}
+								
+	while(flagAssume){						
+		--this->st_lastBlockInst;	
+		DebugInfo debugInfoAa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
+		this->numLineBlk_AA = debugInfoAa.getLineNumberInt();					
+		if(this->numLineBlk_AA == this->numLineBlk_ori)
+		{					
+			flagAssume = true;
+		}else{
+			flagAssume = false;
+			if(this->sourceCodeHelper->getLine(this->numLineBlk_AA).empty())
+			{
+				this->skipEmptyLine();
+			}else{
+				this->st_startline = this->numLineBlk_AA;            
+				this->st_sourceCodeLine = this->sourceCodeHelper->getLine(this->numLineBlk_AA);
+			}
+		}
+		
+	}
+}
+
+void GenerateAutomataTruePass::skipEmptyLine()
+{
+	bool flagEmpty = true;
+	while(flagEmpty)
+	{
+		--this->st_lastBlockInst;
+		DebugInfo debugInfoAaEmptyW(this->Ctx, (Instruction*)this->st_lastBlockInst);	
+		if(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()).empty())
+		{
+			flagEmpty = true;
+		}else{
+			flagEmpty = false;
+			this->st_startline = debugInfoAaEmptyW.getLineNumberInt();
+            this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt());
+		}
+	}
 }
 
 void GenerateAutomataTruePass::identifyAssertLoc(BasicBlock& B)

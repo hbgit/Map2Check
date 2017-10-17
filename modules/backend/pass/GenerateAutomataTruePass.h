@@ -39,6 +39,9 @@ struct GenerateAutomataTruePass : public FunctionPass
     protected:   
     void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
     bool checkBBHasLError(BasicBlock& nowB);
+    void checkAndSkipAssume();
+    void skipEmptyLine();
+    bool checkInstBBIsAssume(BasicBlock::iterator& iT);
     bool isBranchCond(BasicBlock& B);
     std::string convertLLPredicatetoXmlText(Instruction& I);
     std::string getPredicateSymOnXmlText(ICmpInst& icmpInst);
@@ -60,6 +63,8 @@ struct GenerateAutomataTruePass : public FunctionPass
     bool st_isEntryPoint = false;
 
     //others
+    int numLineBlk_ori;
+    int numLineBlk_AA;
     bool enableDataBlk = false;
     int countEntryPoint = 1;
     Function* currentFunction;

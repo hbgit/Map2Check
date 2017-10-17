@@ -27,99 +27,27 @@
 			<data key="entry">true</data>
 		</node>
 		<node id="s1"/>
-		<node id="s1"/>
-		<node id="s1"/>
-		<node id="s1"/>
-		<node id="s2"/>
-		<node id="s2"/>
-		<node id="s2"/>
 		<node id="s2"/>
 		<node id="s3"/>
-		<node id="s3"/>
-		<node id="s3"/>
-		<node id="s3"/>
-		<node id="s4"/>
-		<node id="s4"/>
-		<node id="s4"/>
 		<node id="s4"/>
 		<node id="s5"/>
-		<node id="s5"/>
-		<node id="s5"/>
-		<node id="s5"/>
-		<node id="s6"/>
-		<node id="s6"/>
-		<node id="s6"/>
 		<node id="s6"/>
 		<edge source="s0" target="s1">
-			<data key="startline">12</data>
-		</edge>
-		<edge source="s1" target="s1">
-			<data key="startline">12</data>
-		</edge>
-		<edge source="s1" target="s1">
-			<data key="startline">12</data>
-		</edge>
-		<edge source="s1" target="s1">
-			<data key="startline">12</data>
+			<data key="startline">11</data>
 		</edge>
 		<edge source="s1" target="s2">
-			<data key="startline">13</data>
-		</edge>
-		<edge source="s2" target="s2">
-			<data key="startline">13</data>
-		</edge>
-		<edge source="s2" target="s2">
-			<data key="startline">13</data>
-		</edge>
-		<edge source="s2" target="s2">
 			<data key="startline">13</data>
 		</edge>
 		<edge source="s2" target="s3">
 			<data key="startline">15</data>
 		</edge>
-		<edge source="s3" target="s3">
-			<data key="startline">15</data>
-		</edge>
-		<edge source="s3" target="s3">
-			<data key="startline">15</data>
-		</edge>
-		<edge source="s3" target="s3">
-			<data key="startline">15</data>
-		</edge>
 		<edge source="s3" target="s4">
-			<data key="startline">17</data>
-		</edge>
-		<edge source="s4" target="s4">
-			<data key="startline">17</data>
-		</edge>
-		<edge source="s4" target="s4">
-			<data key="startline">17</data>
-		</edge>
-		<edge source="s4" target="s4">
 			<data key="startline">17</data>
 		</edge>
 		<edge source="s4" target="s5">
 			<data key="startline">4</data>
 		</edge>
-		<edge source="s5" target="s5">
-			<data key="startline">4</data>
-		</edge>
-		<edge source="s5" target="s5">
-			<data key="startline">4</data>
-		</edge>
-		<edge source="s5" target="s5">
-			<data key="startline">4</data>
-		</edge>
 		<edge source="s5" target="s6">
-			<data key="startline">7</data>
-		</edge>
-		<edge source="s6" target="s6">
-			<data key="startline">7</data>
-		</edge>
-		<edge source="s6" target="s6">
-			<data key="startline">7</data>
-		</edge>
-		<edge source="s6" target="s6">
 			<data key="startline">7</data>
 		</edge>
 	</graph>

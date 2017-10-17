@@ -232,6 +232,24 @@ void GenerateAutomataTruePass::identifyAssertLoc(BasicBlock& B)
     }
 }
 
+BasicBlock::iterator& GenerateAutomataTruePass::skipEmptyLineIt(BasicBlock::iterator& iT)
+{
+	bool flagEmpty = true;
+	while(flagEmpty)
+	{
+		--iT;		
+		DebugInfo debugInfoAaEmptyW(this->Ctx, (Instruction*)iT);	
+		if(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()).empty())
+		{
+			flagEmpty = true;
+		}else{
+			flagEmpty = false;			
+		}
+	}
+	
+	return iT;
+}
+
 // Identify if the block has a branch and define the condition to true and false
 bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 {
@@ -273,27 +291,40 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 				//tI->dump();
 				if(tI->getNumSuccessors() > 1)
 				{
-					BasicBlock::iterator trueCond = tI->getSuccessor(0)->begin();
-					
+					//TODO: incorrect number line to true and false cond
+					// TRUE cond					
+					BasicBlock::iterator trueCond = --tI->getSuccessor(0)->end();										
 					if(trueCond->getOpcodeName() == "br" && tI->getSuccessor(0)->size() == 1)
-					{
-						trueCond = tI->getSuccessor(0)->getSingleSuccessor()->begin();						
+					{						
+						trueCond = --tI->getSuccessor(0)->getSingleSuccessor()->end();						
+					}
+										
+					if(trueCond->getOpcodeName() == "br")
+					{                    
+						trueCond = this->skipEmptyLineIt(trueCond);					
 					}
 					
-					DebugInfo debugInfoT(this->Ctx, (Instruction*)trueCond);
-					//errs() << "True Cond in:" << debugInfoT.getLineNumberInt() << "\n";
+					DebugInfo debugInfoT(this->Ctx, (Instruction*)trueCond);					
 					this->st_numLineGoControl_1true = debugInfoT.getLineNumberInt();
-
-					BasicBlock::iterator falseCond = tI->getSuccessor(1)->begin();
 					
+					
+					// FALSE cond
+					BasicBlock::iterator falseCond = --tI->getSuccessor(1)->end();					
 					if(falseCond->getOpcodeName() == "br" && tI->getSuccessor(1)->size() == 1)
 					{						
-						falseCond = tI->getSuccessor(1)->getSingleSuccessor()->begin();						
+						falseCond = --tI->getSuccessor(1)->getSingleSuccessor()->end();						
+					}					
+					
+					if(falseCond->getOpcodeName() == "br")
+					{                    
+						falseCond = this->skipEmptyLineIt(trueCond);					
+						falseCond->dump();
 					}
 					
-					DebugInfo debugInfoF(this->Ctx, (Instruction*)falseCond);
-					//errs() << "False Cond in:" << debugInfoF.getLineNumberInt() << "\n";
+					
+					DebugInfo debugInfoF(this->Ctx, (Instruction*)falseCond);					
 					this->st_numLineGoControl_2false = debugInfoF.getLineNumberInt();
+					errs() << this->st_numLineGoControl_2false << " --- \n";
 				}
 
 			}
@@ -309,7 +340,6 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 		return false;
 	}
 }
-
 
 std::string GenerateAutomataTruePass::convertLLPredicatetoXmlText(Instruction& I)
 {

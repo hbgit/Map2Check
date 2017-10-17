@@ -292,11 +292,12 @@ void SVCompWitness::makeCorrectnessAutomata()
 						// attribute control 
 						// search in trackBBLogRows which condition (TRUE or FALSE) by line number in 
 						// stateTrueLogRows was executed
-						int tmpCount=i+1; //true cond						
+						int tmpCount=i+1; //true cond	
+											
 						if(tmpCount < trackBBLogRows.size())
 						{
 							//cout << stateTrueLogRows[k].numLineControlTrue << "  " << trackBBLogRows[tmpCount].numLineInBB << "\n";
-							if(std::stoi(stateTrueLogRows[k].numLineControlTrue) <= std::stoi(trackBBLogRows[tmpCount].numLineInBB))
+							if(std::stoi(stateTrueLogRows[k].numLineControlTrue) == std::stoi(trackBBLogRows[tmpCount].numLineInBB))
 							{								
 								std::unique_ptr<EdgeData> control = std::make_unique<Control>("condition-true");
 								newEdge->AddElement(std::move(control));								
@@ -311,7 +312,7 @@ void SVCompWitness::makeCorrectnessAutomata()
 							// creating a edge to its negation
 							// create a new node, only if we have a false cond, otherwise we point to the same node
 							// from true cond
-							if(std::stoi(stateTrueLogRows[k].numLineControlFalse) <= std::stoi(trackBBLogRows[tmpCount].numLineInBB))
+							if(std::stoi(stateTrueLogRows[k].numLineControlFalse) == std::stoi(trackBBLogRows[tmpCount].numLineInBB))
 							{
 								// Create a new node for false cond								
 								unsigned tmpLastState = lastState;

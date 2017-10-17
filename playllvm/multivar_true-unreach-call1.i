@@ -14,5 +14,14 @@ int main(void) {
     x++;
     y++;    
   }
+  
+  if( x != y){
+	y++;
+	y--;
+  }else{
+	x--;
+	y--;
+  }
+  
   __VERIFIER_assert(x == y);
 }

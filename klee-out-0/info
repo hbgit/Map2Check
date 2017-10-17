@@ -1,13 +1,13 @@
 /home/map2check/devel_tool/mygitclone/release/bin/klee -suppress-external-warnings --allow-external-sym-calls -exit-on-error-type=Assert --optimize optimized.bc
-PID: 10012
-Started: 2017-10-17 20:34:18
+PID: 16347
+Started: 2017-10-17 21:50:47
 BEGIN searcher description
 <InterleavedSearcher> containing 2 searchers:
 RandomPathSearcher
 WeightedRandomSearcher::CoveringNew
 </InterleavedSearcher>
 END searcher description
-Finished: 2017-10-17 20:34:18
+Finished: 2017-10-17 21:50:47
 Elapsed: 00:00:00
 KLEE: done: explored paths = 5
 KLEE: done: avg. constructs per query = 82
@@ -16,6 +16,6 @@ KLEE: done: valid queries = 1
 KLEE: done: invalid queries = 5
 KLEE: done: query cex = 6
 
-KLEE: done: total instructions = 3910
+KLEE: done: total instructions = 5635
 KLEE: done: completed paths = 5
 KLEE: done: generated tests = 0

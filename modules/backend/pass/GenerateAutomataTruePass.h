@@ -41,6 +41,7 @@ struct GenerateAutomataTruePass : public FunctionPass
     bool checkBBHasLError(BasicBlock& nowB);
     void checkAndSkipAssume();
     void skipEmptyLine();
+    BasicBlock::iterator& skipEmptyLineIt(BasicBlock::iterator& iT);
     bool checkInstBBIsAssume(BasicBlock::iterator& iT);
     bool isBranchCond(BasicBlock& B);
     std::string convertLLPredicatetoXmlText(Instruction& I);

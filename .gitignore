@@ -30,4 +30,5 @@ release/compiled.ll
 *.log
 release/heap_log.csv
 *.ll
+compiled.bc 
 release/witness.graphml

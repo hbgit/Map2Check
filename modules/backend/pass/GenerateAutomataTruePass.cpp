@@ -62,8 +62,7 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     this->identifyAssertLoc(B);       
 
     if(!this->checkBBHasLError(B))
-    {
-
+    {		
         // Create a method to get info from branches in the block for condition-true and false     
         isCond = this->isBranchCond(B);
         this->st_isControl = isCond;
@@ -257,6 +256,8 @@ void GenerateAutomataTruePass::identifyAssertLoc(BasicBlock& B)
 BasicBlock::iterator& GenerateAutomataTruePass::skipEmptyLineIt(BasicBlock::iterator& iT)
 {
 	bool flagEmpty = true;
+	bool lastInst = false;
+	int countInst = 1;
 	while(flagEmpty)
 	{		
 		DebugInfo debugInfoAaEmptyW(this->Ctx, (Instruction*)iT);
@@ -272,8 +273,17 @@ BasicBlock::iterator& GenerateAutomataTruePass::skipEmptyLineIt(BasicBlock::iter
 		
 		if(iT->getOpcodeName() == "br" || skip)
 		{
-			--iT;
-			flagEmpty = true;
+			//errs() << "HERE \n";
+			//errs() <<countInst << "<" << this->actualSizeBB << "\n";
+			if(countInst < this->skipEmptyLineItSize)
+			{
+				--iT;
+				countInst++;
+				flagEmpty = true;
+			}else{
+				flagEmpty = false;			
+			}
+			
 		}else{
 			flagEmpty = false;			
 		}
@@ -322,9 +332,9 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 			{              
 				//tI->dump();
 				if(tI->getNumSuccessors() > 1)
-				{
-					//TODO: incorrect number line to true and false cond
-					// TRUE cond					
+				{					
+					// TRUE cond
+					this->skipEmptyLineItSize = tI->getSuccessor(0)->size();
 					BasicBlock::iterator trueCond = --tI->getSuccessor(0)->end();										
 					if(trueCond->getOpcodeName() == "br" && tI->getSuccessor(0)->size() == 1)
 					{						
@@ -344,19 +354,30 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 					
 					
 					// FALSE cond
-					BasicBlock::iterator falseCond = --tI->getSuccessor(1)->end();					
+					//tI->getSuccessor(1)->dump();
+					//tI->getSuccessor(1)->begin()->dump();
+					BasicBlock::iterator falseCond;
+					this->skipEmptyLineItSize = tI->getSuccessor(1)->size();
+					if(this->actualSizeBB > 1)
+					{					
+						falseCond = --tI->getSuccessor(1)->end();					
+					}else{
+						falseCond = tI->getSuccessor(1)->begin();
+					}
+					
 					//falseCond->dump();
+					
 					if(falseCond->getOpcodeName() == "br" && tI->getSuccessor(1)->size() == 1)
 					{						
 						falseCond = --tI->getSuccessor(1)->getSingleSuccessor()->end();						
 					}					
 					
 					if(falseCond->getOpcodeName() == "br" || falseCond->getOpcodeName() == "ret")
-					{                    
+					{   
 						falseCond = this->skipEmptyLineIt(falseCond);											
 					}
 					
-					//errs() << "FALSE \n";
+					
 					//falseCond->dump();
 					DebugInfo debugInfoF(this->Ctx, (Instruction*)falseCond);					
 					this->st_numLineGoControl_2false = debugInfoF.getLineNumberInt();
@@ -414,10 +435,7 @@ std::string GenerateAutomataTruePass::convertLLPredicatetoXmlText(Instruction& I
 
         //Instruction tmpI = (Instruction) &*bI->getOperand(0);
         //errs() << *bI->getOperand(1) << "\n";
-		//Getting right value from predicate 
-		//if (!ConstantInt* Ci2 = dyn_cast<ConstantInt>(bI->getOperand(1))) {
-		//isa<LoadInst>(bI->getOperand(1)
-		//if(LoadInst* Li = dyn_cast<LoadInst>(bI->getOperand(1))) {
+		//Getting right value from predicate 		
 		if(isa<LoadInst>(bI->getOperand(1))) {			
 			LoadInst *LD101 = cast<LoadInst>(bI->getOperand(1));
 			Value *C101 = LD101->getPointerOperand(); //HERE COMPILATION ERROR

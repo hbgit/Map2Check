@@ -80,6 +80,7 @@ struct GenerateAutomataTruePass : public FunctionPass
     BasicBlock::iterator lastInstructionMain;  
     BasicBlock::iterator firstBlockInst; 
     int actualSizeBB;
+    int skipEmptyLineItSize;
     LLVMContext* Ctx;
 };
 

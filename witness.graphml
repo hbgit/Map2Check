@@ -29,38 +29,16 @@
 			<data key="entry">true</data>
 		</node>
 		<node id="s1"/>
-		<node id="s1"/>
-		<node id="s1"/>
 		<node id="s2"/>
-		<node id="s2"/>
-		<node id="s2"/>
-		<node id="s3"/>
 		<node id="s3"/>
 		<node id="s3"/>
 		<node id="s4"/>
 		<node id="s4"/>
-		<node id="s4"/>
-		<node id="s5"/>
-		<node id="s5"/>
 		<node id="s5"/>
 		<node id="s6"/>
-		<node id="s6"/>
-		<node id="s6"/>
 		<node id="s7"/>
-		<node id="s7"/>
-		<node id="s7"/>
-		<node id="s8"/>
-		<node id="s8"/>
 		<node id="s8"/>
 		<edge source="s0" target="s1">
-			<data key="startline">11</data>
-			<data key="sourcecode">  unsigned int y = x;  </data>
-		</edge>
-		<edge source="s1" target="s1">
-			<data key="startline">11</data>
-			<data key="sourcecode">  unsigned int y = x;  </data>
-		</edge>
-		<edge source="s1" target="s1">
 			<data key="startline">11</data>
 			<data key="sourcecode">  unsigned int y = x;  </data>
 		</edge>
@@ -69,49 +47,25 @@
 			<data key="sourcecode">[x &lt; 5]</data>
 			<data key="control">condition-true</data>
 		</edge>
-		<edge source="s2" target="s2">
+		<edge source="s1" target="s3">
 			<data key="startline">13</data>
 			<data key="sourcecode">[x &lt; 5]</data>
-			<data key="control">condition-true</data>
-		</edge>
-		<edge source="s2" target="s2">
-			<data key="startline">13</data>
-			<data key="sourcecode">[x &lt; 5]</data>
-			<data key="control">condition-true</data>
+			<data key="control">condition-false</data>
 		</edge>
 		<edge source="s2" target="s3">
 			<data key="startline">15</data>
 			<data key="sourcecode">    y++;    </data>
 		</edge>
-		<edge source="s3" target="s3">
-			<data key="startline">15</data>
-			<data key="sourcecode">    y++;    </data>
-		</edge>
-		<edge source="s3" target="s3">
-			<data key="startline">15</data>
-			<data key="sourcecode">    y++;    </data>
+		<edge source="s3" target="s4">
+			<data key="startline">18</data>
+			<data key="sourcecode">[x ! y]</data>
+			<data key="control">condition-false</data>
 		</edge>
 		<edge source="s4" target="s5">
 			<data key="startline">23</data>
 			<data key="sourcecode">	y--;</data>
 		</edge>
-		<edge source="s5" target="s5">
-			<data key="startline">23</data>
-			<data key="sourcecode">	y--;</data>
-		</edge>
-		<edge source="s5" target="s5">
-			<data key="startline">23</data>
-			<data key="sourcecode">	y--;</data>
-		</edge>
 		<edge source="s5" target="s6">
-			<data key="startline">26</data>
-			<data key="sourcecode">  __VERIFIER_assert(x == y);</data>
-		</edge>
-		<edge source="s6" target="s6">
-			<data key="startline">26</data>
-			<data key="sourcecode">  __VERIFIER_assert(x == y);</data>
-		</edge>
-		<edge source="s6" target="s6">
 			<data key="startline">26</data>
 			<data key="sourcecode">  __VERIFIER_assert(x == y);</data>
 		</edge>
@@ -120,25 +74,7 @@
 			<data key="sourcecode">[ ! 0]</data>
 			<data key="control">condition-true</data>
 		</edge>
-		<edge source="s7" target="s7">
-			<data key="startline">4</data>
-			<data key="sourcecode">[ ! 0]</data>
-			<data key="control">condition-true</data>
-		</edge>
-		<edge source="s7" target="s7">
-			<data key="startline">4</data>
-			<data key="sourcecode">[ ! 0]</data>
-			<data key="control">condition-true</data>
-		</edge>
 		<edge source="s7" target="s8">
-			<data key="startline">7</data>
-			<data key="sourcecode">  return;</data>
-		</edge>
-		<edge source="s8" target="s8">
-			<data key="startline">7</data>
-			<data key="sourcecode">  return;</data>
-		</edge>
-		<edge source="s8" target="s8">
 			<data key="startline">7</data>
 			<data key="sourcecode">  return;</data>
 		</edge>

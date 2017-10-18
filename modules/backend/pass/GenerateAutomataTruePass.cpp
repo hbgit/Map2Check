@@ -236,11 +236,21 @@ BasicBlock::iterator& GenerateAutomataTruePass::skipEmptyLineIt(BasicBlock::iter
 {
 	bool flagEmpty = true;
 	while(flagEmpty)
-	{
-		--iT;		
-		DebugInfo debugInfoAaEmptyW(this->Ctx, (Instruction*)iT);	
-		if(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()).empty())
+	{		
+		DebugInfo debugInfoAaEmptyW(this->Ctx, (Instruction*)iT);
+		bool skip = false;
+		//errs() << this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()) << "<<<<<<<<<<<< \n";
+		
+		if(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()).empty() || 
+		   this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()) == "}")
 		{
+			skip = true;
+		}
+		
+		
+		if(iT->getOpcodeName() == "br" || skip)
+		{
+			--iT;
 			flagEmpty = true;
 		}else{
 			flagEmpty = false;			
@@ -299,10 +309,13 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 						trueCond = --tI->getSuccessor(0)->getSingleSuccessor()->end();						
 					}
 										
-					if(trueCond->getOpcodeName() == "br")
+					if(trueCond->getOpcodeName() == "br" || trueCond->getOpcodeName() == "ret")
 					{                    
 						trueCond = this->skipEmptyLineIt(trueCond);					
 					}
+					
+					//errs() << "TRUE \n";
+					//trueCond->dump();
 					
 					DebugInfo debugInfoT(this->Ctx, (Instruction*)trueCond);					
 					this->st_numLineGoControl_1true = debugInfoT.getLineNumberInt();
@@ -310,21 +323,22 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 					
 					// FALSE cond
 					BasicBlock::iterator falseCond = --tI->getSuccessor(1)->end();					
+					//falseCond->dump();
 					if(falseCond->getOpcodeName() == "br" && tI->getSuccessor(1)->size() == 1)
 					{						
 						falseCond = --tI->getSuccessor(1)->getSingleSuccessor()->end();						
 					}					
 					
-					if(falseCond->getOpcodeName() == "br")
+					if(falseCond->getOpcodeName() == "br" || falseCond->getOpcodeName() == "ret")
 					{                    
-						falseCond = this->skipEmptyLineIt(trueCond);					
-						falseCond->dump();
+						falseCond = this->skipEmptyLineIt(falseCond);											
 					}
 					
-					
+					//errs() << "FALSE \n";
+					//falseCond->dump();
 					DebugInfo debugInfoF(this->Ctx, (Instruction*)falseCond);					
 					this->st_numLineGoControl_2false = debugInfoF.getLineNumberInt();
-					errs() << this->st_numLineGoControl_2false << " --- \n";
+					//errs() << this->st_numLineGoControl_2false << " --- \n";
 				}
 
 			}

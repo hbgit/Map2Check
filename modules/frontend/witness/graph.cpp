@@ -171,7 +171,7 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash, s
        witnessType = std::make_unique<WitnessType>(WitnessTypeValues::CORRECTNESS);
        if(specTrueString == "target-function")
        {
-		   cout << specTrueString << "\n";
+		   //cout << specTrueString << "\n";
 		   specification = std::make_unique<Specification>(SpecificationType::TARGET, targetFunction);
 	   }else if(specTrueString == "overflow")
 	   {
@@ -259,9 +259,11 @@ void SVCompWitness::makeCorrectnessAutomata()
 			stateTrueNumLineStart = std::stoi(stateTrueLogRows[k].numLineStart);
 			
 			if(trackBBFunctName == stateTrueLogRows[k].functionName)
-			{
+			{				
 				if( (trackBBLineNum >= stateTrueNumLineBeginBB) && (trackBBLineNum <= stateTrueNumLineStart))
 				{
+					//cout << stateTrueNumLineStart << "\n";
+					
 					// This state (i.e., the BB) was executed
 					std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
 					//TODO node attributes to invariants
@@ -285,6 +287,8 @@ void SVCompWitness::makeCorrectnessAutomata()
 										
 					if(std::stoi(stateTrueLogRows[k].hasControlCode))
 					{						
+						//cout << stateTrueLogRows[k].controlCode << "\n";
+						
 						// attribute sourcecode
 						std::unique_ptr<EdgeData> sourcecode = std::make_unique<SourceCode>(stateTrueLogRows[k].controlCode);
 						newEdge->AddElement(std::move(sourcecode));
@@ -293,35 +297,46 @@ void SVCompWitness::makeCorrectnessAutomata()
 						// search in trackBBLogRows which condition (TRUE or FALSE) by line number in 
 						// stateTrueLogRows was executed
 						int tmpCount=i+1; //true cond	
+						bool hasTrueCond = false;
 											
 						if(tmpCount < trackBBLogRows.size())
 						{
-							//cout << stateTrueLogRows[k].numLineControlTrue << "  " << trackBBLogRows[tmpCount].numLineInBB << "\n";
+							//cout << stateTrueLogRows[k].numLineControlTrue << " == " << trackBBLogRows[tmpCount].numLineInBB << "\n";
 							if(std::stoi(stateTrueLogRows[k].numLineControlTrue) == std::stoi(trackBBLogRows[tmpCount].numLineInBB))
 							{								
 								std::unique_ptr<EdgeData> control = std::make_unique<Control>("condition-true");
 								newEdge->AddElement(std::move(control));								
 								this->automata->AddEdge(std::move(newEdge));
+								hasTrueCond = true;;
 							}
 						}
 						
+						unsigned tmpLastState;
+						std::ostringstream cnvtF;
+						if(hasTrueCond)
+						{
+							tmpCount=i+2; //false cond
+							tmpLastState = lastState;							
+							cnvtF.str("");
+							// tmpLastStateId source
+							cnvtF << "s" << tmpLastState; //target
+						}else{
+							tmpCount=i+1; //false cond
+							tmpLastState = lastState-1;							
+							cnvtF.str("");							
+							cnvtF << "s" << tmpLastState; //target
+						}
 						
-						tmpCount=i+2; //false cond
 						if(tmpCount < trackBBLogRows.size())
 						{
 							// creating a edge to its negation
 							// create a new node, only if we have a false cond, otherwise we point to the same node
 							// from true cond
+							//cout << stateTrueLogRows[k].numLineControlFalse << "==" << trackBBLogRows[tmpCount].numLineInBB << "\n";
 							if(std::stoi(stateTrueLogRows[k].numLineControlFalse) == std::stoi(trackBBLogRows[tmpCount].numLineInBB))
 							{
-								// Create a new node for false cond								
-								unsigned tmpLastState = lastState;
-								std::ostringstream cnvtF;
-								cnvtF.str("");
-								// tmpLastStateId source
-								cnvtF << "s" << tmpLastState; //target
-																							
-								
+								// Create a new node for false cond													
+
 								// Create the edge to the new node
 								//std::unique_ptr<Edge> newEdge = std::make_unique<Edge>(lastStateId, cnvt.str());								
 								std::unique_ptr<Node> newNodeF = std::make_unique<Node>(cnvtF.str());

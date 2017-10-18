@@ -72,8 +72,10 @@ Caller::Caller( std::string bcprogram_path ) {
 
 void Caller::cleanGarbage() {
 
-   const char* command ="rm -rf klee-* *.log list-* clang.out \
+   const char* command ="rm -rf klee-* *.log list-* clang.out \							
                             *.csv map2check_property \
+                            automata_list_log.st \
+							track_bb_log.st \
                             map2check_property_klee_unknown \
                             map2check_property_klee_deref \
                             map2check_property_klee_memtrack \

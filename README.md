@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=map2checkllvm)](https://travis-ci.org/hbgit/Map2Check)
-
 <h1>Map2Check</h1>
 <h3>Memory Management Test Cases Generation of C Programs</h3>
 
@@ -33,15 +31,12 @@ You can build Map2Check using our dockerfile, more details at https://map2check.
 <b>Install Map2Check</b>
 
 <p align="justify">
-In order to install Map2Check on your PC, you should download and save the map2check.zip file on your disk from https://github.com/hbgit/Map2Check/releases. 
+In order to install Map2Check on your PC, you should download and save the map2check zip file on your disk from https://github.com/hbgit/Map2Check/releases. 
 After that, you should type the following command:
 </p>
 
-> $ unzip map2check.zip
-
-or from GitHub repository
-
-> $ git clone https://github.com/hbgit/Map2Check.git
+> $ unzip v7.zip
+> $ cd Map2Check-7/release
 
 <b>Testing tool</b>
 
@@ -50,7 +45,7 @@ Map2Check can be invoked through a standard command-line interface. Map2Check sh
 in the installation directory as follows:  
 </p>
 
-> $ ./map2check test/regression/free/960521-1_false-valid-free.c
+> $ ./map2check sample/sv-comp/960521-1_false-valid-free.c
 
 For help and others options: 
 

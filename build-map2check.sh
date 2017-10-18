@@ -29,7 +29,16 @@ map2check()
 cp_utils_file() 
 {
 	cd $RUNDIR
-	# Copying licenses
+	
+	# Copying Map2Check license
+	if [ ! -f $PREFIX/LICENSE ]; then			
+		cp LICENSE $PREFIX/
+	else
+		rm $PREFIX/LICENSE		
+		cp LICENSE $PREFIX/
+    fi
+	
+	# Copying licenses tools
 	if [ ! -d $PREFIX/LICENSES ]; then	
 		mkdir $PREFIX/LICENSES
 		cp utils/*.TXT $PREFIX/LICENSES/
@@ -53,8 +62,19 @@ cp_utils_file()
 		cp -r sample/* $PREFIX/sample/
 	else
 		rm -rf $PREFIX/sample
+		mkdir $PREFIX/sample
 		cp -r sample/* $PREFIX/sample/
     fi
+    
+    # tool-info benchexec
+    if [ ! -f $PREFIX/moduleBenchExec/map2check.py ]; then	
+		mkdir $PREFIX/moduleBenchExec/
+		cp utils/moduleBenchExec/map2check.py $PREFIX/moduleBenchExec/
+	else
+		rm -rf $PREFIX/moduleBenchExec
+		mkdir $PREFIX/moduleBenchExec/
+		cp utils/moduleBenchExec/map2check.py $PREFIX/moduleBenchExec/
+	fi    
     
     # README FILE
     if [ ! -f $PREFIX/README.md ]; then	
@@ -63,6 +83,8 @@ cp_utils_file()
 		rm $PREFIX/README.md
 		cp README.md $PREFIX/
 	fi
+	
+	
 }
 
 gtest() 

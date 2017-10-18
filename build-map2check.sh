@@ -32,11 +32,18 @@ cp_utils_file()
 	# Copying licenses
 	if [ ! -d $PREFIX/LICENSES ]; then	
 		mkdir $PREFIX/LICENSES
-		cp utils/*.TXT $PREFIX/LICENSES/		
+		cp utils/*.TXT $PREFIX/LICENSES/
+	else
+		rm -rf $PREFIX/LICENSES
+		mkdir $PREFIX/LICENSES
+		cp utils/*.TXT $PREFIX/LICENSES/
     fi
     
     # Wrapper script
     if [ ! -f $PREFIX/map2check-wrapper.py ]; then	
+		cp utils/map2check-wrapper.py $PREFIX/
+	else
+		rm $PREFIX/map2check-wrapper.py
 		cp utils/map2check-wrapper.py $PREFIX/
     fi
     
@@ -44,10 +51,16 @@ cp_utils_file()
     if [ ! -d $PREFIX/sample ]; then	
 		mkdir $PREFIX/sample
 		cp -r sample/* $PREFIX/sample/
+	else
+		rm -rf $PREFIX/sample
+		cp -r sample/* $PREFIX/sample/
     fi
     
     # README FILE
     if [ ! -f $PREFIX/README.md ]; then	
+		cp README.md $PREFIX/
+	else
+		rm $PREFIX/README.md
 		cp README.md $PREFIX/
 	fi
 }

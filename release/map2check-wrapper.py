@@ -5,17 +5,16 @@ import argparse
 import shlex
 import subprocess
 
-tool_path = "./map2check -m "
+tool_path = "./map2check "
 # default args
 extra_tool = "timeout 895s "
 command_line = extra_tool + tool_path
-clang_path = "../dependencies/llvm-build-cmake/bin/clang "
+clang_path = "bin/clang "
 clang_args = "-c -emit-llvm -O0 -g "
 clang_command = clang_path + clang_args
 bcs_files = "bcs_files"
 
 # Options
-
 parser = argparse.ArgumentParser()
 #parser.add_argument("-a", "--arch", help="Either 32 or 64 bits", type=int, choices=[32, 64], default=64)
 parser.add_argument("-v", "--version", help="Prints Map2check's version", action='store_true')
@@ -31,6 +30,7 @@ property_file = args.propertyfile
 benchmark = args.benchmark
 bc_benchmark = args.benchmark
 
+
 if version == True:
   os.system(tool_path + "--version")
   exit(0)
@@ -43,8 +43,9 @@ if benchmark is None:
   print "Please, specify a benchmark to verify"
   exit(1)
 
-is_memsafety = False
+is_memsafety 	= False
 is_reachability = False
+is_overflow 	= False
 
 f = open(property_file, 'r')
 property_file_content = f.read()
@@ -56,7 +57,7 @@ elif "CHECK( init(main()), LTL(G valid-deref) )" in property_file_content:
 elif "CHECK( init(main()), LTL(G valid-memtrack) )" in property_file_content:
   is_memsafety = True
 elif "CHECK( init(main()), LTL(G ! overflow) )" in property_file_content:
-  is_overflow = True
+  is_overflow = True  
 elif "CHECK( init(main()), LTL(G ! call(__VERIFIER_error())) )" in property_file_content:
   is_reachability = True
 else:
@@ -65,9 +66,11 @@ else:
   exit(1)
 
 if is_memsafety:
-  command_line += " "
+  command_line += " --generate-witness "
 elif is_reachability:
-  command_line += " --target-function __VERIFIER_error "
+  command_line += " --target-function __VERIFIER_error --generate-witness "
+elif is_overflow:
+  command_line += " --check-overflow --generate-witness "
 
 print "Verifying with MAP2CHECK "
 # Call MAP2CHECK
@@ -90,6 +93,7 @@ free_offset = "\tFALSE-FREE: Operand of free must have zero pointer offset"
 deref_offset = "\tFALSE-DEREF: Reference to pointer was lost"
 memtrack_offset = "\tFALSE-MEMTRACK"
 target_offset = "\tFALSE: Target Reached"
+overflow_offset = "\tOVERFLOW"
 
 if "VERIFICATION FAILED" in stdout:
     if free_offset in stdout:
@@ -107,9 +111,15 @@ if "VERIFICATION FAILED" in stdout:
     if target_offset in stdout:
       print "FALSE"
       exit(0)
+      
+    if overflow_offset in stdout:
+      print "FALSE_OVERFLOW"
+      exit(0)
+      
 
 if "VERIFICATION SUCCEDED" in stdout:
   print "TRUE"
   exit(0)
 
 print "UNKNOWN"
+exit(0)

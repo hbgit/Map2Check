@@ -75,7 +75,7 @@ class Tool(benchexec.tools.template.BaseTool):
             elif "FALSE_FREE" in output:
                 status = result.RESULT_FALSE_FREE
             elif "FALSE_OVERFLOW" in output:
-                result.RESULT_FALSE_OVERFLOW
+                status = result.RESULT_FALSE_OVERFLOW
             else:
                 status = result.RESULT_FALSE_REACH        
         elif output.endswith('UNKNOWN'):

@@ -53,6 +53,26 @@ For help and others options:
 
 ===========================
 
+<b> Instructions for SV-COMP'18 </b>
+
+Use the 'map2check-wrapper.py' script in the installation directory to verify each single test-case. 
+
+Usage: 
+
+> $ ./map2check-wrapper.py -p propertyFile.prp file.i
+
+<p align="justify">
+Map2Check accepts the property file and the verification task and provides as verification result:
+<b>TRUE + Witness</b>, <b>[FALSE|FALSE(p)] + Witness</b>, or <b>UNKNOWN</b>. 
+FALSE(p), with p in {valid-free, valid-deref, valid-memtrack}, means that the (partial) 
+property p is violated. 
+For each verification result the witness file (called <b>witness.graphml</b>) is generated Map2Check root-path folder. 
+There is timeout of 895 seconds set by this script, using "timeout" tool that is part of coreutils 
+on debian and fedora. If these constraints are violated, it should be treated as UNKNOWN result. 
+</p>
+
+===========================
+
 <b> Authors </b>
 
 Maintainers:

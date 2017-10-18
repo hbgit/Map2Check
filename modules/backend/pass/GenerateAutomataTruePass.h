@@ -70,6 +70,7 @@ struct GenerateAutomataTruePass : public FunctionPass
     int numLineBlk_AA;
     int numLineControlSt;
     bool enableDataBlk = false;
+    bool isPredicateNe = false;
     int countEntryPoint = 1;
     Function* currentFunction;
     std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
@@ -77,7 +78,8 @@ struct GenerateAutomataTruePass : public FunctionPass
     std::string cprogram_path;    
     BasicBlock::iterator currentInstruction;
     BasicBlock::iterator lastInstructionMain;  
-    BasicBlock::iterator firstBlockInst;  
+    BasicBlock::iterator firstBlockInst; 
+    int actualSizeBB;
     LLVMContext* Ctx;
 };
 

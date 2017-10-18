@@ -80,9 +80,9 @@ void Caller::cleanGarbage() {
                             map2check_property_klee_deref \
                             map2check_property_klee_memtrack \
                             map2check_property_overflow \
-                            preprocessed.c \
                             map2check_property_klee_free \
-                            optimized.bc output.bc inter.bc \
+                            preprocessed.c \                            
+                            optimized.bc output.bc inter.bc \                            
                             result.bc witnessInfo";
   system(command);
 }
@@ -117,8 +117,10 @@ int Caller::parseIrFile(){
 }
 
 int Caller::callPass(Map2CheckMode mode, bool sv_comp){
+	//Pass to generate_automata_true    
+    AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
+	
     Map2Check::Log::Debug("Applying NonDetPass\n");    
-
     AnalysisPasses.add(new NonDetPass());
     switch(mode) {
     case (Map2CheckMode::MEMTRACK_MODE):
@@ -132,6 +134,10 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
     default:
         throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
     }
+    
+    //Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
+    //AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
+    
     Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
     AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
     AnalysisPasses.run(*M);

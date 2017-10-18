@@ -47,6 +47,7 @@ void GenerateAutomataTruePass::printStateData()
 void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) 
 {    
     
+    this->actualSizeBB = B.size();
     this->firstBlockInst = B.begin();    
     this->st_lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block
     this->enableDataBlk = false;
@@ -58,7 +59,7 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     this->st_numLineBeginBB = debugInfoFi.getLineNumberInt();
     
     //Identifying asserts on analayzed code
-    this->identifyAssertLoc(B);   
+    this->identifyAssertLoc(B);       
 
     if(!this->checkBBHasLError(B))
     {
@@ -75,13 +76,13 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
                 if(tI->getOpcodeName() == "br")
                 {
                     --this->st_lastBlockInst; 
-                    this->checkAndSkipAssume();           
-                   
+                    this->checkAndSkipAssume();                               
                     //DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
                     //this->st_startline = debugInfoLa.getLineNumberInt();            
                     //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());
 
                 }else{
+                    
                     
                     DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
 
@@ -89,13 +90,14 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
                     {
                         //int numline = debugInfoLa.getLineNumberInt() - 1;                        
                         //this->st_startline = numline;
-                        //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(numline);
-                        this->skipEmptyLine();
+                        //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(numline);                        
+                        this->skipEmptyLine();                        
 
                     }else{
                         //this->st_startline = debugInfoLa.getLineNumberInt();
-                        //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());                                              
+                        //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoLa.getLineNumberInt());                                                                      
                         this->checkAndSkipAssume();
+                        
                     }
 
                 }
@@ -198,13 +200,33 @@ void GenerateAutomataTruePass::checkAndSkipAssume()
 void GenerateAutomataTruePass::skipEmptyLine()
 {
 	bool flagEmpty = true;
+	int countInstBlk = 1;
+	bool lastInst = false;
 	while(flagEmpty)
 	{
-		--this->st_lastBlockInst;
+		//this->st_lastBlockInst->dump();
+				
+		//errs() << this->actualSizeBB << "\n";
+		if(countInstBlk < this->actualSizeBB)
+		{
+			--this->st_lastBlockInst;		
+			countInstBlk++;
+		}else{
+			lastInst = true;
+		}
+		
 		DebugInfo debugInfoAaEmptyW(this->Ctx, (Instruction*)this->st_lastBlockInst);	
 		if(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()).empty())
 		{
-			flagEmpty = true;
+			if(!lastInst)
+			{
+				flagEmpty = true;
+			}else{
+				flagEmpty = false;
+				this->st_startline = debugInfoAaEmptyW.getLineNumberInt();
+				//errs() << this->st_startline << "\n";
+				this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt());
+			}
 		}else{
 			flagEmpty = false;
 			this->st_startline = debugInfoAaEmptyW.getLineNumberInt();
@@ -392,26 +414,37 @@ std::string GenerateAutomataTruePass::convertLLPredicatetoXmlText(Instruction& I
 
         //Instruction tmpI = (Instruction) &*bI->getOperand(0);
         //errs() << *bI->getOperand(1) << "\n";
-
-        if(isa<LoadInst>(bI->getOperand(1))) {
-            LoadInst *LD101 = cast<LoadInst>(bI->getOperand(1));
-            Value *C101 = LD101->getPointerOperand(); //HERE COMPILATION ERROR
-            rvaluep = C101->getName().str();
-            //errs() << "RVALUEP:" << rvaluep << "\n";
-        }
-        //errs() << bI->getOperand(1)->getName().str() << "\n";
-        else if (ConstantInt* CI = dyn_cast<ConstantInt>(bI->getOperand(1))) {
-            if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.
-                //constIntValue = CI->getSExtValue();
-                osstrtmp << CI->getSExtValue();
-                rvaluep = osstrtmp.str();
-                //errs() << "RVALUEP:" << rvaluep << "\n";
-            }
-        }
+		//Getting right value from predicate 
+		//if (!ConstantInt* Ci2 = dyn_cast<ConstantInt>(bI->getOperand(1))) {
+		//isa<LoadInst>(bI->getOperand(1)
+		//if(LoadInst* Li = dyn_cast<LoadInst>(bI->getOperand(1))) {
+		if(isa<LoadInst>(bI->getOperand(1))) {			
+			LoadInst *LD101 = cast<LoadInst>(bI->getOperand(1));
+			Value *C101 = LD101->getPointerOperand(); //HERE COMPILATION ERROR
+			rvaluep = C101->getName().str();
+			//errs() << "RVALUEP:" << rvaluep << "\n";
+		}
+		//errs() << bI->getOperand(1)->getName().str() << "\n";
+		else if (ConstantInt* CI = dyn_cast<ConstantInt>(bI->getOperand(1))) {				
+			if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.
+				//constIntValue = CI->getSExtValue();
+				osstrtmp << CI->getSExtValue();					
+				rvaluep = osstrtmp.str();
+				//errs() << "RVALUEP:" << rvaluep << "\n";
+			}
+		}
+		//}
 
 
         //Generate full predicate expression
-        fullExpPredicateInXml = "[" + lvaluep + " " + predicateInXml + " " + rvaluep + "]";
+        //errs() << lvaluep.empty() << "==\n";
+        //errs() << rvaluep.empty() << "==\n";
+        if(this->isPredicateNe && lvaluep.empty())
+        {
+			fullExpPredicateInXml = "[ !" + rvaluep + "]";
+		}else{
+			fullExpPredicateInXml = "[" + lvaluep + " " + predicateInXml + " " + rvaluep + "]";
+		}
         //errs() << fullExpPredicateInXml << "\n";
         return fullExpPredicateInXml;
 
@@ -422,6 +455,7 @@ std::string GenerateAutomataTruePass::convertLLPredicatetoXmlText(Instruction& I
 std::string GenerateAutomataTruePass::getPredicateSymOnXmlText(ICmpInst& icmpInst)
 {
     std::string predicateText = "";
+    this->isPredicateNe = false;
 
     ICmpInst::Predicate pr = icmpInst.getSignedPredicate();
     if(pr == ICmpInst::ICMP_EQ)
@@ -429,7 +463,8 @@ std::string GenerateAutomataTruePass::getPredicateSymOnXmlText(ICmpInst& icmpIns
         predicateText="==";
     }else if(pr == ICmpInst::ICMP_NE)
     {
-        predicateText="!";
+        predicateText="!=";
+        this->isPredicateNe = true;
     }else if(pr == ICmpInst::ICMP_SGT)
     {
         predicateText="&gt;";
@@ -458,12 +493,12 @@ std::string GenerateAutomataTruePass::getPredicateSymOnXmlText(ICmpInst& icmpIns
 bool GenerateAutomataTruePass::checkBBHasLError(BasicBlock& nowB)
 {
     for( auto& I : nowB )
-    {
+    {        
         if(CallInst* callInst = dyn_cast<CallInst>(&I))
         {
             //errs() << callInst->getCalledFunction()->getName() << "\n";
             Value* v = callInst->getCalledValue();	
-			Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+			Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());			
             if(caleeFunction->getName() ==  "__VERIFIER_error")
             {
                 return true;

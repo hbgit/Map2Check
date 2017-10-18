@@ -15,11 +15,11 @@ DebugInfo::DebugInfo(LLVMContext* ctx, Instruction* i) {
     line_number  = 0;
   }
 
-  bool dbgInstFlag=false;
-  MDNode * MD; 
-  const Value* val;
+  //bool dbgInstFlag=false;
+  //MDNode * MD; 
+  //const Value* val;
 
-
+  /**
   if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(i)) {
     val=DVI->getValue();
 	//MD = DVI->getVariable();
@@ -30,7 +30,7 @@ DebugInfo::DebugInfo(LLVMContext* ctx, Instruction* i) {
 	//MD = 
     errs() << DDI->getVariable() << "+++++++++++++ \n";
 	dbgInstFlag=true;
-  }
+  }**/
 
   this->scopeNumberValue = ConstantInt
     ::getSigned(Type::getInt32Ty(*ctx), scope_number);

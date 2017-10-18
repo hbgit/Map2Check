@@ -5,10 +5,8 @@ bool TrackBasicBlockPass::runOnFunction(Function &F) {
     this->currentFunction = &F;      
     this->libraryFunctions =  make_unique<LibraryFunctions>(&F, &F.getContext());
     for(auto& B: F)
-    {
-
+    {        
         this->runOnBasicBlock(B, this->Ctx);       
-
     }
 
     return true;
@@ -17,7 +15,7 @@ bool TrackBasicBlockPass::runOnFunction(Function &F) {
 void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) 
 {    
         
-    this->st_lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block        
+    this->st_lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block            
     
     /**if(!this->initializedFunctionName) {
 	  IRBuilder<> builder((Instruction*)&*this->st_lastBlockInst);
@@ -35,8 +33,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 	//errs() << debugInfoLa.getLineNumberInt() << "\n";
 			
 	if(auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst))
-	{
-		
+	{		
 		if(tI->getOpcodeName() == "br")
 		{
 			if(B.size() > 1){

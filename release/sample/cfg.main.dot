@@ -1,0 +1,10 @@
+digraph "CFG for 'main' function" {
+	label="CFG for 'main' function";
+
+	Node0x562c93afa600 [shape=record,label="{%0:\l  %1 = alloca i32, align 4\l  %2 = alloca i32, align 4\l  %3 = alloca i32, align 4\l  store i32 0, i32* %1, align 4\l  %4 = call i32 (...) @__VERIFIER_nondet_uint()\l  store i32 %4, i32* %2, align 4\l  %5 = call i32 (...) @__VERIFIER_nondet_uint()\l  store i32 %5, i32* %3, align 4\l  %6 = load i32, i32* %2, align 4\l  %7 = load i32, i32* %3, align 4\l  %8 = icmp ult i32 %6, %7\l  %9 = zext i1 %8 to i32\l  %10 = call i32 (i32, ...) bitcast (i32 (...)* @__VERIFIER_assume to i32\l... (i32, ...)*)(i32 %9)\l  %11 = load i32, i32* %2, align 4\l  %12 = load i32, i32* %3, align 4\l  %13 = icmp ult i32 %11, %12\l  br i1 %13, label %14, label %16\l|{<s0>T|<s1>F}}"];
+	Node0x562c93afa600:s0 -> Node0x562c93afbb00;
+	Node0x562c93afa600:s1 -> Node0x562c93afbb90;
+	Node0x562c93afbb00 [shape=record,label="{%14:\l\l  %15 = call i32 (...) @__VERIFIER_error()\l  br label %16\l}"];
+	Node0x562c93afbb00 -> Node0x562c93afbb90;
+	Node0x562c93afbb90 [shape=record,label="{%16:\l\l  %17 = load i32, i32* %1, align 4\l  ret i32 %17\l}"];
+}

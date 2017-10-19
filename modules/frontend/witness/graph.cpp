@@ -125,7 +125,7 @@ std::string CorrectnessWitnessGraph::convertToString() {
 
 void SVCompWitness::Testify() {
     ofstream outputFile("witness.graphml");      
-    cout << (std::string) (*this->automata) << "\n" ;
+    //cout << (std::string) (*this->automata) << "\n" ;
     outputFile << (std::string) (*this->automata);
 }
 
@@ -348,7 +348,8 @@ void SVCompWitness::makeCorrectnessAutomata()
 								std::unique_ptr<EdgeData> startLineF = std::make_unique<StartLine>(std::to_string(stateTrueNumLineStart));								
 								newEdgeF->AddElement(std::move(startLineF));
 								// attribute sourcecode
-								std::unique_ptr<EdgeData> sourcecodeF = std::make_unique<SourceCode>(stateTrueLogRows[k].controlCode);
+								std::string falseSourceCond = "[!" + stateTrueLogRows[k].controlCode + "]";
+								std::unique_ptr<EdgeData> sourcecodeF = std::make_unique<SourceCode>(falseSourceCond);
 								newEdgeF->AddElement(std::move(sourcecodeF));
 								// attribute control
 								std::unique_ptr<EdgeData> controlF = std::make_unique<Control>("condition-false");

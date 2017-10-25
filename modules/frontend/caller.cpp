@@ -117,7 +117,8 @@ int Caller::parseIrFile(){
 }
 
 int Caller::callPass(Map2CheckMode mode, bool sv_comp){
-	//Pass to generate_automata_true    
+	//Pass to generate_automata_true
+	Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");           
     AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
 	
     Map2Check::Log::Debug("Applying NonDetPass\n");    
@@ -135,8 +136,8 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
         throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
     }
     
-    //Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
-    //AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
+    Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
+    AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
     
     Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
     AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
@@ -146,7 +147,8 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
 
 
 int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_comp){
-	//Pass to generate_automata_true    
+	//Pass to generate_automata_true 
+	Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");    
     AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
    
     Map2Check::Log::Debug("Applying NonDetPass\n");       

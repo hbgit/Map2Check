@@ -4,6 +4,7 @@ bool TrackBasicBlockPass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;      
     this->libraryFunctions =  make_unique<LibraryFunctions>(&F, &F.getContext());
+    
     for(auto& B: F)
     {        
         this->runOnBasicBlock(B, this->Ctx);       
@@ -31,7 +32,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 	//errs() << this->st_lastBlockInst->getOpcodeName() << "\n";
 	//DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
 	//errs() << debugInfoLa.getLineNumberInt() << "\n";
-			
+				
 	if(auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst))
 	{		
 		if(tI->getOpcodeName() == "br")
@@ -94,24 +95,33 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 			//this->numLineBlk_AA = debugInfoLa.getLineNumberInt();
 			
 			// To avoid empty lines, e.g., only with "}"
-			bool flagEmpty = false;			
+			bool flagEmpty = false;	
+			int countInst = 1;		
 			DebugInfo debugInfoAaEmpty(this->Ctx, (Instruction*)this->st_lastBlockInst);
 			if(this->sourceCodeHelper->getLine(debugInfoAaEmpty.getLineNumberInt()).empty())
-			{
+			{				
 				flagEmpty = true;
 			}
 			
 			while(flagEmpty)
             {
-				--this->st_lastBlockInst;
-				DebugInfo debugInfoAaEmptyW(this->Ctx, (Instruction*)this->st_lastBlockInst);	
-				if(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()).empty())
+				if(countInst < B.size())
 				{
-					flagEmpty = true;
+					countInst++;	
+					--this->st_lastBlockInst;
+					DebugInfo debugInfoAaEmptyW(this->Ctx, (Instruction*)this->st_lastBlockInst);	
+					if(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()).empty())
+					{
+						flagEmpty = true;
+					}else{
+						flagEmpty = false;
+					}
 				}else{
 					flagEmpty = false;
 				}
+				
 			}
+			
 			this->instrumentLastInstBB(this->st_lastBlockInst);
 		}	
 		
@@ -121,6 +131,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
 bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT)
 {	
+	
 	if(auto* cI = dyn_cast<CallInst>((Instruction*)iT))        
 	{   
 		

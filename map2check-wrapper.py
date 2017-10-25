@@ -66,7 +66,7 @@ else:
   exit(1)
 
 if is_memsafety:
-  command_line += " --generate-witness "
+  command_line += " --assume-malloc-true --generate-witness "
 elif is_reachability:
   command_line += " --target-function __VERIFIER_error --generate-witness "
 elif is_overflow:

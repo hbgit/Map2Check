@@ -6,7 +6,7 @@
 
   <resultfiles>**.graphml</resultfiles>
   
-  <rundefinition name="sv-comp17"></rundefinition>
+  <rundefinition name="sv-comp18"></rundefinition>
 
   <tasks name="ReachSafety-Arrays">
     <includesfile>../sv-benchmarks/c/ReachSafety-Arrays.set</includesfile>
@@ -15,15 +15,7 @@
   <tasks name="ReachSafety-BitVectors">
     <includesfile>../sv-benchmarks/c/ReachSafety-BitVectors.set</includesfile>
     <propertyfile>../sv-benchmarks/c/ReachSafety.prp</propertyfile>
-  </tasks>
-  <tasks name="ReachSafety-ControlFlow">
-    <includesfile>../sv-benchmarks/c/ReachSafety-ControlFlow.set</includesfile>
-    <propertyfile>../sv-benchmarks/c/ReachSafety.prp</propertyfile>
-  </tasks>
-  <tasks name="ReachSafety-ECA">
-    <includesfile>../sv-benchmarks/c/ReachSafety-ECA.set</includesfile>
-    <propertyfile>../sv-benchmarks/c/ReachSafety.prp</propertyfile>
-  </tasks>  
+  </tasks>    
   <tasks name="ReachSafety-Heap">
     <includesfile>../sv-benchmarks/c/ReachSafety-Heap.set</includesfile>
     <propertyfile>../sv-benchmarks/c/ReachSafety.prp</propertyfile>
@@ -31,19 +23,12 @@
   <tasks name="ReachSafety-Loops">
     <includesfile>../sv-benchmarks/c/ReachSafety-Loops.set</includesfile>
     <propertyfile>../sv-benchmarks/c/ReachSafety.prp</propertyfile>
-  </tasks>
-  <tasks name="ReachSafety-ProductLines">
-    <includesfile>../sv-benchmarks/c/ReachSafety-ProductLines.set</includesfile>
-    <propertyfile>../sv-benchmarks/c/ReachSafety.prp</propertyfile>
-  </tasks>
+  </tasks>  
   <tasks name="ReachSafety-Recursive">
     <includesfile>../sv-benchmarks/c/ReachSafety-Recursive.set</includesfile>
     <propertyfile>../sv-benchmarks/c/ReachSafety.prp</propertyfile>
   </tasks>
-  <tasks name="ReachSafety-Sequentialized">
-    <includesfile>../sv-benchmarks/c/ReachSafety-Sequentialized.set</includesfile>
-    <propertyfile>../sv-benchmarks/c/ReachSafety.prp</propertyfile>
-  </tasks>
+    
 
   <tasks name="MemSafety-Arrays">
     <includesfile>../sv-benchmarks/c/MemSafety-Arrays.set</includesfile>
@@ -61,6 +46,7 @@
     <includesfile>../sv-benchmarks/c/MemSafety-Other.set</includesfile>
     <propertyfile>../sv-benchmarks/c/MemSafety.prp</propertyfile>
   </tasks>
+  
 
   <tasks name="Overflows-BitVectors">
     <includesfile>../sv-benchmarks/c/Overflows-BitVectors.set</includesfile>
@@ -70,8 +56,6 @@
   <tasks name="Overflows-Other">
     <includesfile>../sv-benchmarks/c/Overflows-Other.set</includesfile>
     <propertyfile>../sv-benchmarks/c/Overflows.prp</propertyfile>
-  </tasks>
-  
-  
+  </tasks>  
 
 </benchmark>

@@ -36,7 +36,8 @@ struct TrackBasicBlockPass : public FunctionPass {
 	
 	protected:
 		void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
-		void instrumentLastInstBB(BasicBlock::iterator& iT);
+		void instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx); 
+		void instrumentInstBB(BasicBlock::iterator& iT);
 		bool checkInstBBIsAssume(BasicBlock::iterator& iT);
 		Value* getFunctionNameValue() { return this->functionName; }
   

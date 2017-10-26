@@ -7,15 +7,65 @@ bool TrackBasicBlockPass::runOnFunction(Function &F) {
     
     for(auto& B: F)
     {        
+        //this->instrumentEntryBB(B, this->Ctx);
         this->runOnBasicBlock(B, this->Ctx);       
     }
 
     return true;
 }
 
+void TrackBasicBlockPass::instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx) 
+{ 
+	BasicBlock::iterator firstInst = B.begin();
+	//firstInst++;
+	DebugInfo debugInfoFi(this->Ctx, (Instruction*)firstInst);            	
+	unsigned fiLineNum = 0;
+	
+	if(B.size() > 1 && this->sourceCodeHelper->getLine(debugInfoFi.getLineNumberInt()).empty()){
+		
+		bool flagEmpty = false;	
+		int countInst = 1;		
+		DebugInfo debugInfoFiEmpty(this->Ctx, (Instruction*)firstInst);
+		if(this->sourceCodeHelper->getLine(debugInfoFiEmpty.getLineNumberInt()).empty())
+		{				
+			flagEmpty = true;
+		}
+		
+		while(flagEmpty)
+		{
+			if(countInst < B.size())
+			{
+				countInst++;	
+				firstInst++;
+				DebugInfo debugInfoFiEmptyW(this->Ctx, (Instruction*)firstInst);
+				fiLineNum = debugInfoFiEmptyW.getLineNumberInt();
+				if(this->sourceCodeHelper->getLine(debugInfoFiEmptyW.getLineNumberInt()).empty())
+				{
+					flagEmpty = true;
+				}else{
+					flagEmpty = false;
+				}
+			}else{
+				flagEmpty = false;
+			}
+			
+		}
+		//errs() << fiLineNum << "\n";
+		//firstInst->dump();
+		// Code instrumentation in the end of the BB
+		this->instrumentInstBB(firstInst);
+		
+	}else{
+		//errs() << debugInfoFi.getLineNumberInt() << "\n";
+		//firstInst->dump();
+		this->instrumentInstBB(firstInst);
+	}
+	
+}
+
 void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) 
-{    
-        
+{        
+    
     this->st_lastBlockInst = --B.end(); // -- is necessary to avoid the pointer to the next block            
     
     /**if(!this->initializedFunctionName) {
@@ -64,7 +114,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 				
 				
 				//errs() << this->numLineBlk_AA << " 1 \n";	
-				this->instrumentLastInstBB(this->st_lastBlockInst);		
+				this->instrumentInstBB(this->st_lastBlockInst);		
 			}
 
 		}else{						
@@ -122,7 +172,8 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 				
 			}
 			
-			this->instrumentLastInstBB(this->st_lastBlockInst);
+			// Code instrumentation in the end of the BB
+			this->instrumentInstBB(this->st_lastBlockInst);
 		}	
 		
 	}
@@ -150,7 +201,7 @@ bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT)
 	return false;
 }
 
-void TrackBasicBlockPass::instrumentLastInstBB(BasicBlock::iterator& iT)
+void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT)
 {	
 	/**auto j = iT;
 		
@@ -162,6 +213,7 @@ void TrackBasicBlockPass::instrumentLastInstBB(BasicBlock::iterator& iT)
 		--j;
 	}**/
 	
+	//iT->dump();
 	//Twine track_bb("map2check_track_bb");
 	//Function *caleeFunction;
 	//caleeFunction->setName(track_bb);

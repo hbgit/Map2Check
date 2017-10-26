@@ -15,35 +15,37 @@ clang_command = clang_path + clang_args
 bcs_files = "bcs_files"
 
 #remove old tmp files
-if not os.path.isdir("witness_file"):
-    os.system("mkdir witness_file")
-else:
-    if os.path.isfile("witness_file/witness.graphml"):
-        os.system("rm witness_file/witness.graphml")
+#if not os.path.isdir("witness_file"):
+#    os.system("mkdir witness_file")
+#else:
+#    if os.path.isfile("witness_file/witness.graphml"):
+#        os.system("rm witness_file/witness.graphml")
 
 
 def check_witness(benchmark_name, typeResult, witnessPath):
     global property_file
     global benchmark
-
+    
     if not os.path.isfile(witnessPath):
         outputwrt = str(benchmark) + ";" + "ERROR"
         os.system("echo \""+outputwrt+"\" >> witness_check_log.csv")
         exit(1)
     else:
-		os.chdir("../../../witness_checker/UAutomizer-linux/")
-        command_line_witck = "./Ultimate.py "
-                          " " + property_file +\
-                          " 64bit "+\
-                          " " +  benchmark+\
-                          " --validate ../../tools/Map2Check/release/"+witnessPath "
+        command_line_witck = "./Ultimate.py "+\
+        " " + os.path.realpath(property_file) +\
+        " 64bit "+\
+        " " +  os.path.realpath(benchmark)+\
+        " --validate "+os.path.realpath(witnessPath)
 
-        #print str(command_line_cpa)
+        #print str(command_line_witck)
+        os.chdir("../../../witness_checker/UAutomizer-linux/")
+        
         args = shlex.split(command_line_witck)
 
         p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdout, stderr) = p.communicate()
 
+        #print stdout
         # Parse output witness checker
         if "TRUE" in stdout:
             outputwrt = str(benchmark) + ";" + "TRUE"
@@ -57,6 +59,7 @@ def check_witness(benchmark_name, typeResult, witnessPath):
             os.system("echo \""+outputwrt+"\" >> witness_check_log.csv")
             
         os.chdir("../../tools/Map2Check/release/")
+        #os.system("ls -alh")
 
 
 

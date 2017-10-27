@@ -42,7 +42,7 @@ protected:
     std::unique_ptr<Graph> automata;
     void makeViolationAutomata();
     void makeCorrectnessAutomata();
-    void makeViolationAutomataAux(unsigned lastState); // when we don't have KLEE values
+    void makeViolationAutomataAux(); // when we don't have KLEE values
 public:
     SVCompWitness(std::string programPath, std::string programHash, std::string targetFunction = "", std::string specTrueString = "");     
     void Testify();

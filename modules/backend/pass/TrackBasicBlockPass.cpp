@@ -13,7 +13,7 @@ bool TrackBasicBlockPass::runOnFunction(Function &F) {
 
     return true;
 }
-
+/**
 void TrackBasicBlockPass::instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx) 
 { 
 	BasicBlock::iterator firstInst = B.begin();
@@ -61,7 +61,7 @@ void TrackBasicBlockPass::instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx)
 		this->instrumentInstBB(firstInst);
 	}
 	
-}
+}**/
 
 void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) 
 {        
@@ -103,7 +103,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 					DebugInfo debugInfoAa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
 					this->numLineBlk_AA = debugInfoAa.getLineNumberInt();			
 					//errs() << this->numLineBlk_AA << "  " << this->numLineBlk_ori << "\n";
-					if(this->numLineBlk_AA == this->numLineBlk_ori)
+					if(this->numLineBlk_AA == this->numLineBlk_ori && !this->isUnreachableInst)
 					{						
 						flagAssume = true;
 					}else{
@@ -119,6 +119,8 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
 		}else{						
 			
+			//this->st_lastBlockInst->dump();
+			
 			DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
 			this->numLineBlk_ori = debugInfoLa.getLineNumberInt();
 			bool flagAssume = false;
@@ -133,7 +135,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 				DebugInfo debugInfoAa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
 				this->numLineBlk_AA = debugInfoAa.getLineNumberInt();			
 				//errs() << this->numLineBlk_AA << "  " << this->numLineBlk_ori << "\n";
-				if(this->numLineBlk_AA == this->numLineBlk_ori)
+				if(this->numLineBlk_AA == this->numLineBlk_ori && !this->isUnreachableInst)
 				{					
 					flagAssume = true;
 				}else{
@@ -142,7 +144,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 				
 			}
 					
-			//this->numLineBlk_AA = debugInfoLa.getLineNumberInt();
+			this->numLineBlk_AA = debugInfoLa.getLineNumberInt();
 			
 			// To avoid empty lines, e.g., only with "}"
 			bool flagEmpty = false;	
@@ -182,7 +184,9 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 
 bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT)
 {	
-	
+	//iT->dump();
+	//errs() << iT->getOpcodeName() << " \n";
+	this->isUnreachableInst = false;
 	if(auto* cI = dyn_cast<CallInst>((Instruction*)iT))        
 	{   
 		
@@ -197,6 +201,10 @@ bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT)
 			return false;
 		}		
 
+	}else if(auto* cI2 = dyn_cast<UnreachableInst>((Instruction*)iT))        
+	{
+		this->isUnreachableInst = true;
+		return true;
 	}
 	return false;
 }

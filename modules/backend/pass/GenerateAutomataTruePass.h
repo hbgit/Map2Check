@@ -64,6 +64,7 @@ struct GenerateAutomataTruePass : public FunctionPass
     int st_numLineGoControl_2false;
     bool st_isControl = false;
     bool st_isEntryPoint = false;
+    int st_isErrorLocation = 0;
 
     //others
     int numLineBlk_ori;

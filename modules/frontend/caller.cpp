@@ -120,6 +120,7 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
 	//Pass to generate_automata_true
 	Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");           
     AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
+    // TrackBasicBlockPass is here to avoid lost position after code instrumentation
     Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
     AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
     
@@ -150,7 +151,11 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
 int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_comp){
 	//Pass to generate_automata_true 
 	Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");    
-    AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
+    AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));  
+    //TODO: Improve time verification
+    Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
+    AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
+      
    
     Map2Check::Log::Debug("Applying NonDetPass\n");       
     AnalysisPasses.add(new NonDetPass());
@@ -163,10 +168,7 @@ int Caller::callPass(Map2CheckMode mode, std::string target_function, bool sv_co
         throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
     }
 
-    //TODO: Improve time verification
-    Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
-    AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
-    
+        
     Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
     AnalysisPasses.add(new Map2CheckLibrary(sv_comp));   
     

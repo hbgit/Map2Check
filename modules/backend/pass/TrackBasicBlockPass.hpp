@@ -46,6 +46,7 @@ struct TrackBasicBlockPass : public FunctionPass {
 		std::string cprogram_path;
 		std::unique_ptr<LibraryFunctions> libraryFunctions; 
 		bool initializedFunctionName = false; 
+		bool isUnreachableInst = false;
 		BasicBlock::iterator st_lastBlockInst;  
 		BasicBlock::iterator currentInstruction;
 		Function* currentFunction;

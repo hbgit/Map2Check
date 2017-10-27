@@ -36,7 +36,8 @@ void GenerateAutomataTruePass::printStateData()
         }else{
             filest << "NONE@0@NONE@NONE@";
         }
-        filest << this->st_isEntryPoint << "\n";
+        filest << this->st_isEntryPoint << "@";
+        filest << this->st_isErrorLocation << "\n";
         filest.close();
     }
 
@@ -61,8 +62,10 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
     //Identifying asserts on analayzed code
     this->identifyAssertLoc(B);       
 
-    if(!this->checkBBHasLError(B))
-    {		
+    //if(!this->checkBBHasLError(B))
+    //{
+	//}
+		this->checkBBHasLError(B);
         // Create a method to get info from branches in the block for condition-true and false     
         isCond = this->isBranchCond(B);
         this->st_isControl = isCond;
@@ -121,7 +124,7 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
             }
 
         }
-    }
+    
 
     if(this->enableDataBlk)
     {
@@ -302,9 +305,10 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 
     for( auto& I : B )
     {      
-
+		
         if(auto* bI = dyn_cast<ICmpInst>(&I))
         {
+			bI->dump();
             //errs() << this->convertLLPredicatetoXmlText(I) << "\n";
             //
             DebugInfo debugInfoBi(this->Ctx, bI);
@@ -510,6 +514,7 @@ std::string GenerateAutomataTruePass::getPredicateSymOnXmlText(ICmpInst& icmpIns
 //To identify a block with a error location by __VERIFIER_error call function
 bool GenerateAutomataTruePass::checkBBHasLError(BasicBlock& nowB)
 {
+    this->st_isErrorLocation = 0;
     for( auto& I : nowB )
     {        
         if(CallInst* callInst = dyn_cast<CallInst>(&I))
@@ -519,6 +524,7 @@ bool GenerateAutomataTruePass::checkBBHasLError(BasicBlock& nowB)
 			Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());			
             if(caleeFunction->getName() ==  "__VERIFIER_error")
             {
+				this->st_isErrorLocation = 1;
                 return true;
             }
         }

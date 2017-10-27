@@ -34,6 +34,7 @@ std::string ViolationWitnessGraph::convertToString() {
     cnvt << "\t<key attr.name=\"isEntryNode\" attr.type=\"boolean\" for=\"node\" id=\"entry\">\n";
     cnvt << "\t\t<default>false</default>\n";
     cnvt << "\t</key>\n";
+    cnvt << "\t<key attr.name=\"invariant\" attr.type=\"string\" for=\"node\" id=\"invariant\"/>\n";
 
     cnvt << "\t<key attr.name=\"isViolationNode\" attr.type=\"boolean\" for=\"node\" id=\"violation\">\n";
     cnvt << "\t\t<default>false</default>\n";
@@ -46,7 +47,10 @@ std::string ViolationWitnessGraph::convertToString() {
     cnvt << "\t<key attr.name=\"programFile\" attr.type=\"string\" for=\"graph\" id=\"programfile\"/>\n";
     cnvt << "\t<key attr.name=\"programHash\" attr.type=\"string\" for=\"graph\" id=\"programhash\"/>\n";
     cnvt << "\t<key attr.name=\"architecture\" attr.type=\"string\" for=\"graph\" id=\"architecture\"/>\n";
+    
     cnvt << "\t<key attr.name=\"startline\" attr.type=\"int\" for=\"edge\" id=\"startline\"/>\n";
+    cnvt << "\t<key attr.name=\"sourcecode\" attr.type=\"string\" for=\"edge\" id=\"sourcecode\"/>\n";
+    cnvt << "\t<key attr.name=\"control\" attr.type=\"string\" for=\"edge\" id=\"control\"/>\n";
     cnvt << "\t<key attr.name=\"assumption\" attr.type=\"string\" for=\"edge\" id=\"assumption\"/>\n";
     cnvt << "\t<key attr.name=\"assumption.scope\" attr.type=\"string\" for=\"edge\" id=\"assumption.scope\"/>\n";
     cnvt << "\t<key attr.name=\"assumption.resultfunction\" attr.type=\"string\" for=\"edge\" id=\"assumption.resultfunction\"/>\n";
@@ -222,6 +226,23 @@ void SVCompWitness::makeCorrectnessAutomata()
 
     std::vector<Tools::StateTrueLogRow> stateTrueLogRows = Tools::StateTrueLogHelper::getListLogFromCSV();
     
+    //--- remove rows with error location    
+    std:vector<int> removeItem;
+    for(int c = 0; c < stateTrueLogRows.size(); c++){
+	   if(stateTrueLogRows[c].isErrorLabel == "1"){
+			removeItem.push_back(c);
+	   }
+	}
+	
+	vector <int>::iterator iremove = removeItem.begin ();
+	while (iremove != removeItem.end ()){
+		//cout << *iremove << "\n";
+	    stateTrueLogRows.erase(stateTrueLogRows.begin() + *iremove);
+	    ++ iremove;
+	}
+	//--- 
+        
+    
     std::vector<Tools::TrackBBLogRow> trackBBLogRows = Tools::TrackBBLogHelper::getListLogFromCSV();
     
     if(stateTrueLogRows.size() == 0 || trackBBLogRows.size() == 0) {
@@ -237,6 +258,7 @@ void SVCompWitness::makeCorrectnessAutomata()
     // The total number of automata nodes is egual to number lines in 
     // automata_list_log.st file take into accounting the BB executed in
     // track_bb_log.st file
+    std::string getSt;
     for(int i = 0; i < trackBBLogRows.size(); i++) {
 		
 		int trackBBLineNum = std::stoi(trackBBLogRows[i].numLineInBB);
@@ -250,7 +272,8 @@ void SVCompWitness::makeCorrectnessAutomata()
 		std::ostringstream cnvt;
         cnvt.str("");
         cnvt << "s" << lastState;
-        lastState++;
+        lastState++;        
+        
 
         // Checking if the state in stateTrueLogRows was executed in TrackBBLogRow
         for(int k = 0; k < stateTrueLogRows.size(); k++) 
@@ -261,16 +284,21 @@ void SVCompWitness::makeCorrectnessAutomata()
 			if(trackBBFunctName == stateTrueLogRows[k].functionName)
 			{				
 				if( (trackBBLineNum >= stateTrueNumLineBeginBB) && (trackBBLineNum <= stateTrueNumLineStart))
-				{
-					//cout << stateTrueNumLineStart << "\n";
-					
-					// This state (i.e., the BB) was executed
-					std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
-					//TODO node attributes to invariants
-					//std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
-					//newNode->AddElement(std::move(violationNode));
-					this->automata->AddNode(std::move(newNode));
-					//flagCreateNewNode = true;
+				{					
+					cout << getSt << "!=" << cnvt.str() << "\n";
+					if(getSt != cnvt.str())
+					{
+						// This state (i.e., the BB) was executed
+						std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
+						getSt = cnvt.str();
+						//TODO node attributes to invariants
+						//std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
+						//newNode->AddElement(std::move(violationNode));
+						//cout << lastStateId << "===\n";
+						//cout << cnvt.str() << "===\n";
+						this->automata->AddNode(std::move(newNode));
+						//flagCreateNewNode = true;
+					}
 					
 					//cout << lastStateId << "-----\n";
 					std::string tmpLastStateId = lastStateId; 
@@ -339,8 +367,8 @@ void SVCompWitness::makeCorrectnessAutomata()
 
 								// Create the edge to the new node
 								//std::unique_ptr<Edge> newEdge = std::make_unique<Edge>(lastStateId, cnvt.str());								
-								std::unique_ptr<Node> newNodeF = std::make_unique<Node>(cnvtF.str());
-								this->automata->AddNode(std::move(newNodeF));								
+								//std::unique_ptr<Node> newNodeF = std::make_unique<Node>(cnvtF.str());
+								//this->automata->AddNode(std::move(newNodeF));								
 								// Create the edge to the new node
 								std::unique_ptr<Edge> newEdgeF = std::make_unique<Edge>(tmpLastStateId, cnvtF.str());
 								
@@ -372,55 +400,54 @@ void SVCompWitness::makeCorrectnessAutomata()
 				}
 				
 			}
-		}
-        
-        
-			
-		       
+		}      
 		
 	}
     
 }
 
 // when we don't have KLEE values
-void SVCompWitness::makeViolationAutomataAux(unsigned lastState) 
+void SVCompWitness::makeViolationAutomataAux() 
 {
 	
 	Map2Check::Log::Debug("Starting Violation Automata Generation Mode 2");
-	
-	std::ostringstream cnvt;
+	unsigned runState = 0;  
+	std::ostringstream cnvt; 
 	cnvt.str("");
-	cnvt << "s" << lastState;
-	std::string lastStateId = cnvt.str();
-	cout << cnvt.str() << "\n";	 
+	cnvt << "s" << runState; 
 	
-    std::unique_ptr<Node> nowNode = std::make_unique<Node>(cnvt.str());
-    //this->automata->AddNode(std::move(nowNode));
+    std::unique_ptr<Node> startNode = std::make_unique<Node>(cnvt.str());
+    std::string lastStateId;// = "s0";
+    runState++; //s1
     
-    std::vector<Tools::StateTrueLogRow> stateTrueLogRows = Tools::StateTrueLogHelper::getListLogFromCSV();    
+    
+    std::unique_ptr<NodeElement> entryNode = std::make_unique<EntryNode>();
+    startNode->AddElement(std::move(entryNode));
+
+    std::vector<Tools::StateTrueLogRow> stateTrueLogRows = Tools::StateTrueLogHelper::getListLogFromCSV();   
+            
+    //The only diference that is not removed the error location
+    
     std::vector<Tools::TrackBBLogRow> trackBBLogRows = Tools::TrackBBLogHelper::getListLogFromCSV();
-    
-    if(trackBBLogRows.size() == 1)
-    {
-		std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
-		nowNode->AddElement(std::move(violationNode));
-		this->automata->AddNode(std::move(nowNode));  	
-	}else{
-		this->automata->AddNode(std::move(nowNode));  	
-	}
-    
     
     if(stateTrueLogRows.size() == 0 || trackBBLogRows.size() == 0) {
         std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
         std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
         this->automata->AddEdge(std::move(newEdge));
         this->automata->AddNode(std::move(newNode));
-    }    
-       
-    // Creating the automata nodes
-    // The total number of automata nodes is egual to number lines in 
-    // automata_list_log.st file take into accounting the BB executed in
-    // track_bb_log.st file    
+    }
+    
+    this->automata->AddNode(std::move(startNode));    
+    
+    /**
+     * Creating the automata nodes
+     * The total number of automata nodes is egual to number lines in 
+     * automata_list_log.st file take into accounting the BB executed in
+     * track_bb_log.st file
+     * */
+    
+    unsigned runSearchIndx = 0;
+    
     for(int i = 0; i < trackBBLogRows.size(); i++) {
 		
 		int trackBBLineNum = std::stoi(trackBBLogRows[i].numLineInBB);
@@ -428,167 +455,152 @@ void SVCompWitness::makeViolationAutomataAux(unsigned lastState)
 		bool flagCreateNewNode = false;
 		
 		int stateTrueNumLineBeginBB;
-		int stateTrueNumLineStart;
+		int stateTrueNumLineStart;		
 		
-		/**
-		std::ostringstream cnvt;
-        cnvt.str("");
-        cnvt << "s" << lastState;
-        lastState++;**/
-
+		bool searchLineBB = true;
+		
+		cout << i << "-------------- \n";
+		
         // Checking if the state in stateTrueLogRows was executed in TrackBBLogRow
-        for(int k = 0; k < stateTrueLogRows.size(); k++) 
-        {				
+        for(int k = 0; (k < stateTrueLogRows.size() && searchLineBB); k++) 
+        {	
 			stateTrueNumLineBeginBB = std::stoi(stateTrueLogRows[k].numLineBeginBB);
 			stateTrueNumLineStart = std::stoi(stateTrueLogRows[k].numLineStart);
 			
 			if(trackBBFunctName == stateTrueLogRows[k].functionName)
 			{				
-				//cout << trackBBLineNum << ">=" << stateTrueNumLineBeginBB << "\n";
 				if( (trackBBLineNum >= stateTrueNumLineBeginBB) && (trackBBLineNum <= stateTrueNumLineStart))
 				{
-					std:string tmpLastStateId;															
+					searchLineBB = false; //Stop search
 					
-					lastState++;
-					lastStateId = cnvt.str(); 
+					lastStateId =  cnvt.str();
+					
 					cnvt.str("");
-					cnvt << "s" << lastState;						
-					tmpLastStateId = lastStateId; 
+					cnvt << "s" << runState;
+					std::string tmpLastStateId;
 					
-					cout << cnvt.str() << "\n";
-					cout << lastStateId << "\n";
-					cout << tmpLastStateId << "\n";																	
-									
-				
 					// This state (i.e., the BB) was executed
-					std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());					
-					//TODO node attributes to invariants
-					//std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
-					//newNode->AddElement(std::move(violationNode));
-					
-					if(i == (trackBBLogRows.size() - 1))
-					{
-						cout << "HERE VIOLATED \n";	
-						std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
-						newNode->AddElement(std::move(violationNode));
-						this->automata->AddNode(std::move(newNode));  	
-					}else{
-						this->automata->AddNode(std::move(newNode));					
-					}
-										
-					//tmpLastStateId = lastStateId; 
+					// CREATING NODE
+					tmpLastStateId = lastStateId;
+					std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());																
+					this->automata->AddNode(std::move(newNode));
+					//lastStateId =  cnvt.str();
+					runState++; 						 
 										
 					// Create the edge to the new node
-					std::unique_ptr<Edge> newEdge = std::make_unique<Edge>(lastStateId, cnvt.str());
-					lastStateId =  cnvt.str();
+					// CREATING EDGE
+					//cout << lastStateId << "," << cnvt.str() << "\n";
+					std::unique_ptr<Edge> newEdge = std::make_unique<Edge>(lastStateId, cnvt.str());					
 										
 					// attribute startline
 					std::unique_ptr<EdgeData> startLine = std::make_unique<StartLine>(std::to_string(stateTrueNumLineStart));
 					newEdge->AddElement(std::move(startLine));
+					//this->automata->AddEdge(std::move(newEdge));
 					
 										
 					if(std::stoi(stateTrueLogRows[k].hasControlCode))
-					{						
-						cout << stateTrueLogRows[k].controlCode << "\n";
-						
+					{	
+						cout << "CONTROL \n";
 						// attribute sourcecode
 						std::unique_ptr<EdgeData> sourcecode = std::make_unique<SourceCode>(stateTrueLogRows[k].controlCode);
 						newEdge->AddElement(std::move(sourcecode));
 						
-						// attribute control 
+						
 						// search in trackBBLogRows which condition (TRUE or FALSE) by line number in 
 						// stateTrueLogRows was executed
-						int tmpCount=i+1; //true cond	
+						int tmpCount=i+1; //true cond in trackBBLogRows, i.e., next line executed	
 						bool hasTrueCond = false;
-						
-						//cout << tmpCount << "<" << trackBBLogRows.size() << "\n";
 											
+						//=============== TRUE COND
 						if(tmpCount < trackBBLogRows.size())
-						{
-							//cout << "condition-true" << "\n";
-							//cout << stateTrueLogRows[k].numLineControlTrue << " == " << trackBBLogRows[tmpCount].numLineInBB << "\n";
-							
+						{							
+							cout << std::stoi(stateTrueLogRows[k].numLineControlTrue) << "==" << std::stoi(trackBBLogRows[tmpCount].numLineInBB) << "\n";
 							if(std::stoi(stateTrueLogRows[k].numLineControlTrue) == std::stoi(trackBBLogRows[tmpCount].numLineInBB))
 							{								
+								cout << " TRUE COND\n";
+								//i = tmpCount; //true cound found in trackBBLogRows	
+								//cout << i << "---------- \n";
+														
+								// create edge
 								std::unique_ptr<EdgeData> control = std::make_unique<Control>("condition-true");
 								newEdge->AddElement(std::move(control));								
 								this->automata->AddEdge(std::move(newEdge));
-								hasTrueCond = true;;
+								hasTrueCond = true;
+								
+								
+								//  create node
+								//cnvt.str("");
+								//cnvt << "s" << runState;
+								//std::unique_ptr<Node> newNodeT = std::make_unique<Node>(cnvt.str());
+								//this->automata->AddNode(std::move(newNodeT));
+								//lastStateId =  cnvt.str();
+								//runState++;
+								
 							}
 						}
 						
-						unsigned tmpLastState;
-						std::ostringstream cnvtF;
-						if(hasTrueCond)
-						{
-							tmpCount=i+2; //false cond
-							tmpLastState = lastState;							
-							cnvtF.str("");
-							// tmpLastStateId source
-							cnvtF << "s" << tmpLastState; //target
-						}else{
-							//cout << "ELSE \n";
-							tmpCount=i+1; //false cond
-							tmpLastState = lastState-1;							
-							cnvtF.str("");							
-							cnvtF << "s" << tmpLastState; //target
-						}
-						
-						//cout << tmpCount << "<" << trackBBLogRows.size() << "\n";
-									
-						
-						if(tmpCount < trackBBLogRows.size())
+						//=============== FALSE COND
+						/**
+						 *  creating a edge to its negation
+						 *  create a new node, only if we have a false cond, otherwise we point to the same node
+						 *	from true cond							
+						 * */
+						if(tmpCount < trackBBLogRows.size() && !hasTrueCond)
 						{							
-							// creating a edge to its negation
-							// create a new node, only if we have a false cond, otherwise we point to the same node
-							// from true cond
-							//cout << stateTrueLogRows[k].numLineControlFalse << "==" << trackBBLogRows[tmpCount].numLineInBB << "\n";
-							//cout << "condition-false" << "\n";
+							cout << std::stoi(stateTrueLogRows[k].numLineControlFalse) << "==" << std::stoi(trackBBLogRows[tmpCount].numLineInBB) << "\n";
 							if(std::stoi(stateTrueLogRows[k].numLineControlFalse) == std::stoi(trackBBLogRows[tmpCount].numLineInBB))
 							{
 								// Create a new node for false cond													
-
+								//i = tmpCount; //false cond found in trackBBLogRows
+								//cout << i << "---------- \n";
+								//  create node
+								//cnvt.str("");
+								//cnvt << "s" << runState;
+								//std::unique_ptr<Node> newNodeF = std::make_unique<Node>(cnvt.str());
+								//this->automata->AddNode(std::move(newNodeF));
+								//lastStateId =  cnvt.str();
+								//runState++; 
+								
 								// Create the edge to the new node
-								//std::unique_ptr<Edge> newEdge = std::make_unique<Edge>(lastStateId, cnvt.str());								
-								std::unique_ptr<Node> newNodeF = std::make_unique<Node>(cnvtF.str());
-								this->automata->AddNode(std::move(newNodeF));								
-								// Create the edge to the new node
-								std::unique_ptr<Edge> newEdgeF = std::make_unique<Edge>(tmpLastStateId, cnvtF.str());
+								//std::unique_ptr<Edge> newEdgeF = std::make_unique<Edge>(lastStateId, cnvt.str());
 								
 								// attribute startline
 								std::unique_ptr<EdgeData> startLineF = std::make_unique<StartLine>(std::to_string(stateTrueNumLineStart));								
-								newEdgeF->AddElement(std::move(startLineF));
+								newEdge->AddElement(std::move(startLineF));
 								// attribute sourcecode
 								std::string falseSourceCond = "[!" + stateTrueLogRows[k].controlCode + "]";
 								std::unique_ptr<EdgeData> sourcecodeF = std::make_unique<SourceCode>(falseSourceCond);
-								newEdgeF->AddElement(std::move(sourcecodeF));
+								newEdge->AddElement(std::move(sourcecodeF));
 								// attribute control
 								std::unique_ptr<EdgeData> controlF = std::make_unique<Control>("condition-false");
-								newEdgeF->AddElement(std::move(controlF));
+								newEdge->AddElement(std::move(controlF));
 								
-								this->automata->AddEdge(std::move(newEdgeF));
+								this->automata->AddEdge(std::move(newEdge));
 							}							
 							
 						}	
-						
-						
 					}else{
 						// attribute sourcecode
-						//cout << stateTrueLogRows[k].sourceCode << "\n";
 						std::unique_ptr<EdgeData> sourcecode = std::make_unique<SourceCode>(stateTrueLogRows[k].sourceCode);
 						newEdge->AddElement(std::move(sourcecode));
 						this->automata->AddEdge(std::move(newEdge));						
 					}
 					
-				  
-					
 					
 				}
 				
-			}
-		}	
-	
+			}			
+		}
+		
+		//if(!searchLineBB){
+			//i++;
+			//cout << i << "---------- \n";
+		//} 
+		     
+		
 	}
+    
+	
     
 }
 
@@ -598,8 +610,7 @@ void SVCompWitness::makeViolationAutomata() {
     Map2Check::Log::Debug("Starting Violation Automata Generation");
     unsigned lastState = 0;
     std::string lastStateId = "s0";
-    std::unique_ptr<Node> startNode = std::make_unique<Node>("s0");
-    cout << lastStateId << "\n";
+    std::unique_ptr<Node> startNode = std::make_unique<Node>("s0");    
     lastState++;
 
     std::unique_ptr<NodeElement> entryNode = std::make_unique<EntryNode>();
@@ -607,8 +618,11 @@ void SVCompWitness::makeViolationAutomata() {
 
     std::vector<Tools::KleeLogRow> kleeLogRows = Tools::KleeLogHelper::getListLogFromCSV();
     std::vector<Tools::ListLogRow> listLogRows = Tools::ListLogHelper::getListLogFromCSV();
+    // for target function error
+    std::vector<Tools::TrackBBLogRow> trackBBLogRows = Tools::TrackBBLogHelper::getListLogFromCSV();
+    
 
-    if(kleeLogRows.size() == 0 && listLogRows.size() == 0) {
+    if(kleeLogRows.size() == 0 && listLogRows.size() == 0 && trackBBLogRows.size() == 0) {		
         std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
 
         std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
@@ -617,10 +631,9 @@ void SVCompWitness::makeViolationAutomata() {
         std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
         this->automata->AddEdge(std::move(newEdge));
         this->automata->AddNode(std::move(newNode));
-    }else if(kleeLogRows.size() == 0 && listLogRows.size() > 0){
-		this->automata->AddNode(std::move(startNode));
-		cout << "WE HAVE LIST LOG \n";
-		this->makeViolationAutomataAux(lastState);
+    }else if(kleeLogRows.size() == 0 && (listLogRows.size() > 0 || trackBBLogRows.size() > 0)){
+		//this->automata->AddNode(std::move(startNode));		
+		this->makeViolationAutomataAux();
 	}else{
         
 		this->automata->AddNode(std::move(startNode));

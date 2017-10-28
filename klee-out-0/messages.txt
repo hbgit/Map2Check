@@ -1,2 +1,0 @@
-KLEE: ERROR: /home/map2check/devel_tool/mygitclone/preprocessed.c:9: ASSERTION FAIL: 0
-KLEE: NOTE: now ignoring this error at this location

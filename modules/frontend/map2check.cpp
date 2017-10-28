@@ -306,7 +306,7 @@ int main(int argc, char** argv)
 				
 			}
             
-			//caller->cleanGarbage();
+			caller->cleanGarbage();
             return SUCCESS;
           }
 

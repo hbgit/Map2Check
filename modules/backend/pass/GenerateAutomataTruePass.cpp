@@ -308,7 +308,7 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B)
 		
         if(auto* bI = dyn_cast<ICmpInst>(&I))
         {
-			bI->dump();
+			//bI->dump();
             //errs() << this->convertLLPredicatetoXmlText(I) << "\n";
             //
             DebugInfo debugInfoBi(this->Ctx, bI);
@@ -461,9 +461,13 @@ std::string GenerateAutomataTruePass::convertLLPredicatetoXmlText(Instruction& I
         //Generate full predicate expression
         //errs() << lvaluep.empty() << "==\n";
         //errs() << rvaluep.empty() << "==\n";
+        //errs() << "[" + lvaluep + " " + predicateInXml + " " + rvaluep + "]" << "\n";
         if(this->isPredicateNe && lvaluep.empty())
         {
 			fullExpPredicateInXml = "[ !" + rvaluep + "]";
+		}else if(this->isPredicateNe && rvaluep.empty())
+		{
+			fullExpPredicateInXml = "[ !" + lvaluep + "]";
 		}else{
 			fullExpPredicateInXml = "[" + lvaluep + " " + predicateInXml + " " + rvaluep + "]";
 		}

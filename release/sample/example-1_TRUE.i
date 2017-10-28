@@ -6,6 +6,6 @@ int main() {
   while(x > 1) {
     x = x + 2;
   }
-  if (x == 1) __VERIFIER_error();
+  if (x > 1) __VERIFIER_error();
   return 0;
 }

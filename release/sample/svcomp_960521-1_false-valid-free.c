@@ -631,9 +631,9 @@ int main ()
   n = 128;
   a = malloc (n * sizeof(*a));
   b = malloc (n * sizeof(*b));
-  *b++ = 0;
+  //*b++ = 0;
   foo ();
-  if (b[-1])
+  if (a)
   { free(a); free(b); }
   else
   { free(a); free(b); }

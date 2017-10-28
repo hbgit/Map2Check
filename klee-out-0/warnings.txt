@@ -1,4 +1,0 @@
-KLEE: WARNING: undefined reference to function: fclose
-KLEE: WARNING: undefined reference to function: fopen
-KLEE: WARNING: undefined reference to function: fprintf
-KLEE: WARNING: undefined reference to function: fwrite

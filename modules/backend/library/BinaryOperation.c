@@ -63,11 +63,17 @@ void map2check_binop_mul(int param1, int param2,
         return;
     }
 
+
+    // If a parameter is 1, the result will not be an overflow
+
+    if((param1 == 1) || (param2 == 1)) {
+        return;
+    }
+
     Bool isParam1Positive = (param1 >= 0);
     Bool isParam2Positive = (param2 >= 0);
 
-    if((isParam1Positive && isParam2Positive) || (!isParam1Positive && !isParam2Positive)) {
-        //printf("POSITIVE\n");
+    if((isParam1Positive && isParam2Positive) || (!isParam1Positive && !isParam2Positive)) {        
         int limitPositiveResult = INT_MAX/param1;
 
         switch (isParam1Positive) {
@@ -89,12 +95,12 @@ void map2check_binop_mul(int param1, int param2,
         int limitNegativeResult = INT_MIN/param1;
         switch (isParam1Positive) {
             case TRUE:
-                if(limitNegativeResult < param2) {
+                if(limitNegativeResult > param2) {
                     overflowError(line, function_name);
                 }
                 break;
             case FALSE:
-                if(param2 < limitNegativeResult) {
+	      if(param2 > absInteger(limitNegativeResult)) {
                     overflowError(line, function_name);
                 }
                 break;

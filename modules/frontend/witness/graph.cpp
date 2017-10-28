@@ -282,14 +282,15 @@ void SVCompWitness::makeCorrectnessAutomata()
 		bool searchLineBB = true;
 						
         // Checking if the state in stateTrueLogRows was executed in TrackBBLogRow
-        for(int k = lastK; (k < stateTrueLogRows.size() && searchLineBB); k++) 
+        //for(int k = lastK; (k < stateTrueLogRows.size() && searchLineBB); k++)         
+        for(int k = 0; (k < stateTrueLogRows.size() && searchLineBB); k++) 
         {	
 			stateTrueNumLineBeginBB = std::stoi(stateTrueLogRows[k].numLineBeginBB);
 			stateTrueNumLineStart = std::stoi(stateTrueLogRows[k].numLineStart);			
-			
+						
 			if(trackBBFunctName == stateTrueLogRows[k].functionName)
-			{				
-				if( (trackBBLineNum >= stateTrueNumLineBeginBB) && (trackBBLineNum <= stateTrueNumLineStart))
+			{					
+				if((trackBBLineNum >= stateTrueNumLineBeginBB) && (trackBBLineNum <= stateTrueNumLineStart))
 				{
 					searchLineBB = false; //Stop search
 					lastK = k+1;
@@ -447,7 +448,8 @@ void SVCompWitness::makeViolationAutomataAux()
 		bool searchLineBB = true;
 				
         // Checking if the state in stateTrueLogRows was executed in TrackBBLogRow
-        for(int k = lastK; (k < stateTrueLogRows.size() && searchLineBB); k++) 
+        //for(int k = lastK; (k < stateTrueLogRows.size() && searchLineBB); k++) 
+        for(int k = 0; (k < stateTrueLogRows.size() && searchLineBB); k++) 
         {	
 			stateTrueNumLineBeginBB = std::stoi(stateTrueLogRows[k].numLineBeginBB);
 			stateTrueNumLineStart = std::stoi(stateTrueLogRows[k].numLineStart);

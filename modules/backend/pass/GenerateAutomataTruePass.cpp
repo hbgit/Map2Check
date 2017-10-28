@@ -8,16 +8,69 @@ bool GenerateAutomataTruePass::runOnFunction(Function &F) {
 
     this->st_currentFunctionName = this->currentFunction->getName();
 
+	int countBB = 1;
     for(auto& B: F)
     {
-
-        this->runOnBasicBlock(B, this->Ctx); 
+		if(countBB == 1)
+        {
+			this->hasCallOnBasicBlock(B, this->Ctx);
+			this->printStateData();
+		}
+        this->runOnBasicBlock(B, this->Ctx);         
         this->printStateData();
-
+        countBB++;
     }
 
     return false;
 }
+
+
+void GenerateAutomataTruePass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
+{
+	if(this->currentFunction->getName() ==  "main")
+	{
+		
+		for (BasicBlock::iterator i = B.begin(), ie = B.end(); i != ie; ++i) 
+		{
+		//for(auto& I:B)
+		//{
+			if(auto* cI = dyn_cast<CallInst>((Instruction*)i))        
+			{   
+				
+				Value* v = cI->getCalledValue();	
+				Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());								
+						
+				
+				if(caleeFunction->getName() != "__VERIFIER_assume" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_int" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_char" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_pointer" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_long" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_ushort" &&
+				   caleeFunction->getName() != "map2check_assume"  &&
+				   caleeFunction->getName() != "malloc" 		   &&
+				   caleeFunction->getName() != "calloc" 		   &&
+				   caleeFunction->getName() != "realloc" 		   &&
+				   caleeFunction->getName() != "free"
+				   )
+				{
+					//BasicBlock::iterator iI= &;
+					//i->dump();
+					DebugInfo debugInfoFi(this->Ctx, (Instruction*)i);            
+					this->st_numLineBeginBB = debugInfoFi.getLineNumberInt();
+					this->st_isControl = false;
+					this->st_isEntryPoint = true;
+					this->countEntryPoint++;
+					this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoFi.getLineNumberInt());
+					this->st_startline = debugInfoFi.getLineNumberInt();
+					
+				}				
+						
+			}
+		}
+	}
+}
+
 
 void GenerateAutomataTruePass::printStateData()
 {

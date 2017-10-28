@@ -5,10 +5,16 @@ bool TrackBasicBlockPass::runOnFunction(Function &F) {
     this->currentFunction = &F;      
     this->libraryFunctions =  make_unique<LibraryFunctions>(&F, &F.getContext());
     
+    int countBB = 1;
     for(auto& B: F)
     {        
         //this->instrumentEntryBB(B, this->Ctx);
+        if(countBB == 1)
+        {
+			this->hasCallOnBasicBlock(B, this->Ctx);
+		}
         this->runOnBasicBlock(B, this->Ctx);       
+        countBB++;
     }
 
     return true;
@@ -62,6 +68,50 @@ void TrackBasicBlockPass::instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx)
 	}
 	
 }**/
+
+void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
+{
+	if(this->currentFunction->getName() ==  "main")
+	{
+		
+		for (BasicBlock::iterator i = B.begin(), ie = B.end(); i != ie; ++i) 
+		{
+		//for(auto& I:B)
+		//{
+			if(auto* cI = dyn_cast<CallInst>((Instruction*)i))        
+			{   
+				
+				Value* v = cI->getCalledValue();	
+				Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());								
+						
+				
+				if(caleeFunction->getName() != "__VERIFIER_assume" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_int" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_char" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_pointer" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_long" &&
+				   caleeFunction->getName() != "__VERIFIER_nondet_ushort" &&
+				   caleeFunction->getName() != "map2check_assume"  &&
+				   caleeFunction->getName() != "malloc" 		   &&
+				   caleeFunction->getName() != "calloc" 		   &&
+				   caleeFunction->getName() != "realloc" 		   &&
+				   caleeFunction->getName() != "free"
+				   )
+				{
+					//BasicBlock::iterator iI= &;
+					//i->dump();
+					IRBuilder<> builder((Instruction*)&*i);
+					this->functionName = builder.CreateGlobalStringPtr(this->currentFunction->getName());
+					//i--;		
+					this->instrumentInstBB(i);
+					//i++;
+				}				
+						
+			}
+		}
+	}
+}
+
 
 void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) 
 {        

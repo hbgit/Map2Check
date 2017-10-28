@@ -38,6 +38,7 @@ struct GenerateAutomataTruePass : public FunctionPass
 
     protected:   
     void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
+    void hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
     bool checkBBHasLError(BasicBlock& nowB);
     void checkAndSkipAssume();
     void skipEmptyLine();

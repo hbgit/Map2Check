@@ -628,12 +628,12 @@ void foo ()
 }
 int main ()
 {
-  n = 128;
+  n = 128;  
   a = malloc (n * sizeof(*a));
   b = malloc (n * sizeof(*b));
-  //*b++ = 0;
+  *b++ = 0;
   foo ();
-  if (a)
+  if (b[-1])
   { free(a); free(b); }
   else
   { free(a); free(b); }

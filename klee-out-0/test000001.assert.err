@@ -1,0 +1,6 @@
+Error: ASSERTION FAIL: 0
+File: /home/map2check/devel_tool/mygitclone/preprocessed.c
+Line: 9
+assembly.ll line: 75
+Stack: 
+	#000000075 in main () at /home/map2check/devel_tool/mygitclone/preprocessed.c:9

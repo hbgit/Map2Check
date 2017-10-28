@@ -449,7 +449,8 @@ void SVCompWitness::makeViolationAutomataAux()
     unsigned runSearchIndx = 0;
     int lastK = 0;
     
-    for(int i = 0; i < trackBBLogRows.size(); i++) {
+    for(int i = 0; i < trackBBLogRows.size(); i++) 
+    {
 		
 		int trackBBLineNum = std::stoi(trackBBLogRows[i].numLineInBB);
 		std::string trackBBFunctName = trackBBLogRows[i].functionName;
@@ -485,8 +486,10 @@ void SVCompWitness::makeViolationAutomataAux()
 					// This state (i.e., the BB) was executed
 					// CREATING NODE
 					tmpLastStateId = lastStateId;
-					std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());																
-					this->automata->AddNode(std::move(newNode));					
+					std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());	
+					// Adding violation node attribute	
+					cout << i << "*************************** \n";					
+					//this->automata->AddNode(std::move(newNode));					
 					runState++; 						 
 										
 					// Create the edge to the new node					
@@ -586,12 +589,19 @@ void SVCompWitness::makeViolationAutomataAux()
 					}
 					
 					
+					if(i == trackBBLogRows.size()-1 ) {
+						std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
+						newNode->AddElement(std::move(violationNode));
+					}
+					this->automata->AddNode(std::move(newNode));
+					
 				}
 				
 			}			
 		}
 		
 	}
+	
     
 	
     

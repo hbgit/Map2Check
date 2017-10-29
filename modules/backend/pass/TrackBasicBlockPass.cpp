@@ -9,10 +9,10 @@ bool TrackBasicBlockPass::runOnFunction(Function &F) {
     for(auto& B: F)
     {        
         //this->instrumentEntryBB(B, this->Ctx);
-        if(countBB == 1)
-        {
+        //if(countBB == 1)
+        //{
 			this->hasCallOnBasicBlock(B, this->Ctx);
-		}
+		//}
         this->runOnBasicBlock(B, this->Ctx);       
         countBB++;
     }
@@ -71,8 +71,8 @@ void TrackBasicBlockPass::instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx)
 
 void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 {
-	if(this->currentFunction->getName() ==  "main")
-	{
+	//if(this->currentFunction->getName() ==  "main")
+	//{
 		
 		for (BasicBlock::iterator i = B.begin(), ie = B.end(); i != ie; ++i) 
 		{
@@ -109,7 +109,7 @@ void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 						
 			}
 		}
-	}
+	//}
 }
 
 

@@ -4,6 +4,9 @@
 		<default>false</default>
 	</key>
 	<key attr.name="invariant" attr.type="string" for="node" id="invariant"/>
+	<key attr.name="isViolationNode" attr.type="boolean" for="node" id="violation">
+		<default>false</default>
+	</key>
 	<key attr.name="witness-type" attr.type="string" for="graph" id="witness-type"/>
 	<key attr.name="sourcecodelang" attr.type="string" for="graph" id="sourcecodelang"/>
 	<key attr.name="producer" attr.type="string" for="graph" id="producer"/>
@@ -18,12 +21,12 @@
 	<key attr.name="assumption.scope" attr.type="string" for="edge" id="assumption.scope"/>
 	<key attr.name="assumption.resultfunction" attr.type="string" for="edge" id="assumption.resultfunction"/>
 	<graph edgedefault="directed">
-		<data key="witness-type">correctness_witness</data>
+		<data key="witness-type">violation_witness</data>
 		<data key="sourcecodelang">C</data>
 		<data key="producer">Map2Check</data>
-		<data key="specification">CHECK( init(main()), LTL(G ! call(__VERIFIER_error())) )</data>
-		<data key="programfile">sample/example-1_TRUE.i</data>
-		<data key="programhash">cf5025852b450db1d65597003ae0c7d7083e83a8</data>
+		<data key="specification">CHECK( init(main()), LTL(G valid-free) )</data>
+		<data key="programfile">sample/svcomp_960521-1_false-valid-free.c</data>
+		<data key="programhash">1049b4c2b5ca78dae38ed2aa337c22097d792df5</data>
 		<data key="architecture">32bit</data>
 		<node id="s0">
 			<data key="entry">true</data>
@@ -32,23 +35,64 @@
 		<node id="s2"/>
 		<node id="s3"/>
 		<node id="s4"/>
+		<node id="s5"/>
+		<node id="s6"/>
+		<node id="s7"/>
+		<node id="s8"/>
+		<node id="s9"/>
+		<node id="s10"/>
+		<node id="s11"/>
+		<node id="s12">
+			<data key="violation">true</data>
+		</node>
 		<edge source="s0" target="s1">
-			<data key="startline">5</data>
-			<data key="sourcecode">  unsigned int x = 1;</data>
+			<data key="startline">639</data>
+			<data key="sourcecode">  call();</data>
 		</edge>
 		<edge source="s1" target="s2">
-			<data key="startline">6</data>
-			<data key="sourcecode">[![x &gt; 1]]</data>
-			<data key="control">condition-false</data>
+			<data key="startline">631</data>
+			<data key="sourcecode">	int a;</data>
 		</edge>
 		<edge source="s2" target="s3">
-			<data key="startline">9</data>
-			<data key="sourcecode">[![x &gt; 1]]</data>
-			<data key="control">condition-false</data>
+			<data key="startline">633</data>
+			<data key="sourcecode">}</data>
 		</edge>
 		<edge source="s3" target="s4">
-			<data key="startline">10</data>
-			<data key="sourcecode">  return 0;</data>
+			<data key="startline">642</data>
+			<data key="sourcecode">  foo ();</data>
+		</edge>
+		<edge source="s4" target="s5">
+			<data key="startline">624</data>
+			<data key="sourcecode">  for (i = 0; i < n; i++)</data>
+		</edge>
+		<edge source="s5" target="s6">
+			<data key="startline">624</data>
+			<data key="sourcecode">  for (i = 0; i < n; i++)</data>
+		</edge>
+		<edge source="s6" target="s7">
+			<data key="startline">625</data>
+			<data key="sourcecode">    a[i] = -1;</data>
+		</edge>
+		<edge source="s7" target="s8">
+			<data key="startline">626</data>
+			<data key="sourcecode">  for (i = 0; i < 128 - 1; i++)</data>
+		</edge>
+		<edge source="s8" target="s9">
+			<data key="startline">627</data>
+			<data key="sourcecode">    b[i] = -1;</data>
+		</edge>
+		<edge source="s9" target="s10">
+			<data key="startline">628</data>
+			<data key="sourcecode">}</data>
+		</edge>
+		<edge source="s10" target="s11">
+			<data key="startline">643</data>
+			<data key="sourcecode">[![ !0]]</data>
+			<data key="control">condition-false</data>
+		</edge>
+		<edge source="s11" target="s12">
+			<data key="startline">646</data>
+			<data key="sourcecode">  { free(a); free(b); }</data>
 		</edge>
 	</graph>
 </graphml>

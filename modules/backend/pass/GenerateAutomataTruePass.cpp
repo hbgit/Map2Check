@@ -11,11 +11,10 @@ bool GenerateAutomataTruePass::runOnFunction(Function &F) {
 	int countBB = 1;
     for(auto& B: F)
     {
-		if(countBB == 1)
-        {
-			this->hasCallOnBasicBlock(B, this->Ctx);
-			this->printStateData();
-		}
+		//if(countBB == 1)
+        //{
+		this->hasCallOnBasicBlock(B, this->Ctx);		
+		//}
         this->runOnBasicBlock(B, this->Ctx);         
         this->printStateData();
         countBB++;
@@ -27,8 +26,8 @@ bool GenerateAutomataTruePass::runOnFunction(Function &F) {
 
 void GenerateAutomataTruePass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 {
-	if(this->currentFunction->getName() ==  "main")
-	{
+	//if(this->currentFunction->getName() ==  "main")
+	//{
 		
 		for (BasicBlock::iterator i = B.begin(), ie = B.end(); i != ie; ++i) 
 		{
@@ -64,11 +63,13 @@ void GenerateAutomataTruePass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* C
 					this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoFi.getLineNumberInt());
 					this->st_startline = debugInfoFi.getLineNumberInt();
 					
+					this->printStateData();
+					
 				}				
 						
 			}
 		}
-	}
+	//}
 }
 
 

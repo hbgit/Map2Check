@@ -1,0 +1,14 @@
+termination-crafted-lit/HeizmannHoenickeLeikePodelski-ATVA2013-Fig7_false-no-overflow.c        true
+signedintegeroverflow-regression/Division_false-no-overflow.c.i                                                      true
+signedintegeroverflow-regression/Multiplication_false-no-overflow.c.i                                                true
+signedintegeroverflow-regression/NoConversion_false-no-overflow.c.i                                                  true
+signedintegeroverflow-regression/AdditionIntMax_false-no-overflow.c.i                                                true
+
+bitvector/parity_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
+bitvector/jain_1_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
+bitvector/jain_2_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
+bitvector/jain_4_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
+bitvector/jain_5_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
+bitvector/jain_6_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
+bitvector/jain_7_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
+

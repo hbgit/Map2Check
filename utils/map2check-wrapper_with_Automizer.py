@@ -50,8 +50,7 @@ def check_witness(benchmark_name, typeResult, witnessPath):
         if "TRUE" in stdout:
             outputwrt = str(benchmark) + ";" + "TRUE"
             os.system("echo \""+outputwrt+"\" >> witness_check_log.csv")
-        elif "FALSE" in stdout:
-            print str(stdout)
+        elif "FALSE" in stdout:            
             outputwrt = str(benchmark) + ";" + "FALSE"
             os.system("echo \""+outputwrt+"\" >> witness_check_log.csv")
         else:

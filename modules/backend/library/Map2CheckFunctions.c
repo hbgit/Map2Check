@@ -227,17 +227,18 @@ int map2check_non_det_int() {
   return non_det;
 }
 
-int map2check_non_det_uint() {
-  unsigned non_det;
+unsigned int map2check_non_det_uint() {
+  unsigned int non_det;
   klee_make_symbolic(&non_det,
 		     sizeof(non_det),
-		     "non_det_uint");
+		     "nondet-uint");
+  klee_assume(non_det >= 0U);
 
-  if((non_det % 2) == 0) {
+  /**if((non_det % 2) == 0) {
     non_det = (non_det/2) * 2;
   } else {
     non_det = (non_det/2) * 2 + 1;
-  }
+  }**/
 
   return non_det;
 }

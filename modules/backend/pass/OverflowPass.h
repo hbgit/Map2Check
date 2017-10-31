@@ -33,5 +33,9 @@ struct OverflowPass : public FunctionPass {
  private:
   std::unique_ptr<OperationsFunctions > operationsFunctions;
   Value* functionName = NULL;
+  void hasNonDetUint(Instruction* I);
+  bool hasNonDetUintOp_1;
+  bool hasNonDetUintOp_2;
+  LLVMContext* Ctx;
   /* BasicBlock::iterator currentInstruction; */
 };

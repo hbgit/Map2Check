@@ -11,7 +11,7 @@ int absInteger (int a) {
     return a;
 }
 
-void overflowError(int line, const char* function_name) {
+void overflowError(unsigned line, const char* function_name) {
     write_property_overflow(line, function_name);
     write_property(OVERFLOW, line, function_name);
     map2check_error();
@@ -22,7 +22,7 @@ void divisionByZeroError() {
 }
 
 
-void map2check_binop_add(int param1, int param2,
+void map2check_binop_add(unsigned param1, int param2,
 			 unsigned line, unsigned scope,
 			 char* function_name) {
 
@@ -32,16 +32,17 @@ void map2check_binop_add(int param1, int param2,
   // Both are positive
   if(param1Pos && param2Pos) {
     // If param2 is greater thant the difference between max int and param1,
-    // then we have an overflow
-    if((INT_MAX - param1) < param2) {
-        overflowError(line, function_name);
+    // then we have an overflow    
+    if((UINT_MAX - param1) < param2) {		
+        overflowError(param1, "DELTA");
     }
   }
   // Both are negative
   else if(!param1Pos && !param2Pos) {
     // Same principle of first IF
-    if((INT_MIN - param1) > param2) {
-        overflowError(line, function_name);
+    if((INT_MIN - param1) > param2) {		
+        overflowError(param2, function_name);
+        //overflowError(param1, function_name);
     }
   }
   else {
@@ -49,7 +50,8 @@ void map2check_binop_add(int param1, int param2,
   }
 }
 
-void map2check_binop_sub(int param1, int param2,
+//TODO is need to know when is a unsigned!!!
+void map2check_binop_sub(unsigned param1, unsigned param2,
                          unsigned line, unsigned scope,
                          char* function_name) {
     map2check_binop_add(param1, -param2, line, scope, function_name );

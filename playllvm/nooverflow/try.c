@@ -2,6 +2,13 @@
 
 main()
 {
+    
+    unsigned int ui = 4294967294;
+    int i = ui;
+    
+    printf("%u\n", ui);
+    printf("%d\n", i);
+    
     unsigned int v = -4;
     if((-4 - v) > -1)
     {
@@ -11,7 +18,7 @@ main()
     }
 
 
-    if(-1 > 0){
+    if(0 < -1){
         printf("ZERO \n");
     }
 }

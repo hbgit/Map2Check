@@ -234,11 +234,11 @@ unsigned int map2check_non_det_uint() {
 		     "nondet-uint");
   klee_assume(non_det >= 0U);
 
-  /**if((non_det % 2) == 0) {
+  if((non_det % 2) == 0) {
     non_det = (non_det/2) * 2;
   } else {
     non_det = (non_det/2) * 2 + 1;
-  }**/
+  }
 
   return non_det;
 }

@@ -1,9 +1,18 @@
 #include "OverflowPass.h"
 
+void OverflowPass::hasNonDetUint(Instruction* I)
+{
+	I->dump();
+	DebugInfo debugInfo(this->Ctx, I);
+	errs() << *debugInfo.getLineNumberValue() << "================\n";
+}
+
 bool OverflowPass::runOnFunction(Function &F) {
   this->operationsFunctions =  make_unique<OperationsFunctions>(&F, &F.getContext());
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
+  
+  this->Ctx = &F.getContext();
 
   IRBuilder<> builder((Instruction*)&*instructionIterator);
   this->functionName = builder
@@ -13,9 +22,15 @@ bool OverflowPass::runOnFunction(Function &F) {
        bb != e; ++bb) {
     for (BasicBlock::iterator i = bb->begin(),
            e = bb->end(); i != e; ++i) {      
-      
-      if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&*i)) {
+    
+    //i->dump();      
+    
+    
+    if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&*i)) {
 	BasicBlock::iterator currentInstruction = i;
+	
+	
+	
 	IRBuilder<> builder((Instruction*)currentInstruction);
 	Value* function_llvm = this->getFunctionNameValue();
 	Twine bitcast("map2check_pointer_cast");
@@ -24,12 +39,24 @@ bool OverflowPass::runOnFunction(Function &F) {
 	Constant* instrumentedFunction = NULL;
 
 	Value* firstOperand = binOp->getOperand(0);
-        Value* secondOperand = binOp->getOperand(1);
+	/**
+	if(isa<LoadInst>(firstOperand)) {
+		LoadInst *LD0 = cast<LoadInst>(firstOperand);		
+		LD0->dump();
+		Instruction *iO = dyn_cast<Instruction>(LD0->getPointerOperand());
+		//iO->dump();
+		this->hasNonDetUint(iO);
+
+	} 	**/
+	
+    Value* secondOperand = binOp->getOperand(1);
 	currentInstruction++;
 	// Value* firstOperandCast = CastInst::CreatePointerCast
 	  // (firstOperand,
 	  //  Type::getInt8PtrTy(F.getContext()),
 	  //  bitcast,(Instruction*) currentInstruction);
+	
+	  
 	switch(binOp->getOpcode()) {
 	case(Instruction::Add):
 	  instrumentedFunction = this->operationsFunctions->getOverflowAdd();
@@ -91,6 +118,10 @@ bool OverflowPass::runOnFunction(Function &F) {
 	}
 
 	if (instrumentedFunction != NULL) {
+	  
+	  errs() << *firstOperand << "\n";
+	  errs() << *secondOperand << "\n";
+		
 	  Value* args[] = {
 	    firstOperand,
 	    secondOperand,

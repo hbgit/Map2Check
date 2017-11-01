@@ -12,3 +12,14 @@ bitvector/jain_5_true-unreach-call_true-no-overflow.i                           
 bitvector/jain_6_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
 bitvector/jain_7_true-unreach-call_true-no-overflow.i                                                                false(no-overflow)
 
+
+Search for call of __VERIFIER_nondet_uint
+%4 = call i32 @__VERIFIER_nondet_uint()
+Jump to next instruction and get the address i32* %2 (second operator from store)
+store i32 %4, i32* %2, align 4
+With the address i32* %2 (second operator from store) get all instructions that 
+use in load inst that address i32* %2
+%5 = load i32, i32* %2, align 4
+
+
+

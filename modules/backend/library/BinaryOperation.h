@@ -15,7 +15,11 @@
  * @param scope Scope where operation occured
  * @param function_name Name of the function which operation occured
  */
-void map2check_binop_add(unsigned param1, int param2,
+void map2check_binop_add(int param1, int param2,
+			 unsigned line, unsigned scope,
+			 char* function_name);
+			 
+void map2check_binop_add_unit(unsigned param1, unsigned param2,
 			 unsigned line, unsigned scope,
 			 char* function_name);
 /**
@@ -26,7 +30,12 @@ void map2check_binop_add(unsigned param1, int param2,
  * @param scope Scope where operation occured
  * @param function_name Name of the function which operation occured
  * */
-void map2check_binop_sub(unsigned param1, unsigned param2,
+void map2check_binop_sub(int param1, int param2,
+	 unsigned line, unsigned scope,
+ char* function_name);
+
+
+void map2check_binop_sub_unit(unsigned param1, unsigned param2,
 	 unsigned line, unsigned scope,
  char* function_name);
 

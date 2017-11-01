@@ -34,6 +34,11 @@ struct OverflowPass : public FunctionPass {
   std::unique_ptr<OperationsFunctions > operationsFunctions;
   Value* functionName = NULL;
   void hasNonDetUint(Instruction* I);
+  void listAllUintAssig(BasicBlock &B);
+  std::vector<Value*> storeInstWithUint;
+  std::vector<Value*> loadInstWithUint;
+  bool isUnitAssigment = false;
+  std::vector<int> listLineNumUint;
   bool hasNonDetUintOp_1;
   bool hasNonDetUintOp_2;
   LLVMContext* Ctx;

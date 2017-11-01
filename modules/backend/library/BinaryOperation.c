@@ -22,7 +22,42 @@ void divisionByZeroError() {
 }
 
 
-void map2check_binop_add(unsigned param1, int param2,
+void map2check_binop_add(int param1, int param2,
+			 unsigned line, unsigned scope,
+			 char* function_name) {
+
+  Bool param1Pos = (param1 >= 0);
+  Bool param2Pos = (param2 >= 0);
+
+  // Both are positive
+  if(param1Pos && param2Pos) {
+    // If param2 is greater thant the difference between max int and param1,
+    // then we have an overflow    
+    if((INT_MAX - param1) < param2) {		
+        overflowError(line, function_name);
+    }
+  }
+  // Both are negative
+  else if(!param1Pos && !param2Pos) {
+    // Same principle of first IF
+    if((INT_MIN - param1) > param2) {		
+        overflowError(line, function_name);
+        //overflowError(param1, function_name);
+    }
+  }
+  else {
+      return;
+  }
+}
+
+void map2check_binop_sub(int param1, int param2,
+                         unsigned line, unsigned scope,
+                         char* function_name) {
+    map2check_binop_add(param1, -param2, line, scope, function_name );
+}
+
+
+void map2check_binop_add_uint(unsigned param1, unsigned param2,
 			 unsigned line, unsigned scope,
 			 char* function_name) {
 
@@ -41,8 +76,7 @@ void map2check_binop_add(unsigned param1, int param2,
   else if(!param1Pos && !param2Pos) {
     // Same principle of first IF
     if((INT_MIN - param1) > param2) {		
-        overflowError(param2, function_name);
-        //overflowError(param1, function_name);
+        overflowError(line, "DELTA");        
     }
   }
   else {
@@ -50,12 +84,12 @@ void map2check_binop_add(unsigned param1, int param2,
   }
 }
 
-//TODO is need to know when is a unsigned!!!
-void map2check_binop_sub(unsigned param1, unsigned param2,
+void map2check_binop_sub_unit(unsigned param1, unsigned param2,
                          unsigned line, unsigned scope,
                          char* function_name) {
-    map2check_binop_add(param1, -param2, line, scope, function_name );
+    map2check_binop_add_unit(param1, -param2, line, scope, function_name );
 }
+
 
 void map2check_binop_mul(int param1, int param2,
                           unsigned line, unsigned scope,

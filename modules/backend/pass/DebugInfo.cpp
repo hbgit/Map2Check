@@ -14,22 +14,16 @@ DebugInfo::DebugInfo(LLVMContext* ctx, Instruction* i) {
     scope_number = 0;
     line_number  = 0;
   }
-
-  //bool dbgInstFlag=false;
-  //MDNode * MD; 
-  //const Value* val;
-
+  
   /**
-  if(const DbgValueInst *DVI=dyn_cast<DbgValueInst>(i)) {
-    val=DVI->getValue();
-	//MD = DVI->getVariable();
-    errs() << DVI->getVariable() << "+++++++++++++ \n";
-	dbgInstFlag=true;
-  } else if(const DbgDeclareInst *DDI=dyn_cast<DbgDeclareInst>(i)) {
-	//val=DDI->getAddress();
-	//MD = 
-    errs() << DDI->getVariable() << "+++++++++++++ \n";
-	dbgInstFlag=true;
+  if(const DILocalVariable *DDI=dyn_cast<DILocalVariable>(i)) {
+    errs() << &*DDI << "+++++++++++++ \n";
+	//dbgInstFlag=true;
+  }**/
+    
+  /**if(const DbgDeclareInst *DDI=dyn_cast<DbgDeclareInst>(i)) {
+    errs() << *DDI << "+++++++++++++ \n";
+	//dbgInstFlag=true;
   }**/
 
   this->scopeNumberValue = ConstantInt

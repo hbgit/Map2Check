@@ -125,9 +125,38 @@ bool OverflowPass::runOnFunction(Function &F) {
   this->functionName = builder
     .CreateGlobalStringPtr(F.getName());
     
+  
+	SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
+	F.getAllMetadata(MDs);
+	for (auto &MD : MDs) {
+	  if (MDNode *N = MD.second) {
+		if (auto *subProgram = dyn_cast<DISubprogram>(N)) {
+		  errs() << subProgram->getLine() << "+++++++++ \n";
+		}
+	  }
+	}
+    
+  
+    
   for(auto& B:F)
   {
 	  this->listAllUintAssig(B);
+	  
+		for(auto& I:B){
+			SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
+			I.getAllMetadata(MDs);
+			for (auto &MD : MDs) {
+				errs() << MD.first << "++++\n";
+			  if (MDNode *N = MD.second) {
+				
+				errs() << *N << "++++\n";
+				//if (auto *subProgram = dyn_cast<DISubprogram>(N)) {
+				  //errs() << subProgram->getLine() << "+++++++++ \n";
+				//}
+				
+			  }
+			}
+		}
   }
 
   for (Function::iterator bb = F.begin(), e = F.end();
@@ -136,7 +165,7 @@ bool OverflowPass::runOnFunction(Function &F) {
     for (BasicBlock::iterator i = bb->begin(),
            e = bb->end(); i != e; ++i) {      
     
-    //i->dump();      
+    //i->dump();  
     
     
     if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&*i)) {

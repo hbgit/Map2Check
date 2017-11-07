@@ -14,6 +14,38 @@ DebugInfo::DebugInfo(LLVMContext* ctx, Instruction* i) {
     scope_number = 0;
     line_number  = 0;
   }
+ 
+  /**
+  if (MDNode *N = i->getMetadata("dbg")) {  // Here I is an LLVM instruction
+        DIType Loc(*N);                      // DILocation is in DebugInfo.h        
+        bool Name = Loc->isUnsignedDIType();
+        
+        //DILocation Loc(&N);                      // DILocation is in DebugInfo.h
+        //unsigned Line = Loc.getLineNumber();
+        
+        errs() << Name << "------\n";
+        //errs() << cast<MDString>(N->getOperand(0))->getString() << "\n";
+        //errs() << cast<MDString>(*N) << "\n";
+        
+  }**/
+  
+  /**
+  SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
+	i->getAllMetadata(MDs);
+	for (auto &MD : MDs) {
+	  if (MDNode *N = MD.second) {
+		  errs() << *N << "++++ \n";
+		if (auto *subProgram = dyn_cast<DIBasicType>(N)) {
+		  errs() << *subProgram << "+++++++++ \n";
+		}
+	  }
+	}**/
+  
+  //errs() << "=================================== \n";
+  
+  /**if (MDNode* N = (*i).getMetadata("llvm.dbg.declare")) {
+       errs() << cast<MDString>(N->getOperand(1))->getString() << "\n";
+  }**/
   
   /**
   if(const DILocalVariable *DDI=dyn_cast<DILocalVariable>(i)) {

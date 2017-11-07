@@ -9,6 +9,7 @@
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/IR/DebugInfoMetadata.h>
 
 #include <iostream>
 #include <string>

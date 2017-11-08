@@ -9,6 +9,8 @@
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/Support/raw_ostream.h>
+
+#include <llvm/IR/Metadata.h>
 #include <llvm/IR/DebugInfoMetadata.h>
 
 #include <iostream>
@@ -31,11 +33,14 @@ struct OverflowPass : public FunctionPass {
   virtual bool runOnFunction(Function &F);
  protected:
   Value* getFunctionNameValue() { return this->functionName; }
- private:
+ private:  
   std::unique_ptr<OperationsFunctions > operationsFunctions;
   Value* functionName = NULL;
   void hasNonDetUint(Instruction* I);
   void listAllUintAssig(BasicBlock &B);
+  
+  void listAllUnsignedVar(Function &F);
+  
   std::vector<Value*> storeInstWithUint;
   std::vector<Value*> loadInstWithUint;
   bool isUnitAssigment = false;

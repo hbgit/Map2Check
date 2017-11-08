@@ -81,19 +81,7 @@ void OverflowPass::listAllUintAssig(BasicBlock &B)
 			//loadI->dump();
 			DebugInfo debugInfoCi(this->Ctx, loadI);                         
 			//errs() << debugInfoCi.getLineNumberInt() << "************* \n";		
-			
-			
-			/**
-			std::vector<Value*>::iterator iter;			
-			for(iter = this->storeInstWithUint.begin();
-				iter != this->storeInstWithUint.end();
-				++iter)
-			{
-				Value* vl = *iter;
-				errs() << *vl << "<<<<<<<<<<<<< \n";
-			}**/
-				   
-			
+						
 			Value* vload = &*loadI->getPointerOperand();					
 			
 			std::vector<Value*>::iterator iT;
@@ -114,6 +102,46 @@ void OverflowPass::listAllUintAssig(BasicBlock &B)
 	
 }
 
+
+void OverflowPass::listAllUnsignedVar(Function &F)
+{
+	for(Function::iterator BB = F.begin(), E = F.end(); BB!=E; ++BB){ 
+        for(BasicBlock::iterator I = BB->begin(), E = BB->end(); I != E; ++I){
+            //get the Metadata declared in the llvm intrinsic functions such as llvm.dbg.declare()
+            if(CallInst* CI = dyn_cast<CallInst>(I)){
+                if(Function *F = CI->getCalledFunction()){
+                    if(F->getName().startswith("llvm.")){
+												    
+                            const DbgDeclareInst *DDI = dyn_cast<DbgDeclareInst>(I);                           
+                            
+                            if(auto *N = dyn_cast<MDNode>(DDI->getVariable()))
+                            {								
+								//errs() << *N << "+++ \n"; 
+								if(auto *DV = dyn_cast<DILocalVariable>(N))
+								{																	
+									//errs() << *DV->getType() << "+++\n";									
+									if(auto *DT = dyn_cast<DIBasicType>(DV->getType()))
+									{										
+										if(DT->getName() == "unsigned int" ||
+										   DT->getName() == "unsigned")
+										{
+											errs() << DT->getName() << "+++\n";	
+											errs() << DV->getName() << "+++\n";									
+											errs() << DV->getLine() << "+++\n";	
+											this->listLineNumUint.push_back(DV->getLine());
+										}								
+									}									
+								}
+							}                            
+                            
+                    }
+                }
+            }
+       }
+    }
+}
+
+
 bool OverflowPass::runOnFunction(Function &F) {
   this->operationsFunctions =  make_unique<OperationsFunctions>(&F, &F.getContext());
   Function::iterator functionIterator = F.begin();
@@ -124,40 +152,14 @@ bool OverflowPass::runOnFunction(Function &F) {
   IRBuilder<> builder((Instruction*)&*instructionIterator);
   this->functionName = builder
     .CreateGlobalStringPtr(F.getName());
-    
   
-	SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
-	F.getAllMetadata(MDs);
-	for (auto &MD : MDs) {
-	  if (MDNode *N = MD.second) {
-		if (auto *subProgram = dyn_cast<DISubprogram>(N)) {
-		  errs() << subProgram->getLine() << "+++++++++ \n";
-		}
-	  }
-	}
-    
   
-    
+  this->listAllUnsignedVar(F);
+  /**  
   for(auto& B:F)
   {
 	  this->listAllUintAssig(B);
-	  
-		for(auto& I:B){
-			SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
-			I.getAllMetadata(MDs);
-			for (auto &MD : MDs) {
-				errs() << MD.first << "++++\n";
-			  if (MDNode *N = MD.second) {
-				
-				errs() << *N << "++++\n";
-				//if (auto *subProgram = dyn_cast<DISubprogram>(N)) {
-				  //errs() << subProgram->getLine() << "+++++++++ \n";
-				//}
-				
-			  }
-			}
-		}
-  }
+  }**/
 
   for (Function::iterator bb = F.begin(), e = F.end();
        bb != e; ++bb) {	
@@ -183,13 +185,64 @@ bool OverflowPass::runOnFunction(Function &F) {
     Value* secondOperand = binOp->getOperand(1);
 	currentInstruction++;	
 	  
+	errs() << debugInfo.getLineNumberInt() << "=============\n";
+	//DOING: get only variable names	
+	std::string lvaluep;
+    std::string rvaluep;
+    std::ostringstream osstrtmp;
+	// get firstOperand
+	if(isa<LoadInst>(firstOperand)) {
+		LoadInst *LD100 = cast<LoadInst>(firstOperand);
+		Value *C100 = LD100->getPointerOperand();
+		lvaluep = C100->getName().str(); 		
+
+	} else if (ConstantInt* CI = dyn_cast<ConstantInt>(firstOperand)) {
+		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.
+			//constIntValue = CI->getSExtValue();
+			osstrtmp << CI->getSExtValue();
+			lvaluep = osstrtmp.str();			
+		}
+	}
+	else if (CallInst* callInst = dyn_cast<CallInst>(firstOperand)) {
+		Value* v = callInst->getCalledValue();	
+		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+		//constIntValue = CI->getSExtValue();
+		//osstrtmp << caleeFunction->getName();
+		lvaluep = caleeFunction->getName();
+		
+	}
+	
+	errs() << lvaluep << "<<<< \n";
+	
+	if(isa<LoadInst>(secondOperand)) {
+		LoadInst *LD100 = cast<LoadInst>(secondOperand);
+		Value *C100 = LD100->getPointerOperand();
+		rvaluep = C100->getName().str(); 		
+
+	} else if (ConstantInt* CI = dyn_cast<ConstantInt>(secondOperand)) {
+		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.
+			//constIntValue = CI->getSExtValue();
+			osstrtmp << CI->getSExtValue();
+			rvaluep = osstrtmp.str();			
+		}
+	}
+	else if (CallInst* callInst = dyn_cast<CallInst>(secondOperand)) {
+		Value* v = callInst->getCalledValue();	
+		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+		//constIntValue = CI->getSExtValue();
+		//osstrtmp << caleeFunction->getName();
+		rvaluep = caleeFunction->getName();
+		
+	}
+	
+	errs() << rvaluep << ">>>> \n";
+	
 	std::vector<int>::const_iterator iT;
 	iT =  std::find(this->listLineNumUint.begin(), 
 					this->listLineNumUint.end(), 
 					debugInfo.getLineNumberInt()); 
 	
-	//errs() << debugInfo.getLineNumberInt() << "=============\n";
-	
+	/**
 	bool flagCallNondetInt = false;
 	// This is a trigger. TODO: Remove this and replace by a 
 	// properly identification of variable type
@@ -200,11 +253,11 @@ bool OverflowPass::runOnFunction(Function &F) {
 	{
 		flagCallNondetInt = true;
 	}
+	* 
+	* 
+	* **/
 	
 	if ( iT != this->listLineNumUint.end() )
-	{
-		this->isUnitAssigment = true;
-	}else if(flagCallNondetInt)
 	{
 		this->isUnitAssigment = true;
 	}else{
@@ -212,7 +265,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 	}
 	
 	//errs() << this->isUnitAssigment << "??????\n";
-	//errs() << binOp->getOpcode() << "\n";
+	
 	  
 	switch(binOp->getOpcode()) {
 	case(Instruction::Add):

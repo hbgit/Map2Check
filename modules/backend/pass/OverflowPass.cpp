@@ -126,7 +126,8 @@ void OverflowPass::listAllUnsignedVar(Function &F)
 										   DT->getName() == "unsigned")
 										{
 											errs() << DT->getName() << "+++\n";	
-											errs() << DV->getName() << "+++\n";									
+											errs() << DV->getName() << "+++\n";	
+											this->listUnsignedVars.push_back(DV->getName());								
 											errs() << DV->getLine() << "+++\n";	
 											this->listLineNumUint.push_back(DV->getLine());
 										}								
@@ -190,6 +191,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 	std::string lvaluep;
     std::string rvaluep;
     std::ostringstream osstrtmp;
+	
 	// get firstOperand
 	if(isa<LoadInst>(firstOperand)) {
 		LoadInst *LD100 = cast<LoadInst>(firstOperand);
@@ -197,74 +199,84 @@ bool OverflowPass::runOnFunction(Function &F) {
 		lvaluep = C100->getName().str(); 		
 
 	} else if (ConstantInt* CI = dyn_cast<ConstantInt>(firstOperand)) {
-		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.
-			//constIntValue = CI->getSExtValue();
+		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.			
 			osstrtmp << CI->getSExtValue();
 			lvaluep = osstrtmp.str();			
 		}
 	}
 	else if (CallInst* callInst = dyn_cast<CallInst>(firstOperand)) {
 		Value* v = callInst->getCalledValue();	
-		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-		//constIntValue = CI->getSExtValue();
-		//osstrtmp << caleeFunction->getName();
+		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());		
 		lvaluep = caleeFunction->getName();
 		
 	}
 	
 	errs() << lvaluep << "<<<< \n";
 	
+	// get secondOperand
 	if(isa<LoadInst>(secondOperand)) {
 		LoadInst *LD100 = cast<LoadInst>(secondOperand);
 		Value *C100 = LD100->getPointerOperand();
 		rvaluep = C100->getName().str(); 		
 
 	} else if (ConstantInt* CI = dyn_cast<ConstantInt>(secondOperand)) {
-		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.
-			//constIntValue = CI->getSExtValue();
+		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.			
 			osstrtmp << CI->getSExtValue();
 			rvaluep = osstrtmp.str();			
 		}
 	}
 	else if (CallInst* callInst = dyn_cast<CallInst>(secondOperand)) {
 		Value* v = callInst->getCalledValue();	
-		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-		//constIntValue = CI->getSExtValue();
-		//osstrtmp << caleeFunction->getName();
+		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());		
 		rvaluep = caleeFunction->getName();
 		
 	}
 	
 	errs() << rvaluep << ">>>> \n";
 	
-	std::vector<int>::const_iterator iT;
-	iT =  std::find(this->listLineNumUint.begin(), 
-					this->listLineNumUint.end(), 
-					debugInfo.getLineNumberInt()); 
+	std::vector<std::string>::const_iterator iT;	
 	
-	/**
-	bool flagCallNondetInt = false;
-	// This is a trigger. TODO: Remove this and replace by a 
-	// properly identification of variable type
-	if(CallInst* callI = dyn_cast<CallInst>(&*firstOperand))
+	//checking for first operator
+	//TODO: search by map2check_non_det_uint
+	bool isUnsigned = false;
+	bool isUnsignedNonDet = false;
+	iT =  std::find(this->listUnsignedVars.begin(), 
+					this->listUnsignedVars.end(), 
+					lvaluep); 
+	if(rvaluep == "map2check_non_det_uint")
 	{
-		flagCallNondetInt = true;
-	}else if(CallInst* callI = dyn_cast<CallInst>(&*secondOperand))
-	{
-		flagCallNondetInt = true;
+		isUnsignedNonDet = true;
 	}
-	* 
-	* 
-	* **/
+					
+		
 	
-	if ( iT != this->listLineNumUint.end() )
+	if ( iT != this->listUnsignedVars.end() || isUnsignedNonDet)
 	{
 		this->isUnitAssigment = true;
+		isUnsigned = true;
 	}else{
 		this->isUnitAssigment = false;
+		isUnsigned = false;
 	}
 	
-	//errs() << this->isUnitAssigment << "??????\n";
+	//checking for second operator
+	if(!isUnsigned)
+	{
+		errs() << "Checking second \n";
+		iT =  std::find(this->listUnsignedVars.begin(), 
+						this->listUnsignedVars.end(), 
+						rvaluep); 
+		
+			
+		if ( iT != this->listUnsignedVars.end() || isUnsignedNonDet)
+		{
+			this->isUnitAssigment = true;
+		}else{
+			this->isUnitAssigment = false;
+		}
+	}
+	
+	errs() << this->isUnitAssigment << "??????\n";
 	
 	  
 	switch(binOp->getOpcode()) {

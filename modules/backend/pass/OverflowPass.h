@@ -43,6 +43,7 @@ struct OverflowPass : public FunctionPass {
   
   std::vector<Value*> storeInstWithUint;
   std::vector<Value*> loadInstWithUint;
+  std::vector<std::string> listUnsignedVars;
   bool isUnitAssigment = false;
   std::vector<int> listLineNumUint;
   bool hasNonDetUintOp_1;

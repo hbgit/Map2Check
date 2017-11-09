@@ -1,4 +1,0 @@
-Error: ASSERTION FAIL: 0
-Stack: 
-	#000001417 in overflowError ()
-	#100000225 in main () at /home/map2check/devel_tool/mygitclone/preprocessed.c:18

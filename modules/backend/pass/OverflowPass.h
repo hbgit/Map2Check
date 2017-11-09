@@ -39,6 +39,7 @@ struct OverflowPass : public FunctionPass {
   void hasNonDetUint(Instruction* I);
   void listAllUintAssig(BasicBlock &B);
   
+  std::string getValueNameOperator(Value* Vop);
   void listAllUnsignedVar(Function &F);
   
   std::vector<Value*> storeInstWithUint;

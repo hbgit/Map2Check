@@ -21,7 +21,7 @@ int main()
       y = y +2097152U*__VERIFIER_nondet_uint();
       z = z +4194304U*__VERIFIER_nondet_uint();
 
-      __VERIFIER_assert(4U*x-2U*y+z!=1048576U);
+     // __VERIFIER_assert(4U*x-2U*y+z!=1048576U);
     }
     return 0;
 }

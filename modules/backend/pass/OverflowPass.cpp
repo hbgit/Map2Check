@@ -125,10 +125,10 @@ void OverflowPass::listAllUnsignedVar(Function &F)
 										if(DT->getName() == "unsigned int" ||
 										   DT->getName() == "unsigned")
 										{
-											errs() << DT->getName() << "+++\n";	
-											errs() << DV->getName() << "+++\n";	
+											//errs() << DT->getName() << "+++\n";	
+											//errs() << DV->getName() << "+++\n";	
 											this->listUnsignedVars.push_back(DV->getName());								
-											errs() << DV->getLine() << "+++\n";	
+											//errs() << DV->getLine() << "+++\n";	
 											this->listLineNumUint.push_back(DV->getLine());
 										}								
 									}									
@@ -140,6 +140,43 @@ void OverflowPass::listAllUnsignedVar(Function &F)
             }
        }
     }
+}
+
+
+std::string OverflowPass::getValueNameOperator(Value *Vop)
+{
+	
+	std::string valueOp;
+	std::ostringstream osstrtmp;
+	
+	if(isa<LoadInst>(Vop)) {
+		LoadInst *LD100 = cast<LoadInst>(Vop);
+		Value *C100 = LD100->getPointerOperand();
+		valueOp = C100->getName().str(); 		
+
+	} else if (ConstantInt* CI = dyn_cast<ConstantInt>(Vop)) {
+		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.			
+			osstrtmp << CI->getSExtValue();
+			valueOp = osstrtmp.str();			
+		}
+	}
+	else if (CallInst* callInst = dyn_cast<CallInst>(Vop)) {
+		Value* v = callInst->getCalledValue();	
+		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());		
+		valueOp = caleeFunction->getName();
+		
+	}
+	else if(BinaryOperator* binOp = dyn_cast<BinaryOperator>(Vop))
+	{
+			Value* fO1 = binOp->getOperand(0);			
+			if(isa<LoadInst>(fO1)) {
+				LoadInst *Ld = cast<LoadInst>(fO1);
+				Value *vOp = Ld->getPointerOperand();
+				valueOp = vOp->getName().str();
+			}
+	}
+	
+	return valueOp;
 }
 
 
@@ -186,53 +223,18 @@ bool OverflowPass::runOnFunction(Function &F) {
     Value* secondOperand = binOp->getOperand(1);
 	currentInstruction++;	
 	  
-	errs() << debugInfo.getLineNumberInt() << "=============\n";
-	//DOING: get only variable names	
+	//errs() << debugInfo.getLineNumberInt() << "=============\n";
+	//get only variable names	
 	std::string lvaluep;
-    std::string rvaluep;
-    std::ostringstream osstrtmp;
+    std::string rvaluep;    
 	
-	// get firstOperand
-	if(isa<LoadInst>(firstOperand)) {
-		LoadInst *LD100 = cast<LoadInst>(firstOperand);
-		Value *C100 = LD100->getPointerOperand();
-		lvaluep = C100->getName().str(); 		
-
-	} else if (ConstantInt* CI = dyn_cast<ConstantInt>(firstOperand)) {
-		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.			
-			osstrtmp << CI->getSExtValue();
-			lvaluep = osstrtmp.str();			
-		}
-	}
-	else if (CallInst* callInst = dyn_cast<CallInst>(firstOperand)) {
-		Value* v = callInst->getCalledValue();	
-		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());		
-		lvaluep = caleeFunction->getName();
-		
-	}
-	
-	errs() << lvaluep << "<<<< \n";
+	// get firstOperand	
+	lvaluep = getValueNameOperator(firstOperand);	
+	//errs() << lvaluep << "<<<< \n";
 	
 	// get secondOperand
-	if(isa<LoadInst>(secondOperand)) {
-		LoadInst *LD100 = cast<LoadInst>(secondOperand);
-		Value *C100 = LD100->getPointerOperand();
-		rvaluep = C100->getName().str(); 		
-
-	} else if (ConstantInt* CI = dyn_cast<ConstantInt>(secondOperand)) {
-		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.			
-			osstrtmp << CI->getSExtValue();
-			rvaluep = osstrtmp.str();			
-		}
-	}
-	else if (CallInst* callInst = dyn_cast<CallInst>(secondOperand)) {
-		Value* v = callInst->getCalledValue();	
-		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());		
-		rvaluep = caleeFunction->getName();
-		
-	}
-	
-	errs() << rvaluep << ">>>> \n";
+	rvaluep = getValueNameOperator(secondOperand);	
+	//errs() << rvaluep << ">>>> \n";
 	
 	std::vector<std::string>::const_iterator iT;	
 	
@@ -276,14 +278,13 @@ bool OverflowPass::runOnFunction(Function &F) {
 		}
 	}
 	
-	errs() << this->isUnitAssigment << "??????\n";
+	//errs() << this->isUnitAssigment << "??????\n";
 	
 	  
 	switch(binOp->getOpcode()) {
 	case(Instruction::Add):
 	  if(this->isUnitAssigment)
-	  {
-		//errs() << "getOverflowAddUint \n";
+	  {		
 		instrumentedFunction = this->operationsFunctions->getOverflowAddUint();
 	  }else{
 		instrumentedFunction = this->operationsFunctions->getOverflowAdd();
@@ -294,8 +295,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 	  break;
 	case(Instruction::Sub):
 	  if(this->isUnitAssigment)
-	  {
-		//errs() << "getOverflowSubUint \n";
+	  {		
 		instrumentedFunction = this->operationsFunctions->getOverflowSubUint();
 	  }else{
 		instrumentedFunction = this->operationsFunctions->getOverflowSub();
@@ -304,8 +304,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 	case(Instruction::FSub):
 	  
 	  break;
-	case(Instruction::Mul):
-		//errs() << "MULT \n";
+	case(Instruction::Mul):		
 		if(this->isUnitAssigment)
 		{
 			instrumentedFunction = this->operationsFunctions->getOverflowMulUint();

@@ -21,7 +21,7 @@ int main()
       y = y +4U*__VERIFIER_nondet_uint();
       z = z +8U*__VERIFIER_nondet_uint();
 
-      __VERIFIER_assert(4U*x+2U*y+z!=4U);
+      //__VERIFIER_assert(4U*x+2U*y+z!=4U);
     }
     return 0;
 }

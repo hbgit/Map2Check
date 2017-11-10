@@ -11,10 +11,15 @@ int absInteger (int a) {
     return a;
 }
 
-void overflowError(int line, const char* function_name) {
+void overflowError(unsigned line, const char* function_name) {
     write_property_overflow(line, function_name);
     write_property(OVERFLOW, line, function_name);
     map2check_error();
+}
+
+void unknown_not_supported()
+{
+	write_property_unknown();
 }
 
 void divisionByZeroError() {
@@ -32,16 +37,17 @@ void map2check_binop_add(int param1, int param2,
   // Both are positive
   if(param1Pos && param2Pos) {
     // If param2 is greater thant the difference between max int and param1,
-    // then we have an overflow
-    if((INT_MAX - param1) < param2) {
+    // then we have an overflow    
+    if((INT_MAX - param1) < param2) {		
         overflowError(line, function_name);
     }
   }
   // Both are negative
   else if(!param1Pos && !param2Pos) {
     // Same principle of first IF
-    if((INT_MIN - param1) > param2) {
+    if((INT_MIN - param1) > param2) {		
         overflowError(line, function_name);
+        //overflowError(param1, function_name);
     }
   }
   else {
@@ -55,6 +61,34 @@ void map2check_binop_sub(int param1, int param2,
     map2check_binop_add(param1, -param2, line, scope, function_name );
 }
 
+
+void map2check_binop_add_uint(unsigned param1, unsigned param2,
+			 unsigned line, unsigned scope,
+			 char* function_name) {
+  
+  //unknown_not_supported();  
+  if( !((param1 + param2) <= UINT_MAX && (param1 + param2) >= 0) ) {		
+	overflowError(line, function_name);
+  }  
+  else {
+      return;
+  }
+}
+
+void map2check_binop_sub_uint(unsigned param1, unsigned param2,
+                         unsigned line, unsigned scope,
+                         char* function_name) {
+	//unknown_not_supported();
+	
+	// Same principle of first IF
+	if( !((param1 - param2) >= 0) ) {		
+		overflowError(line, function_name);           
+	}else {
+		return;
+	}
+}
+
+
 void map2check_binop_mul(int param1, int param2,
                           unsigned line, unsigned scope,
                           char* function_name) {
@@ -65,7 +99,6 @@ void map2check_binop_mul(int param1, int param2,
 
 
     // If a parameter is 1, the result will not be an overflow
-
     if((param1 == 1) || (param2 == 1)) {
         return;
     }
@@ -109,6 +142,30 @@ void map2check_binop_mul(int param1, int param2,
 
 
 
+
+}
+
+
+void map2check_binop_mul_uint(unsigned param1, unsigned param2,
+                          unsigned line, unsigned scope,
+                          char* function_name) {
+    
+    //unknown_not_supported();
+    
+    // If one of params is 0, the result will be 0
+    if((param1 == 0) || (param2 == 0)) {
+        return;
+    }
+    // If a parameter is 1, the result will not be an overflow
+    if((param1 == 1) || (param2 == 1)) {
+        return;
+    }
+    	
+	if( !((param1 * param2) <=  UINT_MAX && (param1 * param2) >= 0) ) {
+		overflowError(line, function_name);
+	}else{
+		return;
+	}
 
 }
 

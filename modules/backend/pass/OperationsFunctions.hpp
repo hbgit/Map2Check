@@ -18,19 +18,35 @@
 class OperationsFunctions {
 
   Constant* OverflowAdd = NULL;
+  Constant* OverflowAddUint = NULL;
   Constant* OverflowSub = NULL;
-    Constant* OverflowMul = NULL;
-    Constant* OverflowSDiv = NULL;
+  Constant* OverflowSubUint = NULL;
+  Constant* OverflowMul = NULL;
+  Constant* OverflowMulUint = NULL;
+  Constant* OverflowSDiv = NULL;
 
 public:
   Constant* getOverflowAdd() { return this->OverflowAdd; }
+  Constant* getOverflowAddUint() { return this->OverflowAddUint; }
   Constant* getOverflowSub() { return this->OverflowSub; }
-    Constant* getOverflowMul() { return this->OverflowMul; }
-    Constant* getOverflowSDiv() { return this->OverflowSDiv; }
+  Constant* getOverflowSubUint() { return this->OverflowSubUint; }
+  Constant* getOverflowMul() { return this->OverflowMul; }
+  Constant* getOverflowMulUint() { return this->OverflowMulUint; }
+  Constant* getOverflowSDiv() { return this->OverflowSDiv; }
   
   OperationsFunctions(Function *F, LLVMContext* Ctx) {
     this->OverflowAdd = F->getParent()->
       getOrInsertFunction("map2check_binop_add",
+			  Type::getVoidTy(*Ctx),
+			  Type::getInt32Ty(*Ctx),
+			  Type::getInt32Ty(*Ctx),
+			  Type::getInt32Ty(*Ctx),
+			  Type::getInt32Ty(*Ctx),
+			  Type::getInt8PtrTy(*Ctx),
+			  NULL);
+			  
+	this->OverflowAddUint = F->getParent()->
+      getOrInsertFunction("map2check_binop_add_uint",
 			  Type::getVoidTy(*Ctx),
 			  Type::getInt32Ty(*Ctx),
 			  Type::getInt32Ty(*Ctx),
@@ -48,9 +64,29 @@ public:
 						  Type::getInt32Ty(*Ctx),
 						  Type::getInt8PtrTy(*Ctx),
 						  NULL);
+						  
+	this->OverflowSubUint = F->getParent()->
+              getOrInsertFunction("map2check_binop_sub_uint",
+						  Type::getVoidTy(*Ctx),
+						  Type::getInt32Ty(*Ctx),
+						  Type::getInt32Ty(*Ctx),
+						  Type::getInt32Ty(*Ctx),
+						  Type::getInt32Ty(*Ctx),
+						  Type::getInt8PtrTy(*Ctx),
+						  NULL);
 
       this->OverflowMul = F->getParent()->
               getOrInsertFunction("map2check_binop_mul",
+                                Type::getVoidTy(*Ctx),
+                                Type::getInt32Ty(*Ctx),
+                                Type::getInt32Ty(*Ctx),
+                                Type::getInt32Ty(*Ctx),
+                                Type::getInt32Ty(*Ctx),
+                                Type::getInt8PtrTy(*Ctx),
+                                NULL);
+                                
+      this->OverflowMulUint = F->getParent()->
+              getOrInsertFunction("map2check_binop_mul_uint",
                                 Type::getVoidTy(*Ctx),
                                 Type::getInt32Ty(*Ctx),
                                 Type::getInt32Ty(*Ctx),

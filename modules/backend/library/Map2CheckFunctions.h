@@ -57,7 +57,7 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope, const c
  * @return An integer representing a non deterministic value
  */
 int map2check_non_det_int();
-int map2check_non_det_uint();
+unsigned int map2check_non_det_uint();
 
 /**
  * Tracks execution of a specific function (this function is to be used for instrumentation)

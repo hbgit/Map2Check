@@ -1,21 +1,217 @@
 #include "OverflowPass.h"
 
+void OverflowPass::hasNonDetUint(Instruction* I)
+{
+	//I->dump();
+	DebugInfo debugInfo(this->Ctx, I);
+	//errs() << *debugInfo.getLineNumberValue() << "================\n";
+}
+
+
+void OverflowPass::listAllUintAssig(BasicBlock &B)
+{
+	for (BasicBlock::iterator i = B.begin(), e = B.end(); i != e; ++i)
+	{
+		//i->dump();
+		
+		if(auto* cI = dyn_cast<CallInst>(&*i))        
+        {   			
+			Value* v = cI->getCalledValue();	
+			Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());						
+            if(caleeFunction->getName() == "__VERIFIER_nondet_uint" ||
+               caleeFunction->getName() == "map2check_non_det_uint")
+            {
+                DebugInfo debugInfoCi(this->Ctx, cI);                         
+                //errs() << debugInfoCi.getLineNumberInt() << "==================\n";
+                
+                //cI->dump();
+                i++;
+                i++; //jump klee line
+                //i->dump();
+                if (StoreInst* storeI = dyn_cast<StoreInst>(&*i)) {
+					//errs() << *storeI->getOperand(1) << "--\n";
+					this->storeInstWithUint.push_back(&*storeI->getOperand(1));
+				}
+                
+            }
+
+        } 
+	}
+	
+	//Handle with the variable assignment v1 = i by a nondet UINT
+	//Identify all store inst, then read each load inst from operand ZERO
+	//to compare if the variable was identified as nondet UINT in this->storeInstWithUint
+	for (BasicBlock::iterator i = B.begin(), e = B.end(); i != e; ++i)
+	{
+		if (StoreInst* storeI = dyn_cast<StoreInst>(&*i)) 
+		{
+			//Value* vst_1 = storeI->getOperand(1);					
+
+			if (LoadInst* loadI = dyn_cast<LoadInst>(&*storeI->getOperand(0))) 
+			{				
+				Value* vload = &*loadI->getPointerOperand();				
+								
+				std::vector<Value*>::iterator iT;
+				iT =  std::find(this->storeInstWithUint.begin(), 
+								this->storeInstWithUint.end(), 
+								vload); 
+				
+				if ( iT != this->storeInstWithUint.end() )
+				{				
+					//DebugInfo debugInfoCi(this->Ctx, loadI);                         
+					//errs() << debugInfoCi.getLineNumberInt() << ">>>>>>>>>>>> \n";	
+					//loadI->dump();
+					//this->listLineNumUint.push_back(debugInfoCi.getLineNumberInt());
+					this->storeInstWithUint.push_back(&*storeI->getOperand(1));
+				}
+			}
+			
+		}
+	}
+	
+	
+	//Read each load inst to identify if it has a nondet uint value
+	for (BasicBlock::iterator i = B.begin(), e = B.end(); i != e; ++i)
+	{
+		
+		if (LoadInst* loadI = dyn_cast<LoadInst>(&*i)) 
+		{
+			
+			//errs() << "-------------------- \n";
+			//loadI->dump();
+			DebugInfo debugInfoCi(this->Ctx, loadI);                         
+			//errs() << debugInfoCi.getLineNumberInt() << "************* \n";		
+						
+			Value* vload = &*loadI->getPointerOperand();					
+			
+			std::vector<Value*>::iterator iT;
+			iT =  std::find(this->storeInstWithUint.begin(), 
+							this->storeInstWithUint.end(), 
+							vload); 
+			
+            if ( iT != this->storeInstWithUint.end() )
+            {				
+				DebugInfo debugInfoCi(this->Ctx, loadI);                         
+				//errs() << debugInfoCi.getLineNumberInt() << "************* \n";	
+				this->listLineNumUint.push_back(debugInfoCi.getLineNumberInt());
+			}
+			
+					
+		}
+	}
+	
+}
+
+
+void OverflowPass::listAllUnsignedVar(Function &F)
+{
+	for(Function::iterator BB = F.begin(), E = F.end(); BB!=E; ++BB){ 
+        for(BasicBlock::iterator I = BB->begin(), E = BB->end(); I != E; ++I){
+            //get the Metadata declared in the llvm intrinsic functions such as llvm.dbg.declare()
+            if(CallInst* CI = dyn_cast<CallInst>(I)){
+                if(Function *F = CI->getCalledFunction()){
+                    if(F->getName().startswith("llvm.")){
+												    
+                            const DbgDeclareInst *DDI = dyn_cast<DbgDeclareInst>(I);                           
+                            
+                            if(auto *N = dyn_cast<MDNode>(DDI->getVariable()))
+                            {								
+								//errs() << *N << "+++ \n"; 
+								if(auto *DV = dyn_cast<DILocalVariable>(N))
+								{																	
+									//errs() << *DV->getType() << "+++\n";									
+									if(auto *DT = dyn_cast<DIBasicType>(DV->getType()))
+									{										
+										if(DT->getName() == "unsigned int" ||
+										   DT->getName() == "unsigned")
+										{
+											//errs() << DT->getName() << "+++\n";	
+											//errs() << DV->getName() << "+++\n";	
+											this->listUnsignedVars.push_back(DV->getName());								
+											//errs() << DV->getLine() << "+++\n";	
+											this->listLineNumUint.push_back(DV->getLine());
+										}								
+									}									
+								}
+							}                            
+                            
+                    }
+                }
+            }
+       }
+    }
+}
+
+
+std::string OverflowPass::getValueNameOperator(Value *Vop)
+{
+	
+	std::string valueOp;
+	std::ostringstream osstrtmp;
+	
+	if(isa<LoadInst>(Vop)) {
+		LoadInst *LD100 = cast<LoadInst>(Vop);
+		Value *C100 = LD100->getPointerOperand();
+		valueOp = C100->getName().str(); 		
+
+	} else if (ConstantInt* CI = dyn_cast<ConstantInt>(Vop)) {
+		if (CI->getBitWidth() <= 32) { //Of course, you can also change it to <= 64 if constIntValue is a 64-bit integer, etc.			
+			osstrtmp << CI->getSExtValue();
+			valueOp = osstrtmp.str();			
+		}
+	}
+	else if (CallInst* callInst = dyn_cast<CallInst>(Vop)) {
+		Value* v = callInst->getCalledValue();	
+		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());		
+		valueOp = caleeFunction->getName();
+		
+	}
+	else if(BinaryOperator* binOp = dyn_cast<BinaryOperator>(Vop))
+	{
+			Value* fO1 = binOp->getOperand(0);			
+			if(isa<LoadInst>(fO1)) {
+				LoadInst *Ld = cast<LoadInst>(fO1);
+				Value *vOp = Ld->getPointerOperand();
+				valueOp = vOp->getName().str();
+			}
+	}
+	
+	return valueOp;
+}
+
+
 bool OverflowPass::runOnFunction(Function &F) {
   this->operationsFunctions =  make_unique<OperationsFunctions>(&F, &F.getContext());
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
+  
+  this->Ctx = &F.getContext();
 
   IRBuilder<> builder((Instruction*)&*instructionIterator);
   this->functionName = builder
     .CreateGlobalStringPtr(F.getName());
+  
+  
+  this->listAllUnsignedVar(F);
+  /**  
+  for(auto& B:F)
+  {
+	  this->listAllUintAssig(B);
+  }**/
 
   for (Function::iterator bb = F.begin(), e = F.end();
-       bb != e; ++bb) {
+       bb != e; ++bb) {	
+		   
     for (BasicBlock::iterator i = bb->begin(),
            e = bb->end(); i != e; ++i) {      
-      
-      if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&*i)) {
+    
+    //i->dump();  
+    
+    
+    if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&*i)) {
 	BasicBlock::iterator currentInstruction = i;
+	
+	
 	IRBuilder<> builder((Instruction*)currentInstruction);
 	Value* function_llvm = this->getFunctionNameValue();
 	Twine bitcast("map2check_pointer_cast");
@@ -24,27 +220,97 @@ bool OverflowPass::runOnFunction(Function &F) {
 	Constant* instrumentedFunction = NULL;
 
 	Value* firstOperand = binOp->getOperand(0);
-        Value* secondOperand = binOp->getOperand(1);
-	currentInstruction++;
-	// Value* firstOperandCast = CastInst::CreatePointerCast
-	  // (firstOperand,
-	  //  Type::getInt8PtrTy(F.getContext()),
-	  //  bitcast,(Instruction*) currentInstruction);
+    Value* secondOperand = binOp->getOperand(1);
+	currentInstruction++;	
+	  
+	//errs() << debugInfo.getLineNumberInt() << "=============\n";
+	//get only variable names	
+	std::string lvaluep;
+    std::string rvaluep;    
+	
+	// get firstOperand	
+	lvaluep = getValueNameOperator(firstOperand);	
+	//errs() << lvaluep << "<<<< \n";
+	
+	// get secondOperand
+	rvaluep = getValueNameOperator(secondOperand);	
+	//errs() << rvaluep << ">>>> \n";
+	
+	std::vector<std::string>::const_iterator iT;	
+	
+	//checking for first operator
+	//TODO: search by map2check_non_det_uint
+	bool isUnsigned = false;
+	bool isUnsignedNonDet = false;
+	iT =  std::find(this->listUnsignedVars.begin(), 
+					this->listUnsignedVars.end(), 
+					lvaluep); 
+	if(rvaluep == "map2check_non_det_uint")
+	{
+		isUnsignedNonDet = true;
+	}
+					
+		
+	
+	if ( iT != this->listUnsignedVars.end() || isUnsignedNonDet)
+	{
+		this->isUnitAssigment = true;
+		isUnsigned = true;
+	}else{
+		this->isUnitAssigment = false;
+		isUnsigned = false;
+	}
+	
+	//checking for second operator
+	if(!isUnsigned)
+	{
+		errs() << "Checking second \n";
+		iT =  std::find(this->listUnsignedVars.begin(), 
+						this->listUnsignedVars.end(), 
+						rvaluep); 
+		
+			
+		if ( iT != this->listUnsignedVars.end() || isUnsignedNonDet)
+		{
+			this->isUnitAssigment = true;
+		}else{
+			this->isUnitAssigment = false;
+		}
+	}
+	
+	//errs() << this->isUnitAssigment << "??????\n";
+	
+	  
 	switch(binOp->getOpcode()) {
 	case(Instruction::Add):
-	  instrumentedFunction = this->operationsFunctions->getOverflowAdd();
+	  if(this->isUnitAssigment)
+	  {		
+		instrumentedFunction = this->operationsFunctions->getOverflowAddUint();
+	  }else{
+		instrumentedFunction = this->operationsFunctions->getOverflowAdd();
+	  }
 	  break;
 	case(Instruction::FAdd):
 	  
 	  break;
 	case(Instruction::Sub):
-      instrumentedFunction = this->operationsFunctions->getOverflowSub();
+	  if(this->isUnitAssigment)
+	  {		
+		instrumentedFunction = this->operationsFunctions->getOverflowSubUint();
+	  }else{
+		instrumentedFunction = this->operationsFunctions->getOverflowSub();
+	  }
 	  break;
 	case(Instruction::FSub):
 	  
 	  break;
-	case(Instruction::Mul):
-        instrumentedFunction = this->operationsFunctions->getOverflowMul();
+	case(Instruction::Mul):		
+		if(this->isUnitAssigment)
+		{
+			instrumentedFunction = this->operationsFunctions->getOverflowMulUint();
+		}else{
+			instrumentedFunction = this->operationsFunctions->getOverflowMul();
+		}
 	  break;
 	case(Instruction::FMul):
 	  
@@ -91,6 +357,10 @@ bool OverflowPass::runOnFunction(Function &F) {
 	}
 
 	if (instrumentedFunction != NULL) {
+	  
+	  //errs() << *firstOperand << "\n";
+	  //errs() << *secondOperand << "\n";
+		
 	  Value* args[] = {
 	    firstOperand,
 	    secondOperand,

@@ -269,9 +269,16 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT)
 		++j;
 	}else{
 		--j;
-	}**/
+	}**/	
 	
-	//iT->dump();
+	iT->dump();
+	// To avoid that PHI nodes not grouped at top of basic block
+	if(isa<PHINode>(iT))
+	{
+		//errs() << "FOUND PHINODE \n";
+		iT++;
+	}
+	
 	//Twine track_bb("map2check_track_bb");
 	//Function *caleeFunction;
 	//caleeFunction->setName(track_bb);
@@ -280,6 +287,7 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT)
 	IRBuilder<> builder((Instruction*)iT);
 	//errs() << "inst 2 \n";
 	Value* function_llvm = this->getFunctionNameValue();
+	
 	DebugInfo debugInfo(this->Ctx, (Instruction*)iT);
 	//errs() << *debugInfo.getLineNumberValue() << "\n";
 	//errs() << function_llvm->getName() << "\n";

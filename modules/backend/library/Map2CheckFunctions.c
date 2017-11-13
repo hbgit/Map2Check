@@ -420,8 +420,10 @@ void map2check_exit() {
   free_container(&list_log);
 
   heap_log_to_file(&heap_log);
-  trackbb_log_to_file(&trackbb_log);
   free_container(&heap_log);
+  
+  trackbb_log_to_file(&trackbb_log);
+  free_container(&trackbb_log);  
 
   allocation_log_to_file(&allocation_log);
   valid_allocation_log(&allocation_log);

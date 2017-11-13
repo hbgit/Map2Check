@@ -271,7 +271,7 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT)
 		--j;
 	}**/	
 	
-	iT->dump();
+	//iT->dump();
 	// To avoid that PHI nodes not grouped at top of basic block
 	if(isa<PHINode>(iT))
 	{

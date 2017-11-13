@@ -23,6 +23,18 @@ bool GenerateAutomataTruePass::runOnFunction(Function &F) {
     return false;
 }
 
+// Replace text code not allowed in XML
+std::string GenerateAutomataTruePass::replaceCodeByXml(std::string sourceCodeTxt)
+{
+		
+	boost::replace_all(sourceCodeTxt, "<", "&lt;");
+	boost::replace_all(sourceCodeTxt, ">", "&gt;");
+	boost::replace_all(sourceCodeTxt, "<=", "&lt;= ");
+	boost::replace_all(sourceCodeTxt, ">=", "&gt;= ");
+	
+	return sourceCodeTxt;
+}
+
 
 void GenerateAutomataTruePass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 {
@@ -60,7 +72,8 @@ void GenerateAutomataTruePass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* C
 					this->st_isControl = false;
 					this->st_isEntryPoint = true;
 					this->countEntryPoint++;
-					this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoFi.getLineNumberInt());
+					//this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoFi.getLineNumberInt());
+					this->st_sourceCodeLine = this->replaceCodeByXml(this->sourceCodeHelper->getLine(debugInfoFi.getLineNumberInt()));
 					this->st_startline = debugInfoFi.getLineNumberInt();
 					
 					this->printStateData();
@@ -229,7 +242,8 @@ void GenerateAutomataTruePass::checkAndSkipAssume()
 		flagAssume = true;
 	}else{
 		this->st_startline = this->numLineBlk_ori;            
-        this->st_sourceCodeLine = this->sourceCodeHelper->getLine(this->numLineBlk_ori);
+        //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(this->numLineBlk_ori);
+        this->st_sourceCodeLine = this->replaceCodeByXml(this->sourceCodeHelper->getLine(this->numLineBlk_ori));
 	}
 								
 	while(flagAssume){						
@@ -246,7 +260,8 @@ void GenerateAutomataTruePass::checkAndSkipAssume()
 				this->skipEmptyLine();
 			}else{
 				this->st_startline = this->numLineBlk_AA;            
-				this->st_sourceCodeLine = this->sourceCodeHelper->getLine(this->numLineBlk_AA);
+				//this->st_sourceCodeLine = this->sourceCodeHelper->getLine(this->numLineBlk_AA);
+				this->st_sourceCodeLine = this->replaceCodeByXml(this->sourceCodeHelper->getLine(this->numLineBlk_AA));
 			}
 		}
 		
@@ -281,12 +296,14 @@ void GenerateAutomataTruePass::skipEmptyLine()
 				flagEmpty = false;
 				this->st_startline = debugInfoAaEmptyW.getLineNumberInt();
 				//errs() << this->st_startline << "\n";
-				this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt());
+				//this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt());
+				this->st_sourceCodeLine = this->replaceCodeByXml(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()));
 			}
 		}else{
 			flagEmpty = false;
 			this->st_startline = debugInfoAaEmptyW.getLineNumberInt();
-            this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt());
+            //this->st_sourceCodeLine = this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt());
+            this->st_sourceCodeLine = this->replaceCodeByXml(this->sourceCodeHelper->getLine(debugInfoAaEmptyW.getLineNumberInt()));
 		}
 	}
 }
@@ -550,13 +567,13 @@ std::string GenerateAutomataTruePass::getPredicateSymOnXmlText(ICmpInst& icmpIns
         predicateText="&gt;";
     }else if(pr == ICmpInst::ICMP_SGE)
     {
-        predicateText="&ge;";
+        predicateText="&gt;=";
     }else if(pr == ICmpInst::ICMP_SLT)
     {
         predicateText="&lt;";
     }else if(pr == ICmpInst::ICMP_SLE)
     {
-        predicateText="&le;";
+        predicateText="&lt;=";
     }
     /**switch(pr){
         case ICmpInst::ICMP_SGT: predicateText="&gt;"; break;

@@ -15,6 +15,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <vector>
+#include <boost/algorithm/string/replace.hpp>
 
 //From Map2Check Project
 #include "DebugInfo.hpp"
@@ -53,6 +54,7 @@ struct GenerateAutomataTruePass : public FunctionPass
 
     private:    
     //attr to automata state
+    std::string replaceCodeByXml(std::string sourceCodeTxt);
     BasicBlock::iterator st_lastBlockInst;      
     std::string st_currentFunctionName;
     int st_numLineEntryPoint;

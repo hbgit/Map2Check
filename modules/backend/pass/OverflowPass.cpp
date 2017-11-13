@@ -264,7 +264,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 	//checking for second operator
 	if(!isUnsigned)
 	{
-		errs() << "Checking second \n";
+		//errs() << "Checking second \n";
 		iT =  std::find(this->listUnsignedVars.begin(), 
 						this->listUnsignedVars.end(), 
 						rvaluep); 

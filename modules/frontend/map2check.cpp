@@ -24,7 +24,7 @@ using namespace std;
 //#include "witness/witness.hpp"
 #include "utils/gen_crypto_hash.hpp"
 
-#define Map2CheckVersion "Map2Check 7.1 : Fri Oct 27 21:29:05 UTC 2017"
+#define Map2CheckVersion "Map2Check 7.1 : Mon Nov 13 15:37:57 -04 2017"
 
 namespace
 {

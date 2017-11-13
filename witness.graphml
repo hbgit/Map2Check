@@ -24,28 +24,21 @@
 		<data key="witness-type">violation_witness</data>
 		<data key="sourcecodelang">C</data>
 		<data key="producer">Map2Check</data>
-		<data key="specification">CHECK( init(main()), LTL(G valid-deref) )</data>
-		<data key="programfile">test/memsafety/cstrchr_unsafe_false-valid-deref.i</data>
-		<data key="programhash">63b8dedae7cf8395550d803f49ccedcf786efa62</data>
+		<data key="specification">CHECK( init(main()), LTL(G ! overflow) )</data>
+		<data key="programfile">sample/over.c</data>
+		<data key="programhash">404f48195f3aee10c6fa889faeac250dff285615</data>
 		<data key="architecture">32bit</data>
 		<node id="s0">
 			<data key="entry">true</data>
 		</node>
-		<node id="s1"/>
-		<node id="s2">
+		<node id="s1">
 			<data key="violation">true</data>
 		</node>
 		<edge source="s0" target="s1">
-			<data key="assumption">\result == 128</data>
-			<data key="assumption.scope">build_nondet_String</data>
-			<data key="assumption.resultfunction">__VERIFIER_nondet_int</data>
-			<data key="startline">541</data>
-		</edge>
-		<edge source="s1" target="s2">
-			<data key="assumption">\result == -85</data>
+			<data key="assumption">\result == 16777216</data>
 			<data key="assumption.scope">main</data>
 			<data key="assumption.resultfunction">__VERIFIER_nondet_int</data>
-			<data key="startline">556</data>
+			<data key="startline">6</data>
 		</edge>
 	</graph>
 </graphml>

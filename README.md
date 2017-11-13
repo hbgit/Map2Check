@@ -35,8 +35,8 @@ In order to install Map2Check on your PC, you should download and save the map2c
 After that, you should type the following command:
 </p>
 
-> $ unzip v7.zip
-> $ cd Map2Check-7/release
+> $ unzip map2check_v7.1_svcomp.zip
+> $ cd Map2Check-map2check_v7.1_svcomp
 
 <b>Testing tool</b>
 
@@ -45,11 +45,11 @@ Map2Check can be invoked through a standard command-line interface. Map2Check sh
 in the installation directory as follows:  
 </p>
 
-> $ ./map2check sample/sv-comp/960521-1_false-valid-free.c
+> $ ./map2check sample/svcomp_960521-1_false-valid-free.c
 
 For help and others options: 
 
-> $ ./map2check -h
+> $ ./map2check --help
 
 ===========================
 
@@ -68,7 +68,7 @@ FALSE(p), with p in {valid-free, valid-deref, valid-memtrack}, means that the (p
 property p is violated. 
 For each verification result the witness file (called <b>witness.graphml</b>) is generated Map2Check root-path folder. 
 There is timeout of 895 seconds set by this script, using "timeout" tool that is part of coreutils 
-on debian and fedora. If these constraints are violated, it should be treated as UNKNOWN result. 
+on debian. If these constraints are violated, it should be treated as UNKNOWN result. 
 </p>
 
 ===========================

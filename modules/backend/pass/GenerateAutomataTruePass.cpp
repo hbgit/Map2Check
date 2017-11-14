@@ -27,10 +27,11 @@ bool GenerateAutomataTruePass::runOnFunction(Function &F) {
 std::string GenerateAutomataTruePass::replaceCodeByXml(std::string sourceCodeTxt)
 {
 		
+	boost::replace_all(sourceCodeTxt, "&", "&amp;");
 	boost::replace_all(sourceCodeTxt, "<", "&lt;");
 	boost::replace_all(sourceCodeTxt, ">", "&gt;");
 	boost::replace_all(sourceCodeTxt, "<=", "&lt;= ");
-	boost::replace_all(sourceCodeTxt, ">=", "&gt;= ");
+	boost::replace_all(sourceCodeTxt, ">=", "&gt;= ");	
 	
 	return sourceCodeTxt;
 }

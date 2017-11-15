@@ -118,16 +118,16 @@ int Caller::parseIrFile(){
 
 int Caller::callPass(Map2CheckMode mode, bool sv_comp){
 	//Pass to generate_automata_true
-	//Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");           
-    //AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
+	Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");           
+    AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
     // TrackBasicBlockPass is here to avoid lost position after code instrumentation
-    //Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
-    //AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
+    Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
+    AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
     
 	
     Map2Check::Log::Debug("Applying NonDetPass\n");    
     AnalysisPasses.add(new NonDetPass());
-    /**switch(mode) {
+    switch(mode) {
     case (Map2CheckMode::MEMTRACK_MODE):
         Map2Check::Log::Debug("Applying MemoryTrackPass\n");
         AnalysisPasses.add(new MemoryTrackPass(sv_comp));
@@ -138,7 +138,7 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
         break;
     default:
         throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
-    }  **/  
+    }
     
     
     Map2Check::Log::Debug("Applying Map2CheckLibrary\n");

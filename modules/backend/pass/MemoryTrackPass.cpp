@@ -5,10 +5,11 @@ std::string echoCommand = "echo";
 // TODO: Work with other types
 // FIX: It it not current function
 
+/**
 void MemoryTrackPass::addWitnessInfo(std::string info) {
   // int result = system(info.c_str());
   // If result != 0 means that something gone wrong
-}
+}**/
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::instrumentPointer() {
@@ -860,36 +861,41 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;
     Module* currentModule = this->currentFunction->getParent();
+    
     this->prepareMap2CheckInstructions();
-    this->instrumentInit();
+    //this->instrumentInit(); //overhead BUG
 
     if(F.getName() == "main") {
         //auto globalVars = currentModule->getGlobalList();
         this->functionsValues.push_back(this->currentFunction);
         this->mainFunctionInitialized = true;
         this->mainFunction = &F;
+        this->instrumentInit(); // Related to BUG checkout this
     }
 
     this->instrumentFunctionAddress();
-   for (Function::iterator bb = F.begin(),
-      e = F.end(); bb != e; ++bb) {
-      for (BasicBlock::iterator i = bb->begin(),
-         e = bb->end(); i != e; ++i) {
+    
+   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
+      for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
           this->currentInstruction = i;
 
+          //i->dump();
           if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
               this->getDebugInfo();
               this->runOnCallInstruction();
+              //errs() << "runOnCallInstruction() \n";
           } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
               this->getDebugInfo();	      
               this->runOnStoreInstruction();
+              //errs() << "runOnStoreInstruction() \n";
           } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
               this->getDebugInfo();	      
               this->runOnAllocaInstruction();
-
+			  //errs() << "runOnAllocaInstruction() \n";
           } else if(LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction)) {
               this->getDebugInfo();	      
               this->runOnLoadInstruction();
+              //errs() << "runOnLoadInstruction() \n";
           }
 
 

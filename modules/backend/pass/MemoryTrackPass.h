@@ -47,7 +47,7 @@ struct MemoryTrackPass : public FunctionPass {
   void runOnLoadInstruction();
   void switchCallInstruction();
   void prepareMap2CheckInstructions();
-  void addWitnessInfo(std::string info);
+  //void addWitnessInfo(std::string info);
   void getDebugInfo();
   int getLineNumber();
 
@@ -55,7 +55,7 @@ struct MemoryTrackPass : public FunctionPass {
   bool mainFunctionInitialized = false;
   std::vector<Function*> functionsValues;
   Function* currentFunction;
-  DataLayout* currentDataLayout;
+  //DataLayout* currentDataLayout;
   Function* mainFunction;
   Function* caleeFunction;
   BasicBlock::iterator currentInstruction;

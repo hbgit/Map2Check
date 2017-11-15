@@ -245,7 +245,7 @@ int main(int argc, char** argv)
 	    caller->linkLLVM();
 
 	    
-	    return SUCCESS; //remove this
+	    //return SUCCESS; //remove this
 	    //return SUCCESS;//STOP
 	    Map2Check::Log::Info("Started klee execution");
 	    caller->callKlee();

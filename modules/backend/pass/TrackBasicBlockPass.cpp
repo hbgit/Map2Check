@@ -80,31 +80,35 @@ void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 		//{
 			if(auto* cI = dyn_cast<CallInst>((Instruction*)i))        
 			{   
-				
-				Value* v = cI->getCalledValue();	
-				Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());								
-						
-				
-				if(caleeFunction->getName() != "__VERIFIER_assume" &&
-				   caleeFunction->getName() != "__VERIFIER_nondet_int" &&
-				   caleeFunction->getName() != "__VERIFIER_nondet_char" &&
-				   caleeFunction->getName() != "__VERIFIER_nondet_pointer" &&
-				   caleeFunction->getName() != "__VERIFIER_nondet_long" &&
-				   caleeFunction->getName() != "__VERIFIER_nondet_ushort" &&
-				   caleeFunction->getName() != "map2check_assume"  &&
-				   caleeFunction->getName() != "malloc" 		   &&
-				   caleeFunction->getName() != "calloc" 		   &&
-				   caleeFunction->getName() != "realloc" 		   &&
-				   caleeFunction->getName() != "free"
-				   )
+				if(!cI->getCalledValue()->getName().empty())
 				{
-					//BasicBlock::iterator iI= &;
-					//i->dump();
-					IRBuilder<> builder((Instruction*)&*i);
-					this->functionName = builder.CreateGlobalStringPtr(this->currentFunction->getName());
-					//i--;		
-					this->instrumentInstBB(i);
-					//i++;
+				
+					Value* v = cI->getCalledValue();	
+					Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());								
+							
+					
+					if(caleeFunction->getName() != "__VERIFIER_assume" &&
+					   caleeFunction->getName() != "__VERIFIER_nondet_int" &&
+					   caleeFunction->getName() != "__VERIFIER_nondet_char" &&
+					   caleeFunction->getName() != "__VERIFIER_nondet_pointer" &&
+					   caleeFunction->getName() != "__VERIFIER_nondet_long" &&
+					   caleeFunction->getName() != "__VERIFIER_nondet_ushort" &&
+					   caleeFunction->getName() != "map2check_assume"  &&
+					   caleeFunction->getName() != "malloc" 		   &&
+					   caleeFunction->getName() != "calloc" 		   &&
+					   caleeFunction->getName() != "realloc" 		   &&
+					   caleeFunction->getName() != "free"
+					   )
+					{
+						//BasicBlock::iterator iI= &;
+						//i->dump();
+						IRBuilder<> builder((Instruction*)&*i);
+						this->functionName = builder.CreateGlobalStringPtr(this->currentFunction->getName());
+						//i--;		
+						this->instrumentInstBB(i);
+						//i++;
+					}
+					
 				}				
 						
 			}
@@ -239,16 +243,18 @@ bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT)
 	this->isUnreachableInst = false;
 	if(auto* cI = dyn_cast<CallInst>((Instruction*)iT))        
 	{   
-		
-		Value* v = cI->getCalledValue();	
-		Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());								
-		
-		if(caleeFunction->getName() == "__VERIFIER_assume" ||
-		   caleeFunction->getName() == "map2check_assume"  )
-		{		
-			return true;
-		}else{
-			return false;
+		if(!cI->getCalledValue()->getName().empty())
+		{
+			Value* v = cI->getCalledValue();	
+			Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());								
+			
+			if(caleeFunction->getName() == "__VERIFIER_assume" ||
+			   caleeFunction->getName() == "map2check_assume"  )
+			{		
+				return true;
+			}else{
+				return false;
+			}
 		}		
 
 	}else if(auto* cI2 = dyn_cast<UnreachableInst>((Instruction*)iT))        

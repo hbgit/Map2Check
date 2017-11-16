@@ -124,9 +124,9 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
     Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");       
     AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
     
-	
-    Map2Check::Log::Debug("Applying NonDetPass\n");    
+	Map2Check::Log::Debug("Applying NonDetPass\n");    
     AnalysisPasses.add(new NonDetPass());
+    
     switch(mode) {
     case (Map2CheckMode::MEMTRACK_MODE):
         Map2Check::Log::Debug("Applying MemoryTrackPass\n");
@@ -142,8 +142,9 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
     
     
     Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
-    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
-    AnalysisPasses.run(*M);
+    AnalysisPasses.add(new Map2CheckLibrary(sv_comp));    
+    AnalysisPasses.run(*M);    
+    
     return 1;
 }
 

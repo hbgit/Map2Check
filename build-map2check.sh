@@ -67,13 +67,13 @@ cp_utils_file()
     fi
     
     # tool-info benchexec
-    if [ ! -f $PREFIX/moduleBenchExec/map2check.py ]; then	
+    if [ ! -d $PREFIX/moduleBenchExec ]; then	
 		mkdir $PREFIX/moduleBenchExec/
-		cp utils/moduleBenchExec/map2check.py $PREFIX/moduleBenchExec/
+		cp -r utils/moduleBenchExec/* $PREFIX/moduleBenchExec/
 	else
 		rm -rf $PREFIX/moduleBenchExec
 		mkdir $PREFIX/moduleBenchExec/
-		cp utils/moduleBenchExec/map2check.py $PREFIX/moduleBenchExec/
+		cp -r utils/moduleBenchExec/* $PREFIX/moduleBenchExec/
 	fi    
     
     # README FILE

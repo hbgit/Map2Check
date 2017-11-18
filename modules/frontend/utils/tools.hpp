@@ -265,6 +265,7 @@ namespace Map2Check::Tools {
     string numLineControlTrue;
     string numLineControlFalse;
     string isEntryPoint;  
+    string isErrorLabel;
   };
   
   /** Class used to get all StateTrueLogRow from a CSV file */

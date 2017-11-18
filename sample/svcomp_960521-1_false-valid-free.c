@@ -626,10 +626,17 @@ void foo ()
   for (i = 0; i < 128 - 1; i++)
     b[i] = -1;
 }
+
+void call(){
+	int a;
+	a = a+1;
+}
+
 int main ()
 {
-  n = 128;
+  n = 128;  
   a = malloc (n * sizeof(*a));
+  call();
   b = malloc (n * sizeof(*b));
   *b++ = 0;
   foo ();

@@ -21,11 +21,13 @@ bcs_files = "bcs_files"
 #    if os.path.isfile("witness_file/witness.graphml"):
 #        os.system("rm witness_file/witness.graphml")
 
+ACTUAL_RESULT = "UNKNOWN"
 
 def check_witness(benchmark_name, typeResult, witnessPath):
     global property_file
     global benchmark
-    
+    global ACTUAL_RESULT
+
     if not os.path.isfile(witnessPath):
         outputwrt = str(benchmark) + ";" + "ERROR"
         os.system("echo \""+outputwrt+"\" >> witness_check_log.csv")
@@ -39,7 +41,7 @@ def check_witness(benchmark_name, typeResult, witnessPath):
 
         #print str(command_line_witck)
         os.chdir("../../../witness_checker/UAutomizer-linux/")
-        
+
         args = shlex.split(command_line_witck)
 
         p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -48,16 +50,21 @@ def check_witness(benchmark_name, typeResult, witnessPath):
         #print stdout
         # Parse output witness checker
         if "TRUE" in stdout:
-            outputwrt = str(benchmark) + ";" + "TRUE"
+            if ACTUAL_RESULT == "TRUE":
+                outputwrt = str(benchmark) + ";" + "TRUE"
+            else:
+                outputwrt = str(benchmark) + ";" + "UNKNOWN"
             os.system("echo \""+outputwrt+"\" >> witness_check_log.csv")
         elif "FALSE" in stdout:
-            print str(stdout)
-            outputwrt = str(benchmark) + ";" + "FALSE"
+            if ACTUAL_RESULT == "FALSE":
+                outputwrt = str(benchmark) + ";" + "FALSE"
+            else:
+                outputwrt = str(benchmark) + ";" + "UNKNOWN"
             os.system("echo \""+outputwrt+"\" >> witness_check_log.csv")
         else:
             outputwrt = str(benchmark) + ";" + "UNKNOWN"
             os.system("echo \""+outputwrt+"\" >> witness_check_log.csv")
-            
+
         os.chdir("../../tools/Map2Check/release/")
         #os.system("ls -alh")
 
@@ -147,32 +154,38 @@ overflow_offset = "\tOVERFLOW"
 if "VERIFICATION FAILED" in stdout:
     if free_offset in stdout:
       print "FALSE_FREE"
+      ACTUAL_RESULT = "FALSE"
       check_witness(benchmark, False, "witness.graphml")
       exit(0)
 
     if deref_offset in stdout:
       print "FALSE_DEREF"
+      ACTUAL_RESULT = "FALSE"
       check_witness(benchmark, False, "witness.graphml")
       exit(0)
 
     if memtrack_offset in stdout:
       print "FALSE_MEMTRACK"
+      ACTUAL_RESULT = "FALSE"
       check_witness(benchmark, False, "witness.graphml")
       exit(0)
 
     if target_offset in stdout:
       print "FALSE"
+      ACTUAL_RESULT = "FALSE"
       check_witness(benchmark, False, "witness.graphml")
       exit(0)
 
     if overflow_offset in stdout:
       print "FALSE_OVERFLOW"
+      ACTUAL_RESULT = "FALSE"
       check_witness(benchmark, False, "witness.graphml")
       exit(0)
 
 
 if "VERIFICATION SUCCEDED" in stdout:
   print "TRUE"
+  ACTUAL_RESULT = "TRUE"
   check_witness(benchmark, False, "witness.graphml")
   exit(0)
 

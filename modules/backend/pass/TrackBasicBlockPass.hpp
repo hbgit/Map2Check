@@ -36,7 +36,9 @@ struct TrackBasicBlockPass : public FunctionPass {
 	
 	protected:
 		void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
-		void instrumentLastInstBB(BasicBlock::iterator& iT);
+		void hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
+		void instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx); 
+		void instrumentInstBB(BasicBlock::iterator& iT);
 		bool checkInstBBIsAssume(BasicBlock::iterator& iT);
 		Value* getFunctionNameValue() { return this->functionName; }
   
@@ -45,6 +47,7 @@ struct TrackBasicBlockPass : public FunctionPass {
 		std::string cprogram_path;
 		std::unique_ptr<LibraryFunctions> libraryFunctions; 
 		bool initializedFunctionName = false; 
+		bool isUnreachableInst = false;
 		BasicBlock::iterator st_lastBlockInst;  
 		BasicBlock::iterator currentInstruction;
 		Function* currentFunction;

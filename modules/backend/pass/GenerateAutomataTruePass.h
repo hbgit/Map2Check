@@ -15,6 +15,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <vector>
+#include <boost/algorithm/string/replace.hpp>
 
 //From Map2Check Project
 #include "DebugInfo.hpp"
@@ -38,6 +39,7 @@ struct GenerateAutomataTruePass : public FunctionPass
 
     protected:   
     void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
+    void hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
     bool checkBBHasLError(BasicBlock& nowB);
     void checkAndSkipAssume();
     void skipEmptyLine();
@@ -52,6 +54,7 @@ struct GenerateAutomataTruePass : public FunctionPass
 
     private:    
     //attr to automata state
+    std::string replaceCodeByXml(std::string sourceCodeTxt);
     BasicBlock::iterator st_lastBlockInst;      
     std::string st_currentFunctionName;
     int st_numLineEntryPoint;
@@ -64,6 +67,7 @@ struct GenerateAutomataTruePass : public FunctionPass
     int st_numLineGoControl_2false;
     bool st_isControl = false;
     bool st_isEntryPoint = false;
+    int st_isErrorLocation = 0;
 
     //others
     int numLineBlk_ori;

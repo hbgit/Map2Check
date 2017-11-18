@@ -53,10 +53,12 @@ void TargetPass::instrumentErrorInstruction(CallInst* callInst, LLVMContext* Ctx
     Value* name_llvm = functionName;
 
     DebugInfo debugInfo(Ctx, callInst);
+    
+    //errs() << *debugInfo.getLineNumberValue() << "----\n";
 
     Value* args[] = {name_llvm,
-                     debugInfo.getLineNumberValue(),
-                     debugInfo.getScopeNumberValue(), };
+					 debugInfo.getScopeNumberValue(),
+                     debugInfo.getLineNumberValue() };
 
     builder.CreateCall(targetFunctionMap2Check,
                args);

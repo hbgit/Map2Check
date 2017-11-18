@@ -4,6 +4,9 @@
 		<default>false</default>
 	</key>
 	<key attr.name="invariant" attr.type="string" for="node" id="invariant"/>
+	<key attr.name="isViolationNode" attr.type="boolean" for="node" id="violation">
+		<default>false</default>
+	</key>
 	<key attr.name="witness-type" attr.type="string" for="graph" id="witness-type"/>
 	<key attr.name="sourcecodelang" attr.type="string" for="graph" id="sourcecodelang"/>
 	<key attr.name="producer" attr.type="string" for="graph" id="producer"/>
@@ -18,14 +21,12 @@
 	<key attr.name="assumption.scope" attr.type="string" for="edge" id="assumption.scope"/>
 	<key attr.name="assumption.resultfunction" attr.type="string" for="edge" id="assumption.resultfunction"/>
 	<graph edgedefault="directed">
-		<data key="witness-type">correctness_witness</data>
+		<data key="witness-type">violation_witness</data>
 		<data key="sourcecodelang">C</data>
 		<data key="producer">Map2Check</data>
-		<data key="specification">CHECK( init(main()), LTL(G valid-free) )
-CHECK( init(main()), LTL(G valid-deref) )
-CHECK( init(main()), LTL(G valid-memtrack) )</data>
-		<data key="programfile">test/memsafety/test-0219_true-valid-memsafety.i</data>
-		<data key="programhash">456c515786674a303f65e1e24d5c1ef4f2339af1</data>
+		<data key="specification">CHECK( init(main()), LTL(G valid-free) )</data>
+		<data key="programfile">test/memsafety/960521-1_false-valid-free.i</data>
+		<data key="programhash">fadf7d34d6bb05cf6f7ded2e4c7162fa59404bda</data>
 		<data key="architecture">32bit</data>
 		<node id="s0">
 			<data key="entry">true</data>
@@ -39,119 +40,65 @@ CHECK( init(main()), LTL(G valid-memtrack) )</data>
 		<node id="s7"/>
 		<node id="s8"/>
 		<node id="s9"/>
-		<node id="s10"/>
+		<node id="s10"/>		
 		<node id="s11"/>
 		<node id="s12"/>
-		<node id="s13"/>
-		<node id="s14"/>
-		<node id="s15"/>
-		<node id="s16"/>
-		<node id="s17"/>
-		<node id="s18"/>
-		<node id="s19"/>
-		<node id="s20"/>
-		<node id="s21"/>
-		<node id="s22"/>
-		<node id="s23"/>
-		<node id="s24"/>
+		<node id="s13">
+			<data key="violation">true</data>
+		</node>			
 		<edge source="s0" target="s1">
-			<data key="startline">0</data>
-			<data key="sourcecode"></data>
-		</edge>
+			<data key="startline">631</data>
+			<data key="sourcecode">  n = 128;</data>
+		</edge>				
 		<edge source="s1" target="s2">
-			<data key="startline">789</data>
-			<data key="sourcecode">        l1_insert(&amp;list);</data>
-		</edge>
+			<data key="startline">632</data>
+			<data key="sourcecode">a = malloc (n * sizeof(*a));</data>
+		</edge>				
 		<edge source="s2" target="s3">
-			<data key="startline">774</data>
-			<data key="sourcecode">static void l1_insert(struct L1 **list)</data>
-		</edge>
+			<data key="startline">633</data>
+			<data key="sourcecode">b = malloc (n * sizeof(*b));</data>
+		</edge>				
 		<edge source="s3" target="s4">
-			<data key="startline">776</data>
-			<data key="sourcecode">    struct L1 *item = calloc_model(1U, sizeof *item);</data>
-		</edge>
+			<data key="startline">634</data>
+			<data key="sourcecode">  *b++ = 0;</data>
+		</edge>	
 		<edge source="s4" target="s5">
-			<data key="startline">740</data>
-			<data key="sourcecode">static void *calloc_model(size_t nmemb, size_t size) {</data>
+			<data key="startline">635</data>
+			<data key="sourcecode">  foo ();</data>
 		</edge>
 		<edge source="s5" target="s6">
-			<data key="startline">741</data>
-			<data key="sourcecode">    void *ptr = malloc(nmemb * size);</data>
+			<data key="startline">624</data>
+			<data key="sourcecode">  for (i = 0; i &lt; n; i++)</data>
 		</edge>
 		<edge source="s6" target="s7">
-			<data key="startline">742</data>
-			<data key="sourcecode">    return memset(ptr, 0, nmemb * size);</data>
+			<data key="startline">624</data>
+			<data key="sourcecode">  for (i = 0; i &lt; n; i++)</data>
 		</edge>
 		<edge source="s7" target="s8">
-			<data key="startline">777</data>
-			<data key="sourcecode">[ !item]</data>
-			<data key="control">condition-true</data>
+			<data key="startline">625</data>
+			<data key="sourcecode">    a[i] = -1;</data>
 		</edge>
 		<edge source="s8" target="s9">
-			<data key="startline">780</data>
-			<data key="sourcecode">        l2_insert(&amp;item-&gt;l2);</data>
+			<data key="startline">626</data>
+			<data key="sourcecode">  for (i = 0; i &lt; 128 - 1; i++)</data>
 		</edge>
 		<edge source="s9" target="s10">
-			<data key="startline">753</data>
-			<data key="sourcecode">static void l2_insert(struct L2 **list)</data>
+			<data key="startline">627</data>
+			<data key="sourcecode">    b[i] = -1;</data>
 		</edge>
 		<edge source="s10" target="s11">
-			<data key="startline">755</data>
-			<data key="sourcecode">    struct L2 *item = calloc_model(1U, sizeof *item);</data>
+			<data key="startline">628</data>
+			<data key="sourcecode">}</data>
 		</edge>
 		<edge source="s11" target="s12">
-			<data key="startline">756</data>
-			<data key="sourcecode">[ !item]</data>
-			<data key="control">condition-true</data>
-		</edge>
-		<edge source="s12" target="s13">
-			<data key="startline">759</data>
-			<data key="sourcecode">[![ !]]</data>
+			<data key="startline">636</data>
+			<data key="sourcecode">[![ !0]]</data>
 			<data key="control">condition-false</data>
 		</edge>
-		<edge source="s13" target="s14">
-			<data key="startline">763</data>
-			<data key="sourcecode">}</data>
+		<edge source="s12" target="s13">
+			<data key="startline">639</data>
+			<data key="sourcecode">free(a); free(b);</data>
 		</edge>
-		<edge source="s14" target="s15">
-			<data key="startline">781</data>
-			<data key="sourcecode">    while (__VERIFIER_nondet_int());</data>
-		</edge>
-		<edge source="s15" target="s16">
-			<data key="startline">784</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s16" target="s17">
-			<data key="startline">795</data>
-			<data key="sourcecode">        list = next;</data>
-		</edge>
-		<edge source="s17" target="s18">
-			<data key="startline">795</data>
-			<data key="sourcecode">        list = next;</data>
-		</edge>
-		<edge source="s18" target="s19">
-			<data key="startline">764</data>
-			<data key="sourcecode">static void l2_destroy(struct L2 *list)</data>
-		</edge>
-		<edge source="s19" target="s20">
-			<data key="startline">767</data>
-			<data key="sourcecode">        struct L2 *next = list-&gt;next;</data>
-		</edge>
-		<edge source="s20" target="s21">
-			<data key="startline">770</data>
-			<data key="sourcecode">        list = next;</data>
-		</edge>
-		<edge source="s21" target="s22">
-			<data key="startline">773</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s22" target="s23">
-			<data key="startline">795</data>
-			<data key="sourcecode">        list = next;</data>
-		</edge>
-		<edge source="s23" target="s24">
-			<data key="startline">798</data>
-			<data key="sourcecode"></data>
-		</edge>
+		
 	</graph>
 </graphml>

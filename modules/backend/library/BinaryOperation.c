@@ -176,5 +176,11 @@ void map2check_binop_sdiv(int param1, int param2,
     if(param2 == 0) {
         divisionByZeroError();
     }
+
+    if((param1 == INT_MIN) || (param2 == INT_MIN)) {
+      if((param1 == (-1)) || (param2 == (-1))) {
+	overflowError(line, function_name);	
+      }
+    }
     return;
 }

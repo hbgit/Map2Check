@@ -72,7 +72,7 @@ Caller::Caller( std::string bcprogram_path ) {
 
 void Caller::cleanGarbage() {
 
-   const char* command ="rm -rf klee-* *.log list-* clang.out \							
+   const char* command ="rm -rf klee-* *.log list-*  clang.out\							
                             *.csv map2check_property \
                             automata_list_log.st \
 							track_bb_log.st \
@@ -118,8 +118,8 @@ int Caller::parseIrFile(){
 
 int Caller::callPass(Map2CheckMode mode, bool sv_comp){
 	//Pass to generate_automata_true
-	Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");           
-    AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
+  Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");           
+  AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));    
 	
     Map2Check::Log::Debug("Applying NonDetPass\n");    
     AnalysisPasses.add(new NonDetPass());
@@ -128,10 +128,15 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp){
         Map2Check::Log::Debug("Applying MemoryTrackPass\n");
         AnalysisPasses.add(new MemoryTrackPass(sv_comp));
         break;
-    case (Map2CheckMode::OVERFLOW_MODE):
+    case (Map2CheckMode::OVERFLOW_MODE):      
         Map2Check::Log::Debug("Applying OverflowPass\n");
-        AnalysisPasses.add(new OverflowPass());
+	{
+	  std::vector<int> lines = this->processClangOutput();
+	  AnalysisPasses.add(new OverflowPass(lines));
+	}
+        
         break;
+    
     default:
         throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
     }
@@ -231,6 +236,35 @@ void Caller::callKlee() {
   system(command.str().c_str());
 }
 
+// Case Clang calls an overflow, throw overflow (or unknown)
+std::vector<int> Caller::processClangOutput() {  
+  const char* path_name = "clang.out";
+
+  std::vector<int> result;
+
+  ifstream in(path_name);
+  if (!in.is_open()) {
+    Map2Check::Log::Debug("Clang did not generate warning or errors" );
+    return result;
+  }
+
+  Map2Check::Log::Debug("Clang generate warning or errors" );
+
+  regex overflowWarning(".*:([[:digit:]]+):[[:digit:]]+:.*Winteger-overflow.*");
+  string line;
+  smatch match;
+  while(getline(in, line)) {    
+    if(std::regex_search(line, match, overflowWarning) && match.size() > 1) {   
+      Map2Check::Log::Debug("Found warning at line " + match[1].str() );      
+      int lineNumber = std::stoi(match[1].str());
+      result.push_back(lineNumber);
+      
+    }
+      
+  }
+  return result;
+}
+
 
 string Caller::compileCFile(std::string cprogram_path) {
   Map2Check::Log::Info("Compiling " + cprogram_path);
@@ -261,8 +295,8 @@ string Caller::compileCFile(std::string cprogram_path) {
   command.str("");
   command << Map2Check::Tools::clangBinary << " -I"
       << Map2Check::Tools::clangIncludeFolder
-          //<< " -Wno-everything "
-          //<< " -Winteger-overflow "
+          << " -Wno-everything "
+          << " -Winteger-overflow "
           << " -c -emit-llvm -g -O0 "
           << " -o compiled.bc "
           << "preprocessed.c"

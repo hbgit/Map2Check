@@ -20,6 +20,7 @@ class Caller {
  protected:
   std::string pathprogram;
   void optimizeProgram();
+  std::vector<int> processClangOutput();
 
 
  public:
@@ -34,7 +35,7 @@ class Caller {
   int callPass(Map2CheckMode mode, std::string target_function, bool sv_comp = false);
   void linkLLVM();
   void callKlee();
-  void cleanGarbage();
+  void cleanGarbage();  
 };
 
 class CallerException : public runtime_error {

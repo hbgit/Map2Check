@@ -30,6 +30,9 @@ using namespace llvm;
 struct OverflowPass : public FunctionPass {
   static char ID;
  OverflowPass() : FunctionPass(ID) { }
+ OverflowPass(std::vector<int> lines) : FunctionPass(ID) {
+    this->errorLines = lines;
+  }
   virtual bool runOnFunction(Function &F);
  protected:
   Value* getFunctionNameValue() { return this->functionName; }
@@ -41,7 +44,8 @@ struct OverflowPass : public FunctionPass {
   
   std::string getValueNameOperator(Value* Vop);
   void listAllUnsignedVar(Function &F);
-  
+
+  std::vector<int> errorLines;  
   std::vector<Value*> storeInstWithUint;
   std::vector<Value*> loadInstWithUint;
   std::vector<std::string> listUnsignedVars;

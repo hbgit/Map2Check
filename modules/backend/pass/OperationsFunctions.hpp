@@ -24,6 +24,7 @@ class OperationsFunctions {
   Constant* OverflowMul = NULL;
   Constant* OverflowMulUint = NULL;
   Constant* OverflowSDiv = NULL;
+  Constant* OverflowError = NULL;
 
 public:
   Constant* getOverflowAdd() { return this->OverflowAdd; }
@@ -33,6 +34,7 @@ public:
   Constant* getOverflowMul() { return this->OverflowMul; }
   Constant* getOverflowMulUint() { return this->OverflowMulUint; }
   Constant* getOverflowSDiv() { return this->OverflowSDiv; }
+  Constant* getOverflowError() { return this->OverflowError; }
   
   OperationsFunctions(Function *F, LLVMContext* Ctx) {
     this->OverflowAdd = F->getParent()->
@@ -101,6 +103,13 @@ public:
                                 Type::getInt32Ty(*Ctx),
                                 Type::getInt32Ty(*Ctx),
                                 Type::getInt32Ty(*Ctx),
+                                Type::getInt32Ty(*Ctx),
+                                Type::getInt8PtrTy(*Ctx),
+                                NULL);
+
+      this->OverflowError = F->getParent()->
+              getOrInsertFunction("overflowError",
+                                Type::getVoidTy(*Ctx),
                                 Type::getInt32Ty(*Ctx),
                                 Type::getInt8PtrTy(*Ctx),
                                 NULL);

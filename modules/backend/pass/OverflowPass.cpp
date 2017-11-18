@@ -205,7 +205,29 @@ bool OverflowPass::runOnFunction(Function &F) {
     for (BasicBlock::iterator i = bb->begin(),
            e = bb->end(); i != e; ++i) {      
     
-    //i->dump();  
+    //i->dump();
+
+      if(this->errorLines.size() != 0) {
+	
+	
+	Instruction* currentInstruction = (Instruction*) i;
+	DebugInfo debugInfo(&F.getContext(), currentInstruction);
+	int line = debugInfo.getLineNumberInt();
+
+	std::vector<int>::iterator it = std::find(this->errorLines.begin(), this->errorLines.end(), line);
+						     
+	if(it != this->errorLines.end()) {
+	  IRBuilder<> builder((Instruction*)currentInstruction);
+	  Value* args[] = {
+	    debugInfo.getLineNumberValue(),
+	    functionName
+	  };
+	  builder.CreateCall(this->operationsFunctions->getOverflowError(), args);
+
+	  this->errorLines.erase(it);
+	  
+	}	
+      }
     
     
     if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&*i)) {

@@ -82,8 +82,8 @@ void Caller::cleanGarbage() {
                             map2check_property_overflow \
                             map2check_property_klee_free \
                             preprocessed.c \                            
-                            optimized.bc output.bc inter.bc \                            
-                            result.bc witnessInfo";
+                            optimized.bc output.bc inter.bc \ 
+                           result.bc witnessInfo";
   system(command);
 }
 void Caller::printdata() {

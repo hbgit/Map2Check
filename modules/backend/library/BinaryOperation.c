@@ -31,8 +31,12 @@ void map2check_binop_add(int param1, int param2,
 			 unsigned line, unsigned scope,
 			 char* function_name) {
 
-  Bool param1Pos = (param1 >= 0);
-  Bool param2Pos = (param2 >= 0);
+  if((param1 == 0) || (param2 == 0)) {
+    return;
+  }
+
+  Bool param1Pos = (param1 > 0);
+  Bool param2Pos = (param2 > 0);
 
   // Both are positive
   if(param1Pos && param2Pos) {
@@ -46,7 +50,7 @@ void map2check_binop_add(int param1, int param2,
   else if(!param1Pos && !param2Pos) {
     // Same principle of first IF
     if((INT_MIN - param1) > param2) {		
-        overflowError(line, function_name);
+      //overflowError(line, function_name);
         //overflowError(param1, function_name);
     }
   }

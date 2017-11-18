@@ -72,7 +72,7 @@ Caller::Caller( std::string bcprogram_path ) {
 
 void Caller::cleanGarbage() {
 
-   const char* command ="rm -rf klee-* *.log list-*  clang.out\							
+   const char* command ="rm -rf klee-* *.log list-*   \							
                             *.csv map2check_property \
                             automata_list_log.st \
 							track_bb_log.st \
@@ -244,7 +244,7 @@ std::vector<int> Caller::processClangOutput() {
 
   ifstream in(path_name);
   if (!in.is_open()) {
-    Map2Check::Log::Debug("Clang did not generate warning or errors" );
+    Map2Check::Log::Debug("Clang did not generate warning or errors" );    
     return result;
   }
 
@@ -255,13 +255,14 @@ std::vector<int> Caller::processClangOutput() {
   smatch match;
   while(getline(in, line)) {    
     if(std::regex_search(line, match, overflowWarning) && match.size() > 1) {   
-      Map2Check::Log::Debug("Found warning at line " + match[1].str() );      
+      Map2Check::Log::Info("Found warning at line " + match[1].str() );      
       int lineNumber = std::stoi(match[1].str());
       result.push_back(lineNumber);
       
     }
       
   }
+  system("rm clang.out");
   return result;
 }
 

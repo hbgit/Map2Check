@@ -36,10 +36,11 @@ class Tool(benchexec.tools.template.BaseTool):
                   ]
 
     REQUIRED_PATHS_7_1 = [
-                  "__init__.py",
                   "map2check",
                   "map2check-wrapper.py",
-                  "modules"
+                  "bin",
+                  "include",
+                  "lib"
                   ]
 
     def executable(self):
@@ -51,14 +52,15 @@ class Tool(benchexec.tools.template.BaseTool):
 
 
     def program_files(self, executable):
-        executableDir = os.path.dirname(executable)
-
+        """
+        Determine the file paths to be adopted
+        """
         if self._get_version() == 6:
-            paths = REQUIRED_PATHS_6
+            paths = self.REQUIRED_PATHS_6
         elif self._get_version() > 6:
-            paths = REQUIRED_PATHS_7_1
+            paths = self.REQUIRED_PATHS_7_1
 
-        return [executableDir] + paths
+        return paths
 
     def _get_version(self):
         """
@@ -136,4 +138,3 @@ class Tool(benchexec.tools.template.BaseTool):
                 status = 'ERROR'
 
         return status
-

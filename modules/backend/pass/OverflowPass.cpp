@@ -205,7 +205,6 @@ bool OverflowPass::runOnFunction(Function &F) {
     for (BasicBlock::iterator i = bb->begin(),
            e = bb->end(); i != e; ++i) {      
     
-    //i->dump();
 
       if(this->errorLines.size() != 0) {
 	
@@ -228,6 +227,31 @@ bool OverflowPass::runOnFunction(Function &F) {
 	  
 	}	
       }
+
+      if (StoreInst* storeInst = dyn_cast<StoreInst>(&*i)) {
+
+	Value* firstOperand = storeInst->getValueOperand();
+	Value* secondOperand = storeInst->getPointerOperand();
+	
+
+	std::string operandName = firstOperand->getName();
+
+	std::vector<std::string>::const_iterator iT;	
+	
+	//checking for first operator
+	//TODO: search by map2check_non_det_uint
+	bool isUnsigned = false;
+	bool isUnsignedNonDet = false;
+	iT =  std::find(this->listUnsignedVars.begin(), 
+					this->listUnsignedVars.end(), 
+					operandName);
+
+
+	if ( iT != this->listUnsignedVars.end() || isUnsignedNonDet) {
+	  //secondOperand->dump();
+	  this->valuesThatShouldBeUint.push_back(secondOperand);
+	}
+      }
     
     
     if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&*i)) {
@@ -242,13 +266,13 @@ bool OverflowPass::runOnFunction(Function &F) {
 	Constant* instrumentedFunction = NULL;
 
 	Value* firstOperand = binOp->getOperand(0);
-    Value* secondOperand = binOp->getOperand(1);
+	Value* secondOperand = binOp->getOperand(1);
 	currentInstruction++;	
 	  
 	//errs() << debugInfo.getLineNumberInt() << "=============\n";
 	//get only variable names	
 	std::string lvaluep;
-    std::string rvaluep;    
+	std::string rvaluep;    
 	
 	// get firstOperand	
 	lvaluep = getValueNameOperator(firstOperand);	
@@ -299,8 +323,35 @@ bool OverflowPass::runOnFunction(Function &F) {
 			this->isUnitAssigment = false;
 		}
 	}
+
+	Value* firstOperandValue = firstOperand;			
+	if(isa<LoadInst>(firstOperand)) {
+	  LoadInst *Ld = cast<LoadInst>(firstOperand);
+	  firstOperandValue = Ld->getPointerOperand();	  
+	}
 	
-	//errs() << this->isUnitAssigment << "??????\n";
+	Value* secondOperandValue = secondOperand;			
+	if(isa<LoadInst>(secondOperand)) {
+	  LoadInst *Ld = cast<LoadInst>(secondOperand);
+	  secondOperandValue = Ld->getPointerOperand();	  
+	}
+	
+	
+	// Check if is implicitly uint
+	if(std::find(this->valuesThatShouldBeUint.begin(),
+		     this->valuesThatShouldBeUint.end(),
+		     firstOperandValue) != this->valuesThatShouldBeUint.end()) {
+	  this->isUnitAssigment = true;
+	}
+	
+	// Check if is implicitly uint
+	else if(std::find(this->valuesThatShouldBeUint.begin(),
+		     this->valuesThatShouldBeUint.end(),
+		     secondOperandValue) != this->valuesThatShouldBeUint.end()) {
+	  this->isUnitAssigment = true;
+
+	}
+	
 	
 	  
 	switch(binOp->getOpcode()) {

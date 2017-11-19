@@ -45,7 +45,8 @@ struct OverflowPass : public FunctionPass {
   std::string getValueNameOperator(Value* Vop);
   void listAllUnsignedVar(Function &F);
 
-  std::vector<int> errorLines;  
+  std::vector<int> errorLines;
+  std::vector<Value*> valuesThatShouldBeUint;
   std::vector<Value*> storeInstWithUint;
   std::vector<Value*> loadInstWithUint;
   std::vector<std::string> listUnsignedVars;

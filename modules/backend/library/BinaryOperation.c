@@ -50,7 +50,7 @@ void map2check_binop_add(int param1, int param2,
   else if(!param1Pos && !param2Pos) {
     // Same principle of first IF
     if((INT_MIN - param1) > param2) {		
-      //overflowError(line, function_name);
+      overflowError(line, function_name);
         //overflowError(param1, function_name);
     }
   }

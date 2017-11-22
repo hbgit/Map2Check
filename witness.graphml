@@ -4,6 +4,9 @@
 		<default>false</default>
 	</key>
 	<key attr.name="invariant" attr.type="string" for="node" id="invariant"/>
+	<key attr.name="isViolationNode" attr.type="boolean" for="node" id="violation">
+		<default>false</default>
+	</key>
 	<key attr.name="witness-type" attr.type="string" for="graph" id="witness-type"/>
 	<key attr.name="sourcecodelang" attr.type="string" for="graph" id="sourcecodelang"/>
 	<key attr.name="producer" attr.type="string" for="graph" id="producer"/>
@@ -18,253 +21,21 @@
 	<key attr.name="assumption.scope" attr.type="string" for="edge" id="assumption.scope"/>
 	<key attr.name="assumption.resultfunction" attr.type="string" for="edge" id="assumption.resultfunction"/>
 	<graph edgedefault="directed">
-		<data key="witness-type">correctness_witness</data>
+		<data key="witness-type">violation_witness</data>
 		<data key="sourcecodelang">C</data>
 		<data key="producer">Map2Check</data>
-		<data key="specification">CHECK( init(main()), LTL(G valid-free) )
-CHECK( init(main()), LTL(G valid-deref) )
-CHECK( init(main()), LTL(G valid-memtrack) )</data>
-		<data key="programfile">test/memsafety/test-0102_true-valid-memsafety.i</data>
-		<data key="programhash">4db503ddad2ed51abac440bacbf543d2df1156ea</data>
+		<data key="specification">CHECK( init(main()), LTL(G ! overflow) )</data>
+		<data key="programfile">test/nooverflow/AdditionIntMax_false-no-overflow.c.i</data>
+		<data key="programhash">ce066faa274819a77e953bddc0682abdc14550bc</data>
 		<data key="architecture">32bit</data>
 		<node id="s0">
 			<data key="entry">true</data>
 		</node>
-		<node id="s1"/>
-		<node id="s2"/>
-		<node id="s3"/>
-		<node id="s4"/>
-		<node id="s5"/>
-		<node id="s6"/>
-		<node id="s7"/>
-		<node id="s8"/>
-		<node id="s9"/>
-		<node id="s10"/>
-		<node id="s11"/>
-		<node id="s12"/>
-		<node id="s13"/>
-		<node id="s14"/>
-		<node id="s15"/>
-		<node id="s16"/>
-		<node id="s17"/>
-		<node id="s18"/>
-		<node id="s19"/>
-		<node id="s20"/>
-		<node id="s21"/>
-		<node id="s22"/>
-		<node id="s23"/>
-		<node id="s24"/>
-		<node id="s25"/>
-		<node id="s26"/>
-		<node id="s27"/>
-		<node id="s28"/>
-		<node id="s29"/>
-		<node id="s30"/>
-		<node id="s31"/>
-		<node id="s32"/>
-		<node id="s33"/>
-		<node id="s34"/>
-		<node id="s35"/>
-		<node id="s36"/>
-		<node id="s37"/>
-		<node id="s38"/>
-		<node id="s39"/>
-		<node id="s40"/>
-		<node id="s41"/>
-		<node id="s42"/>
-		<node id="s43"/>
-		<node id="s44"/>
-		<node id="s45"/>
-		<node id="s46"/>
+		<node id="s1">
+			<data key="violation">true</data>
+		</node>
 		<edge source="s0" target="s1">
-			<data key="startline">707</data>
-			<data key="sourcecode">    struct list_head top = { &amp;(top), &amp;(top) };</data>
-		</edge>
-		<edge source="s1" target="s2">
-			<data key="startline">708</data>
-			<data key="sourcecode">    create_top(&amp;top);</data>
-		</edge>
-		<edge source="s2" target="s3">
-			<data key="startline">697</data>
-			<data key="sourcecode">void create_top(struct list_head *top)</data>
-		</edge>
-		<edge source="s3" target="s4">
-			<data key="startline">699</data>
-			<data key="sourcecode">	tmp1 = __VERIFIER_nondet_int();</data>
-		</edge>
-		<edge source="s4" target="s5">
-			<data key="startline">700</data>
-			<data key="sourcecode">[![tmp1 == tmp2]]</data>
-			<data key="control">condition-false</data>
-		</edge>
-		<edge source="s5" target="s6">
-			<data key="startline">702</data>
-			<data key="sourcecode">        insert_top(top);        </data>
-		</edge>
-		<edge source="s6" target="s7">
-			<data key="startline">687</data>
-			<data key="sourcecode">void insert_top(struct list_head *head)</data>
-		</edge>
-		<edge source="s7" target="s8">
-			<data key="startline">689</data>
-			<data key="sourcecode">    struct top_list *top = malloc(sizeof(*top));</data>
-		</edge>
-		<edge source="s8" target="s9">
-			<data key="startline">690</data>
-			<data key="sourcecode">[![ !top]]</data>
-			<data key="control">condition-false</data>
-		</edge>
-		<edge source="s9" target="s10">
-			<data key="startline">692</data>
-			<data key="sourcecode">    create_sub_list(&amp;top-&gt;sub1);</data>
-		</edge>
-		<edge source="s10" target="s11">
-			<data key="startline">677</data>
-			<data key="sourcecode">void create_sub_list(struct list_head *sub)</data>
-		</edge>
-		<edge source="s11" target="s12">
-			<data key="startline">682</data>
-			<data key="sourcecode">[![tmp1 == tmp2]]</data>
-			<data key="control">condition-false</data>
-		</edge>
-		<edge source="s12" target="s13">
-			<data key="startline">684</data>
-			<data key="sourcecode">        insert_sub(sub);        </data>
-		</edge>
-		<edge source="s13" target="s14">
-			<data key="startline">665</data>
-			<data key="sourcecode">void insert_sub(struct list_head *head)</data>
-		</edge>
-		<edge source="s14" target="s15">
-			<data key="startline">667</data>
-			<data key="sourcecode">    struct sub_list *sub = malloc(sizeof(*sub));</data>
-		</edge>
-		<edge source="s15" target="s16">
-			<data key="startline">668</data>
-			<data key="sourcecode">[ !sub]</data>
-			<data key="control">condition-true</data>
-		</edge>
-		<edge source="s16" target="s17">
-			<data key="startline">671</data>
-			<data key="sourcecode">    list_add_tail(&amp;sub-&gt;link, head);</data>
-		</edge>
-		<edge source="s17" target="s18">
-			<data key="startline">632</data>
-			<data key="sourcecode">static inline void list_add_tail(struct list_head *new, struct list_head *head)</data>
-		</edge>
-		<edge source="s18" target="s19">
-			<data key="startline">634</data>
-			<data key="sourcecode">    __list_add(new, head-&gt;prev, head);</data>
-		</edge>
-		<edge source="s19" target="s20">
-			<data key="startline">623</data>
-			<data key="sourcecode">static inline void __list_add(struct list_head *new,</data>
-		</edge>
-		<edge source="s20" target="s21">
-			<data key="startline">624</data>
-			<data key="sourcecode">                              struct list_head *prev,</data>
-		</edge>
-		<edge source="s21" target="s22">
-			<data key="startline">625</data>
-			<data key="sourcecode">                              struct list_head *next)</data>
-		</edge>
-		<edge source="s22" target="s23">
-			<data key="startline">631</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s23" target="s24">
-			<data key="startline">635</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s24" target="s25">
-			<data key="startline">672</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s25" target="s26">
-			<data key="startline">686</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s26" target="s27">
-			<data key="startline">693</data>
-			<data key="sourcecode">    create_sub_list(&amp;top-&gt;sub2);</data>
-		</edge>
-		<edge source="s27" target="s28">
-			<data key="startline">694</data>
-			<data key="sourcecode">    list_add_tail(&amp;top-&gt;link, head);</data>
-		</edge>
-		<edge source="s28" target="s29">
-			<data key="startline">695</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s29" target="s30">
-			<data key="startline">704</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s30" target="s31">
-			<data key="startline">709</data>
-			<data key="sourcecode">    destroy_top(&amp;top);</data>
-		</edge>
-		<edge source="s31" target="s32">
-			<data key="startline">654</data>
-			<data key="sourcecode">void destroy_top(struct list_head *head)</data>
-		</edge>
-		<edge source="s32" target="s33">
-			<data key="startline">656</data>
-			<data key="sourcecode">    struct top_list *now = ((struct top_list *)((char *)(head-&gt;next)-(unsigned long)(&amp;((struct top_list *)0)-&gt;link)));</data>
-		</edge>
-		<edge source="s33" target="s34">
-			<data key="startline">657</data>
-			<data key="sourcecode">[![ !]]</data>
-			<data key="control">condition-false</data>
-		</edge>
-		<edge source="s34" target="s35">
-			<data key="startline">658</data>
-			<data key="sourcecode">        struct top_list *next = ((struct top_list *)((char *)(now-&gt;link.next)-(unsigned long)(&amp;((struct top_list *)0)-&gt;link)));</data>
-		</edge>
-		<edge source="s35" target="s36">
-			<data key="startline">659</data>
-			<data key="sourcecode">        destroy_sub(&amp;now-&gt;sub1);</data>
-		</edge>
-		<edge source="s36" target="s37">
-			<data key="startline">647</data>
-			<data key="sourcecode">    struct sub_list *now = ((struct sub_list *)((char *)(head-&gt;next)-(unsigned long)(&amp;((struct sub_list *)0)-&gt;link)));</data>
-		</edge>
-		<edge source="s37" target="s38">
-			<data key="startline">647</data>
-			<data key="sourcecode">    struct sub_list *now = ((struct sub_list *)((char *)(head-&gt;next)-(unsigned long)(&amp;((struct sub_list *)0)-&gt;link)));</data>
-		</edge>
-		<edge source="s38" target="s39">
-			<data key="startline">648</data>
-			<data key="sourcecode">[![ !]]</data>
-			<data key="control">condition-false</data>
-		</edge>
-		<edge source="s39" target="s40">
-			<data key="startline">649</data>
-			<data key="sourcecode">        struct sub_list *next = ((struct sub_list *)((char *)(now-&gt;link.next)-(unsigned long)(&amp;((struct sub_list *)0)-&gt;link)));</data>
-		</edge>
-		<edge source="s40" target="s41">
-			<data key="startline">651</data>
-			<data key="sourcecode">        now = next;</data>
-		</edge>
-		<edge source="s41" target="s42">
-			<data key="startline">653</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s42" target="s43">
-			<data key="startline">660</data>
-			<data key="sourcecode">        destroy_sub(&amp;now-&gt;sub2);</data>
-		</edge>
-		<edge source="s43" target="s44">
-			<data key="startline">662</data>
-			<data key="sourcecode">        now = next;</data>
-		</edge>
-		<edge source="s44" target="s45">
-			<data key="startline">664</data>
-			<data key="sourcecode">}</data>
-		</edge>
-		<edge source="s45" target="s46">
-			<data key="startline">710</data>
-			<data key="sourcecode">    return 0;</data>
+			<data key="startline">332</data>
 		</edge>
 	</graph>
 </graphml>

@@ -584,14 +584,24 @@ void SVCompWitness::makeViolationAutomata() {
     
 
     if(kleeLogRows.size() == 0 && listLogRows.size() == 0 && trackBBLogRows.size() == 0) {		
+		
+		Tools::CheckViolatedProperty violated;    
+		//cout << violated.line << "\n";
+		
+        this->automata->AddNode(std::move(startNode)); //s0
+        
         std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
-
         std::unique_ptr<NodeElement> violationNode = std::make_unique<ViolationNode>();
         newNode->AddElement(std::move(violationNode));
 
         std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
+        // attribute startline
+		std::unique_ptr<EdgeData> startLine = std::make_unique<StartLine>(std::to_string(violated.line));
+		newEdge->AddElement(std::move(startLine));			
+        
         this->automata->AddEdge(std::move(newEdge));
         this->automata->AddNode(std::move(newNode));
+        
     }else if(kleeLogRows.size() == 0 && (listLogRows.size() > 0 || trackBBLogRows.size() > 0)){
 		//this->automata->AddNode(std::move(startNode));		
 		this->makeViolationAutomataAux();

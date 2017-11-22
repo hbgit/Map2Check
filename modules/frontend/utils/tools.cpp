@@ -72,7 +72,7 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
   Map2Check::Log::Debug("Started reading file: " + path );
   this->path_name = path;
 
-
+  
   ifstream in(path.c_str());
   if (!in.is_open()) {
     throw Tools::CheckViolatedPropertyException("Could not open file");
@@ -100,7 +100,7 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
     getline(false_free,line);
     if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
         int result = std::stoi(match.str(1));
-        this->line = result;
+        this->line = result;        
         Map2Check::Log::Debug("Line number: " + match.str(1));
     }
     getline(false_free,line);
@@ -213,6 +213,8 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
   }
 
 }
+
+//int Tools::CheckViolatedProperty::getListLogFromCSV(string path) {
 
 std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(string path) {
   std::vector<Tools::KleeLogRow> listLog;
@@ -385,6 +387,8 @@ std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV
 
   return listLog;
 }
+
+
 
 
 std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(string path) {

@@ -100,7 +100,7 @@ namespace Map2Check::Tools {
         std::ostringstream cnvt;
         cnvt.str("");
         cnvt << "\n**** C SOURCE ****\n";
-        for (auto i = 0; i < this->cFileLines.size(); i++) {
+        for (unsigned i = 0; i < this->cFileLines.size(); i++) {
             cnvt << "\tLine " << i << ": " << this->cFileLines[i] << "\n";
         }
         return cnvt.str();

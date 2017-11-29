@@ -14,14 +14,16 @@ enum class Map2CheckMode {
   OVERFLOW_MODE /**< Check for signed integer overflows */
 };
 
-/* TODO(rafa.sa.xp@gmail.com) Caller should have preoptimization and
-   postoptmization methods */
 /** Class used as inteface between the C program, LLVM and Klee */
 class Caller {
  protected:
   std::string pathprogram;  //!< Path for the .bc program */
-  /** Function to optimize .bc original program */
-  void optimizeProgram();
+  /** Get optmization flags for original C file
+   *  @return Flags for clang */
+  static std::string preOptimizationFlags();
+  /** Get optmization flags for final bytecode
+   *  @return Flags for opt */
+  static std::string postOptimizationFlags();
   /** Iterate over clang compilation messages (if any)
    *  and check for erors */  
   std::vector<int> processClangOutput();
@@ -39,11 +41,6 @@ class Caller {
    *  @param cprogam_path Path for the file
    *  @return name of the generated .bc file */
   static std::string compileCFile(std::string cprogram_path);
-
-  // TODO(rafa.sa.xp@gmail.com) Remove print data function
-  /** @deprecated
-   *  @brief Prints .bc file path*/
-  void printdata();
 
   /** Parse the input LLVM IR file into a module */
   void parseIrFile();

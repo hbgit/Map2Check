@@ -30,7 +30,7 @@ struct TrackBasicBlockPass : public FunctionPass {
 	TrackBasicBlockPass(std::string cprogram_path) : FunctionPass(ID) 
 	{ 
 		this->cprogram_path = cprogram_path;        
-        this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(Tools::SourceCodeHelper(cprogram_path));
+                this->sourceCodeHelper = std::make_unique<Tools::SourceCodeHelper>(Tools::SourceCodeHelper(cprogram_path));
 	}
 	virtual bool runOnFunction(Function &F);
 	

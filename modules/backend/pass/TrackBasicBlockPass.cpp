@@ -3,7 +3,7 @@
 bool TrackBasicBlockPass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;      
-    this->libraryFunctions =  make_unique<LibraryFunctions>(&F, &F.getContext());
+    this->libraryFunctions =  std::make_unique<LibraryFunctions>(&F, &F.getContext());
     
     int countBB = 1;
     for(auto& B: F)

@@ -1,9 +1,7 @@
-// TODO(rafa.sa.xp@gmail.com) Add copyight message
 #include "caller.hpp"
 
 // C Libs
 #include <stdlib.h>
-
 #include <llvm/LinkAllPasses.h>
 #include <llvm/Pass.h>
 #include <llvm/IR/PassManager.h>
@@ -56,17 +54,30 @@ static inline void check(std::string E) {
     exit(1);
   }
 }
+/* TODO(rafa.sa.xp@gmail.com) Should put this in Caller class
+ * but including<llvm/IR/Module.h on header gives error */
+std::unique_ptr<llvm::Module> M;  //!< Current module */
 }  // namespace
 
-std::unique_ptr<Module> M;
-// Build up all of the passes that we want to do to the module.
-legacy::PassManager InitialPasses;
-legacy::PassManager AnalysisPasses;
 
 
 Caller::Caller(std::string bcprogram_path) {
   this->cleanGarbage();
   this->pathprogram = bcprogram_path;
+}
+
+std::string Caller::preOptimizationFlags() {
+  std::ostringstream flags;
+  flags.str("");
+  flags << "-O0";
+  return flags.str();
+}
+
+std::string Caller::postOptimizationFlags() {
+  std::ostringstream flags;
+  flags.str("");
+  flags << "-O2";
+  return flags.str();
 }
 
 void Caller::cleanGarbage() {
@@ -96,12 +107,6 @@ void Caller::cleanGarbage() {
   }
 }
 
-void Caller::printdata() {
-  // TODO(rafa.sa.xp@gmail.com) Check fo better debug message
-  // cout << "File Path:" << this->pathprogram << endl;
-  this->parseIrFile();
-}
-
 void Caller::parseIrFile() {
   Map2Check::Log::Debug("Parsing file " + this->pathprogram);
   StringRef filename = this->pathprogram;
@@ -118,6 +123,7 @@ void Caller::parseIrFile() {
 }
 
 int Caller::callPass(Map2CheckMode mode, bool sv_comp) {
+  llvm::legacy::PassManager AnalysisPasses;
   // Pass to generate_automata_true
   Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");
   AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));
@@ -149,6 +155,7 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp) {
   Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
   AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
   AnalysisPasses.run(*M);
+  Map2Check::Log::Debug("Finished instrumentation\n");
 
   return 1;
 }
@@ -156,11 +163,12 @@ int Caller::callPass(Map2CheckMode mode, bool sv_comp) {
 
 int Caller::callPass(Map2CheckMode mode, std::string target_function,
                      bool sv_comp) {
+  llvm::legacy::PassManager AnalysisPasses;
   // Pass to generate_automata_true
   Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");
   AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));
 
-  // TODO(hbocha) Improve time verification
+  // TODO(hbrocha) Improve time verification
   Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");
   AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
 
@@ -176,11 +184,10 @@ int Caller::callPass(Map2CheckMode mode, std::string target_function,
       throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
   }
 
-
   Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
   AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
-
   AnalysisPasses.run(*M);
+  Map2Check::Log::Debug("Finished instrumentation\n");
   return 1;
 }
 
@@ -196,11 +203,11 @@ void Caller::genByteCodeFile() {
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
   // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
-  // TODO(rafa.sa.xp@gmail.com) Should check for error in system command
-  std::ostringstream command;
-  command.str("");
-  command << Map2Check::Tools::llvmLinkBinary;
-  command
+
+  std::ostringstream linkCommand;
+  linkCommand.str("");
+  linkCommand << Map2Check::Tools::llvmLinkBinary;
+  linkCommand
       << " output.bc"
       << " ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc"
       << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
@@ -213,32 +220,39 @@ void Caller::linkLLVM() {
       << " ${MAP2CHECK_PATH}/lib/BinaryOperation.bc "
       << "  > result.bc";
 
-  system(command.str().c_str());
-
+  if (system(linkCommand.str().c_str()) != 0) {
+      throw CallerException("Could not link against map2check files");
+  }
   // TODO(rafa.sa.xp@gmail.com) Check if optimization can generate errors
-  std::ostringstream command3;
-  command3.str("");
-  command3 << Map2Check::Tools::optBinary;
-  command3 << " -O3 result.bc > optimized.bc";
-  system(command3.str().c_str());
+  std::ostringstream optimizeCommand;
+  optimizeCommand.str("");
+  optimizeCommand << Map2Check::Tools::optBinary;
+  optimizeCommand << " " << Caller::postOptimizationFlags()
+           << " result.bc > optimized.bc";
+  if (system(optimizeCommand.str().c_str()) != 0) {
+    throw CallerException("Could not execute optimization command");
+  }
 }
 
 void Caller::callKlee() {
   /* Execute klee */
   // TODO(rafa.sa.xp@gmail.com) Check if file exists
   // TODO(rafa.sa.xp@gmail.com) Check for error in system command
-  std::ostringstream command;
-  command.str("");
-  command << Map2Check::Tools::kleeBinary;
-  command << " -suppress-external-warnings"
+  std::ostringstream kleeCommand;
+  kleeCommand.str("");
+  kleeCommand << Map2Check::Tools::kleeBinary;
+  kleeCommand << " -suppress-external-warnings"
           << " --allow-external-sym-calls"
           << " -exit-on-error-type=Assert"
           << " --optimize optimized.bc"
           << "  > ExecutionOutput.log";
-  system(command.str().c_str());
+  if (system(kleeCommand.str().c_str()) != 0) {
+    Map2Check::Log::Debug("Klee finished with erorr");
+  } else {
+    Map2Check::Log::Debug("Klee finished");
+  }
 }
 
-// Case Clang calls an overflow, throw overflow (or unknown)
 std::vector<int> Caller::processClangOutput() {
   const char* path_name = "clang.out";
 
@@ -262,10 +276,11 @@ std::vector<int> Caller::processClangOutput() {
       result.push_back(lineNumber);
     }
   }
-  system("rm clang.out");
+  if (system("rm clang.out") != 0) {
+    throw CallerException("Failed to remove clang.out");
+  }
   return result;
 }
-
 
 string Caller::compileCFile(std::string cprogram_path) {
   Map2Check::Log::Info("Compiling " + cprogram_path);
@@ -287,13 +302,14 @@ string Caller::compileCFile(std::string cprogram_path) {
           << Map2Check::Tools::clangIncludeFolder
           << " -Wno-everything "
           << " -Winteger-overflow "
-          << " -c -emit-llvm -g -O0 "
+          << " -c -emit-llvm -g"
+          << " " << Caller::preOptimizationFlags()
           << " -o compiled.bc "
           << "preprocessed.c"
           << " > clang.out 2>&1";
 
   int result = system(command.str().c_str());
-  if (result == -1) {
+  if (result != 0) {
     throw ErrorCompilingCProgramException();
   }
   return ("compiled.bc");
@@ -306,7 +322,6 @@ const char* CallerException::what() const throw() {
   Map2Check::Log::Error(cnvt.str());
   return cnvt.str().c_str();
 }
-
 
 const char* InvalidClangBinaryException::what() const throw() {
   std::ostringstream cnvt;

@@ -1,6 +1,6 @@
 include_directories(${LLVM_SOURCE}/include)
 
-set(PASS_FLAGS "-fexceptions -fpic ${LLVM_INCLUDE} ${LLVM_LIBS}")
+set(PASS_FLAGS "-fexceptions -fpic ${LLVM_INCLUDE} ${LLVM_LIBS} -std=c++1z")
 # set( CMAKE_CXX_FLAGS  "${PASS_FLAGS}" )
 
 

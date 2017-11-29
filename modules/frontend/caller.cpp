@@ -41,12 +41,7 @@
 #include "utils/log.hpp"
 #include "utils/tools.hpp"
 
-
 namespace fs = boost::filesystem;
-
-// TODO(rafa.sa.xp@gmail.com) Inline functions
-
-#define DEBUG_PASS
 
 namespace {
 static inline void check(std::string E) {
@@ -102,12 +97,12 @@ void Caller::cleanGarbage() {
 }
 
 void Caller::printdata() {
-  cout << "File Path:" << this->pathprogram << endl;
+  // TODO(rafa.sa.xp@gmail.com) Check fo better debug message
+  // cout << "File Path:" << this->pathprogram << endl;
   this->parseIrFile();
 }
 
-int Caller::parseIrFile() {
-  // Parse the input LLVM IR file into a module.
+void Caller::parseIrFile() {
   Map2Check::Log::Debug("Parsing file " + this->pathprogram);
   StringRef filename = this->pathprogram;
 
@@ -120,8 +115,6 @@ int Caller::parseIrFile() {
   } else {
     std::cout << "Successfully read bitcode/IR" << std::endl;
   }
-
-  return 0;
 }
 
 int Caller::callPass(Map2CheckMode mode, bool sv_comp) {
@@ -192,8 +185,6 @@ int Caller::callPass(Map2CheckMode mode, std::string target_function,
 }
 
 void Caller::genByteCodeFile() {
-  /* Generates an file (named output.bc) that contains the LLVM IR
-     after executing the passes  */
   const char *Filename = "output.bc";
   errs() << "";
   std::error_code EC;
@@ -205,6 +196,7 @@ void Caller::genByteCodeFile() {
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
   // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
+  // TODO(rafa.sa.xp@gmail.com) Should check for error in system command
   std::ostringstream command;
   command.str("");
   command << Map2Check::Tools::llvmLinkBinary;
@@ -233,6 +225,8 @@ void Caller::linkLLVM() {
 
 void Caller::callKlee() {
   /* Execute klee */
+  // TODO(rafa.sa.xp@gmail.com) Check if file exists
+  // TODO(rafa.sa.xp@gmail.com) Check for error in system command
   std::ostringstream command;
   command.str("");
   command << Map2Check::Tools::kleeBinary;
@@ -276,15 +270,6 @@ std::vector<int> Caller::processClangOutput() {
 string Caller::compileCFile(std::string cprogram_path) {
   Map2Check::Log::Info("Compiling " + cprogram_path);
 
-  if (!fs::exists(Map2Check::Tools::clangBinary) ||
-      !fs::is_regular_file(Map2Check::Tools::clangBinary)) {
-    // throw InvalidClangBinaryException();
-  }
-
-  if (!fs::exists(Map2Check::Tools::clangIncludeFolder) ||
-      !fs::is_directory(Map2Check::Tools::clangIncludeFolder)) {
-    // throw InvalidClangIncludeException();
-  }
   std::ostringstream commandRemoveExternMalloc;
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << cprogram_path << " | ";

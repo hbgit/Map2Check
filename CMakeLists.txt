@@ -1,12 +1,6 @@
 project(Map2Check)
 
 cmake_minimum_required(VERSION 3.5)
-message("Started Map2Check CMake")
-
-# static linking
-#SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-#SET(BUILD_SHARED_LIBRARIES OFF)
-#SET(CMAKE_EXE_LINKER_FLAGS "-static")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
@@ -17,30 +11,13 @@ set(LLVM_BUILD ${PROJECT_SOURCE_DIR}/dependencies/llvm-build-cmake)
 
 set(KLEE_INCLUDE ${PROJECT_SOURCE_DIR}/dependencies/klee/include)
 
-#####################################################
-## TODO: Separate next functions to another file   ##
-##       and accept options from cmake input       ##
-#####################################################
-
-#set(Boost_USE_STATIC_LIBS        ON) # only find static libs
-#set(Boost_USE_MULTITHREADED      ON)
-#find_package(Boost REQUIRED COMPONENTS unit_test_framework log log_setup program_options system filesystem thread)
-
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
-#set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost REQUIRED COMPONENTS unit_test_framework log log_setup program_options system filesystem thread)
+
+find_package(Boost QUIET REQUIRED COMPONENTS unit_test_framework log log_setup program_options system filesystem thread)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})  
 endif()
-
-# Handle NCURSES
-#set(CURSES_NEED_NCURSES TRUE)
-#if(CURSES_FOUND)
-#  include_directories(${CURSES_INCLUDE_DIR})  
-#  set(CURSES_LIBRARIES ${CURSES_LIBRARY})
-#endif()
-
 
 find_program(LLVM_CONFIG llvm-config
   HINTS ${LLVM_BUILD}/bin

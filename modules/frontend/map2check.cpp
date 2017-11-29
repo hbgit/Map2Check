@@ -236,7 +236,7 @@ int main(int argc, char** argv)
                 }
 
                 // END CHECKING OPERATION MODE		
-                caller->genByteCodeFile();
+                caller->generateProcessedByteCodeFile();
 
                 if ( vm.count("generate-instrumentated-only")  )
                 {

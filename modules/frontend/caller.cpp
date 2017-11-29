@@ -55,7 +55,7 @@ static inline void check(std::string E) {
   }
 }
 /* TODO(rafa.sa.xp@gmail.com) Should put this in Caller class
- * but including<llvm/IR/Module.h on header gives error */
+ * but including<llvm/IR/Module.h> on header file gives error */
 std::unique_ptr<llvm::Module> M;  //!< Current module */
 }  // namespace
 
@@ -76,7 +76,7 @@ std::string Caller::preOptimizationFlags() {
 std::string Caller::postOptimizationFlags() {
   std::ostringstream flags;
   flags.str("");
-  flags << "-O2";
+  flags << "-O3";
   return flags.str();
 }
 
@@ -191,7 +191,7 @@ int Caller::callPass(Map2CheckMode mode, std::string target_function,
   return 1;
 }
 
-void Caller::genByteCodeFile() {
+void Caller::generateProcessedByteCodeFile() {
   const char *Filename = "output.bc";
   errs() << "";
   std::error_code EC;
@@ -223,7 +223,7 @@ void Caller::linkLLVM() {
   if (system(linkCommand.str().c_str()) != 0) {
       throw CallerException("Could not link against map2check files");
   }
-  // TODO(rafa.sa.xp@gmail.com) Check if optimization can generate errors
+  // TODO(rafa.sa.xp@gmail.com) Check how optimization can generate errors
   std::ostringstream optimizeCommand;
   optimizeCommand.str("");
   optimizeCommand << Map2Check::Tools::optBinary;
@@ -235,9 +235,6 @@ void Caller::linkLLVM() {
 }
 
 void Caller::callKlee() {
-  /* Execute klee */
-  // TODO(rafa.sa.xp@gmail.com) Check if file exists
-  // TODO(rafa.sa.xp@gmail.com) Check for error in system command
   std::ostringstream kleeCommand;
   kleeCommand.str("");
   kleeCommand << Map2Check::Tools::kleeBinary;

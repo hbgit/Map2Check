@@ -45,10 +45,9 @@ class Caller {
   /** Parse the input LLVM IR file into a module */
   void parseIrFile();
 
-  // TODO(rafa.sa.xp@gmail.com) Refacto genByteCodeFile for better name
   /** Wites a file (named output.bc) that contains the LLVM IR
    *  after pass execution  */
-  void genByteCodeFile();
+  void generateProcessedByteCodeFile();
 
   /** @brief Function to call pass for current verification mode
    *  (REACHABLITY should use the overloaded method)
@@ -64,7 +63,6 @@ class Caller {
   int callPass(Map2CheckMode mode, std::string target_function,
                bool sv_comp = false);
 
-  // TODO(rafa.sa.xp@gmail.com) Remove optimizations from this function
   /** Link functions called after executing the passes */
   void linkLLVM();
 

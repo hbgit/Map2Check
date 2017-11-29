@@ -7,9 +7,6 @@
 #include <sstream>
 #include <vector>
 
-#include "utils/log.hpp"
-#include "utils/tools.hpp"
-
 enum class Map2CheckMode {
   MEMTRACK_MODE,
   REACHABILITY_MODE,

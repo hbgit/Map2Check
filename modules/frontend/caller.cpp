@@ -38,6 +38,9 @@
 #include "../backend/pass/Map2CheckLibrary.hpp"
 #include "../backend/pass/TargetPass.h"
 #include "../backend/pass/OverflowPass.h"
+#include "utils/log.hpp"
+#include "utils/tools.hpp"
+
 
 namespace fs = boost::filesystem;
 
@@ -46,7 +49,7 @@ namespace fs = boost::filesystem;
 #define DEBUG_PASS
 
 namespace {
-static void check(std::string E) {
+static inline void check(std::string E) {
   if (!E.empty()) {
     if (llvm::errs().has_colors())
       llvm::errs().changeColor(raw_ostream::RED);
@@ -72,20 +75,32 @@ Caller::Caller(std::string bcprogram_path) {
 }
 
 void Caller::cleanGarbage() {
-  const char* command ="rm -rf klee-* *.log list-* \
-                            *.csv map2check_property \
-                            automata_list_log.st \
-                            track_bb_log.st \
-                            map2check_property_klee_unknown \
-                            map2check_property_klee_deref \
-                            map2check_property_klee_memtrack \
-                            map2check_property_overflow \
-                            map2check_property_klee_free \
-                            preprocessed.c \
-                            optimized.bc output.bc inter.bc \
-                            result.bc witnessInfo";
-  system(command);
+  std::ostringstream removeCommand;
+  removeCommand.str("");
+  removeCommand << "rm -rf"
+              << " klee-*"
+              << " *.log"
+              << " list-*"
+              << " *.csv"
+              << " map2check_property"
+              << " automata_list_log.st"
+              << " track_bb_log.st"
+              << " map2check_property_klee_unknown"
+              << " map2check_property_klee_deref"
+              << " map2check_property_klee_memtrack"
+              << " map2check_property_overflow"
+              << " map2check_property_klee_free"
+              << " preprocessed.c"
+              << " optimized.bc"
+              << " output.bc"
+              << " witnessInfo";
+
+  int result = system(removeCommand.str().c_str());
+  if (result == -1) {
+    throw CallerException("Could not remove files");
+  }
 }
+
 void Caller::printdata() {
   cout << "File Path:" << this->pathprogram << endl;
   this->parseIrFile();
@@ -187,7 +202,6 @@ void Caller::genByteCodeFile() {
   file_descriptor.flush();
 }
 
-// TODO(rafa.sa.xp@gmail.com) Implement using lllvm/clang api
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
   // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
@@ -217,7 +231,6 @@ void Caller::linkLLVM() {
   system(command3.str().c_str());
 }
 
-// TODO(rafa.sa.xp@gmail.com) Implement using klee api
 void Caller::callKlee() {
   /* Execute klee */
   std::ostringstream command;

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+#set -x
 
 RUNDIR=`pwd`
 PREFIX=`pwd`/release
@@ -9,11 +9,7 @@ map2check()
 {
     cd $RUNDIR
     if [ ! -d build ]; then	
-		mkdir build
-    else
-		#rm -rf build
-		#mkdir build
-        echo "build dir OKAY"
+		mkdir build    
     fi
     cd build
    

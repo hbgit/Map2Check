@@ -4,18 +4,18 @@
 #SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 #SET(BUILD_SHARED_LIBRARIES OFF)
 #SET(CMAKE_EXE_LINKER_FLAGS "-static")
-
+set(CXX_LLVM_FLAGS "-fpic ${LLVM_INCLUDE} -fexceptions -std=c++1z")
 add_subdirectory(utils)
 add_subdirectory(witness)
 add_subdirectory(counter_example)
 include_directories(${LLVM_SOURCE}/include)
-set(CALLER_FLAGS "-fexceptions -fpic ${LLVM_INCLUDE} -fexceptions -std=c++1z")
+
 # set(CMAKE_CXX_FLAGS  "${CALLER_FLAGS}" )
 add_library(Caller OBJECT caller.cpp)
-set_target_properties(Caller PROPERTIES COMPILE_FLAGS ${CALLER_FLAGS})
+set_target_properties(Caller PROPERTIES COMPILE_FLAGS ${CXX_LLVM_FLAGS})
 
 add_library(Exceptions OBJECT exceptions.cpp)
-set_target_properties(Exceptions PROPERTIES COMPILE_FLAGS ${CALLER_FLAGS})
+set_target_properties(Exceptions PROPERTIES COMPILE_FLAGS ${CXX_LLVM_FLAGS})
 
 
 # Handle NCURSES

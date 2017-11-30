@@ -240,7 +240,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 
                 //checking for first operator
                 //TODO: search by map2check_non_det_uint
-                bool isUnsigned = false;
+
                 bool isUnsignedNonDet = false;
                 iT =  std::find(this->listUnsignedVars.begin(), 
                         this->listUnsignedVars.end(), 
@@ -259,7 +259,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 
 
                 IRBuilder<> builder((Instruction*)currentInstruction);
-                Value* function_llvm = this->getFunctionNameValue();
+                
                 Twine bitcast("map2check_pointer_cast");
                 DebugInfo debugInfo(&F.getContext(), binOp);
 

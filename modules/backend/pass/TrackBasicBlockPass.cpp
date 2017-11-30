@@ -137,10 +137,8 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 	//DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
 	//errs() << debugInfoLa.getLineNumberInt() << "\n";
 				
-	if(auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst))
-	{		
-		if(tI->getOpcodeName() == "br")
-		{
+	if(auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {		
+          if (std::string(tI->getOpcodeName()) == "br") {
 			if(B.size() > 1){
 				--this->st_lastBlockInst; 
 				DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);            
@@ -202,7 +200,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx)
 			
 			// To avoid empty lines, e.g., only with "}"
 			bool flagEmpty = false;	
-			int countInst = 1;		
+			unsigned countInst = 1;		
 			DebugInfo debugInfoAaEmpty(this->Ctx, (Instruction*)this->st_lastBlockInst);
 			if(this->sourceCodeHelper->getLine(debugInfoAaEmpty.getLineNumberInt()).empty())
 			{				
@@ -257,8 +255,7 @@ bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT)
 			}
 		}		
 
-	}else if(auto* cI2 = dyn_cast<UnreachableInst>((Instruction*)iT))        
-	{
+	} else if(dyn_cast<UnreachableInst>((Instruction*)iT) != NULL) {
 		this->isUnreachableInst = true;
 		return true;
 	}

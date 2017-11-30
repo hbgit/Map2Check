@@ -23,13 +23,13 @@
 using namespace llvm;
 
 enum class NonDetType {INTEGER,
-					   UNSIGNED,
-                       POINTER,
-                       STRING,
-                       LONG,
-                       ASSUME,
-                       USHORT,
-                       CHAR};
+    UNSIGNED,
+    POINTER,
+    //  STRING,
+    LONG,
+    ASSUME,
+    USHORT,
+    CHAR};
 
 struct NonDetPass : public FunctionPass {
   static char ID;

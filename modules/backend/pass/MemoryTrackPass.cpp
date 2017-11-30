@@ -87,7 +87,6 @@ void MemoryTrackPass::instrumentMalloc() {
     if(size == NULL){
 
     }
-    Value* sizeCast = CastInst::CreateIntegerCast(size, Type::getInt32Ty(*this->Ctx), true, bitcast, (Instruction*) j);
     Value* args[] = {callInst, size};
     builder.CreateCall(map2check_malloc, args);
 }
@@ -358,7 +357,7 @@ void MemoryTrackPass::instrumentInit() {
     }
 
 
-    for(int pos = 0; pos < globals.size(); pos++) {
+    for (unsigned pos = 0; pos < globals.size(); pos++) {
         GlobalVariable* variable = globals[pos];
         //errs () << "VAR: " << variable->getName() << "\n";
         const DataLayout dataLayout = currentModule->getDataLayout();
@@ -455,8 +454,9 @@ void MemoryTrackPass::instrumentFunctionAddress() {
     i++;
 
 
-    IRBuilder<> builder((Instruction*)i);
-    for(int iterator = 0; iterator < this->functionsValues.size(); iterator++) {
+    IRBuilder<> builder((Instruction*) i);
+    for (unsigned iterator = 0;
+         iterator < this->functionsValues.size(); iterator++) {
         Value* name_llvm = builder.CreateGlobalStringPtr
             (this->functionsValues[iterator]->getName());
 
@@ -880,8 +880,6 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
 bool MemoryTrackPass::runOnFunction(Function &F) {
     this->Ctx = &F.getContext();
     this->currentFunction = &F;
-    Module* currentModule = this->currentFunction->getParent();
-
     this->prepareMap2CheckInstructions();
     //this->instrumentInit(); //overhead BUG
 
@@ -901,20 +899,20 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
 
             //i->dump();
 
-            if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
+            if (dyn_cast<CallInst>(&*i) != NULL) {
                 //callInst->dump();
                 this->getDebugInfo();              
                 this->runOnCallInstruction();                 
                 //errs() << "runOnCallInstruction() \n";
-            } else if (StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction)) {
+            } else if (dyn_cast<StoreInst>(&*this->currentInstruction) != NULL) {
                 this->getDebugInfo();	      
                 this->runOnStoreInstruction();
                 //errs() << "runOnStoreInstruction() \n";
-            } else if (AllocaInst* allocainst = dyn_cast<AllocaInst>(&*this->currentInstruction)) {
+            } else if (dyn_cast<AllocaInst>(&*this->currentInstruction) != NULL) {
                 this->getDebugInfo();	      
                 this->runOnAllocaInstruction();
                 //errs() << "runOnAllocaInstruction() \n";
-            } else if(LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction)) {
+            } else if (dyn_cast<LoadInst>(&*this->currentInstruction) != NULL) {
                 this->getDebugInfo();	      
                 this->runOnLoadInstruction();
                 //errs() << "runOnLoadInstruction() \n";

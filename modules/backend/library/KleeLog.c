@@ -28,7 +28,7 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     
     if(((int)call->type) == UNSIGNED)
     {
-		fprintf(output,"%u;", (call->value)); //TODO for unsigned
+      fprintf(output,"%u;", (unsigned)(call->value)); //TODO for unsigned
 	}else{
 		fprintf(output,"%d;", ((int)call->value)); //TODO for unsigned
 	}

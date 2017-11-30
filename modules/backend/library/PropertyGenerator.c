@@ -24,7 +24,7 @@ void write_property_memtrack() {
   fclose(output);
 }
 
-void write_property_deref(int line, char *func) {
+void write_property_deref(int line, const char *func) {
   FILE* output = fopen(violated_property_file_deref, "w");
   fprintf(output, "FALSE-DEREF\n");
   fprintf(output, "Line: %d\n", line);

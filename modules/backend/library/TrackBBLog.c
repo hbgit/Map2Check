@@ -20,7 +20,7 @@ Bool is_in_tracked(unsigned line, MAP2CHECK_CONTAINER* log)
 	int i = log->size - 1;
 	for(; i >= 0; i--) 
 	{
-		TRACK_BB_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
+		TRACK_BB_ROW* row = (TRACK_BB_ROW*) get_element_at(i, *log);
 		unsigned lineN = row->line;
 		if(lineN == line)
 		{

@@ -22,8 +22,8 @@ enum PRIMITIVE_TYPE {
 enum MemoryAddressStatus {
   STATIC = 0,
   FREE = 1,
-  DYNAMIC = 2,
-  INVALID = 3
+  DYNAMIC = 2
+  //  INVALID = 3
 };
 
 enum NONDET_TYPE {

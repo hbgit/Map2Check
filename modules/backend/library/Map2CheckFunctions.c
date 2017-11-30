@@ -5,6 +5,10 @@
 
 int Map2CheckCurrentStep;
 
+extern void __assert_fail(const char * assertion, const char * file, unsigned int line, const char * function);
+
+
+
 MAP2CHECK_CONTAINER list_log;
 MAP2CHECK_CONTAINER klee_log;
 MAP2CHECK_CONTAINER allocation_log;
@@ -232,7 +236,8 @@ unsigned int map2check_non_det_uint() {
   klee_make_symbolic(&non_det,
 		     sizeof(non_det),
 		     "nondet-uint");
-  klee_assume(non_det >= 0U);
+  // TODO(rafa.sa.xp@gmail.com) Check if assume is necessary
+  // klee_assume(non_det >= 0U);
 
   if((non_det % 2) == 0) {
     non_det = (non_det/2) * 2;

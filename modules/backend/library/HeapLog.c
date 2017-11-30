@@ -1,5 +1,6 @@
 #include "HeapLog.h"
 #include <stdio.h>
+
 const char* heap_log_file = "heap_log.csv";
 Bool mark_heap_log(MAP2CHECK_CONTAINER* heap_log, MEMORY_HEAP_ROW row) {
   if(heap_log->type != HEAP_LOG_CONTAINER) {
@@ -45,7 +46,7 @@ void heap_log_to_file(MAP2CHECK_CONTAINER* list) {
   int i = 0;
   for(;i< list->size; i++) {
     MEMORY_HEAP_ROW* row = (MEMORY_HEAP_ROW*) get_element_at(i, *list);
-    fprintf(output, "%p;", (long)row->value);
+    fprintf(output, "%p;", (void*)((long)row->value));
     fprintf(output, "%s;", row->function_name);
     fprintf(output, "%d\n", row->size);
   }

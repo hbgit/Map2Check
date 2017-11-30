@@ -4,6 +4,8 @@
 #include "PropertyGenerator.h"
 #include <stdio.h>
 
+// TODO(rafa.sa.xp@gmail.com) Check if overflow of unsigned exists at all
+
 int absInteger (int a) {
     if (a < 0) {
         return (-a);
@@ -69,14 +71,16 @@ void map2check_binop_sub(int param1, int param2,
 void map2check_binop_add_uint(unsigned param1, unsigned param2,
 			 unsigned line, unsigned scope,
 			 char* function_name) {
-  
+
+  /*
   //unknown_not_supported();  
   if( !((param1 + param2) <= UINT_MAX && (param1 + param2) >= 0) ) {		
 	overflowError(line, function_name);
   }  
   else {
       return;
-  }
+  };
+  */
 }
 
 void map2check_binop_sub_uint(unsigned param1, unsigned param2,
@@ -85,11 +89,12 @@ void map2check_binop_sub_uint(unsigned param1, unsigned param2,
 	//unknown_not_supported();
 	
 	// Same principle of first IF
-	if( !((param1 - param2) >= 0) ) {		
+  /*if( !((param1 - param2) >= 0) ) {		
 		overflowError(line, function_name);           
 	}else {
 		return;
 	}
+  */
 }
 
 
@@ -153,7 +158,7 @@ void map2check_binop_mul(int param1, int param2,
 void map2check_binop_mul_uint(unsigned param1, unsigned param2,
                           unsigned line, unsigned scope,
                           char* function_name) {
-    
+  /*
     //unknown_not_supported();
     
     // If one of params is 0, the result will be 0
@@ -170,7 +175,7 @@ void map2check_binop_mul_uint(unsigned param1, unsigned param2,
 	}else{
 		return;
 	}
-
+  */
 }
 
 

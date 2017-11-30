@@ -1,5 +1,7 @@
 #include "AllocationLog.h"
 #include <stdio.h>
+#include <stdlib.h>
+
 Bool mark_allocation_log(MAP2CHECK_CONTAINER* allocation_log, long address) {
   if(allocation_log->type != ALLOCATION_LOG_CONTAINER) {
     return FALSE;

@@ -1,30 +1,31 @@
 set(CMAKE_C_COMPILER ${CLANG})
 set(CMAKE_C_FLAGS -I${KLEE_INCLUDE} -c -emit-llvm)
 
-message("Building memory utils")
-# execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/MemoryUtils.c)
+list(APPEND MAP2CHECK_C_LIB "")
+list(APPEND MAP2CHECK_C_LIB "AllocationLog")
+list(APPEND MAP2CHECK_C_LIB "Container")
+list(APPEND MAP2CHECK_C_LIB "KleeLog")
+list(APPEND MAP2CHECK_C_LIB "ListLog")
+list(APPEND MAP2CHECK_C_LIB "HeapLog")
+list(APPEND MAP2CHECK_C_LIB "PropertyGenerator")
+list(APPEND MAP2CHECK_C_LIB "Map2CheckFunctions")
+list(APPEND MAP2CHECK_C_LIB "BinaryOperation")
+list(APPEND MAP2CHECK_C_LIB "TrackBBLog")
 
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/AllocationLog.c)
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/Container.c)
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/KleeLog.c)
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/ListLog.c)
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/HeapLog.c)
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/PropertyGenerator.c)
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/Map2CheckFunctions.c)
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/BinaryOperation.c)
-execute_process(COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/TrackBBLog.c)
+foreach(F ${MAP2CHECK_C_LIB})
+  add_custom_command(
+    OUTPUT "${F}.bc"
+    COMMAND ${CLANG} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/${F}.c
+    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/${F}.c
+    ${CMAKE_CURRENT_LIST_DIR}/${F}.h
+    ${CMAKE_CURRENT_LIST_DIR}/Map2CheckTypes.h
+    ${CMAKE_CURRENT_LIST_DIR}/Map2CheckGlobals.h
+    ${CMAKE_CURRENT_LIST_DIR}/Container.h    
+    COMMENT "Compiling ${F} to bytecode")
 
+  add_custom_target(${F} ALL DEPENDS ${F}.bc)  
 
-# execute_process(COMMAND ${LLVM_LINK} ${PROJECT_BINARY_DIR}/AllocationLog.bc  ${PROJECT_BINARY_DIR}/Map2CheckFunctions.bc >  ${PROJECT_BINARY_DIR}/Result.bc )
-# ${PROJECT_BINARY_DIR}/Container.bc  ${PROJECT_BINARY_DIR}/KleeLog.bc ${PROJECT_BINARY_DIR}/ListLog.bc ${PROJECT_BINARY_DIR}/PropertyGenerator.bc
+  install(FILES ${PROJECT_BINARY_DIR}/modules/backend/library/${F}.bc
+    DESTINATION lib)  
 
-# install(FILES ${PROJECT_BINARY_DIR}/MemoryUtils.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/AllocationLog.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/Container.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/KleeLog.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/ListLog.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/HeapLog.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/PropertyGenerator.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/Map2CheckFunctions.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/BinaryOperation.bc DESTINATION lib)
-install(FILES ${PROJECT_BINARY_DIR}/TrackBBLog.bc DESTINATION lib)
+endforeach()

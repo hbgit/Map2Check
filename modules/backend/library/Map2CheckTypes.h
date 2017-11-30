@@ -9,6 +9,8 @@
 #define FALSE 0
 #define TRUE 1
 
+// TODO(rafa.sa.xp@gmail.com) Should use static array length for function names
+
 enum PRIMITIVE_TYPE {
   PRIMITIVE_INTEGER = 0,
   PRIMITIVE_CHAR    = 1,
@@ -111,6 +113,7 @@ struct obj3 {
   unsigned step_on_execution;
   /** Current scope number (llvm ir uses numbered scopes) */
   unsigned scope;
+  // TODO(rafa.sa.xp@gmail.com) Should update to work with a union
   /** Pointer where the generated value is stored */
   long value;
   /** Name of the function where operation took place */
@@ -161,6 +164,14 @@ struct obj6 {
   /** Name of the function where operation took place */
   const char* function_name;
 } TRACK_BB_ROW;
+
+typedef union CONTAINER_ROW {
+  LIST_LOG_ROW listLog;
+  MEMORY_ALLOCATIONS_ROW allocationLog;
+  MEMORY_HEAP_ROW heapLog;
+  TRACK_BB_ROW trackBBLog;
+  KLEE_CALL kleeLog;
+} CONTAINER_ROW;
 
 
 #endif

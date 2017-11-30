@@ -11,6 +11,7 @@ list(APPEND MAP2CHECK_C_LIB "PropertyGenerator")
 list(APPEND MAP2CHECK_C_LIB "Map2CheckFunctions")
 list(APPEND MAP2CHECK_C_LIB "BinaryOperation")
 list(APPEND MAP2CHECK_C_LIB "TrackBBLog")
+list(APPEND MAP2CHECK_C_LIB "BTree")
 
 foreach(F ${MAP2CHECK_C_LIB})
   add_custom_command(
@@ -20,7 +21,8 @@ foreach(F ${MAP2CHECK_C_LIB})
     ${CMAKE_CURRENT_LIST_DIR}/${F}.h
     ${CMAKE_CURRENT_LIST_DIR}/Map2CheckTypes.h
     ${CMAKE_CURRENT_LIST_DIR}/Map2CheckGlobals.h
-    ${CMAKE_CURRENT_LIST_DIR}/Container.h    
+    ${CMAKE_CURRENT_LIST_DIR}/Container.h
+    ${CMAKE_CURRENT_LIST_DIR}/BTree.h    
     COMMENT "Compiling ${F} to bytecode")
 
   add_custom_target(${F} ALL DEPENDS ${F}.bc)  
@@ -29,3 +31,4 @@ foreach(F ${MAP2CHECK_C_LIB})
     DESTINATION lib)  
 
 endforeach()
+add_subdirectory(test)

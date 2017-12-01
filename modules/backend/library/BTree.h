@@ -4,6 +4,8 @@
 #include "Map2CheckTypes.h"
 #include "Container.h"
 
+typedef long long int lll_int;
+
 /* This file describes an API for a BTree
  *
  * The implementation is based on the book
@@ -18,7 +20,7 @@
  * then we could estimate disk page to 16KiB and order 100 */
 
 #define B_TREE_ROW_SIZE 64U
-#define B_TREE_MAP2CHECK_ORDER 100U
+#define B_TREE_MAP2CHECK_ORDER 2U
 
 /* Since Some programs can use 4GiB of RAM in seconds, we should
  * unload some pages before that occurs */
@@ -43,16 +45,16 @@ typedef struct B_TREE_PAGE {
   /** Number of keys curently stored in node */
   unsigned n;
   /* An array of size 2t - 1 containing values*/
-  B_TREE_ROW rows[B_TREE_MAP2CHECK_ORDER*2 - 1];
+  B_TREE_ROW* rows[B_TREE_MAP2CHECK_ORDER*2 - 1];
   /** Current index on FILE, this is redudant information, but
    *  make implementation easier */
-  long int stream_pos;  
+  lll_int stream_pos;  
   /** Returns true if node is a leaf */
   Bool isLeaf;
   /** An arrray of size 2t containing pointers to children */    
   struct B_TREE_PAGE* children[B_TREE_MAP2CHECK_ORDER*2];
   /** An arrray of size 2t containing pointers to children in FILE*/    
-  long int references[B_TREE_MAP2CHECK_ORDER*2];
+  lll_int references[B_TREE_MAP2CHECK_ORDER*2];
 } B_TREE_PAGE;
 
 /** Struct that manipulates the B-TREE */
@@ -97,5 +99,12 @@ Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page);
 Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* parent,
                         int index, B_TREE_PAGE* child);
 
+B_TREE_PAGE* B_TREE_PAGE_CREATE(B_TREE* btree);
+void B_TREE_FREE(B_TREE* btree);
 
+// TODO(rafa.sa.xp@gmail.com) After Implementation and test, remove this
+void DumpTree(B_TREE* btree);
+void DumpTreePage( B_TREE_PAGE* page);
+void DumpTreePageChildren( B_TREE_PAGE* page);
+void DumpTreeHelper(unsigned index, B_TREE_PAGE* page);
 #endif

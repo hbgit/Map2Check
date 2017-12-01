@@ -9,6 +9,8 @@
 #define FALSE 0
 #define TRUE 1
 
+#define FUNCTION_MAX_LENGTH_NAME 35
+
 // TODO(rafa.sa.xp@gmail.com) Should use static array length for function names
 
 enum PRIMITIVE_TYPE {
@@ -77,7 +79,7 @@ struct obj {
   /** Number where operation took place (on the C source) */
   unsigned line_number;
   /** Name of the function where operation took place */
-  const char* function_name;
+  char function_name[FUNCTION_MAX_LENGTH_NAME];
   /**Current step on execution (represent order on which operation occurred) */
   unsigned step_on_execution;
 } LIST_LOG_ROW;
@@ -117,7 +119,7 @@ struct obj3 {
   /** Pointer where the generated value is stored */
   long value;
   /** Name of the function where operation took place */
-  const char* function_name;
+  char function_name[FUNCTION_MAX_LENGTH_NAME];
 } KLEE_CALL;
 
 typedef 
@@ -150,7 +152,7 @@ struct obj5 {
   /** Size of primitives */
   int size_of_primitive;
   /** Name of the function where operation took place */
-  const char* function_name;
+  char function_name[FUNCTION_MAX_LENGTH_NAME];
 } MEMORY_HEAP_ROW;
 
 
@@ -162,7 +164,7 @@ struct obj6 {
   /** Line where operation occurred */
   unsigned line;  
   /** Name of the function where operation took place */
-  const char* function_name;
+  char function_name[FUNCTION_MAX_LENGTH_NAME];
 } TRACK_BB_ROW;
 
 typedef union CONTAINER_ROW {

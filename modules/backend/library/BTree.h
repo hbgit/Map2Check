@@ -2,9 +2,9 @@
 #define BTREE_H_
 
 #include "Map2CheckTypes.h"
+#include <stdio.h>
 #include "Container.h"
 
-typedef long long int lll_int;
 
 /* This file describes an API for a BTree
  *
@@ -24,7 +24,7 @@ typedef long long int lll_int;
 
 /* Since Some programs can use 4GiB of RAM in seconds, we should
  * unload some pages before that occurs */
-#define B_TREE_MAX_OPEN_PAGES 256U
+#define B_TREE_MAX_OPEN_PAGES 100U
 
 /* We should have some kind of limit for infinite pograms or some programs will
  * end up using all secondary space, ~20GiB should be enought for now, considering
@@ -45,16 +45,17 @@ typedef struct B_TREE_PAGE {
   /** Number of keys curently stored in node */
   unsigned n;
   /* An array of size 2t - 1 containing values*/
-  B_TREE_ROW* rows[B_TREE_MAP2CHECK_ORDER*2 - 1];
+  B_TREE_ROW rows[B_TREE_MAP2CHECK_ORDER*2 - 1];
   /** Current index on FILE, this is redudant information, but
    *  make implementation easier */
-  lll_int stream_pos;  
+  fpos_t stream_pos;
+  Bool have_stream_pos;
   /** Returns true if node is a leaf */
   Bool isLeaf;
   /** An arrray of size 2t containing pointers to children */    
   struct B_TREE_PAGE* children[B_TREE_MAP2CHECK_ORDER*2];
   /** An arrray of size 2t containing pointers to children in FILE*/    
-  lll_int references[B_TREE_MAP2CHECK_ORDER*2];
+  fpos_t references[B_TREE_MAP2CHECK_ORDER*2];
 } B_TREE_PAGE;
 
 /** Struct that manipulates the B-TREE */
@@ -79,7 +80,7 @@ typedef struct B_TREE {
  *  @param btree Pointer to B_TREE
  *  @param stream_pos Position on the FILE where page is
  *  @return Pointer to B_TREE_PAGE or NULL */
-B_TREE_PAGE* DISK_READ(B_TREE* btree, long int stream_pos);
+Bool DISK_READ(B_TREE* btree, fpos_t stream_pos, B_TREE_PAGE* result);
 
 /** Write page to disk, if new page adds stream_pos, if not, then updates
  *  @param btree Pointer to B_TREE

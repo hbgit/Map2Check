@@ -1,6 +1,7 @@
 #include "ListLog.h"
 
 #include <stdio.h>
+#include <string.h>
 const char* list_log_file = "list_log.csv";
 
 long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
@@ -90,7 +91,7 @@ LIST_LOG_ROW new_list_row  (long memory_address, long memory_address_points_to,
   row.memory_address_points_to = memory_address_points_to;
   row.scope = scope;
   row.var_name = name;
-  row.function_name = function_name;
+  strncpy(row.function_name, function_name, FUNCTION_MAX_LENGTH_NAME);
   row.step_on_execution = step;
   return row;
 }

@@ -3,34 +3,121 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// TODO(rafa.sa.xp@gmail.com) Add SEMAPHORE for file manipulation
+const char* FILENAME = "data.map2check.bin";
 
-B_TREE_PAGE* DISK_READ(B_TREE* btree, long int stream_pos) {
-  return NULL;
+static void  B_TREE_FREE_PAGE_HELPER(B_TREE_PAGE* page) {
+  
+  if(page == NULL) {
+    return;
+  }
+  int i;
+
+  if(!page->isLeaf) {
+    for (i = 0; i <= page->n; i++) {
+      B_TREE_FREE_PAGE_HELPER(page->children[i]);
+    }
+  }
+
+  free(page);  
 }
 
-Bool DISK_WRITE(B_TREE* btree, B_TREE_PAGE* object) {
+void B_TREE_FREE(B_TREE* btree) {  
+  B_TREE_FREE_PAGE_HELPER(btree->root);
+}
+
+void CHECK_AND_RELEASE_PAGES(B_TREE* btree) {
+  if(btree->currentLoadedPages > B_TREE_MAX_OPEN_PAGES) {
+    int i;
+    for (i = 0; i < B_TREE_MAP2CHECK_ORDER*2; i++) {      
+      if(btree->root->children[i] != NULL) {
+        //        B_TREE_FREE_PAGE_HELPER(btree->root->children[i]);
+        //btree->root->children[i] = NULL;
+      }
+    }
+    
+    btree->currentLoadedPages = 0;
+  }
+  
+}
+
+Bool DISK_READ(B_TREE* btree, fpos_t stream_pos, B_TREE_PAGE* result) {
+  return FALSE;
+}
+/*
+Bool DISK_READ(B_TREE* btree, fpos_t stream_pos, B_TREE_PAGE* result) {
+  btree->currentLoadedPages += 1;
+  FILE *fptr;
+  fptr = fopen(FILENAME,"rb");
+
+  if(fsetpos(fptr, &stream_pos)) {
+    // Something wrong happened
+    fclose(fptr);
+    return FALSE;
+  }
+  
+  fread(result,  sizeof(B_TREE_PAGE), 1, fptr);
+  int i;
+  for (i = 0; i < B_TREE_MAP2CHECK_ORDER*2; i++) {
+      result->children[i] = NULL;
+  }
+  return TRUE;
+}
+*/
+Bool DISK_WRITE(B_TREE* btree, B_TREE_PAGE* object) {  
   return TRUE;
 }
 
+/*
+Bool DISK_WRITE(B_TREE* btree, B_TREE_PAGE* object) {
+  FILE *fptr;
+  
+  if(!object->have_stream_pos) {
+    fptr = fopen(FILENAME,"ab");
+    
+    if(fgetpos(fptr, &object->stream_pos)) {
+      // Something wrong happened
+      fclose(fptr);
+      return FALSE;
+    }
+    
+    object->have_stream_pos = TRUE;
+    
+  } else {
+    fptr = fopen(FILENAME,"r+b");
+  }
+
+  if(fsetpos(fptr, &object->stream_pos)) {
+    // Something wrong happened
+    fclose(fptr);
+    return FALSE;
+  }
+  
+  fwrite(object,  sizeof(B_TREE_PAGE), 1, fptr);  
+  fclose(fptr);
+  return TRUE;
+}
+*/
 static B_TREE_ROW* B_TREE_SEARCH_HELPER(B_TREE* btree,
                                         B_TREE_PAGE* page, unsigned key) {
   int i = 0;
-  while((i < page->n) && (key > page->rows[i]->index)) {
+  while((i < page->n) && (key > page->rows[i].index)) {
     i++;
   }
-  if ((i < page->n) && (key == page->rows[i]->index)) {
-    return page->rows[i];
+  if ((i < page->n) && (key == page->rows[i].index)) {    
+    return &page->rows[i];
   }
 
   if(page->isLeaf) {
+    
     return NULL;
   } else {
     if(page->children[i] == NULL) {
-      page->children[i] = DISK_READ(btree, page->references[i]);
-      if(page->children[i] == NULL) {
+      B_TREE_PAGE* new_page = malloc(sizeof(B_TREE_PAGE));
+      if(!DISK_READ(btree, page->references[i], new_page)) {
         return NULL;
       }
+      
+      page->children[i] = new_page;      
     }
   }
 
@@ -38,7 +125,9 @@ static B_TREE_ROW* B_TREE_SEARCH_HELPER(B_TREE* btree,
 }
 
 B_TREE_ROW* B_TREE_SEARCH(B_TREE* btree, unsigned key) {
-  return B_TREE_SEARCH_HELPER(btree, btree->root, key);
+  CHECK_AND_RELEASE_PAGES(btree);
+  B_TREE_ROW* result = B_TREE_SEARCH_HELPER(btree, btree->root, key);
+  return result;
 }
 
 B_TREE B_TREE_CREATE(enum Container_Type type) {
@@ -73,45 +162,53 @@ Bool B_TREE_INSERT(B_TREE* btree, B_TREE_ROW* row) {
       return FALSE;
     }
   }
+  CHECK_AND_RELEASE_PAGES(btree);
   return TRUE;
 }
 
 Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page) {
-  if((row == NULL) || (page == NULL)) {    
+  if(row == NULL) {
+    return FALSE;
+  }
+  if(page == NULL) {
     return FALSE;
   }
   int i = ((int)page->n) - 1;
   unsigned k = row->index;
   if(page->isLeaf) {
-    while((i >= 0) && ( k < page->rows[i]->index)) {
+    while((i >= 0) && ( k < page->rows[i].index)) {
       page->rows[i+1] = page->rows[i];
       i--;
     }
-    page->rows[i+1] = row;
+    page->rows[i+1] = *row;
     page->n = page->n + 1;
     return DISK_WRITE(btree, page);
     
   } else {
-    while((i >= 0) && ( k < page->rows[i]->index)) {
+    while((i >= 0) && ( k < page->rows[i].index)) {      
       i--;
     }
 
     i += 1;
+
+    
     if(page->children[i] == NULL) {
-      page->children[i] = DISK_READ(btree, page->references[i]);
-      if(page->children[i] == NULL) {
-         printf("WTFF");
+      B_TREE_PAGE* new_page = malloc(sizeof(B_TREE_PAGE));
+      if(!DISK_READ(btree, page->references[i], new_page)) {
         return FALSE;
       }
+      page->children[i] = new_page;      
     }
 
     if(page->children[i]->n == (2*B_TREE_MAP2CHECK_ORDER - 1)) {
+      
       if(!B_TREE_SPLIT_CHILD(btree, page, i, page->children[i])) {
         return FALSE;
       }
-      if(k > page->rows[i]->index) {
+      if(k > page->rows[i].index) {
         i += 1;        
-      }      
+      }
+      
     }
     return B_TREE_INSERT_NONFULL(btree, row, page->children[i]);
   }
@@ -126,7 +223,8 @@ Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page) {
 
 
 Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* X,
-                        int index, B_TREE_PAGE* Y) {
+                        int index, B_TREE_PAGE* Y) {  
+ 
   B_TREE_PAGE* Z = B_TREE_PAGE_CREATE(btree);
   if(Z == NULL) {
     return FALSE;
@@ -153,12 +251,13 @@ Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* X,
       X->references[j+1] = X->references[j];
       X->children[j+1] = X->children[j];
   }
-  
+
   X->references[index+1] = Z->stream_pos;
   X->children[index+1] = Z;
 
+  
  
-  for(j = X->n + 1; j > index; j--) {
+  for(j = X->n; j > index; j--) {
     X->rows[j+1] = X->rows[j];
   }
 
@@ -174,57 +273,37 @@ Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* X,
      !DISK_WRITE(btree, X)) {
     return FALSE;
   }
-
   return TRUE;
 }
 
 B_TREE_PAGE* B_TREE_PAGE_CREATE(B_TREE* btree) {
+  btree->currentLoadedPages += 1;
   B_TREE_PAGE* btp = malloc(sizeof(B_TREE_PAGE));
   if(btp == NULL) {
     return NULL;
   }
   btp->n = 0;
-  btp->stream_pos = 0;
+  
+  btp->have_stream_pos = FALSE;
   btp->isLeaf = TRUE;
 
   int i = 0;
-  for(;i < B_TREE_MAP2CHECK_ORDER*2 - 1; i++) {
-    btp->rows[i] = NULL;
+  for(;i < B_TREE_MAP2CHECK_ORDER*2 + 1; i++) {
+    //btp->rows[i] = NULL;
     btp->children[i] = NULL;
-    btp->references[i] = -1;
+    //btp->references[i] = -1;
   }
-  btp->references[i] = -1;
+  //btp->references[i] = -1;
+  /*
   if(!DISK_WRITE(btree, btp)) {
     return NULL;
   }
+  */
   return btp;
 }
 
-static void  B_TREE_FREE_ROW_HELPER(B_TREE_ROW* page) {
 
-}
 
-static void  B_TREE_FREE_PAGE_HELPER(B_TREE_PAGE* page) {
-  if(page == NULL) {
-    return;
-  }
-  int i;
-  for (i = 0; i < page->n; i++) {
-    B_TREE_FREE_ROW_HELPER(page->rows[i]);                           
-  }
-
-  if(!page->isLeaf) {
-    for (i = 0; i <= page->n; i++) {
-      B_TREE_FREE_PAGE_HELPER(page->children[i]);
-    }
-  }
-
-  free(page);  
-}
-
-void B_TREE_FREE(B_TREE* btree) {  
-  B_TREE_FREE_PAGE_HELPER(btree->root);
-}
 
 
 // TODO(rafa.sa.xp@gmail.com) After Implementation and test, remove this
@@ -237,15 +316,16 @@ void DumpTreePage( B_TREE_PAGE* page) {
   printf("VALUES[ ");
   int i = 0;
   for (i = 0; i < page->n; ++i) {
-    printf("%u ", page->rows[i]->index);
+    printf("%u ", page->rows[i].index);
   }
   printf("]\n");    
 }
 
 void DumpTreePageChildren( B_TREE_PAGE* page) {
+  printf("Address %p\n", page);
   printf("Children[ ");
   int i = 0;
-  for (i = 0; i <= page->n; ++i) {
+  for (i = 0; i <= B_TREE_MAP2CHECK_ORDER*2; ++i) {
     printf("%p ", page->children[i]);
   }
   printf("]\n\n");
@@ -256,11 +336,10 @@ void DumpTreeHelper(unsigned index, B_TREE_PAGE* page) {
   if(page == NULL) {
     return;
   }
-  
   printf("Current index: %u\tVALUES[ ",index);
   int i = 0;
   for (i = 0; i < page->n; ++i) {
-    printf("%u ", page->rows[i]->index);
+    printf("%u ", page->rows[i].index);
   }
   printf("]\n");
   if(!page->isLeaf) {

@@ -213,6 +213,7 @@ void Caller::linkLLVM() {
       << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
       << " ${MAP2CHECK_PATH}/lib/HeapLog.bc"
       << " ${MAP2CHECK_PATH}/lib/TrackBBLog.bc"
+      << " ${MAP2CHECK_PATH}/lib/BTree.bc"
       << " ${MAP2CHECK_PATH}/lib/Container.bc"
       << " ${MAP2CHECK_PATH}/lib/KleeLog.bc"
       << " ${MAP2CHECK_PATH}/lib/ListLog.bc"

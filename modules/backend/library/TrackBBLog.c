@@ -1,13 +1,13 @@
 #include "TrackBBLog.h"
 #include <stdio.h>
+#include <string.h>
 
 const char* trackbb_log_file = "track_bb_log.st";
 
 TRACK_BB_ROW trackbb_new_row(unsigned line, const char* function_name) {
   
   TRACK_BB_ROW row;
-  
-  row.function_name = function_name;
+  strncpy(row.function_name, function_name, FUNCTION_MAX_LENGTH_NAME);
   row.line = line;
   
   return row;

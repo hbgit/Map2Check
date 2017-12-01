@@ -1,12 +1,12 @@
 #include "KleeLog.h"
 
 #include <stdio.h>
+#include <string.h>
 
 const char* klee_log_file = "klee_log.csv";
 
 Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
-  if(klee_container.type != KLEE_LOG_CONTAINER) {
-    //printf("ERROR on klee_log_to_file called function with wrong container type\n");
+  if(klee_container.type != KLEE_LOG_CONTAINER) {    
     return FALSE;
   }
   
@@ -17,7 +17,6 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
   for(;i< size; i++) {
     KLEE_CALL* call = (KLEE_CALL*) get_element_at(i, klee_container); 
     if(call == NULL) {
-      //printf("ERROR on klee_log_to_file get_element\n");
       return FALSE;
     }
     fprintf(output,"%d;", i);
@@ -35,14 +34,6 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     
     //printf("%u \n;", call->value);
     fprintf(output,"%d\n", ((int)call->type));
-    /* switch (call->type) { */
-    /*   case INTEGER: */
-    /*     fprintf(output,"%d\n", ((int)call->value)); */
-    /*     break; */
-    /*   case CHAR: */
-    /*     fprintf(output,"%d\n", ((int)call->value)); */
-    /*     break; */
-    /* } */
   }
   fclose(output);
   return TRUE;
@@ -51,7 +42,7 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
 KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope, long value, const char* function_name, unsigned step) {
   KLEE_CALL result;
   result.type = type;
-  result.function_name = function_name;
+  strncpy(result.function_name, function_name, FUNCTION_MAX_LENGTH_NAME);
   result.line = line;
   result.value = value;
   result.scope = scope;

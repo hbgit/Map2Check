@@ -18,22 +18,20 @@
 
 // TESTING INSERTION AND SEARCHING
 void TEST_1_1() {
-  B_TREE_ROW row1;
-  B_TREE_ROW row2;
-  B_TREE_ROW row3;
-
+  B_TREE_ROW row[10];
   B_TREE bt = B_TREE_CREATE(HEAP_LOG_CONTAINER);
-  assert(B_TREE_INSERT(&bt, &row1), __LINE__);
-  assert(B_TREE_INSERT(&bt, &row2), __LINE__);
-  assert(B_TREE_INSERT(&bt, &row3), __LINE__);
-  /*
-  assert(B_TREE_SEARCH(&bt, 0) != NULL);
-  assert(B_TREE_SEARCH(&bt, 1) != NULL);
-  assert(B_TREE_SEARCH(&bt, 2) != NULL);
-
-  assert(B_TREE_SEARCH(&bt, 10) == NULL);
-  */
+  int i = 0;
+  for(;i<10;i++) {
+    row[i].index = i;
+    B_TREE_INSERT(&bt, &row[i]);
+  }
+  DumpTree(&bt);
+  B_TREE_FREE(&bt);
 }
+
+// THIRD PART
+
+// DEALLOCATION OF TREE
 
 
 // MAIN FUNCTION

@@ -7,14 +7,47 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
   MAP2CHECK_CONTAINER container;
   container.size = 0;
   B_TREE* btree = malloc(sizeof(B_TREE));
-  *btree = B_TREE_CREATE(type);
+  switch(container.type) {
+  case LIST_LOG_CONTAINER:
+    *btree = B_TREE_CREATE("listlog.map2check.bin");
+    break;
+  case ALLOCATION_LOG_CONTAINER:
+        *btree = B_TREE_CREATE("allocationlog.map2check.bin");
+    break; 
+  case KLEE_LOG_CONTAINER:
+    *btree = B_TREE_CREATE("kleelog.map2check.bin");
+    break;
+  case HEAP_LOG_CONTAINER:
+    *btree = B_TREE_CREATE("heaplog.map2check.bin");
+    break;
+  case TRACKBB_LOG_CONTAINER:
+    *btree = B_TREE_CREATE("trackbblog.map2check.bin");
+    break;
+  }
+    
   container.values = btree;
   container.type = type;
   return container;
 }
 
 Bool free_container(MAP2CHECK_CONTAINER* container) {
- 
+  switch(container->type) {
+  case LIST_LOG_CONTAINER:
+    system("rm -rf listlog.map2check.bin");
+    break;
+  case ALLOCATION_LOG_CONTAINER:
+    system("rm -rf allocationlog.map2check.bin");
+    break; 
+  case KLEE_LOG_CONTAINER:
+    system("rm -rf kleelog.map2check.bin");
+    break;
+  case HEAP_LOG_CONTAINER:
+    system("rm -rf heaplog.map2check.bin");
+    break;
+  case TRACKBB_LOG_CONTAINER:
+    system("rm -rf trackbblog.map2check.bin");
+    break;
+  }
   B_TREE_FREE((B_TREE*) container->values);
   free(container->values);
   return TRUE;

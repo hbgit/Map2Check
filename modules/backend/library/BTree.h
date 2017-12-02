@@ -5,31 +5,12 @@
 #include <stdio.h>
 #include "Container.h"
 
-
 /* This file describes an API for a BTree
  *
  * The implementation is based on the book
  * T. H. Cormen, C. E. Leiserson, R. L. Rivest, C. Stein. Introduction to
  * Algorithms. The MIT Press. 2002, Chapter 18, but since Map2Check containers
  * don't need remotion, it will not be implemented. */
-
-// TODO(rafa.sa.xp@gmail.com) Play a little bit to find the best size for tree properties
-
-/* Each ROW uses about 64 bytes (assuming 32bit architecture),
- * since Cormen tells that usually disk page is 2^11 to 2^14 bytes,
- * then we could estimate disk page to 16KiB and order 100 */
-
-#define B_TREE_ROW_SIZE 64U
-#define B_TREE_MAP2CHECK_ORDER 2U
-
-/* Since Some programs can use 4GiB of RAM in seconds, we should
- * unload some pages before that occurs */
-#define B_TREE_MAX_OPEN_PAGES 100U
-
-/* We should have some kind of limit for infinite pograms or some programs will
- * end up using all secondary space, ~20GiB should be enought for now, considering
- * PAGE_SIZE ~ 136 bytes, then 20GB can hold 157903209 pages, so max height should be 3 */
-#define B_TREE_MAX_HEIGHT 3U
 
 /** Struct that holds values on B_TREE */
 typedef struct B_TREE_ROW {
@@ -39,9 +20,23 @@ typedef struct B_TREE_ROW {
   CONTAINER_ROW value;  
 } B_TREE_ROW;
 
+/* Each ROW uses 96 bytes (in ubuntu docker),
+ * since Cormen tells that usually disk page is 2^11 to 2^14 bytes,
+ * then we could estimate disk page to 4KiB
+ * in the docker container, order 17 occupies 4016*/
+#define B_TREE_MAP2CHECK_ORDER 17
+
+/* Since Some programs can use tons of RAM in seconds, we should
+ * unload some pages before that occurs, so making max size of loaded
+ * tree be 2GiB */
+#define B_TREE_MAX_OPEN_PAGES 534731U
+
+/* We should have some kind of limit for infinite pograms or some programs will
+ * end up using all secondary space, ~4 GiB should be enought for now */
+#define MAX_TREE_SIZE = 4U;
+    
 /** Struct that holds pages of B_TREE */
 typedef struct B_TREE_PAGE {
-  // TODO(rafa.sa.xp@gmail.com) should remove stream_pos since root note already have
   /** Number of keys curently stored in node */
   unsigned n;
   /* An array of size 2t - 1 containing values*/
@@ -64,8 +59,8 @@ typedef struct B_TREE {
   B_TREE_PAGE* root;
   /** Current loaded pages */
   unsigned currentLoadedPages;
-  /** Annotation to get Container Type */  
-  enum Container_Type type;
+  /** FILENAME of btree */  
+  char filename[FUNCTION_MAX_LENGTH_NAME];
 } B_TREE;
 
 /* DISK_READ and DISK_WRITE will be somewhat different
@@ -80,7 +75,7 @@ typedef struct B_TREE {
  *  @param btree Pointer to B_TREE
  *  @param stream_pos Position on the FILE where page is
  *  @return Pointer to B_TREE_PAGE or NULL */
-Bool DISK_READ(B_TREE* btree, fpos_t stream_pos, B_TREE_PAGE* result);
+Bool DISK_READ(B_TREE* btree, fpos_t* stream_pos, B_TREE_PAGE* result);
 
 /** Write page to disk, if new page adds stream_pos, if not, then updates
  *  @param btree Pointer to B_TREE
@@ -94,7 +89,7 @@ Bool DISK_WRITE(B_TREE* btree, B_TREE_PAGE* object);
  *  @return Pointer to ROW or NULL */
 B_TREE_ROW* B_TREE_SEARCH(B_TREE* btree, unsigned key);
 
-B_TREE B_TREE_CREATE(enum Container_Type type);
+B_TREE B_TREE_CREATE(const char* filename);
 Bool B_TREE_INSERT(B_TREE* btree, B_TREE_ROW* row);
 Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page);
 Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* parent,
@@ -107,5 +102,5 @@ void B_TREE_FREE(B_TREE* btree);
 void DumpTree(B_TREE* btree);
 void DumpTreePage( B_TREE_PAGE* page);
 void DumpTreePageChildren( B_TREE_PAGE* page);
-void DumpTreeHelper(unsigned index, B_TREE_PAGE* page);
+void DumpTreeHelper(B_TREE* btree, unsigned index, B_TREE_PAGE* page);
 #endif

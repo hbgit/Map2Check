@@ -19,11 +19,11 @@
 
 // TESTING INSERTION AND SEARCHING
 void TEST_1_1() {
-  system("rm -rf data.map2check.bin");
+  system("rm -rf asd");
   printf("TEST 1_1\n");
   int n = 20;
   B_TREE_ROW row[n];
-  B_TREE bt = B_TREE_CREATE(HEAP_LOG_CONTAINER);
+  B_TREE bt = B_TREE_CREATE("asd");
   int i = 0;
   for(;i<n;i++) {
     row[i].index = i;
@@ -35,33 +35,30 @@ void TEST_1_1() {
 
 // SECOND PART
 void TEST_2_1() {
-  system("rm -rf data.map2check.bin");
+  system("rm -rf asd.bin");
   printf("TEST 2_1\n");
-  int n = 4;
+  int n = 50;
   B_TREE_ROW row[n];
-  B_TREE bt = B_TREE_CREATE(HEAP_LOG_CONTAINER);
+  B_TREE bt = B_TREE_CREATE("asd");
   int i = 0;
   for(;i<n;i++) {
     row[i].index = i + 1;
     B_TREE_INSERT(&bt, &row[i]);
   }
-  DumpTree(&bt);
 
-  B_TREE_PAGE temp;
-  DISK_READ(&bt, bt.root->stream_pos,&temp);
-  DISK_READ(&bt, bt.root->children[0]->stream_pos, &temp);
-  DISK_READ(&bt, bt.root->children[1]->stream_pos, &temp);
+  
+  DumpTree(&bt);
   
   B_TREE_FREE(&bt);
 }
 
 // An abnomous number of page should release and work normally
 void TEST_2_2() {
-  system("rm -rf data.map2check.bin");
+  system("rm -rf asd");
   printf("TEST 2_2\n");
   int n = 10000;
   B_TREE_ROW row[n];
-  B_TREE bt = B_TREE_CREATE(HEAP_LOG_CONTAINER);
+  B_TREE bt = B_TREE_CREATE("asd");
   int i = 0;
   for(;i<n;i++) {
     row[i].index = i + 1;
@@ -79,8 +76,12 @@ void TEST_2_2() {
       printf("GOT: %d\t EXPECTED: %d\n", result->index, i);      
     } else {
       printf("OK\n");
-    }
+    }    
   }
+
+  printf("Size of structure: %lu\n", sizeof(B_TREE_PAGE));
+  printf("Size of structure: %lu\n", sizeof(B_TREE_ROW));
+  printf("Size of structure: %lu\n", sizeof(int));
   
   B_TREE_FREE(&bt);
 }

@@ -31,4 +31,4 @@ foreach(F ${MAP2CHECK_C_LIB})
     DESTINATION lib)  
 
 endforeach()
-add_subdirectory(test)
+#add_subdirectory(test)

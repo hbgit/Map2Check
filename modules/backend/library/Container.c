@@ -33,7 +33,8 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
 Bool free_container(MAP2CHECK_CONTAINER* container) {
   switch(container->type) {
   case LIST_LOG_CONTAINER:
-    system("rm -rf listlog.map2check.bin");
+    // TODO (rafa.sa.xp@gmail.com) for some reason this causes a segmentation fault
+    //system("rm -rf listlog.map2check.bin");
     break;
   case ALLOCATION_LOG_CONTAINER:
     system("rm -rf allocationlog.map2check.bin");

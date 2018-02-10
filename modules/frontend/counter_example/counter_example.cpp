@@ -23,6 +23,23 @@ void CounterExample::printCounterExample(bool printListLog) {
     Log::Info(*this->counterExampleRows[i]);
   }
 }
+
+std::string CounterExample::getHTML() {
+  std::ostringstream output;
+  output.str("");
+  output << this->counterExampleRows[counterExampleRows.size() - 1]->htmlOut();
+  
+  int currentState = 0;
+  for(int i =0; i < this->counterExampleRows.size() - 1; i++) {
+    this->counterExampleRows[i]->setState(currentState);
+    currentState = this->counterExampleRows[i]->getState() + 1;
+    output << this->counterExampleRows[i]->htmlOut();
+  }
+
+  return output.str();
+}
+
+
 void CounterExample::processProperty() {
   
     Tools::CheckViolatedProperty violated;

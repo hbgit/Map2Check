@@ -1,7 +1,7 @@
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-using namespace boost;
+//using namespace boost;
 namespace po = boost::program_options;
 
 #include <iostream>
@@ -125,6 +125,7 @@ int main(int argc, char** argv)
             ("generate-instrumentated-only", "\tgenerate instrumentated file and stops")
             ("debug-info,d", "\tprints debug info")
             ("assume-malloc-true,m", "\tassumes that all mallocs will not fail")
+            ("html-output", "\tgenerates html file with results")
 
             ;
 
@@ -156,7 +157,11 @@ int main(int argc, char** argv)
                 return SUCCESS;
             }
 
-
+            bool is_html_output = false;
+            if ( vm.count("html-output")  )
+            {
+              is_html_output = true;
+            }
 
             if ( !vm.count("debug-info")  ) {
                 Map2Check::Log::initLog();
@@ -254,16 +259,49 @@ int main(int argc, char** argv)
                 tools::PropertyViolated propertyViolated = counterExample->getProperty();
                 if(propertyViolated == tools::PropertyViolated::NONE){ // This means that result was TRUE	   
                     Map2Check::Log::Info(" \n");
-                    Map2Check::Log::Info("VERIFICATION SUCCEDED \n");        
+                    Map2Check::Log::Info("VERIFICATION SUCCEDED \n");
+
+                    if(is_html_output) {
+                      std::ostringstream command;
+                      command.str("");
+                      command << "echo '<pre>";
+                      command << "<strong>VERIFICATION SUCCEDED</strong>";
+                      command << " </pre>' > out.html";
+                      if( system(command.str().c_str()) ) {
+                        Map2Check::Log::Error("Failed to Generate HTML \n");
+                      }
+                    }
 
                 }else if(propertyViolated == tools::PropertyViolated::UNKNOWN)
                 {
                     Map2Check::Log::Info("Unable to prove or falsify the program. \n");
-                    Map2Check::Log::Info("VERIFICATION UNKNOWN \n"); 
+                    Map2Check::Log::Info("VERIFICATION UNKNOWN \n");
+
+                    if(is_html_output) {
+                      std::ostringstream command;
+                      command.str("");
+                      command << "echo '<pre>";
+                      command << "<strong>Unable to prove or falsify the program.</strong>";
+                      command << " </pre>' > out.html";
+                      if( system(command.str().c_str()) ) {
+                        Map2Check::Log::Error("Failed to Generate HTML \n");
+                      }
+                    }
                 }else{
 
                     Map2Check::Log::Info("Started counter example generation");	    
-                    counterExample->printCounterExample();            
+                    counterExample->printCounterExample();
+
+                     if(is_html_output) {
+                      std::ostringstream command;
+                      command.str("");
+                      command << "echo '<pre> ";
+                      command << counterExample->getHTML();
+                      command << " </pre>' > out.html";
+                      if( system(command.str().c_str()) ) {
+                        Map2Check::Log::Error("Failed to Generate HTML \n");
+                      }
+                    }
                 }
 
 

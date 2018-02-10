@@ -1,90 +1,122 @@
 #include "Container.h"
-#include "BTree.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
 MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
   MAP2CHECK_CONTAINER container;
   container.size = 0;
-  B_TREE* btree = malloc(sizeof(B_TREE));
-  switch(container.type) {
-  case LIST_LOG_CONTAINER:
-    *btree = B_TREE_CREATE("listlog.map2check.bin");
-    break;
-  case ALLOCATION_LOG_CONTAINER:
-        *btree = B_TREE_CREATE("allocationlog.map2check.bin");
-    break; 
-  case KLEE_LOG_CONTAINER:
-    *btree = B_TREE_CREATE("kleelog.map2check.bin");
-    break;
-  case HEAP_LOG_CONTAINER:
-    *btree = B_TREE_CREATE("heaplog.map2check.bin");
-    break;
-  case TRACKBB_LOG_CONTAINER:
-    *btree = B_TREE_CREATE("trackbblog.map2check.bin");
-    break;
-  }
-    
-  container.values = btree;
+  container.values = NULL;
   container.type = type;
   return container;
 }
 
 Bool free_container(MAP2CHECK_CONTAINER* container) {
-  switch(container->type) {
+  switch (container->type) {
   case LIST_LOG_CONTAINER:
-    // TODO (rafa.sa.xp@gmail.com) for some reason this causes a segmentation fault
-    //system("rm -rf listlog.map2check.bin");
+    free((LIST_LOG_ROW*)container->values);
     break;
   case ALLOCATION_LOG_CONTAINER:
-    system("rm -rf allocationlog.map2check.bin");
-    break; 
+    free((MEMORY_ALLOCATIONS_ROW*)container->values);
+    break;
   case KLEE_LOG_CONTAINER:
-    system("rm -rf kleelog.map2check.bin");
+    free((KLEE_CALL*)container->values);
     break;
   case HEAP_LOG_CONTAINER:
-    system("rm -rf heaplog.map2check.bin");
+    free((MEMORY_HEAP_ROW*)container->values);
     break;
   case TRACKBB_LOG_CONTAINER:
-    system("rm -rf trackbblog.map2check.bin");
+    free((TRACK_BB_ROW*)container->values);
     break;
   }
-  B_TREE_FREE((B_TREE*) container->values);
-  free(container->values);
+
   return TRUE;
 }
 
 Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
-  B_TREE_ROW btrow;
-  btrow.index = container->size;
-  container->size += 1;    
+  container->size += 1;
+    
+  int new_allocation_size; 
 
   switch(container->type) {
   case LIST_LOG_CONTAINER:
-    btrow.value.listLog = *((LIST_LOG_ROW*) row);
+    new_allocation_size = container->size * sizeof(LIST_LOG_ROW);
     break;
   case ALLOCATION_LOG_CONTAINER:
-    btrow.value.allocationLog = *((MEMORY_ALLOCATIONS_ROW*) row);
-    break; 
+    new_allocation_size = container->size * sizeof(MEMORY_ALLOCATIONS_ROW);
+    break;   
   case KLEE_LOG_CONTAINER:
-    btrow.value.kleeLog = *((KLEE_CALL*) row);
-    break;
+    new_allocation_size = container->size * sizeof(KLEE_CALL);
+    break;        
   case HEAP_LOG_CONTAINER:
-    btrow.value.heapLog = *((MEMORY_HEAP_ROW*) row);
+    new_allocation_size = container->size * sizeof(MEMORY_HEAP_ROW);
     break;
   case TRACKBB_LOG_CONTAINER:
-    btrow.value.trackBBLog = *((TRACK_BB_ROW*) row);
+    new_allocation_size = container->size * sizeof(TRACK_BB_ROW);
     break;
   }
-  B_TREE_INSERT(container->values, &btrow);
+  // printf("new allocation size: %d\n", new_allocation_size);
+  void* temp_list = realloc(container->values, new_allocation_size);
+    
+  LIST_LOG_ROW* list;
+  MEMORY_ALLOCATIONS_ROW* allocationLog;
+  MEMORY_HEAP_ROW* heapLog;
+  TRACK_BB_ROW* trackBBLog;
+  KLEE_CALL* kleeLog;
+  switch(container->type) {
+  case LIST_LOG_CONTAINER:
+    list = (LIST_LOG_ROW*) temp_list;
+    list[container->size - 1] = *((LIST_LOG_ROW*) row);                        
+    break;
+  case ALLOCATION_LOG_CONTAINER:
+    allocationLog = (MEMORY_ALLOCATIONS_ROW*) temp_list;            
+    allocationLog[container->size - 1] = *((MEMORY_ALLOCATIONS_ROW*) row);            
+    break; 
+  case KLEE_LOG_CONTAINER:
+    kleeLog = (KLEE_CALL*) temp_list;
+    kleeLog[container->size - 1] = *((KLEE_CALL*) row);
+    break;
+  case HEAP_LOG_CONTAINER:
+    heapLog = (MEMORY_HEAP_ROW*) temp_list;
+    heapLog[container->size - 1] = *((MEMORY_HEAP_ROW*) row);
+    break;
+  case TRACKBB_LOG_CONTAINER:
+    trackBBLog = (TRACK_BB_ROW*) temp_list;
+    trackBBLog[container->size - 1] = *((TRACK_BB_ROW*) row);
+    break;
+
+  }
+
+  container->values = temp_list;
   return TRUE;
 }
 
 void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {    
   if(index >= container.size ) {    
     return NULL;
-  } 
-
-  B_TREE_ROW* row = B_TREE_SEARCH(container.values, index);  
-  return &row->value;
+  }
+    
+  LIST_LOG_ROW* listLogRows; 
+  MEMORY_ALLOCATIONS_ROW* allocationLog;
+  KLEE_CALL* kleeLog;
+  MEMORY_HEAP_ROW* heapLog;
+  TRACK_BB_ROW* trackBBLog;
+  switch(container.type) {
+  case LIST_LOG_CONTAINER:            
+    listLogRows = (LIST_LOG_ROW*) container.values;
+    return (&listLogRows[index]);
+  case ALLOCATION_LOG_CONTAINER:            
+    allocationLog = (MEMORY_ALLOCATIONS_ROW*) container.values;
+    return (&allocationLog[index]);    
+  case KLEE_LOG_CONTAINER:            
+    kleeLog = (KLEE_CALL*) container.values;
+    return (&kleeLog[index]);        
+  case HEAP_LOG_CONTAINER:
+    heapLog = (MEMORY_HEAP_ROW*) container.values;
+    return (&heapLog[index]);
+  case TRACKBB_LOG_CONTAINER:
+    trackBBLog = (TRACK_BB_ROW*) container.values;
+    return (&trackBBLog[index]);
+  }
+  return NULL;
 }

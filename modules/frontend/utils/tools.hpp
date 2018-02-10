@@ -150,6 +150,43 @@ namespace Map2Check::Tools {
       return cnvt.str();
     }
 
+    std::string htmlOut() {
+      std::ostringstream cnvt;
+      cnvt.str("");
+      cnvt << "  Call Function  : <strong>";
+      switch(type) {
+	case KleeLogType::INTEGER:
+	  cnvt << "__VERIFIER_nondet_int()";
+	  break;
+	case KleeLogType::CHAR:
+	  cnvt << "__VERIFIER_nondet_char()";
+	  break;
+	case KleeLogType::POINTER:
+	  cnvt << "__VERIFIER_nondet_pointer()";
+	  break;
+	case KleeLogType::USHORT:
+	  cnvt << "__VERIFIER_nondet_ushort()";
+	  break;
+	case KleeLogType::LONG:
+	  cnvt << "__VERIFIER_nondet_long()";
+	  break;
+	case KleeLogType::UNSIGNED:
+	  cnvt << "__VERIFIER_nondet_uint()";
+	  break;
+      }
+      cnvt << "</strong>\n";
+      cnvt << "  Value          : <strong>"
+           << this->value << "</strong>\n";
+
+      cnvt << "  Line Number    : <strong>"
+           << this->line << "</strong>\n";
+
+      cnvt << "  Function Scope : <strong>"
+           << this->functionName << "</strong>\n";
+      
+      return cnvt.str();
+    }    
+
     operator std::string() const {
         std::ostringstream cnvt;
         cnvt.str("");        
@@ -233,6 +270,19 @@ namespace Map2Check::Tools {
         cnvt << "  Line Number    : " << this->lineNumber << "\n";
         cnvt << "  Function Scope : " << this->functionName << "\n";
         return cnvt.str();
+    }
+
+    std::string htmlOut() {
+      std::ostringstream cnvt;
+      cnvt.str("");        
+      cnvt << "  Address        : <strong>" << this->memoryAddress << "</strong>\n";
+      cnvt << "  PointsTo       : <strong>" << this->pointsTo << "</strong>\n";
+      cnvt << "  Is Free        : <strong>" << (this->isFree == "1" ? "TRUE" : "FALSE") << "</strong>\n";
+      cnvt << "  Is Dynamic     : <strong>" << (this->isDynamic == "1" ? "TRUE" : "FALSE") << "</strong>\n";
+      cnvt << "  Var Name       : <strong>" << this->varName << "</strong>\n";
+      cnvt << "  Line Number    : <strong>" << this->lineNumber << "</strong>\n";
+      cnvt << "  Function Scope : <strong>" << this->functionName << "</strong>\n";
+      return cnvt.str();
     }
   };
 

@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../../../lib/libclangIndex.a  CMakeFiles/clangIndex.dir/CommentToXML.cpp.o CMakeFiles/clangIndex.dir/USRGeneration.cpp.o
-/usr/bin/ranlib ../../../../lib/libclangIndex.a

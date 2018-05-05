@@ -5,21 +5,22 @@
 RUNDIR=`pwd`
 PREFIX=`pwd`/release
 
-map2check() 
+map2check_get_deps() 
 {
     cd $RUNDIR
-    if [ ! -d build ]; then	
-		mkdir build    
+    if [ ! -d dependencies ]; then	
+		mkdir dependencies    
     fi
-    cd build
+    cd dependencies
    
-    cmake .. -DCMAKE_INSTALL_PREFIX=../release/ -DCMAKE_BUILD_TYPE=Release
-    make all
-    make test
-    make install
-    # make release  
-    cd - 
-    cp_utils_file
+	# Check if LLVM is already downloaded
+	# TODO: Check for distro before downloading
+	if [ ! -d clang ]; then	
+		echo "Clang not found, downloading it"		
+		curl http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz | tar -xJ
+		mv clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04 clang
+    fi
+    cd -
 }
 
 cp_utils_file() 
@@ -83,20 +84,4 @@ cp_utils_file()
 	
 }
 
-gtest() 
-{
-	tgest=$(locate -c libgtest)
-	if [ ! ${tgest} -gt 0  ]; then
-		sudo cd /usr/src/gtest
-		sudo cmake CMakeLists.txt
-		sudo make
-
-		# copy or symlink libgtest.a and libgtest_main.a to your /usr/lib folder
-		sudo cp *.a /usr/lib
-	
-		cd -
-	fi
-}
-
-#gtest
-map2check
+map2check_get_deps

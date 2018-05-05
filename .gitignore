@@ -1,10 +1,5 @@
 *~
-dependencies/klee/.git*
-dependencies/klee-build/.git*
-dependencies/llvm-3.8.1/.git*
-dependencies/llvm-build-cmake/.git*
-dependencies/minisat/.git*
-dependencies/stp/.git*
+.vscode
 release/bcs_files
 build
 samples/*.bc

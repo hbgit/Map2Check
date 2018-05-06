@@ -1,5 +1,5 @@
 *~
-.vscode
+dependencies/
 release/bcs_files
 build
 samples/*.bc

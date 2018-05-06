@@ -10,14 +10,6 @@ namespace Map2Check::Exceptions {
       virtual const char* what() const throw();
   };
 
-  class InvalidKleeFolderException : public Map2CheckException {
-    public:
-      InvalidKleeFolderException(string path) : Map2CheckException("Could not open: " + path), path(path) {}
-      // virtual const char* what() const throw();
-    private:
-      string path;
-  };
-
   
 
   class ErrorOpeningFileException : public Map2CheckException {

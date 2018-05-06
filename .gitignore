@@ -1,4 +1,7 @@
 *~
+*/CMakeFiles/
+*/Makefile
+*/cmake_install.cmake
 dependencies/
 release/bcs_files
 build

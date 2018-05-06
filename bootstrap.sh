@@ -14,6 +14,9 @@ get_llvm()
   fi
 }
 
+# Fix for when user has LLVM in the system
+PATH="../clang/bin:$PATH"
+
 # Check if AFL is already downloaded and build it using clang
 get_afl()
 {	
@@ -22,7 +25,7 @@ get_afl()
 		curl http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz | tar -xz
 		echo "Building AFL"
 		cd afl-2.52b
-		CC=../clang/bin/clang CXX=../clang/bin/clang++ make
+		CC=clang-6.0 CXX=clang-6.0 make
 		cd ..
   fi
 }

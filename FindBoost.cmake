@@ -42,6 +42,11 @@
 #
 #  BOOST_USE_STATIC_LIBS : boolean (default: OFF)
 
+# 2018 Rafael Sá Menezes: 
+# 	* Change to use static libs and multithreaded by default
+#   * Added error messages specific to Map2Check
+
+
 if(NOT Boost_FIND_COMPONENTS)
 	message(FATAL_ERROR "No COMPONENTS specified for Boost")
 endif()
@@ -147,6 +152,10 @@ macro(DO_FIND_BOOST_DOWNLOAD)
 		)
 	mark_as_advanced(BOOST_LIBRARIES BOOST_INCLUDE_DIRS)
 endmacro()
+
+if(NOT BOOST_FOUND)
+	message("Boost not found! It will be downloaded/compiled during make")
+endif()
 
 if(NOT BOOST_FOUND)
 	DO_FIND_BOOST_ROOT()

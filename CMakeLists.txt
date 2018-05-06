@@ -10,7 +10,7 @@ find_program(LLVM_CONFIG llvm-config HINTS ${LLVM_BIN}/bin DOC "llvm-config is u
 
 # Check if CLANG is present and configure LLVM
 if(NOT CLANG_CC)
-    message(FATAL_ERROR "CLANG not found! (Did you execute de boostrap script?)")
+    message(FATAL_ERROR "CLANG not found! (Did you execute de bootstrap script?)")
 endif()
 
 # Set CLANG as the default C/CXX compiler
@@ -19,11 +19,13 @@ set(CMAKE_CXX_COMPILER ${CLANG_CXX})
 
 # Configure boost (Should fix this)
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
+set(BOOST_USE_STATIC_LIBS true)
+set(Boost_USE_MULTITHREADED ON)
 find_package(Boost REQUIRED COMPONENTS program_options system)
 include_directories(${Boost_INCLUDE_DIRS})
 
 ###########################################################################
 
 add_subdirectory(modules)
-#enable_testing()
-#add_subdirectory(test)
+enable_testing()
+add_subdirectory(test)

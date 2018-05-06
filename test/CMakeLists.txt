@@ -1,5 +1,4 @@
-add_executable (HELLO hello.cpp )
 
-target_link_libraries(HELLO ${Boost_LIBRARIES})
-
-add_test(NAME MyTest COMMAND HELLO)
+# AFL
+add_executable (__AFL_TEST afl_test.cpp )
+add_test(NAME AFL_TEST COMMAND __AFL_TEST)

@@ -23,6 +23,7 @@ set(BOOST_USE_STATIC_LIBS true)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost REQUIRED COMPONENTS program_options system)
 include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR})
 
 ###########################################################################
 

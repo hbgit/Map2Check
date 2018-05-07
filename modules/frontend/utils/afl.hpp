@@ -10,6 +10,7 @@ class AFL_COMPILE {
  private:
   /** Current afl_clang command (with path) */
   std::string afl_clang;
+  bool compileTo32Bits;
  public:
   /** Default constructor */
   AFL_COMPILE() {}
@@ -18,6 +19,7 @@ class AFL_COMPILE {
    * @return Returns a string with afl-clang command
   */
   std::string getCommand();
+  void setCompileTo32Bits(bool isOn) {this->compileTo32Bits = isOn; }
   /**
    * Set path for current afl-clang binary folder
    * @param  String with path
@@ -30,11 +32,11 @@ class AFL_EXEC {
   /** Current afl_fuzz command (with path) */
   std::string afl_fuzz;
   /** Timeout for AFL execution */
-  u_int32_t timeout;
+  u_int32_t timeout = 0;
   /** Stop on crash */
-  bool benchUntilCrash;
+  bool benchUntilCrash = false;
   /** Skip AFL verification */
-  bool skipCpuFreq;
+  bool skipCpuFreq = false;
 
  public:
   AFL_EXEC() {}
@@ -68,6 +70,7 @@ class AFL {
 class AFL_MAP2CHECK : public AFL {
  public:
   AFL_MAP2CHECK() : AFL("custom_path/") {
+    this->compiler->setCompileTo32Bits(true);
     this->executor->setBenchUntilCrash(true);
     this->executor->setSkipCpuFreq(true);
     this->executor->setTimeout(180);

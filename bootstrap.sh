@@ -25,7 +25,7 @@ get_afl()
 		curl http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz | tar -xz
 		echo "Building AFL"
 		cd afl-2.52b
-		CC=clang-6.0 CXX=clang-6.0 make
+		CC=clang CXX=clang++ make
 		cd ..
   fi
 }

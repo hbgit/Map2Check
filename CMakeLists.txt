@@ -4,6 +4,11 @@ cmake_minimum_required(VERSION 3.5)
 
 # FIND LLVM 6.0
 set(LLVM_BIN ${PROJECT_SOURCE_DIR}/dependencies/clang)
+set(LLVM_SOURCE ${PROJECT_SOURCE_DIR}/dependencies/clang)
+# list(APPEND CMAKE_MODULE_PATH "${LLVM_SOURCE}/lib/cmake/llvm")
+# list(APPEND  CMAKE_PREFIX_PATH "${LLVM_SOURCE}/lib/cmake/llvm")
+# find_package(LLVM REQUIRED CONFIG)
+
 find_program(CLANG_CC clang HINTS ${LLVM_BIN}/bin)
 find_program(CLANG_CXX clang++ HINTS ${LLVM_BIN}/bin)
 find_program(LLVM_CONFIG llvm-config HINTS ${LLVM_BIN}/bin DOC "llvm-config is used to generate flags to link with llvm.")
@@ -11,6 +16,10 @@ find_program(LLVM_CONFIG llvm-config HINTS ${LLVM_BIN}/bin DOC "llvm-config is u
 # Check if CLANG is present and configure LLVM
 if(NOT CLANG_CC)
     message(FATAL_ERROR "CLANG not found! (Did you execute de bootstrap script?)")
+endif()
+
+if(NOT LLVM_CONFIG)
+    message(FATAL_ERROR "LLVM-CONFIG not found! (Did you execute de bootstrap script?)")
 endif()
 
 # Set CLANG as the default C/CXX compiler

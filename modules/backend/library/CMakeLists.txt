@@ -1,5 +1,5 @@
 set(CMAKE_C_COMPILER ${CLANG})
-set(CMAKE_C_FLAGS -I${KLEE_INCLUDE} -c -emit-llvm)
+set(CMAKE_C_FLAGS -c -emit-llvm)
 
 list(APPEND MAP2CHECK_C_LIB "")
 list(APPEND MAP2CHECK_C_LIB "AllocationLog")

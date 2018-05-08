@@ -18,41 +18,43 @@
 #include <memory>
 
 #include "DebugInfo.hpp"
-#include "KleeFunctions.hpp"
+#include "NonDetFunctions.hpp"
 
 using namespace llvm;
 
-enum class NonDetType {INTEGER,
-    UNSIGNED,
-    POINTER,
-    //  STRING,
-    LONG,
-    ASSUME,
-    USHORT,
-    CHAR};
+enum class NonDetType {
+  INTEGER,
+  UNSIGNED,
+  POINTER,
+  //  STRING,
+  LONG,
+  ASSUME,
+  USHORT,
+  CHAR
+};
 
 struct NonDetPass : public FunctionPass {
   static char ID;
- NonDetPass() : FunctionPass(ID) { }
- virtual bool runOnFunction(Function &F);
-protected:
+  NonDetPass() : FunctionPass(ID) { }
+  virtual bool runOnFunction(Function &F);
+ protected:
   void instrumentInstruction();
   /**
    * @brief Checks if current function is a non det call and instruments it
    */
   void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
   Value* getFunctionNameValue() { return this->functionName; }
-  
-private:
-  void instrumentKlee(NonDetType type, Function *caleeFunction);
-  void instrumentKleeInt(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentKleeUnsigned(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentKleeChar(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentKleePointer(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentKleeLong(CallInst* callInst,LLVMContext* Ctx);
-  void instrumentKleeUshort(CallInst* callInst, LLVMContext* Ctx);
 
-  std::unique_ptr<KleeFunctions> kleeFunctions;
+ private:
+  void instrumentNonDet(NonDetType type, Function *caleeFunction);
+  void instrumentNonDetInt(CallInst* callInst, LLVMContext* Ctx);
+  void instrumentNonDetUnsigned(CallInst* callInst, LLVMContext* Ctx);
+  void instrumentNonDetChar(CallInst* callInst, LLVMContext* Ctx);
+  void instrumentNonDetPointer(CallInst* callInst, LLVMContext* Ctx);
+  void instrumentNonDetLong(CallInst* callInst, LLVMContext* Ctx);
+  void instrumentNonDetUshort(CallInst* callInst, LLVMContext* Ctx);
+
+  std::unique_ptr<NonDetFunctions> nonDetFunctions;
   Value* functionName = NULL;
   BasicBlock::iterator currentInstruction;
 };
@@ -61,7 +63,8 @@ private:
 
 class NonDetPassException : public std::runtime_error {
  public:
- NonDetPassException(std::string message) : std::runtime_error(message) {}
+  explicit NonDetPassException(std::string message)
+  : std::runtime_error(message) {}
   virtual const char* what() const throw();
 };
 

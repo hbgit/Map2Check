@@ -1,5 +1,4 @@
 #include "Map2CheckFunctions.h"
-#include <klee/klee.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -46,7 +45,7 @@ void map2check_track_bb(unsigned line, const char* function_name) {
   
 }
 
-void map2check_klee_int(unsigned line, unsigned scope, int value, const char* function_name) {  
+void map2check_nondet_int(unsigned line, unsigned scope, int value, const char* function_name) {  
   /* int* result = (int*) malloc(sizeof(int)); */
   /* *result = value; */
   KLEE_CALL kleeCall = new_klee_call(INTEGER, line, scope, value, function_name, Map2CheckCurrentStep);
@@ -59,7 +58,7 @@ void map2check_klee_int(unsigned line, unsigned scope, int value, const char* fu
   /* klee_log_to_file(klee_log); */
 }
 
-void map2check_klee_unsigned(unsigned line, unsigned scope, unsigned value, const char* function_name) {    
+void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value, const char* function_name) {    
   KLEE_CALL kleeCall = new_klee_call(UNSIGNED, line, scope, value, function_name, Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
@@ -71,7 +70,7 @@ void map2check_klee_unsigned(unsigned line, unsigned scope, unsigned value, cons
 }
 
 
-void map2check_klee_char(unsigned line, unsigned scope, int value, const char* function_name) {
+void map2check_nondet_char(unsigned line, unsigned scope, int value, const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
   KLEE_CALL kleeCall = new_klee_call(CHAR, line, scope, value,function_name, Map2CheckCurrentStep);
@@ -84,7 +83,7 @@ void map2check_klee_char(unsigned line, unsigned scope, int value, const char* f
   /* klee_log_to_file(klee_log); */
 }
 
-void map2check_klee_pointer(unsigned line, unsigned scope, int value, const char* function_name) {
+void map2check_nondet_pointer(unsigned line, unsigned scope, int value, const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
   KLEE_CALL kleeCall = new_klee_call(POINTER, line, scope, value,function_name, Map2CheckCurrentStep);
@@ -97,7 +96,7 @@ void map2check_klee_pointer(unsigned line, unsigned scope, int value, const char
   /* klee_log_to_file(klee_log); */
 }
 
-void map2check_klee_ushort(unsigned line, unsigned scope, int value, const char* function_name) {
+void map2check_nondet_ushort(unsigned line, unsigned scope, int value, const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
   KLEE_CALL kleeCall = new_klee_call(USHORT, line, scope, value,function_name, Map2CheckCurrentStep);
@@ -110,7 +109,7 @@ void map2check_klee_ushort(unsigned line, unsigned scope, int value, const char*
   /* klee_log_to_file(klee_log); */
 }
 
-void map2check_klee_long(unsigned line, unsigned scope, int value, const char* function_name) {
+void map2check_nondet_long(unsigned line, unsigned scope, int value, const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
   KLEE_CALL kleeCall = new_klee_call(LONG, line, scope, value,function_name, Map2CheckCurrentStep);
@@ -218,70 +217,43 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope, const c
 
 int map2check_non_det_int() {
   int non_det;
-  klee_make_symbolic(&non_det,
-		     sizeof(non_det),
-		     "non_det_int");
-
-  if((non_det % 2) == 0) {
-    non_det = (non_det/2) * 2;
-  } else {
-    non_det = (non_det/2) * 2 + 1;
-  }
+  scanf("%i", non_det)
 
   return non_det;
 }
 
 unsigned int map2check_non_det_uint() {
   unsigned int non_det;
-  klee_make_symbolic(&non_det,
-		     sizeof(non_det),
-		     "nondet-uint");
-  // TODO(rafa.sa.xp@gmail.com) Check if assume is necessary
-  // klee_assume(non_det >= 0U);
-
-  if((non_det % 2) == 0) {
-    non_det = (non_det/2) * 2;
-  } else {
-    non_det = (non_det/2) * 2 + 1;
-  }
-
+  scanf("%u", non_det)
   return non_det;
 }
 
 
 char map2check_non_det_char() {
   char non_det;
-  klee_make_symbolic(&non_det,
-		     sizeof(non_det),
-		     "non_det_char");
-
+  scanf("%c", non_det)
   return non_det;
 }
 
 unsigned short map2check_non_det_ushort() {
   unsigned short non_det;
-  klee_make_symbolic(&non_det,
-		     sizeof(non_det),
-		     "non_det_ushort");
-
+  scanf("%u", non_det)
   return non_det;
 }
 
 void* map2check_non_det_pointer() {
   void* non_det;
-  klee_make_symbolic(&non_det,sizeof(non_det),"non_det_pointer");
-
+  scanf("%x", non_det)
   return non_det;
 }
-
+/*
 void map2check_assume(int expr) {
   klee_assume(expr);
 }
-
+*/
 long map2check_non_det_long() {
   long non_det;
-  klee_make_symbolic(&non_det,sizeof(non_det),"non_det_long");
-
+  scanf("%f", non_det)
   return non_det;
 }
 
@@ -411,7 +383,7 @@ void map2check_success() {
 void map2check_error() {
   gotError = TRUE;
   map2check_exit();
-  klee_assert(0);
+  //klee_assert(0);
   //
 
 }

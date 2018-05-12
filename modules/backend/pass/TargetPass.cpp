@@ -7,8 +7,7 @@ bool TargetPass::runOnFunction(Function &F) {
                     Type::getVoidTy(F.getContext()),
                     Type::getInt8PtrTy(F.getContext()),
                     Type::getInt32Ty(F.getContext()),
-                    Type::getInt32Ty(F.getContext()),
-                    NULL);
+                    Type::getInt32Ty(F.getContext()));
 
       Function::iterator functionIterator = F.begin();
       BasicBlock::iterator instructionIterator = functionIterator->begin();
@@ -49,7 +48,7 @@ void TargetPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
 }
 
 void TargetPass::instrumentErrorInstruction(CallInst* callInst, LLVMContext* Ctx) {
-    IRBuilder<> builder((Instruction*)currentInstruction);
+    IRBuilder<> builder((Instruction*)&*currentInstruction);
     Value* name_llvm = functionName;
 
     DebugInfo debugInfo(Ctx, callInst);

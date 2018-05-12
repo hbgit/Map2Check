@@ -1,7 +1,7 @@
 #include "NonDetPass.hpp"
 
 namespace {
-  Instruction* BBIteratorToInst(BasicBlock::iterator i) {
+  inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
     Instruction* pointer = reinterpret_cast<Instruction*>(&*i);
     return pointer;
   }
@@ -155,8 +155,9 @@ void NonDetPass::instrumentNonDetInt(CallInst* callInst, LLVMContext* Ctx) {
     };
 
 
-    Constant* KleeFunction = this->nonDetFunctions->getNonDetIntegerFunction();
-    builder.CreateCall(KleeFunction, args);
+    Constant* NonDetFunction =
+     this->nonDetFunctions->getNonDetIntegerFunction();
+    builder.CreateCall(NonDetFunction, args);
 }
 
 void
@@ -175,8 +176,9 @@ NonDetPass::instrumentNonDetUnsigned(CallInst* callInst, LLVMContext* Ctx) {
     };
 
 
-    Constant* KleeFunction = this->nonDetFunctions->getNonDetUnsignedFunction();
-    builder.CreateCall(KleeFunction, args);
+    Constant* NonDetFunction =
+     this->nonDetFunctions->getNonDetUnsignedFunction();
+    builder.CreateCall(NonDetFunction, args);
 }
 
 void NonDetPass::instrumentNonDetChar(CallInst* callInst, LLVMContext* Ctx) {
@@ -186,7 +188,13 @@ void NonDetPass::instrumentNonDetChar(CallInst* callInst, LLVMContext* Ctx) {
     IRBuilder<> builder(BBIteratorToInst(j));
     Value* function_llvm = this->getFunctionNameValue();
     Twine bitcast("map2check_klee_char_cast");
-    Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*Ctx), false, bitcast, BBIteratorToInst(j));
+    Value* charCast = CastInst::CreateIntegerCast(
+      callInst,
+      Type::getInt32Ty(*Ctx),
+      false,
+      bitcast,
+      BBIteratorToInst(j));
+
     DebugInfo debugInfo(Ctx, callInst);
 
     Value* args[] = {
@@ -197,8 +205,8 @@ void NonDetPass::instrumentNonDetChar(CallInst* callInst, LLVMContext* Ctx) {
         function_llvm
     };
 
-    Constant* KleeFunction = this->nonDetFunctions->getNonDetCharFunction();
-    builder.CreateCall(KleeFunction, args);
+    Constant* NonDetFunction = this->nonDetFunctions->getNonDetCharFunction();
+    builder.CreateCall(NonDetFunction, args);
 }
 
 void NonDetPass::instrumentNonDetPointer(CallInst* callInst, LLVMContext* Ctx) {
@@ -219,18 +227,23 @@ void NonDetPass::instrumentNonDetPointer(CallInst* callInst, LLVMContext* Ctx) {
         function_llvm
     };
 
-    Constant* KleeFunction = this->nonDetFunctions->getNonDetPointerFunction();
-    builder.CreateCall(KleeFunction, args);
+    Constant* NonDetFunction = this->nonDetFunctions->getNonDetPointerFunction();
+    builder.CreateCall(NonDetFunction, args);
 }
 
 void NonDetPass::instrumentNonDetUshort(CallInst* callInst, LLVMContext* Ctx) {
-
     auto j = this->currentInstruction;
     j++;
     IRBuilder<> builder(BBIteratorToInst(j));
     Value* function_llvm = this->getFunctionNameValue();
     Twine bitcast("map2check_klee_ushort_cast");
-    Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*Ctx), false, bitcast, BBIteratorToInst(j));
+    Value* charCast = CastInst::CreateIntegerCast(
+      callInst,
+      Type::getInt32Ty(*Ctx),
+      false,
+      bitcast,
+      BBIteratorToInst(j));
+
     DebugInfo debugInfo(Ctx, callInst);
 
     Value* args[] = {
@@ -241,8 +254,8 @@ void NonDetPass::instrumentNonDetUshort(CallInst* callInst, LLVMContext* Ctx) {
         function_llvm
     };
 
-    Constant* KleeFunction = this->nonDetFunctions->getNonDetUshortFunction();
-    builder.CreateCall(KleeFunction, args);
+    Constant* NonDetFunction = this->nonDetFunctions->getNonDetUshortFunction();
+    builder.CreateCall(NonDetFunction, args);
 }
 
 void NonDetPass::instrumentNonDetLong(CallInst* callInst, LLVMContext* Ctx) {
@@ -252,7 +265,13 @@ void NonDetPass::instrumentNonDetLong(CallInst* callInst, LLVMContext* Ctx) {
     IRBuilder<> builder(BBIteratorToInst(j));
     Value* function_llvm = this->getFunctionNameValue();
     Twine bitcast("map2check_klee_long_cast");
-    Value* charCast = CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*Ctx), false, bitcast, BBIteratorToInst(j));
+    Value* charCast = CastInst::CreateIntegerCast(
+      callInst,
+      Type::getInt32Ty(*Ctx),
+      false,
+      bitcast,
+      BBIteratorToInst(j));
+
     DebugInfo debugInfo(Ctx, callInst);
     Value* args[] = {
         debugInfo.getLineNumberValue(),
@@ -262,11 +281,12 @@ void NonDetPass::instrumentNonDetLong(CallInst* callInst, LLVMContext* Ctx) {
         function_llvm
     };
 
-    Constant* KleeFunction = this->nonDetFunctions->getNonDetLongFunction();
-    builder.CreateCall(KleeFunction, args);
+    Constant* NonDetFunction = this->nonDetFunctions->getNonDetLongFunction();
+    builder.CreateCall(NonDetFunction, args);
 }
 
 char NonDetPass::ID = 1;
-static RegisterPass<NonDetPass> X("non_det", "Adds klee calls for non deterministic methods (from SVCOMP)");
+static RegisterPass<NonDetPass> X("non_det",
+  "Adds klee calls for non deterministic methods (from SVCOMP)");
 
 

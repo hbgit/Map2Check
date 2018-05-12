@@ -29,20 +29,17 @@ public:
         this->map2check_init = F->getParent()->
          getOrInsertFunction("map2check_init",
                  Type::getVoidTy(*Ctx),
-                 Type::getInt32Ty(*Ctx),
-                 NULL);
+                 Type::getInt32Ty(*Ctx));
 
         this->map2check_exit = F->getParent()->
           getOrInsertFunction("map2check_success",
-                  Type::getVoidTy(*Ctx),
-                  NULL);
+                  Type::getVoidTy(*Ctx));
                   
         this->map2check_track_bb = F->getParent()->
 			getOrInsertFunction("map2check_track_bb",
 				Type::getVoidTy(*Ctx),
 				Type::getInt32Ty(*Ctx),        
-				Type::getInt8PtrTy(*Ctx),
-				NULL);
+				Type::getInt8PtrTy(*Ctx));
     }
 
 };

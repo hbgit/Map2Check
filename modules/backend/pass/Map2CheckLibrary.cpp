@@ -36,7 +36,7 @@ bool Map2CheckLibrary::runOnFunction(Function &F) {
 
 void Map2CheckLibrary::instrumentStartInstruction(LLVMContext* Ctx) {
 
-  IRBuilder<> builder((Instruction*)currentInstruction);
+  IRBuilder<> builder((Instruction*)&*currentInstruction);
   Value* argument = ConstantInt::getSigned(Type::getInt32Ty(*Ctx), this->SVCOMP ? 1 : 0);
   Value* args[] = {argument};
   builder.CreateCall(this->libraryFunctions->getInitFunction(), args);
@@ -44,7 +44,7 @@ void Map2CheckLibrary::instrumentStartInstruction(LLVMContext* Ctx) {
 }
 
 void Map2CheckLibrary::instrumentReleaseInstruction(LLVMContext* Ctx) {
-  IRBuilder<> builder((Instruction*)currentInstruction);
+  IRBuilder<> builder((Instruction*)&*currentInstruction);
   builder.CreateCall(this->libraryFunctions->getExitFunction());
 }
 

@@ -1,2 +1,2 @@
 add_subdirectory(pass)
-# add_subdirectory(library)
+add_subdirectory(library)

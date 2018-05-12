@@ -217,33 +217,33 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope, const c
 
 int map2check_non_det_int() {
   int non_det;
-  scanf("%i", non_det)
+  scanf("%i", &non_det);
 
   return non_det;
 }
 
 unsigned int map2check_non_det_uint() {
   unsigned int non_det;
-  scanf("%u", non_det)
+  scanf("%u", &non_det);
   return non_det;
 }
 
 
 char map2check_non_det_char() {
   char non_det;
-  scanf("%c", non_det)
+  scanf("%c", &non_det);
   return non_det;
 }
 
 unsigned short map2check_non_det_ushort() {
   unsigned short non_det;
-  scanf("%u", non_det)
+  scanf("%u", &non_det);
   return non_det;
 }
 
 void* map2check_non_det_pointer() {
   void* non_det;
-  scanf("%x", non_det)
+  scanf("%x", &non_det);
   return non_det;
 }
 /*
@@ -253,7 +253,7 @@ void map2check_assume(int expr) {
 */
 long map2check_non_det_long() {
   long non_det;
-  scanf("%f", non_det)
+  scanf("%f", &non_det);
   return non_det;
 }
 

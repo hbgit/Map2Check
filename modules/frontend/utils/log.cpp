@@ -28,10 +28,8 @@ namespace Map2Check::Log {
   }
 
   void initLog() {
-      logging::core::get()->set_filter
-          (
-              logging::trivial::severity >= logging::trivial::info
-          );
+      logging::core::get()->set_filter(
+              logging::trivial::severity >= logging::trivial::info);
   }
 
   void Debug(std::string msg) {

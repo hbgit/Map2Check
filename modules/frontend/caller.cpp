@@ -213,32 +213,30 @@ std::vector<int> Caller::processClangOutput() {
 }
 
 string Caller::compileCFile(std::string cprogram_path) {
-  // Map2Check::Log::Info("Compiling " + cprogram_path);
+  Map2Check::Log::Info("Compiling " + cprogram_path);
 
-  // std::ostringstream commandRemoveExternMalloc;
-  // commandRemoveExternMalloc.str("");
-  // commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
-  // commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*//g' "
-  //                           << "  -e 's/.*void \\*malloc(size_t size).*//g' "
-  //                           <<" > preprocessed.c";
+  std::ostringstream commandRemoveExternMalloc;
+  commandRemoveExternMalloc.str("");
+  commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
+  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*//g' "
+                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+                            <<" > preprocessed.c";
 
-  // int resultRemove = system(commandRemoveExternMalloc.str().c_str());
-  // if (resultRemove == -1) {
-  //   throw ErrorCompilingCProgramException();
-  // }
-  // std::ostringstream command;
-  // command.str("");
-  // command << Map2Check::Tools::clangBinary << " -I"
-  //         << Map2Check::Tools::clangIncludeFolder
-  //         << " -Wno-everything "
-  //         << " -Winteger-overflow "
-  //         << " -c -emit-llvm -g"
-  //         << " " << Caller::preOptimizationFlags()
-  //         << " -o compiled.bc "
-  //         << "preprocessed.c"
-  //         << " > clang.out 2>&1";
+  int resultRemove = system(commandRemoveExternMalloc.str().c_str());
 
-  // int result = system(command.str().c_str());
+  std::ostringstream command;
+  command.str("");
+  command << Map2Check::Tools::clangBinary << " -I"
+          << Map2Check::Tools::clangIncludeFolder
+          << " -Wno-everything "
+          << " -Winteger-overflow "
+          << " -c -emit-llvm -g"
+          << " " << Caller::preOptimizationFlags()
+          << " -o compiled.bc "
+          << "preprocessed.c"
+          << " > clang.out 2>&1";
+
+  int result = system(command.str().c_str());
   return ("compiled.bc");
 }
 

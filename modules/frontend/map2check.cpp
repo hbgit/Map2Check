@@ -117,7 +117,7 @@ int map2check_execution(std::string inputFile) {
 }
 
 int main(int argc, char** argv) {
-  try {
+ 
     // Define and parse the program options
     po::options_description desc("Options");
     desc.add_options()
@@ -157,12 +157,6 @@ int main(int argc, char** argv) {
 
       return map2check_execution(pathfile);
     }
-  }
-  catch(std::exception& e) {
-    std::cerr << "Unhandled Exception reached the top of main: "
-              << e.what() << ", application will now exit" << std::endl;
-    return ERROR_UNHANDLED_EXCEPTION;
-  }
-
+  
   return SUCCESS;
 }

@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <string>
 #include <memory>
+#include <boost/make_unique.hpp>
+
 
 namespace Map2Check {
 
@@ -53,10 +55,10 @@ class AFL {
   std::unique_ptr<AFL_COMPILE> compiler;
  public:
   explicit AFL(std::string path) {
-    this->compiler = std::make_unique<AFL_COMPILE>();
+    this->compiler = boost::make_unique<AFL_COMPILE>();
     this->compiler->setPath(path);
 
-    this->executor = std::make_unique<AFL_EXEC>();
+    this->executor = boost::make_unique<AFL_EXEC>();
     this->executor->setPath(path);
   }
   std::string getCompilerCommand() {

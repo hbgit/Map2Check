@@ -1,4 +1,5 @@
-set(CXX_LLVM_FLAGS "-fpic -fexceptions -std=c++1z")
+set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
+execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 add_library(AFL OBJECT afl.cpp)
-set_target_properties(AFL PROPERTIES COMPILE_FLAGS ${CXX_LLVM_FLAGS})
+set_target_properties(AFL PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})

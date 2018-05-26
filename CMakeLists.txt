@@ -38,4 +38,4 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 add_subdirectory(modules)
 enable_testing()
-add_subdirectory(test)
+# add_subdirectory(test)

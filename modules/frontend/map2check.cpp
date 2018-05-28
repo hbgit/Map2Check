@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <memory>
+#include <vector>
 // #include <boost/program_options.hpp>
 // #include <boost/make_unique.hpp>
 // #include <boost/filesystem.hpp>

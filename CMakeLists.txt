@@ -21,7 +21,9 @@ endif()
 
 # Set CLANG as the default C/CXX compiler
 set(CMAKE_C_COMPILER ${CLANG_CC})
+message("C COMPILER=" ${CMAKE_C_COMPILER})
 set(CMAKE_CXX_COMPILER ${CLANG_CXX})
+message("CXX COMPILER=" ${CMAKE_CXX_COMPILER})
 
 # Get Flags
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
@@ -31,7 +33,9 @@ execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPU
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 set(BOOST_USE_STATIC_LIBS true)
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost REQUIRED COMPONENTS program_options system)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+#find_package(Boost 1.4.0 COMPONENTS filesystem REQUIRED)
+find_package(Boost COMPONENTS program_options system filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
 

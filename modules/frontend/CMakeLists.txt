@@ -18,5 +18,6 @@ add_executable(map2check map2check.cpp
 # add_executable(map2check map2check.cpp $<TARGET_OBJECTS:Caller>)
 # set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${LLVM_INCLUDE})
 set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
+#target_link_libraries(map2check ${Boost_FILESYSTEM_LIBRARY})
 target_link_libraries(map2check ${Boost_LIBRARIES})
-# install (TARGETS map2check DESTINATION .)
+install (TARGETS map2check DESTINATION .)

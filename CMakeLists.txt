@@ -5,9 +5,6 @@ cmake_minimum_required(VERSION 3.5)
 # FIND LLVM 6.0
 set(LLVM_BIN ${PROJECT_SOURCE_DIR}/dependencies/clang)
 set(LLVM_SOURCE ${PROJECT_SOURCE_DIR}/dependencies/clang)
-# list(APPEND CMAKE_MODULE_PATH "${LLVM_SOURCE}/lib/cmake/llvm")
-# list(APPEND  CMAKE_PREFIX_PATH "${LLVM_SOURCE}/lib/cmake/llvm")
-# find_package(LLVM REQUIRED CONFIG)
 
 find_program(CLANG_CC clang HINTS ${LLVM_BIN}/bin)
 find_program(CLANG_CXX clang++ HINTS ${LLVM_BIN}/bin)
@@ -25,6 +22,10 @@ endif()
 # Set CLANG as the default C/CXX compiler
 set(CMAKE_C_COMPILER ${CLANG_CC})
 set(CMAKE_CXX_COMPILER ${CLANG_CXX})
+
+# Get Flags
+set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
+execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 # Configure boost (Should fix this)
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})

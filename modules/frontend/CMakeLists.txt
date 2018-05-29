@@ -1,7 +1,5 @@
 add_subdirectory(utils)
 
-#option(USE_CXX_EXCEPTIONS "Enable C++ exception support" ON)
-
 # add_library(Caller OBJECT caller.cpp)
 # set_target_properties(Caller PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
 # target_link_libraries(Caller $<TARGET_OBJECTS:AFL>)

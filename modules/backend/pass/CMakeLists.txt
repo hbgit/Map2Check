@@ -1,33 +1,19 @@
-set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
-execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE LLVM_INCLUDE OUTPUT_STRIP_TRAILING_WHITESPACE)
+add_library(DebugInfo OBJECT DebugInfo.cpp)
+set_target_properties(DebugInfo PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
 
-add_library(NonDetPass NonDetPass.cpp DebugInfo.cpp)
-set_target_properties(NonDetPass PROPERTIES
-COMPILE_FLAGS ${LLVM_INCLUDE})
+list(APPEND MAP2CHECK_PASS_LIB "")
+list(APPEND MAP2CHECK_PASS_LIB "NonDetPass")
+list(APPEND MAP2CHECK_PASS_LIB "MemoryTrackPass")
+list(APPEND MAP2CHECK_PASS_LIB "Map2CheckLibrary")
+list(APPEND MAP2CHECK_PASS_LIB "TargetPass")
 
-add_library(MemoryTrackPass OBJECT MemoryTrackPass.cpp)
-set_target_properties(MemoryTrackPass PROPERTIES
-COMPILE_FLAGS ${LLVM_INCLUDE})
+# TODO(rafa.sa.xp@gmail.com): fix for llvm 6
+# list(APPEND MAP2CHECK_PASS_LIB "GenerateAutomataTruePass")
+# list(APPEND MAP2CHECK_PASS_LIB "OverflowPass")
+# list(APPEND MAP2CHECK_PASS_LIB "TrackBasicBlockPass")
 
-add_library(Map2CheckLibrary OBJECT Map2CheckLibrary.cpp)
-set_target_properties(Map2CheckLibrary PROPERTIES
-COMPILE_FLAGS ${LLVM_INCLUDE})
-
-add_library(TargetPass OBJECT TargetPass.cpp)
-set_target_properties(TargetPass PROPERTIES
-  COMPILE_FLAGS ${LLVM_INCLUDE})
-  
-# TODO(rafa.sa.xp@gmail.com): fix this build
-# add_library(GenerateAutomataTruePass OBJECT GenerateAutomataTruePass.cpp)
-# set_target_properties(GenerateAutomataTruePass PROPERTIES 
-# 	COMPILE_FLAGS ${LLVM_INCLUDE})
-
-# TODO(rafa.sa.xp@gmail.com): fix this build  
-# add_library(OverflowPass OBJECT OverflowPass.cpp)
-# set_target_properties(OverflowPass PROPERTIES
-#   COMPILE_FLAGS ${LLVM_INCLUDE})
-  
-# TODO(rafa.sa.xp@gmail.com): fix this build  
-# add_library(TrackBasicBlockPass OBJECT TrackBasicBlockPass.cpp)
-# set_target_properties(TrackBasicBlockPass PROPERTIES 
-# COMPILE_FLAGS ${LLVM_INCLUDE})
+foreach(F ${MAP2CHECK_PASS_LIB})
+  add_library(${F} STATIC ${F}.cpp $<TARGET_OBJECTS:DebugInfo>)
+  set_target_properties(${F} PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
+  install(TARGETS ${F} DESTINATION lib)  
+endforeach()

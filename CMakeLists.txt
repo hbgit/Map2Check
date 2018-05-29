@@ -21,9 +21,11 @@ endif()
 
 # Set CLANG as the default C/CXX compiler
 set(CMAKE_C_COMPILER ${CLANG_CC})
-message("C COMPILER=" ${CMAKE_C_COMPILER})
+execute_process( COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
+message(${clang_full_version_string})
+
 set(CMAKE_CXX_COMPILER ${CLANG_CXX})
-message("CXX COMPILER=" ${CMAKE_CXX_COMPILER})
+
 
 # Get Flags
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
@@ -33,18 +35,18 @@ execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPU
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CPP_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-# Configure boost (Should fix this)
-#list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
+# Configure boost 
 set(BOOST_USE_STATIC_LIBS true)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-#find_package(Boost 1.4.0 COMPONENTS filesystem REQUIRED)
 find_package(Boost COMPONENTS program_options system filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
+
 include_directories(${PROJECT_SOURCE_DIR})
 
 ###########################################################################
 
 add_subdirectory(modules)
-enable_testing()
+# TODO Rafael
+# enable_testing()
 # add_subdirectory(test)

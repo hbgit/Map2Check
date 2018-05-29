@@ -8,19 +8,35 @@
 #include <cstdlib>
 #include <memory>
 #include <vector>
-// #include <boost/program_options.hpp>
-// #include <boost/make_unique.hpp>
-// #include <boost/filesystem.hpp>
-// #include "caller.hpp"
-// #include "utils/log.hpp"
+
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+	namespace po = boost::program_options;
+#include <boost/make_unique.hpp>
+#include <boost/filesystem.hpp>
+
+namespace boost
+{
+#ifdef BOOST_NO_EXCEPTIONS
+void throw_exception( std::exception const & e ){
+    //throw 11; // or whatever
+};
+#endif
+}// namespace boost
+
+
+//#include "caller.hpp"
+//#include "utils/log.hpp"
+
 using namespace std;
 
-#define Map2CheckVersion "Map2Check 7.1-Fuzzer : Wed Nov 22 22:30:11 -04 2017"
+#define Map2CheckVersion "Map2Check 7.2-Fuzzer : Mon May 28 21:44:38 UTC 2018"
 
 namespace {
 const size_t SUCCESS = 0;
 const size_t ERROR_IN_COMMAND_LINE = 1;
-const size_t ERROR_UNHANDLED_EXCEPTION = 2;
+//const size_t ERROR_UNHANDLED_EXCEPTION = 2;
+
 // A helper function to simplify the main part.
 template<class T>
 ostream& operator<<(ostream& os, const std::vector<T>& v) {
@@ -75,88 +91,112 @@ inline void fixPath(char* map2check_bin_string) {
 }  // namespace
 
 int map2check_execution(std::string inputFile) {
-  // Map2Check::Log::Info("Started Map2Check");
-  // /**
-  //  * Start Map2Check algorithm
-  //  * (1) Compile file and check for compiler warnings
-  //  * (2) Instrument functions for current mode
-  //  * (3) Execute with AFL
-  //  * (4) Retrieve results
-  //  * (5) Generate witness (if analysis generated a result)
-  // **/
+   //Map2Check::Log::Info("Started Map2Check");
+   ///**
+    //* Start Map2Check algorithm
+    //* (1) Compile file and check for compiler warnings
+    //* (2) Instrument functions for current mode
+    //* (3) Execute with AFL
+    //* (4) Retrieve results
+    //* (5) Generate witness (if analysis generated a result)
+   //**/
 
-  // // (1) Compile file and check for compiler warnings
-  // // Check if input file is supported
-  // string extension = boost::filesystem::extension(inputFile);
-  // if (extension.compare(".bc") &&
-  //     extension.compare(".c") &&
-  //     extension.compare(".i")) {
-  //   help_msg();
-  //   return ERROR_IN_COMMAND_LINE;
-  // }
+   //// (1) Compile file and check for compiler warnings
+   //// Check if input file is supported
+   //string extension = boost::filesystem::extension(inputFile);
+   //if (extension.compare(".bc") &&
+       //extension.compare(".c") &&
+       //extension.compare(".i")) {
+     //help_msg();
+     //return ERROR_IN_COMMAND_LINE;
+   //}
 
-  // std::unique_ptr<Map2Check::Caller> caller;
+   //std::unique_ptr<Map2Check::Caller> caller;
 
-  // // Check if compiling will be needed
-  // if (extension.compare(".bc")) {
-  //   // Compile C file
-  //   caller = boost::make_unique<Map2Check::Caller>
-  //     (Map2Check::Caller::compileCFile(inputFile));
-  // } else {
-  //   // C file already compiled
-  //   caller = boost::make_unique<Map2Check::Caller>(inputFile);
-  // }
+   //// Check if compiling will be needed
+   //if (extension.compare(".bc")) {
+     //// Compile C file
+     //caller = boost::make_unique<Map2Check::Caller>
+       //(Map2Check::Caller::compileCFile(inputFile));
+   //} else {
+     //// C file already compiled
+     //caller = boost::make_unique<Map2Check::Caller>(inputFile);
+   //}
 
-  // caller->cprogram_fullpath = inputFile;
+   //caller->cprogram_fullpath = inputFile;
 
-  // // (2) Instrument functions for current mode
+   //// (2) Instrument functions for current mode
 
-  // // TODO(rafa.sa.xp@gmail.com): Check current mode
-  // caller->callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
-  // caller->linkLLVM();
+   //// TODO(rafa.sa.xp@gmail.com): Check current mode
+   //caller->callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
+   //caller->linkLLVM();
+   
+   return SUCCESS;
 }
 
-int main(int argc, char** argv) {
- 
-    // // Define and parse the program options
-    // po::options_description desc("Options");
-    // desc.add_options()
-    //   ("help,h", "\tshow help")
-    //   ("version,v", "\tprints map2check version")
-    //   ("input-file,i",
-    //    po::value< std::vector<string> >(),
-    //    "\tspecifies the files, also works with <file.bc>");
+int main(int argc, char** argv) {    
+     
+     // Define and parse the program options
+     po::options_description desc("Options");          
+     desc.add_options()
+		("help,h", "\tshow help")
+		("version,v", "\tprints map2check version")
+		("input-file,i",
+				po::value< std::vector<string> >(),
+				"\tspecifies the files, also works with <file.bc>")
+		("manual,m", po::value<std::string>(), "extract value manually") 
+		;
 
-    // po::positional_options_description p;
-    // p.add("input-file", -1);
+     po::positional_options_description p;
+     p.add("input-file", -1);
+     
+     po::variables_map vm;     
+     po::store(po::parse_command_line(argc, argv, desc), vm); 
+     po::notify(vm);    
+     
+     cout << vm.count("input-file") << std::endl;
+     cout << vm.count("manual") << std::endl;
+     
 
-    // po::variables_map vm;
+     if (vm.count("version")) {
+       cout << Map2CheckVersion << "\n";
+       return SUCCESS;
+     }
+     
+     
+     //if (vm.count("help") == 0 && vm.count("input-file") == 0) {
+       //help_msg();
+       //cout << desc;
+       //return ERROR_IN_COMMAND_LINE;
+     //}
+     
+     if (vm.count("help")) {
+       help_msg();
+       cout << desc;
+       return SUCCESS;
+     }   
+     
+     
+     if (vm.count("input-file")) {
+       std::string pathfile;
+       //pathfile = accumulate(boost::begin(vm["input-file"]
+		//		.as< std::vector<string> >()),
+		//		boost::end(vm["input-file"]
+			//	.as< std::vector<string> >
+				//()), 
+				//pathfile);
+		
+				
+		cout << vm["input-file"].as< vector<string> >() << std::endl;
 
-    // if (vm.count("version")) {
-    //   cout << Map2CheckVersion << "\n";
-    //   return SUCCESS;
-    // }
-    // if (vm.count("help") == 0 && vm.count("input-file") == 0) {
-    //   help_msg();
-    //   cout << desc;
-    //   return ERROR_IN_COMMAND_LINE;
-    // }
-    // if (vm.count("help")) {
-    //   help_msg();
-    //   cout << desc;
-    //   return SUCCESS;
-    // }
-    // if (vm.count("input-file")) {
-    //   std::string pathfile;
-    //   pathfile = accumulate(boost::begin(vm["input-file"]
-    //     .as< std::vector<string> >
-    //     ()),
-    //   boost::end(vm["input-file"]
-    //     .as< std::vector<string> >
-    //     ()), pathfile);
-
-    //   return map2check_execution(pathfile);
-    // }
+       //return map2check_execution(pathfile);
+     }
+     
+     if ( vm.count("manual") ) 
+    { 
+		for (auto i: vm["manual"].as< std::vector<string> >())
+			std::cout << "Manually extracted value: " << i << std::endl; 
+    } 
   
   return SUCCESS;
 }

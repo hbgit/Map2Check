@@ -15,14 +15,14 @@
 #include <boost/make_unique.hpp>
 #include <boost/filesystem.hpp>
 
-namespace boost
-{
-#ifdef BOOST_NO_EXCEPTIONS
-void throw_exception( std::exception const & e ){
-    //throw 11; // or whatever
-};
-#endif
-}// namespace boost
+//namespace boost
+//{
+//#ifdef BOOST_NO_EXCEPTIONS
+//void throw_exception( std::exception const & e ){
+    ////throw 11; // or whatever
+//};
+//#endif
+//}// namespace boost
 
 
 //#include "caller.hpp"
@@ -134,69 +134,145 @@ int map2check_execution(std::string inputFile) {
    return SUCCESS;
 }
 
-int main(int argc, char** argv) {    
-     
-     // Define and parse the program options
-     po::options_description desc("Options");          
-     desc.add_options()
-		("help,h", "\tshow help")
-		("version,v", "\tprints map2check version")
-		("input-file,i",
-				po::value< std::vector<string> >(),
-				"\tspecifies the files, also works with <file.bc>")
-		("manual,m", po::value<std::string>(), "extract value manually") 
-		;
+int main(int argc, char** argv) {  
+	
+	po::options_description config("Configuration");
+    config.add_options()
+                ("IPAddress,i", po::value<std::string>()->required(), "IP Address")
+                ("Port,p", po::value<std::string>()->required(), "Port")
+                ;
 
-     po::positional_options_description p;
-     p.add("input-file", -1);
-     
-     po::variables_map vm;     
-     po::store(po::parse_command_line(argc, argv, desc), vm); 
-     po::notify(vm);    
-     
-     cout << vm.count("input-file") << std::endl;
-     cout << vm.count("manual") << std::endl;
-     
+    try {
+        po::variables_map vm;
+        po::store(po::parse_command_line(argc, argv, config),vm);
+        po::notify(vm);
+        std::cout << "Values" << std::endl;
 
-     if (vm.count("version")) {
-       cout << Map2CheckVersion << "\n";
-       return SUCCESS;
-     }
-     
-     
-     //if (vm.count("help") == 0 && vm.count("input-file") == 0) {
-       //help_msg();
-       //cout << desc;
-       //return ERROR_IN_COMMAND_LINE;
-     //}
-     
-     if (vm.count("help")) {
-       help_msg();
-       cout << desc;
-       return SUCCESS;
-     }   
-     
-     
-     if (vm.count("input-file")) {
-       std::string pathfile;
+        const std::string address = vm["IPAddress"].as<std::string>();
+        const std::string port = vm["Port"].as<std::string>();
+
+        std::cout << "address: " << address << std::endl;
+        std::cout << "port: " << port << std::endl;
+    } catch ( const std::exception& e ) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    } 
+	
+	//try {
+		//// Define and parse the program options
+		//po::options_description desc("Options");  
+		//desc.add_options()
+		//("help,h", "\tshow help")
+		//("version,v", "\tprints map2check version")
+		//("input-file,i",
+				//po::value< std::vector<string> >(),
+				//"\tspecifies the files, also works with <file.bc>")
+		//("manual,m", po::value<std::string>()->required(), "extract value manually") 
+		//;
+		
+		//po::positional_options_description p;
+		//p.add("input-file", -1);
+		 
+		//po::variables_map vm;     
+		//po::store(po::parse_command_line(argc, argv, desc), vm); 
+		//po::notify(vm);    
+		 
+		//cout << vm.count("input-file") << std::endl;
+		//cout << vm.count("manual") << std::endl;
+		 
+		//if (vm.count("version")) {
+		   //cout << Map2CheckVersion << "\n";
+		   //return SUCCESS;
+		 //}
+		 
+		 //if ( vm.count("manual") ) 
+		//{ 		
+				//const std::string port = vm["manual"].as<std::string>();
+				//std::cout << "manual: " << port << std::endl;
+		//} 
+		
+		//if (vm.count("input-file")) {
+			//std::string pathfile;
        //pathfile = accumulate(boost::begin(vm["input-file"]
-		//		.as< std::vector<string> >()),
-		//		boost::end(vm["input-file"]
-			//	.as< std::vector<string> >
+				//.as< std::vector<string> >()),
+				//boost::end(vm["input-file"]
+				//.as< std::vector<string> >
 				//()), 
 				//pathfile);
 		
 				
-		cout << vm["input-file"].as< vector<string> >() << std::endl;
+		//cout << pathfile << std::endl;
 
-       //return map2check_execution(pathfile);
-     }
+       ////return map2check_execution(pathfile);
+     //}
+		        
+	//}catch(std::exception& e)
+    //{
+        //cout << e.what() << "\n";
+        //return 1;
+    //}     
      
-     if ( vm.count("manual") ) 
-    { 
-		for (auto i: vm["manual"].as< std::vector<string> >())
-			std::cout << "Manually extracted value: " << i << std::endl; 
-    } 
+     ////// Define and parse the program options
+     ////po::options_description desc("Options");          
+     ////desc.add_options()
+		////("help,h", "\tshow help")
+		////("version,v", "\tprints map2check version")
+		////("input-file,i",
+				////po::value< std::vector<string> >(),
+				////"\tspecifies the files, also works with <file.bc>")
+		////("manual,m", po::value<std::string>(), "extract value manually") 
+		////;
+
+     ////po::positional_options_description p;
+     ////p.add("input-file", -1);
+     
+     ////po::variables_map vm;     
+     ////po::store(po::parse_command_line(argc, argv, desc), vm); 
+     ////po::notify(vm);    
+     
+     ////cout << vm.count("input-file") << std::endl;
+     ////cout << vm.count("manual") << std::endl;
+     
+
+     ////if (vm.count("version")) {
+       ////cout << Map2CheckVersion << "\n";
+       ////return SUCCESS;
+     ////}
+     
+     
+     //////if (vm.count("help") == 0 && vm.count("input-file") == 0) {
+       //////help_msg();
+       //////cout << desc;
+       //////return ERROR_IN_COMMAND_LINE;
+     //////}
+     
+     ////if (vm.count("help")) {
+       ////help_msg();
+       ////cout << desc;
+       ////return SUCCESS;
+     ////}   
+     
+     
+     ////if (vm.count("input-file")) {
+       ////std::string pathfile;
+       //////pathfile = accumulate(boost::begin(vm["input-file"]
+		//////		.as< std::vector<string> >()),
+		//////		boost::end(vm["input-file"]
+			//////	.as< std::vector<string> >
+				//////()), 
+				//////pathfile);
+		
+				
+		////cout << vm["input-file"].as< vector<string> >() << std::endl;
+
+       //////return map2check_execution(pathfile);
+     ////}
+     
+     ////if ( vm.count("manual") ) 
+    ////{ 
+		////for (auto i: vm["manual"].as< std::vector<string> >())
+			////std::cout << "Manually extracted value: " << i << std::endl; 
+    ////} 
   
   return SUCCESS;
 }

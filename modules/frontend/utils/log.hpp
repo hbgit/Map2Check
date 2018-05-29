@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace Map2Check::Log {
+namespace Map2Check {
   void initLog();
   void Error(std::string msg);
   void Warning(std::string msg);

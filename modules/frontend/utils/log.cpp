@@ -10,7 +10,7 @@
 // namespace keywords = boost::log::keywords;
 
 
-namespace Map2Check::Log {
+namespace Map2Check {
 
   void Error(std::string msg) {
     // BOOST_LOG_TRIVIAL(error) << "\033[0;31m" << msg << "\033[0m";

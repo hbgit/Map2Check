@@ -36,7 +36,7 @@ struct Map2CheckLibrary : public FunctionPass
 
 private:
     std::unique_ptr<LibraryFunctions> libraryFunctions;
-    bool hasInitialized = false;
+    // bool hasInitialized = false;
     bool SVCOMP = false;
     Value* functionName = NULL;
     BasicBlock::iterator currentInstruction;

@@ -8,7 +8,7 @@ using namespace std;
 /**
  * Namespace for all Map2Check Paths and Helpers
  */
-namespace Map2Check::Tools {
+namespace Map2Check {
   /** Path to ktest-tool binary (from KLEE) */
   const string ktestBinary("${MAP2CHECK_PATH}/bin/ktest-tool");
   /** Path to clang binary (from llvm) */

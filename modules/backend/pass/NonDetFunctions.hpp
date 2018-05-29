@@ -24,7 +24,7 @@ class NonDetFunctions {
   Constant* NonDetPointer = NULL;
   Constant* NonDetLong = NULL;
   Constant* NonDetUshort = NULL;
-  Constant* NonDetAssume = NULL;
+  // Constant* NonDetAssume = NULL;
 
  public:
   Constant* getNonDetIntegerFunction() { return this->NonDetInteger; }

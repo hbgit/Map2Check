@@ -4,6 +4,7 @@
 */cmake_install.cmake
 dependencies/
 release/bcs_files
+release/*
 build
 samples/*.bc
 teste/*.bc

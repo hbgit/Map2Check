@@ -13,7 +13,7 @@
 #  You can restart the container by running: docker start -ai mapdevel
 #  You can run any command in running container just knowing its ID (or name): docker exec <container_id_or_name> echo "Hello from container!"
 ############################################################
-FROM ubuntu
+FROM ubuntu:18.04
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>

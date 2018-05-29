@@ -14,12 +14,15 @@
 	namespace po = boost::program_options;
 #include <boost/make_unique.hpp>
 #include <boost/filesystem.hpp>
-// TODO: Improve this
-#define BOOST_NO_EXCEPTIONS
-#include <boost/throw_exception.hpp>
-void boost::throw_exception(std::exception const & e){
-//do nothing
-}
+
+namespace boost
+{
+#ifdef BOOST_NO_EXCEPTIONS
+void throw_exception( std::exception const & e ){
+    //throw 11; // or whatever
+};
+#endif
+}// namespace boost
 
 
 //#include "caller.hpp"
@@ -31,7 +34,7 @@ using namespace std;
 
 namespace {
 const size_t SUCCESS = 0;
-//const size_t ERROR_IN_COMMAND_LINE = 1;
+const size_t ERROR_IN_COMMAND_LINE = 1;
 //const size_t ERROR_UNHANDLED_EXCEPTION = 2;
 
 // A helper function to simplify the main part.
@@ -41,13 +44,13 @@ ostream& operator<<(ostream& os, const std::vector<T>& v) {
   return os;
 }
 
-//inline void help_msg() {
-  //cout << endl;
-  //cout << "> > > \t  "<< Map2CheckVersion << " \t < < <" << endl;
-  //cout << endl;
-  //cout << "Usage: map2check [options] file.[i|c]\n";
-  //cout << endl;
-//}
+inline void help_msg() {
+  cout << endl;
+  cout << "> > > \t  "<< Map2CheckVersion << " \t < < <" << endl;
+  cout << endl;
+  cout << "Usage: map2check [options] file.[i|c]\n";
+  cout << endl;
+}
 
 inline int MIN(int a, int b) {
   if (a > b) {
@@ -139,40 +142,61 @@ int main(int argc, char** argv) {
 		("help,h", "\tshow help")
 		("version,v", "\tprints map2check version")
 		("input-file,i",
-				po::value<string>(),
+				po::value< std::vector<string> >(),
 				"\tspecifies the files, also works with <file.bc>")
+		("manual,m", po::value<std::string>(), "extract value manually") 
 		;
 
      po::positional_options_description p;
      p.add("input-file", -1);
-
-     po::variables_map vm;
+     
+     po::variables_map vm;     
+     po::store(po::parse_command_line(argc, argv, desc), vm); 
+     po::notify(vm);    
+     
+     cout << vm.count("input-file") << std::endl;
+     cout << vm.count("manual") << std::endl;
+     
 
      if (vm.count("version")) {
        cout << Map2CheckVersion << "\n";
        return SUCCESS;
      }
+     
+     
      //if (vm.count("help") == 0 && vm.count("input-file") == 0) {
        //help_msg();
        //cout << desc;
        //return ERROR_IN_COMMAND_LINE;
      //}
-     //if (vm.count("help")) {
-       //help_msg();
-       //cout << desc;
-       //return SUCCESS;
-     //}
-     //if (vm.count("input-file")) {
-       //std::string pathfile;
+     
+     if (vm.count("help")) {
+       help_msg();
+       cout << desc;
+       return SUCCESS;
+     }   
+     
+     
+     if (vm.count("input-file")) {
+       std::string pathfile;
        //pathfile = accumulate(boost::begin(vm["input-file"]
-         //.as< std::vector<string> >
-         //()),
-       //boost::end(vm["input-file"]
-         //.as< std::vector<string> >
-         //()), pathfile);
+		//		.as< std::vector<string> >()),
+		//		boost::end(vm["input-file"]
+			//	.as< std::vector<string> >
+				//()), 
+				//pathfile);
+		
+				
+		cout << vm["input-file"].as< vector<string> >() << std::endl;
 
        //return map2check_execution(pathfile);
-     //}
+     }
+     
+     if ( vm.count("manual") ) 
+    { 
+		for (auto i: vm["manual"].as< std::vector<string> >())
+			std::cout << "Manually extracted value: " << i << std::endl; 
+    } 
   
   return SUCCESS;
 }

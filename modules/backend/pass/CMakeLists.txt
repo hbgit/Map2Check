@@ -13,7 +13,7 @@ list(APPEND MAP2CHECK_PASS_LIB "TargetPass")
 # list(APPEND MAP2CHECK_PASS_LIB "TrackBasicBlockPass")
 
 foreach(F ${MAP2CHECK_PASS_LIB})
-  add_library(${F} STATIC ${F}.cpp $<TARGET_OBJECTS:DebugInfo>)
+  add_library(${F} SHARED ${F}.cpp $<TARGET_OBJECTS:DebugInfo>)
   set_target_properties(${F} PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
   install(TARGETS ${F} DESTINATION lib)  
 endforeach()

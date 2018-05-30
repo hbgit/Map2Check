@@ -15,6 +15,8 @@ namespace po = boost::program_options;
 #include <boost/make_unique.hpp>
 #include <boost/filesystem.hpp>
 
+#include "caller.hpp"
+
 //namespace boost
 //{
 //#ifdef BOOST_NO_EXCEPTIONS
@@ -134,8 +136,14 @@ int map2check_execution(std::string inputFile) {
     return SUCCESS;
 }
 
-int main(int argc, char** argv) {  
+// Small test, assumes that entry.bc exists and MAP2CHECK_PATH is configured
+void test_map() {
+    Map2Check::Caller caller("asd");
+    caller.callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
+    caller.linkLLVM();
+}
 
+int main(int argc, char** argv) {     
 
     try {
         // Define and parse the program options

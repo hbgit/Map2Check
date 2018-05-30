@@ -15,20 +15,9 @@ namespace po = boost::program_options;
 #include <boost/make_unique.hpp>
 #include <boost/filesystem.hpp>
 
+
 #include "caller.hpp"
-
-//namespace boost
-//{
-//#ifdef BOOST_NO_EXCEPTIONS
-//void throw_exception( std::exception const & e ){
-////throw 11; // or whatever
-//};
-//#endif
-//}// namespace boost
-
-
-//#include "caller.hpp"
-//#include "utils/log.hpp"
+#include "utils/log.hpp"
 
 using namespace std;
 
@@ -92,44 +81,45 @@ namespace {
     }
 }  // namespace
 
-int map2check_execution(std::string inputFile) {
-    //Map2Check::Log::Info("Started Map2Check");
-    ///**
-    //* Start Map2Check algorithm
-    //* (1) Compile file and check for compiler warnings
-    //* (2) Instrument functions for current mode
-    //* (3) Execute with AFL
-    //* (4) Retrieve results
-    //* (5) Generate witness (if analysis generated a result)
-    //**/
+int map2check_execution(std::string inputFile) 
+{
 
-    //// (1) Compile file and check for compiler warnings
-    //// Check if input file is supported
-    //string extension = boost::filesystem::extension(inputFile);
-    //if (extension.compare(".bc") &&
-    //extension.compare(".c") &&
-    //extension.compare(".i")) {
-    //help_msg();
-    //return ERROR_IN_COMMAND_LINE;
-    //}
+    Map2Check::Info("Started Map2Check");
+    /**
+     * Start Map2Check algorithm
+     * (1) Compile file and check for compiler warnings
+     * (2) Instrument functions for current mode
+     * (3) Execute with AFL
+     * (4) Retrieve results
+     * (5) Generate witness (if analysis generated a result)
+     **/
 
-    //std::unique_ptr<Map2Check::Caller> caller;
+    // (1) Compile file and check for compiler warnings
+    // Check if input file is supported
+    string extension = boost::filesystem::extension(inputFile);
+    if (extension.compare(".bc") &&
+            extension.compare(".c") &&
+            extension.compare(".i")) {
+        help_msg();
+        return ERROR_IN_COMMAND_LINE;
+    }
 
-    //// Check if compiling will be needed
-    //if (extension.compare(".bc")) {
-    //// Compile C file
-    //caller = boost::make_unique<Map2Check::Caller>
-    //(Map2Check::Caller::compileCFile(inputFile));
-    //} else {
-    //// C file already compiled
-    //caller = boost::make_unique<Map2Check::Caller>(inputFile);
-    //}
+    std::unique_ptr<Map2Check::Caller> caller;
 
-    //caller->cprogram_fullpath = inputFile;
+    // Check if compiling will be needed
+    if (extension.compare(".bc")) {
+        // Compile C file
+        caller = boost::make_unique<Map2Check::Caller>
+            (Map2Check::Caller::compileCFile(inputFile));
+    } else {
+        // C file already compiled
+        caller = boost::make_unique<Map2Check::Caller>(inputFile);
+    }
 
-    //// (2) Instrument functions for current mode
+    caller->cprogram_fullpath = inputFile;
 
-    //// TODO(rafa.sa.xp@gmail.com): Check current mode
+    // (2) Instrument functions for current mode
+    // TODO(rafa.sa.xp@gmail.com): Check current mode
     //caller->callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
     //caller->linkLLVM();
 
@@ -154,7 +144,6 @@ int main(int argc, char** argv) {
             ("input-file,i",
              po::value< std::vector<string> >(),
              "\tspecifies the files, also works with <file.bc>")
-            //("manual,m", po::value<std::string>()->required(), "extract value manually") 
             ;
 
         po::positional_options_description p;
@@ -197,14 +186,12 @@ int main(int argc, char** argv) {
 
             cout << pathfile << std::endl;
 
-            ////return map2check_execution(pathfile);
+            return map2check_execution(pathfile);
         }
 
     } catch(std::exception& e)
     {
-        //cout << e.what() << "\n";
         std::cerr << e.what() << std::endl;
-
         return 1;
     }     
 

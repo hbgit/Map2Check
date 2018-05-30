@@ -1,6 +1,7 @@
 #!/bin/bash
 
 RUNDIR=`pwd`
+CLANG_PATH=$RUNDIR/dependencies/clang/bin
 
 # Check if LLVM is already downloaded
 # TODO: Check for distro before downloading
@@ -15,7 +16,7 @@ get_llvm()
 }
 
 # Fix for when user has LLVM in the system
-PATH="../clang/bin:$PATH"
+
 
 # Check if AFL is already downloaded and build it using clang
 get_afl()
@@ -25,7 +26,7 @@ get_afl()
 		curl http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz | tar -xz
 		echo "Building AFL"
 		cd afl-2.52b
-		CC=clang CXX=clang++ make
+		PATH="../clang/bin:$PATH" CC=clang CXX=clang++ make
 		cd ..
   fi
 }

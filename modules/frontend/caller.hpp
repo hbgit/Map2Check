@@ -1,6 +1,5 @@
 #pragma once
 
-#include <llvm/IR/Module.h>
 #include<string>
 #include<vector>
 
@@ -25,7 +24,6 @@ class Caller {
   /** Iterate over clang compilation messages (if any)
    *  and check for erors */  
   std::vector<int> processClangOutput();
-  std::unique_ptr<llvm::Module> M;  //!< Current module */
 
  public:
   /** @brief Constructor if .bc file already exists
@@ -39,12 +37,6 @@ class Caller {
    *  @return name of the generated .bc file */
   static std::string compileCFile(std::string cprogram_path);
 
-  /** Parse the input LLVM IR file into a module */
-  void parseIrFile();
-
-  /** Wites a file (named output.bc) that contains the LLVM IR
-   *  after pass execution  */
-  void generateProcessedByteCodeFile();
 
   /** @brief Function to call pass for current verification mode
    *  (REACHABLITY should use the overloaded method)

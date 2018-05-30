@@ -237,14 +237,14 @@ char map2check_non_det_char() {
 
 unsigned short map2check_non_det_ushort() {
   unsigned short non_det;
-  scanf("%u", &non_det);
+  scanf("%hu", &non_det);
   return non_det;
 }
 
 void* map2check_non_det_pointer() {
-  void* non_det;
-  scanf("%x", &non_det);
-  return non_det;
+  long non_det;
+  scanf("%ld", &non_det);
+  return (void*) non_det;
 }
 /*
 void map2check_assume(int expr) {
@@ -253,7 +253,7 @@ void map2check_assume(int expr) {
 */
 long map2check_non_det_long() {
   long non_det;
-  scanf("%f", &non_det);
+  scanf("%ld", &non_det);
   return non_det;
 }
 

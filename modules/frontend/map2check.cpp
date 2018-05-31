@@ -19,8 +19,6 @@ namespace po = boost::program_options;
 #include "caller.hpp"
 #include "utils/log.hpp"
 
-using namespace std;
-
 #define Map2CheckVersion "Map2Check 7.2-Fuzzer : Mon May 28 21:44:38 UTC 2018"
 
 namespace {
@@ -31,17 +29,17 @@ const size_t ERROR_IN_COMMAND_LINE = 1;
 
 // A helper function to simplify the main part.
 template<class T>
-  ostream& operator<<(ostream& os, const std::vector<T>& v) {
-    copy(v.begin(), v.end(), ostream_iterator<T>(os, " "));
+  std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
+    copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
     return os;
 }
 
 inline void help_msg() {
-    cout << endl;
-    cout << "> > > \t  "<< Map2CheckVersion << " \t < < <" << endl;
-    cout << endl;
-    cout << "Usage: map2check [options] file.[i|c]\n";
-    cout << endl;
+    std::cout << std::endl;
+    std::cout << "> > > \t  "<< Map2CheckVersion << " \t < < <" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Usage: map2check [options] file.[i|c]\n";
+    std::cout << std::endl;
 }
     /**inline int MIN(int a, int b) {
       if (a > b) {
@@ -95,7 +93,7 @@ int map2check_execution(std::string inputFile)
    **/
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
-  string extension = boost::filesystem::extension(inputFile);
+  std::string extension = boost::filesystem::extension(inputFile);
   if (extension.compare(".bc") &&
       extension.compare(".c") &&
       extension.compare(".i")) {
@@ -135,7 +133,7 @@ int main(int argc, char** argv) {
       ("help,h", "\tshow help")
       ("version,v", "\tprints map2check version")
       ("input-file,i",
-       po::value< std::vector<string> >(),
+       po::value< std::vector<std::string> >(),
        "\tspecifies the files, also works with <file.bc>")
     ;
     po::positional_options_description p;
@@ -147,29 +145,29 @@ int main(int argc, char** argv) {
     po::notify(vm);    
     // Handling with the options
     if (vm.count("version")) {
-      cout << Map2CheckVersion << "\n";
+      std::cout << Map2CheckVersion << "\n";
       return SUCCESS;
     }
     if (vm.count("help") == 0 && vm.count("input-file") == 0) {
       help_msg();
-      cout << desc;
+      std::cout << desc;
       return ERROR_IN_COMMAND_LINE;
     }
     if (vm.count("help")) {
       help_msg();
-      cout << desc;
+      std::cout << desc;
       return SUCCESS;
     }
     if (vm.count("input-file")) {
       std::string pathfile;
       pathfile = accumulate(boost::begin(vm["input-file"]
-        .as< std::vector<string> >()),
+        .as< std::vector<std::string> >()),
          boost::end(vm["input-file"]
-        .as< std::vector<string> >
+        .as< std::vector<std::string> >
          ()),
          pathfile);
 
-      cout << pathfile << std::endl;
+      std::cout << pathfile << std::endl;
       return map2check_execution(pathfile);
     }
 

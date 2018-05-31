@@ -2,11 +2,14 @@
 #include <string>
 
 namespace Map2Check {
-  void initLog();
-  void Error(std::string msg);
-  void Warning(std::string msg);
-  void Debug(std::string msg);
-  void Info(std::string msg);  
-  void Fatal(std::string msg);  
-}
-						   
+// TODO(rafa.sa.xp@gmail.com): make logging levels
+class Log {
+ public:
+  static void initLog();
+  static void Error(std::string msg);
+  static void Warning(std::string msg);
+  static void Debug(std::string msg);
+  static void Info(std::string msg);
+  static void Fatal(std::string msg);
+};
+}  // namespace Map2Check

@@ -132,17 +132,17 @@ std::vector<int> Caller::processClangOutput() {
 
   ifstream in(path_name);
   if (!in.is_open()) {
-    Map2Check::Debug("Clang did not generate warning or errors");
+    Map2Check::Log::Debug("Clang did not generate warning or errors");
     return result;
   }
-  Map2Check::Debug("Clang generate warning or errors");
+  Map2Check::Log::Debug("Clang generate warning or errors");
 
   regex overflowWarning(".*:([[:digit:]]+):[[:digit:]]+:.*Winteger-overflow.*");
   string line;
   smatch match;
   while (getline(in, line)) {
     if (std::regex_search(line, match, overflowWarning) && match.size() > 1) {
-      Map2Check::Info("Found warning at line " + match[1].str());
+      Map2Check::Log::Info("Found warning at line " + match[1].str());
       int lineNumber = std::stoi(match[1].str());
       result.push_back(lineNumber);
     }
@@ -152,7 +152,7 @@ std::vector<int> Caller::processClangOutput() {
 }
 
 string Caller::compileCFile(std::string cprogram_path) {
-  Map2Check::Info("Compiling " + cprogram_path);
+  Map2Check::Log::Info("Compiling " + cprogram_path);
 
   std::ostringstream commandRemoveExternMalloc;
   commandRemoveExternMalloc.str("");

@@ -84,7 +84,7 @@ namespace {
 int map2check_execution(std::string inputFile) 
 {
 
-    Map2Check::Info("Started Map2Check");
+    Map2Check::Log::Info("Started Map2Check");
     /**
      * Start Map2Check algorithm
      * (1) Compile file and check for compiler warnings

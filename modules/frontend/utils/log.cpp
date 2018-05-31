@@ -1,18 +1,13 @@
-
-#include <boost/log/sinks/sink.hpp>
+#include "log.hpp"
+#include <boost/log/trivial.hpp>
 #include <string>
 #include <iostream>
 #include "tools.hpp"
 
-namespace logging = boost::log;
-namespace src = boost::log::sources;
-namespace sinks = boost::log::sinks;
-namespace keywords = boost::log::keywords;
-
-
 namespace Map2Check {
 
   void Error(std::string msg) {
+    
     BOOST_LOG_TRIVIAL(error) << "\033[0;31m" << msg << "\033[0m";
   }
 
@@ -21,8 +16,8 @@ namespace Map2Check {
   }
 
   void initLog() {
-      logging::core::get()->set_filter(
-               logging::trivial::severity >= logging::trivial::info);
+      // logging::core::get()->set_filter(
+      //          logging::trivial::severity >= logging::trivial::info);
   }
 
   void Debug(std::string msg) {
@@ -31,7 +26,6 @@ namespace Map2Check {
 
   void Info(std::string msg) {
     BOOST_LOG_TRIVIAL(info) << "\033[0;32m" << msg << "\033[0m";
-    //std::cout << "\033[0;32m" << msg << "\033[0m" << std::endl;
   }
 
   void Fatal(std::string msg) {

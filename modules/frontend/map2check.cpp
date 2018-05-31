@@ -25,7 +25,7 @@ namespace {
 
 const size_t SUCCESS = 0;
 const size_t ERROR_IN_COMMAND_LINE = 1;
-//const size_t ERROR_UNHANDLED_EXCEPTION = 2;
+// const size_t ERROR_UNHANDLED_EXCEPTION = 2;
 
 // A helper function to simplify the main part.
 template<class T>
@@ -79,9 +79,7 @@ inline void fixPath(char* map2check_bin_string) {
 }
 }  // namespace
 
-int map2check_execution(std::string inputFile) 
-{
-
+int map2check_execution(std::string inputFile) {
   Map2Check::Log::Info("Started Map2Check");
   /**
    * Start Map2Check algorithm
@@ -113,8 +111,8 @@ int map2check_execution(std::string inputFile)
   caller->cprogram_fullpath = inputFile;
   // (2) Instrument functions for current mode
   // TODO(rafa.sa.xp@gmail.com): Check current mode
-  //caller->callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
-  //caller->linkLLVM();
+  // caller->callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
+  // caller->linkLLVM();
   return SUCCESS;
 }
 
@@ -125,24 +123,24 @@ void test_map() {
   caller.linkLLVM();
 }
 
-int main(int argc, char** argv) {     
+int main(int argc, char** argv) {
   try {
     // Define and parse the program options
-    po::options_description desc("Options");  
+    po::options_description desc("Options");
     desc.add_options()
       ("help,h", "\tshow help")
       ("version,v", "\tprints map2check version")
       ("input-file,i",
        po::value< std::vector<std::string> >(),
-       "\tspecifies the files, also works with <file.bc>")
-    ;
+       "\tspecifies the files, also works with <file.bc>");
+
     po::positional_options_description p;
     p.add("input-file", -1);
-    po::variables_map vm;     
-    //po::store(po::parse_command_line(argc, argv, desc), vm); 
-    po::store(po::command_line_parser(argc, argv).
-            options(desc).positional(p).run(), vm); 
-    po::notify(vm);    
+    po::variables_map vm;
+    // po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::store(po::command_line_parser(argc, argv)
+            .options(desc).positional(p).run(), vm);
+    po::notify(vm);
     // Handling with the options
     if (vm.count("version")) {
       std::cout << Map2CheckVersion << "\n";
@@ -170,11 +168,9 @@ int main(int argc, char** argv) {
       std::cout << pathfile << std::endl;
       return map2check_execution(pathfile);
     }
-
-  } catch(std::exception& e)
-  {
+  } catch(std::exception& e) {
     std::cerr << e.what() << std::endl;
     return 1;
-  }     
+  }
   return SUCCESS;
 }

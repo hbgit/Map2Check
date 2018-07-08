@@ -1,5 +1,6 @@
 #include <mainclass.hpp>
 #include <QDebug>
+#include <QFileInfo>
 
 MainClass::MainClass(QObject *parent) : QObject(parent)
 {
@@ -23,12 +24,21 @@ MainClass::MainClass(QObject *parent) : QObject(parent)
     {
         inputFile = parser.value("input-file");
     }
+
+    QFileInfo info(inputFile);
+    QString extension = info.suffix();
+
+    if(!((extension == "c") || (extension == "i"))) {
+        qFatal("Unsuported filetype");
+        quit();
+    }
 }
 
 void MainClass::run()
 {
     // MAIN CODE GOES HERE
     qDebug() << "MainClass.run is executing";
+
 
     quit();
 }

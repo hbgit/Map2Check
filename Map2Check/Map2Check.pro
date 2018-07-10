@@ -16,7 +16,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-    mainclass.cpp
+    mainclass.cpp \
+    caller.cpp
 
 HEADERS += \
-    mainclass.hpp
+    mainclass.hpp \
+    caller.hpp

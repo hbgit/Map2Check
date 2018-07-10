@@ -29,7 +29,7 @@ MainClass::MainClass(QObject *parent) : QObject(parent)
     QString extension = info.suffix();
 
     if(!((extension == "c") || (extension == "i"))) {
-        qFatal("Unsuported filetype");
+        qFatal(QCoreApplication::translate("error", "Unsuported input type."),);
         quit();
     }
 }

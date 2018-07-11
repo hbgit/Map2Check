@@ -40,8 +40,9 @@ void Caller::compileCFile()
     QString clang = "clang";
     clang.append(getOSSuffix());
 
-    // TODO: Add include file
+    // TODO: Add include folder on project
     QStringList arguments;
+    arguments << "-I include";
     arguments << "-Wno-everything";
     arguments << "-Winteger-overflow";
     arguments << "-c";

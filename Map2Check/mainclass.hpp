@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QObject>
+#include <caller.hpp>
 
 class MainClass : public QObject
 {
@@ -12,6 +13,7 @@ private:
     QCoreApplication *app;
     QCommandLineParser parser;
     QString inputFile;
+    Map2Check::Caller caller;
 public:
     explicit MainClass(QObject *parent = 0);
     /////////////////////////////////////////////////////////////
@@ -34,6 +36,8 @@ public slots:
     /// slot that get signal when that application is about to quit
     /////////////////////////////////////////////////////////////
     void aboutToQuitApp();
+
+    void error(const char* message);
 };
 
 #endif // MAINCLASS_HPP

@@ -1,9 +1,13 @@
 #include <mainclass.hpp>
 #include <QDebug>
 #include <QFileInfo>
+#include <caller.hpp>
 
 MainClass::MainClass(QObject *parent) : QObject(parent)
 {
+    QObject::connect(&caller, SIGNAL(error(const char*)), this, SLOT(error(const char*)));
+    QObject::connect(&caller, SIGNAL(finished()), this, SLOT(aboutToQuitApp()));
+    QObject::connect(this, SIGNAL(finished()), &caller, SLOT(prematureStop()));
     // get instance
     app = QCoreApplication::instance();
     parser.setApplicationDescription("Map2Check Usage");
@@ -29,17 +33,21 @@ MainClass::MainClass(QObject *parent) : QObject(parent)
     QString extension = info.suffix();
 
     if(!((extension == "c") || (extension == "i"))) {
-        qFatal(QCoreApplication::translate("error", "Unsuported input type."),);
+        qFatal("unsuported type");
         quit();
     }
 }
 
 void MainClass::run()
 {
-    // MAIN CODE GOES HERE
-    qDebug() << "MainClass.run is executing";
+    // Analyze program
+    Map2Check::Map2CheckMode mode = Map2Check::Map2CheckMode::MEMTRACK_MODE;
+    caller.analyzeProgram(inputFile,mode);
+}
 
-
+void MainClass::error(const char* message)
+{
+    qFatal(message);
     quit();
 }
 
@@ -51,4 +59,5 @@ void MainClass::quit()
 void MainClass::aboutToQuitApp()
 {
     //stop threads and remove objects
+    exit(0);
 }

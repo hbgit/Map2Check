@@ -4,6 +4,7 @@
 #include <QSysInfo>
 #include <QStringList>
 #include <QProcess>
+#include <QFile>
 
 namespace {
 inline QString getOSSuffix()
@@ -83,6 +84,27 @@ void Caller::instrumentPass()
      QStringList arguments;
      // Should fix for all OS (.so is for *nix)
      arguments << "-load ${MAP2CHECK_PATH}/lib/libNonDetPass.so";
+
+     QProcess *process = new QProcess(this);
+     QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                      [=](int, QProcess::ExitStatus exitStatus)
+     {
+         // TODO: implement
+         qDebug() << "opt executed";
+         finished();
+     });
+     QFile file(output);
+     if (!file.open(QIODevice::ReadOnly))
+     {
+         // Error opening file
+         emit error("Could not open compiled .bc file");
+         finished();
+     }
+
+     while(!file.atEnd())
+     {
+
+     }
 
 }
 

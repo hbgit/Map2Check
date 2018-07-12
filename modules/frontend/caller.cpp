@@ -57,7 +57,7 @@ void Caller::compileCFile()
 
     QProcess *process = new QProcess(this);
     QString clangOutput = getHashedName(program);
-    output.append("-clangOutput");
+    clangOutput.append("-clangOutput");
     process->setStandardOutputFile(clangOutput
                                    );
     QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
@@ -86,10 +86,9 @@ void Caller::compileCFile()
 void Caller::instrumentPass()
 {
     qDebug() << "Starting instrumentation with opt";
-    emit instrumentationUpdate(InstrumentationStatus::CompilationStart);
+    emit instrumentationUpdate(InstrumentationStatus::InstrumentationStart);
     // TODO: check other modes
-    QString opt = "./bin/opt -load ./lib/libNonDetPass.so -map2check";
-
+    QString opt = "./bin/opt -load ./lib/libNonDetPass.so -non_det -load ./lib/libMap2CheckLibrary.so -map2check ";
 
     QProcess *process = new QProcess(this);
     process->setReadChannelMode(QProcess::SeparateChannels);
@@ -105,15 +104,49 @@ void Caller::instrumentPass()
     QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
                      [=](int, QProcess::ExitStatus exitStatus)
     {
-        qDebug() << "Finished opt";
-        // TODO: link program
+        linkLLVM();
+    });
+
+    process->start(opt);
+}
+
+void Caller::linkLLVM()
+{
+    qDebug() << "Starting linking";
+    emit instrumentationUpdate(InstrumentationStatus::LinkStart);
+    // TODO: check other modes
+    QString llvm_link = "./bin/llvm-link";
+
+    QStringList arguments;
+
+    QString entry_file = getHashedName(program);
+    entry_file.append("-inst.bc");
+    arguments << entry_file;
+
+    arguments << "./lib/Map2CheckFunctions.bc";
+    arguments << "./lib/AllocationLog.bc";
+    arguments << "./lib/HeapLog.bc";
+    arguments << "./lib/TrackBBLog.bc";
+    arguments << "./lib/Container.bc";
+    arguments << "./lib/KleeLog.bc";
+    arguments << "./lib/ListLog.bc";
+    arguments << "./lib/PropertyGenerator.bc";
+
+    QProcess *process = new QProcess(this);
+    process->setReadChannelMode(QProcess::SeparateChannels);
+
+    QString output = getHashedName(program);
+    output.append("-linked.bc");
+    process->setStandardOutputFile(output);
+
+    QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                     [=](int, QProcess::ExitStatus exitStatus)
+    {
+        // TODO: start real analysis
         finished();
     });
 
-
-
-    process->start(opt);
-
+    process->start(llvm_link,arguments);
 }
 
 void Caller::analyzeProgram(QString program, Map2CheckMode mode, QString targetFunction)
@@ -130,6 +163,7 @@ void Caller::prematureStop()
 {
     removeTemporaryFiles();
 }
+
 
 void Caller::removeTemporaryFiles()
 {

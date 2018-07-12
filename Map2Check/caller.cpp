@@ -70,11 +70,20 @@ void Caller::compileCFile()
                 emit error(CompilationErrors.toStdString().c_str());
                 finished();
             }
-            /* TODO: begin instrumentation */
-            finished();
+            instrumentPass();
         }
     });
     process->start(clang, arguments);
+}
+
+void Caller::instrumentPass()
+{
+    // TODO: check other modes
+     QString opt = "opt";
+     QStringList arguments;
+     // Should fix for all OS (.so is for *nix)
+     arguments << "-load ${MAP2CHECK_PATH}/lib/libNonDetPass.so";
+
 }
 
 void Caller::analyzeProgram(QString program, Map2CheckMode mode, QString targetFunction)

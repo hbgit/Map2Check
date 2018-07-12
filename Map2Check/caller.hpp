@@ -40,6 +40,7 @@ private:
     /** Get optmization flags for final bytecode
      *  @return Flags for opt */
     static QString getPostOptimizationFlags();
+    void instrumentPass();
 
     /** Iterate over clang compilation messages (if any)
      *  and check for erors */
@@ -64,7 +65,7 @@ private slots:
     /** @brief Function to compile original C file removing external memory operations calls
      *  @param cprogam_path Path for the file */
     void compileCFile();
-    //void instrumentPass();
+    //void
     //void errorOnInstrumentation();
     //void errorOnAnalysis();
 

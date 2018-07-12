@@ -36,11 +36,11 @@ set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CPP_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 # Configure boost 
-set(BOOST_USE_STATIC_LIBS true)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost COMPONENTS program_options system filesystem REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
+#set(BOOST_USE_STATIC_LIBS true)
+#set(Boost_USE_MULTITHREADED ON)
+#set(Boost_USE_STATIC_RUNTIME    OFF)
+#find_package(Boost COMPONENTS program_options system filesystem REQUIRED)
+#include_directories(${Boost_INCLUDE_DIRS})
 
 include_directories(${PROJECT_SOURCE_DIR})
 

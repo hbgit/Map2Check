@@ -14,7 +14,8 @@ inline QString getOSSuffix()
 
 inline QString getHashedName(QString filename)
 {
-    return "compiled";
+    static QString output = "compiled";
+    return output;
 }
 }
 
@@ -38,7 +39,7 @@ void Caller::compileCFile()
     qDebug() << "Started compilation";
 
     emit instrumentationUpdate(InstrumentationStatus::CompilationStart);
-    QString clang = "clang";
+    QString clang = "./bin/clang";
     clang.append(getOSSuffix());
 
     // TODO: Add include folder on project
@@ -53,11 +54,16 @@ void Caller::compileCFile()
     arguments << "-o" << output.append(".bc");
     arguments << filename;
 
+
     QProcess *process = new QProcess(this);
+    QString clangOutput = getHashedName(program);
+    output.append("-clangOutput");
+    process->setStandardOutputFile(clangOutput
+                                   );
     QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
                      [=](int, QProcess::ExitStatus exitStatus)
     {
-        if(exitStatus == QProcess::CrashExit)
+        if(exitStatus != QProcess::NormalExit)
         {
             emit error("Error executing clang");
             finished();
@@ -79,34 +85,34 @@ void Caller::compileCFile()
 
 void Caller::instrumentPass()
 {
+    qDebug() << "Starting instrumentation with opt";
+    emit instrumentationUpdate(InstrumentationStatus::CompilationStart);
     // TODO: check other modes
-     QString opt = "opt";
-     QStringList arguments;
-     // Should fix for all OS (.so is for *nix)
-     arguments << "-load ${MAP2CHECK_PATH}/lib/libNonDetPass.so";
+    QString opt = "./bin/opt -load ./lib/libNonDetPass.so -map2check";
 
-     QProcess *process = new QProcess(this);
-     QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                      [=](int, QProcess::ExitStatus exitStatus)
-     {
-         // TODO: implement
-         qDebug() << "opt executed";
-         finished();
-     });
-     QString output = getHashedName(program);
 
-     QFile file(output);
-     if (!file.open(QIODevice::ReadOnly))
-     {
-         // Error opening file
-         emit error("Could not open compiled .bc file");
-         finished();
-     }
+    QProcess *process = new QProcess(this);
+    process->setReadChannelMode(QProcess::SeparateChannels);
 
-     while(!file.atEnd())
-     {
+    QString compiled = getHashedName(program);
+    compiled.append(".bc");
+    process->setStandardInputFile(compiled);
 
-     }
+    QString output = getHashedName(program);
+    output.append("-inst.bc");
+    process->setStandardOutputFile(output);
+
+    QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                     [=](int, QProcess::ExitStatus exitStatus)
+    {
+        qDebug() << "Finished opt";
+        // TODO: link program
+        finished();
+    });
+
+
+
+    process->start(opt);
 
 }
 

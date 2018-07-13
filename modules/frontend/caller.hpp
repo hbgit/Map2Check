@@ -22,6 +22,7 @@ enum class InstrumentationStatus
     CompilationStart,
     InstrumentationStart,
     LinkStart,
+    AFL_Instrumentation,
     ExecutingAnalysis,
     CheckingResults,
     Finished
@@ -52,6 +53,8 @@ private:
     /** Remove generated files for verification */
     void removeTemporaryFiles();
     void callPass();
+
+    void instrumentAFL();
 public:
     Caller() {}
     void stop();

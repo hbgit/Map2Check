@@ -5,6 +5,9 @@
 #include <QStringList>
 #include <QProcess>
 #include <QFile>
+#include <QCoreApplication>
+#include <QDir>
+#include <QtGlobal>
 
 namespace {
 inline QString getOSSuffix()
@@ -16,6 +19,29 @@ inline QString getHashedName(QString filename)
 {
     static QString output = "compiled";
     return output;
+}
+
+/* On DEBUG mode the workspace MUST be the release directory since it contains all
+ * external files, on release mode, it should be the main binary file, so it can be
+ * called from anywhere */
+inline QString getApplicationPath()
+{
+    QString path;
+#ifdef QT_DEBUG
+    QDir dir(".");
+    path = dir.absolutePath();
+#else
+    path = QCoreApplication::applicationDirPath();
+#endif
+    return path;
+}
+
+inline QString getExternalToolsPathVar()
+{
+    QString path;
+    path.append(getApplicationPath());
+    path.append("/bin:$PATH ");
+    return path;
 }
 }
 
@@ -39,9 +65,9 @@ void Caller::compileCFile()
     qDebug() << "Started compilation";
 
     emit instrumentationUpdate(InstrumentationStatus::CompilationStart);
-    QString clang = "./bin/clang";
+    QString clang = getApplicationPath().append("/bin/clang");
     clang.append(getOSSuffix());
-
+    qDebug() << clang;
     // TODO: Add include folder on project
     QStringList arguments;
     arguments << "-I include";
@@ -66,7 +92,7 @@ void Caller::compileCFile()
         if(exitStatus != QProcess::NormalExit)
         {
             emit error("Error executing clang");
-            finished();
+            emit finished();
         }
         else
         {
@@ -75,7 +101,7 @@ void Caller::compileCFile()
             if(!CompilationErrors.isEmpty())
             {
                 emit error(CompilationErrors.toStdString().c_str());
-                finished();
+                emit finished();
             }
             instrumentPass();
         }
@@ -88,7 +114,7 @@ void Caller::instrumentPass()
     qDebug() << "Starting instrumentation with opt";
     emit instrumentationUpdate(InstrumentationStatus::InstrumentationStart);
     // TODO: check other modes
-    QString opt = "./bin/opt -load ./lib/libNonDetPass.so -non_det -load ./lib/libMap2CheckLibrary.so -map2check ";
+    QString opt = getApplicationPath().append("/bin/opt -load ./lib/libNonDetPass.so -non_det -load ./lib/libMap2CheckLibrary.so -map2check ");
 
     QProcess *process = new QProcess(this);
     process->setReadChannelMode(QProcess::SeparateChannels);
@@ -115,7 +141,7 @@ void Caller::linkLLVM()
     qDebug() << "Starting linking";
     emit instrumentationUpdate(InstrumentationStatus::LinkStart);
     // TODO: check other modes
-    QString llvm_link = "./bin/llvm-link";
+    QString llvm_link = getApplicationPath().append("/bin/llvm-link");
 
     QStringList arguments;
 
@@ -142,8 +168,7 @@ void Caller::linkLLVM()
     QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
                      [=](int, QProcess::ExitStatus exitStatus)
     {
-        // TODO: start real analysis
-        finished();
+        instrumentAFL();
     });
 
     process->start(llvm_link,arguments);
@@ -168,6 +193,44 @@ void Caller::prematureStop()
 void Caller::removeTemporaryFiles()
 {
 
+}
+
+void Caller::instrumentAFL()
+{
+    qputenv("PATH", getExternalToolsPathVar().toUtf8());
+
+    qDebug() << "Starting AFL Instrumentation";
+    emit instrumentationUpdate(InstrumentationStatus::AFL_Instrumentation);
+    // TODO: check other modes
+    QString afl;
+    afl.append(getApplicationPath().append("/afl/afl-clang "));
+
+    QString entry_file = getHashedName(program);
+    entry_file.append("-linked.bc ");
+
+    afl.append(entry_file);
+
+    afl.append("-o ");
+    QString output = getHashedName(program);
+    output.append(".out");
+    afl.append(output);
+
+    QProcess *process = new QProcess(this);
+    QObject::connect(process,  QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                     [=](int, QProcess::ExitStatus exitStatus)
+    {
+
+        stop();
+    });
+
+    process->start(afl);
+
+
+}
+
+void Caller::stop()
+{
+ emit finished();
 }
 } // namespace Map2Check
 

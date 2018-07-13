@@ -47,7 +47,7 @@ void MainClass::run()
 
 void MainClass::error(const char* message)
 {
-    qFatal(message);
+    qFatal("%s",message);
     quit();
 }
 
@@ -58,6 +58,5 @@ void MainClass::quit()
 
 void MainClass::aboutToQuitApp()
 {
-    //stop threads and remove objects
     exit(0);
 }

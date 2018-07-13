@@ -25,11 +25,11 @@ RUN apt-get update
 ############depois tu me manda uma cópia do teu mirrors ###### BEGIN INSTALLATION ######################
 # Devel packages
 RUN apt-get install -y sudo \	
-	libboost-all-dev \
+	build-essential \
+	qt5-default
 	cmake \
-    make \
 	curl \
-    vim
+        vim
 
 # Clean packages installation
 RUN apt-get clean

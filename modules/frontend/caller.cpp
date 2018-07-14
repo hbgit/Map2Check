@@ -36,7 +36,8 @@ inline QString getApplicationPath() {
 inline QString getExternalToolsPathVar() {
   QString path;
   path.append(getApplicationPath());
-  path.append("/bin:$PATH ");
+  path.append("/bin:$PATH");
+  qDebug() << path;
   return path;
 }
 }  // namespace
@@ -167,30 +168,36 @@ void Caller::prematureStop() { removeTemporaryFiles(); }
 void Caller::removeTemporaryFiles() {}
 
 void Caller::instrumentAFL() {
-  qputenv("PATH", getExternalToolsPathVar().toUtf8());
-
   qDebug() << "Starting AFL Instrumentation";
   emit instrumentationUpdate(InstrumentationStatus::AFL_Instrumentation);
   // TODO: check other modes
   QString afl;
+  afl.append("PATH=").append(getExternalToolsPathVar()).append(" ");
   afl.append(getApplicationPath().append("/afl/afl-clang "));
 
+  //  QStringList arguments;
+
   QString entry_file = getHashedName(program);
-  entry_file.append("-linked.bc ");
+  entry_file.append("-linked.bc");
 
   afl.append(entry_file);
 
-  afl.append("-o ");
-  QString output = getHashedName(program);
+  QString output = " -o ";
+  output.append(getHashedName(program));
   output.append(".out");
+
   afl.append(output);
 
   QProcess *process = new QProcess(this);
   QObject::connect(
       process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-      [=](int, QProcess::ExitStatus exitStatus) { stop(); });
+      [=](int, QProcess::ExitStatus exitStatus) {
+        qDebug() << process->readAll();
+        stop();
+      });
 
-  process->start(afl);
+  qDebug() << afl;
+  process->start("bash", QStringList() << "-c" << afl);
 }
 
 void Caller::stop() { emit finished(); }

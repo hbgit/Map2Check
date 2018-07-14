@@ -98,7 +98,7 @@ void Caller::instrumentPass() {
   // TODO: check other modes
   QString opt = getApplicationPath().append(
       "/bin/opt -load ./lib/libNonDetPass.so -non_det -load "
-      "./lib/libMap2CheckLibrary.so -map2check ");
+      "./lib/libMap2CheckLibrary.so -map2check -load ./lib/libMemoryTrackPass.so -memory_track ");
 
   QProcess *process = new QProcess(this);
   process->setReadChannelMode(QProcess::SeparateChannels);

@@ -380,8 +380,7 @@ void map2check_success() {
 void map2check_error() {
   gotError = TRUE;
   map2check_exit();
-  // klee_assert(0);
-  //
+
 }
 
 void map2check_exit() {
@@ -401,6 +400,12 @@ void map2check_exit() {
   allocation_log_to_file(&allocation_log);
   valid_allocation_log(&allocation_log);
   free_container(&allocation_log);
+
+  /* gotError = TRUE; */
+  if( gotError == TRUE) {
+    abort();
+  }
+    
 }
 
 void update_reference_list_log(long address, enum MemoryAddressStatus status,

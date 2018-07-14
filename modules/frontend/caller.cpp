@@ -153,6 +153,33 @@ void Caller::linkLLVM() {
   process->start(llvm_link, arguments);
 }
 
+void Caller::executeAnalysis() {
+  qDebug() << "Starting AFL Execution";
+  emit instrumentationUpdate(InstrumentationStatus::ExecutingAnalysis);
+
+  QString afl;
+  afl.append(
+      "AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 AFL_SKIP_CPUFREQ=1 "
+      "AFL_BENCH_UNTIL_CRASH=1 ");
+
+  afl.append(getApplicationPath().append("/afl/afl-fuzz "));
+  afl.append("-i ").append(getApplicationPath()).append("/in ");
+  afl.append("-o `pwd`/out `pwd`/");
+
+  QString entry_file = getHashedName(program);
+  entry_file.append(".out");
+
+  afl.append(entry_file);
+
+  QProcess *process = new QProcess(this);
+  QObject::connect(
+      process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+      [=](int, QProcess::ExitStatus exitStatus) { stop(); });
+
+  qDebug() << afl;
+  process->start("bash", QStringList() << "-c" << afl);
+}
+
 void Caller::analyzeProgram(QString program, Map2CheckMode mode,
                             QString targetFunction) {
   this->program = program;
@@ -191,10 +218,7 @@ void Caller::instrumentAFL() {
   QProcess *process = new QProcess(this);
   QObject::connect(
       process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-      [=](int, QProcess::ExitStatus exitStatus) {
-        qDebug() << process->readAll();
-        stop();
-      });
+      [=](int, QProcess::ExitStatus exitStatus) { executeAnalysis(); });
 
   qDebug() << afl;
   process->start("bash", QStringList() << "-c" << afl);

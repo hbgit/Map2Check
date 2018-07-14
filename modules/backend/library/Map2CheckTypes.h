@@ -15,13 +15,12 @@
 
 enum PRIMITIVE_TYPE {
   PRIMITIVE_INTEGER = 0,
-  PRIMITIVE_CHAR    = 1,
+  PRIMITIVE_CHAR = 1,
   PRIMITIVE_POINTER = 2,
-  PRIMITIVE_USHORT  = 3,
-  PRIMITIVE_SHORT   = 4,
+  PRIMITIVE_USHORT = 3,
+  PRIMITIVE_SHORT = 4,
   PRIMITIVE_UNSIGNED = 5
 };
-
 
 enum MemoryAddressStatus {
   STATIC = 0,
@@ -32,10 +31,10 @@ enum MemoryAddressStatus {
 
 enum NONDET_TYPE {
   INTEGER = 0,
-  CHAR    = 1,
+  CHAR = 1,
   POINTER = 2,
-  USHORT  = 3,
-  LONG    = 4,
+  USHORT = 3,
+  LONG = 4,
   UNSIGNED = 5
 };
 
@@ -48,20 +47,20 @@ enum Container_Type {
 };
 
 enum ViolatedProperty {
-  NONE           = 0,
-  UNKNOWN        = 1,
-  FALSE_FREE     = 2,
-  FALSE_DEREF    = 3,
-  FALSE_MEMTRACK = 4,    
+  NONE = 0,
+  UNKNOWN = 1,
+  FALSE_FREE = 2,
+  FALSE_DEREF = 3,
+  FALSE_MEMTRACK = 4,
   TARGET_REACHED = 5,
-  OVERFLOW       = 6
+  OVERFLOW = 6
 };
 
 typedef
-/**
- * Struct to save ROWS form LIST_LOG
- */
-struct obj {
+    /**
+     * Struct to save ROWS form LIST_LOG
+     */
+    struct obj {
   /** Current ID on ListLog */
   unsigned id;
   /** Variable name */
@@ -84,13 +83,12 @@ struct obj {
   unsigned step_on_execution;
 } LIST_LOG_ROW;
 
-typedef 
-/**
- * Struct to save ROWS from MEMORY_ALLOCATIONS
- */
-struct obj2 
-{
-  /** Current ID on AllocationLog */  
+typedef
+    /**
+     * Struct to save ROWS from MEMORY_ALLOCATIONS
+     */
+    struct obj2 {
+  /** Current ID on AllocationLog */
   unsigned id;
   /** Address of the memory */
   long addr;
@@ -100,14 +98,14 @@ struct obj2
   unsigned size;
 } MEMORY_ALLOCATIONS_ROW;
 
-typedef 
-/**
- * Struct to save ROWS from KLEE_LOG
- */
-struct obj3 {
-  /** Current ID on KleeLog */  
-  unsigned id; 
-  /** Type of the value generated */  
+typedef
+    /**
+     * Struct to save ROWS from KLEE_LOG
+     */
+    struct obj3 {
+  /** Current ID on KleeLog */
+  unsigned id;
+  /** Type of the value generated */
   enum NONDET_TYPE type;
   /** Line where operation occurred */
   unsigned line;
@@ -122,12 +120,12 @@ struct obj3 {
   char function_name[FUNCTION_MAX_LENGTH_NAME];
 } KLEE_CALL;
 
-typedef 
-/**
- * Struct to represent the container
- */
-struct obj4 {
-  /** Type of the container generated */ 
+typedef
+    /**
+     * Struct to represent the container
+     */
+    struct obj4 {
+  /** Type of the container generated */
   enum Container_Type type;
   /** Size of the container (number of rows) */
   unsigned size;
@@ -135,12 +133,11 @@ struct obj4 {
   void* values;
 } MAP2CHECK_CONTAINER;
 
-
 typedef
-/**
- * Struct to represent the Heap Log
- */
-struct obj5 {
+    /**
+     * Struct to represent the Heap Log
+     */
+    struct obj5 {
   /** Line where operation occurred */
   unsigned line;
   /** Current scope number (llvm ir uses numbered scopes) */
@@ -155,14 +152,13 @@ struct obj5 {
   char function_name[FUNCTION_MAX_LENGTH_NAME];
 } MEMORY_HEAP_ROW;
 
-
 typedef
-/**
- * Struct to represent the Track BB Log
- */
-struct obj6 {
+    /**
+     * Struct to represent the Track BB Log
+     */
+    struct obj6 {
   /** Line where operation occurred */
-  unsigned line;  
+  unsigned line;
   /** Name of the function where operation took place */
   char function_name[FUNCTION_MAX_LENGTH_NAME];
 } TRACK_BB_ROW;
@@ -174,6 +170,5 @@ typedef union CONTAINER_ROW {
   TRACK_BB_ROW trackBBLog;
   KLEE_CALL kleeLog;
 } CONTAINER_ROW;
-
 
 #endif

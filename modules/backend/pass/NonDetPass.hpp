@@ -1,18 +1,18 @@
 #pragma once
 
-#include <llvm/Pass.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Metadata.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Metadata.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Pass.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>
-#include <string>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <memory>
@@ -35,8 +35,9 @@ enum class NonDetType {
 
 struct NonDetPass : public FunctionPass {
   static char ID;
-  NonDetPass() : FunctionPass(ID) { }
-  virtual bool runOnFunction(Function &F);
+  NonDetPass() : FunctionPass(ID) {}
+  virtual bool runOnFunction(Function& F);
+
  protected:
   void instrumentInstruction();
   /**
@@ -46,7 +47,7 @@ struct NonDetPass : public FunctionPass {
   Value* getFunctionNameValue() { return this->functionName; }
 
  private:
-  void instrumentNonDet(NonDetType type, Function *caleeFunction);
+  void instrumentNonDet(NonDetType type, Function* caleeFunction);
   void instrumentNonDetInt(CallInst* callInst, LLVMContext* Ctx);
   void instrumentNonDetUnsigned(CallInst* callInst, LLVMContext* Ctx);
   void instrumentNonDetChar(CallInst* callInst, LLVMContext* Ctx);
@@ -59,13 +60,9 @@ struct NonDetPass : public FunctionPass {
   BasicBlock::iterator currentInstruction;
 };
 
-
-
 class NonDetPassException : public std::runtime_error {
  public:
   explicit NonDetPassException(std::string message)
-  : std::runtime_error(message) {}
+      : std::runtime_error(message) {}
   virtual const char* what() const throw();
 };
-
-

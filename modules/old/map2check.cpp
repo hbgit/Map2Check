@@ -1,20 +1,19 @@
 
-#include <iostream>
-#include <string>
 #include <algorithm>
+#include <cstdlib>
+#include <iostream>
 #include <iterator>
+#include <memory>
 #include <numeric>
 #include <sstream>
-#include <cstdlib>
-#include <memory>
+#include <string>
 #include <vector>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
-#include <boost/make_unique.hpp>
 #include <boost/filesystem.hpp>
-
+#include <boost/make_unique.hpp>
 
 #include "caller.hpp"
 #include "utils/log.hpp"
@@ -28,25 +27,25 @@ const size_t ERROR_IN_COMMAND_LINE = 1;
 // const size_t ERROR_UNHANDLED_EXCEPTION = 2;
 
 // A helper function to simplify the main part.
-template<class T>
-  std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
-    copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
-    return os;
+template <class T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
+  copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
+  return os;
 }
 
 inline void help_msg() {
-    std::cout << std::endl;
-    std::cout << "> > > \t  "<< Map2CheckVersion << " \t < < <" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Usage: map2check [options] file.[i|c]\n";
-    std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "> > > \t  " << Map2CheckVersion << " \t < < <" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Usage: map2check [options] file.[i|c]\n";
+  std::cout << std::endl;
 }
-    /**inline int MIN(int a, int b) {
-      if (a > b) {
-      return b;
-      }
-      return a;
-      }**/
+/**inline int MIN(int a, int b) {
+  if (a > b) {
+  return b;
+  }
+  return a;
+  }**/
 
 inline void fixPath(char* map2check_bin_string) {
   // namespace fs = boost::filesystem;
@@ -70,12 +69,12 @@ inline void fixPath(char* map2check_bin_string) {
   //   // throw error
   // }
 
-// std::string map2check_env_var("MAP2CHECK_PATH=");
-// map2check_env_var += pBuf;
+  // std::string map2check_env_var("MAP2CHECK_PATH=");
+  // map2check_env_var += pBuf;
 
-// char *map2check_env_array = new char[map2check_env_var.length() + 1];
-// strcpy(map2check_env_array, map2check_env_var.c_str());
-// putenv(map2check_env_array);
+  // char *map2check_env_array = new char[map2check_env_var.length() + 1];
+  // strcpy(map2check_env_array, map2check_env_var.c_str());
+  // putenv(map2check_env_array);
 }
 }  // namespace
 
@@ -92,8 +91,7 @@ int map2check_execution(std::string inputFile) {
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
   std::string extension = boost::filesystem::extension(inputFile);
-  if (extension.compare(".bc") &&
-      extension.compare(".c") &&
+  if (extension.compare(".bc") && extension.compare(".c") &&
       extension.compare(".i")) {
     help_msg();
     return ERROR_IN_COMMAND_LINE;
@@ -102,8 +100,8 @@ int map2check_execution(std::string inputFile) {
   // Check if compiling will be needed
   if (extension.compare(".bc")) {
     // Compile C file
-    caller = boost::make_unique<Map2Check::Caller>
-      (Map2Check::Caller::compileCFile(inputFile));
+    caller = boost::make_unique<Map2Check::Caller>(
+        Map2Check::Caller::compileCFile(inputFile));
   } else {
     // C file already compiled
     caller = boost::make_unique<Map2Check::Caller>(inputFile);
@@ -127,19 +125,18 @@ int main(int argc, char** argv) {
   try {
     // Define and parse the program options
     po::options_description desc("Options");
-    desc.add_options()
-      ("help,h", "\tshow help")
-      ("version,v", "\tprints map2check version")
-      ("input-file,i",
-       po::value< std::vector<std::string> >(),
-       "\tspecifies the files, also works with <file.bc>");
+    desc.add_options()("help,h", "\tshow help")("version,v",
+                                                "\tprints map2check version")(
+        "input-file,i", po::value<std::vector<std::string> >(),
+        "\tspecifies the files, also works with <file.bc>");
 
     po::positional_options_description p;
     p.add("input-file", -1);
     po::variables_map vm;
     // po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::store(po::command_line_parser(argc, argv)
-            .options(desc).positional(p).run(), vm);
+    po::store(
+        po::command_line_parser(argc, argv).options(desc).positional(p).run(),
+        vm);
     po::notify(vm);
     // Handling with the options
     if (vm.count("version")) {
@@ -158,17 +155,15 @@ int main(int argc, char** argv) {
     }
     if (vm.count("input-file")) {
       std::string pathfile;
-      pathfile = accumulate(boost::begin(vm["input-file"]
-        .as< std::vector<std::string> >()),
-         boost::end(vm["input-file"]
-        .as< std::vector<std::string> >
-         ()),
-         pathfile);
+      pathfile = accumulate(
+          boost::begin(vm["input-file"].as<std::vector<std::string> >()),
+          boost::end(vm["input-file"].as<std::vector<std::string> >()),
+          pathfile);
 
       std::cout << pathfile << std::endl;
       return map2check_execution(pathfile);
     }
-  } catch(std::exception& e) {
+  } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
     return 1;
   }

@@ -1,18 +1,18 @@
 #include "tools.hpp"
-#include "log.hpp"
 #include "../exceptions.hpp"
+#include "log.hpp"
 
-#include <iostream>     // cout, endl
-#include <fstream>      // fstream
-#include <algorithm>    // copy
-#include <iterator>     // ostream_operator
+#include <algorithm>  // copy
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <fstream>   // fstream
+#include <iostream>  // cout, endl
+#include <iterator>  // ostream_operator
 
 #include <sstream>
 
-#include <regex>
 #include <boost/filesystem.hpp>
+#include <regex>
 
 namespace fs = boost::filesystem;
 namespace Tools = Map2Check;
@@ -24,28 +24,27 @@ Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
   std::string line;
   sourceFile.open(pathToCSource.c_str());
 
-  if(sourceFile.is_open()) {
-    while(std::getline (sourceFile,line))  {
+  if (sourceFile.is_open()) {
+    while (std::getline(sourceFile, line)) {
       this->cFileLines.push_back(line);
     }
     sourceFile.close();
 
-  }
-  else {
+  } else {
     throw Map2Check::Exceptions::ErrorOpeningFileException(pathToCSource);
   }
 
   Map2Check::Log::Debug(*this);
-
 }
 
-std::string Tools::SourceCodeHelper::getFilePath() {
-  return this->path;
-}
+std::string Tools::SourceCodeHelper::getFilePath() { return this->path; }
 
-//TODO: replace all should be replace first
-std::string Tools::SourceCodeHelper::substituteWithResult(int line, std::string old_token, std::string result) {
-  // Map2Check::Log::Debug("Replacing '" + old_token + "' with '" + result + "'");
+// TODO: replace all should be replace first
+std::string Tools::SourceCodeHelper::substituteWithResult(int line,
+                                                          std::string old_token,
+                                                          std::string result) {
+  // Map2Check::Log::Debug("Replacing '" + old_token + "' with '" + result +
+  // "'");
   string toReplace = this->getLine(line);
   boost::replace_all(toReplace, old_token, result);
   boost::replace_all(toReplace, "  ", "");
@@ -62,17 +61,10 @@ std::string Tools::SourceCodeHelper::getLine(unsigned line) {
   return this->cFileLines[line - 1];
 }
 
-
-
-
-
-
-
 Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
-  Map2Check::Log::Debug("Started reading file: " + path );
+  Map2Check::Log::Debug("Started reading file: " + path);
   this->path_name = path;
 
-  
   ifstream in(path.c_str());
   if (!in.is_open()) {
     throw Tools::CheckViolatedPropertyException("Could not open file");
@@ -86,103 +78,98 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
   smatch match;
   string result;
 
-
   ifstream unknown("map2check_property_klee_unknown");
   if (unknown.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
-      return;
+    return;
   }
 
   ifstream false_free("map2check_property_klee_free");
   if (false_free.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_FREE;
-    getline(false_free,line);
-    getline(false_free,line);
+    getline(false_free, line);
+    getline(false_free, line);
     if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
-        int result = std::stoi(match.str(1));
-        this->line = result;        
-        Map2Check::Log::Debug("Line number: " + match.str(1));
+      int result = std::stoi(match.str(1));
+      this->line = result;
+      Map2Check::Log::Debug("Line number: " + match.str(1));
     }
-    getline(false_free,line);
+    getline(false_free, line);
     if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
-        string result = match.str(1);
-        this->function_name = result;
-        Map2Check::Log::Debug("Function name: " + result);
+      string result = match.str(1);
+      this->function_name = result;
+      Map2Check::Log::Debug("Function name: " + result);
     }
 
-      return;
+    return;
   }
 
   ifstream deref("map2check_property_klee_deref");
   if (deref.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
-      getline(deref,line);
-      getline(deref,line);
-      if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
-          int result = std::stoi(match.str(1));
-          this->line = result;
-          Map2Check::Log::Debug("Line number: " + match.str(1));
-      }
-      getline(deref,line);
-      if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
-          string result = match.str(1);
-          this->function_name = result;
-          Map2Check::Log::Debug("Function name: " + result);
-      }
-      return;
+    getline(deref, line);
+    getline(deref, line);
+    if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+      int result = std::stoi(match.str(1));
+      this->line = result;
+      Map2Check::Log::Debug("Line number: " + match.str(1));
+    }
+    getline(deref, line);
+    if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+      string result = match.str(1);
+      this->function_name = result;
+      Map2Check::Log::Debug("Function name: " + result);
+    }
+    return;
   }
 
   ifstream overflowFile("map2check_property_overflow");
   if (overflowFile.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
-      getline(overflowFile,line);
-      getline(overflowFile,line);
-      if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
-          int result = std::stoi(match.str(1));
-          this->line = result;
-          Map2Check::Log::Debug("Line number: " + match.str(1));
-      }
-      getline(overflowFile,line);
-      if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
-          string result = match.str(1);
-          this->function_name = result;
-          Map2Check::Log::Debug("Function name: " + result);
-      }
-      return;
+    getline(overflowFile, line);
+    getline(overflowFile, line);
+    if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+      int result = std::stoi(match.str(1));
+      this->line = result;
+      Map2Check::Log::Debug("Line number: " + match.str(1));
+    }
+    getline(overflowFile, line);
+    if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+      string result = match.str(1);
+      this->function_name = result;
+      Map2Check::Log::Debug("Function name: " + result);
+    }
+    return;
   }
-
 
   ifstream memtrack("map2check_property_klee_memtrack");
   if (memtrack.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
-      return;
+    return;
   }
 
-  
-
-
-  while (getline(in,line)) {
+  while (getline(in, line)) {
     switch (fileLineNumber) {
       case 0:
-        if(line == "FALSE-FREE") {
+        if (line == "FALSE-FREE") {
           Map2Check::Log::Debug("FALSE-FREE found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_FREE;
-        } else if(line == "TARGET-REACHED") {
+        } else if (line == "TARGET-REACHED") {
           Map2Check::Log::Debug("TARGET-REACHED found");
           this->propertyViolated = Tools::PropertyViolated::TARGET_REACHED;
-        } else if(line == "FALSE-DEREF") {
+        } else if (line == "FALSE-DEREF") {
           Map2Check::Log::Debug("FALSE-DEREF found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
-        } else if(line == "FALSE-MEMTRACK") {
+        } else if (line == "FALSE-MEMTRACK") {
           Map2Check::Log::Debug("FALSE-MEMTRACK found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
-	} else if(line == "OVERFLOW") {
+        } else if (line == "OVERFLOW") {
           Map2Check::Log::Debug("OVERFLOW found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
-        }else if(line == "UNKNOWN") {
+        } else if (line == "UNKNOWN") {
           Map2Check::Log::Debug("UNKNOWN found");
           this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
-        }else if(line == "NONE") {
+        } else if (line == "NONE") {
           Map2Check::Log::Debug("NONE found");
           this->propertyViolated = Tools::PropertyViolated::NONE;
         } else {
@@ -191,37 +178,39 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         break;
       case 1:
         if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
-            int result = std::stoi(match.str(1));
-            this->line = result;
-            Map2Check::Log::Debug("Line number: " + match.str(1));
-        }
-        else {
-          throw Tools::CheckViolatedPropertyException("Could not find line number");
+          int result = std::stoi(match.str(1));
+          this->line = result;
+          Map2Check::Log::Debug("Line number: " + match.str(1));
+        } else {
+          throw Tools::CheckViolatedPropertyException(
+              "Could not find line number");
         }
         break;
       case 2:
-        if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
-            string result = match.str(1);
-            this->function_name = result;
-            Map2Check::Log::Debug("Function name: " + result);
+        if (std::regex_search(line, match, reFunctionName) &&
+            match.size() > 1) {
+          string result = match.str(1);
+          this->function_name = result;
+          Map2Check::Log::Debug("Function name: " + result);
         } else {
-          throw Tools::CheckViolatedPropertyException("Could not find function name");
+          throw Tools::CheckViolatedPropertyException(
+              "Could not find function name");
         }
         break;
     }
     fileLineNumber++;
   }
-
 }
 
-//int Tools::CheckViolatedProperty::getListLogFromCSV(string path) {
+// int Tools::CheckViolatedProperty::getListLogFromCSV(string path) {
 
-std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(string path) {
+std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
+    string path) {
   std::vector<Tools::KleeLogRow> listLog;
-  Map2Check::Log::Debug("Started reading file: " + path );
+  Map2Check::Log::Debug("Started reading file: " + path);
 
   using namespace boost;
-  using namespace std   ;
+  using namespace std;
 
   // Open file as READ mode
   ifstream in(path.c_str());
@@ -229,66 +218,63 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(string pa
     throw Tools::CouldNotOpenFileException();
   }
 
-   string line;
-   while (getline(in,line)) {
+  string line;
+  while (getline(in, line)) {
+    // TODO: Check if CSV has valid arguments
+    std::vector<std::string> tokens;
+    boost::split(tokens, line, boost::is_any_of(";"));
 
-
-     // TODO: Check if CSV has valid arguments
-     std::vector<std::string> tokens;
-     boost::split(tokens, line, boost::is_any_of(";"));
-
-     if(tokens.size() == 7){
-         Log::Debug("started klee log");
-         Tools::KleeLogRow row;
-         string id = tokens[0];
-         string lineNumber = tokens[1];
-         string scope = tokens[2];
-         string functionName = tokens[3];
-         string step = tokens[4];
-         string value = tokens[5];
-	 string type = tokens[6];	 
-	 switch(stoi(type)) {
-	 case 0:
-	   row.type = KleeLogType::INTEGER;
-	   break;
-	 case 1: 
-	   row.type = KleeLogType::CHAR;
-	   break;
-	 case 2:
-	   row.type = KleeLogType::POINTER;
-	   break;
-	 case 3:
-	   row.type = KleeLogType::USHORT;
-	   break;
-	 case 4:
-	   row.type = KleeLogType::LONG;
-	   break;
-	 case 5:
-	   row.type = KleeLogType::UNSIGNED;
-	   break;
-	 }
-         row.id = id;
-         row.line = lineNumber;
-         row.scope = scope;
-         row.functionName = functionName;
-         row.step = step;
-         row.value = value;
-         Map2Check::Log::Debug(row );
-         listLog.push_back(row);
-     }
-
-   }
+    if (tokens.size() == 7) {
+      Log::Debug("started klee log");
+      Tools::KleeLogRow row;
+      string id = tokens[0];
+      string lineNumber = tokens[1];
+      string scope = tokens[2];
+      string functionName = tokens[3];
+      string step = tokens[4];
+      string value = tokens[5];
+      string type = tokens[6];
+      switch (stoi(type)) {
+        case 0:
+          row.type = KleeLogType::INTEGER;
+          break;
+        case 1:
+          row.type = KleeLogType::CHAR;
+          break;
+        case 2:
+          row.type = KleeLogType::POINTER;
+          break;
+        case 3:
+          row.type = KleeLogType::USHORT;
+          break;
+        case 4:
+          row.type = KleeLogType::LONG;
+          break;
+        case 5:
+          row.type = KleeLogType::UNSIGNED;
+          break;
+      }
+      row.id = id;
+      row.line = lineNumber;
+      row.scope = scope;
+      row.functionName = functionName;
+      row.step = step;
+      row.value = value;
+      Map2Check::Log::Debug(row);
+      listLog.push_back(row);
+    }
+  }
 
   return listLog;
 }
 
-
-std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(string path) {
+std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(
+    string path) {
   std::vector<Tools::ListLogRow> listLog;
-  Map2Check::Log::Debug("Started reading file: " + path );
+  Map2Check::Log::Debug("Started reading file: " + path);
 
   using namespace boost;
-  using namespace std   ;
+  using namespace std;
 
   // Open file as READ mode
   ifstream in(path.c_str());
@@ -296,48 +282,46 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(string pa
     return listLog;
   }
 
-   string line;
-   while (getline(in,line)) {
-       std::vector<std::string> tokens;
-       boost::split(tokens, line, boost::is_any_of(";"));
-     // TODO: Check if CSV has valid arguments
-       if(tokens.size() == 10){
-           Tools::ListLogRow row;
-           string id = tokens[0];
-           string memoryAddress = tokens[1];
-           string pointsTo = tokens[2];
-           string scope = tokens[3];
-           string isFree = tokens[4];
-           string isDynamic = tokens[5];
-           string varName = tokens[6];
-           string lineNumber = tokens[7];
-           string functionName = tokens[8];
-           string step = tokens[9];
+  string line;
+  while (getline(in, line)) {
+    std::vector<std::string> tokens;
+    boost::split(tokens, line, boost::is_any_of(";"));
+    // TODO: Check if CSV has valid arguments
+    if (tokens.size() == 10) {
+      Tools::ListLogRow row;
+      string id = tokens[0];
+      string memoryAddress = tokens[1];
+      string pointsTo = tokens[2];
+      string scope = tokens[3];
+      string isFree = tokens[4];
+      string isDynamic = tokens[5];
+      string varName = tokens[6];
+      string lineNumber = tokens[7];
+      string functionName = tokens[8];
+      string step = tokens[9];
 
-           row.id = id;
-           row.memoryAddress = memoryAddress;
-           row.pointsTo = pointsTo;
-           row.scope = scope;
-           row.isFree = isFree;
-           row.isDynamic = isDynamic ;
-           row.varName = varName;
-           row.lineNumber = lineNumber;
-           row.functionName = functionName;
-           row.step = step;
-           Map2Check::Log::Debug(row );
-           listLog.push_back(row);
-       }
-
-
-   }
+      row.id = id;
+      row.memoryAddress = memoryAddress;
+      row.pointsTo = pointsTo;
+      row.scope = scope;
+      row.isFree = isFree;
+      row.isDynamic = isDynamic;
+      row.varName = varName;
+      row.lineNumber = lineNumber;
+      row.functionName = functionName;
+      row.step = step;
+      Map2Check::Log::Debug(row);
+      listLog.push_back(row);
+    }
+  }
 
   return listLog;
 }
 
-
-std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV(string path) {
+std::vector<Tools::StateTrueLogRow>
+Tools::StateTrueLogHelper::getListLogFromCSV(string path) {
   std::vector<Tools::StateTrueLogRow> listLog;
-  Map2Check::Log::Debug("Started reading file: " + path );
+  Map2Check::Log::Debug("Started reading file: " + path);
 
   using namespace boost;
   using namespace std;
@@ -348,52 +332,47 @@ std::vector<Tools::StateTrueLogRow> Tools::StateTrueLogHelper::getListLogFromCSV
     return listLog;
   }
 
-   string line;
-   while (getline(in,line)) {
-       
-       std::vector<std::string> tokens;
-       boost::split(tokens, line, boost::is_any_of("@"));     
-       
-       if(tokens.size() == 10){
-           Tools::StateTrueLogRow row;
-           string functionName = tokens[0];
-           string numLineBeginBB = tokens[1];
-           string numLineStart = tokens[2];
-           string sourceCode = tokens[3];
-           string controlCode = tokens[4];
-           string hasControlCode = tokens[5];
-           string numLineControlTrue = tokens[6];
-           string numLineControlFalse = tokens[7];
-           string isEntryPoint = tokens[8];
-           string isErrorLabel = tokens[9];
-           
-           row.functionName = functionName;
-           row.numLineBeginBB = numLineBeginBB;
-           row.numLineStart = numLineStart;
-           row.sourceCode = sourceCode;
-           row.controlCode = controlCode;
-           row.hasControlCode = hasControlCode;
-           row.numLineControlTrue = numLineControlTrue;
-           row.numLineControlFalse = numLineControlFalse;
-           row.isEntryPoint = isEntryPoint;
-           row.isErrorLabel = isErrorLabel;
-           
-           //Map2Check::Log::Debug(row );
-           listLog.push_back(row);
-       }
+  string line;
+  while (getline(in, line)) {
+    std::vector<std::string> tokens;
+    boost::split(tokens, line, boost::is_any_of("@"));
 
+    if (tokens.size() == 10) {
+      Tools::StateTrueLogRow row;
+      string functionName = tokens[0];
+      string numLineBeginBB = tokens[1];
+      string numLineStart = tokens[2];
+      string sourceCode = tokens[3];
+      string controlCode = tokens[4];
+      string hasControlCode = tokens[5];
+      string numLineControlTrue = tokens[6];
+      string numLineControlFalse = tokens[7];
+      string isEntryPoint = tokens[8];
+      string isErrorLabel = tokens[9];
 
-   }
+      row.functionName = functionName;
+      row.numLineBeginBB = numLineBeginBB;
+      row.numLineStart = numLineStart;
+      row.sourceCode = sourceCode;
+      row.controlCode = controlCode;
+      row.hasControlCode = hasControlCode;
+      row.numLineControlTrue = numLineControlTrue;
+      row.numLineControlFalse = numLineControlFalse;
+      row.isEntryPoint = isEntryPoint;
+      row.isErrorLabel = isErrorLabel;
+
+      // Map2Check::Log::Debug(row );
+      listLog.push_back(row);
+    }
+  }
 
   return listLog;
 }
 
-
-
-
-std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(string path) {
+std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(
+    string path) {
   std::vector<Tools::TrackBBLogRow> listLog;
-  Map2Check::Log::Debug("Started reading file: " + path );
+  Map2Check::Log::Debug("Started reading file: " + path);
 
   using namespace boost;
   using namespace std;
@@ -404,31 +383,26 @@ std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(str
     return listLog;
   }
 
-   string line;
-   while (getline(in,line)) {
-       
-       std::vector<std::string> tokens;
-       boost::split(tokens, line, boost::is_any_of(";"));     
-       
-       if(tokens.size() == 2){
-           Tools::TrackBBLogRow row;
-           string numLineInBB = tokens[0];
-           string functionName = tokens[1];           
-           
-           row.numLineInBB = numLineInBB;
-           row.functionName = functionName;           
-           
-           //Map2Check::Log::Debug(row );
-           listLog.push_back(row);
-       }
+  string line;
+  while (getline(in, line)) {
+    std::vector<std::string> tokens;
+    boost::split(tokens, line, boost::is_any_of(";"));
 
+    if (tokens.size() == 2) {
+      Tools::TrackBBLogRow row;
+      string numLineInBB = tokens[0];
+      string functionName = tokens[1];
 
-   }
+      row.numLineInBB = numLineInBB;
+      row.functionName = functionName;
+
+      // Map2Check::Log::Debug(row );
+      listLog.push_back(row);
+    }
+  }
 
   return listLog;
 }
-
-
 
 const char* Tools::CheckViolatedPropertyException::what() const throw() {
   std::ostringstream cnvt;

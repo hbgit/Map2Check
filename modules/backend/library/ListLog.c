@@ -6,44 +6,39 @@ const char* list_log_file = "list_log.csv";
 
 long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
   int i = log->size - 1;
-  for(;i >= 0 ; i--) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
+  for (; i >= 0; i--) {
+    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
 
     if (row->memory_address == var_address) {
       return row->memory_address_points_to;
     }
   }
- 
+
   return 0;
 }
 
-//TODO: Implement method
+// TODO: Implement method
 Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
-
-
   int i = log->size - 1;
 
-  for(; i >= 0; i--) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
-
+  for (; i >= 0; i--) {
+    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
 
     long points_to = row->memory_address_points_to;
     long address_origin = row->memory_address;
 
-    if(address_origin == address) {
+    if (address_origin == address) {
       return FALSE;
     }
 
     if (points_to == address) {
-
       Bool is_free = row->is_free;
       Bool is_dynamic = row->is_dynamic;
 
-      if(is_free || (!is_dynamic)) {
-	return TRUE;
-      }
-      else {
-	return FALSE;
+      if (is_free || (!is_dynamic)) {
+        return TRUE;
+      } else {
+        return FALSE;
       }
     }
   }
@@ -53,24 +48,22 @@ Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
 
 Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
   int i = log->size - 1;
-  if(address == ((long) NULL)){
+  if (address == ((long)NULL)) {
     return FALSE;
   }
 
-  for(; i >= 0; i--) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *log);
+  for (; i >= 0; i--) {
+    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
     long points_to = row->memory_address_points_to;
 
     if (points_to == address) {
-
       Bool is_free = row->is_free;
       Bool is_dynamic = row->is_dynamic;
 
-      if(is_free || (!is_dynamic)) {
-	return TRUE;
-      }
-      else {
-	return FALSE;
+      if (is_free || (!is_dynamic)) {
+        return TRUE;
+      } else {
+        return FALSE;
       }
     }
   }
@@ -78,10 +71,10 @@ Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
   return TRUE;
 }
 
-
-LIST_LOG_ROW new_list_row  (long memory_address, long memory_address_points_to,
-			    unsigned scope, Bool is_dynamic, Bool is_free, unsigned line_number,
-			    const char* name, const char* function_name, unsigned step) {
+LIST_LOG_ROW new_list_row(long memory_address, long memory_address_points_to,
+                          unsigned scope, Bool is_dynamic, Bool is_free,
+                          unsigned line_number, const char* name,
+                          const char* function_name, unsigned step) {
   LIST_LOG_ROW row;
   row.id = 0;
   row.is_dynamic = is_dynamic;
@@ -98,10 +91,11 @@ LIST_LOG_ROW new_list_row  (long memory_address, long memory_address_points_to,
 
 void list_log_to_file(MAP2CHECK_CONTAINER* list) {
   FILE* output = fopen(list_log_file, "w");
-  // fprintf(output, "id;memory address;points to;scope;is free;is dynamic;function name\n");
+  // fprintf(output, "id;memory address;points to;scope;is free;is
+  // dynamic;function name\n");
   int i = 0;
-  for(;i< list->size; i++) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*) get_element_at(i, *list);
+  for (; i < list->size; i++) {
+    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *list);
     fprintf(output, "%d;", row->id);
     fprintf(output, "%p;", (void*)row->memory_address);
     fprintf(output, "%p;", (void*)row->memory_address_points_to);
@@ -123,6 +117,6 @@ enum MemoryAddressStatus get_type_from_list_log_row(LIST_LOG_ROW* row) {
     return DYNAMIC;
   }
 
-  //FIXME: how to known if address if static or invalid?
+  // FIXME: how to known if address if static or invalid?
   return STATIC;
 }

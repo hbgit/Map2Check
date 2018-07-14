@@ -60,4 +60,3 @@ std::string Map2Check::AFL_EXEC::getCommand() {
   cnvt << afl_fuzz;
   return cnvt.str();
 }
-

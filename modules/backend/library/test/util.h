@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 void assert(int val, unsigned line) {
-  if(!val) {
+  if (!val) {
     printf("ERROR ON LINE %u\n", line);
     exit(-1);
   }

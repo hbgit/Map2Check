@@ -1,10 +1,9 @@
 #pragma once
 
 #include <stdint.h>
-#include <string>
-#include <memory>
 #include <boost/make_unique.hpp>
-
+#include <memory>
+#include <string>
 
 namespace Map2Check {
 
@@ -13,19 +12,20 @@ class AFL_COMPILE {
   /** Current afl_clang command (with path) */
   std::string afl_clang;
   bool compileTo32Bits;
+
  public:
   /** Default constructor */
   AFL_COMPILE() {}
   /**
    * Return afl-clang command
    * @return Returns a string with afl-clang command
-  */
+   */
   std::string getCommand();
-  void setCompileTo32Bits(bool isOn) {this->compileTo32Bits = isOn; }
+  void setCompileTo32Bits(bool isOn) { this->compileTo32Bits = isOn; }
   /**
    * Set path for current afl-clang binary folder
    * @param  String with path
-  */
+   */
   void setPath(std::string path);
 };
 
@@ -53,6 +53,7 @@ class AFL {
  protected:
   std::unique_ptr<AFL_EXEC> executor;
   std::unique_ptr<AFL_COMPILE> compiler;
+
  public:
   explicit AFL(std::string path) {
     this->compiler = boost::make_unique<AFL_COMPILE>();
@@ -61,12 +62,8 @@ class AFL {
     this->executor = boost::make_unique<AFL_EXEC>();
     this->executor->setPath(path);
   }
-  std::string getCompilerCommand() {
-    return compiler->getCommand();
-  }
-  std::string getExecutionCommand() {
-    return executor->getCommand();
-  }
+  std::string getCompilerCommand() { return compiler->getCommand(); }
+  std::string getExecutionCommand() { return executor->getCommand(); }
 };
 
 class AFL_MAP2CHECK : public AFL {
@@ -79,4 +76,3 @@ class AFL_MAP2CHECK : public AFL {
   }
 };
 }  // namespace Map2Check
-

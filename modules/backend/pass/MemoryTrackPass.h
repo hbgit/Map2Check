@@ -1,32 +1,31 @@
 #pragma once
 
-#include <llvm/Pass.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Metadata.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Metadata.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Pass.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>
-#include <string>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 using namespace llvm;
 
 struct MemoryTrackPass : public FunctionPass {
   static char ID;
- MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {    
+  MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
     this->SVCOMP = SVCOMP;
   }
-  virtual bool runOnFunction(Function &F);
+  virtual bool runOnFunction(Function& F);
 
  private:
-
-  void instrumentPointer();  
+  void instrumentPointer();
   void instrumentMalloc();
   void instrumentCalloc();
   void instrumentRealloc();
@@ -47,7 +46,7 @@ struct MemoryTrackPass : public FunctionPass {
   void runOnLoadInstruction();
   void switchCallInstruction();
   void prepareMap2CheckInstructions();
-  //void addWitnessInfo(std::string info);
+  // void addWitnessInfo(std::string info);
   void getDebugInfo();
   int getLineNumber();
 
@@ -55,7 +54,7 @@ struct MemoryTrackPass : public FunctionPass {
   bool mainFunctionInitialized = false;
   std::vector<Function*> functionsValues;
   Function* currentFunction;
-  //DataLayout* currentDataLayout;
+  // DataLayout* currentDataLayout;
   Function* mainFunction;
   Function* caleeFunction;
   BasicBlock::iterator currentInstruction;
@@ -76,9 +75,8 @@ struct MemoryTrackPass : public FunctionPass {
   LLVMContext* Ctx;
 };
 
-
 class MemoryTrackPassException : public std::runtime_error {
  public:
- MemoryTrackPassException(std::string message) : std::runtime_error(message) {}
+  MemoryTrackPassException(std::string message) : std::runtime_error(message) {}
   virtual const char* what() const throw();
 };

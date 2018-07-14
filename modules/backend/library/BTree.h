@@ -1,9 +1,9 @@
 #ifndef BTREE_H_
 #define BTREE_H_
 
-#include "Map2CheckTypes.h"
 #include <stdio.h>
 #include "Container.h"
+#include "Map2CheckTypes.h"
 
 /* This file describes an API for a BTree
  *
@@ -17,7 +17,7 @@ typedef struct B_TREE_ROW {
   /** Current index of element */
   unsigned index;
   /** Row Content*/
-  CONTAINER_ROW value;  
+  CONTAINER_ROW value;
 } B_TREE_ROW;
 
 /* Each ROW uses 96 bytes (in ubuntu docker),
@@ -34,32 +34,32 @@ typedef struct B_TREE_ROW {
 /* We should have some kind of limit for infinite pograms or some programs will
  * end up using all secondary space, ~4 GiB should be enought for now */
 #define MAX_TREE_SIZE = 4U;
-    
+
 /** Struct that holds pages of B_TREE */
 typedef struct B_TREE_PAGE {
   /** Number of keys curently stored in node */
   unsigned n;
   /* An array of size 2t - 1 containing values*/
-  B_TREE_ROW rows[B_TREE_MAP2CHECK_ORDER*2 - 1];
+  B_TREE_ROW rows[B_TREE_MAP2CHECK_ORDER * 2 - 1];
   /** Current index on FILE, this is redudant information, but
    *  make implementation easier */
   fpos_t stream_pos;
   Bool have_stream_pos;
   /** Returns true if node is a leaf */
   Bool isLeaf;
-  /** An arrray of size 2t containing pointers to children */    
-  struct B_TREE_PAGE* children[B_TREE_MAP2CHECK_ORDER*2];
-  /** An arrray of size 2t containing pointers to children in FILE*/    
-  fpos_t references[B_TREE_MAP2CHECK_ORDER*2];
+  /** An arrray of size 2t containing pointers to children */
+  struct B_TREE_PAGE* children[B_TREE_MAP2CHECK_ORDER * 2];
+  /** An arrray of size 2t containing pointers to children in FILE*/
+  fpos_t references[B_TREE_MAP2CHECK_ORDER * 2];
 } B_TREE_PAGE;
 
 /** Struct that manipulates the B-TREE */
-typedef struct B_TREE {  
+typedef struct B_TREE {
   /** Root of tree */
   B_TREE_PAGE* root;
   /** Current loaded pages */
   unsigned currentLoadedPages;
-  /** FILENAME of btree */  
+  /** FILENAME of btree */
   char filename[FUNCTION_MAX_LENGTH_NAME];
 } B_TREE;
 
@@ -92,15 +92,15 @@ B_TREE_ROW* B_TREE_SEARCH(B_TREE* btree, unsigned key);
 B_TREE B_TREE_CREATE(const char* filename);
 Bool B_TREE_INSERT(B_TREE* btree, B_TREE_ROW* row);
 Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page);
-Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* parent,
-                        int index, B_TREE_PAGE* child);
+Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* parent, int index,
+                        B_TREE_PAGE* child);
 
 B_TREE_PAGE* B_TREE_PAGE_CREATE(B_TREE* btree);
 void B_TREE_FREE(B_TREE* btree);
 
 // TODO(rafa.sa.xp@gmail.com) After Implementation and test, remove this
 void DumpTree(B_TREE* btree);
-void DumpTreePage( B_TREE_PAGE* page);
-void DumpTreePageChildren( B_TREE_PAGE* page);
+void DumpTreePage(B_TREE_PAGE* page);
+void DumpTreePageChildren(B_TREE_PAGE* page);
 void DumpTreeHelper(B_TREE* btree, unsigned index, B_TREE_PAGE* page);
 #endif

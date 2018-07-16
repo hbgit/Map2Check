@@ -22,7 +22,7 @@ We recommend the use of Qt Creator since it is a really good C/C++ IDE and it is
 
 ## Recommended: use static Qt
 
-1. Download and extract the Qt source code: https://download.qt.io/archive/qt/5.11/5.11.1/single/qt-everywhere-src-5.11.1.tar.xz
+1. Download and extract the Qt source code: http://linorg.usp.br/Qt/archive/qt/5.11/5.11.1/single/qt-everywhere-src-5.11.1.tar.xz
 2. Configure it to compile statically: `./configure -static -prefix “~/QtStatic” -qt-zlib -qt-pcre -qt-xcb -qt-sql-sqlite -make libs -nomake tools -nomake examples -nomake tests`
 3. Execute `make` and `make install`
 4. Configure CMake or QtCreator to use it 

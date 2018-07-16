@@ -24,7 +24,11 @@ bool Map2CheckLibrary::runOnFunction(Function& F) {
   if (F.getName() == "main") {
     // currentInstruction--;
     instrumentReleaseInstruction(&F.getContext());
+    Twine new_entry_name("__map2check_main__");
+    F.setName(new_entry_name);
   }
+
+  
   return true;
 }
 

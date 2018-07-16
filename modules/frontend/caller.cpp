@@ -148,7 +148,7 @@ void Caller::linkLLVM() {
 
   QObject::connect(
       process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-      [=](int, QProcess::ExitStatus exitStatus) { instrumentAFL(); });
+      [=](int, QProcess::ExitStatus exitStatus) { stop(); });
 
   process->start(llvm_link, arguments);
 }

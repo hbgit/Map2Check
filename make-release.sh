@@ -14,22 +14,9 @@ echo ""
 echo "Building Map2Check release ... "
 echo ""
 
-cmake .. -DCMAKE_INSTALL_PREFIX=../release/
+cmake .. -DCOPY_EXTERNAL=ON -DCMAKE_INSTALL_PREFIX=../release/
 make
 make install
-cd ..
-mkdir -p ./release/bin
-mkdir -p ./release/bin
-
-echo ""
-echo "Copying external dependencies... "
-echo ""
-
-# Copying files from dependencies folders
-cp ./dependencies/clang/bin/clang ./release/bin/clang
-cp ./dependencies/clang/bin/opt ./release/bin/opt
-cp ./dependencies/clang/bin/llvm-link ./release/bin/llvm-link
-cp -r ./dependencies/clang/lib/clang/6.0.0/include ./release
 
 echo ""
 echo "DONE"

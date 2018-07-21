@@ -1,5 +1,10 @@
 # This module copies all shared libs into the install folder it should be executed by the docker, it should be fine to install on /opt after this
 
+#TODO: Check if creating build from alpine wont be more compatible/better
+
+# Works on: Ubuntu 14.04, 16.04, 18.04, Fedora, OpenSuse
+# Did not work on: Alpine
+
 set(DOCKER_USR_LIB_PATH "/usr/lib/x86_64-linux-gnu/")
 
 function(INSTALL_LINK_FILE link dest name)
@@ -26,6 +31,11 @@ endforeach()
 
 set(DOCKER_LIB_PATH "/lib/x86_64-linux-gnu/")
 list(APPEND MAP2CHECK_EXTERNAL_LIBS "libglib-2.0.so.0")
+
+# Probably not needed
+#list(APPEND MAP2CHECK_EXTERNAL_LIBS "libpcre.so.3")
+#list(APPEND MAP2CHECK_EXTERNAL_LIBS "ld-linux-x86-64.so.2")
+#list(APPEND MAP2CHECK_EXTERNAL_LIBS "libgcc_s.so.1")
 
 foreach(L ${MAP2CHECK_EXTERNAL_LIBS})
   set(LIB ${DOCKER_LIB_PATH}${L})

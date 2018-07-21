@@ -13,7 +13,7 @@
 #  You can restart the container by running: docker start -ai mapdevel
 #  You can run any command in running container just knowing its ID (or name): docker exec <container_id_or_name> echo "Hello from container!"
 ############################################################
-FROM ubuntu:18.04
+FROM ubuntu:16.04
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
@@ -27,8 +27,10 @@ RUN apt-get update
 RUN apt-get install -y sudo \	
     build-essential \
     qt5-default \
+    llvm-6.0-dev clang-6.0 \
     cmake \
     curl \
+    unionfs-fuse \
     vim
 
 # Clean packages installation

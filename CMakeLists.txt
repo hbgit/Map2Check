@@ -2,14 +2,14 @@ project(Map2Check)
 
 cmake_minimum_required(VERSION 3.5)
 
-option(CopyUbuntuShared "CopyUbuntuShared" OFF)
+option(COPY_EXTERNAL "COPY_EXTERNAL" OFF)
 
-# TODO(rafa.sa.xp@gmail.com): Create option to define clang path
-include(FindClang.cmake)
+include(cmake/FindClang.cmake)
 
-#if(CopyUbuntuShared)
-include(ExternalDeps.cmake)
-#endif()
+# This should only be executed from docker container
+if(COPY_EXTERNAL)
+  include(cmake/ExternalDeps.cmake)
+endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
 add_subdirectory(modules)

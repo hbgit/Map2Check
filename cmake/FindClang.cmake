@@ -1,10 +1,7 @@
 # FIND LLVM 6.0
-set(LLVM_BIN ${PROJECT_SOURCE_DIR}/dependencies/clang)
-set(LLVM_SOURCE ${PROJECT_SOURCE_DIR}/dependencies/clang)
-
-find_program(CLANG_CC clang HINTS ${LLVM_BIN}/bin)
-find_program(CLANG_CXX clang++ HINTS ${LLVM_BIN}/bin)
-find_program(LLVM_CONFIG llvm-config HINTS ${LLVM_BIN}/bin DOC "llvm-config is used to generate flags to link with llvm.")
+find_program(CLANG_CC clang-6.0)
+find_program(CLANG_CXX clang++-6.0)
+find_program(LLVM_CONFIG llvm-config-6.0 DOC "llvm-config is used to generate flags to link with llvm.")
 
 # Check if CLANG is present and configure LLVM
 if(NOT CLANG_CC)
@@ -17,9 +14,6 @@ endif()
 
 # Set CLANG as the default C/CXX compiler
 set(CMAKE_C_COMPILER ${CLANG_CC})
-execute_process( COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
-message(${clang_full_version_string})
-
 set(CMAKE_CXX_COMPILER ${CLANG_CXX})
 
 # Get Flags

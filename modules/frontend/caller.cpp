@@ -22,16 +22,15 @@ inline QString getApplicationPath() {
 }
 
 inline void configureEnvironment() {
+  QString lib_path = getApplicationPath();
+  lib_path.append("/../lib:$LD_LIBRARY_PATH");
 
-    QString lib_path=getApplicationPath();
-    lib_path.append("/../lib:$LD_LIBRARY_PATH");
+  qputenv("LD_LIBRARY_PATH", lib_path.toStdString().c_str());
 
-    qputenv("LD_LIBRARY_PATH", lib_path.toStdString().c_str());
+  QString bin_path = getApplicationPath();
+  bin_path.append(":$PATH");
 
-    QString bin_path=getApplicationPath();
-    bin_path.append(":$PATH");
-
-    qputenv("PATH", bin_path.toStdString().c_str());
+  qputenv("PATH", bin_path.toStdString().c_str());
 }
 }  // namespace
 
@@ -51,7 +50,7 @@ void Caller::compileCFile() {
 
   // TODO: Add include folder on project
   QStringList arguments;
-  //arguments << "-I ../include";
+  // arguments << "-I ../include";
   arguments << "-Wno-everything";
   arguments << "-Winteger-overflow";
   arguments << "-c";
@@ -62,7 +61,7 @@ void Caller::compileCFile() {
   arguments << filename;
 
   QProcess *process = new QProcess(this);
-  //process->setProcessEnvironment(getEnv());
+  // process->setProcessEnvironment(getEnv());
   QString clangOutput = getHashedName(program);
   clangOutput.append("-clangOutput");
   process->setStandardOutputFile(clangOutput);
@@ -70,17 +69,16 @@ void Caller::compileCFile() {
       process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
       [=](int, QProcess::ExitStatus) {
 
-          QString CompilationErrors(process->readAllStandardError());
-          if (!CompilationErrors.isEmpty()) {
-            emit error(CompilationErrors.toStdString().c_str());
-            emit finished();
-          }          
-          instrumentPass();
+        QString CompilationErrors(process->readAllStandardError());
+        if (!CompilationErrors.isEmpty()) {
+          emit error(CompilationErrors.toStdString().c_str());
+          emit finished();
+        }
+        instrumentPass();
 
-  });
+      });
 
   process->start(clang, arguments);
-
 }
 
 void Caller::instrumentPass() {
@@ -89,14 +87,16 @@ void Caller::instrumentPass() {
   // TODO: check other modes
   QString opt = "opt-6.0 ";
   QString nonDetPass = getApplicationPath().append("/../libNonDetPass.so");
-  QString memoryTrackPass = getApplicationPath().append("/../libMemoryTrackPass.so");
-  QString map2checkPass = getApplicationPath().append("/../libMap2CheckLibrary.so");
+  QString memoryTrackPass =
+      getApplicationPath().append("/../libMemoryTrackPass.so");
+  QString map2checkPass =
+      getApplicationPath().append("/../libMap2CheckLibrary.so");
 
   opt.append("-load ").append(nonDetPass).append(" -non_det ");
   opt.append("-load ").append(memoryTrackPass).append(" -memory_track ");
   opt.append("-load ").append(map2checkPass).append(" -map2check ");
 
-  QProcess *process = new QProcess(this);  
+  QProcess *process = new QProcess(this);
   process->setReadChannelMode(QProcess::SeparateChannels);
 
   QString compiled = getHashedName(program);
@@ -109,9 +109,7 @@ void Caller::instrumentPass() {
 
   QObject::connect(
       process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-      [=](int, QProcess::ExitStatus) { stop();
-      //linkLLVM();
-  });
+      [=](int, QProcess::ExitStatus) { linkLLVM(); });
 
   process->start(opt);
 }
@@ -120,7 +118,7 @@ void Caller::linkLLVM() {
   qDebug() << "Starting linking";
   emit instrumentationUpdate(InstrumentationStatus::LinkStart);
   // TODO: check other modes
-  QString llvm_link = getApplicationPath().append("llvm-link-6.0");
+  QString llvm_link = "llvm-link-6.0";
 
   QStringList arguments;
 
@@ -128,14 +126,14 @@ void Caller::linkLLVM() {
   entry_file.append("-inst.bc");
   arguments << entry_file;
 
-  arguments << "../lib/Map2CheckFunctions.bc";
-  arguments << "../lib/AllocationLog.bc";
-  arguments << "../lib/HeapLog.bc";
-  arguments << "../lib/TrackBBLog.bc";
-  arguments << "../lib/Container.bc";
-  arguments << "../lib/KleeLog.bc";
-  arguments << "../lib/ListLog.bc";
-  arguments << "../lib/PropertyGenerator.bc";
+  arguments << getApplicationPath().append("../lib/Map2CheckFunctions.bc");
+  arguments << getApplicationPath().append("../lib/AllocationLog.bc");
+  arguments << getApplicationPath().append("../lib/HeapLog.bc");
+  arguments << getApplicationPath().append("../lib/TrackBBLog.bc");
+  arguments << getApplicationPath().append("../lib/Container.bc");
+  arguments << getApplicationPath().append("../lib/KleeLog.bc");
+  arguments << getApplicationPath().append("../lib/ListLog.bc");
+  arguments << getApplicationPath().append("../lib/PropertyGenerator.bc");
 
   QProcess *process = new QProcess(this);
   process->setReadChannelMode(QProcess::SeparateChannels);
@@ -151,9 +149,7 @@ void Caller::linkLLVM() {
   process->start(llvm_link, arguments);
 }
 
-void Caller::executeAnalysis() {
-
-}
+void Caller::executeAnalysis() {}
 
 void Caller::analyzeProgram(QString program, Map2CheckMode mode,
                             QString targetFunction) {
@@ -170,9 +166,7 @@ void Caller::prematureStop() { removeTemporaryFiles(); }
 
 void Caller::removeTemporaryFiles() {}
 
-void Caller::instrumentAFL() {
-
-}
+void Caller::instrumentAFL() {}
 
 void Caller::stop() { emit finished(); }
 }  // namespace Map2Check

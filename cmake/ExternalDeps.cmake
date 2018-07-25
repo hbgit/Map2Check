@@ -5,6 +5,13 @@
 # Works on: Ubuntu 14.04, 16.04, 18.04, Fedora, OpenSuse
 # Did not work on: Alpine
 
+include(ExternalProject)
+
+if(NOT EXTERNAL_PROJECTS_BASE)
+	set(EXTERNAL_PROJECTS_BASE "${CMAKE_BINARY_DIR}/dependencies")
+	set_property(DIRECTORY PROPERTY "EP_BASE" ${EXTERNAL_PROJECTS_BASE})
+endif()
+
 function(install_link_file LINK DEST NAME)
   execute_process(COMMAND readlink -f ${LINK}
     OUTPUT_VARIABLE EXTERNAL_LIB
@@ -24,53 +31,63 @@ function(install_exec_file LINK DEST NAME)
     RENAME ${NAME})
 endfunction(install_exec_file)
 
+# Download and install Pre-built clang for ubuntu 14.04
+#TODO: Maybe we should manually compile LLVM/Clang?
+set(PRE_BUILT_CLANG "clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-14.04")
 
-set(DOCKER_USR_LIB_PATH "/usr/lib/x86_64-linux-gnu/")
+if(EXISTS dependencies/${PRE_BUILT_CLANG}.tar.xz)
+  message("Found pre-built clang for ubuntu")
+else()
+  message("Will download pre-built clang for ubuntu")
+  file(DOWNLOAD http://releases.llvm.org/6.0.0/${PRE_BUILT_CLANG}.tar.xz dependencies/${PRE_BUILT_CLANG}.tar.xz
+    SHOW_PROGRESS)
+endif()
 
-#Qt deps
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libQt5Core.so.5")
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libstdc++.so.6")
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libicui18n.so.55")
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libicuuc.so.55")
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libpcre2-16.so.0")
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libdouble-conversion.so.1")
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libicudata.so.55")
+if(NOT EXISTS dependencies/${PRE_BUILT_CLANG})
+  message("Extracting pre-built clang")
+  execute_process(COMMAND tar xf ${PRE_BUILT_CLANG}.tar.xz
+    WORKING_DIRECTORY dependencies)
+endif()
 
-#Clang deps
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libLLVM-6.0.so.1")
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libjsoncpp.so.1")
-list(APPEND MAP2CHECK_EXTERNAL_USR_LIBS "libedit.so.2")
+set(PRE_BUILT_CLANG_FOLDER dependencies/${PRE_BUILT_CLANG})
 
+# Clang/LLVM binaries
+list(APPEND MAP2CHECK_EXTERNAL_CLANG_BIN "clang")
+list(APPEND MAP2CHECK_EXTERNAL_CLANG_BIN "opt")
+list(APPEND MAP2CHECK_EXTERNAL_CLANG_BIN "llvm-link")
 
-foreach(L ${MAP2CHECK_EXTERNAL_USR_LIBS})
-  set(LIB ${DOCKER_USR_LIB_PATH}${L})
-  install_link_file(${LIB} lib ${L})
-endforeach()
+#Clang/LLVM libs
+list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/6.0.0/lib/linux/libclang_rt.fuzzer-x86_64.a")
+list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/6.0.0/lib/linux/libclang_rt.ubsan_standalone-x86_64.a")
 
-set(DOCKER_LIB_PATH "/lib/x86_64-linux-gnu/")
-#Qt libs
-list(APPEND MAP2CHECK_EXTERNAL_LIBS "libglib-2.0.so.0")
-
-#Clang libs
-list(APPEND MAP2CHECK_EXTERNAL_LIBS "libtinfo.so.5")
-
-# Probably not needed
-#list(APPEND MAP2CHECK_EXTERNAL_LIBS "libpcre.so.3")
-#list(APPEND MAP2CHECK_EXTERNAL_LIBS "ld-linux-x86-64.so.2")
-#list(APPEND MAP2CHECK_EXTERNAL_LIBS "libgcc_s.so.1")
-
-foreach(L ${MAP2CHECK_EXTERNAL_LIBS})
-  set(LIB ${DOCKER_LIB_PATH}${L})
-  install_link_file(${LIB} lib ${L})
-endforeach()
-
-
-set(DOCKER_USR_BIN_PATH "/usr/bin/")
-list(APPEND MAP2CHECK_EXTERNAL_USR_BIN "clang-6.0")
-list(APPEND MAP2CHECK_EXTERNAL_USR_BIN "opt-6.0")
-list(APPEND MAP2CHECK_EXTERNAL_USR_BIN "llvm-link-6.0")
-
-foreach(B ${MAP2CHECK_EXTERNAL_USR_BIN})
-  set(BIN ${DOCKER_USR_BIN_PATH}${B})
+foreach(B ${MAP2CHECK_EXTERNAL_CLANG_BIN})
+  set(BIN ${PRE_BUILT_CLANG_FOLDER}/bin/${B})
   install_exec_file(${BIN} bin ${B})
 endforeach()
+
+foreach(L ${MAP2CHECK_EXTERNAL_CLANG_LIBS})
+  set(LIB ${PRE_BUILT_CLANG_FOLDER}/lib/${L})
+  install_link_file(${LIB} lib ${L})
+endforeach()
+
+# Download and compiles static version of Qt5Core 5.11
+set(QT_PROJECT "Qt5.11.1-Static")
+
+set(QT_PKG qtbase-everywhere-src-5.11.1)
+set(QT_SRC_LINK http://download.qt.io/official_releases/qt/5.11/5.11.1/submodules/${QT_PKG}.tar.xz)
+set(QT_SRC_MD5 c656471f138d3810187a523293e2cc28)
+set(QT_CONFIGURE "-opensource;-confirm-license;-release;-static;-no-compile-examples;-qt-zlib;-qt-freetype;-qt-pcre;-qt-xcb;-qt-xkbcommon;-no-directfb;-no-linuxfb;-no-gui;-no-opengl")
+
+message(STATUS "Configuring ${QT_PROJECT}")
+# TODO: check ninja
+# TODO: Specify qt prefix
+ExternalProject_ADD(${QT_PROJECT}
+  URL ${QT_SRC_LINK}
+  URL_MD5 ${QT_SRC_MD5}
+  CONFIGURE_COMMAND "${EXTERNAL_PROJECTS_BASE}/Source/${QT_PROJECT}/configure" ${QT_CONFIGURE}
+  BUILD_COMMAND "make" "-j4"
+  INSTALL_COMMAND "make" install ""
+  BUILD_IN_SOURCE 1
+  LOG_BUILD 1
+  LOG_INSTALL 1
+ )

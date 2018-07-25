@@ -52,7 +52,7 @@ class Caller : public QObject {
   void removeTemporaryFiles();
   void callPass();
 
-  void instrumentAFL();
+  void instrumentFuzzer();
 
  public:
   Caller() {}

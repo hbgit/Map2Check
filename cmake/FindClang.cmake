@@ -18,7 +18,8 @@ if(COPY_EXTERNAL)
     set(SEARCH_PATH ${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/bin)
     find_local_llvm(CLANG_CC clang-6.0)    
     find_local_llvm(CLANG_CXX clang-6.0)
-    find_local_llvm(LLVM_CONFIG llvm-config) 
+    find_local_llvm(LLVM_CONFIG llvm-config)
+    link_directories(${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/lib)
   endif()  
 else()
   find_program(CLANG_CC clang-6.0)
@@ -48,6 +49,7 @@ endif()
 # Get Flags
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(INFO "Flags ${CXX_FLAGS}")
 
 # Get Flags
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags)

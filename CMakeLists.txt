@@ -6,12 +6,14 @@ option(COPY_EXTERNAL "COPY_EXTERNAL" OFF)
 
 # This should only be executed from docker container
 if(COPY_EXTERNAL)
-  #If this option is setted, external deps MUST be called before find clang
-  include(cmake/ExternalDeps.cmake)
-  
+  #If this option is setted, external deps MUST be called before find clang and findqt
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
+  include(cmake/ExternalDeps.cmake)  
 endif()
 
 include(cmake/FindClang.cmake)
+include(cmake/FindQt.cmake)
 
 include_directories(${PROJECT_SOURCE_DIR})
 add_subdirectory(modules)

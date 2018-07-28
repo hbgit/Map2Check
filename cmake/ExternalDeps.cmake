@@ -69,25 +69,3 @@ foreach(L ${MAP2CHECK_EXTERNAL_CLANG_LIBS})
   set(LIB ${PRE_BUILT_CLANG_FOLDER}/lib/${L})
   install_link_file(${LIB} lib ${L})
 endforeach()
-
-# Download and compiles static version of Qt5Core 5.11
-set(QT_PROJECT "Qt5.11.1-Static")
-
-set(QT_PKG qtbase-everywhere-src-5.11.1)
-set(QT_SRC_LINK http://download.qt.io/official_releases/qt/5.11/5.11.1/submodules/${QT_PKG}.tar.xz)
-set(QT_SRC_MD5 c656471f138d3810187a523293e2cc28)
-set(QT_CONFIGURE "-opensource;-confirm-license;-release;-static;-no-compile-examples;-qt-zlib;-qt-freetype;-qt-pcre;-qt-xcb;-qt-xkbcommon;-no-directfb;-no-linuxfb;-no-gui;-no-opengl")
-
-message(STATUS "Configuring ${QT_PROJECT}")
-# TODO: check ninja
-# TODO: Specify qt prefix
-ExternalProject_ADD(${QT_PROJECT}
-  URL ${QT_SRC_LINK}
-  URL_MD5 ${QT_SRC_MD5}
-  CONFIGURE_COMMAND "${EXTERNAL_PROJECTS_BASE}/Source/${QT_PROJECT}/configure" ${QT_CONFIGURE}
-  BUILD_COMMAND "make" "-j4"
-  INSTALL_COMMAND "make" install ""
-  BUILD_IN_SOURCE 1
-  LOG_BUILD 1
-  LOG_INSTALL 1
- )

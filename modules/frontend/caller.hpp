@@ -1,10 +1,7 @@
-#ifndef CALLER_HPP
-#define CALLER_HPP
+#pragma once
 
-#include <QObject>
-#include <QProcess>
-#include <QString>
-#include <QVector>
+#include <string>
+#include <vector>
 
 namespace Map2Check {
 
@@ -15,67 +12,54 @@ enum class Map2CheckMode {
   OVERFLOW_MODE      /**< Check for signed integer overflows */
 };
 
-enum class InstrumentationStatus {
-  Started,
-  CompilationStart,
-  InstrumentationStart,
-  LinkStart,
-  AFL_Instrumentation,
-  ExecutingAnalysis,
-  CheckingResults,
-  Finished
-};
-
-class Caller : public QObject {
-  Q_OBJECT
- private:
-  bool isRunning = false;
-  QString program;
-  Map2CheckMode mode;
-  QString targetFunction = 0;
+class Caller {
+ protected:
+  std::string pathprogram;  //!< Path for the .bc program */
   /** Get optmization flags for original C file
    *  @return Flags for clang */
-  static QString getPreOptimizationFlags();
+  static std::string preOptimizationFlags();
   /** Get optmization flags for final bytecode
    *  @return Flags for opt */
-  static QString getPostOptimizationFlags();
-  void instrumentPass();
-
+  static std::string postOptimizationFlags();
   /** Iterate over clang compilation messages (if any)
    *  and check for erors */
-  void processClangOutput();
+  std::vector<int> processClangOutput();
+
+ public:
+  /** @brief Constructor if .bc file already exists
+   *  @param bcprogam_path Path for the file */
+  explicit Caller(std::string bcprogram_path);
+
+  std::string cprogram_fullpath;  //!< Path for the oiginal c program */
+
+  /** @brief Function to compile original C file removing external memory
+   * operations calls
+   *  @param cprogam_path Path for the file
+   *  @return name of the generated .bc file */
+  static std::string compileCFile(std::string cprogram_path);
+
+  /** @brief Function to call pass for current verification mode
+   *  (REACHABLITY should use the overloaded method)
+   *  @param mode Mode of the current execution
+   *  @param sv_comp boolean representing if should use sv-comp rules */
+  int callPass(Map2CheckMode mode, bool sv_comp = false);
+
+  /** @brief Function to call pass for current verification mode
+   *  (for REACHABLITY mode)
+   *  @param mode Mode of the current execution
+   *  @param target_function Function to be verified
+   *  @param sv_comp boolean representing if should use sv-comp rules */
+  int callPass(Map2CheckMode mode, std::string target_function,
+               bool sv_comp = false);
 
   /** Link functions called after executing the passes */
   void linkLLVM();
+
+  /** Executes analysis with the generated LLVM IR */
   void executeAnalysis();
+
   /** Remove generated files for verification */
-  void removeTemporaryFiles();
-  void callPass();
-
-  void instrumentFuzzer();
-
- public:
-  Caller() {}
-  void stop();
- signals:
-  void instrumentationUpdate(InstrumentationStatus status);
-  void error(const char* message);
-  void finished();
-
- private slots:
-  /** @brief Function to compile original C file removing external memory
-   * operations calls
-   *  @param cprogam_path Path for the file */
-  void compileCFile();
-  // void
-  // void errorOnInstrumentation();
-  // void errorOnAnalysis();
-
- public slots:
-  void analyzeProgram(QString program, Map2CheckMode mode,
-                      QString targetFunction = 0);
-  void prematureStop();
+  void cleanGarbage();
 };
-}  // namespace Map2Check
 
-#endif
+}  // namespace Map2Check

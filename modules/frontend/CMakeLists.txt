@@ -1,26 +1,25 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+add_subdirectory(utils)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
+add_library(Caller OBJECT caller.cpp)
+set_target_properties(Caller PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
 
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
-set(SOURCES caller.cpp main.cpp mainclass.cpp)
-set(HEADERS caller.hpp mainclass.hpp)
+add_library(Exceptions OBJECT exceptions.cpp)
+set_target_properties(Exceptions PROPERTIES COMPILE_FLAGS ${CPP_FLAGS})
 
-add_executable(map2check ${SOURCES})
+#message(${LLVM_INCLUDE})
+add_executable(map2check map2check.cpp 
+  $<TARGET_OBJECTS:Caller> 
+  $<TARGET_OBJECTS:AFL>
+  $<TARGET_OBJECTS:Log> 
+  $<TARGET_OBJECTS:Tools>
+  $<TARGET_OBJECTS:Exceptions> )
+  
+ #add_executable(map2check map2check.cpp $<TARGET_OBJECTS:Caller>)
 
-# TODO: fix this hack
-if(COPY_EXTERNAL)  
-  set(FRONTEND_FLAGS "-static")
-else()
-    set(FRONTEND_FLAGS "")  
-endif()
+#set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${LLVM_INCLUDE})
+# set_target_properties(map2check PROPERTIES COMPILE_FLAGS "${CXX_FLAGS} -fexceptions")
+# set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${LLVM_INCLUDE})
+set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${CPP_FLAGS})
 
-target_link_libraries(map2check Qt5::Core)
-
-set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${FRONTEND_FLAGS})
-set_target_properties(map2check PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_RPATH})
-
-
-
-install (TARGETS map2check DESTINATION bin)
+target_link_libraries(map2check ${Boost_LIBRARIES})
+install (TARGETS map2check DESTINATION .)

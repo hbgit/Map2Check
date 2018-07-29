@@ -1,4 +1,5 @@
 
+
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -11,21 +12,20 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-namespace po = boost::program_options;
+
 #include <boost/filesystem.hpp>
 #include <boost/make_unique.hpp>
 
 //#include "caller.hpp"
-//#include "utils/log.hpp"
+#include "utils/log.hpp"
 
+namespace po = boost::program_options;
 #define Map2CheckVersion "Map2Check 7.2-Fuzzer : Mon May 28 21:44:38 UTC 2018"
 
 namespace {
 
 const size_t SUCCESS = 0;
 const size_t ERROR_IN_COMMAND_LINE = 1;
-// const size_t ERROR_UNHANDLED_EXCEPTION = 2;
-
 // A helper function to simplify the main part.
 template <class T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
@@ -40,51 +40,58 @@ inline void help_msg() {
   std::cout << "Usage: map2check [options] file.[i|c]\n";
   std::cout << std::endl;
 }
-/**inline int MIN(int a, int b) {
+
+inline int MIN(int a, int b) {
   if (a > b) {
-  return b;
+    return b;
   }
   return a;
-  }**/
+}
 
 inline void fixPath(char* map2check_bin_string) {
-  // namespace fs = boost::filesystem;
-  // const int kSZLength = 32;
-  // char szTmp[kSZLength];
-  // const int kBufferLength = 500;
-  // char pBuf[kBufferLength];
-  // snprintf(szTmp, kSZLength, "/proc/%d/exe", getpid());
-  // int bytes = MIN(readlink(szTmp, pBuf, kBufferLength), kBufferLength - 1);
-  // std::string map2check_bin(map2check_bin_string);
-  // int deleteSpace = 0;
-  // if (map2check_bin.size() > 9) {
-  //   deleteSpace = 10;
-  // } else {
-  //   deleteSpace = 9;
-  // }
+  namespace fs = boost::filesystem;
+  const int kSZLength = 32;
+  char szTmp[kSZLength];
+  const int kBufferLength = 500;
+  char pBuf[kBufferLength];
+  snprintf(szTmp, kSZLength, "/proc/%d/exe", getpid());
+  // TODO: fix implicit conversion from bytes
+  int bytes = MIN(readlink(szTmp, pBuf, kBufferLength), kBufferLength - 1);
+  std::string map2check_bin(map2check_bin_string);
+  int deleteSpace = 0;
+  if (map2check_bin.size() > 9) {
+    deleteSpace = 10;
+  } else {
+    deleteSpace = 9;
+  }
 
-  // if (bytes >= 0) {
-  //   pBuf[bytes - deleteSpace] = '\0';
-  // } else {
-  //   // throw error
-  // }
+  if (bytes >= 0) {
+    pBuf[bytes - deleteSpace] = '\0';
+  } else {
+  }
 
-  // std::string map2check_env_var("MAP2CHECK_PATH=");
-  // map2check_env_var += pBuf;
+  std::string map2check_env_var("MAP2CHECK_PATH=");
+  map2check_env_var += pBuf;
 
-  // char *map2check_env_array = new char[map2check_env_var.length() + 1];
-  // strcpy(map2check_env_array, map2check_env_var.c_str());
-  // putenv(map2check_env_array);
+  char* map2check_env_array = new char[map2check_env_var.length() + 1];
+  strcpy(map2check_env_array, map2check_env_var.c_str());
+  putenv(map2check_env_array);
+
+  std::string map2check_path("PATH=$MAP2CHECK_PATH/bin:$PATH");
+  char* map2check_path_array = new char[map2check_path.length() + 1];
+  strcpy(map2check_path_array, map2check_path.c_str());
+
+  putenv(map2check_path_array);
 }
 }  // namespace
 
 int map2check_execution(std::string inputFile) {
-  //Map2Check::Log::Info("Started Map2Check");
+  Map2Check::Log::Info("Started Map2Check");
   /**
    * Start Map2Check algorithm
    * (1) Compile file and check for compiler warnings
    * (2) Instrument functions for current mode
-   * (3) Execute with AFL
+   * (3) Execute with Fuzzer
    * (4) Retrieve results
    * (5) Generate witness (if analysis generated a result)
    **/
@@ -126,6 +133,9 @@ void test_map() {
 */
 
 int main(int argc, char** argv) {
+#ifdef STATIC
+  fixPath(argv[0]);
+#endif
   try {
     // Define and parse the program options
     po::options_description desc("Options");

@@ -16,10 +16,10 @@ if(COPY_EXTERNAL)
     message(FATAL_ERROR "Could not found pre-built directory")
   else()
     set(SEARCH_PATH ${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/bin)
+    link_directories(${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/lib)
     find_local_llvm(CLANG_CC clang-6.0)    
     find_local_llvm(CLANG_CXX clang-6.0)
     find_local_llvm(LLVM_CONFIG llvm-config)
-    link_directories(${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/lib)
   endif()  
 else()
   find_program(CLANG_CC clang-6.0)
@@ -40,19 +40,15 @@ set(CMAKE_CXX_COMPILER ${CLANG_CXX})
 execute_process( COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
 message(${clang_full_version_string})
 
-
 if(NOT LLVM_CONFIG)
     message(FATAL_ERROR "LLVM-CONFIG not found! (Did you execute the bootstrap script?)")
 endif()
 
-
 # Get Flags
-set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
+set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags --link-static)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-message(INFO "Flags ${CXX_FLAGS}")
 
-# Get Flags
-set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags)
+set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags --link-static)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CPP_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 

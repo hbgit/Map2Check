@@ -12,11 +12,6 @@ void Log::Warning(std::string msg) {
   std::cout << "\033[1;33m" << msg << "\033[0m";
 }
 
-void Log::initLog() {
-  // logging::core::get()->set_filter(
-  //          logging::trivial::severity >= logging::trivial::info);
-}
-
 void Log::Debug(std::string msg) {
   std::cout << "\033[0;33m" << msg << "\033[0m";
 }

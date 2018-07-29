@@ -1,5 +1,4 @@
 #include "tools.hpp"
-#include "../exceptions.hpp"
 #include "log.hpp"
 
 #include <algorithm>  // copy
@@ -31,7 +30,7 @@ Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
     sourceFile.close();
 
   } else {
-    throw Map2Check::Exceptions::ErrorOpeningFileException(pathToCSource);
+    // throw Map2Check::Exceptions::ErrorOpeningFileException(pathToCSource);
   }
 
   Map2Check::Log::Debug(*this);
@@ -67,7 +66,7 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
 
   ifstream in(path.c_str());
   if (!in.is_open()) {
-    throw Tools::CheckViolatedPropertyException("Could not open file");
+    // throw Tools::CheckViolatedPropertyException("Could not open file");
   }
 
   string line;
@@ -173,7 +172,7 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
           Map2Check::Log::Debug("NONE found");
           this->propertyViolated = Tools::PropertyViolated::NONE;
         } else {
-          throw Tools::CheckViolatedPropertyException("Invalid Property");
+          // throw Tools::CheckViolatedPropertyException("Invalid Property");
         }
         break;
       case 1:
@@ -182,8 +181,8 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
           this->line = result;
           Map2Check::Log::Debug("Line number: " + match.str(1));
         } else {
-          throw Tools::CheckViolatedPropertyException(
-              "Could not find line number");
+          // throw Tools::CheckViolatedPropertyException(
+          //  "Could not find line number");
         }
         break;
       case 2:
@@ -193,8 +192,8 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
           this->function_name = result;
           Map2Check::Log::Debug("Function name: " + result);
         } else {
-          throw Tools::CheckViolatedPropertyException(
-              "Could not find function name");
+          // throw Tools::CheckViolatedPropertyException(
+          //   "Could not find function name");
         }
         break;
     }
@@ -215,7 +214,7 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
   // Open file as READ mode
   ifstream in(path.c_str());
   if (!in.is_open()) {
-    throw Tools::CouldNotOpenFileException();
+    // throw Tools::CouldNotOpenFileException();
   }
 
   string line;
@@ -402,36 +401,4 @@ std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(
   }
 
   return listLog;
-}
-
-const char* Tools::CheckViolatedPropertyException::what() const throw() {
-  std::ostringstream cnvt;
-  cnvt.str("");
-  cnvt << runtime_error::what();
-  Map2Check::Log::Error(cnvt.str());
-  return cnvt.str().c_str();
-}
-
-const char* Tools::CSVHelperException::what() const throw() {
-  std::ostringstream cnvt;
-  cnvt.str("");
-  cnvt << runtime_error::what();
-  Map2Check::Log::Error(cnvt.str());
-  return cnvt.str().c_str();
-}
-
-const char* Tools::CouldNotOpenFileException::what() const throw() {
-  std::ostringstream cnvt;
-  cnvt.str("Could not open input file");
-  cnvt << runtime_error::what();
-  Map2Check::Log::Error(cnvt.str());
-  return cnvt.str().c_str();
-}
-
-const char* Tools::InvalidCSVException::what() const throw() {
-  std::ostringstream cnvt;
-  cnvt.str("Invalid CSV content");
-  cnvt << runtime_error::what();
-  Map2Check::Log::Error(cnvt.str());
-  return cnvt.str().c_str();
 }

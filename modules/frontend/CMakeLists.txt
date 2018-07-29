@@ -3,22 +3,11 @@ add_subdirectory(utils)
 add_library(Caller OBJECT caller.cpp)
 set_target_properties(Caller PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
 
-add_library(Exceptions OBJECT exceptions.cpp)
-set_target_properties(Exceptions PROPERTIES COMPILE_FLAGS ${CPP_FLAGS})
-
-#message(${LLVM_INCLUDE})
 add_executable(map2check map2check.cpp 
-  $<TARGET_OBJECTS:Caller> 
-  $<TARGET_OBJECTS:AFL>
+  $<TARGET_OBJECTS:Caller>
   $<TARGET_OBJECTS:Log> 
-  $<TARGET_OBJECTS:Tools>
-  $<TARGET_OBJECTS:Exceptions> )
-  
- #add_executable(map2check map2check.cpp $<TARGET_OBJECTS:Caller>)
+  $<TARGET_OBJECTS:Tools>)
 
-#set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${LLVM_INCLUDE})
-# set_target_properties(map2check PROPERTIES COMPILE_FLAGS "${CXX_FLAGS} -fexceptions")
-# set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${LLVM_INCLUDE})
 set_target_properties(map2check PROPERTIES COMPILE_FLAGS ${CPP_FLAGS})
 
 target_link_libraries(map2check ${Boost_LIBRARIES})

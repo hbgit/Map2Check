@@ -373,28 +373,4 @@ class TrackBBLogHelper {
   }
 };
 
-class CheckViolatedPropertyException : public runtime_error {
- public:
-  CheckViolatedPropertyException(string message) : runtime_error(message) {}
-  virtual const char* what() const throw();
-};
-
-class CSVHelperException : public runtime_error {
- public:
-  CSVHelperException(string message) : runtime_error(message) {}
-  virtual const char* what() const throw();
-};
-
-class CouldNotOpenFileException : public CSVHelperException {
- public:
-  CouldNotOpenFileException() : CSVHelperException("") {}
-  virtual const char* what() const throw();
-};
-
-class InvalidCSVException : public CSVHelperException {
- public:
-  InvalidCSVException() : CSVHelperException("") {}
-  virtual const char* what() const throw();
-};
-
 }  // namespace Map2Check

@@ -1,0 +1,2 @@
+#define Map2CheckVersion @Map2Check_VERSION_MAJOR@.@Map2Check_VERSION_MINOR@
+#define Map2CheckMode @Map2Check_MODE@

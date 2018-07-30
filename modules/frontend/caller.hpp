@@ -39,17 +39,11 @@ class Caller {
   static std::string compileCFile(std::string cprogram_path);
 
   /** @brief Function to call pass for current verification mode
-   *  (REACHABLITY should use the overloaded method)
-   *  @param mode Mode of the current execution
-   *  @param sv_comp boolean representing if should use sv-comp rules */
-  int callPass(Map2CheckMode mode, bool sv_comp = false);
-
-  /** @brief Function to call pass for current verification mode
    *  (for REACHABLITY mode)
    *  @param mode Mode of the current execution
    *  @param target_function Function to be verified
    *  @param sv_comp boolean representing if should use sv-comp rules */
-  int callPass(Map2CheckMode mode, std::string target_function,
+  int callPass(Map2CheckMode mode, std::string target_function="",
                bool sv_comp = false);
 
   /** Link functions called after executing the passes */

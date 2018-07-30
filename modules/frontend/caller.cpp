@@ -6,13 +6,18 @@
 #include <iostream>
 #include <regex>
 #include <string>
-// #include <boost/filesystem.hpp>
+
+//#include <boost/filesystem.hpp>
 
 #include "utils/log.hpp"
 #include "utils/tools.hpp"
 
 // namespace fs = boost::filesystem;
 // }  // namespace
+
+namespace {
+inline std::string getLibSuffix() { return ".so"; }
+}
 
 namespace Map2Check {
 Caller::Caller(std::string bcprogram_path) {
@@ -58,32 +63,54 @@ void Caller::cleanGarbage() {
   system(removeCommand.str().c_str());
 }
 
-int Caller::callPass(Map2CheckMode mode, bool sv_comp) {
+int Caller::callPass(Map2CheckMode mode, std::string target_function,
+                     bool sv_comp) {
   std::ostringstream transformCommand;
   transformCommand.str("");
   transformCommand << Map2Check::optBinary;
   /* TODO(rafa.sa.xp@gmail.com): Should apply generate_automata_true
    *                             and TrackBasicBlockPass now */
-  transformCommand << " -load ${MAP2CHECK_PATH}/lib/libNonDetPass.so "
-                   << "-non_det < entry.bc > non_det.bc";
 
-  system(transformCommand.str().c_str());
+  std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
 
-  transformCommand.str("");
-  transformCommand << Map2Check::optBinary;
-  /* TODO(rafa.sa.xp@gmail.com): Should apply generate_automata_true
-   *                             and TrackBasicBlockPass now */
-  transformCommand << " -load ${MAP2CHECK_PATH}/lib/libMap2CheckLibrary.so "
-                   << "-map2check < non_det.bc > output.bc";
+  Map2Check::Log::Info("Adding nondet pass");
+  transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det";
+
+  switch (mode) {
+    case Map2CheckMode::MEMTRACK_MODE: {
+      Map2Check::Log::Info("Adding memtrack pass");
+      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
+                       << " -memory_track";
+      break;
+    }
+    case Map2CheckMode::OVERFLOW_MODE: {
+      Map2Check::Log::Error(
+          "Overflow mode is not implemented yet, ignoring option");
+      break;
+    }
+    case Map2CheckMode::REACHABILITY_MODE: {
+      Map2Check::Log::Fatal(
+          "Reachability mode is not implemented yet, ignoring "
+          "option");
+      break;
+    }
+  }
+
+  Map2Check::Log::Info("Adding map2check pass");
+  std::string map2checkPass = "${MAP2CHECK_PATH}/lib/libMap2CheckLibrary";
+  transformCommand << " -load " << map2checkPass << getLibSuffix()
+                   << " -map2check ";
+
+  std::string input_file = "< compiled.bc ";
+  std::string output_file = "> output.bc";
+
+  transformCommand << input_file << output_file;
+  Map2Check::Log::Debug(transformCommand.str());
 
   system(transformCommand.str().c_str());
 
   return 1;
-}
-
-int Caller::callPass(Map2CheckMode mode, std::string target_function,
-                     bool sv_comp) {
-  return -1;
 }
 
 void Caller::linkLLVM() {

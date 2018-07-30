@@ -16,11 +16,13 @@
 #include <boost/filesystem.hpp>
 #include <boost/make_unique.hpp>
 
-//#include "caller.hpp"
+#include "caller.hpp"
 #include "utils/log.hpp"
 
 namespace po = boost::program_options;
 #define Map2CheckVersion "Map2Check 7.2-Fuzzer : Mon May 28 21:44:38 UTC 2018"
+
+// TODO: should get preprocessor flags from CMake
 
 namespace {
 
@@ -49,6 +51,7 @@ inline int MIN(int a, int b) {
 }
 
 inline void fixPath(char* map2check_bin_string) {
+  Map2Check::Log::Info("Fixing Map2Check path");
   namespace fs = boost::filesystem;
   const int kSZLength = 32;
   char szTmp[kSZLength];
@@ -76,12 +79,13 @@ inline void fixPath(char* map2check_bin_string) {
   char* map2check_env_array = new char[map2check_env_var.length() + 1];
   strcpy(map2check_env_array, map2check_env_var.c_str());
   putenv(map2check_env_array);
+  Map2Check::Log::Debug(map2check_env_var);
 
-  std::string map2check_path("PATH=$MAP2CHECK_PATH/bin:$PATH");
-  char* map2check_path_array = new char[map2check_path.length() + 1];
-  strcpy(map2check_path_array, map2check_path.c_str());
+  // std::string map2check_path("PATH=$MAP2CHECK_PATH/bin:$PATH");
+  // char* map2check_path_array = new char[map2check_path.length() + 1];
+  // strcpy(map2check_path_array, map2check_path.c_str());
 
-  putenv(map2check_path_array);
+  // putenv(map2check_path_array);
 }
 }  // namespace
 
@@ -103,7 +107,7 @@ int map2check_execution(std::string inputFile) {
     help_msg();
     return ERROR_IN_COMMAND_LINE;
   }
-  /*
+
   std::unique_ptr<Map2Check::Caller> caller;
   // Check if compiling will be needed
   if (extension.compare(".bc")) {
@@ -115,11 +119,12 @@ int map2check_execution(std::string inputFile) {
     caller = boost::make_unique<Map2Check::Caller>(inputFile);
   }
   caller->cprogram_fullpath = inputFile;
+
   // (2) Instrument functions for current mode
   // TODO(rafa.sa.xp@gmail.com): Check current mode
-  // caller->callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
+  caller->callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
   // caller->linkLLVM();
-  */
+
   return SUCCESS;
 }
 
@@ -133,16 +138,15 @@ void test_map() {
 */
 
 int main(int argc, char** argv) {
-#ifdef STATIC
   fixPath(argv[0]);
-#endif
   try {
     // Define and parse the program options
     po::options_description desc("Options");
     desc.add_options()("help,h", "\tshow help")("version,v",
                                                 "\tprints map2check version")(
         "input-file,i", po::value<std::vector<std::string> >(),
-        "\tspecifies the files, also works with <file.bc>");
+        "\tspecifies the files, also works with <file.bc>"
+        "generate_nondet_value, ");
 
     po::positional_options_description p;
     p.add("input-file", -1);

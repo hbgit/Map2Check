@@ -12,11 +12,19 @@ enum class Map2CheckMode {
   OVERFLOW_MODE      /**< Check for signed integer overflows */
 };
 
+/** NonDet generators */
+// TODO: Add suport to other nondet like: klee, afl, afl+klee, libfuzzer+afl
+enum class NonDetGenerator {
+  None,     /**< Do not generate any input */
+  LibFuzzer /**< LibFuzzer from LLVM */
+};
+
+/** This class is responsible for calling all external and system programs */
 class Caller {
  protected:
   std::string pathprogram;  //!< Path for the .bc program */
-  /** Get optmization flags for original C file
-   *  @return Flags for clang */
+                            /** Get optmization flags for original C file
+                             *  @return Flags for clang */
   static std::string preOptimizationFlags();
   /** Get optmization flags for final bytecode
    *  @return Flags for opt */
@@ -24,11 +32,14 @@ class Caller {
   /** Iterate over clang compilation messages (if any)
    *  and check for erors */
   std::vector<int> processClangOutput();
+  Map2CheckMode map2checkMode;
+  NonDetGenerator nonDetGenerator;
 
  public:
   /** @brief Constructor if .bc file already exists
    *  @param bcprogam_path Path for the file */
-  explicit Caller(std::string bcprogram_path);
+  Caller(std::string bcprogram_path, Map2CheckMode mode,
+         NonDetGenerator generator);
 
   std::string cprogram_fullpath;  //!< Path for the oiginal c program */
 
@@ -43,8 +54,7 @@ class Caller {
    *  @param mode Mode of the current execution
    *  @param target_function Function to be verified
    *  @param sv_comp boolean representing if should use sv-comp rules */
-  int callPass(Map2CheckMode mode, std::string target_function="",
-               bool sv_comp = false);
+  int callPass(std::string target_function = "", bool sv_comp = false);
 
   /** Link functions called after executing the passes */
   void linkLLVM();
@@ -54,6 +64,9 @@ class Caller {
 
   /** Remove generated files for verification */
   void cleanGarbage();
+
+  /** Instrument and execute nondeterministic generator */
+  void applyNonDetGenerator();
 };
 
 }  // namespace Map2Check

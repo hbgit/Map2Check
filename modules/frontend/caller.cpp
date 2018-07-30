@@ -20,9 +20,12 @@ inline std::string getLibSuffix() { return ".so"; }
 }
 
 namespace Map2Check {
-Caller::Caller(std::string bcprogram_path) {
+Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
+               NonDetGenerator generator) {
   this->cleanGarbage();
   this->pathprogram = bcprogram_path;
+  this->map2checkMode = mode;
+  this->nonDetGenerator = generator;
 }
 
 std::string Caller::preOptimizationFlags() {
@@ -63,8 +66,28 @@ void Caller::cleanGarbage() {
   system(removeCommand.str().c_str());
 }
 
-int Caller::callPass(Map2CheckMode mode, std::string target_function,
-                     bool sv_comp) {
+void Caller::applyNonDetGenerator() {
+  switch (nonDetGenerator) {
+    case (NonDetGenerator::None): {
+      Map2Check::Log::Info(
+          "Map2Check will not generate non deterministic numbers");
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      Map2Check::Log::Info("Instrumenting with LLVM Libfuzzer");
+      std::ostringstream command;
+      command.str("");
+      command << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
+              << " -o fuzzed.out "
+              << "result.bc";
+
+      system(command.str().c_str());
+      break;
+    }
+  }
+}
+
+int Caller::callPass(std::string target_function, bool sv_comp) {
   std::ostringstream transformCommand;
   transformCommand.str("");
   transformCommand << Map2Check::optBinary;
@@ -76,7 +99,7 @@ int Caller::callPass(Map2CheckMode mode, std::string target_function,
   Map2Check::Log::Info("Adding nondet pass");
   transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det";
 
-  switch (mode) {
+  switch (map2checkMode) {
     case Map2CheckMode::MEMTRACK_MODE: {
       Map2Check::Log::Info("Adding memtrack pass");
       std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
@@ -117,6 +140,7 @@ void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
   // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
 
+  Map2Check::Log::Info("Linking with map2check library");
   std::ostringstream linkCommand;
   linkCommand.str("");
   linkCommand << Map2Check::llvmLinkBinary;
@@ -143,7 +167,23 @@ void Caller::linkLLVM() {
                   << " result.bc > optimized.bc";
 }
 
-void Caller::executeAnalysis() {}
+void Caller::executeAnalysis() {
+  switch (nonDetGenerator) {
+    // TODO: implement this method
+    case (NonDetGenerator::None): {
+      Map2Check::Log::Info("This mode is not supported");
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      Map2Check::Log::Info("Executing libfuzzer with map2check");
+      std::ostringstream command;
+      command.str("");
+      command << "./fuzzed.out > fuzzer.output";
+      system(command.str().c_str());
+      break;
+    }
+  }
+}
 
 std::vector<int> Caller::processClangOutput() {
   const char* path_name = "clang.out";

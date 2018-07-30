@@ -91,11 +91,15 @@ inline void fixPath(char* map2check_bin_string) {
 
 int map2check_execution(std::string inputFile) {
   Map2Check::Log::Info("Started Map2Check");
+  // TODO(rafa.sa.xp@gmail.com): Check current mode
+  auto mode = Map2Check::Map2CheckMode::MEMTRACK_MODE;
+  auto generator = Map2Check::NonDetGenerator::LibFuzzer;
+
   /**
    * Start Map2Check algorithm
    * (1) Compile file and check for compiler warnings
    * (2) Instrument functions for current mode
-   * (3) Execute with Fuzzer
+   * (3) Apply nondeterministic mode and execute analysis
    * (4) Retrieve results
    * (5) Generate witness (if analysis generated a result)
    **/
@@ -113,17 +117,21 @@ int map2check_execution(std::string inputFile) {
   if (extension.compare(".bc")) {
     // Compile C file
     caller = boost::make_unique<Map2Check::Caller>(
-        Map2Check::Caller::compileCFile(inputFile));
+        Map2Check::Caller::compileCFile(inputFile), mode, generator);
   } else {
     // C file already compiled
-    caller = boost::make_unique<Map2Check::Caller>(inputFile);
+    caller = boost::make_unique<Map2Check::Caller>(inputFile, mode, generator);
   }
   caller->cprogram_fullpath = inputFile;
 
   // (2) Instrument functions for current mode
-  // TODO(rafa.sa.xp@gmail.com): Check current mode
-  caller->callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
-  // caller->linkLLVM();
+
+  caller->callPass();
+  caller->linkLLVM();
+
+  // (3) Apply nondeterministic mode and execute analysis
+  caller->applyNonDetGenerator();
+  caller->executeAnalysis();
 
   return SUCCESS;
 }

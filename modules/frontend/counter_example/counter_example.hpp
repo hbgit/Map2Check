@@ -6,6 +6,8 @@
 #include "../utils/tools.hpp"
 
 #pragma once
+
+namespace Tools = Map2Check;
 namespace Map2Check {
 
 class CounterExampleRow {
@@ -59,7 +61,7 @@ class CounterExampleListLogRow : public CounterExampleRow {
     cnvt << ">>Memory list log\n\n";
 
     cnvt << "  Line content   : " << this->lineC << "\n";
-    cnvt << (std::string)this->row;
+    cnvt << (std::string) this->row;
 
     return cnvt.str();
   }
@@ -112,7 +114,7 @@ class CounterExampleKleeRow : public CounterExampleRow {
     cnvt << ">Symbolic log\n";
 
     //      cnvt << "  Line content   : " << this->lineC << "\n";
-    cnvt << (std::string)this->row;
+    cnvt << (std::string) this->row;
     return cnvt.str();
   }
 

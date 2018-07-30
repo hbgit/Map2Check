@@ -17,6 +17,7 @@
 #include <boost/make_unique.hpp>
 
 #include "caller.hpp"
+#include "counter_example/counter_example.hpp"
 #include "utils/log.hpp"
 
 namespace po = boost::program_options;
@@ -125,7 +126,6 @@ int map2check_execution(std::string inputFile) {
   caller->cprogram_fullpath = inputFile;
 
   // (2) Instrument functions for current mode
-
   caller->callPass();
   caller->linkLLVM();
 
@@ -133,9 +133,25 @@ int map2check_execution(std::string inputFile) {
   caller->applyNonDetGenerator();
   caller->executeAnalysis();
 
+  // (4) Retrieve results
+  // TODO: create methods to generate counter example
+  std::unique_ptr<Map2Check::CounterExample> counterExample =
+      boost::make_unique<Map2Check::CounterExample>(std::string(inputFile));
+  Map2Check::PropertyViolated propertyViolated = counterExample->getProperty();
+
+  if (propertyViolated ==
+      Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
+    Map2Check::Log::Info("");
+    Map2Check::Log::Info("VERIFICATION SUCCEDED");
+  } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
+    Map2Check::Log::Info("Unable to prove or falsify the program.");
+    Map2Check::Log::Info("VERIFICATION UNKNOWN");
+  } else {
+    Map2Check::Log::Info("Started counter example generation");
+    counterExample->printCounterExample();
+  }
   return SUCCESS;
 }
-
 // Small test, assumes that entry.bc exists and MAP2CHECK_PATH is configured
 /*
 void test_map() {

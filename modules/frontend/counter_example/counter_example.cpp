@@ -1,12 +1,13 @@
 #include "counter_example.hpp"
 
 #include <algorithm>
-#include <memory>
+#include <boost/make_unique.hpp>
+namespace Tools = Map2Check;
 using namespace Map2Check;
 
 CounterExample::CounterExample(std::string path) {
-  this->sourceCodeHelper =
-      std::make_unique<Tools::SourceCodeHelper>(Tools::SourceCodeHelper(path));
+  this->sourceCodeHelper = boost::make_unique<Tools::SourceCodeHelper>(
+      Tools::SourceCodeHelper(path));
 
   this->processKleeLog();
   // Log::Debug("started reading list log");
@@ -47,7 +48,7 @@ void CounterExample::processProperty() {
   int state = 0;
   std::string path = violated.path_name;
   std::unique_ptr<CounterExampleRow> row =
-      std::make_unique<CounterExampleProperty>(
+      boost::make_unique<CounterExampleProperty>(
           step, state, path, 0, violated.propertyViolated, violated.line,
           violated.function_name);
   this->counterExampleRows.push_back(std::move(row));
@@ -88,31 +89,27 @@ std::string CounterExample::getViolatedProperty() {
 
 // FIXME: Add Support to other non det type
 void CounterExample::processKleeLog() {
-  try {
-    std::vector<Tools::KleeLogRow> kleeLogRows =
-        Tools::KleeLogHelper::getListLogFromCSV();
+  std::vector<Tools::KleeLogRow> kleeLogRows =
+      Tools::KleeLogHelper::getListLogFromCSV();
 
-    int ref = 0;
-    for (int i = 0; i < kleeLogRows.size(); i++) {
-      int step = std::stoi(kleeLogRows[i].step);
-      std::string path = this->sourceCodeHelper->getFilePath();
+  int ref = 0;
+  for (int i = 0; i < kleeLogRows.size(); i++) {
+    int step = std::stoi(kleeLogRows[i].step);
+    std::string path = this->sourceCodeHelper->getFilePath();
 
-      int state = 0;
+    int state = 0;
 
-      int lineNumber = std::stoi(kleeLogRows[i].line);
-      std::string lineC = this->sourceCodeHelper->substituteWithResult(
-          lineNumber, "__VERIFIER_nondet_int()", kleeLogRows[i].value);
+    int lineNumber = std::stoi(kleeLogRows[i].line);
+    std::string lineC = this->sourceCodeHelper->substituteWithResult(
+        lineNumber, "__VERIFIER_nondet_int()", kleeLogRows[i].value);
 
-      std::unique_ptr<CounterExampleRow> row =
-          std::make_unique<CounterExampleKleeRow>(kleeLogRows[i], step, state,
+    std::unique_ptr<CounterExampleRow> row =
+        boost::make_unique<CounterExampleKleeRow>(kleeLogRows[i], step, state,
                                                   path, ref, lineC);
-      // Log::Info(*row);
+    // Log::Info(*row);
 
-      this->counterExampleRows.push_back(std::move(row));
-      ref++;
-    }
-  } catch (Tools::CouldNotOpenFileException& e) {
-    Log::Debug("Klee didnt generate any result");
+    this->counterExampleRows.push_back(std::move(row));
+    ref++;
   }
 }
 
@@ -129,8 +126,8 @@ void CounterExample::processListLog() {
     Log::Debug("Line: " + listLogRows[i].lineNumber);
     std::string lineC = this->sourceCodeHelper->getLine(lineNumber);
     std::unique_ptr<CounterExampleRow> row =
-        std::make_unique<CounterExampleListLogRow>(listLogRows[i], step, state,
-                                                   path, ref, lineC);
+        boost::make_unique<CounterExampleListLogRow>(listLogRows[i], step,
+                                                     state, path, ref, lineC);
     this->counterExampleRows.push_back(std::move(row));
     ref++;
   }

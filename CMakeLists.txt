@@ -6,12 +6,14 @@ set(Map2Check_VERSION_MINOR 0)
 
 option(COPY_EXTERNAL "COPY_EXTERNAL" OFF)
 
+set (CMAKE_CXX_STANDARD 11)
+
 # This should only be executed from docker container
 if(COPY_EXTERNAL)
   #If this option is setted, external deps MUST be called before find clang and findqt
   set(Map2Check_MODE "STATIC")
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-  set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
+  #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  #set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
   include(cmake/ExternalDeps.cmake)  
 else()
     set(Map2Check_MODE "DYNAMIC")

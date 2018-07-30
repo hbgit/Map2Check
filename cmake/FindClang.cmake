@@ -1,13 +1,8 @@
 # FIND LLVM 6.0
 function(find_local_llvm VAR_NAME PROGRAM)
   message("Searching ${PROGRAM} in ${SEARCH_PATH}")
-  find_program(${VAR_NAME} ${PROGRAM} ${SEARCH_PATH}
-    NO_DEFAULT_PATH
-    NO_CMAKE_ENVIRONMENT_PATH
-    NO_CMAKE_PATH
-    NO_SYSTEM_ENVIRONMENT_PATH
-    NO_CMAKE_SYSTEM_PATH
-    NO_CMAKE_FIND_ROOT_PATH)
+  find_program(${VAR_NAME} NAMES ${PROGRAM} PATHS ${SEARCH_PATH}
+    NO_DEFAULT_PATH)
   message("Found ${${VAR_NAME}}")
 endfunction(find_local_llvm)
 
@@ -18,7 +13,7 @@ if(COPY_EXTERNAL)
     set(SEARCH_PATH ${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/bin)
     link_directories(${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/lib)
     find_local_llvm(CLANG_CC clang-6.0)    
-    find_local_llvm(CLANG_CXX clang-6.0)
+    find_local_llvm(CLANG_CXX clang++)
     find_local_llvm(LLVM_CONFIG llvm-config)
   endif()  
 else()
@@ -45,10 +40,10 @@ if(NOT LLVM_CONFIG)
 endif()
 
 # Get Flags
-set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags --link-static)
+set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags --link-static)
+set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags )
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CPP_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 

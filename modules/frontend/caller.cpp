@@ -39,7 +39,7 @@ Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
   // TODO: if file is not compiled into this function, this will remove original
   // file (so we should have a way of checking)
   std::ostringstream moveProgram;
-  moveProgram << "mv " << bcprogram_path << " " << programHash;
+  moveProgram << "cp " << bcprogram_path << " " << programHash;
   system(moveProgram.str().c_str());
 
   Map2Check::Log::Debug("Changing current dir");
@@ -65,7 +65,6 @@ void Caller::cleanGarbage() {
   std::ostringstream removeCommand;
   removeCommand.str("");
   removeCommand << "rm -rf ../" << programHash;
-
   system(removeCommand.str().c_str());
 }
 

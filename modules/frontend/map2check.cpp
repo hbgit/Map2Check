@@ -135,6 +135,7 @@ int map2check_execution(std::string inputFile) {
 
   // (4) Retrieve results
   // TODO: create methods to generate counter example
+
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(std::string(inputFile));
   Map2Check::PropertyViolated propertyViolated = counterExample->getProperty();
@@ -150,6 +151,9 @@ int map2check_execution(std::string inputFile) {
     Map2Check::Log::Info("Started counter example generation");
     counterExample->printCounterExample();
   }
+
+  // Clean files from caller
+  caller->cleanGarbage();
   return SUCCESS;
 }
 // Small test, assumes that entry.bc exists and MAP2CHECK_PATH is configured

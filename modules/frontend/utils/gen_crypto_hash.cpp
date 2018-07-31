@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include "log.hpp"
 
 void GenHash::setOutputSha1HashFile(std::string keysha1) {
   this->key_sha1_hash_file = keysha1;
@@ -40,6 +41,7 @@ int GenHash::generate_sha1_hash_for_file() {
   }
 
   this->key_sha1_hash_file = ss.str();
+  Map2Check::Log::Debug("Got hash " + key_sha1_hash_file);
   return 0;
 }
 

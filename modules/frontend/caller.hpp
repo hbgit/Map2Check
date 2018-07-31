@@ -6,6 +6,7 @@
 namespace Map2Check {
 
 /** Map2Check verification modes */
+// TODO: Add support to custom mode
 enum class Map2CheckMode {
   MEMTRACK_MODE,     /**< Check memory errors (memtrack, deref, free) */
   REACHABILITY_MODE, /**< Check if a target function can be executed */
@@ -34,6 +35,7 @@ class Caller {
   std::vector<int> processClangOutput();
   Map2CheckMode map2checkMode;
   NonDetGenerator nonDetGenerator;
+  std::string programHash;
 
  public:
   /** @brief Constructor if .bc file already exists

@@ -7,11 +7,11 @@
 #include <regex>
 #include <string>
 
-//#include <boost/filesystem.hpp>
+#include <boost/filesystem.hpp>
 
+#include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
 #include "utils/tools.hpp"
-
 // namespace fs = boost::filesystem;
 // }  // namespace
 
@@ -26,6 +26,25 @@ Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
   this->pathprogram = bcprogram_path;
   this->map2checkMode = mode;
   this->nonDetGenerator = generator;
+  GenHash hash;
+  hash.setFilePath(bcprogram_path);
+  hash.generate_sha1_hash_for_file();
+  this->programHash = hash.getOutputSha1HashFile();
+
+  std::ostringstream createTempDir;
+  createTempDir.str("");
+  createTempDir << "mkdir " << programHash;
+  system(createTempDir.str().c_str());
+
+  // TODO: if file is not compiled into this function, this will remove original
+  // file (so we should have a way of checking)
+  std::ostringstream moveProgram;
+  moveProgram << "mv " << bcprogram_path << " " << programHash;
+  system(moveProgram.str().c_str());
+
+  Map2Check::Log::Debug("Changing current dir");
+  std::string currentPath = boost::filesystem::current_path().string();
+  boost::filesystem::current_path(currentPath + "/" + programHash);
 }
 
 std::string Caller::preOptimizationFlags() {
@@ -45,23 +64,7 @@ std::string Caller::postOptimizationFlags() {
 void Caller::cleanGarbage() {
   std::ostringstream removeCommand;
   removeCommand.str("");
-  removeCommand << "rm -rf"
-                << " klee-*"
-                << " *.log"
-                << " list-*"
-                << " *.csv"
-                << " map2check_property"
-                << " automata_list_log.st"
-                << " track_bb_log.st"
-                << " map2check_property_klee_unknown"
-                << " map2check_property_klee_deref"
-                << " map2check_property_klee_memtrack"
-                << " map2check_property_overflow"
-                << " map2check_property_klee_free"
-                << " preprocessed.c"
-                << " optimized.bc"
-                << " output.bc"
-                << " witnessInfo";
+  removeCommand << "rm -rf ../" << programHash;
 
   system(removeCommand.str().c_str());
 }
@@ -78,8 +81,8 @@ void Caller::applyNonDetGenerator() {
       std::ostringstream command;
       command.str("");
       command << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
-              << " -o fuzzed.out "
-              << "result.bc";
+              << " -o " + programHash + "-fuzzed.out"
+              << " " + programHash + "-result.bc";
 
       system(command.str().c_str());
       break;
@@ -125,8 +128,8 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   transformCommand << " -load " << map2checkPass << getLibSuffix()
                    << " -map2check ";
 
-  std::string input_file = "< compiled.bc ";
-  std::string output_file = "> output.bc";
+  std::string input_file = "< " + this->pathprogram;
+  std::string output_file = "> " + programHash + "-output.bc";
 
   transformCommand << input_file << output_file;
   Map2Check::Log::Debug(transformCommand.str());
@@ -144,7 +147,7 @@ void Caller::linkLLVM() {
   std::ostringstream linkCommand;
   linkCommand.str("");
   linkCommand << Map2Check::llvmLinkBinary;
-  linkCommand << " output.bc"
+  linkCommand << " " + programHash + "-output.bc"
               << " ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc"
               << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
               << " ${MAP2CHECK_PATH}/lib/HeapLog.bc"
@@ -155,7 +158,7 @@ void Caller::linkLLVM() {
               << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
               << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc"
               // << " ${MAP2CHECK_PATH}/lib/BinaryOperation.bc "
-              << "  > result.bc";
+              << "  > " + programHash + "-result.bc";
 
   system(linkCommand.str().c_str());
 
@@ -178,7 +181,7 @@ void Caller::executeAnalysis() {
       Map2Check::Log::Info("Executing libfuzzer with map2check");
       std::ostringstream command;
       command.str("");
-      command << "./fuzzed.out > fuzzer.output";
+      command << "./" + programHash + "-fuzzed.out > fuzzer.output";
       system(command.str().c_str());
       break;
     }
@@ -197,6 +200,7 @@ std::vector<int> Caller::processClangOutput() {
   }
   Map2Check::Log::Debug("Clang generate warning or errors");
 
+  // This regex captures accused line number for overflow warnings (from clang)
   regex overflowWarning(".*:([[:digit:]]+):[[:digit:]]+:.*Winteger-overflow.*");
   string line;
   smatch match;
@@ -211,29 +215,46 @@ std::vector<int> Caller::processClangOutput() {
   return result;
 }
 
+/** This function should:
+ * (1) Remove unsuported functions and clean the C code
+ * (2) Generate .bc file from code
+ * (3) Check for overflow errors on compilation
+ */
 string Caller::compileCFile(std::string cprogram_path) {
   Map2Check::Log::Info("Compiling " + cprogram_path);
 
+  // Generating hash for temporary C file
+  GenHash hash;
+  hash.setFilePath(cprogram_path);
+  hash.generate_sha1_hash_for_file();
+
+  // (1) Remove unsuported functions and clean the C code
   std::ostringstream commandRemoveExternMalloc;
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
-  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*//g' "
+  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
                             << "  -e 's/.*void \\*malloc(size_t size).*//g' "
-                            << " > preprocessed.c";
+                            << " > " << hash.getOutputSha1HashFile()
+                            << "-preprocessed.c ";
 
   system(commandRemoveExternMalloc.str().c_str());
 
+  // (2) Generate .bc file from code
+  // TODO: -Winteger-overflow should be called only if is on overflow mode
+  std::string compiledFile = hash.getOutputSha1HashFile() + "-compiled.bc";
   std::ostringstream command;
   command.str("");
   command << Map2Check::clangBinary << " -I" << Map2Check::clangIncludeFolder
           << " -Wno-everything "
           << " -Winteger-overflow "
           << " -c -emit-llvm -g"
-          << " " << Caller::preOptimizationFlags() << " -o compiled.bc "
-          << "preprocessed.c"
-          << " > clang.out 2>&1";
+          << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
+          << " " << hash.getOutputSha1HashFile() << "-preprocessed.c "
+          << " > " << hash.getOutputSha1HashFile() << "-clang.out 2>&1";
 
   system(command.str().c_str());
-  return ("compiled.bc");
+
+  // TODO: (3) Check for overflow errors on compilation
+  return (compiledFile);
 }
 }  // namespace Map2Check

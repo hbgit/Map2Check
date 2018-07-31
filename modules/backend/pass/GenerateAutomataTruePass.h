@@ -23,14 +23,14 @@
 #include "DebugInfo.hpp"
 
 using namespace llvm;
-namespace Tools = Map2Check::Tools;
+namespace Tools = Map2Check;
 
 struct GenerateAutomataTruePass : public FunctionPass {
   static char ID;
   GenerateAutomataTruePass() : FunctionPass(ID) {}
   GenerateAutomataTruePass(std::string cprogram_path) : FunctionPass(ID) {
     this->cprogram_path = cprogram_path;
-    this->sourceCodeHelper = std::make_unique<Tools::SourceCodeHelper>(
+    this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
         Tools::SourceCodeHelper(cprogram_path));
   }
 

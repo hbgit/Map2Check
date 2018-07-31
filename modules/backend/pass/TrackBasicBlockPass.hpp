@@ -22,14 +22,14 @@
 #include "LibraryFunctions.hpp"
 
 using namespace llvm;
-namespace Tools = Map2Check::Tools;
+namespace Tools = Map2Check;
 
 struct TrackBasicBlockPass : public FunctionPass {
   static char ID;
   TrackBasicBlockPass() : FunctionPass(ID) {}
   TrackBasicBlockPass(std::string cprogram_path) : FunctionPass(ID) {
     this->cprogram_path = cprogram_path;
-    this->sourceCodeHelper = std::make_unique<Tools::SourceCodeHelper>(
+    this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
         Tools::SourceCodeHelper(cprogram_path));
   }
   virtual bool runOnFunction(Function& F);

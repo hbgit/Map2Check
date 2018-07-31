@@ -1,10 +1,16 @@
 #include "TrackBasicBlockPass.hpp"
 
+namespace {
+inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
+  Instruction* pointer = reinterpret_cast<Instruction*>(&*i);
+  return pointer;
+}
+}  // namespace
+
 bool TrackBasicBlockPass::runOnFunction(Function& F) {
   this->Ctx = &F.getContext();
   this->currentFunction = &F;
-  this->libraryFunctions =
-      std::make_unique<LibraryFunctions>(&F, &F.getContext());
+  this->libraryFunctions = make_unique<LibraryFunctions>(&F, &F.getContext());
 
   int countBB = 1;
   for (auto& B : F) {
@@ -77,7 +83,7 @@ void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
   for (BasicBlock::iterator i = B.begin(), ie = B.end(); i != ie; ++i) {
     // for(auto& I:B)
     //{
-    if (auto* cI = dyn_cast<CallInst>((Instruction*)i)) {
+    if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(i))) {
       if (!cI->getCalledValue()->getName().empty()) {
         Value* v = cI->getCalledValue();
         Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
@@ -95,7 +101,7 @@ void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
             caleeFunction->getName() != "free") {
           // BasicBlock::iterator iI= &;
           // i->dump();
-          IRBuilder<> builder((Instruction*)&*i);
+          IRBuilder<> builder(BBIteratorToInst(i));
           this->functionName =
               builder.CreateGlobalStringPtr(this->currentFunction->getName());
           // i--;
@@ -132,7 +138,8 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
     if (std::string(tI->getOpcodeName()) == "br") {
       if (B.size() > 1) {
         --this->st_lastBlockInst;
-        DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
+        DebugInfo debugInfoLa(this->Ctx,
+                              (BBIteratorToInst(this->st_lastBlockInst)));
         this->numLineBlk_ori = debugInfoLa.getLineNumberInt();
         bool flagAssume = false;
         // Checking if the instruction is an ASSUME to skip
@@ -143,7 +150,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
         while (flagAssume) {
           --this->st_lastBlockInst;
           DebugInfo debugInfoAa(this->Ctx,
-                                (Instruction*)this->st_lastBlockInst);
+                                BBIteratorToInst(this->st_lastBlockInst));
           this->numLineBlk_AA = debugInfoAa.getLineNumberInt();
           // errs() << this->numLineBlk_AA << "  " << this->numLineBlk_ori <<
           // "\n";
@@ -162,7 +169,8 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
     } else {
       // this->st_lastBlockInst->dump();
 
-      DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
+      DebugInfo debugInfoLa(this->Ctx,
+                            BBIteratorToInst(this->st_lastBlockInst));
       this->numLineBlk_ori = debugInfoLa.getLineNumberInt();
       bool flagAssume = false;
       // Checking if the instruction is an ASSUME to skip
@@ -172,7 +180,8 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
 
       while (flagAssume) {
         --this->st_lastBlockInst;
-        DebugInfo debugInfoAa(this->Ctx, (Instruction*)this->st_lastBlockInst);
+        DebugInfo debugInfoAa(this->Ctx,
+                              BBIteratorToInst(this->st_lastBlockInst));
         this->numLineBlk_AA = debugInfoAa.getLineNumberInt();
         // errs() << this->numLineBlk_AA << "  " << this->numLineBlk_ori <<
         // "\n";
@@ -190,7 +199,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
       bool flagEmpty = false;
       unsigned countInst = 1;
       DebugInfo debugInfoAaEmpty(this->Ctx,
-                                 (Instruction*)this->st_lastBlockInst);
+                                 BBIteratorToInst(this->st_lastBlockInst));
       if (this->sourceCodeHelper->getLine(debugInfoAaEmpty.getLineNumberInt())
               .empty()) {
         flagEmpty = true;
@@ -201,7 +210,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
           countInst++;
           --this->st_lastBlockInst;
           DebugInfo debugInfoAaEmptyW(this->Ctx,
-                                      (Instruction*)this->st_lastBlockInst);
+                                      BBIteratorToInst(this->st_lastBlockInst));
           if (this->sourceCodeHelper
                   ->getLine(debugInfoAaEmptyW.getLineNumberInt())
                   .empty()) {
@@ -224,7 +233,7 @@ bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT) {
   // iT->dump();
   // errs() << iT->getOpcodeName() << " \n";
   this->isUnreachableInst = false;
-  if (auto* cI = dyn_cast<CallInst>((Instruction*)iT)) {
+  if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(iT))) {
     if (!cI->getCalledValue()->getName().empty()) {
       Value* v = cI->getCalledValue();
       Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
@@ -237,7 +246,7 @@ bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT) {
       }
     }
 
-  } else if (dyn_cast<UnreachableInst>((Instruction*)iT) != NULL) {
+  } else if (dyn_cast<UnreachableInst>(BBIteratorToInst(iT)) != NULL) {
     this->isUnreachableInst = true;
     return true;
   }
@@ -267,11 +276,11 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT) {
   // caleeFunction->setName(track_bb);
   // errs() << "inst 1 \n";
 
-  IRBuilder<> builder((Instruction*)iT);
+  IRBuilder<> builder(BBIteratorToInst(iT));
   // errs() << "inst 2 \n";
   Value* function_llvm = this->getFunctionNameValue();
 
-  DebugInfo debugInfo(this->Ctx, (Instruction*)iT);
+  DebugInfo debugInfo(this->Ctx, BBIteratorToInst(iT));
   // errs() << *debugInfo.getLineNumberValue() << "\n";
   // errs() << function_llvm->getName() << "\n";
 

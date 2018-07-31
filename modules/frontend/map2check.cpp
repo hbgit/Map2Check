@@ -18,7 +18,9 @@
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
+#include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
+#include "witness/witness_include.hpp"
 
 namespace po = boost::program_options;
 #define Map2CheckVersion "Map2Check 7.2-Fuzzer : Mon May 28 21:44:38 UTC 2018"
@@ -81,14 +83,37 @@ inline void fixPath(char* map2check_bin_string) {
   strcpy(map2check_env_array, map2check_env_var.c_str());
   putenv(map2check_env_array);
   Map2Check::Log::Debug(map2check_env_var);
-
-  // std::string map2check_path("PATH=$MAP2CHECK_PATH/bin:$PATH");
-  // char* map2check_path_array = new char[map2check_path.length() + 1];
-  // strcpy(map2check_path_array, map2check_path.c_str());
-
-  // putenv(map2check_path_array);
 }
 }  // namespace
+
+// TODO: add support to reachability (check old version of map), maybe this
+// should be handled by caller
+void generate_witness(std::string pathfile,
+                      Map2Check::PropertyViolated propertyViolated) {
+  Map2Check::Log::Info("Generating witness.");
+
+  GenHash genhashkey;
+  // BUG: we should check if path is relative or absolute
+  genhashkey.setFilePath("../" + pathfile);
+  genhashkey.generate_sha1_hash_for_file();
+
+  Map2Check::Log::Debug("Generated hash");
+
+  if ((propertyViolated != Map2Check::PropertyViolated::NONE) &&
+      (propertyViolated != Map2Check::PropertyViolated::UNKNOWN)) {
+    Map2Check::Log::Info("Starting Error Automata Generation");
+    Map2Check::SVCompWitness svcomp(pathfile,
+                                    genhashkey.getOutputSha1HashFile());
+    svcomp.Testify();
+
+  } else if (propertyViolated == Map2Check::PropertyViolated::NONE) {
+    // Correctness witness
+    Map2Check::Log::Info("Starting Correctness Automata Generation");
+    Map2Check::SVCompWitness svcomp(
+        pathfile, genhashkey.getOutputSha1HashFile(), "", "safetyMemory");
+    svcomp.Testify();
+  }
+}
 
 int map2check_execution(std::string inputFile) {
   Map2Check::Log::Info("Started Map2Check");
@@ -103,6 +128,7 @@ int map2check_execution(std::string inputFile) {
    * (3) Apply nondeterministic mode and execute analysis
    * (4) Retrieve results
    * (5) Generate witness (if analysis generated a result)
+   * (6) Clean map2check execution (folders and temp files)
    **/
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
@@ -152,18 +178,13 @@ int map2check_execution(std::string inputFile) {
     counterExample->printCounterExample();
   }
 
-  // Clean files from caller
+  // (5) Generate witness (if analysis generated a result)
+  generate_witness(inputFile, propertyViolated);
+
+  // (6) Clean map2check execution (folders and temp files)
   caller->cleanGarbage();
   return SUCCESS;
 }
-// Small test, assumes that entry.bc exists and MAP2CHECK_PATH is configured
-/*
-void test_map() {
-  Map2Check::Caller caller("asd");
-  caller.callPass(Map2Check::Map2CheckMode::MEMTRACK_MODE);
-  caller.linkLLVM();
-}
-*/
 
 int main(int argc, char** argv) {
   fixPath(argv[0]);

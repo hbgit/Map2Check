@@ -40,6 +40,7 @@ class CorrectnessWitnessGraph : public Graph {
 class SVCompWitness {
  protected:
   std::unique_ptr<Graph> automata;
+  std::string programHash;
   void makeViolationAutomata();
   void makeCorrectnessAutomata();
   void makeViolationAutomataAux();  // when we don't have KLEE values

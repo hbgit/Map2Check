@@ -22,6 +22,7 @@ void GenHash::setFilePath(std::string filepath) { this->filepath = filepath; }
 std::string GenHash::getFilePath() { return this->filepath; }
 
 int GenHash::generate_sha1_hash_for_file() {
+  Map2Check::Log::Debug("Generating hash");
   unsigned int hash[5];
   std::stringstream ss;
   std::ifstream file(this->filepath.c_str(), std::ios::binary | std::ios::ate);
@@ -42,6 +43,8 @@ int GenHash::generate_sha1_hash_for_file() {
 
   this->key_sha1_hash_file = ss.str();
   Map2Check::Log::Debug("Got hash " + key_sha1_hash_file);
+
+  file.close();
   return 0;
 }
 

@@ -26,7 +26,7 @@ RUN apt-get update
 # Devel packages
 RUN apt-get install -y sudo \	
     build-essential \
-    qt5-default \
+    libboost-all-dev \
     llvm-6.0-dev clang-6.0 \
     cmake \
     curl \

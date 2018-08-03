@@ -13,6 +13,7 @@
 #include "Map2CheckTypes.h"
 #include "PropertyGenerator.h"
 #include "TrackBBLog.h"
+#include "WitnessGeneration.h"
 
 /** Initializes variables used in map2check */
 void map2check_init(int isSvComp);

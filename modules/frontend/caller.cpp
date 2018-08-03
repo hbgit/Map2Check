@@ -84,6 +84,14 @@ void Caller::applyNonDetGenerator() {
               << " " + programHash + "-result.bc";
 
       system(command.str().c_str());
+      
+      std::ostringstream commandWitness;
+      commandWitness.str("");
+      commandWitness << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
+              << " -o " + programHash + "-witness-fuzzed.out"
+              << " " + programHash + "-witness-result.bc";
+
+      system(commandWitness.str().c_str());
       break;
     }
   }
@@ -143,6 +151,8 @@ void Caller::linkLLVM() {
   // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
 
   Map2Check::Log::Info("Linking with map2check library");
+  
+  std::ostringstream witnessCommand;  
   std::ostringstream linkCommand;
   linkCommand.str("");
   linkCommand << Map2Check::llvmLinkBinary;
@@ -151,22 +161,23 @@ void Caller::linkLLVM() {
               << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
               << " ${MAP2CHECK_PATH}/lib/HeapLog.bc"
               << " ${MAP2CHECK_PATH}/lib/TrackBBLog.bc"
-              // << " ${MAP2CHECK_PATH}/lib/BTree.bc"
               << " ${MAP2CHECK_PATH}/lib/Container.bc"
               << " ${MAP2CHECK_PATH}/lib/KleeLog.bc"
               << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
-              << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc"
-              // << " ${MAP2CHECK_PATH}/lib/BinaryOperation.bc "
-              << "  > " + programHash + "-result.bc";
-
+              << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc";
+              
+  witnessCommand.str("");
+  witnessCommand << linkCommand.str();
+  witnessCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";
+  witnessCommand << "  > " + programHash + "-witness-result.bc";
+  Map2Check::Log::Debug(witnessCommand.str());
+  system(witnessCommand.str().c_str());
+  
+  linkCommand << " ${MAP2CHECK_PATH}/lib/WitnessGenerationNone.bc";
+  linkCommand << "  > " + programHash + "-result.bc";
+  Map2Check::Log::Debug(linkCommand.str());
   system(linkCommand.str().c_str());
 
-  // TODO(rafa.sa.xp@gmail.com) Check how optimization can generate errors
-  std::ostringstream optimizeCommand;
-  optimizeCommand.str("");
-  optimizeCommand << Map2Check::optBinary;
-  optimizeCommand << " " << Caller::postOptimizationFlags()
-                  << " result.bc > optimized.bc";
 }
 
 void Caller::executeAnalysis() {
@@ -180,8 +191,13 @@ void Caller::executeAnalysis() {
       Map2Check::Log::Info("Executing libfuzzer with map2check");
       std::ostringstream command;
       command.str("");
-      command << "./" + programHash + "-fuzzed.out > fuzzer.output";
+      command << "./" + programHash + "-fuzzed.out -jobs=30 > fuzzer.output";
       system(command.str().c_str());
+      
+      std::ostringstream commandWitness;
+      commandWitness.str("");
+      commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
+      system(commandWitness.str().c_str());
       break;
     }
   }

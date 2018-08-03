@@ -412,19 +412,16 @@ void map2check_error() {
 
 void map2check_exit() {
   //    printf("\n\n\n\n\n");
-  klee_log_to_file(klee_log);
-  free_container(&klee_log);
-
-  list_log_to_file(&list_log);
-  free_container(&list_log);
-
-  heap_log_to_file(&heap_log);
-  free_container(&heap_log);
-
-  trackbb_log_to_file(&trackbb_log);
-  free_container(&trackbb_log);
-
-  allocation_log_to_file(&allocation_log);
+  generate_aux_files(&klee_log,
+      &list_log,
+      &heap_log,
+      &trackbb_log,
+      &allocation_log);  
+  
+  free_container(&klee_log);  
+  free_container(&list_log);  
+  free_container(&heap_log);  
+  free_container(&trackbb_log);  
   valid_allocation_log(&allocation_log);
   free_container(&allocation_log);
 

@@ -182,7 +182,7 @@ int map2check_execution(std::string inputFile) {
   generate_witness(inputFile, propertyViolated);
 
   // (6) Clean map2check execution (folders and temp files)
-  caller->cleanGarbage();
+  //caller->cleanGarbage();
   return SUCCESS;
 }
 
@@ -191,11 +191,11 @@ int main(int argc, char** argv) {
   try {
     // Define and parse the program options
     po::options_description desc("Options");
-    desc.add_options()("help,h", "\tshow help")("version,v",
-                                                "\tprints map2check version")(
-        "input-file,i", po::value<std::vector<std::string> >(),
-        "\tspecifies the files, also works with <file.bc>"
-        "generate_nondet_value, ");
+    desc.add_options()("help,h", "\tshow help")
+      ("version,v", "\tprints map2check version")
+      ("debug,d", "\t Debug mode")
+      ("input-file,i", po::value<std::vector<std::string> >(),
+        "\tspecifies the files, also works with <file.bc>");
 
     po::positional_options_description p;
     p.add("input-file", -1);
@@ -219,6 +219,9 @@ int main(int argc, char** argv) {
       help_msg();
       std::cout << desc;
       return SUCCESS;
+    }
+    if (vm.count("debug")) {
+      Map2Check::Log::ActivateDebugMode();
     }
     if (vm.count("input-file")) {
       std::string pathfile;

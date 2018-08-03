@@ -10,11 +10,12 @@ list(APPEND MAP2CHECK_PASS_LIB "NonDetPass")
 list(APPEND MAP2CHECK_PASS_LIB "MemoryTrackPass")
 list(APPEND MAP2CHECK_PASS_LIB "Map2CheckLibrary")
 list(APPEND MAP2CHECK_PASS_LIB "TargetPass")
-
-# TODO(rafa.sa.xp@gmail.com): fix for llvm 6
-list(APPEND MAP2CHECK_PASS_LIB "GenerateAutomataTruePass")
-# list(APPEND MAP2CHECK_PASS_LIB "OverflowPass")
 list(APPEND MAP2CHECK_PASS_LIB "TrackBasicBlockPass")
+list(APPEND MAP2CHECK_PASS_LIB "GenerateAutomataTruePass")
+
+
+list(APPEND MAP2CHECK_PASS_LIB "OverflowPass")
+
 
 foreach(F ${MAP2CHECK_PASS_LIB})  
   add_library(${F} SHARED ${F}.cpp $<TARGET_OBJECTS:DebugInfo>)

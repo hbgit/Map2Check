@@ -1,5 +1,14 @@
 #include "OverflowPass.h"
 
+#include <llvm/IR/IntrinsicInst.h>
+
+namespace {
+inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
+  Instruction* pointer = reinterpret_cast<Instruction*>(&*i);
+  return pointer;
+}
+}  // namespace
+
 void OverflowPass::hasNonDetUint(Instruction* I) {
   // I->dump();
   DebugInfo debugInfo(this->Ctx, I);
@@ -166,7 +175,7 @@ bool OverflowPass::runOnFunction(Function& F) {
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
     for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
       if (this->errorLines.size() != 0) {
-        Instruction* currentInstruction = (Instruction*)i;
+        Instruction* currentInstruction = BBIteratorToInst(i);
         DebugInfo debugInfo(&F.getContext(), currentInstruction);
         int line = debugInfo.getLineNumberInt();
 
@@ -174,7 +183,7 @@ bool OverflowPass::runOnFunction(Function& F) {
             std::find(this->errorLines.begin(), this->errorLines.end(), line);
 
         if (it != this->errorLines.end()) {
-          IRBuilder<> builder((Instruction*)currentInstruction);
+          IRBuilder<> builder(currentInstruction);
           Value* args[] = {debugInfo.getLineNumberValue(), functionName};
           builder.CreateCall(this->operationsFunctions->getOverflowError(),
                              args);
@@ -207,7 +216,7 @@ bool OverflowPass::runOnFunction(Function& F) {
       if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&*i)) {
         BasicBlock::iterator currentInstruction = i;
 
-        IRBuilder<> builder((Instruction*)currentInstruction);
+        IRBuilder<> builder(BBIteratorToInst(currentInstruction));
 
         Twine bitcast("map2check_pointer_cast");
         DebugInfo debugInfo(&F.getContext(), binOp);

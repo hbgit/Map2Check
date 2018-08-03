@@ -1,20 +1,15 @@
-language: cpp
-compiler: clang
-dist: trusty
+dist: ubuntu1604
 #sudo: require
 
 addons:
   apt:
-    packages: libboost-all-dev cmake make
+    packages: libboost-all-dev cmake make llvm-6.0-dev clang-6.0 build-essential curl
 
 #before_install:
 #  - sudo apt-get install -qq cmake make
 
 script:
-  - mkdir build
-  - cd build
-  - cmake ..
-  - make
+  - ./make-release
 
 notifications:
   email:

@@ -62,7 +62,7 @@ inline void fixPath(char* map2check_bin_string) {
   char pBuf[kBufferLength];
   snprintf(szTmp, kSZLength, "/proc/%d/exe", getpid());
   // TODO: fix implicit conversion from bytes
-  int bytes = MIN(readlink(szTmp, pBuf, kBufferLength), kBufferLength - 1);
+  ssize_t bytes = MIN(readlink(szTmp, pBuf, kBufferLength), kBufferLength - 1);
   std::string map2check_bin(map2check_bin_string);
   int deleteSpace = 0;
   if (map2check_bin.size() > 9) {
@@ -191,10 +191,9 @@ int main(int argc, char** argv) {
   try {
     // Define and parse the program options
     po::options_description desc("Options");
-    desc.add_options()("help,h", "\tshow help")
-      ("version,v", "\tprints map2check version")
-      ("debug,d", "\t Debug mode")
-      ("input-file,i", po::value<std::vector<std::string> >(),
+    desc.add_options()("help,h", "\tshow help")(
+        "version,v", "\tprints map2check version")("debug,d", "\t Debug mode")(
+        "input-file,i", po::value<std::vector<std::string> >(),
         "\tspecifies the files, also works with <file.bc>");
 
     po::positional_options_description p;

@@ -1,6 +1,8 @@
 <h1>Map2Check</h1>
 <h3>Memory Management Test Cases Generation of C Programs</h3>
 
+[![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=fuzzy_gen)](https://travis-ci.org/hbgit/Map2Check)
+
 ================ 
 
 <b>Goal:</b> 

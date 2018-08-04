@@ -70,30 +70,30 @@ void Caller::cleanGarbage() {
 
 void Caller::applyNonDetGenerator() {
   switch (nonDetGenerator) {
-    case (NonDetGenerator::None): {
-      Map2Check::Log::Info(
-          "Map2Check will not generate non deterministic numbers");
-      break;
-    }
-    case (NonDetGenerator::LibFuzzer): {
-      Map2Check::Log::Info("Instrumenting with LLVM Libfuzzer");
-      std::ostringstream command;
-      command.str("");
-      command << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
-              << " -o " + programHash + "-fuzzed.out"
-              << " " + programHash + "-result.bc";
+  case (NonDetGenerator::None): {
+    Map2Check::Log::Info(
+        "Map2Check will not generate non deterministic numbers");
+    break;
+  }
+  case (NonDetGenerator::LibFuzzer): {
+    Map2Check::Log::Info("Instrumenting with LLVM Libfuzzer");
+    std::ostringstream command;
+    command.str("");
+    command << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
+            << " -o " + programHash + "-fuzzed.out"
+            << " " + programHash + "-result.bc";
 
-      system(command.str().c_str());
-      
-      std::ostringstream commandWitness;
-      commandWitness.str("");
-      commandWitness << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
-              << " -o " + programHash + "-witness-fuzzed.out"
-              << " " + programHash + "-witness-result.bc";
+    system(command.str().c_str());
 
-      system(commandWitness.str().c_str());
-      break;
-    }
+    std::ostringstream commandWitness;
+    commandWitness.str("");
+    commandWitness << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
+                   << " -o " + programHash + "-witness-fuzzed.out"
+                   << " " + programHash + "-witness-result.bc";
+
+    system(commandWitness.str().c_str());
+    break;
+  }
   }
 }
 
@@ -110,24 +110,23 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det";
 
   switch (map2checkMode) {
-    case Map2CheckMode::MEMTRACK_MODE: {
-      Map2Check::Log::Info("Adding memtrack pass");
-      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
-      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
-                       << " -memory_track";
-      break;
-    }
-    case Map2CheckMode::OVERFLOW_MODE: {
-      Map2Check::Log::Error(
-          "Overflow mode is not implemented yet, ignoring option");
-      break;
-    }
-    case Map2CheckMode::REACHABILITY_MODE: {
-      Map2Check::Log::Fatal(
-          "Reachability mode is not implemented yet, ignoring "
-          "option");
-      break;
-    }
+  case Map2CheckMode::MEMTRACK_MODE: {
+    Map2Check::Log::Info("Adding memtrack pass");
+    std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+    transformCommand << " -load " << memoryTrackPass << getLibSuffix()
+                     << " -memory_track";
+    break;
+  }
+  case Map2CheckMode::OVERFLOW_MODE: {
+    Map2Check::Log::Error(
+        "Overflow mode is not implemented yet, ignoring option");
+    break;
+  }
+  case Map2CheckMode::REACHABILITY_MODE: {
+    Map2Check::Log::Fatal("Reachability mode is not implemented yet, ignoring "
+                          "option");
+    break;
+  }
   }
 
   Map2Check::Log::Info("Adding map2check pass");
@@ -151,72 +150,88 @@ void Caller::linkLLVM() {
   // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
 
   Map2Check::Log::Info("Linking with map2check library");
-  
-  std::ostringstream witnessCommand;  
+
+  std::ostringstream witnessCommand;
   std::ostringstream linkCommand;
   linkCommand.str("");
   linkCommand << Map2Check::llvmLinkBinary;
   linkCommand << " " + programHash + "-output.bc"
               << " ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc"
-              << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
-              << " ${MAP2CHECK_PATH}/lib/HeapLog.bc"
               << " ${MAP2CHECK_PATH}/lib/TrackBBLog.bc"
               // TODO: add option for container type
               << " ${MAP2CHECK_PATH}/lib/ContainerRealloc.bc"
               << " ${MAP2CHECK_PATH}/lib/NonDetLog.bc"
-              << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
               << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc";
-              
-switch (nonDetGenerator) {
-    case (NonDetGenerator::None): {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
-      break;
-    }
-    case (NonDetGenerator::LibFuzzer): {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
-      break;
-    }
+
+  switch (map2checkMode) {
+  case Map2CheckMode::MEMTRACK_MODE: {
+    linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemtrack.bc"
+                << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
+                << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
+                << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
+    break;
   }
-              
+  case Map2CheckMode::OVERFLOW_MODE: {
+    Map2Check::Log::Error(
+        "Overflow mode is not implemented yet, ignoring option");
+    break;
+  }
+  case Map2CheckMode::REACHABILITY_MODE: {
+    Map2Check::Log::Fatal("Reachability mode is not implemented yet, ignoring "
+                          "option");
+    break;
+  }
+  }
+
+  switch (nonDetGenerator) {
+  case (NonDetGenerator::None): {
+    linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
+    break;
+  }
+  case (NonDetGenerator::LibFuzzer): {
+    linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
+    break;
+  }
+  }
+
   witnessCommand.str("");
   witnessCommand << linkCommand.str();
   witnessCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";
   witnessCommand << "  > " + programHash + "-witness-result.bc";
   Map2Check::Log::Debug(witnessCommand.str());
   system(witnessCommand.str().c_str());
-  
+
   linkCommand << " ${MAP2CHECK_PATH}/lib/WitnessGenerationNone.bc";
   linkCommand << "  > " + programHash + "-result.bc";
   Map2Check::Log::Debug(linkCommand.str());
   system(linkCommand.str().c_str());
-
 }
 
 void Caller::executeAnalysis() {
   switch (nonDetGenerator) {
-    // TODO: implement this method
-    case (NonDetGenerator::None): {
-      Map2Check::Log::Info("This mode is not supported");
-      break;
-    }
-    case (NonDetGenerator::LibFuzzer): {
-      Map2Check::Log::Info("Executing libfuzzer with map2check");
-      std::ostringstream command;
-      command.str("");
-      command << "./" + programHash + "-fuzzed.out -jobs=30 > fuzzer.output";
-      system(command.str().c_str());
-      
-      std::ostringstream commandWitness;
-      commandWitness.str("");
-      commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
-      system(commandWitness.str().c_str());
-      break;
-    }
+  // TODO: implement this method
+  case (NonDetGenerator::None): {
+    Map2Check::Log::Info("This mode is not supported");
+    break;
+  }
+  case (NonDetGenerator::LibFuzzer): {
+    Map2Check::Log::Info("Executing libfuzzer with map2check");
+    std::ostringstream command;
+    command.str("");
+    command << "./" + programHash + "-fuzzed.out -jobs=2 > fuzzer.output";
+    system(command.str().c_str());
+
+    std::ostringstream commandWitness;
+    commandWitness.str("");
+    commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
+    system(commandWitness.str().c_str());
+    break;
+  }
   }
 }
 
 std::vector<int> Caller::processClangOutput() {
-  const char* path_name = "clang.out";
+  const char *path_name = "clang.out";
 
   std::vector<int> result;
 
@@ -284,4 +299,4 @@ string Caller::compileCFile(std::string cprogram_path) {
   // TODO: (3) Check for overflow errors on compilation
   return (compiledFile);
 }
-}  // namespace Map2Check
+} // namespace Map2Check

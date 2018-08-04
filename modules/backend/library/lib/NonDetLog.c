@@ -6,7 +6,7 @@
 const char* klee_log_file = "klee_log.csv";
 
 Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
-  if (klee_container.type != KLEE_LOG_CONTAINER) {
+  if (klee_container.type != NONDET_LOG_CONTAINER) {
     return FALSE;
   }
 

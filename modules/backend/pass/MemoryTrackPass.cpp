@@ -12,45 +12,45 @@ std::string echoCommand = "echo";
 }**/
 
 namespace {
-inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
-  Instruction* pointer = reinterpret_cast<Instruction*>(&*i);
+inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
+  Instruction *pointer = reinterpret_cast<Instruction *>(&*i);
   return pointer;
 }
-}  // namespace
+} // namespace
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::instrumentPointer() {
-  StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
-  Value* var_address = storeInst->getPointerOperand();
-  Value* receives = storeInst->getValueOperand();
+  StoreInst *storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
+  Value *var_address = storeInst->getPointerOperand();
+  Value *receives = storeInst->getValueOperand();
 
   auto j = this->currentInstruction;
 
   Twine bitcast("bitcast");
 
-  Value* varPointerCast =
+  Value *varPointerCast =
       CastInst::CreatePointerCast(var_address, Type::getInt8PtrTy(*this->Ctx),
                                   bitcast, BBIteratorToInst(j));
 
-  Value* receivesPointerCast = CastInst::CreatePointerCast(
+  Value *receivesPointerCast = CastInst::CreatePointerCast(
       receives, Type::getInt8PtrTy(*this->Ctx), bitcast, BBIteratorToInst(j));
 
   ++j;
 
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* name_llvm = builder.CreateGlobalStringPtr(var_address->getName());
+  Value *name_llvm = builder.CreateGlobalStringPtr(var_address->getName());
 
-  Value* function_llvm =
+  Value *function_llvm =
       builder.CreateGlobalStringPtr(currentFunction->getName());
 
-  Value* args[] = {varPointerCast, receivesPointerCast, this->scope_value,
+  Value *args[] = {varPointerCast, receivesPointerCast, this->scope_value,
                    name_llvm,      this->line_value,    function_llvm};
 
   builder.CreateCall(this->map2check_pointer, args);
 }
 
 void MemoryTrackPass::instrumentPosixMemAllign() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
 
   this->caleeFunction = callInst->getCalledFunction();
 
@@ -64,39 +64,39 @@ void MemoryTrackPass::instrumentPosixMemAllign() {
 
   Twine bitcast("bitcast");
 
-  Value* varPointerCast = CastInst::CreatePointerCast(
+  Value *varPointerCast = CastInst::CreatePointerCast(
       pointer, Type::getInt8PtrTy(*this->Ctx), bitcast, BBIteratorToInst(j));
 
-  Value* args[] = {varPointerCast, size};
+  Value *args[] = {varPointerCast, size};
   builder.CreateCall(map2check_posix, args);
 }
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::instrumentMalloc() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   ++j;
 
   // Adds map2check_malloc with allocated address and size
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* size = callInst->getArgOperand(0);
+  Value *size = callInst->getArgOperand(0);
   Twine bitcast("bitcast");
   if (size == NULL) {
   }
-  Value* args[] = {callInst, size};
+  Value *args[] = {callInst, size};
   builder.CreateCall(map2check_malloc, args);
 }
 
 void MemoryTrackPass::instrumentRealloc() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   IRBuilder<> freeBuilder(BBIteratorToInst(j));
   auto function_name = this->currentFunction->getName();
-  Value* function_llvm = freeBuilder.CreateGlobalStringPtr(function_name);
+  Value *function_llvm = freeBuilder.CreateGlobalStringPtr(function_name);
 
-  Value* nullValid = ConstantInt ::getSigned(Type::getInt1Ty(*this->Ctx), 1);
+  Value *nullValid = ConstantInt::getSigned(Type::getInt1Ty(*this->Ctx), 1);
 
-  Value* freeArgs[] = {callInst->getArgOperand(0), this->line_value,
+  Value *freeArgs[] = {callInst->getArgOperand(0), this->line_value,
                        function_llvm, nullValid};
 
   freeBuilder.CreateCall(map2check_free_resolved_address, freeArgs);
@@ -106,12 +106,12 @@ void MemoryTrackPass::instrumentRealloc() {
   // Adds map2check_malloc with allocated address and size
   IRBuilder<> builder(BBIteratorToInst(j));
   auto size = callInst->getArgOperand(1);
-  Value* args[] = {callInst, size};
+  Value *args[] = {callInst, size};
   builder.CreateCall(map2check_malloc, args);
 }
 
 void MemoryTrackPass::instrumentMemset() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
 
   auto function_name = this->currentFunction->getName();
@@ -121,19 +121,19 @@ void MemoryTrackPass::instrumentMemset() {
 
   Twine bitcast("bitcast");
 
-  Value* varPointerCast = CastInst::CreatePointerCast(
+  Value *varPointerCast = CastInst::CreatePointerCast(
       pointer, Type::getInt8PtrTy(*this->Ctx), bitcast, BBIteratorToInst(j));
 
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* function_llvm = builder.CreateGlobalStringPtr(function_name);
-  Value* args[] = {varPointerCast, size};
+  Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
+  Value *args[] = {varPointerCast, size};
   builder.CreateCall(map2check_load, args);
-  Value* args2[] = {this->line_value, function_llvm};
+  Value *args2[] = {this->line_value, function_llvm};
   builder.CreateCall(map2check_check_deref, args2);
 }
 
 void MemoryTrackPass::instrumentMemcpy() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
 
   auto function_name = this->currentFunction->getName();
@@ -144,34 +144,34 @@ void MemoryTrackPass::instrumentMemcpy() {
 
   Twine bitcast("bitcast_memcpy");
 
-  Value* varPointerCast = CastInst::CreatePointerCast(
+  Value *varPointerCast = CastInst::CreatePointerCast(
       pointer_destiny, Type::getInt8PtrTy(*this->Ctx), bitcast,
       BBIteratorToInst(j));
 
-  Value* sizeCast = CastInst::CreateIntegerCast(
+  Value *sizeCast = CastInst::CreateIntegerCast(
       size, Type::getInt32Ty(*this->Ctx), false, bitcast, BBIteratorToInst(j));
 
-  Value* varPointerCastOrigin = CastInst::CreatePointerCast(
+  Value *varPointerCastOrigin = CastInst::CreatePointerCast(
       pointer_origin, Type::getInt8PtrTy(*this->Ctx), bitcast,
       BBIteratorToInst(j));
 
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* function_llvm = builder.CreateGlobalStringPtr(function_name);
+  Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
-  Value* args2[] = {varPointerCastOrigin, sizeCast};
+  Value *args2[] = {varPointerCastOrigin, sizeCast};
   builder.CreateCall(map2check_load, args2);
 
-  Value* args3[] = {this->line_value, function_llvm};
+  Value *args3[] = {this->line_value, function_llvm};
   builder.CreateCall(map2check_check_deref, args3);
 
-  Value* args[] = {varPointerCast, sizeCast};
+  Value *args[] = {varPointerCast, sizeCast};
   builder.CreateCall(map2check_load, args);
 
   builder.CreateCall(map2check_check_deref, args3);
 }
 
 void MemoryTrackPass::instrumentAlloca() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   ++j;
 
@@ -180,13 +180,13 @@ void MemoryTrackPass::instrumentAlloca() {
   auto size = callInst->getArgOperand(0);
 
   Twine non_det("bitcast_map2check_alloca");
-  Value* pointerCast = CastInst ::CreatePointerCast(
+  Value *pointerCast = CastInst::CreatePointerCast(
       callInst, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
 
   auto function_name = "";
-  Value* function_llvm = builder.CreateGlobalStringPtr(function_name);
+  Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
-  Value* args[] = {function_llvm, pointerCast,      size,
+  Value *args[] = {function_llvm, pointerCast,      size,
                    size,          this->line_value, this->scope_value};
 
   builder.CreateCall(map2check_alloca, args);
@@ -197,33 +197,33 @@ void MemoryTrackPass::instrumentAlloca() {
  * and the second is the size of the primitive element
  */
 void MemoryTrackPass::instrumentCalloc() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   ++j;
 
   IRBuilder<> builder(BBIteratorToInst(j));
   auto quantityOfElements = callInst->getArgOperand(0);
   auto sizeOfElements = callInst->getArgOperand(1);
-  Value* args[] = {callInst, quantityOfElements, sizeOfElements};
+  Value *args[] = {callInst, quantityOfElements, sizeOfElements};
   builder.CreateCall(map2check_calloc, args);
 }
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::instrumentFree() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
   // ++j;
 
   this->caleeFunction = callInst->getCalledFunction();
   this->getDebugInfo();
-  LoadInst* li;
+  LoadInst *li;
   IRBuilder<> builder(BBIteratorToInst(j));
 
   auto function_name = this->currentFunction->getName();
-  Value* function_llvm = builder.CreateGlobalStringPtr(function_name);
+  Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
   if (this->caleeFunction == NULL) {
-    Value* v = callInst->getCalledValue();
+    Value *v = callInst->getCalledValue();
     this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
     li = dyn_cast<LoadInst>(callInst->getArgOperand(0));
 
@@ -233,23 +233,23 @@ void MemoryTrackPass::instrumentFree() {
     li = dyn_cast<LoadInst>(callInst->getArgOperand(0)->stripPointerCasts());
   }
   if (li == NULL) {
-    Value* nullNotValid =
-        ConstantInt ::getSigned(Type::getInt1Ty(*this->Ctx), 0);
+    Value *nullNotValid =
+        ConstantInt::getSigned(Type::getInt1Ty(*this->Ctx), 0);
 
-    Value* args[] = {callInst->getArgOperand(0), this->line_value,
+    Value *args[] = {callInst->getArgOperand(0), this->line_value,
                      function_llvm, nullNotValid};
 
     builder.CreateCall(map2check_free_resolved_address, args);
   } else {
     auto name = li->getPointerOperand()->getName();
-    Value* name_llvm = builder.CreateGlobalStringPtr(name);
+    Value *name_llvm = builder.CreateGlobalStringPtr(name);
 
     Twine non_det("bitcast_map2check");
-    Value* pointerCast = CastInst ::CreatePointerCast(
+    Value *pointerCast = CastInst::CreatePointerCast(
         li->getPointerOperand(), Type::getInt8PtrTy(*this->Ctx), non_det,
         BBIteratorToInst(j));
 
-    Value* args[] = {
+    Value *args[] = {
         name_llvm,        pointerCast,   this->scope_value,
         this->line_value, function_llvm,
 
@@ -273,9 +273,9 @@ void MemoryTrackPass::getDebugInfo() {
   }
 
   this->scope_value =
-      ConstantInt ::getSigned(Type::getInt32Ty(*this->Ctx), scope_number);
+      ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), scope_number);
   this->line_value =
-      ConstantInt ::getSigned(Type::getInt32Ty(*this->Ctx), line_number);
+      ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), line_number);
 }
 
 int MemoryTrackPass::getLineNumber() {
@@ -294,17 +294,17 @@ void MemoryTrackPass::instrumentInit() {
   BasicBlock::iterator i = bb->begin();
 
   IRBuilder<> builder(BBIteratorToInst(i));
-  Module* currentModule = this->currentFunction->getParent();
+  Module *currentModule = this->currentFunction->getParent();
 
-  std::vector<GlobalVariable*> globals;
+  std::vector<GlobalVariable *> globals;
   for (auto globalVar = currentModule->global_begin();
        globalVar != currentModule->global_end(); globalVar++) {
-    GlobalVariable* variable = dyn_cast<GlobalVariable>(&*globalVar);
+    GlobalVariable *variable = dyn_cast<GlobalVariable>(&*globalVar);
     globals.push_back(variable);
   }
 
   for (unsigned pos = 0; pos < globals.size(); pos++) {
-    GlobalVariable* variable = globals[pos];
+    GlobalVariable *variable = globals[pos];
     // errs () << "VAR: " << variable->getName() << "\n";
     const DataLayout dataLayout = currentModule->getDataLayout();
     auto type = variable->getType()->getPointerElementType();
@@ -321,15 +321,15 @@ void MemoryTrackPass::instrumentInit() {
 
     primitiveSize = dataLayout.getTypeSizeInBits(type) / 8;
 
-    Value* name_llvm = builder.CreateGlobalStringPtr(variable->getName());
+    Value *name_llvm = builder.CreateGlobalStringPtr(variable->getName());
 
-    ConstantInt* typeSizeValue =
+    ConstantInt *typeSizeValue =
         ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
-    ConstantInt* primitiveSizeValue =
+    ConstantInt *primitiveSizeValue =
         ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
 
     Twine non_det("bitcast_map2check");
-    Value* pointerCast = CastInst::CreatePointerCast(
+    Value *pointerCast = CastInst::CreatePointerCast(
         variable, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(i));
 
     // TODO:
@@ -347,7 +347,7 @@ void MemoryTrackPass::instrumentInit() {
 
     // const char* name, void* ptr, int size, int size_of_primitive, int line,
     // int scope)
-    Value* args[] = {name_llvm,          pointerCast,      typeSizeValue,
+    Value *args[] = {name_llvm,          pointerCast,      typeSizeValue,
                      primitiveSizeValue, this->line_value, this->scope_value};
     builder.CreateCall(map2check_alloca, args);
   }
@@ -394,15 +394,15 @@ void MemoryTrackPass::instrumentFunctionAddress() {
   IRBuilder<> builder(BBIteratorToInst(i));
   for (unsigned iterator = 0; iterator < this->functionsValues.size();
        iterator++) {
-    Value* name_llvm = builder.CreateGlobalStringPtr(
+    Value *name_llvm = builder.CreateGlobalStringPtr(
         this->functionsValues[iterator]->getName());
 
     Twine non_det("bitcast_map2check");
-    Value* pointerCast = CastInst ::CreatePointerCast(
+    Value *pointerCast = CastInst::CreatePointerCast(
         this->functionsValues[iterator], Type::getInt8PtrTy(*this->Ctx),
         non_det, BBIteratorToInst(i));
 
-    Value* instrumentationArgs[] = {name_llvm, pointerCast};
+    Value *instrumentationArgs[] = {name_llvm, pointerCast};
     builder.CreateCall(map2check_function, instrumentationArgs);
   }
 
@@ -410,12 +410,12 @@ void MemoryTrackPass::instrumentFunctionAddress() {
 }
 
 void MemoryTrackPass::instrumentAllocation() {
-  AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
+  AllocaInst *allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
 
   auto j = this->currentInstruction;
   j++;
 
-  Module* M = this->currentFunction->getParent();
+  Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
   auto type = allocaInst->getType()->getPointerElementType();
@@ -434,30 +434,30 @@ void MemoryTrackPass::instrumentAllocation() {
 
   primitiveSize = dataLayout.getTypeSizeInBits(type) / 8;
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* name_llvm = builder.CreateGlobalStringPtr(allocaInst->getName());
+  Value *name_llvm = builder.CreateGlobalStringPtr(allocaInst->getName());
 
-  ConstantInt* typeSizeValue =
+  ConstantInt *typeSizeValue =
       ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
-  ConstantInt* primitiveSizeValue =
+  ConstantInt *primitiveSizeValue =
       ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
 
   Twine non_det("bitcast_map2check");
-  Value* pointerCast = CastInst ::CreatePointerCast(
+  Value *pointerCast = CastInst::CreatePointerCast(
       allocaInst, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
 
-  Value* args[] = {name_llvm,          pointerCast,      typeSizeValue,
+  Value *args[] = {name_llvm,          pointerCast,      typeSizeValue,
                    primitiveSizeValue, this->line_value, this->scope_value};
   builder.CreateCall(map2check_alloca, args);
 }
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::runOnCallInstruction() {
-  CallInst* callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
 
   this->caleeFunction = callInst->getCalledFunction();
 
   if (this->caleeFunction == NULL) {
-    Value* v = callInst->getCalledValue();
+    Value *v = callInst->getCalledValue();
     this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
     if (this->caleeFunction != NULL) {
@@ -472,49 +472,49 @@ void MemoryTrackPass::runOnCallInstruction() {
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::runOnStoreInstruction() {
-  StoreInst* storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
+  StoreInst *storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
   if (storeInst->getValueOperand()->getType()->isPointerTy()) {
     this->instrumentPointer();
   }
 
-  Value* var_address = storeInst->getPointerOperand();
-  Value* receives = storeInst->getValueOperand();
+  Value *var_address = storeInst->getPointerOperand();
+  Value *receives = storeInst->getValueOperand();
 
-  Module* M = this->currentFunction->getParent();
+  Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
   auto type = receives->getType();
   unsigned typeSize = dataLayout.getTypeSizeInBits(type) / 8;
-  ConstantInt* typeSizeValue =
+  ConstantInt *typeSizeValue =
       ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
 
   auto j = this->currentInstruction;
   //    j--;
 
   Twine non_det("bitcast_map2check_store");
-  Value* pointerCast =
-      CastInst ::CreatePointerCast(var_address, Type::getInt8PtrTy(*this->Ctx),
-                                   non_det, BBIteratorToInst(j));
+  Value *pointerCast =
+      CastInst::CreatePointerCast(var_address, Type::getInt8PtrTy(*this->Ctx),
+                                  non_det, BBIteratorToInst(j));
   //    j++;
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* args[] = {pointerCast, typeSizeValue};
+  Value *args[] = {pointerCast, typeSizeValue};
   builder.CreateCall(map2check_load, args);
 
-  Value* function_name_llvm =
+  Value *function_name_llvm =
       builder.CreateGlobalStringPtr(this->currentFunction->getName());
-  Value* args2[] = {this->line_value, function_name_llvm};
+  Value *args2[] = {this->line_value, function_name_llvm};
   builder.CreateCall(map2check_check_deref, args2);
 }
 
 void MemoryTrackPass::instrumentNotStaticArrayAlloca() {
-  AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
-  Value* v = allocaInst->getArraySize();
+  AllocaInst *allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
+  Value *v = allocaInst->getArraySize();
   //    Value* v = allocaInst->getOperand(0);
 
   auto j = this->currentInstruction;
   j++;
 
-  Module* M = this->currentFunction->getParent();
+  Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
   auto type = allocaInst->getType()->getPointerElementType();
@@ -523,32 +523,32 @@ void MemoryTrackPass::instrumentNotStaticArrayAlloca() {
 
   primitiveSize = dataLayout.getTypeSizeInBits(type) / 8;
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* name_llvm = builder.CreateGlobalStringPtr(allocaInst->getName());
+  Value *name_llvm = builder.CreateGlobalStringPtr(allocaInst->getName());
 
-  ConstantInt* primitiveSizeValue =
+  ConstantInt *primitiveSizeValue =
       ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
 
   Twine non_det("bitcast_map2check");
-  Value* pointerCast = CastInst ::CreatePointerCast(
+  Value *pointerCast = CastInst::CreatePointerCast(
       allocaInst, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
 
-  Value* sizeCast = CastInst ::CreateIntegerCast(
+  Value *sizeCast = CastInst::CreateIntegerCast(
       v, Type::getInt32Ty(*this->Ctx), true, non_det, BBIteratorToInst(j));
 
-  Value* args[] = {name_llvm,          pointerCast,      sizeCast,
+  Value *args[] = {name_llvm,          pointerCast,      sizeCast,
                    primitiveSizeValue, this->line_value, this->scope_value};
   builder.CreateCall(map2check_non_static_alloca, args);
 }
 
 void MemoryTrackPass::instrumentArrayAlloca() {
-  AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
-  Value* v = allocaInst->getArraySize();
+  AllocaInst *allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
+  Value *v = allocaInst->getArraySize();
   //    Value* v = allocaInst->getOperand(0);
 
   auto j = this->currentInstruction;
   j++;
 
-  Module* M = this->currentFunction->getParent();
+  Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
   auto type = v->getType();
@@ -556,25 +556,25 @@ void MemoryTrackPass::instrumentArrayAlloca() {
 
   primitiveSize = dataLayout.getTypeSizeInBits(type) / 8;
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* name_llvm = builder.CreateGlobalStringPtr(allocaInst->getName());
+  Value *name_llvm = builder.CreateGlobalStringPtr(allocaInst->getName());
 
-  ConstantInt* primitiveSizeValue =
+  ConstantInt *primitiveSizeValue =
       ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), primitiveSize);
 
   Twine non_det("bitcast_map2check");
-  Value* pointerCast = CastInst ::CreatePointerCast(
+  Value *pointerCast = CastInst::CreatePointerCast(
       allocaInst, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
 
-  Value* sizeCast = CastInst ::CreateIntegerCast(
+  Value *sizeCast = CastInst::CreateIntegerCast(
       v, Type::getInt32Ty(*this->Ctx), true, non_det, BBIteratorToInst(j));
 
-  Value* args[] = {name_llvm,          pointerCast,      sizeCast,
+  Value *args[] = {name_llvm,          pointerCast,      sizeCast,
                    primitiveSizeValue, this->line_value, this->scope_value};
   builder.CreateCall(map2check_alloca, args);
 }
 
 void MemoryTrackPass::runOnAllocaInstruction() {
-  AllocaInst* allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
+  AllocaInst *allocaInst = dyn_cast<AllocaInst>(&*this->currentInstruction);
 
   if (allocaInst->isArrayAllocation()) {
     if (allocaInst->isStaticAlloca()) {
@@ -589,37 +589,37 @@ void MemoryTrackPass::runOnAllocaInstruction() {
 }
 
 void MemoryTrackPass::runOnLoadInstruction() {
-  LoadInst* loadInst = dyn_cast<LoadInst>(&*this->currentInstruction);
+  LoadInst *loadInst = dyn_cast<LoadInst>(&*this->currentInstruction);
 
-  Value* v = loadInst->getPointerOperand()->stripPointerCasts();
+  Value *v = loadInst->getPointerOperand()->stripPointerCasts();
 
-  Module* M = this->currentFunction->getParent();
+  Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
   auto type = loadInst->getPointerOperand()->getType()->getPointerElementType();
   unsigned typeSize = dataLayout.getTypeSizeInBits(type) / 8;
-  ConstantInt* typeSizeValue =
+  ConstantInt *typeSizeValue =
       ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
 
   auto j = this->currentInstruction;
   //    j--;
 
   Twine non_det("bitcast_map2check");
-  Value* pointerCast = CastInst ::CreatePointerCast(
+  Value *pointerCast = CastInst::CreatePointerCast(
       v, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
   //    j++;
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* args[] = {pointerCast, typeSizeValue};
+  Value *args[] = {pointerCast, typeSizeValue};
   builder.CreateCall(map2check_load, args);
 
-  Value* function_name_llvm =
+  Value *function_name_llvm =
       builder.CreateGlobalStringPtr(this->currentFunction->getName());
-  Value* args2[] = {this->line_value, function_name_llvm};
+  Value *args2[] = {this->line_value, function_name_llvm};
   builder.CreateCall(map2check_check_deref, args2);
 }
 
 void MemoryTrackPass::prepareMap2CheckInstructions() {
-  Function& F = *this->currentFunction;
+  Function &F = *this->currentFunction;
 
   this->map2check_load = F.getParent()->getOrInsertFunction(
       "map2check_load", Type::getVoidTy(*this->Ctx),
@@ -677,8 +677,8 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 }
 
 void MemoryTrackPass::instrumentFunctionArgumentAddress() {
-  Function* F = this->currentFunction;
-  Module* M = this->currentFunction->getParent();
+  Function *F = this->currentFunction;
+  Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
   Function::iterator bb = this->currentFunction->begin();
@@ -689,17 +689,17 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
   //    i++;
 
   for (auto arg = F->arg_begin(); arg != F->arg_end(); arg++) {
-    Argument* functionArg = &(*arg);
+    Argument *functionArg = &(*arg);
 
     //        functionArg->
     auto type = functionArg->getType();
     unsigned typeSize = dataLayout.getTypeSizeInBits(type) / 8;
     IRBuilder<> builder(BBIteratorToInst(i));
-    Value* name_llvm = builder.CreateGlobalStringPtr(functionArg->getName());
+    Value *name_llvm = builder.CreateGlobalStringPtr(functionArg->getName());
 
-    ConstantInt* typeSizeValue =
+    ConstantInt *typeSizeValue =
         ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx), typeSize);
-    Value* argCast;
+    Value *argCast;
 
     if (type->isPointerTy()) {
       Twine mapcheck_bitcast_argument("mapcheck_bitcast_argument");
@@ -715,13 +715,13 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
     //        ConstantInt::getSigned(Type::getInt32Ty(*this->Ctx),
     //        primitiveSize);
 
-    Value* args[] = {name_llvm,     argCast,          typeSizeValue,
+    Value *args[] = {name_llvm,     argCast,          typeSizeValue,
                      typeSizeValue, this->line_value, this->scope_value};
     builder.CreateCall(map2check_alloca, args);
   }
 }
 
-bool MemoryTrackPass::runOnFunction(Function& F) {
+bool MemoryTrackPass::runOnFunction(Function &F) {
   this->Ctx = &F.getContext();
   this->currentFunction = &F;
   this->prepareMap2CheckInstructions();
@@ -732,7 +732,7 @@ bool MemoryTrackPass::runOnFunction(Function& F) {
     this->functionsValues.push_back(this->currentFunction);
     this->mainFunctionInitialized = true;
     this->mainFunction = &F;
-    this->instrumentInit();  // Related to BUG checkout this
+    this->instrumentInit(); // Related to BUG checkout this
   }
 
   // this->instrumentFunctionAddress();
@@ -768,6 +768,6 @@ bool MemoryTrackPass::runOnFunction(Function& F) {
 }
 
 char MemoryTrackPass::ID = 0;
-static RegisterPass<MemoryTrackPass> X(
-    "memory_track",
-    "Validate memory security proprieties using dynamic memory tracking");
+static RegisterPass<MemoryTrackPass>
+    X("memory_track",
+      "Validate memory security proprieties using dynamic memory tracking");

@@ -167,6 +167,17 @@ void Caller::linkLLVM() {
               << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
               << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc";
               
+switch (nonDetGenerator) {
+    case (NonDetGenerator::None): {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
+      break;
+    }
+  }
+              
   witnessCommand.str("");
   witnessCommand << linkCommand.str();
   witnessCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";

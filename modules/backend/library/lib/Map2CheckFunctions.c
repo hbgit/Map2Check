@@ -135,7 +135,6 @@ void map2check_function(const char* name, void* ptr) {
   append_element(&heap_log, row);
 }
 
-const char* erro = "asd";
 void map2check_load(void* ptr, int size) {
   if (!is_valid_heap_address(&heap_log, ptr, size)) {
     if (!is_valid_allocation_address(&allocation_log, ptr, size)) {
@@ -221,73 +220,6 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope,
   }
 }
 
-/* TODO: Separate fuzzer in another file
-   Logic used for cases generation:
-   1 - main function of original program is changed to _map2check_main
-   2 - Fuzzer end is linked with it
- */
-
-#include <stdint.h>
-
-extern int __map2check_main__();
-
-const uint8_t* map2check_fuzzer_data;
-size_t map2check_fuzzer_size;
-
-uint8_t get_next_input_from_fuzzer() {
-  static int i = 0;
-
-  if(i < map2check_fuzzer_size) {
-    return map2check_fuzzer_data[i++];
-  }
-
-  i = 0;
-  return map2check_fuzzer_data[i];
-}
-
-int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-  map2check_fuzzer_data = Data;
-  map2check_fuzzer_size = Size;
-  return __map2check_main__();
-}
-
-int map2check_non_det_int() {
-  return (int) get_next_input_from_fuzzer();
-}
-
-unsigned int map2check_non_det_uint() {
-  unsigned int non_det;
-  scanf("%u", &non_det);
-  return non_det;
-}
-
-char map2check_non_det_char() {
-  char non_det;
-  scanf("%c", &non_det);
-  return non_det;
-}
-
-unsigned short map2check_non_det_ushort() {
-  unsigned short non_det;
-  scanf("%hu", &non_det);
-  return non_det;
-}
-
-void* map2check_non_det_pointer() {
-  long non_det;
-  scanf("%ld", &non_det);
-  return (void*)non_det;
-}
-/*
-void map2check_assume(int expr) {
-  klee_assume(expr);
-}
-*/
-long map2check_non_det_long() {
-  long non_det;
-  scanf("%ld", &non_det);
-  return non_det;
-}
 
 void __VERIFIER_error() {
   if (!valid_allocation_log(&allocation_log)) {

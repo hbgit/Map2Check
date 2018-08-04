@@ -20,7 +20,7 @@ Bool ERROR_DEREF = FALSE;
 void map2check_init(int isSvComp) {
   Map2CheckCurrentStep = 0;
   list_log = new_container(LIST_LOG_CONTAINER);
-  klee_log = new_container(KLEE_LOG_CONTAINER);
+  klee_log = new_container(NONDET_LOG_CONTAINER);
   allocation_log = new_container(ALLOCATION_LOG_CONTAINER);
   heap_log = new_container(HEAP_LOG_CONTAINER);
   trackbb_log = new_container(TRACKBB_LOG_CONTAINER);

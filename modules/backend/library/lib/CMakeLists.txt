@@ -29,3 +29,15 @@ foreach(F ${MAP2CHECK_C_LIB})
 
 endforeach()
 #add_subdirectory(test)
+
+add_custom_command(
+    OUTPUT "ContainerBTree.bc"
+    COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/ContainerBTree.c
+        ${CMAKE_CURRENT_LIST_DIR}/BTree.c
+    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/ContainerBTree.c ${CMAKE_CURRENT_LIST_DIR}/BTree.c
+    COMMENT "Compiling ContainerBTree to bytecode")
+
+  add_custom_target(ContainerBTree ALL DEPENDS ContainerBTree.bc)  
+
+  install(FILES ${PROJECT_BINARY_DIR}/modules/backend/library/lib/ContainerBTree.bc
+    DESTINATION lib) 

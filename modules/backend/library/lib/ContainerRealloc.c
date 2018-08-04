@@ -19,7 +19,7 @@ Bool free_container(MAP2CHECK_CONTAINER* container) {
     case ALLOCATION_LOG_CONTAINER:
       free((MEMORY_ALLOCATIONS_ROW*)container->values);
       break;
-    case KLEE_LOG_CONTAINER:
+    case NONDET_LOG_CONTAINER:
       free((NONDET_CALL*)container->values);
       break;
     case HEAP_LOG_CONTAINER:
@@ -45,7 +45,7 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
     case ALLOCATION_LOG_CONTAINER:
       new_allocation_size = container->size * sizeof(MEMORY_ALLOCATIONS_ROW);
       break;
-    case KLEE_LOG_CONTAINER:
+    case NONDET_LOG_CONTAINER:
       new_allocation_size = container->size * sizeof(NONDET_CALL);
       break;
     case HEAP_LOG_CONTAINER:
@@ -72,7 +72,7 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
       allocationLog = (MEMORY_ALLOCATIONS_ROW*)temp_list;
       allocationLog[container->size - 1] = *((MEMORY_ALLOCATIONS_ROW*)row);
       break;
-    case KLEE_LOG_CONTAINER:
+    case NONDET_LOG_CONTAINER:
       nondetLog = (NONDET_CALL*)temp_list;
       nondetLog[container->size - 1] = *((NONDET_CALL*)row);
       break;
@@ -107,7 +107,7 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
     case ALLOCATION_LOG_CONTAINER:
       allocationLog = (MEMORY_ALLOCATIONS_ROW*)container.values;
       return (&allocationLog[index]);
-    case KLEE_LOG_CONTAINER:
+    case NONDET_LOG_CONTAINER:
       nondetLog = (NONDET_CALL*)container.values;
       return (&nondetLog[index]);
     case HEAP_LOG_CONTAINER:

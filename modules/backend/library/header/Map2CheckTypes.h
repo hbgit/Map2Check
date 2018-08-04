@@ -118,7 +118,7 @@ typedef
   long value;
   /** Name of the function where operation took place */
   char function_name[FUNCTION_MAX_LENGTH_NAME];
-} KLEE_CALL;
+} NONDET_CALL;
 
 typedef
     /**
@@ -168,7 +168,7 @@ typedef union CONTAINER_ROW {
   MEMORY_ALLOCATIONS_ROW allocationLog;
   MEMORY_HEAP_ROW heapLog;
   TRACK_BB_ROW trackBBLog;
-  KLEE_CALL kleeLog;
+  NONDET_CALL kleeLog;
 } CONTAINER_ROW;
 
 #endif

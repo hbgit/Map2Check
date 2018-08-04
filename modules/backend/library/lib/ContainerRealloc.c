@@ -1,4 +1,4 @@
-#include "Container.h"
+#include "../header/Container.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +20,7 @@ Bool free_container(MAP2CHECK_CONTAINER* container) {
       free((MEMORY_ALLOCATIONS_ROW*)container->values);
       break;
     case KLEE_LOG_CONTAINER:
-      free((KLEE_CALL*)container->values);
+      free((NONDET_CALL*)container->values);
       break;
     case HEAP_LOG_CONTAINER:
       free((MEMORY_HEAP_ROW*)container->values);
@@ -46,7 +46,7 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
       new_allocation_size = container->size * sizeof(MEMORY_ALLOCATIONS_ROW);
       break;
     case KLEE_LOG_CONTAINER:
-      new_allocation_size = container->size * sizeof(KLEE_CALL);
+      new_allocation_size = container->size * sizeof(NONDET_CALL);
       break;
     case HEAP_LOG_CONTAINER:
       new_allocation_size = container->size * sizeof(MEMORY_HEAP_ROW);
@@ -62,7 +62,7 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
   MEMORY_ALLOCATIONS_ROW* allocationLog;
   MEMORY_HEAP_ROW* heapLog;
   TRACK_BB_ROW* trackBBLog;
-  KLEE_CALL* kleeLog;
+  NONDET_CALL* nondetLog;
   switch (container->type) {
     case LIST_LOG_CONTAINER:
       list = (LIST_LOG_ROW*)temp_list;
@@ -73,8 +73,8 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
       allocationLog[container->size - 1] = *((MEMORY_ALLOCATIONS_ROW*)row);
       break;
     case KLEE_LOG_CONTAINER:
-      kleeLog = (KLEE_CALL*)temp_list;
-      kleeLog[container->size - 1] = *((KLEE_CALL*)row);
+      nondetLog = (NONDET_CALL*)temp_list;
+      nondetLog[container->size - 1] = *((NONDET_CALL*)row);
       break;
     case HEAP_LOG_CONTAINER:
       heapLog = (MEMORY_HEAP_ROW*)temp_list;
@@ -97,7 +97,7 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
 
   LIST_LOG_ROW* listLogRows;
   MEMORY_ALLOCATIONS_ROW* allocationLog;
-  KLEE_CALL* kleeLog;
+  NONDET_CALL* nondetLog;
   MEMORY_HEAP_ROW* heapLog;
   TRACK_BB_ROW* trackBBLog;
   switch (container.type) {
@@ -108,8 +108,8 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
       allocationLog = (MEMORY_ALLOCATIONS_ROW*)container.values;
       return (&allocationLog[index]);
     case KLEE_LOG_CONTAINER:
-      kleeLog = (KLEE_CALL*)container.values;
-      return (&kleeLog[index]);
+      nondetLog = (NONDET_CALL*)container.values;
+      return (&nondetLog[index]);
     case HEAP_LOG_CONTAINER:
       heapLog = (MEMORY_HEAP_ROW*)container.values;
       return (&heapLog[index]);

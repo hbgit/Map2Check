@@ -1,4 +1,4 @@
-#include "HeapLog.h"
+#include "../header/HeapLog.h"
 #include <stdio.h>
 #include <string.h>
 

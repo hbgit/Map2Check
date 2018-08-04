@@ -2,8 +2,7 @@
 #define BTREE_H_
 
 #include <stdio.h>
-#include "Container.h"
-#include "Map2CheckTypes.h"
+#include "../header/Container.h"
 
 /* This file describes an API for a BTree
  *

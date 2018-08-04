@@ -7,7 +7,7 @@
 #include "AllocationLog.h"
 #include "Container.h"
 #include "HeapLog.h"
-#include "KleeLog.h"
+#include "NonDetLog.h"
 #include "ListLog.h"
 #include "Map2CheckGlobals.h"
 #include "Map2CheckTypes.h"

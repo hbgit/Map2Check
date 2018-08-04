@@ -1,4 +1,4 @@
-#include "Map2CheckFunctions.h"
+#include "../header/Map2CheckFunctions.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -45,88 +45,88 @@ void map2check_nondet_int(unsigned line, unsigned scope, int value,
                           const char* function_name) {
   /* int* result = (int*) malloc(sizeof(int)); */
   /* *result = value; */
-  KLEE_CALL kleeCall = new_klee_call(INTEGER, line, scope, value, function_name,
+  NONDET_CALL kleeCall = new_nondet_call(INTEGER, line, scope, value, function_name,
                                      Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
-  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  NONDET_CALL* row = malloc(sizeof(NONDET_CALL));
   *row = kleeCall;
 
   append_element(&klee_log, row);
-  /* klee_log_to_file(klee_log); */
+  /* nondet_log_to_file(klee_log); */
 }
 
 void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
                                const char* function_name) {
-  KLEE_CALL kleeCall = new_klee_call(UNSIGNED, line, scope, value,
+  NONDET_CALL kleeCall = new_nondet_call(UNSIGNED, line, scope, value,
                                      function_name, Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
-  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  NONDET_CALL* row = malloc(sizeof(NONDET_CALL));
   *row = kleeCall;
 
   append_element(&klee_log, row);
-  /* klee_log_to_file(klee_log); */
+  /* nondet_log_to_file(klee_log); */
 }
 
 void map2check_nondet_char(unsigned line, unsigned scope, int value,
                            const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
-  KLEE_CALL kleeCall = new_klee_call(CHAR, line, scope, value, function_name,
+  NONDET_CALL kleeCall = new_nondet_call(CHAR, line, scope, value, function_name,
                                      Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
-  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  NONDET_CALL* row = malloc(sizeof(NONDET_CALL));
   *row = kleeCall;
 
   append_element(&klee_log, row);
-  /* klee_log_to_file(klee_log); */
+  /* nondet_log_to_file(klee_log); */
 }
 
 void map2check_nondet_pointer(unsigned line, unsigned scope, int value,
                               const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
-  KLEE_CALL kleeCall = new_klee_call(POINTER, line, scope, value, function_name,
+  NONDET_CALL kleeCall = new_nondet_call(POINTER, line, scope, value, function_name,
                                      Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
-  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  NONDET_CALL* row = malloc(sizeof(NONDET_CALL));
   *row = kleeCall;
 
   append_element(&klee_log, row);
-  /* klee_log_to_file(klee_log); */
+  /* nondet_log_to_file(klee_log); */
 }
 
 void map2check_nondet_ushort(unsigned line, unsigned scope, int value,
                              const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
-  KLEE_CALL kleeCall = new_klee_call(USHORT, line, scope, value, function_name,
+  NONDET_CALL kleeCall = new_nondet_call(USHORT, line, scope, value, function_name,
                                      Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
-  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  NONDET_CALL* row = malloc(sizeof(NONDET_CALL));
   *row = kleeCall;
 
   append_element(&klee_log, row);
-  /* klee_log_to_file(klee_log); */
+  /* nondet_log_to_file(klee_log); */
 }
 
 void map2check_nondet_long(unsigned line, unsigned scope, int value,
                            const char* function_name) {
   /* char* result = (char*) malloc(sizeof(char)); */
   /* *result = (char) value; */
-  KLEE_CALL kleeCall = new_klee_call(LONG, line, scope, value, function_name,
+  NONDET_CALL kleeCall = new_nondet_call(LONG, line, scope, value, function_name,
                                      Map2CheckCurrentStep);
   Map2CheckCurrentStep++;
 
-  KLEE_CALL* row = malloc(sizeof(KLEE_CALL));
+  NONDET_CALL* row = malloc(sizeof(NONDET_CALL));
   *row = kleeCall;
 
   append_element(&klee_log, row);
-  /* klee_log_to_file(klee_log); */
+  /* nondet_log_to_file(klee_log); */
 }
 
 void map2check_function(const char* name, void* ptr) {
@@ -231,7 +231,7 @@ void map2check_add_store_pointer(void* var, void* value, unsigned scope,
 
 extern int __map2check_main__();
 
-uint8_t* map2check_fuzzer_data;
+const uint8_t* map2check_fuzzer_data;
 size_t map2check_fuzzer_size;
 
 uint8_t get_next_input_from_fuzzer() {

@@ -1,11 +1,11 @@
-#include "KleeLog.h"
+#include "../header/NonDetLog.h"
 
 #include <stdio.h>
 #include <string.h>
 
 const char* klee_log_file = "klee_log.csv";
 
-Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
+Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
   if (klee_container.type != KLEE_LOG_CONTAINER) {
     return FALSE;
   }
@@ -15,7 +15,7 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
   int i = 0;
   unsigned size = klee_container.size;
   for (; i < size; i++) {
-    KLEE_CALL* call = (KLEE_CALL*)get_element_at(i, klee_container);
+    NONDET_CALL* call = (NONDET_CALL*)get_element_at(i, klee_container);
     if (call == NULL) {
       return FALSE;
     }
@@ -38,9 +38,9 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container) {
   return TRUE;
 }
 
-KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope,
+NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line, unsigned scope,
                         long value, const char* function_name, unsigned step) {
-  KLEE_CALL result;
+  NONDET_CALL result;
   result.type = type;
   strncpy(result.function_name, function_name, FUNCTION_MAX_LENGTH_NAME);
   result.line = line;

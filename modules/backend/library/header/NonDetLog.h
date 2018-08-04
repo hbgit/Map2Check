@@ -7,15 +7,15 @@
 #include "Map2CheckGlobals.h"
 #include "Map2CheckTypes.h"
 
-#ifndef KleeLog_H
-#define KleeLog_H
+#ifndef NonDetLog_H
+#define NonDetLog_H
 
 /**
  * Generates file containing Klee Log
  * @param klee_container  Pointer to Container
  * @return                A bool representing success of operation
  */
-Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container);
+Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container);
 
 /**
  * Initializes a klee call
@@ -26,7 +26,7 @@ Bool klee_log_to_file(MAP2CHECK_CONTAINER klee_container);
  * @param function_name
  * @param step
  */
-KLEE_CALL new_klee_call(enum NONDET_TYPE type, unsigned line, unsigned scope,
+NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line, unsigned scope,
                         long value, const char* function_name, unsigned step);
 
 #endif

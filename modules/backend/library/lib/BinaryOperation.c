@@ -1,8 +1,8 @@
-#include "BinaryOperation.h"
+#include "../header/BinaryOperation.h"
 
 #include <limits.h>
 #include <stdio.h>
-#include "PropertyGenerator.h"
+#include "../header/PropertyGenerator.h"
 
 // TODO(rafa.sa.xp@gmail.com) Check if overflow of unsigned exists at all
 

@@ -1,7 +1,7 @@
 #include "../header/Map2CheckFunctions.h"
 #include "../header/AnalysisMode.h"
+#include "../header/NonDetGenerator.h"
 #include "../header/Container.h"
-#include "../header/NonDetLog.h"
 #include "../header/PropertyGenerator.h"
 #include "../header/TrackBBLog.h"
 #include "../header/WitnessGeneration.h"
@@ -28,6 +28,7 @@ void map2check_init(int isSvComp) {
   }
 
   analysis_init();
+  nondet_init();
 }
 
 unsigned map2check_get_current_step() { return Map2CheckCurrentStep; }
@@ -77,6 +78,7 @@ void map2check_exit() {
 
   free_container(&trackbb_log);
   analysis_destroy();
+  nondet_destroy();
 
   /* gotError = TRUE; */
   if (gotError == TRUE) {

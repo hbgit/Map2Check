@@ -31,7 +31,9 @@ RUN apt-get install -y sudo \
     cmake \
     curl \
     unionfs-fuse \
-    vim
+    vim \
+    doxygen \
+    graphviz
 
 # Clean packages installation
 RUN apt-get clean

@@ -1,0 +1,8 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node2" href="$classMap2Check_1_1Exceptions_1_1Map2CheckException.html" title="Map2Check::Exceptions\l::Map2CheckException" alt="" coords="184,37,357,79"/>
+<area shape="rect" id="node5" href="$classMemoryTrackPassException.html" title="MemoryTrackPassException" alt="" coords="172,103,369,130"/>
+<area shape="rect" id="node6" href="$classNonDetPassException.html" title="NonDetPassException" alt="" coords="189,154,352,181"/>
+<area shape="rect" id="node7" href="$classTrackBasicBlockPassException.html" title="TrackBasicBlockPassException" alt="" coords="164,205,377,231"/>
+<area shape="rect" id="node3" href="$classMap2Check_1_1Exceptions_1_1ErrorOpeningFileException.html" title="Map2Check::Exceptions\l::ErrorOpeningFileException" alt="" coords="425,5,621,47"/>
+<area shape="rect" id="node4" href="$classMap2Check_1_1Exceptions_1_1OutOfBounds.html" title="Map2Check::Exceptions\l::OutOfBounds" alt="" coords="437,71,610,112"/>
+</map>

@@ -14,7 +14,7 @@ echo ""
 echo "Building Map2Check release ... "
 echo ""
 
-cmake .. -DCOPY_EXTERNAL=ON -DCMAKE_INSTALL_PREFIX=../release/
+cmake .. -DCOPY_EXTERNAL=ON -DBUILD_DOC=OFF -DCMAKE_INSTALL_PREFIX=../release/
 make
 make install
 

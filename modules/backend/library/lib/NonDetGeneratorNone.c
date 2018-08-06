@@ -30,3 +30,6 @@ long map2check_non_det_long() {
   return 0;
 }
 
+void nondet_init() { }
+void nondet_destroy() { }
+void nondet_generate_aux_witness_files() { }

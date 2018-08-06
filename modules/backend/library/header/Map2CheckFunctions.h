@@ -14,10 +14,6 @@ void map2check_error();
 
 void map2check_track_bb(unsigned line, const char *function_name);
 
-void map2check_nondet_int(unsigned line, unsigned scope, int value,
-                          const char *function_name);
-void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
-                               const char *function_name);
 /**
  * Track pointer pointer for LIST_LOG (this function is to be used for
  * instrumentation)
@@ -27,15 +23,6 @@ void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
  * @param line  Line where pointer was declared
  */
 void map2check_pointer(void *x, unsigned scope, const char *name, int line);
-
-/**
- * Generates a non det integer by using an undirect NONDET call (this function
- * is
- * to be used for instrumentation)
- * @return An integer representing a non deterministic value
- */
-int map2check_non_det_int();
-unsigned int map2check_non_det_uint();
 
 /**
  * Tracks execution of a specific function (this function is to be used for
@@ -53,15 +40,6 @@ void map2check_target_function(const char *func_name, int scope, int line);
  */
 void map2check_store(void *ptr, unsigned size_of_destiny);
 
-char map2check_non_det_char();
-void map2check_nondet_char(unsigned line, unsigned scope, int value,
-                           const char *function_name);
-
-void *map2check_non_det_pointer();
-long map2check_non_det_long();
-unsigned short map2check_non_det_ushort();
-void map2check_nondet_pointer(unsigned line, unsigned scope, int value,
-                              const char *function_name);
 void map2check_assume(int expr);
 void __VERIFIER_error();
 

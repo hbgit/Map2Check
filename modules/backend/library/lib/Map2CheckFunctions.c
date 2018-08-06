@@ -13,8 +13,6 @@ unsigned Map2CheckCurrentStep;
 extern void __assert_fail(const char *assertion, const char *file,
                           unsigned int line, const char *function);
 
-MAP2CHECK_CONTAINER klee_log;
-
 MAP2CHECK_CONTAINER trackbb_log;
 
 Bool sv_comp = FALSE;
@@ -22,7 +20,7 @@ Bool gotError = FALSE;
 
 void map2check_init(int isSvComp) {
   Map2CheckCurrentStep = 0;
-  klee_log = new_container(NONDET_LOG_CONTAINER);
+
   trackbb_log = new_container(TRACKBB_LOG_CONTAINER);
 
   if (isSvComp) {
@@ -41,94 +39,6 @@ void map2check_track_bb(unsigned line, const char *function_name) {
     *row = trackbb_new_row(line, function_name);
     append_element(&trackbb_log, row);
   }
-}
-
-void map2check_nondet_int(unsigned line, unsigned scope, int value,
-                          const char *function_name) {
-  /* int* result = (int*) malloc(sizeof(int)); */
-  /* *result = value; */
-  NONDET_CALL kleeCall = new_nondet_call(INTEGER, line, scope, value,
-                                         function_name, Map2CheckCurrentStep);
-  Map2CheckCurrentStep++;
-
-  NONDET_CALL *row = malloc(sizeof(NONDET_CALL));
-  *row = kleeCall;
-
-  append_element(&klee_log, row);
-  /* nondet_log_to_file(klee_log); */
-}
-
-void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
-                               const char *function_name) {
-  NONDET_CALL kleeCall = new_nondet_call(UNSIGNED, line, scope, value,
-                                         function_name, Map2CheckCurrentStep);
-  Map2CheckCurrentStep++;
-
-  NONDET_CALL *row = malloc(sizeof(NONDET_CALL));
-  *row = kleeCall;
-
-  append_element(&klee_log, row);
-  /* nondet_log_to_file(klee_log); */
-}
-
-void map2check_nondet_char(unsigned line, unsigned scope, int value,
-                           const char *function_name) {
-  /* char* result = (char*) malloc(sizeof(char)); */
-  /* *result = (char) value; */
-  NONDET_CALL kleeCall = new_nondet_call(CHAR, line, scope, value,
-                                         function_name, Map2CheckCurrentStep);
-  Map2CheckCurrentStep++;
-
-  NONDET_CALL *row = malloc(sizeof(NONDET_CALL));
-  *row = kleeCall;
-
-  append_element(&klee_log, row);
-  /* nondet_log_to_file(klee_log); */
-}
-
-void map2check_nondet_pointer(unsigned line, unsigned scope, int value,
-                              const char *function_name) {
-  /* char* result = (char*) malloc(sizeof(char)); */
-  /* *result = (char) value; */
-  NONDET_CALL kleeCall = new_nondet_call(POINTER, line, scope, value,
-                                         function_name, Map2CheckCurrentStep);
-  Map2CheckCurrentStep++;
-
-  NONDET_CALL *row = malloc(sizeof(NONDET_CALL));
-  *row = kleeCall;
-
-  append_element(&klee_log, row);
-  /* nondet_log_to_file(klee_log); */
-}
-
-void map2check_nondet_ushort(unsigned line, unsigned scope, int value,
-                             const char *function_name) {
-  /* char* result = (char*) malloc(sizeof(char)); */
-  /* *result = (char) value; */
-  NONDET_CALL kleeCall = new_nondet_call(USHORT, line, scope, value,
-                                         function_name, Map2CheckCurrentStep);
-  Map2CheckCurrentStep++;
-
-  NONDET_CALL *row = malloc(sizeof(NONDET_CALL));
-  *row = kleeCall;
-
-  append_element(&klee_log, row);
-  /* nondet_log_to_file(klee_log); */
-}
-
-void map2check_nondet_long(unsigned line, unsigned scope, int value,
-                           const char *function_name) {
-  /* char* result = (char*) malloc(sizeof(char)); */
-  /* *result = (char) value; */
-  NONDET_CALL kleeCall = new_nondet_call(LONG, line, scope, value,
-                                         function_name, Map2CheckCurrentStep);
-  Map2CheckCurrentStep++;
-
-  NONDET_CALL *row = malloc(sizeof(NONDET_CALL));
-  *row = kleeCall;
-
-  append_element(&klee_log, row);
-  /* nondet_log_to_file(klee_log); */
 }
 
 void __VERIFIER_error() {
@@ -163,9 +73,8 @@ void map2check_exit() {
   if (gotError == FALSE) {
     gotError = !analysis_is_program_correct();
   }
-  generate_aux_files(&klee_log, &trackbb_log);
+  generate_aux_files(&trackbb_log);
 
-  free_container(&klee_log);
   free_container(&trackbb_log);
   analysis_destroy();
 

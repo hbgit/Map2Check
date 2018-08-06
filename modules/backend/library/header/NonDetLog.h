@@ -26,7 +26,21 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container);
  * @param function_name
  * @param step
  */
-NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line, unsigned scope,
-                        long value, const char* function_name, unsigned step);
+NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,
+                            unsigned scope, long value,
+                            const char *function_name, unsigned step);
+
+void nondet_log_init();
+void nondet_log_destroy();
+MAP2CHECK_CONTAINER map2check_nondet_get_log();
+void map2check_nondet_int(unsigned line, unsigned scope, int value,
+                          const char *function_name);
+void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
+                               const char *function_name);
+void map2check_nondet_char(unsigned line, unsigned scope, int value,
+                           const char *function_name);
+
+void map2check_nondet_pointer(unsigned line, unsigned scope, int value,
+                              const char *function_name);
 
 #endif

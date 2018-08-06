@@ -26,10 +26,13 @@ include_directories(${PROJECT_SOURCE_DIR})
 add_subdirectory(modules)
 
 # first we can indicate the documentation build as an option and set it to ON by default
-option(BUILD_DOC "Build documentation" ON)
+option(BUILD_DOC "Build documentation" OFF)
 
 # check if Doxygen is installed
 find_package(Doxygen)
+#find_package(Graphviz)
+
+#if (DOXYGEN_FOUND AND GRAPHVIZ_FOUND)
 if (DOXYGEN_FOUND)
     # set input and output files
     set(DOXYGEN_IN ${PROJECT_SOURCE_DIR}/docs/Doxyfile.in)

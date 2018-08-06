@@ -1,7 +1,7 @@
 #include "../header/Map2CheckFunctions.h"
 #include "../header/AnalysisMode.h"
-#include "../header/NonDetGenerator.h"
 #include "../header/Container.h"
+#include "../header/NonDetGenerator.h"
 #include "../header/PropertyGenerator.h"
 #include "../header/TrackBBLog.h"
 #include "../header/WitnessGeneration.h"
@@ -43,16 +43,7 @@ void map2check_track_bb(unsigned line, const char *function_name) {
 }
 
 void __VERIFIER_error() {
-  // TODO: Check this function
-  /*
-  if (!valid_allocation_log(&allocation_log)) {
-    write_property(FALSE_MEMTRACK, 0, "");
-  } else {
-    write_property(NONE, 0, "");
-  }
-  */
-  map2check_exit();
-  exit(0);
+  // DO NOTHING
 }
 
 void map2check_target_function(const char *func_name, int scope, int line) {
@@ -61,7 +52,7 @@ void map2check_target_function(const char *func_name, int scope, int line) {
 }
 
 void map2check_success() {
-  write_property(NONE, 0, "");
+  // write_property(NONE, 0, "");
   map2check_exit();
 }
 

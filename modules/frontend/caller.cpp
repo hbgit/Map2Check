@@ -22,7 +22,7 @@ inline std::string getLibSuffix() { return ".so"; }
 namespace Map2Check {
 Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
                NonDetGenerator generator) {
-  this->cleanGarbage();
+  // this->cleanGarbage();
   this->pathprogram = bcprogram_path;
   this->map2checkMode = mode;
   this->nonDetGenerator = generator;
@@ -36,8 +36,6 @@ Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
   createTempDir << "mkdir " << programHash;
   system(createTempDir.str().c_str());
 
-  // TODO: if file is not compiled into this function, this will remove original
-  // file (so we should have a way of checking)
   std::ostringstream moveProgram;
   moveProgram << "cp " << bcprogram_path << " " << programHash;
   system(moveProgram.str().c_str());
@@ -123,8 +121,11 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
     break;
   }
   case Map2CheckMode::REACHABILITY_MODE: {
-    Map2Check::Log::Fatal("Reachability mode is not implemented yet, ignoring "
-                          "option");
+    Map2Check::Log::Info("Running reachability mode");
+    std::string targetPass = "${MAP2CHECK_PATH}/lib/libTargetPass";
+    transformCommand << " -load " << targetPass << getLibSuffix()
+                     << " -target_function";
+
     break;
   }
   }
@@ -177,8 +178,9 @@ void Caller::linkLLVM() {
     break;
   }
   case Map2CheckMode::REACHABILITY_MODE: {
-    Map2Check::Log::Fatal("Reachability mode is not implemented yet, ignoring "
-                          "option");
+    // Since the map2check api provides the function, we do not need to do any
+    // analysis
+    linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
     break;
   }
   }
@@ -218,7 +220,8 @@ void Caller::executeAnalysis() {
     Map2Check::Log::Info("Executing libfuzzer with map2check");
     std::ostringstream command;
     command.str("");
-    command << "./" + programHash + "-fuzzed.out -jobs=2 > fuzzer.output";
+    command << "./" + programHash + "-fuzzed.out -jobs=2 "
+            << " -timeout=" << this->timeout << " > fuzzer.output";
     system(command.str().c_str());
 
     std::ostringstream commandWitness;
@@ -262,28 +265,22 @@ std::vector<int> Caller::processClangOutput() {
  * (2) Generate .bc file from code
  * (3) Check for overflow errors on compilation
  */
-string Caller::compileCFile(std::string cprogram_path) {
-  Map2Check::Log::Info("Compiling " + cprogram_path);
-
-  // Generating hash for temporary C file
-  GenHash hash;
-  hash.setFilePath(cprogram_path);
-  hash.generate_sha1_hash_for_file();
+void Caller::compileCFile() {
+  Map2Check::Log::Info("Compiling " + this->pathprogram);
 
   // (1) Remove unsuported functions and clean the C code
   std::ostringstream commandRemoveExternMalloc;
   commandRemoveExternMalloc.str("");
-  commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
+  commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
   commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
                             << "  -e 's/.*void \\*malloc(size_t size).*//g' "
-                            << " > " << hash.getOutputSha1HashFile()
-                            << "-preprocessed.c ";
+                            << " > " << programHash << "-preprocessed.c ";
 
   system(commandRemoveExternMalloc.str().c_str());
 
   // (2) Generate .bc file from code
   // TODO: -Winteger-overflow should be called only if is on overflow mode
-  std::string compiledFile = hash.getOutputSha1HashFile() + "-compiled.bc";
+  std::string compiledFile = programHash + "-compiled.bc";
   std::ostringstream command;
   command.str("");
   command << Map2Check::clangBinary << " -I" << Map2Check::clangIncludeFolder
@@ -291,12 +288,13 @@ string Caller::compileCFile(std::string cprogram_path) {
           << " -Winteger-overflow "
           << " -c -emit-llvm -g"
           << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
-          << " " << hash.getOutputSha1HashFile() << "-preprocessed.c "
-          << " > " << hash.getOutputSha1HashFile() << "-clang.out 2>&1";
+          << " " << programHash << "-preprocessed.c "
+          << " > " << programHash << "-clang.out 2>&1";
 
   system(command.str().c_str());
 
+  this->pathprogram = compiledFile;
+
   // TODO: (3) Check for overflow errors on compilation
-  return (compiledFile);
 }
 } // namespace Map2Check

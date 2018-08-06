@@ -9,12 +9,12 @@
 #include <llvm/Pass.h>
 #include <llvm/Support/raw_ostream.h>
 
+#include "DebugInfo.hpp"
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "DebugInfo.hpp"
 
 using namespace llvm;
 
@@ -24,16 +24,16 @@ struct TargetPass : public FunctionPass {
   TargetPass(std::string FunctionName) : FunctionPass(ID) {
     targetFunctionName = FunctionName;
   }
-  virtual bool runOnFunction(Function& F);
+  virtual bool runOnFunction(Function &F);
 
- protected:
-  Value* getFunctionNameValue() { return this->functionName; }
-  void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentErrorInstruction(CallInst* callInst, LLVMContext* Ctx);
+protected:
+  Value *getFunctionNameValue() { return this->functionName; }
+  void runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx);
+  void instrumentErrorInstruction(CallInst *callInst, LLVMContext *Ctx);
 
- private:
+private:
   BasicBlock::iterator currentInstruction;
-  Constant* targetFunctionMap2Check = NULL;
-  Value* functionName = NULL;
-  std::string targetFunctionName;
+  Constant *targetFunctionMap2Check = NULL;
+  Value *functionName = NULL;
+  std::string targetFunctionName = "__VERIFIER_error";
 };

@@ -1,5 +1,3 @@
-
-
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -33,7 +31,7 @@ const size_t SUCCESS = 0;
 const size_t ERROR_IN_COMMAND_LINE = 1;
 // A helper function to simplify the main part.
 template <class T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
+std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
   copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
   return os;
 }
@@ -53,7 +51,7 @@ inline int MIN(int a, int b) {
   return a;
 }
 
-inline void fixPath(char* map2check_bin_string) {
+inline void fixPath(char *map2check_bin_string) {
   Map2Check::Log::Info("Fixing Map2Check path");
   namespace fs = boost::filesystem;
   const int kSZLength = 32;
@@ -79,12 +77,12 @@ inline void fixPath(char* map2check_bin_string) {
   std::string map2check_env_var("MAP2CHECK_PATH=");
   map2check_env_var += pBuf;
 
-  char* map2check_env_array = new char[map2check_env_var.length() + 1];
+  char *map2check_env_array = new char[map2check_env_var.length() + 1];
   strcpy(map2check_env_array, map2check_env_var.c_str());
   putenv(map2check_env_array);
   Map2Check::Log::Debug(map2check_env_var);
 }
-}  // namespace
+} // namespace
 
 // TODO: add support to reachability (check old version of map), maybe this
 // should be handled by caller
@@ -115,10 +113,19 @@ void generate_witness(std::string pathfile,
   }
 }
 
-int map2check_execution(std::string inputFile) {
+/** Struct to hold some of map2check arguments */
+struct map2check_args {
+  unsigned timeout = 0;
+  std::string inputFile;
+  std::string function;
+  Map2Check::Map2CheckMode mode;
+  bool generateWitness = false;
+};
+
+int map2check_execution(map2check_args args) {
   Map2Check::Log::Info("Started Map2Check");
   // TODO(rafa.sa.xp@gmail.com): Check current mode
-  auto mode = Map2Check::Map2CheckMode::MEMTRACK_MODE;
+
   auto generator = Map2Check::NonDetGenerator::LibFuzzer;
 
   /**
@@ -132,27 +139,23 @@ int map2check_execution(std::string inputFile) {
    **/
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
-  std::string extension = boost::filesystem::extension(inputFile);
-  if (extension.compare(".bc") && extension.compare(".c") &&
-      extension.compare(".i")) {
+  std::string extension = boost::filesystem::extension(args.inputFile);
+  if (extension.compare(".c") && extension.compare(".i")) {
     help_msg();
     return ERROR_IN_COMMAND_LINE;
   }
 
   std::unique_ptr<Map2Check::Caller> caller;
-  // Check if compiling will be needed
-  if (extension.compare(".bc")) {
-    // Compile C file
-    caller = boost::make_unique<Map2Check::Caller>(
-        Map2Check::Caller::compileCFile(inputFile), mode, generator);
-  } else {
-    // C file already compiled
-    caller = boost::make_unique<Map2Check::Caller>(inputFile, mode, generator);
-  }
-  caller->cprogram_fullpath = inputFile;
+  caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
+                                                 generator);
+  caller->cprogram_fullpath = args.inputFile;
+  caller->compileCFile();
+  std::cout << args.timeout;
+  ;
+  caller->setTimeout(args.timeout);
 
   // (2) Instrument functions for current mode
-  caller->callPass();
+  caller->callPass(args.function);
   caller->linkLLVM();
 
   // (3) Apply nondeterministic mode and execute analysis
@@ -161,13 +164,13 @@ int map2check_execution(std::string inputFile) {
 
   // (4) Retrieve results
   // TODO: create methods to generate counter example
-
   std::unique_ptr<Map2Check::CounterExample> counterExample =
-      boost::make_unique<Map2Check::CounterExample>(std::string(inputFile));
+      boost::make_unique<Map2Check::CounterExample>(
+          std::string(args.inputFile));
   Map2Check::PropertyViolated propertyViolated = counterExample->getProperty();
 
   if (propertyViolated ==
-      Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
+      Map2Check::PropertyViolated::NONE) { // This means that result was TRUE
     Map2Check::Log::Info("");
     Map2Check::Log::Info("VERIFICATION SUCCEDED");
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
@@ -179,22 +182,27 @@ int map2check_execution(std::string inputFile) {
   }
 
   // (5) Generate witness (if analysis generated a result)
-  generate_witness(inputFile, propertyViolated);
+  if (propertyViolated != Map2Check::PropertyViolated::UNKNOWN)
+    generate_witness(args.inputFile, propertyViolated);
 
   // (6) Clean map2check execution (folders and temp files)
   caller->cleanGarbage();
   return SUCCESS;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   fixPath(argv[0]);
   try {
     // Define and parse the program options
     po::options_description desc("Options");
     desc.add_options()("help,h", "\tshow help")(
         "version,v", "\tprints map2check version")("debug,d", "\t Debug mode")(
-        "input-file,i", po::value<std::vector<std::string> >(),
-        "\tspecifies the files, also works with <file.bc>");
+        "input-file,i", po::value<std::vector<std::string>>(),
+        "\tspecifies the files")("timeout,t", po::value<unsigned>(),
+                                 "\tTimeout for map2check execution")(
+        "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
+        "overflow-mode", "\tAnalyze program for overflow failures")(
+        "generate-witness,w", "\tGenerates witness file");
 
     po::positional_options_description p;
     p.add("input-file", -1);
@@ -204,6 +212,10 @@ int main(int argc, char** argv) {
         po::command_line_parser(argc, argv).options(desc).positional(p).run(),
         vm);
     po::notify(vm);
+
+    map2check_args args;
+    // Default mode
+    args.mode = Map2Check::Map2CheckMode::MEMTRACK_MODE;
     // Handling with the options
     if (vm.count("version")) {
       std::cout << Map2CheckVersion << "\n";
@@ -219,20 +231,37 @@ int main(int argc, char** argv) {
       std::cout << desc;
       return SUCCESS;
     }
+    if (vm.count("timeout")) {
+      unsigned timeout = vm["timeout"].as<unsigned>();
+      args.timeout = timeout;
+    }
+    if (vm.count("target-function")) {
+      string function = "__VERIFIER_error";
+      args.function = function;
+      args.mode = Map2Check::Map2CheckMode::REACHABILITY_MODE;
+    }
+    if (vm.count("overflow-mode")) {
+      args.mode = Map2Check::Map2CheckMode::OVERFLOW_MODE;
+    }
+    if (vm.count("generate-witness")) {
+      args.generateWitness = true;
+    }
     if (vm.count("debug")) {
+      system("echo $MAP2CHECK_PATH");
       Map2Check::Log::ActivateDebugMode();
     }
     if (vm.count("input-file")) {
       std::string pathfile;
       pathfile = accumulate(
-          boost::begin(vm["input-file"].as<std::vector<std::string> >()),
-          boost::end(vm["input-file"].as<std::vector<std::string> >()),
+          boost::begin(vm["input-file"].as<std::vector<std::string>>()),
+          boost::end(vm["input-file"].as<std::vector<std::string>>()),
           pathfile);
 
       std::cout << pathfile << std::endl;
-      return map2check_execution(pathfile);
+      args.inputFile = pathfile;
+      return map2check_execution(args);
     }
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
     return 1;
   }

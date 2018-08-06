@@ -22,10 +22,10 @@ enum class NonDetGenerator {
 
 /** This class is responsible for calling all external and system programs */
 class Caller {
- protected:
-  std::string pathprogram;  //!< Path for the .bc program */
-                            /** Get optmization flags for original C file
-                             *  @return Flags for clang */
+protected:
+  std::string pathprogram; //!< Path for the .bc program */
+                           /** Get optmization flags for original C file
+                            *  @return Flags for clang */
   static std::string preOptimizationFlags();
   /** Get optmization flags for final bytecode
    *  @return Flags for opt */
@@ -36,20 +36,19 @@ class Caller {
   Map2CheckMode map2checkMode;
   NonDetGenerator nonDetGenerator;
   std::string programHash;
+  unsigned timeout;
 
- public:
+public:
   /** @brief Constructor if .bc file already exists
    *  @param bcprogam_path Path for the file */
   Caller(std::string bcprogram_path, Map2CheckMode mode,
          NonDetGenerator generator);
 
-  std::string cprogram_fullpath;  //!< Path for the oiginal c program */
-
+  std::string cprogram_fullpath; //!< Path for the oiginal c program */
+  void setTimeout(unsigned timeout) { this->timeout = timeout; }
   /** @brief Function to compile original C file removing external memory
-   * operations calls
-   *  @param cprogam_path Path for the file
-   *  @return name of the generated .bc file */
-  static std::string compileCFile(std::string cprogram_path);
+   * operations calls */
+  void compileCFile();
 
   /** @brief Function to call pass for current verification mode
    *  (for REACHABLITY mode)
@@ -71,4 +70,4 @@ class Caller {
   void applyNonDetGenerator();
 };
 
-}  // namespace Map2Check
+} // namespace Map2Check

@@ -345,7 +345,7 @@ int main(int argc, char** argv)
     tools::PropertyViolated propertyViolated = counterExample->getProperty();
 	if(propertyViolated == tools::PropertyViolated::NONE){ // This means that result was TRUE	   
         Map2Check::Log::Info(" \n");
-        Map2Check::Log::Info("VERIFICATION SUCCEDED \n");        
+        Map2Check::Log::Info("VERIFICATION SUCCEEDED \n");        
 	   	   
 	}else{
         
@@ -393,7 +393,7 @@ int main(int argc, char** argv)
                 tools::PropertyViolated propertyViolated = counterExample->getProperty();
                 if(propertyViolated == tools::PropertyViolated::NONE){ // This means that result was TRUE	   
                     Map2Check::Log::Info(" \n");
-                    Map2Check::Log::Info("VERIFICATION SUCCEDED \n");        
+                    Map2Check::Log::Info("VERIFICATION SUCCEEDED \n");        
 
                 }else{
                     Map2Check::Log::Info("Started counter example generation");

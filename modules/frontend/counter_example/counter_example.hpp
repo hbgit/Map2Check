@@ -172,7 +172,7 @@ namespace Map2Check {
               cnvt << "<h4>FALSE-MEMTRACK</h4>";              
               break;   
             case(Tools::PropertyViolated::NONE):
-              cnvt << "<h3><strong>VERIFICATION SUCCEDED</strong></h3>";
+              cnvt << "<h3><strong>VERIFICATION SUCCEEDED</strong></h3>";
               break;
       }
 
@@ -226,7 +226,7 @@ namespace Map2Check {
               cnvt << "VERIFICATION FAILED";
               break;   
             case(Tools::PropertyViolated::NONE):
-              cnvt << "VERIFICATION SUCCEDED";
+              cnvt << "VERIFICATION SUCCEEDED";
               break;
       }
 

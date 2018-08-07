@@ -15,7 +15,7 @@ const string ktestBinary("${MAP2CHECK_PATH}/bin/ktest-tool");
 const string clangBinary("${MAP2CHECK_PATH}/bin/clang");
 /** Path to clang include folder (usually
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
-const string clangIncludeFolder("${MAP2CHECK_PATH}/include/clang");
+const string clangIncludeFolder("${MAP2CHECK_PATH}/include/");
 /** Path to generated list log file (check MemoryUtils implementation) */
 const string listLogCSV("list_log.csv");
 /** Path to klee binary */

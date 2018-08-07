@@ -188,7 +188,7 @@ int map2check_execution(map2check_args args) {
 
   // (6) Clean map2check execution (folders and temp files)
   Map2Check::Log::Debug("Removing temp files");
-  caller->cleanGarbage();
+  //caller->cleanGarbage();
   return SUCCESS;
 }
 

@@ -21,6 +21,7 @@
 #include "witness/witness_include.hpp"
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 #define Map2CheckVersion "Map2Check 7.2-Fuzzer : Mon May 28 21:44:38 UTC 2018"
 
 // TODO: should get preprocessor flags from CMake
@@ -53,7 +54,7 @@ inline int MIN(int a, int b) {
 
 inline void fixPath(char *map2check_bin_string) {
   Map2Check::Log::Info("Fixing Map2Check path");
-  namespace fs = boost::filesystem;
+
   const int kSZLength = 32;
   char szTmp[kSZLength];
   const int kBufferLength = 500;
@@ -92,7 +93,7 @@ void generate_witness(std::string pathfile,
 
   GenHash genhashkey;
   // BUG: we should check if path is relative or absolute
-  genhashkey.setFilePath("../" + pathfile);
+  genhashkey.setFilePath(pathfile);
   genhashkey.generate_sha1_hash_for_file();
 
   Map2Check::Log::Debug("Generated hash");
@@ -186,6 +187,7 @@ int map2check_execution(map2check_args args) {
     generate_witness(args.inputFile, propertyViolated);
 
   // (6) Clean map2check execution (folders and temp files)
+  Map2Check::Log::Debug("Removing temp files");
   caller->cleanGarbage();
   return SUCCESS;
 }
@@ -258,7 +260,8 @@ int main(int argc, char **argv) {
           pathfile);
 
       std::cout << pathfile << std::endl;
-      args.inputFile = pathfile;
+      fs::path absolute_path = fs::absolute(pathfile);
+      args.inputFile = absolute_path.string();
       return map2check_execution(args);
     }
   } catch (std::exception &e) {

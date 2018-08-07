@@ -170,7 +170,7 @@ if "VERIFICATION FAILED" in stdout:
       check_witness(benchmark, False, "witness_file/witness.graphml")
       exit(0)
 
-if "VERIFICATION SUCCEDED" in stdout:
+if "VERIFICATION SUCCEEDED" in stdout:
   print "TRUE"
   exit(0)
 

@@ -259,13 +259,13 @@ int main(int argc, char** argv)
                 tools::PropertyViolated propertyViolated = counterExample->getProperty();
                 if(propertyViolated == tools::PropertyViolated::NONE){ // This means that result was TRUE	   
                     Map2Check::Log::Info(" \n");
-                    Map2Check::Log::Info("VERIFICATION SUCCEDED \n");
+                    Map2Check::Log::Info("VERIFICATION SUCCEEDED \n");
 
                     if(is_html_output) {
                       std::ostringstream command;
                       command.str("");
                       command << "echo '<pre>";
-                      command << "<strong>VERIFICATION SUCCEDED</strong>";
+                      command << "<strong>VERIFICATION SUCCEEDED</strong>";
                       command << " </pre>' > out.html";
                       if( system(command.str().c_str()) ) {
                         Map2Check::Log::Error("Failed to Generate HTML \n");

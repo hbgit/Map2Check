@@ -183,7 +183,7 @@ if "VERIFICATION FAILED" in stdout:
       exit(0)
 
 
-if "VERIFICATION SUCCEDED" in stdout:
+if "VERIFICATION SUCCEEDED" in stdout:
   print "TRUE"
   ACTUAL_RESULT = "TRUE"
   check_witness(benchmark, False, "witness.graphml")

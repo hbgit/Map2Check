@@ -43,6 +43,7 @@ Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
   Map2Check::Log::Debug("Changing current dir");
   std::string currentPath = boost::filesystem::current_path().string();
   boost::filesystem::current_path(currentPath + "/" + programHash);
+  Map2Check::Log::Debug("Current path: " + boost::filesystem::current_path().string());
 }
 
 std::string Caller::preOptimizationFlags() {

@@ -1,9 +1,9 @@
+#include "../utils/log.hpp"
+#include "../utils/tools.hpp"
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <vector>
-#include "../utils/log.hpp"
-#include "../utils/tools.hpp"
 
 #pragma once
 
@@ -11,7 +11,7 @@ namespace Tools = Map2Check;
 namespace Map2Check {
 
 class CounterExampleRow {
- protected:
+protected:
   int step;
   int state;
   int ref;
@@ -30,7 +30,7 @@ class CounterExampleRow {
   }
   std::string fileName;
 
- public:
+public:
   CounterExampleRow(int step, int state, std::string fileName, int ref)
       : step(step), state(state), fileName(fileName), ref(ref) {}
   void setState(int state) { this->state = state; }
@@ -41,13 +41,13 @@ class CounterExampleRow {
 
   std::string htmlOut() { return this->convertToHtml(); }
 
-  bool operator<(const CounterExampleRow& row) const {
+  bool operator<(const CounterExampleRow &row) const {
     return (this->step >= row.step);
   }
 };
 
 class CounterExampleListLogRow : public CounterExampleRow {
- protected:
+protected:
   Tools::ListLogRow row;
   std::string lineC;
 
@@ -81,14 +81,14 @@ class CounterExampleListLogRow : public CounterExampleRow {
     return cnvt.str();
   }
 
- public:
+public:
   CounterExampleListLogRow(Tools::ListLogRow row, int step, int state,
                            std::string fileName, int ref, std::string lineC)
       : lineC(lineC), row(row), CounterExampleRow(step, state, fileName, ref) {}
 };
 
 class CounterExampleKleeRow : public CounterExampleRow {
- protected:
+protected:
   Tools::KleeLogRow row;
   std::string lineC;
 
@@ -118,7 +118,7 @@ class CounterExampleKleeRow : public CounterExampleRow {
     return cnvt.str();
   }
 
- public:
+public:
   CounterExampleKleeRow(Tools::KleeLogRow row, int step, int state,
                         std::string fileName, int ref, std::string lineC)
       : lineC(lineC), row(row), CounterExampleRow(step, state, fileName, ref) {}
@@ -127,7 +127,7 @@ class CounterExampleKleeRow : public CounterExampleRow {
 };
 
 class CounterExampleProperty : public CounterExampleRow {
- protected:
+protected:
   int lineNumber;
   std::string functionName;
   Tools::PropertyViolated propertyViolated;
@@ -136,34 +136,34 @@ class CounterExampleProperty : public CounterExampleRow {
     std::ostringstream cnvt;
     cnvt.str("");
     switch (this->propertyViolated) {
-      case (Tools::PropertyViolated::FALSE_FREE):
-        cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
-        cnvt << "<h4>FALSE-FREE</h4>";
-        break;
-      case (Tools::PropertyViolated::TARGET_REACHED):
-        // TODO: Add message for target reached
-        cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
-        cnvt << "<h4>FALSE: Target Reached</h4>";
+    case (Tools::PropertyViolated::FALSE_FREE):
+      cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
+      cnvt << "<h4>FALSE-FREE</h4>";
+      break;
+    case (Tools::PropertyViolated::TARGET_REACHED):
+      // TODO: Add message for target reached
+      cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
+      cnvt << "<h4>FALSE: Target Reached</h4>";
 
-        break;
-      case (Tools::PropertyViolated::FALSE_DEREF):
-        // TODO: Add message for target reached
-        cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
-        cnvt << "<h4>FALSE-DEREF</h4>";
-        break;
-      case (Tools::PropertyViolated::FALSE_OVERFLOW):
-        // TODO: Add message for target reached
-        cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
-        cnvt << "<h4>OVERFLOW</h4>";
-        break;
-      case (Tools::PropertyViolated::FALSE_MEMTRACK):
-        // TODO: Add message for target reached
-        cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
-        cnvt << "<h4>FALSE-MEMTRACK</h4>";
-        break;
-      case (Tools::PropertyViolated::NONE):
-        cnvt << "<h3><strong>VERIFICATION SUCCEDED</strong></h3>";
-        break;
+      break;
+    case (Tools::PropertyViolated::FALSE_DEREF):
+      // TODO: Add message for target reached
+      cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
+      cnvt << "<h4>FALSE-DEREF</h4>";
+      break;
+    case (Tools::PropertyViolated::FALSE_OVERFLOW):
+      // TODO: Add message for target reached
+      cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
+      cnvt << "<h4>OVERFLOW</h4>";
+      break;
+    case (Tools::PropertyViolated::FALSE_MEMTRACK):
+      // TODO: Add message for target reached
+      cnvt << "<h3><strong>VERIFICATION FAILED</strong></h3>";
+      cnvt << "<h4>FALSE-MEMTRACK</h4>";
+      break;
+    case (Tools::PropertyViolated::NONE):
+      cnvt << "<h3><strong>VERIFICATION SUCCEEDED</strong></h3>";
+      break;
     }
 
     return cnvt.str();
@@ -174,68 +174,67 @@ class CounterExampleProperty : public CounterExampleRow {
     cnvt.str("");
     cnvt << "----------------------------------------------------\n";
     switch (this->propertyViolated) {
-      case (Tools::PropertyViolated::FALSE_FREE):
-        cnvt << "Violated property:\n";
-        cnvt << "\tfile " << this->fileName << " ";
-        cnvt << "line " << this->lineNumber << " ";
-        cnvt << "function " << this->functionName << "\n";
-        cnvt << "\tFALSE-FREE: Operand of free must have zero pointer "
-                "offset\n\n";
-        cnvt << "VERIFICATION FAILED";
-        break;
-      case (Tools::PropertyViolated::TARGET_REACHED):
-        // TODO: Add message for target reached
-        cnvt << "Violated property:\n";
-        cnvt << "\tfile " << this->fileName << " ";
-        cnvt << "line " << this->lineNumber << " ";
-        cnvt << "function " << this->functionName << "\n";
-        cnvt << "\tFALSE: Target Reached\n\n";
-        cnvt << "VERIFICATION FAILED";
-        break;
-      case (Tools::PropertyViolated::FALSE_DEREF):
-        // TODO: Add message for target reached
-        cnvt << "Violated property:\n";
-        cnvt << "\tfile " << this->fileName << " ";
-        cnvt << "line " << this->lineNumber << " ";
-        cnvt << "function " << this->functionName << "\n";
-        cnvt << "\tFALSE-DEREF: Reference to pointer was lost\n\n";
-        cnvt << "VERIFICATION FAILED";
-        break;
-      case (Tools::PropertyViolated::FALSE_OVERFLOW):
-        // TODO: Add message for target reached
-        cnvt << "Violated property:\n";
-        cnvt << "\tfile " << this->fileName << " ";
-        cnvt << "line " << this->lineNumber << " ";
-        cnvt << "function " << this->functionName << "\n";
-        cnvt << "\tOVERFLOW\n\n";
-        cnvt << "VERIFICATION FAILED";
-        break;
-      case (Tools::PropertyViolated::FALSE_MEMTRACK):
-        // TODO: Add message for target reached
-        cnvt << "Violated property:\n";
-        cnvt << "\tFALSE-MEMTRACK\n\n";
-        cnvt << "VERIFICATION FAILED";
-        break;
-      case (Tools::PropertyViolated::NONE):
-        cnvt << "VERIFICATION SUCCEDED";
-        break;
+    case (Tools::PropertyViolated::FALSE_FREE):
+      cnvt << "Violated property:\n";
+      cnvt << "\tfile " << this->fileName << " ";
+      cnvt << "line " << this->lineNumber << " ";
+      cnvt << "function " << this->functionName << "\n";
+      cnvt << "\tFALSE-FREE: Operand of free must have zero pointer "
+              "offset\n\n";
+      cnvt << "VERIFICATION FAILED";
+      break;
+    case (Tools::PropertyViolated::TARGET_REACHED):
+      // TODO: Add message for target reached
+      cnvt << "Violated property:\n";
+      cnvt << "\tfile " << this->fileName << " ";
+      cnvt << "line " << this->lineNumber << " ";
+      cnvt << "function " << this->functionName << "\n";
+      cnvt << "\tFALSE: Target Reached\n\n";
+      cnvt << "VERIFICATION FAILED";
+      break;
+    case (Tools::PropertyViolated::FALSE_DEREF):
+      // TODO: Add message for target reached
+      cnvt << "Violated property:\n";
+      cnvt << "\tfile " << this->fileName << " ";
+      cnvt << "line " << this->lineNumber << " ";
+      cnvt << "function " << this->functionName << "\n";
+      cnvt << "\tFALSE-DEREF: Reference to pointer was lost\n\n";
+      cnvt << "VERIFICATION FAILED";
+      break;
+    case (Tools::PropertyViolated::FALSE_OVERFLOW):
+      // TODO: Add message for target reached
+      cnvt << "Violated property:\n";
+      cnvt << "\tfile " << this->fileName << " ";
+      cnvt << "line " << this->lineNumber << " ";
+      cnvt << "function " << this->functionName << "\n";
+      cnvt << "\tOVERFLOW\n\n";
+      cnvt << "VERIFICATION FAILED";
+      break;
+    case (Tools::PropertyViolated::FALSE_MEMTRACK):
+      // TODO: Add message for target reached
+      cnvt << "Violated property:\n";
+      cnvt << "\tFALSE-MEMTRACK\n\n";
+      cnvt << "VERIFICATION FAILED";
+      break;
+    case (Tools::PropertyViolated::NONE):
+      cnvt << "VERIFICATION SUCCEEDED";
+      break;
     }
 
     return cnvt.str();
   }
 
- public:
+public:
   CounterExampleProperty(int step, int state, std::string fileName, int ref,
                          Tools::PropertyViolated property, int lineNumber,
                          std::string functionName)
-      : propertyViolated(property),
-        lineNumber(lineNumber),
+      : propertyViolated(property), lineNumber(lineNumber),
         functionName(functionName),
         CounterExampleRow(step, state, fileName, ref) {}
 };
 
 class CounterExample {
- public:
+public:
   CounterExample(std::string path);
   std::string getViolatedProperty();
   Tools::PropertyViolated getProperty() { return this->property; }
@@ -243,13 +242,13 @@ class CounterExample {
   void printCounterExample(bool printListLog = false);
   std::string getHTML();
 
- private:
+private:
   Tools::PropertyViolated property;
-  std::vector<std::unique_ptr<CounterExampleRow> > counterExampleRows;
+  std::vector<std::unique_ptr<CounterExampleRow>> counterExampleRows;
   std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
   void processKleeLog();
   void processListLog();
   void processProperty();
 };
 
-}  // namespace Map2Check
+} // namespace Map2Check

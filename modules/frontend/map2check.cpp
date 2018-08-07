@@ -173,7 +173,7 @@ int map2check_execution(map2check_args args) {
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) { // This means that result was TRUE
     Map2Check::Log::Info("");
-    Map2Check::Log::Info("VERIFICATION SUCCEDED");
+    Map2Check::Log::Info("VERIFICATION SUCCEEDED");
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
     Map2Check::Log::Info("Unable to prove or falsify the program.");
     Map2Check::Log::Info("VERIFICATION UNKNOWN");
@@ -188,7 +188,7 @@ int map2check_execution(map2check_args args) {
 
   // (6) Clean map2check execution (folders and temp files)
   Map2Check::Log::Debug("Removing temp files");
-  //caller->cleanGarbage();
+  // caller->cleanGarbage();
   return SUCCESS;
 }
 

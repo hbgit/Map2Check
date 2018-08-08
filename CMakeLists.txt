@@ -6,6 +6,7 @@ set(Map2Check_VERSION_MINOR 0)
 
 option(COPY_EXTERNAL "COPY_EXTERNAL" OFF)
 option(BUILD_DOC "Build documentation" OFF)
+option(REGRESSION "Prepare Regression Tests" OFF)
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -22,6 +23,9 @@ endif()
 
 include(cmake/FindClang.cmake)
 include(cmake/FindBoost.cmake)
+if(REGRESSION)
+  include(cmake/DownloadRegression.cmake)
+endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
 add_subdirectory(modules)
@@ -29,4 +33,3 @@ add_subdirectory(modules)
 if(BUILD_DOC)
   include(cmake/GenerateDocs.cmake)
 endif()
-

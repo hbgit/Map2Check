@@ -119,8 +119,10 @@ struct map2check_args {
   unsigned timeout = 0;
   std::string inputFile;
   std::string function;
+  std::string expectedResult = "";
   Map2Check::Map2CheckMode mode;
   bool generateWitness = false;
+  bool debugMode = false;
 };
 
 int map2check_execution(map2check_args args) {
@@ -151,8 +153,6 @@ int map2check_execution(map2check_args args) {
                                                  generator);
   caller->cprogram_fullpath = args.inputFile;
   caller->compileCFile();
-  std::cout << args.timeout;
-  ;
   caller->setTimeout(args.timeout);
 
   // (2) Instrument functions for current mode
@@ -183,12 +183,21 @@ int map2check_execution(map2check_args args) {
   }
 
   // (5) Generate witness (if analysis generated a result)
-  if (propertyViolated != Map2Check::PropertyViolated::UNKNOWN)
+  if ((propertyViolated != Map2Check::PropertyViolated::UNKNOWN) &&
+      args.generateWitness)
     generate_witness(args.inputFile, propertyViolated);
 
   // (6) Clean map2check execution (folders and temp files)
   Map2Check::Log::Debug("Removing temp files");
-  // caller->cleanGarbage();
+  if (!args.debugMode)
+    caller->cleanGarbage();
+
+  if (args.expectedResult != "") {
+    if (args.expectedResult != counterExample->getViolatedProperty()) {
+      Map2Check::Log::Fatal("Expected result failed");
+      abort();
+    }
+  }
   return SUCCESS;
 }
 
@@ -204,7 +213,9 @@ int main(int argc, char **argv) {
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
         "overflow-mode", "\tAnalyze program for overflow failures")(
-        "generate-witness,w", "\tGenerates witness file");
+        "generate-witness,w",
+        "\tGenerates witness file")("expected-result,e", po::value<string>(),
+                                    "\tSpecifies type of violation expected");
 
     po::positional_options_description p;
     p.add("input-file", -1);
@@ -233,6 +244,10 @@ int main(int argc, char **argv) {
       std::cout << desc;
       return SUCCESS;
     }
+    if (vm.count("expected-result")) {
+      string expected = vm["expected-result"].as<string>();
+      args.expectedResult = expected;
+    }
     if (vm.count("timeout")) {
       unsigned timeout = vm["timeout"].as<unsigned>();
       args.timeout = timeout;
@@ -249,8 +264,10 @@ int main(int argc, char **argv) {
       args.generateWitness = true;
     }
     if (vm.count("debug")) {
-      system("echo $MAP2CHECK_PATH");
       Map2Check::Log::ActivateDebugMode();
+      args.debugMode = true;
+      Map2Check::Log::Debug("Current path:");
+      system("echo $MAP2CHECK_PATH");
     }
     if (vm.count("input-file")) {
       std::string pathfile;

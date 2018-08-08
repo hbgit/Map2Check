@@ -3,6 +3,7 @@ set(SVCOMP_BASE "https://raw.githubusercontent.com/sosy-lab/sv-benchmarks/master
 list(APPEND MAP2CHECK_REGRESSION "DEREF")
 list(APPEND MAP2CHECK_REGRESSION "FREE")
 list(APPEND MAP2CHECK_REGRESSION "MEMTRACK")
+list(APPEND MAP2CHECK_REGRESSION "TARGET")
 
 foreach(R ${MAP2CHECK_REGRESSION})
   include(${PROJECT_SOURCE_DIR}/cmake/DownloadRegression${R}.cmake)

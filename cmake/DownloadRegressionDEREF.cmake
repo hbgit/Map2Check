@@ -25,15 +25,6 @@ set(map2check_regression_memleaks_test22_5_false-valid-deref.i "${SVCOMP_BASE}/l
 
 #relax_false-valid-deref.i
 
-# memleaks_test11_1_false-valid-free.i
-# memleaks_test12_false-valid-free.i
-# memleaks_test17_2_false-valid-free.i
-# memleaks_test19_false-valid-free.i
-# memleaks_test1_false-valid-free.i
-# #memleaks_test3_false-valid-free.i
-# memleaks_test6_2_false-valid-free.i
-# memleaks_test8_2_false-valid-free.i
-
 # memleaks_test10_false-valid-memtrack_true-termination.i
 # memleaks_test11_2_false-valid-memtrack_true-termination.i
 # memleaks_test13_1_false-valid-memtrack_true-termination.i

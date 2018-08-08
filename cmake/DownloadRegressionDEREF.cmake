@@ -25,34 +25,6 @@ set(map2check_regression_memleaks_test22_5_false-valid-deref.i "${SVCOMP_BASE}/l
 
 #relax_false-valid-deref.i
 
-# memleaks_test10_false-valid-memtrack_true-termination.i
-# memleaks_test11_2_false-valid-memtrack_true-termination.i
-# memleaks_test13_1_false-valid-memtrack_true-termination.i
-# memleaks_test13_2_false-valid-memtrack.i
-# memleaks_test14_1_false-valid-memtrack_true-termination.i
-# memleaks_test14_2_false-valid-memtrack.i
-# memleaks_test15_false-valid-memtrack.i
-# memleaks_test16_1_false-valid-memtrack_true-termination.i
-# memleaks_test16_2_false-valid-memtrack_true-termination.i
-# memleaks_test17_1_false-valid-memtrack.i
-# memleaks_test17_3_false-valid-memtrack.i
-# memleaks_test18_1_false-valid-memtrack_true-termination.i
-# memleaks_test18_2_false-valid-memtrack_true-termination.i
-# memleaks_test18_3_false-valid-memtrack_true-termination.i
-# memleaks_test1_false-valid-memtrack_true-termination.i
-# memleaks_test20_false-valid-memtrack_true-termination.i
-# memleaks_test21_false-valid-memtrack_true-termination.i
-# memleaks_test22_1_false-valid-memtrack_true-termination.i
-# memleaks_test22_2_false-valid-memtrack_true-termination.i
-# memleaks_test22_4_false-valid-memtrack_true-termination.i
-# memleaks_test4_false-valid-memtrack_true-termination.i
-# memleaks_test5_1_false-valid-memtrack_true-termination.i
-# memleaks_test5_2_false-valid-memtrack_true-termination.i
-# memleaks_test6_3_false-valid-memtrack_true-termination.i
-# memleaks_test7_false-valid-memtrack_true-termination.i
-# memleaks_test8_1_false-valid-memtrack_true-termination.i
-# memleaks_test9_1_false-valid-memtrack_true-termination.i
-# memleaks_test9_2_false-valid-memtrack_true-termination.i
 
 
 

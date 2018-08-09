@@ -212,6 +212,7 @@ int main(int argc, char **argv) {
         "\tspecifies the files")("timeout,t", po::value<unsigned>(),
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
+        "memtrack,m", "\tCheck for memory errors")(
         "overflow-mode", "\tAnalyze program for overflow failures")(
         "generate-witness,w",
         "\tGenerates witness file")("expected-result,e", po::value<string>(),

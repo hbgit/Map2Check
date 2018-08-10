@@ -33,7 +33,13 @@ RUN apt-get install -y sudo \
     unionfs-fuse \
     vim \
     doxygen \
-    graphviz
+    graphviz \
+    python3 \
+    python3-pip
+    
+# Modules Python3
+RUN pip3 install pyyaml \
+                 psutil
 
 # Clean packages installation
 RUN apt-get clean

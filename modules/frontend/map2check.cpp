@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
         "generate-testcase", "\tCreates c program with fail testcase")(
         "memtrack,m", "\tCheck for memory errors")(
-        "overflow-mode", "\tAnalyze program for overflow failures")(
+        "check-overflow", "\tAnalyze program for overflow failures")(
         "generate-witness,w",
         "\tGenerates witness file")("expected-result,e", po::value<string>(),
                                     "\tSpecifies type of violation expected");
@@ -264,7 +264,7 @@ int main(int argc, char **argv) {
       args.function = function;
       args.mode = Map2Check::Map2CheckMode::REACHABILITY_MODE;
     }
-    if (vm.count("overflow-mode")) {
+    if (vm.count("check-overflow")) {
       args.mode = Map2Check::Map2CheckMode::OVERFLOW_MODE;
     }
     if (vm.count("generate-witness")) {

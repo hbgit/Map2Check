@@ -27,21 +27,6 @@ void CounterExample::printCounterExample(bool printListLog) {
   }
 }
 
-std::string CounterExample::getHTML() {
-  std::ostringstream output;
-  output.str("");
-  output << this->counterExampleRows[counterExampleRows.size() - 1]->htmlOut();
-
-  int currentState = 0;
-  for (int i = 0; i < this->counterExampleRows.size() - 1; i++) {
-    this->counterExampleRows[i]->setState(currentState);
-    currentState = this->counterExampleRows[i]->getState() + 1;
-    output << this->counterExampleRows[i]->htmlOut();
-  }
-
-  return output.str();
-}
-
 void CounterExample::processProperty() {
   Tools::CheckViolatedProperty violated;
   int step = this->counterExampleRows.size();
@@ -89,8 +74,7 @@ std::string CounterExample::getViolatedProperty() {
 
 // FIXME: Add Support to other non det type
 void CounterExample::processKleeLog() {
-  std::vector<Tools::KleeLogRow> kleeLogRows =
-      Tools::KleeLogHelper::getListLogFromCSV();
+  kleeLogRows = Tools::KleeLogHelper::getListLogFromCSV();
 
   int ref = 0;
   for (int i = 0; i < kleeLogRows.size(); i++) {
@@ -131,4 +115,44 @@ void CounterExample::processListLog() {
     this->counterExampleRows.push_back(std::move(row));
     ref++;
   }
+}
+
+#include <fstream>
+#include <iostream>
+void CounterExample::generateTestCase() {
+  std::string file = this->sourceCodeHelper->getFilePath();
+  std::string testcase = file + ".testcase";
+
+  std::string command = "cp " + file + " " + testcase;
+
+  system(command.c_str());
+  std::ofstream sourceFile;
+  sourceFile.open(testcase, ios::out | ios::app);
+
+  sourceFile << "\n"
+             << "unsigned map2check_counter = 0;";
+  sourceFile << "\n"
+             << "long map2check_input_array[] = {";
+
+  for (int i = 0; i < (this->kleeLogRows.size()); i++) {
+    sourceFile << this->kleeLogRows[i].value;
+    if (i != (this->kleeLogRows.size() - 1)) {
+      sourceFile << ",";
+    }
+  }
+
+  sourceFile << "};\n";
+
+  sourceFile << "unsigned __VERIFIER_nondet_uint() { return "
+                "(unsigned)map2check_input_array[map2check_counter++]; }\n";
+  sourceFile << "int __VERIFIER_nondet_int() { return "
+                "(int)map2check_input_array[map2check_counter++]; }\n";
+  sourceFile << "char __VERIFIER_nondet_char() { return "
+                "(char)map2check_input_array[map2check_counter++]; }\n";
+  sourceFile << "void* __VERIFIER_nondet_void() { return "
+                "(void*)(long)map2check_input_array[map2check_counter++]; }\n";
+  sourceFile << "long __VERIFIER_nondet_long() { return "
+                "(long)map2check_input_array[map2check_counter++]; }\n";
+
+  sourceFile.close();
 }

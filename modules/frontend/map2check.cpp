@@ -123,6 +123,7 @@ struct map2check_args {
   Map2Check::Map2CheckMode mode;
   bool generateWitness = false;
   bool debugMode = false;
+  bool generateTestCase = false;
 };
 
 int map2check_execution(map2check_args args) {
@@ -177,9 +178,13 @@ int map2check_execution(map2check_args args) {
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
     Map2Check::Log::Info("Unable to prove or falsify the program.");
     Map2Check::Log::Info("VERIFICATION UNKNOWN");
+    if (args.debugMode)
+      counterExample->generateTestCase();
   } else {
     Map2Check::Log::Info("Started counter example generation");
     counterExample->printCounterExample();
+    if (args.generateTestCase)
+      counterExample->generateTestCase();
   }
 
   // (5) Generate witness (if analysis generated a result)
@@ -212,6 +217,7 @@ int main(int argc, char **argv) {
         "\tspecifies the files")("timeout,t", po::value<unsigned>(),
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
+        "generate-testcase", "\tCreates c program with fail testcase")(
         "memtrack,m", "\tCheck for memory errors")(
         "overflow-mode", "\tAnalyze program for overflow failures")(
         "generate-witness,w",
@@ -263,6 +269,9 @@ int main(int argc, char **argv) {
     }
     if (vm.count("generate-witness")) {
       args.generateWitness = true;
+    }
+    if (vm.count("generate-testcase")) {
+      args.generateTestCase = true;
     }
     if (vm.count("debug")) {
       Map2Check::Log::ActivateDebugMode();

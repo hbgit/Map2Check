@@ -90,7 +90,7 @@ struct CheckViolatedProperty {
 
 /** Helper class to manipulate and transform code based on a C source file */
 class SourceCodeHelper {
- public:
+public:
   /**
    * Reads all lines from a C source file and adds to a vector structure
    * @param  c_src Path to C file
@@ -119,7 +119,7 @@ class SourceCodeHelper {
                                    std::string result);
   // void changeTokenFromLine(int line, std::string old_token, std::string
   // new_token);
- private:
+private:
   std::string path;
   std::vector<std::string> cFileLines;
 };
@@ -145,75 +145,40 @@ struct KleeLogRow {
     return cnvt.str();
   }
 
-  std::string htmlOut() {
-    std::ostringstream cnvt;
-    cnvt.str("");
-    cnvt << "  Call Function  : <strong>";
-    switch (type) {
-      case KleeLogType::INTEGER:
-        cnvt << "__VERIFIER_nondet_int()";
-        break;
-      case KleeLogType::CHAR:
-        cnvt << "__VERIFIER_nondet_char()";
-        break;
-      case KleeLogType::POINTER:
-        cnvt << "__VERIFIER_nondet_pointer()";
-        break;
-      case KleeLogType::USHORT:
-        cnvt << "__VERIFIER_nondet_ushort()";
-        break;
-      case KleeLogType::LONG:
-        cnvt << "__VERIFIER_nondet_long()";
-        break;
-      case KleeLogType::UNSIGNED:
-        cnvt << "__VERIFIER_nondet_uint()";
-        break;
-    }
-    cnvt << "</strong>\n";
-    cnvt << "  Value          : <strong>" << this->value << "</strong>\n";
-
-    cnvt << "  Line Number    : <strong>" << this->line << "</strong>\n";
-
-    cnvt << "  Function Scope : <strong>" << this->functionName
-         << "</strong>\n";
-
-    return cnvt.str();
-  }
-
   operator std::string() const {
     std::ostringstream cnvt;
     cnvt.str("");
     switch (type) {
-      case KleeLogType::INTEGER:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_int()"
-             << "\n";
-        break;
-      case KleeLogType::CHAR:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_char()"
-             << "\n";
-        break;
-      case KleeLogType::POINTER:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_pointer()"
-             << "\n";
-        break;
-      case KleeLogType::USHORT:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_ushort()"
-             << "\n";
-        break;
-      case KleeLogType::LONG:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_long()"
-             << "\n";
-        break;
-      case KleeLogType::UNSIGNED:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_uint()"
-             << "\n";
-        break;
+    case KleeLogType::INTEGER:
+      cnvt << "  Call Function  : "
+           << "__VERIFIER_nondet_int()"
+           << "\n";
+      break;
+    case KleeLogType::CHAR:
+      cnvt << "  Call Function  : "
+           << "__VERIFIER_nondet_char()"
+           << "\n";
+      break;
+    case KleeLogType::POINTER:
+      cnvt << "  Call Function  : "
+           << "__VERIFIER_nondet_pointer()"
+           << "\n";
+      break;
+    case KleeLogType::USHORT:
+      cnvt << "  Call Function  : "
+           << "__VERIFIER_nondet_ushort()"
+           << "\n";
+      break;
+    case KleeLogType::LONG:
+      cnvt << "  Call Function  : "
+           << "__VERIFIER_nondet_long()"
+           << "\n";
+      break;
+    case KleeLogType::UNSIGNED:
+      cnvt << "  Call Function  : "
+           << "__VERIFIER_nondet_uint()"
+           << "\n";
+      break;
     }
     cnvt << "  Value          : " << this->value << "\n";
     cnvt << "  Line Number    : " << this->line << "\n";
@@ -225,7 +190,7 @@ struct KleeLogRow {
 
 /** Class used to get all KleeLogRow from a CSV file */
 class KleeLogHelper {
- public:
+public:
   /**
    * Reads a CSV file and returns a vector of KleeLogRow
    * @param path CSV file path
@@ -278,28 +243,11 @@ struct ListLogRow {
     cnvt << "  Function Scope : " << this->functionName << "\n";
     return cnvt.str();
   }
-
-  std::string htmlOut() {
-    std::ostringstream cnvt;
-    cnvt.str("");
-    cnvt << "  Address        : <strong>" << this->memoryAddress
-         << "</strong>\n";
-    cnvt << "  PointsTo       : <strong>" << this->pointsTo << "</strong>\n";
-    cnvt << "  Is Free        : <strong>"
-         << (this->isFree == "1" ? "TRUE" : "FALSE") << "</strong>\n";
-    cnvt << "  Is Dynamic     : <strong>"
-         << (this->isDynamic == "1" ? "TRUE" : "FALSE") << "</strong>\n";
-    cnvt << "  Var Name       : <strong>" << this->varName << "</strong>\n";
-    cnvt << "  Line Number    : <strong>" << this->lineNumber << "</strong>\n";
-    cnvt << "  Function Scope : <strong>" << this->functionName
-         << "</strong>\n";
-    return cnvt.str();
-  }
 };
 
 /** Class used to get all ListLogRow from a CSV file */
 class ListLogHelper {
- public:
+public:
   /**
    * Reads a CSV file and returns a vector of ListLogRow
    * @param path CSV file path
@@ -331,7 +279,7 @@ struct StateTrueLogRow {
 
 /** Class used to get all StateTrueLogRow from a CSV file */
 class StateTrueLogHelper {
- public:
+public:
   /**
    * Reads a CSV file and returns a vector of StateTrueLogRow
    * @param path CSV file path
@@ -357,7 +305,7 @@ struct TrackBBLogRow {
 
 /** Class used to get all TrackBBLogRow from a CSV file */
 class TrackBBLogHelper {
- public:
+public:
   /**
    * Reads a CSV file and returns a vector of TrackBBLogRow
    * @param path CSV file path
@@ -373,4 +321,4 @@ class TrackBBLogHelper {
   }
 };
 
-}  // namespace Map2Check
+} // namespace Map2Check

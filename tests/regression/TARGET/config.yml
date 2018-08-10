@@ -1,0 +1,3 @@
+time-limit: 60
+property: ["properties/reachability.prp"]
+check-by: ["FALSE"]

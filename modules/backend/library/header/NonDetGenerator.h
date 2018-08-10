@@ -3,6 +3,7 @@
 
 void nondet_init();
 void nondet_destroy();
+void nondet_cancel();
 void nondet_generate_aux_witness_files();
 /**
  * @brief Generates non deterministic integer

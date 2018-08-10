@@ -1,3 +1,4 @@
+
 #include "../header/Map2CheckFunctions.h"
 #include "../header/AnalysisMode.h"
 #include "../header/Container.h"
@@ -35,7 +36,13 @@ unsigned map2check_get_current_step() { return Map2CheckCurrentStep; }
 void map2check_next_current_step() { Map2CheckCurrentStep++; }
 
 void map2check_assume(int expr) {
-
+  if (!expr) {
+    printf("Assume Failed\n");
+    // map2check_destroy();
+    nondet_cancel();
+  } else {
+    printf("Assume ok\n");
+  }
 }
 
 void map2check_track_bb(unsigned line, const char *function_name) {
@@ -65,18 +72,26 @@ void map2check_error() {
   map2check_exit();
 }
 
+void map2check_destroy() {
+  static Bool alreadyReleased = FALSE;
+  if (alreadyReleased)
+    return;
+  alreadyReleased = TRUE;
+  free_container(&trackbb_log);
+  analysis_destroy();
+  nondet_destroy();
+}
+
 void map2check_exit() {
   if (gotError == FALSE) {
     gotError = !analysis_is_program_correct();
   }
+
   generate_aux_files(&trackbb_log);
-
-  free_container(&trackbb_log);
-  analysis_destroy();
-  nondet_destroy();
-
   /* gotError = TRUE; */
   if (gotError == TRUE) {
     abort();
   }
+
+  map2check_destroy();
 }

@@ -55,6 +55,11 @@ void map2check_success();
 void map2check_exit();
 
 /**
+ * Releases allocated resources
+ */
+void map2check_destroy();
+
+/**
  * Returns current step for map2check (used to generate wintess/example)
  */
 unsigned map2check_get_current_step();

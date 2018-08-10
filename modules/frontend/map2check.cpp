@@ -124,6 +124,7 @@ struct map2check_args {
   bool generateWitness = false;
   bool debugMode = false;
   bool generateTestCase = false;
+  bool printCounterExample = false;
 };
 
 int map2check_execution(map2check_args args) {
@@ -182,6 +183,7 @@ int map2check_execution(map2check_args args) {
       counterExample->generateTestCase();
   } else {
     Map2Check::Log::Info("Started counter example generation");
+
     counterExample->printCounterExample();
     if (args.generateTestCase)
       counterExample->generateTestCase();
@@ -218,7 +220,8 @@ int main(int argc, char **argv) {
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
         "generate-testcase", "\tCreates c program with fail testcase")(
-        "memtrack,m", "\tCheck for memory errors")(
+        "memtrack,m", "\tCheck for memory errors")("print-counter",
+                                                   "\tPrint Counterexample")(
         "check-overflow", "\tAnalyze program for overflow failures")(
         "generate-witness,w",
         "\tGenerates witness file")("expected-result,e", po::value<string>(),
@@ -266,6 +269,9 @@ int main(int argc, char **argv) {
     }
     if (vm.count("check-overflow")) {
       args.mode = Map2Check::Map2CheckMode::OVERFLOW_MODE;
+    }
+    if (vm.count("print-counter")) {
+      args.printCounterExample = true;
     }
     if (vm.count("generate-witness")) {
       args.generateWitness = true;

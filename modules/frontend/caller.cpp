@@ -43,7 +43,8 @@ Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
   Map2Check::Log::Debug("Changing current dir");
   std::string currentPath = boost::filesystem::current_path().string();
   boost::filesystem::current_path(currentPath + "/" + programHash);
-  Map2Check::Log::Debug("Current path: " + boost::filesystem::current_path().string());
+  Map2Check::Log::Debug("Current path: " +
+                        boost::filesystem::current_path().string());
 }
 
 std::string Caller::preOptimizationFlags() {
@@ -117,8 +118,9 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
     break;
   }
   case Map2CheckMode::OVERFLOW_MODE: {
-    Map2Check::Log::Error(
-        "Overflow mode is not implemented yet, ignoring option");
+    std::string overflowPass = "${MAP2CHECK_PATH}/lib/libOverflowPass";
+    transformCommand << " -load " << overflowPass << getLibSuffix()
+                     << " -check_overflow";
     break;
   }
   case Map2CheckMode::REACHABILITY_MODE: {
@@ -174,8 +176,7 @@ void Caller::linkLLVM() {
     break;
   }
   case Map2CheckMode::OVERFLOW_MODE: {
-    Map2Check::Log::Error(
-        "Overflow mode is not implemented yet, ignoring option");
+    linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeOverflow.bc";
     break;
   }
   case Map2CheckMode::REACHABILITY_MODE: {

@@ -53,7 +53,7 @@ inline int MIN(int a, int b) {
 }
 
 inline void fixPath(char *map2check_bin_string) {
-  Map2Check::Log::Info("Fixing Map2Check path");
+  Map2Check::Log::Debug("Fixing Map2Check path");
 
   const int kSZLength = 32;
   char szTmp[kSZLength];

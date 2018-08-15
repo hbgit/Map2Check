@@ -35,7 +35,15 @@ enum NONDET_TYPE {
   POINTER = 2,
   USHORT = 3,
   LONG = 4,
-  UNSIGNED = 5
+  UNSIGNED = 5,
+  ULONG = 6,
+  BOOL = 7,
+  UCHAR = 8,
+  PCHAR = 9,
+  SIZE_T = 10,
+  LOFF_T = 11,
+  SECTOR_T = 12,
+  UINT = 13
 };
 
 enum Container_Type {
@@ -64,7 +72,7 @@ typedef
   /** Current ID on ListLog */
   unsigned id;
   /** Variable name */
-  const char* var_name;
+  const char *var_name;
   /** Address of the pointer */
   long memory_address;
   /** Address to where the pointer points to */
@@ -130,7 +138,7 @@ typedef
   /** Size of the container (number of rows) */
   unsigned size;
   /** Pointer to structure holding the values */
-  void* values;
+  void *values;
 } MAP2CHECK_CONTAINER;
 
 typedef
@@ -143,7 +151,7 @@ typedef
   /** Current scope number (llvm ir uses numbered scopes) */
   unsigned scope;
   /** Pointer where the generated value is stored */
-  void* value;
+  void *value;
   /** Size of the memory address */
   int size;
   /** Size of primitives */

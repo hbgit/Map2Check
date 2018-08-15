@@ -1,13 +1,13 @@
 #include "NonDetPass.hpp"
 
 namespace {
-inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
-  Instruction* pointer = reinterpret_cast<Instruction*>(&*i);
+inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
+  Instruction *pointer = reinterpret_cast<Instruction *>(&*i);
   return pointer;
 }
-}  // namespace
+} // namespace
 
-bool NonDetPass::runOnFunction(Function& F) {
+bool NonDetPass::runOnFunction(Function &F) {
   this->nonDetFunctions = make_unique<NonDetFunctions>(&F, &F.getContext());
   bool initializedFunctionName = false;
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
@@ -17,7 +17,7 @@ bool NonDetPass::runOnFunction(Function& F) {
         this->functionName = builder.CreateGlobalStringPtr(F.getName());
         initializedFunctionName = true;
       }
-      if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
+      if (CallInst *callInst = dyn_cast<CallInst>(&*i)) {
         currentInstruction = i;
         this->runOnCallInstruction(callInst, &F.getContext());
       }
@@ -26,11 +26,21 @@ bool NonDetPass::runOnFunction(Function& F) {
   return true;
 }
 
-void NonDetPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
-  Function* caleeFunction = callInst->getCalledFunction();
+namespace {
+#define CALL_IF_HELPER(type, nondet_type, c_type)                              \
+  if ((caleeFunction->getName() == ("__VERIFIER_nondet_" #c_type))) {          \
+    this->instrumentNonDet(NonDetType::nondet_type, caleeFunction);            \
+    this->instrumentNonDet##type(callInst, Ctx);                               \
+  } else if ((caleeFunction->getName() == ("map2check_non_det_" #c_type))) {   \
+    this->instrumentNonDet##type(callInst, Ctx);                               \
+  }
+}
+
+void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
+  Function *caleeFunction = callInst->getCalledFunction();
 
   if (caleeFunction == NULL) {
-    Value* v = callInst->getCalledValue();
+    Value *v = callInst->getCalledValue();
     caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
     if (caleeFunction == NULL) {
       return;
@@ -38,205 +48,134 @@ void NonDetPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
   }
 
   // TODO(rafa.sa.xp@gmail.com): Should not rename __VERIFIER functions
-  if ((caleeFunction->getName() == "__VERIFIER_nondet_int")) {
-    this->instrumentNonDet(NonDetType::INTEGER, caleeFunction);
-    this->instrumentNonDetInt(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "map2check_non_det_int")) {
-    this->instrumentNonDetInt(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "__VERIFIER_nondet_uint")) {
-    this->instrumentNonDet(NonDetType::UNSIGNED, caleeFunction);
-    this->instrumentNonDetUnsigned(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "map2check_non_det_uint")) {
-    this->instrumentNonDet(NonDetType::UNSIGNED, caleeFunction);
-    this->instrumentNonDetUnsigned(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "__VERIFIER_nondet_char")) {
-    this->instrumentNonDet(NonDetType::CHAR, caleeFunction);
-    this->instrumentNonDetChar(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "map2check_non_det_char")) {
-    this->instrumentNonDetChar(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "__VERIFIER_nondet_pointer")) {
-    this->instrumentNonDet(NonDetType::POINTER, caleeFunction);
-    this->instrumentNonDetPointer(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "map2check_non_det_pointer")) {
-    this->instrumentNonDetPointer(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "__VERIFIER_nondet_long")) {
-    this->instrumentNonDet(NonDetType::LONG, caleeFunction);
-    this->instrumentNonDetLong(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "map2check_non_det_long")) {
-    this->instrumentNonDetLong(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "__VERIFIER_assume")) {
+  // clang-format off
+  CALL_IF_HELPER(Integer, INTEGER, int)
+  else CALL_IF_HELPER(Unsigned, UNSIGNED, unsigned)
+  else CALL_IF_HELPER(Char, CHAR, char)
+  else CALL_IF_HELPER(Pointer, POINTER, pointer)
+  else CALL_IF_HELPER(Long, LONG, long)
+  else CALL_IF_HELPER(Ushort, USHORT, ushort)
+  else CALL_IF_HELPER(Ulong, ULONG, ulong)
+  else CALL_IF_HELPER(Bool, BOOL, bool)
+  else CALL_IF_HELPER(Uchar, UCHAR, uchar)
+  else CALL_IF_HELPER(Pchar, PCHAR, pchar)
+  else CALL_IF_HELPER(Size_t, SIZE_T, size_t)
+  else CALL_IF_HELPER(Loff_t, LOFF_T, loff_t)
+  else CALL_IF_HELPER(Sector_t, SECTOR_T, sector_t)
+  else CALL_IF_HELPER(Uint, UINT, uint)
+	 
+  else if ((caleeFunction->getName() == "__VERIFIER_assume")) {
     this->instrumentNonDet(NonDetType::ASSUME, caleeFunction);
-
-  } else if ((caleeFunction->getName() == "__VERIFIER_nondet_ushort")) {
-    this->instrumentNonDet(NonDetType::USHORT, caleeFunction);
-    this->instrumentNonDetUshort(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "map2check_non_det_ushort")) {
-    this->instrumentNonDetUshort(callInst, Ctx);
-
-  } else if ((caleeFunction->getName() == "map2check_assume")) {
+  }
+  else if ((caleeFunction->getName() == "map2check_assume")) {
     // TODO(rafa.sa.xp@gmail.com): Implement method
   }
+  // clang-format on
 }
 
+namespace {
+#define INSTRUMENT_CASE_HELPER(nondet_type, c_type)                            \
+  case (NonDetType::nondet_type): {                                            \
+    Twine non_det("map2check_non_det_" #c_type);                               \
+    caleeFunction->setName(non_det);                                           \
+    break;                                                                     \
+  }
+}
 void NonDetPass::instrumentNonDet(NonDetType nonDetType,
-                                  Function* caleeFunction) {
+                                  Function *caleeFunction) {
   switch (nonDetType) {
-    case (NonDetType::INTEGER): {
-      Twine non_det_int("map2check_non_det_int");
-      caleeFunction->setName(non_det_int);
-      break;
-    }
-    case (NonDetType::UNSIGNED): {
-      Twine non_det_uint("map2check_non_det_uint");
-      caleeFunction->setName(non_det_uint);
-      break;
-    }
-    case (NonDetType::CHAR): {
-      Twine non_det_char("map2check_non_det_char");
-      caleeFunction->setName(non_det_char);
-      break;
-    }
-    case (NonDetType::POINTER): {
-      Twine non_det_pointer("map2check_non_det_pointer");
-      caleeFunction->setName(non_det_pointer);
-      break;
-    }
-    case (NonDetType::LONG): {
-      Twine non_det_long("map2check_non_det_long");
-      caleeFunction->setName(non_det_long);
-      break;
-    }
-    case (NonDetType::USHORT): {
-      Twine non_det_ushort("map2check_non_det_ushort");
-      caleeFunction->setName(non_det_ushort);
-      break;
-    }
-    case (NonDetType::ASSUME): {
-      Twine assume("map2check_assume");
-      caleeFunction->setName(assume);
-      break;
-    }
+    INSTRUMENT_CASE_HELPER(INTEGER, int)
+    INSTRUMENT_CASE_HELPER(UNSIGNED, unsigned)
+    INSTRUMENT_CASE_HELPER(CHAR, char)
+    INSTRUMENT_CASE_HELPER(POINTER, pointer)
+    INSTRUMENT_CASE_HELPER(LONG, long)
+    INSTRUMENT_CASE_HELPER(USHORT, ushort)
+    INSTRUMENT_CASE_HELPER(ULONG, ulong)
+    INSTRUMENT_CASE_HELPER(BOOL, bool)
+    INSTRUMENT_CASE_HELPER(UCHAR, uchar)
+    INSTRUMENT_CASE_HELPER(PCHAR, pchar)
+    INSTRUMENT_CASE_HELPER(SIZE_T, size_t)
+    INSTRUMENT_CASE_HELPER(LOFF_T, loff_t)
+    INSTRUMENT_CASE_HELPER(SECTOR_T, sector_t)
+    INSTRUMENT_CASE_HELPER(UINT, uint)
+  case (NonDetType::ASSUME): {
+    Twine assume("map2check_assume");
+    caleeFunction->setName(assume);
+    break;
+  }
   }
 }
 
-void NonDetPass::instrumentNonDetInt(CallInst* callInst, LLVMContext* Ctx) {
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder(BBIteratorToInst(j));
-  Value* function_llvm = this->getFunctionNameValue();
-  DebugInfo debugInfo(Ctx, callInst);
+namespace {
+#define NONDET_IMPL_HELPER_CAST(type)                                          \
+  void NonDetPass::instrumentNonDet##type(CallInst *callInst,                  \
+                                          LLVMContext *Ctx) {                  \
+    auto j = this->currentInstruction;                                         \
+    j++;                                                                       \
+    IRBuilder<> builder(BBIteratorToInst(j));                                  \
+    Value *function_llvm = this->getFunctionNameValue();                       \
+    Twine bitcast("map2check_nondet_cast_" #type);                             \
+    Value *castInteger =                                                       \
+        CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*Ctx), false,   \
+                                    bitcast, BBIteratorToInst(j));             \
+    DebugInfo debugInfo(Ctx, callInst);                                        \
+    Value *args[] = {debugInfo.getLineNumberValue(),                           \
+                     debugInfo.getScopeNumberValue(), castInteger,             \
+                     function_llvm};                                           \
+    Constant *NonDetFunction =                                                 \
+        this->nonDetFunctions->getNonDet##type##Function();                    \
+    builder.CreateCall(NonDetFunction, args);                                  \
+  }
 
-  Value* args[] = {debugInfo.getLineNumberValue(),
-                   debugInfo.getScopeNumberValue(), callInst, function_llvm};
-
-  Constant* NonDetFunction = this->nonDetFunctions->getNonDetIntegerFunction();
-  builder.CreateCall(NonDetFunction, args);
+#define NONDET_IMPL_HELPER(type)                                               \
+  void NonDetPass::instrumentNonDet##type(CallInst *callInst,                  \
+                                          LLVMContext *Ctx) {                  \
+    auto j = this->currentInstruction;                                         \
+    j++;                                                                       \
+    IRBuilder<> builder(BBIteratorToInst(j));                                  \
+    Value *function_llvm = this->getFunctionNameValue();                       \
+    DebugInfo debugInfo(Ctx, callInst);                                        \
+    Value *args[] = {debugInfo.getLineNumberValue(),                           \
+                     debugInfo.getScopeNumberValue(), callInst,                \
+                     function_llvm};                                           \
+    Constant *NonDetFunction =                                                 \
+        this->nonDetFunctions->getNonDet##type##Function();                    \
+    builder.CreateCall(NonDetFunction, args);                                  \
+  }
 }
 
-void NonDetPass::instrumentNonDetUnsigned(CallInst* callInst,
-                                          LLVMContext* Ctx) {
+NONDET_IMPL_HELPER(Integer)
+NONDET_IMPL_HELPER(Unsigned)
+NONDET_IMPL_HELPER(Uint)
+NONDET_IMPL_HELPER(Pointer)
+NONDET_IMPL_HELPER_CAST(Char)
+NONDET_IMPL_HELPER_CAST(Ushort)
+NONDET_IMPL_HELPER_CAST(Long)
+NONDET_IMPL_HELPER_CAST(Ulong)
+NONDET_IMPL_HELPER_CAST(Bool)
+NONDET_IMPL_HELPER_CAST(Uchar)
+NONDET_IMPL_HELPER_CAST(Size_t)
+NONDET_IMPL_HELPER_CAST(Loff_t)
+NONDET_IMPL_HELPER_CAST(Sector_t)
+
+void NonDetPass::instrumentNonDetPchar(CallInst *callInst, LLVMContext *Ctx) {
   auto j = this->currentInstruction;
   j++;
   IRBuilder<> builder(BBIteratorToInst(j));
-  Value* function_llvm = this->getFunctionNameValue();
+  Value *function_llvm = this->getFunctionNameValue();
+
+  Value *cast = builder.CreatePtrToInt(callInst, Type::getInt32Ty(*Ctx));
   DebugInfo debugInfo(Ctx, callInst);
 
-  Value* args[] = {debugInfo.getLineNumberValue(),
-                   debugInfo.getScopeNumberValue(), callInst, function_llvm};
+  Value *args[] = {debugInfo.getLineNumberValue(),
+                   debugInfo.getScopeNumberValue(), cast, function_llvm};
 
-  Constant* NonDetFunction = this->nonDetFunctions->getNonDetUnsignedFunction();
-  builder.CreateCall(NonDetFunction, args);
-}
+  Constant *NonDetFunction = this->nonDetFunctions->getNonDetPcharFunction();
 
-void NonDetPass::instrumentNonDetChar(CallInst* callInst, LLVMContext* Ctx) {
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder(BBIteratorToInst(j));
-  Value* function_llvm = this->getFunctionNameValue();
-  Twine bitcast("map2check_klee_char_cast");
-  Value* charCast = CastInst::CreateIntegerCast(
-      callInst, Type::getInt32Ty(*Ctx), false, bitcast, BBIteratorToInst(j));
-
-  DebugInfo debugInfo(Ctx, callInst);
-
-  Value* args[] = {debugInfo.getLineNumberValue(),
-                   debugInfo.getScopeNumberValue(),
-                   // callInst,
-                   charCast, function_llvm};
-
-  Constant* NonDetFunction = this->nonDetFunctions->getNonDetCharFunction();
-  builder.CreateCall(NonDetFunction, args);
-}
-
-void NonDetPass::instrumentNonDetPointer(CallInst* callInst, LLVMContext* Ctx) {
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder(BBIteratorToInst(j));
-  Value* function_llvm = this->getFunctionNameValue();
-  Twine bitcast("map2check_klee_pointer_cast");
-  Value* charCast = CastInst::CreateIntegerCast(
-      callInst, Type::getInt32Ty(*Ctx), false, bitcast, BBIteratorToInst(j));
-  DebugInfo debugInfo(Ctx, callInst);
-
-  Value* args[] = {debugInfo.getLineNumberValue(),
-                   debugInfo.getScopeNumberValue(),
-                   // callInst,
-                   charCast, function_llvm};
-
-  Constant* NonDetFunction = this->nonDetFunctions->getNonDetPointerFunction();
-  builder.CreateCall(NonDetFunction, args);
-}
-
-void NonDetPass::instrumentNonDetUshort(CallInst* callInst, LLVMContext* Ctx) {
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder(BBIteratorToInst(j));
-  Value* function_llvm = this->getFunctionNameValue();
-  Twine bitcast("map2check_klee_ushort_cast");
-  Value* charCast = CastInst::CreateIntegerCast(
-      callInst, Type::getInt32Ty(*Ctx), false, bitcast, BBIteratorToInst(j));
-
-  DebugInfo debugInfo(Ctx, callInst);
-
-  Value* args[] = {debugInfo.getLineNumberValue(),
-                   debugInfo.getScopeNumberValue(),
-                   // callInst,
-                   charCast, function_llvm};
-
-  Constant* NonDetFunction = this->nonDetFunctions->getNonDetUshortFunction();
-  builder.CreateCall(NonDetFunction, args);
-}
-
-void NonDetPass::instrumentNonDetLong(CallInst* callInst, LLVMContext* Ctx) {
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder(BBIteratorToInst(j));
-  Value* function_llvm = this->getFunctionNameValue();
-  Twine bitcast("map2check_klee_long_cast");
-  Value* charCast = CastInst::CreateIntegerCast(
-      callInst, Type::getInt32Ty(*Ctx), false, bitcast, BBIteratorToInst(j));
-
-  DebugInfo debugInfo(Ctx, callInst);
-  Value* args[] = {debugInfo.getLineNumberValue(),
-                   debugInfo.getScopeNumberValue(),
-                   // callInst,
-                   charCast, function_llvm};
-
-  Constant* NonDetFunction = this->nonDetFunctions->getNonDetLongFunction();
   builder.CreateCall(NonDetFunction, args);
 }
 
 char NonDetPass::ID = 1;
-static RegisterPass<NonDetPass> X(
-    "non_det", "Adds klee calls for non deterministic methods (from SVCOMP)");
+static RegisterPass<NonDetPass>
+    X("non_det",
+      "Adds nondet calls for non deterministic methods (from SVCOMP)");

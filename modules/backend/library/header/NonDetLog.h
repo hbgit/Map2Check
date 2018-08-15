@@ -40,7 +40,31 @@ void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
 void map2check_nondet_char(unsigned line, unsigned scope, int value,
                            const char *function_name);
 
+void map2check_nondet_ulong(unsigned line, unsigned scope, int value,
+                            const char *function_name);
+
 void map2check_nondet_pointer(unsigned line, unsigned scope, int value,
                               const char *function_name);
+
+void map2check_nondet_bool(unsigned line, unsigned scope, int value,
+                           const char *function_name);
+
+void map2check_nondet_uchar(unsigned line, unsigned scope, int value,
+                            const char *function_name);
+
+void map2check_nondet_pchar(unsigned line, unsigned scope, int value,
+                            const char *function_name);
+
+void map2check_nondet_size_t(unsigned line, unsigned scope, int value,
+                             const char *function_name);
+
+void map2check_nondet_loff_t(unsigned line, unsigned scope, int value,
+                             const char *function_name);
+
+void map2check_nondet_sector_t(unsigned line, unsigned scope, int value,
+                               const char *function_name);
+
+void map2check_nondet_uint(unsigned line, unsigned scope, int value,
+                           const char *function_name);
 
 #endif

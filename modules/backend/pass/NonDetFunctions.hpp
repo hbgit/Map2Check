@@ -17,52 +17,52 @@
 
 using namespace llvm;
 
+#define CONSTANT_GENERATOR(type)                                               \
+private:                                                                       \
+  Constant *NonDet##type = NULL;                                               \
+                                                                               \
+public:                                                                        \
+  Constant *getNonDet##type##Function() { return this->NonDet##type; }
+
+#define NON_DET_FUNCTIONS_HELPER(type, c_type)                                 \
+  this->NonDet##type = F->getParent()->getOrInsertFunction(                    \
+      "map2check_nondet_" #c_type, Type::getVoidTy(*Ctx),                      \
+      Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),  \
+      Type::getInt8PtrTy(*Ctx));
+
 class NonDetFunctions {
-  Constant* NonDetInteger = NULL;
-  Constant* NonDetUnsigned = NULL;
-  Constant* NonDetChar = NULL;
-  Constant* NonDetPointer = NULL;
-  Constant* NonDetLong = NULL;
-  Constant* NonDetUshort = NULL;
+
+  CONSTANT_GENERATOR(Integer)
+  CONSTANT_GENERATOR(Unsigned)
+  CONSTANT_GENERATOR(Char)
+  CONSTANT_GENERATOR(Pointer)
+  CONSTANT_GENERATOR(Long)
+  CONSTANT_GENERATOR(Ushort)
+  CONSTANT_GENERATOR(Ulong)
+  CONSTANT_GENERATOR(Bool)
+  CONSTANT_GENERATOR(Uchar)
+  CONSTANT_GENERATOR(Pchar)
+  CONSTANT_GENERATOR(Size_t)
+  CONSTANT_GENERATOR(Loff_t)
+  CONSTANT_GENERATOR(Sector_t)
+  CONSTANT_GENERATOR(Uint)
   // Constant* NonDetAssume = NULL;
 
- public:
-  Constant* getNonDetIntegerFunction() { return this->NonDetInteger; }
-  Constant* getNonDetUnsignedFunction() { return this->NonDetUnsigned; }
-  Constant* getNonDetCharFunction() { return this->NonDetChar; }
-  Constant* getNonDetPointerFunction() { return this->NonDetPointer; }
-  Constant* getNonDetLongFunction() { return this->NonDetLong; }
-  Constant* getNonDetUshortFunction() { return this->NonDetUshort; }
-
-  NonDetFunctions(Function* F, LLVMContext* Ctx) {
-    this->NonDetInteger = F->getParent()->getOrInsertFunction(
-        "map2check_nondet_int", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
-
-    this->NonDetUnsigned = F->getParent()->getOrInsertFunction(
-        "map2check_nondet_unsigned", Type::getVoidTy(*Ctx),
-        Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
-
-    this->NonDetPointer = F->getParent()->getOrInsertFunction(
-        "map2check_nondet_pointer", Type::getVoidTy(*Ctx),
-        Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
-
-    this->NonDetUshort = F->getParent()->getOrInsertFunction(
-        "map2check_nondet_ushort", Type::getVoidTy(*Ctx),
-        Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
-
-    this->NonDetChar = F->getParent()->getOrInsertFunction(
-        "map2check_nondet_char", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
-
-    this->NonDetLong = F->getParent()->getOrInsertFunction(
-        "map2check_nondet_long", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
+public:
+  NonDetFunctions(Function *F, LLVMContext *Ctx) {
+    NON_DET_FUNCTIONS_HELPER(Integer, int)
+    NON_DET_FUNCTIONS_HELPER(Unsigned, unsigned)
+    NON_DET_FUNCTIONS_HELPER(Pointer, pointer)
+    NON_DET_FUNCTIONS_HELPER(Ushort, ushort)
+    NON_DET_FUNCTIONS_HELPER(Char, char)
+    NON_DET_FUNCTIONS_HELPER(Long, long)
+    NON_DET_FUNCTIONS_HELPER(Ulong, ulong)
+    NON_DET_FUNCTIONS_HELPER(Bool, bool)
+    NON_DET_FUNCTIONS_HELPER(Uchar, uchar)
+    NON_DET_FUNCTIONS_HELPER(Pchar, pchar)
+    NON_DET_FUNCTIONS_HELPER(Size_t, size_t)
+    NON_DET_FUNCTIONS_HELPER(Loff_t, loff_t)
+    NON_DET_FUNCTIONS_HELPER(Sector_t, sector_t)
+    NON_DET_FUNCTIONS_HELPER(Uint, uint)
   }
 };

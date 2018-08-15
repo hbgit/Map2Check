@@ -52,21 +52,32 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   return 0;
 }
 
-int map2check_non_det_int() { return (int)get_next_input_from_fuzzer(); }
+#define MAP2CHECK_NON_DET_GENERATOR(type)                                      \
+  type map2check_non_det_##type() { return (type)get_next_input_from_fuzzer(); }
 
-unsigned int map2check_non_det_uint() {
-  return (unsigned int)get_next_input_from_fuzzer();
+MAP2CHECK_NON_DET_GENERATOR(int)
+MAP2CHECK_NON_DET_GENERATOR(char)
+MAP2CHECK_NON_DET_GENERATOR(pointer)
+MAP2CHECK_NON_DET_GENERATOR(ushort)
+MAP2CHECK_NON_DET_GENERATOR(long)
+MAP2CHECK_NON_DET_GENERATOR(unsigned)
+MAP2CHECK_NON_DET_GENERATOR(ulong)
+MAP2CHECK_NON_DET_GENERATOR(bool)
+MAP2CHECK_NON_DET_GENERATOR(uchar)
+MAP2CHECK_NON_DET_GENERATOR(size_t)
+MAP2CHECK_NON_DET_GENERATOR(loff_t)
+MAP2CHECK_NON_DET_GENERATOR(sector_t)
+MAP2CHECK_NON_DET_GENERATOR(uint)
+
+char *map2check_non_det_pchar() {
+  unsigned length = map2check_non_det_unsigned();
+  if (length == 0)
+    return NULL;
+  char string[length];
+  unsigned i = 0;
+  for (i = 0; i < (length - 1); i++) {
+    string[i] = map2check_non_det_char();
+  }
+  string[i] = '\0';
+  return string;
 }
-
-char map2check_non_det_char() { return (char)get_next_input_from_fuzzer(); }
-
-unsigned short map2check_non_det_ushort() {
-  return (short)get_next_input_from_fuzzer();
-}
-
-void *map2check_non_det_pointer() {
-  // Ignore warnings from this, it is desired to be undefined behaviour
-  return (void *)(long)get_next_input_from_fuzzer();
-}
-
-long map2check_non_det_long() { return (long)get_next_input_from_fuzzer(); }

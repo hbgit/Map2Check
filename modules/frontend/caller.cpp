@@ -80,6 +80,7 @@ void Caller::applyNonDetGenerator() {
     std::ostringstream command;
     command.str("");
     command << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
+            << Caller::postOptimizationFlags()
             << " -o " + programHash + "-fuzzed.out"
             << " " + programHash + "-result.bc";
 

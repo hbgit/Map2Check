@@ -30,39 +30,60 @@ enum class NonDetType {
   LONG,
   ASSUME,
   USHORT,
-  CHAR
+  ULONG,
+  CHAR,
+  BOOL,
+  UCHAR,
+  PCHAR,
+  SIZE_T,
+  LOFF_T,
+  SECTOR_T,
+  UINT
 };
+
+namespace {
+#define INSTRUMENT_HEADER_HELPER(type)                                         \
+  void instrumentNonDet##type(CallInst *callInst, LLVMContext *Ctx);
+}
 
 struct NonDetPass : public FunctionPass {
   static char ID;
   NonDetPass() : FunctionPass(ID) {}
-  virtual bool runOnFunction(Function& F);
+  virtual bool runOnFunction(Function &F);
 
- protected:
+protected:
   void instrumentInstruction();
   /**
    * @brief Checks if current function is a non det call and instruments it
    */
-  void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
-  Value* getFunctionNameValue() { return this->functionName; }
+  void runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx);
+  Value *getFunctionNameValue() { return this->functionName; }
 
- private:
-  void instrumentNonDet(NonDetType type, Function* caleeFunction);
-  void instrumentNonDetInt(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentNonDetUnsigned(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentNonDetChar(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentNonDetPointer(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentNonDetLong(CallInst* callInst, LLVMContext* Ctx);
-  void instrumentNonDetUshort(CallInst* callInst, LLVMContext* Ctx);
+private:
+  void instrumentNonDet(NonDetType type, Function *caleeFunction);
+  INSTRUMENT_HEADER_HELPER(Integer)
+  INSTRUMENT_HEADER_HELPER(Unsigned)
+  INSTRUMENT_HEADER_HELPER(Char)
+  INSTRUMENT_HEADER_HELPER(Pointer)
+  INSTRUMENT_HEADER_HELPER(Long)
+  INSTRUMENT_HEADER_HELPER(Ushort)
+  INSTRUMENT_HEADER_HELPER(Ulong)
+  INSTRUMENT_HEADER_HELPER(Bool)
+  INSTRUMENT_HEADER_HELPER(Uchar)
+  INSTRUMENT_HEADER_HELPER(Pchar)
+  INSTRUMENT_HEADER_HELPER(Size_t)
+  INSTRUMENT_HEADER_HELPER(Loff_t)
+  INSTRUMENT_HEADER_HELPER(Sector_t)
+  INSTRUMENT_HEADER_HELPER(Uint)
 
   std::unique_ptr<NonDetFunctions> nonDetFunctions;
-  Value* functionName = NULL;
+  Value *functionName = NULL;
   BasicBlock::iterator currentInstruction;
 };
 
 class NonDetPassException : public std::runtime_error {
- public:
+public:
   explicit NonDetPassException(std::string message)
       : std::runtime_error(message) {}
-  virtual const char* what() const throw();
+  virtual const char *what() const throw();
 };

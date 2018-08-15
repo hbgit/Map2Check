@@ -5,6 +5,8 @@ void nondet_init();
 void nondet_destroy();
 void nondet_cancel();
 void nondet_generate_aux_witness_files();
+
+// TODO: create macro to generate functions with docs
 /**
  * @brief Generates non deterministic integer
  * @return Non deterministic integer
@@ -27,18 +29,79 @@ char map2check_non_det_char();
  * @brief Generates non deterministic ushort
  * @return Non deterministic ushort
  */
-unsigned short map2check_non_det_ushort();
+typedef unsigned short ushort;
+ushort map2check_non_det_ushort();
 
 /**
  * @brief Generates non deterministic ptr
  * @return Non deterministic ptr
  */
-void *map2check_non_det_pointer();
+typedef void *pointer;
+pointer map2check_non_det_pointer();
 
 /**
  * @brief Generates non deterministic long
  * @return Non deterministic long
  */
 long map2check_non_det_long();
+
+/**
+ * @brief Generates non deterministic unsigned long
+ * @return Non deterministic ulong
+ */
+typedef unsigned long ulong;
+unsigned long map2check_non_det_ulong();
+
+/**
+ * @brief Generates non deterministic boolean
+ * @return Non deterministic bool
+ */
+typedef int bool;
+bool map2check_non_det_bool();
+
+/**
+ * @brief Generates non deterministic unsigned
+ * @return Non deterministic unsigned
+ */
+unsigned map2check_non_det_unsigned();
+
+/**
+ * @brief Generates non deterministic unsigned char
+ * @return Non deterministic unsigned char
+ */
+typedef unsigned char uchar;
+unsigned char map2check_non_det_uchar();
+
+/**
+ * @brief Generates non deterministic pchar (terminates with \0)
+ * @return Non deterministic char array
+ */
+char *map2check_non_det_pchar();
+
+#include <stdlib.h>
+/**
+ * @brief Generates non deterministic size_t
+ * @return Non deterministic unsigned size_t
+ */
+size_t map2check_non_det_size_t();
+
+/**
+ * @brief Generates non deterministic loff_t
+ * @return Non deterministic unsigned loff_t
+ */
+loff_t map2check_non_det_loff_t();
+
+#define sector_t unsigned long
+/**
+ * @brief Generates non deterministic sector_t
+ * @return Non deterministic unsigned sector_t
+ */
+sector_t map2check_non_det_sector_t();
+
+/**
+ * @brief Generates non deterministic unsigned
+ * @return Non deterministic unsigned
+ */
+uint map2check_non_det_uint();
 
 #endif

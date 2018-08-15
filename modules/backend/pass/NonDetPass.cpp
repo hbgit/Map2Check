@@ -107,6 +107,22 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
 }
 
 namespace {
+#define NONDET_IMPL_HELPER_POINTER(type)                                       \
+  void NonDetPass::instrumentNonDet##type(CallInst *callInst,                  \
+                                          LLVMContext *Ctx) {                  \
+    auto j = this->currentInstruction;                                         \
+    j++;                                                                       \
+    IRBuilder<> builder(BBIteratorToInst(j));                                  \
+    Value *function_llvm = this->getFunctionNameValue();                       \
+    Value *cast = builder.CreatePtrToInt(callInst, Type::getInt32Ty(*Ctx));    \
+    DebugInfo debugInfo(Ctx, callInst);                                        \
+    Value *args[] = {debugInfo.getLineNumberValue(),                           \
+                     debugInfo.getScopeNumberValue(), cast, function_llvm};    \
+    Constant *NonDetFunction =                                                 \
+        this->nonDetFunctions->getNonDet##type##Function();                    \
+    builder.CreateCall(NonDetFunction, args);                                  \
+  }
+
 #define NONDET_IMPL_HELPER_CAST(type)                                          \
   void NonDetPass::instrumentNonDet##type(CallInst *callInst,                  \
                                           LLVMContext *Ctx) {                  \
@@ -147,7 +163,6 @@ namespace {
 NONDET_IMPL_HELPER(Integer)
 NONDET_IMPL_HELPER(Unsigned)
 NONDET_IMPL_HELPER(Uint)
-NONDET_IMPL_HELPER(Pointer)
 NONDET_IMPL_HELPER_CAST(Char)
 NONDET_IMPL_HELPER_CAST(Ushort)
 NONDET_IMPL_HELPER_CAST(Long)
@@ -157,23 +172,8 @@ NONDET_IMPL_HELPER_CAST(Uchar)
 NONDET_IMPL_HELPER_CAST(Size_t)
 NONDET_IMPL_HELPER_CAST(Loff_t)
 NONDET_IMPL_HELPER_CAST(Sector_t)
-
-void NonDetPass::instrumentNonDetPchar(CallInst *callInst, LLVMContext *Ctx) {
-  auto j = this->currentInstruction;
-  j++;
-  IRBuilder<> builder(BBIteratorToInst(j));
-  Value *function_llvm = this->getFunctionNameValue();
-
-  Value *cast = builder.CreatePtrToInt(callInst, Type::getInt32Ty(*Ctx));
-  DebugInfo debugInfo(Ctx, callInst);
-
-  Value *args[] = {debugInfo.getLineNumberValue(),
-                   debugInfo.getScopeNumberValue(), cast, function_llvm};
-
-  Constant *NonDetFunction = this->nonDetFunctions->getNonDetPcharFunction();
-
-  builder.CreateCall(NonDetFunction, args);
-}
+NONDET_IMPL_HELPER_POINTER(Pchar)
+NONDET_IMPL_HELPER_POINTER(Pointer)
 
 char NonDetPass::ID = 1;
 static RegisterPass<NonDetPass>

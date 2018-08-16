@@ -13,7 +13,6 @@ extern int __map2check_main__();
 #include <pthread.h>
 
 #include "../header/Map2CheckFunctions.h"
-void fuzzer_giveup_current_case() { map2check_destroy(); }
 
 void *fuzzer_execution_function(void *args) {
   __map2check_main__();
@@ -47,8 +46,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   map2check_fuzzer_size = Size;
   int prevType;
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &prevType);
+  pthread_cleanup_push(map2check_destroy, NULL);
   pthread_create(&fuzzer_execution, NULL, fuzzer_execution_function, NULL);
   pthread_join(fuzzer_execution, NULL);
+  pthread_cleanup_pop(0);
   return 0;
 }
 

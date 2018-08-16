@@ -223,7 +223,7 @@ void Caller::executeAnalysis() {
     Map2Check::Log::Info("Executing libfuzzer with map2check");
     std::ostringstream command;
     command.str("");
-    command << "./" + programHash + "-fuzzed.out -jobs=10 "
+    command << "./" + programHash + "-fuzzed.out -jobs=2 "
             << " -timeout=" << this->timeout << " > fuzzer.output";
     system(command.str().c_str());
 

@@ -37,11 +37,8 @@ void map2check_next_current_step() { Map2CheckCurrentStep++; }
 
 void map2check_assume(int expr) {
   if (!expr) {
-    /* printf("Assume Failed\n"); */
     map2check_destroy();
     nondet_cancel();
-  } else {
-    /* printf("Assume ok\n"); */
   }
 }
 

@@ -149,20 +149,20 @@ void MemoryTrackPass::instrumentMemcpy() {
       BBIteratorToInst(j));
 
   Value *sizeCast = CastInst::CreateIntegerCast(
-      size, Type::getInt32Ty(*this->Ctx), false, bitcast, BBIteratorToInst(j));
+      size, Type::getInt32Ty(*this->Ctx), true, bitcast, BBIteratorToInst(j));
 
-  Value *varPointerCastOrigin = CastInst::CreatePointerCast(
-      pointer_origin, Type::getInt8PtrTy(*this->Ctx), bitcast,
-      BBIteratorToInst(j));
+  // Value *varPointerCastOrigin = CastInst::CreatePointerCast(
+  //     pointer_origin, Type::getInt8PtrTy(*this->Ctx), bitcast,
+  //     BBIteratorToInst(j));
 
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
-  Value *args2[] = {varPointerCastOrigin, sizeCast};
-  builder.CreateCall(map2check_load, args2);
+  // Value *args2[] = {varPointerCastOrigin, sizeCast};
+  // builder.CreateCall(map2check_load, args2);
 
   Value *args3[] = {this->line_value, function_llvm};
-  builder.CreateCall(map2check_check_deref, args3);
+  // builder.CreateCall(map2check_check_deref, args3);
 
   Value *args[] = {varPointerCast, sizeCast};
   builder.CreateCall(map2check_load, args);
@@ -355,6 +355,7 @@ void MemoryTrackPass::instrumentInit() {
 
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
+
   // TODO: Resolve SVCOMP ISSUE
   if (this->caleeFunction->getName() == "free") {
     this->instrumentFree();
@@ -366,7 +367,9 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentRealloc();
   } else if (this->caleeFunction->getName() == "memset") {
     this->instrumentMemset();
-  } else if (this->caleeFunction->getName() == "memcpy") {
+  } else if (this->caleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i64") {
+    this->instrumentMemcpy();
+  } else if (this->caleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i32") {
     this->instrumentMemcpy();
   } else if (this->caleeFunction->getName() == "malloc") {
     this->instrumentMalloc();

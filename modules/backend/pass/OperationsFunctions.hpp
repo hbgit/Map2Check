@@ -9,33 +9,36 @@
 #include <llvm/Pass.h>
 #include <llvm/Support/raw_ostream.h>
 
+#include <llvm/IR/Instructions.h>
 #include <iostream>
+
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+using namespace llvm;
 class OperationsFunctions {
-  Constant* OverflowAdd = NULL;
-  Constant* OverflowAddUint = NULL;
-  Constant* OverflowSub = NULL;
-  Constant* OverflowSubUint = NULL;
-  Constant* OverflowMul = NULL;
-  Constant* OverflowMulUint = NULL;
-  Constant* OverflowSDiv = NULL;
-  Constant* OverflowError = NULL;
+  Constant *OverflowAdd = NULL;
+  Constant *OverflowAddUint = NULL;
+  Constant *OverflowSub = NULL;
+  Constant *OverflowSubUint = NULL;
+  Constant *OverflowMul = NULL;
+  Constant *OverflowMulUint = NULL;
+  Constant *OverflowSDiv = NULL;
+  Constant *OverflowError = NULL;
 
  public:
-  Constant* getOverflowAdd() { return this->OverflowAdd; }
-  Constant* getOverflowAddUint() { return this->OverflowAddUint; }
-  Constant* getOverflowSub() { return this->OverflowSub; }
-  Constant* getOverflowSubUint() { return this->OverflowSubUint; }
-  Constant* getOverflowMul() { return this->OverflowMul; }
-  Constant* getOverflowMulUint() { return this->OverflowMulUint; }
-  Constant* getOverflowSDiv() { return this->OverflowSDiv; }
-  Constant* getOverflowError() { return this->OverflowError; }
+  Constant *getOverflowAdd() { return this->OverflowAdd; }
+  Constant *getOverflowAddUint() { return this->OverflowAddUint; }
+  Constant *getOverflowSub() { return this->OverflowSub; }
+  Constant *getOverflowSubUint() { return this->OverflowSubUint; }
+  Constant *getOverflowMul() { return this->OverflowMul; }
+  Constant *getOverflowMulUint() { return this->OverflowMulUint; }
+  Constant *getOverflowSDiv() { return this->OverflowSDiv; }
+  Constant *getOverflowError() { return this->OverflowError; }
 
-  OperationsFunctions(Function* F, LLVMContext* Ctx) {
+  OperationsFunctions(Function *F, LLVMContext *Ctx) {
     this->OverflowAdd = F->getParent()->getOrInsertFunction(
         "map2check_binop_add", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
         Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),

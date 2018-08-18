@@ -27,6 +27,7 @@ Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
   this->map2checkMode = mode;
   this->nonDetGenerator = generator;
   GenHash hash;
+    int teste;
   hash.setFilePath(bcprogram_path);
   hash.generate_sha1_hash_for_file();
   this->programHash = hash.getOutputSha1HashFile();
@@ -108,6 +109,7 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
 
   Map2Check::Log::Info("Adding nondet pass");
+  transformCommand << " -tailcallopt";
   transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det";
 
   switch (map2checkMode) {

@@ -1,32 +1,34 @@
 # Environment
 
+## Dependencies
 * Ubuntu (or derivatives)
-* Qt5 (put in your path)
-* build-essential `apt install build-essential`
-* cmake `apt install cmake`
-* curl `apt install curl`
+* build-essential: `apt install build-essential`
+* cmake: `apt install cmake`
+* curl: `apt install curl`
+* boost: `apt install libboost-all-dev`
 
-1. Clone or save this repository
-2. Run bootrap.sh script
-3. Run make-release.sh script
+## Build
+1. Clone or save this repository.
+2. Run [make-release](make-release.sh) script.
 
-# Using Qt Creator for development
+# Code Style
+Currently is based on the [Google code style](https://google.github.io/styleguide/cppguide.html). The easiest way is to run `clang-format` with the [.clang-format](.clang-format) file.
 
-We recommend the use of Qt Creator since it is a really good C/C++ IDE and it is easy to install
+# Project structure
+Map2Check has 3 main modules used: [Frontend](modules/frontend/), [Pass-Backend](modules/backend/pass/), [Library-Backend](modules/backend/library/)
 
-1. Open the main CMakeLists.txt file
-2. In the project options, set the workspace to the release directory
-3. Build it in debug mode
+## Frontend
+It is responsible to get inputs from users, interface between pass and library, generate counter-example and witness files, interface for clang, etc. 
 
-# Generating Release
+Notes: 
+* To add a new analysis or new pass, just look at the [caller class implementation](modules/frontend/caller.cpp).
+* To add a new option, just look at the `main` from [here](modules/frontend/map2check.cpp) .
 
-## Recommended: use static Qt
+## Pass-Backend
+Contains all llvm pass/instrumentation/sanitazers used on our analysis.
 
-1. Download and extract the Qt source code: http://linorg.usp.br/Qt/archive/qt/5.11/5.11.1/single/qt-everywhere-src-5.11.1.tar.xz
-2. Configure it to compile statically: `./configure -static -prefix “~/QtStatic” -qt-zlib -qt-pcre -qt-xcb -qt-sql-sqlite -make libs -nomake tools -nomake examples -nomake tests`
-3. Execute `make` and `make install`
-4. Configure CMake or QtCreator to use it 
+## Library-Backend
+Contains all implementation of the instrumented functions.
 
-## Creating AppImage release
-
-TODO: adapt map2check to work with https://github.com/probonopd/linuxdeployqt
+Notes:
+* To create a new analysis mode, just implement the [AnalysisMode](modules/backend/library/header/AnalysisMode.h) using the [Map2CheckFunctions](modules/backend/library/header/Map2CheckFunctions.h) API. 

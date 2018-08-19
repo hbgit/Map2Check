@@ -1,13 +1,13 @@
 
 #include "../header/Map2CheckFunctions.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include "../header/AnalysisMode.h"
 #include "../header/Container.h"
 #include "../header/NonDetGenerator.h"
 #include "../header/PropertyGenerator.h"
 #include "../header/TrackBBLog.h"
 #include "../header/WitnessGeneration.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 unsigned Map2CheckCurrentStep;
 
@@ -37,7 +37,6 @@ void map2check_next_current_step() { Map2CheckCurrentStep++; }
 
 void map2check_assume(int expr) {
   if (!expr) {
-    map2check_destroy();
     nondet_cancel();
   }
 }
@@ -70,9 +69,9 @@ void map2check_error() {
 }
 
 void map2check_destroy() {
+  printf("Destroying map2check\n");
   static Bool alreadyReleased = FALSE;
-  if (alreadyReleased)
-    return;
+  if (alreadyReleased) return;
   alreadyReleased = TRUE;
   free_container(&trackbb_log);
   analysis_destroy();

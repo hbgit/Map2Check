@@ -1,6 +1,6 @@
 #include "../header/NonDetGenerator.h"
-#include "../header/NonDetLog.h"
 #include <stdlib.h>
+#include "../header/NonDetLog.h"
 
 /* Logic used for cases generation:
    1 - main function of original program is changed to _map2check_main
@@ -23,7 +23,8 @@ pthread_t fuzzer_execution;
 
 void nondet_init() { nondet_log_init(); }
 void nondet_destroy() { nondet_log_destroy(); }
-void nondet_cancel() { pthread_cancel(fuzzer_execution); }
+#include <signal.h>
+void nondet_cancel() { pthread_exit(fuzzer_execution); }
 void nondet_generate_aux_witness_files() {
   nondet_log_to_file(map2check_nondet_get_log());
 }
@@ -46,14 +47,13 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   map2check_fuzzer_size = Size;
   int prevType;
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &prevType);
-  pthread_cleanup_push(map2check_destroy, NULL);
   pthread_create(&fuzzer_execution, NULL, fuzzer_execution_function, NULL);
   pthread_join(fuzzer_execution, NULL);
-  pthread_cleanup_pop(0);
+  map2check_destroy();
   return 0;
 }
 
-#define MAP2CHECK_NON_DET_GENERATOR(type)                                      \
+#define MAP2CHECK_NON_DET_GENERATOR(type) \
   type map2check_non_det_##type() { return (type)get_next_input_from_fuzzer(); }
 
 MAP2CHECK_NON_DET_GENERATOR(int)
@@ -72,8 +72,7 @@ MAP2CHECK_NON_DET_GENERATOR(uint)
 
 char *map2check_non_det_pchar() {
   unsigned length = map2check_non_det_unsigned();
-  if (length == 0)
-    return NULL;
+  if (length == 0) return NULL;
   char string[length];
   unsigned i = 0;
   for (i = 0; i < (length - 1); i++) {

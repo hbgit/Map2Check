@@ -378,25 +378,25 @@ bool OverflowPass::runOnFunction(Function &F) {
         }
 
         if (instrumentedFunction != NULL) {
-          Value *firstOperand32Ty;
-          if (firstOperand->getType() == Type::getInt64Ty(*Ctx)) {
-            firstOperand32Ty = CastInst::CreateIntegerCast(
-                firstOperand, Type::getInt32Ty(*Ctx), false, "cast",
+          Value *firstOperand64Ty;
+          if (firstOperand->getType() == Type::getInt32Ty(*Ctx)) {
+            firstOperand64Ty = CastInst::CreateIntegerCast(
+                firstOperand, Type::getInt64Ty(*Ctx), false, "cast",
                 BBIteratorToInst(i));
           } else {
-            firstOperand32Ty = firstOperand;
+            firstOperand64Ty = firstOperand;
           }
 
-          Value *secondOperand32Ty;
-          if (secondOperand->getType() == Type::getInt64Ty(*Ctx)) {
-            secondOperand32Ty = CastInst::CreateIntegerCast(
-                secondOperand, Type::getInt32Ty(*Ctx), false, "cast",
+          Value *secondOperand64Ty;
+          if (secondOperand->getType() == Type::getInt32Ty(*Ctx)) {
+            secondOperand64Ty = CastInst::CreateIntegerCast(
+                secondOperand, Type::getInt64Ty(*Ctx), false, "cast",
                 BBIteratorToInst(i));
           } else {
-            secondOperand32Ty = secondOperand;
+            secondOperand64Ty = secondOperand;
           }
 
-          Value *args[] = {firstOperand32Ty, secondOperand32Ty,
+          Value *args[] = {firstOperand64Ty, secondOperand64Ty,
                            debugInfo.getLineNumberValue(),
                            debugInfo.getScopeNumberValue(), functionName};
           builder.CreateCall(instrumentedFunction, args);

@@ -23,7 +23,7 @@ Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log);
  * @param  is_dynamic               Is the pointer DYNAMIC? (received address
  * from malloc, realloc, calloc)
  * @param  is_free                  Is the pointer freed?
- * @param  line_number              Line number where the operation occured (0
+ * @param  line_number              Line number where the operation occurred (0
  * means that the information is lost)
  * @param  name                     Name for the pointer var
  * @param  function_name            Name of the current function
@@ -36,7 +36,7 @@ LIST_LOG_ROW new_list_row(long memory_address, long memory_address_points_to,
 
 /**
  * Write elements from LIST_LOG to a FILE
- * @param row Pointer to the LIST_LOG to be writed
+ * @param row Pointer to the LIST_LOG to be wrote
  */
 void list_log_to_file(MAP2CHECK_CONTAINER* list);
 

@@ -27,7 +27,7 @@ void map2check_pointer(void *x, unsigned scope, const char *name, int line);
 /**
  * Tracks execution of a specific function (this function is to be used for
  * instrumentation)
- * @param func_name   Name of the function where the operation occured.
+ * @param func_name   Name of the function where the operation occurred.
  * @param scope       Number of the scope
  * @param line        Line where store operation was called
  */

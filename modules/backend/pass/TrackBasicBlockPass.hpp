@@ -27,10 +27,10 @@ namespace Tools = Map2Check;
 struct TrackBasicBlockPass : public FunctionPass {
   static char ID;
   TrackBasicBlockPass() : FunctionPass(ID) {}
-  TrackBasicBlockPass(std::string cprogram_path) : FunctionPass(ID) {
-    this->cprogram_path = cprogram_path;
+  TrackBasicBlockPass(std::string c_program_path) : FunctionPass(ID) {
+    this->c_program_path = c_program_path;
     this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
-        Tools::SourceCodeHelper(cprogram_path));
+        Tools::SourceCodeHelper(c_program_path));
   }
   virtual bool runOnFunction(Function& F);
 
@@ -39,12 +39,12 @@ struct TrackBasicBlockPass : public FunctionPass {
   void hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);
   void instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx);
   void instrumentInstBB(BasicBlock::iterator& iT);
-  bool checkInstBBIsAssume(BasicBlock::iterator& iT);
+  bool checkInstBbIsAssume(BasicBlock::iterator& iT);
   Value* getFunctionNameValue() { return this->functionName; }
 
  private:
   std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
-  std::string cprogram_path;
+  std::string c_program_path;
   std::unique_ptr<LibraryFunctions> libraryFunctions;
   bool initializedFunctionName = false;
   bool isUnreachableInst = false;

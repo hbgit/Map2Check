@@ -56,7 +56,7 @@ struct MemoryTrackPass : public FunctionPass {
   Function* currentFunction;
   // DataLayout* currentDataLayout;
   Function* mainFunction;
-  Function* caleeFunction;
+  Function* calleeFunction;
   BasicBlock::iterator currentInstruction;
   BasicBlock::iterator lastInstructionMain;
   Constant* map2check_pointer;

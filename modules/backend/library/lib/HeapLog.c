@@ -23,7 +23,7 @@ MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size,
   return row;
 }
 
-/* Same ideia of is_valid_allocation_address from AllocationLog.c,
+/* Same idea of is_valid_allocation_address from AllocationLog.c,
  * but the main difference is: there is no need to check if address is free
  */
 Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address,

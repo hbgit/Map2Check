@@ -14,7 +14,7 @@ enum class Map2CheckMode {
 };
 
 /** NonDet generators */
-// TODO: Add suport to other nondet like: klee, afl, afl+klee, libfuzzer+afl
+// TODO: Add suport to other nondet like: klee, afl, afl+klee, LibFuzzer+afl
 enum class NonDetGenerator {
   None,     /**< Do not generate any input */
   LibFuzzer /**< LibFuzzer from LLVM */
@@ -22,36 +22,36 @@ enum class NonDetGenerator {
 
 /** This class is responsible for calling all external and system programs */
 class Caller {
-protected:
-  std::string pathprogram; //!< Path for the .bc program */
-                           /** Get optmization flags for original C file
-                            *  @return Flags for clang */
+ protected:
+  std::string pathprogram;  //!< Path for the .bc program */
+                            /** Get optimization flags for original C file
+                             *  @return Flags for clang */
   static std::string preOptimizationFlags();
-  /** Get optmization flags for final bytecode
+  /** Get optimization flags for final bytecode
    *  @return Flags for opt */
   static std::string postOptimizationFlags();
   /** Iterate over clang compilation messages (if any)
-   *  and check for erors */
+   *  and check for errors */
   std::vector<int> processClangOutput();
   Map2CheckMode map2checkMode;
   NonDetGenerator nonDetGenerator;
   std::string programHash;
   unsigned timeout;
 
-public:
+ public:
   /** @brief Constructor if .bc file already exists
-   *  @param bcprogam_path Path for the file */
-  Caller(std::string bcprogram_path, Map2CheckMode mode,
+   *  @param bc_progam_path Path for the file */
+  Caller(std::string bc_program_path, Map2CheckMode mode,
          NonDetGenerator generator);
 
-  std::string cprogram_fullpath; //!< Path for the oiginal c program */
+  std::string c_program_fullpath;  //!< Path for the original c program */
   void setTimeout(unsigned timeout) { this->timeout = timeout; }
   /** @brief Function to compile original C file removing external memory
    * operations calls */
   void compileCFile();
 
   /** @brief Function to call pass for current verification mode
-   *  (for REACHABLITY mode)
+   *  (for REACHABILITY mode)
    *  @param mode Mode of the current execution
    *  @param target_function Function to be verified
    *  @param sv_comp boolean representing if should use sv-comp rules */
@@ -70,4 +70,4 @@ public:
   void applyNonDetGenerator();
 };
 
-} // namespace Map2Check
+}  // namespace Map2Check

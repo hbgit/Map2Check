@@ -44,7 +44,7 @@ MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size,
 
 /**
  * Write elements from HEAP_LOG to a FILE
- * @param row Pointer to the HEAP_LOG to be writed
+ * @param row Pointer to the HEAP_LOG to be wrote
  */
 void heap_log_to_file(MAP2CHECK_CONTAINER* list);
 

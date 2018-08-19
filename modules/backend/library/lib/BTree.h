@@ -9,7 +9,7 @@
  * The implementation is based on the book
  * T. H. Cormen, C. E. Leiserson, R. L. Rivest, C. Stein. Introduction to
  * Algorithms. The MIT Press. 2002, Chapter 18, but since Map2Check containers
- * don't need remotion, it will not be implemented. */
+ * don't need removal, it will not be implemented. */
 
 /** Struct that holds values on B_TREE */
 typedef struct B_TREE_ROW {
@@ -30,17 +30,17 @@ typedef struct B_TREE_ROW {
  * tree be 2GiB */
 #define B_TREE_MAX_OPEN_PAGES 534731U
 
-/* We should have some kind of limit for infinite pograms or some programs will
- * end up using all secondary space, ~4 GiB should be enought for now */
+/* We should have some kind of limit for infinite programs or some programs will
+ * end up using all secondary space, ~4 GiB should be enough for now */
 #define MAX_TREE_SIZE = 4U;
 
 /** Struct that holds pages of B_TREE */
 typedef struct B_TREE_PAGE {
-  /** Number of keys curently stored in node */
+  /** Number of keys currently stored in node */
   unsigned n;
   /* An array of size 2t - 1 containing values*/
   B_TREE_ROW rows[B_TREE_MAP2CHECK_ORDER * 2 - 1];
-  /** Current index on FILE, this is redudant information, but
+  /** Current index on FILE, this is redundant information, but
    *  make implementation easier */
   fpos_t stream_pos;
   Bool have_stream_pos;

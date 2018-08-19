@@ -83,7 +83,7 @@ inline void fixPath(char *map2check_bin_string) {
   putenv(map2check_env_array);
   Map2Check::Log::Debug(map2check_env_var);
 }
-} // namespace
+}  // namespace
 
 // TODO: add support to reachability (check old version of map), maybe this
 // should be handled by caller
@@ -153,7 +153,7 @@ int map2check_execution(map2check_args args) {
   std::unique_ptr<Map2Check::Caller> caller;
   caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                  generator);
-  caller->cprogram_fullpath = args.inputFile;
+  caller->c_program_fullpath = args.inputFile;
   caller->compileCFile();
   caller->setTimeout(args.timeout);
 
@@ -173,20 +173,18 @@ int map2check_execution(map2check_args args) {
   Map2Check::PropertyViolated propertyViolated = counterExample->getProperty();
 
   if (propertyViolated ==
-      Map2Check::PropertyViolated::NONE) { // This means that result was TRUE
+      Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     Map2Check::Log::Info("");
     Map2Check::Log::Info("VERIFICATION SUCCEEDED");
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
     Map2Check::Log::Info("Unable to prove or falsify the program.");
     Map2Check::Log::Info("VERIFICATION UNKNOWN");
-    if (args.debugMode)
-      counterExample->generateTestCase();
+    if (args.debugMode) counterExample->generateTestCase();
   } else {
     Map2Check::Log::Info("Started counter example generation");
 
     counterExample->printCounterExample();
-    if (args.generateTestCase)
-      counterExample->generateTestCase();
+    if (args.generateTestCase) counterExample->generateTestCase();
   }
 
   // (5) Generate witness (if analysis generated a result)
@@ -196,8 +194,7 @@ int map2check_execution(map2check_args args) {
 
   // (6) Clean map2check execution (folders and temp files)
   Map2Check::Log::Debug("Removing temp files");
-  if (!args.debugMode)
-    caller->cleanGarbage();
+  if (!args.debugMode) caller->cleanGarbage();
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
@@ -223,9 +220,9 @@ int main(int argc, char **argv) {
         "memtrack,m", "\tCheck for memory errors")("print-counter",
                                                    "\tPrint Counterexample")(
         "check-overflow", "\tAnalyze program for overflow failures")(
-        "generate-witness,w",
-        "\tGenerates witness file")("expected-result,e", po::value<string>(),
-                                    "\tSpecifies type of violation expected");
+        "generate-witness,w", "\tGenerates witness file")(
+        "expected-result,e", po::value<string>(),
+        "\tSpecifies type of violation expected");
 
     po::positional_options_description p;
     p.add("input-file", -1);

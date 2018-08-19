@@ -20,15 +20,14 @@ inline std::string getLibSuffix() { return ".so"; }
 }  // namespace
 
 namespace Map2Check {
-Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
+Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
                NonDetGenerator generator) {
   // this->cleanGarbage();
-  this->pathprogram = bcprogram_path;
+  this->pathprogram = bc_program_path;
   this->map2checkMode = mode;
   this->nonDetGenerator = generator;
   GenHash hash;
-  int teste;
-  hash.setFilePath(bcprogram_path);
+  hash.setFilePath(bc_program_path);
   hash.generate_sha1_hash_for_file();
   this->programHash = hash.getOutputSha1HashFile();
 
@@ -38,7 +37,7 @@ Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
   system(createTempDir.str().c_str());
 
   std::ostringstream moveProgram;
-  moveProgram << "cp " << bcprogram_path << " " << programHash;
+  moveProgram << "cp " << bc_program_path << " " << programHash;
   system(moveProgram.str().c_str());
 
   Map2Check::Log::Debug("Changing current dir");
@@ -77,7 +76,7 @@ void Caller::applyNonDetGenerator() {
       break;
     }
     case (NonDetGenerator::LibFuzzer): {
-      Map2Check::Log::Info("Instrumenting with LLVM Libfuzzer");
+      Map2Check::Log::Info("Instrumenting with LLVM LibFuzzer");
       std::ostringstream command;
       command.str("");
       command << Map2Check::clangBinary
@@ -223,7 +222,7 @@ void Caller::executeAnalysis() {
       break;
     }
     case (NonDetGenerator::LibFuzzer): {
-      Map2Check::Log::Info("Executing libfuzzer with map2check");
+      Map2Check::Log::Info("Executing LibFuzzer with map2check");
       std::ostringstream command;
       command.str("");
       command << "./" + programHash +
@@ -253,7 +252,8 @@ std::vector<int> Caller::processClangOutput() {
   Map2Check::Log::Debug("Clang generate warning or errors");
 
   // This regex captures accused line number for overflow warnings (from clang)
-  regex overflowWarning(".*:([[:digit:]]+):[[:digit:]]+:.*Winteger-overflow.*");
+  regex overflowWarning(
+      ".*:([[:digit:]]+):[[:digit:]]+:.*(Winteger-overflow).*");
   string line;
   smatch match;
   while (getline(in, line)) {
@@ -268,14 +268,14 @@ std::vector<int> Caller::processClangOutput() {
 }
 
 /** This function should:
- * (1) Remove unsuported functions and clean the C code
+ * (1) Remove unsupported functions and clean the C code
  * (2) Generate .bc file from code
  * (3) Check for overflow errors on compilation
  */
 void Caller::compileCFile() {
   Map2Check::Log::Info("Compiling " + this->pathprogram);
 
-  // (1) Remove unsuported functions and clean the C code
+  // (1) Remove unsupported functions and clean the C code
   std::ostringstream commandRemoveExternMalloc;
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";

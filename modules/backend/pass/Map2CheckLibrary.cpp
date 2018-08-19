@@ -7,9 +7,11 @@ bool Map2CheckLibrary::runOnFunction(Function& F) {
 
   IRBuilder<> builder((Instruction*)&*instructionIterator);
   this->functionName = builder.CreateGlobalStringPtr(F.getName());
+  bool isMain = false;
   if (F.getName() == "main") {
     currentInstruction = instructionIterator;
     instrumentStartInstruction(&F.getContext());
+    isMain = true;
   }
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
@@ -18,17 +20,19 @@ bool Map2CheckLibrary::runOnFunction(Function& F) {
       if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
         this->runOnCallInstruction(callInst, &F.getContext());
       }
+      if (ReturnInst* inst = dyn_cast<ReturnInst>(&*i)) {
+        if (isMain) this->instrumentReleaseInstruction(&F.getContext());
+      }
     }
   }
 
   if (F.getName() == "main") {
     // currentInstruction--;
-    instrumentReleaseInstruction(&F.getContext());
+    // instrumentReleaseInstruction(&F.getContext());
     Twine new_entry_name("__map2check_main__");
     F.setName(new_entry_name);
   }
 
-  
   return true;
 }
 
@@ -47,20 +51,20 @@ void Map2CheckLibrary::instrumentReleaseInstruction(LLVMContext* Ctx) {
 
 void Map2CheckLibrary::runOnCallInstruction(CallInst* callInst,
                                             LLVMContext* Ctx) {
-  Function* caleeFunction = callInst->getCalledFunction();
+  Function* calleeFunction = callInst->getCalledFunction();
 
-  if (caleeFunction == NULL) {
+  if (calleeFunction == NULL) {
     Value* v = callInst->getCalledValue();
-    caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+    calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
-    if (caleeFunction == NULL) {
+    if (calleeFunction == NULL) {
       return;
     }
   }
 
-  if (caleeFunction->getName() == "exit") {
+  if (calleeFunction->getName() == "exit") {
     this->instrumentReleaseInstruction(Ctx);
-  } else if (caleeFunction->getName() == "abort") {
+  } else if (calleeFunction->getName() == "abort") {
     this->instrumentReleaseInstruction(Ctx);
   }
 }

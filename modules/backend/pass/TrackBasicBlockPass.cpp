@@ -86,19 +86,19 @@ void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
     if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(i))) {
       if (!cI->getCalledValue()->getName().empty()) {
         Value* v = cI->getCalledValue();
-        Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+        Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
-        if (caleeFunction->getName() != "__VERIFIER_assume" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_int" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_char" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_pointer" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_long" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_ushort" &&
-            caleeFunction->getName() != "map2check_assume" &&
-            caleeFunction->getName() != "malloc" &&
-            caleeFunction->getName() != "calloc" &&
-            caleeFunction->getName() != "realloc" &&
-            caleeFunction->getName() != "free") {
+        if (calleeFunction->getName() != "__VERIFIER_assume" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_int" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_char" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_pointer" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_long" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_ushort" &&
+            calleeFunction->getName() != "map2check_assume" &&
+            calleeFunction->getName() != "malloc" &&
+            calleeFunction->getName() != "calloc" &&
+            calleeFunction->getName() != "realloc" &&
+            calleeFunction->getName() != "free") {
           // BasicBlock::iterator iI= &;
           // i->dump();
           IRBuilder<> builder(BBIteratorToInst(i));
@@ -143,7 +143,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
         this->numLineBlk_ori = debugInfoLa.getLineNumberInt();
         bool flagAssume = false;
         // Checking if the instruction is an ASSUME to skip
-        if (this->checkInstBBIsAssume(this->st_lastBlockInst)) {
+        if (this->checkInstBbIsAssume(this->st_lastBlockInst)) {
           flagAssume = true;
         }
 
@@ -174,7 +174,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
       this->numLineBlk_ori = debugInfoLa.getLineNumberInt();
       bool flagAssume = false;
       // Checking if the instruction is an ASSUME to skip
-      if (this->checkInstBBIsAssume(this->st_lastBlockInst)) {
+      if (this->checkInstBbIsAssume(this->st_lastBlockInst)) {
         flagAssume = true;
       }
 
@@ -229,17 +229,17 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
   }
 }
 
-bool TrackBasicBlockPass::checkInstBBIsAssume(BasicBlock::iterator& iT) {
+bool TrackBasicBlockPass::checkInstBbIsAssume(BasicBlock::iterator& iT) {
   // iT->dump();
   // errs() << iT->getOpcodeName() << " \n";
   this->isUnreachableInst = false;
   if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(iT))) {
     if (!cI->getCalledValue()->getName().empty()) {
       Value* v = cI->getCalledValue();
-      Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+      Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
-      if (caleeFunction->getName() == "__VERIFIER_assume" ||
-          caleeFunction->getName() == "map2check_assume") {
+      if (calleeFunction->getName() == "__VERIFIER_assume" ||
+          calleeFunction->getName() == "map2check_assume") {
         return true;
       } else {
         return false;
@@ -272,8 +272,8 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT) {
   }
 
   // Twine track_bb("map2check_track_bb");
-  // Function *caleeFunction;
-  // caleeFunction->setName(track_bb);
+  // Function *calleeFunction;
+  // calleeFunction->setName(track_bb);
   // errs() << "inst 1 \n";
 
   IRBuilder<> builder(BBIteratorToInst(iT));
@@ -292,4 +292,4 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT) {
 
 char TrackBasicBlockPass::ID = 12;
 static RegisterPass<TrackBasicBlockPass> X(
-    "track_basic_block", "Trancking Basic Block in the symbolic execution");
+    "track_basic_block", "Track Basic Block in the symbolic execution");

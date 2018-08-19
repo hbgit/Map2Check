@@ -12,7 +12,7 @@ void map2check_load(void *ptr, int size);
  * instrumentation)
  * @param ptr         Address to be released
  * @param line        Line where store operation was called
- * @param func_name   Name of the function where the operation occured.
+ * @param func_name   Name of the function where the operation ocurred.
  * @param isNullValid If value is not 0, ignores if ptr points to NULL
  */
 void map2check_free_resolved_address(void *ptr, unsigned line,
@@ -34,7 +34,7 @@ void update_reference_list_log(long address, enum MemoryAddressStatus status,
  * @param scope Number of the scope
  * @param name  Name of the pointer
  * @param line  Line where store operation was called
- * @param function_name  Name of the function where the operation occured.
+ * @param function_name  Name of the function where the operation ocurred.
  */
 void map2check_add_store_pointer(void *var, void *value, unsigned scope,
                                  const char *name, int line,
@@ -88,26 +88,26 @@ void map2check_non_static_alloca(const char *name, void *ptr, int size,
 void map2check_function(const char *name, void *ptr);
 
 /**
- * Tracks address that are freeed (this function is to be used for
+ * Tracks address that are freed (this function is to be used for
  * instrumentation)
  * @param name        Name of the variable
  * @param ptr         Address to be released
  * @param scope       Number of the scope
  * @param size        Size of the allocated addres
  * @param line        Line where store operation was called
- * @param func_name   Name of the function where the operation occured.
+ * @param func_name   Name of the function where the operation ocurred.
  */
 void map2check_free(const char *name, void *ptr, unsigned scope, unsigned line,
                     const char *function_name);
 
 // IMPLEMENTATION
+#include <stdlib.h>
 #include "../header/AllocationLog.h"
 #include "../header/Container.h"
 #include "../header/HeapLog.h"
 #include "../header/ListLog.h"
 #include "../header/Map2CheckFunctions.h"
 #include "../header/PropertyGenerator.h"
-#include <stdlib.h>
 
 MAP2CHECK_CONTAINER heap_log;
 MAP2CHECK_CONTAINER allocation_log;
@@ -147,7 +147,6 @@ void map2check_load(void *ptr, int size) {
   if (!is_valid_heap_address(&heap_log, ptr, size)) {
     printf("Got here with addr %p, and size %d\n", ptr, size);
     if (!is_valid_allocation_address(&allocation_log, ptr, size)) {
-
       ERROR_DEREF = TRUE;
     }
   }
@@ -204,18 +203,18 @@ void update_reference_list_log(long address, enum MemoryAddressStatus status,
             Bool isFree;
 
             switch (status) {
-            case STATIC:
-              isDynamic = FALSE;
-              isFree = FALSE;
-              break;
-            case FREE:
-              isDynamic = FALSE;
-              isFree = TRUE;
-              break;
-            case DYNAMIC:
-              isDynamic = TRUE;
-              isFree = FALSE;
-              break;
+              case STATIC:
+                isDynamic = FALSE;
+                isFree = FALSE;
+                break;
+              case FREE:
+                isDynamic = FALSE;
+                isFree = TRUE;
+                break;
+              case DYNAMIC:
+                isDynamic = TRUE;
+                isFree = FALSE;
+                break;
             }
             LIST_LOG_ROW *row = (LIST_LOG_ROW *)malloc(sizeof(LIST_LOG_ROW));
             *row = new_list_row(
@@ -243,21 +242,21 @@ void map2check_add_store_pointer(void *var, void *value, unsigned scope,
   // Since we check in AllocationLog we can only known if the address is STATIC,
   // FREE or DYNAMIC
   switch (status) {
-  case STATIC:
-    isDynamic = FALSE;
-    isFree = FALSE;
-    break;
-  case FREE:
-    isDynamic = FALSE;
-    isFree = TRUE;
-    break;
-  case DYNAMIC:
-    isDynamic = TRUE;
-    isFree = FALSE;
-    break;
-  default:
-    isDynamic = FALSE;
-    isFree = FALSE;
+    case STATIC:
+      isDynamic = FALSE;
+      isFree = FALSE;
+      break;
+    case FREE:
+      isDynamic = FALSE;
+      isFree = TRUE;
+      break;
+    case DYNAMIC:
+      isDynamic = TRUE;
+      isFree = FALSE;
+      break;
+    default:
+      isDynamic = FALSE;
+      isFree = FALSE;
   }
   int i = list_log.size - 1;
   Bool isRedundant = FALSE;
@@ -311,11 +310,13 @@ void map2check_malloc(void *ptr, int size) {
 }
 
 // TODO: Should we remove this?
+//
+void map2check_posix() __attribute_deprecated__;
 void map2check_posix(void *ptr, int size) {
   void **temp = (void **)ptr;
   void *addr = *temp;
   map2check_malloc(addr, size);
-  map2check_add_store_pointer((void *)temp, addr, 1, "coisao", 1, "cocoiso");
+  map2check_add_store_pointer((void *)temp, addr, 1, "pointer", 1, "cocoiso");
 }
 
 void map2check_calloc(void *ptr, int quantity, int size) {

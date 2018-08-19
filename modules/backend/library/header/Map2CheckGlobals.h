@@ -1,5 +1,5 @@
-#ifndef Map2CheckGloabals_H
-#define Map2CheckGloabals_H
+#ifndef Map2CheckGlobals_H
+#define Map2CheckGlobals_H
 
 #include "Container.h"
 

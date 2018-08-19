@@ -174,7 +174,8 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   std::unique_ptr<DataElement> specification;
   Tools::CheckViolatedProperty violated;
   bool violationWitness = true;
-  // TODO: Add the spection to automa true, what is the property was I checking?
+  // TODO: Add the inspection to automata true, what is the property was I
+  // checking?
   switch (violated.propertyViolated) {
     case Tools::PropertyViolated::FALSE_FREE:
       specification =
@@ -305,7 +306,7 @@ std:
 
   /**
    * Creating the automata nodes
-   * The total number of automata nodes is egual to number lines in
+   * The total number of automata nodes is equal to number lines in
    * automata_list_log.st file take into accounting the BB executed in
    * track_bb_log.st file
    * */
@@ -447,7 +448,7 @@ void SVCompWitness::makeViolationAutomataAux() {
   std::vector<Tools::StateTrueLogRow> stateTrueLogRows =
       Tools::StateTrueLogHelper::getListLogFromCSV();
 
-  // The only diference that is not removed the error location
+  // The only difference that is not removed the error location
 
   std::vector<Tools::TrackBBLogRow> trackBBLogRows =
       Tools::TrackBBLogHelper::getListLogFromCSV();
@@ -463,7 +464,7 @@ void SVCompWitness::makeViolationAutomataAux() {
 
   /**
    * Creating the automata nodes
-   * The total number of automata nodes is egual to number lines in
+   * The total number of automata nodes is equal to number lines in
    * automata_list_log.st file take into accounting the BB executed in
    * track_bb_log.st file
    * */

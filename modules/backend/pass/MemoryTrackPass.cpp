@@ -16,7 +16,7 @@ inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
   Instruction *pointer = reinterpret_cast<Instruction *>(&*i);
   return pointer;
 }
-} // namespace
+}  // namespace
 
 // TODO: make dynCast only one time
 void MemoryTrackPass::instrumentPointer() {
@@ -52,7 +52,7 @@ void MemoryTrackPass::instrumentPointer() {
 void MemoryTrackPass::instrumentPosixMemAllign() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
 
-  this->caleeFunction = callInst->getCalledFunction();
+  this->calleeFunction = callInst->getCalledFunction();
 
   auto j = this->currentInstruction;
   ++j;
@@ -140,7 +140,6 @@ void MemoryTrackPass::instrumentMemcpy() {
 
   auto size = callInst->getArgOperand(2);
   auto pointer_destiny = callInst->getOperand(0);
-  auto pointer_origin = callInst->getOperand(1);
 
   Twine bitcast("bitcast_memcpy");
 
@@ -192,7 +191,7 @@ void MemoryTrackPass::instrumentAlloca() {
   builder.CreateCall(map2check_alloca, args);
 }
 
-/* For the porpose of memory checking calloc is basically
+/* For the purpose of memory checking calloc is basically
  * a malloc with 2 args, the first is how many elements
  * and the second is the size of the primitive element
  */
@@ -214,7 +213,7 @@ void MemoryTrackPass::instrumentFree() {
   auto j = this->currentInstruction;
   // ++j;
 
-  this->caleeFunction = callInst->getCalledFunction();
+  this->calleeFunction = callInst->getCalledFunction();
   this->getDebugInfo();
   LoadInst *li;
   IRBuilder<> builder(BBIteratorToInst(j));
@@ -222,9 +221,9 @@ void MemoryTrackPass::instrumentFree() {
   auto function_name = this->currentFunction->getName();
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
-  if (this->caleeFunction == NULL) {
+  if (this->calleeFunction == NULL) {
     Value *v = callInst->getCalledValue();
-    this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+    this->calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
     li = dyn_cast<LoadInst>(callInst->getArgOperand(0));
 
   } else {
@@ -355,29 +354,28 @@ void MemoryTrackPass::instrumentInit() {
 
 // TODO: use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
-
   // TODO: Resolve SVCOMP ISSUE
-  if (this->caleeFunction->getName() == "free") {
+  if (this->calleeFunction->getName() == "free") {
     this->instrumentFree();
-  } else if (this->caleeFunction->getName() == "cfree") {
+  } else if (this->calleeFunction->getName() == "cfree") {
     this->instrumentFree();
-  } else if (this->caleeFunction->getName() == "posix_memalign") {
+  } else if (this->calleeFunction->getName() == "posix_memalign") {
     this->instrumentPosixMemAllign();
-  } else if (this->caleeFunction->getName() == "realloc") {
+  } else if (this->calleeFunction->getName() == "realloc") {
     this->instrumentRealloc();
-  } else if (this->caleeFunction->getName() == "memset") {
+  } else if (this->calleeFunction->getName() == "memset") {
     this->instrumentMemset();
-  } else if (this->caleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i64") {
+  } else if (this->calleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i64") {
     this->instrumentMemcpy();
-  } else if (this->caleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i32") {
+  } else if (this->calleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i32") {
     this->instrumentMemcpy();
-  } else if (this->caleeFunction->getName() == "malloc") {
+  } else if (this->calleeFunction->getName() == "malloc") {
     this->instrumentMalloc();
-  } else if (this->caleeFunction->getName() == "valloc") {
+  } else if (this->calleeFunction->getName() == "valloc") {
     this->instrumentMalloc();
-  } else if (this->caleeFunction->getName() == "alloca") {
+  } else if (this->calleeFunction->getName() == "alloca") {
     this->instrumentAlloca();
-  } else if (this->caleeFunction->getName() == "calloc") {
+  } else if (this->calleeFunction->getName() == "calloc") {
     this->instrumentCalloc();
   }
 }
@@ -457,20 +455,20 @@ void MemoryTrackPass::instrumentAllocation() {
 void MemoryTrackPass::runOnCallInstruction() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
 
-  this->caleeFunction = callInst->getCalledFunction();
+  this->calleeFunction = callInst->getCalledFunction();
 
-  if (this->caleeFunction == NULL) {
+  if (this->calleeFunction == NULL) {
     Value *v = callInst->getCalledValue();
-    this->caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+    this->calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
-    if (this->caleeFunction != NULL) {
+    if (this->calleeFunction != NULL) {
       this->switchCallInstruction();
     }
   } else {
     this->switchCallInstruction();
   }
 
-  this->caleeFunction = NULL;
+  this->calleeFunction = NULL;
 }
 
 // TODO: make dynCast only one time
@@ -735,7 +733,7 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
     this->functionsValues.push_back(this->currentFunction);
     this->mainFunctionInitialized = true;
     this->mainFunction = &F;
-    this->instrumentInit(); // Related to BUG checkout this
+    this->instrumentInit();  // Related to BUG checkout this
   }
 
   // this->instrumentFunctionAddress();
@@ -771,6 +769,6 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
 }
 
 char MemoryTrackPass::ID = 0;
-static RegisterPass<MemoryTrackPass>
-    X("memory_track",
-      "Validate memory security proprieties using dynamic memory tracking");
+static RegisterPass<MemoryTrackPass> X(
+    "memory_track",
+    "Validate memory security proprieties using dynamic memory tracking");

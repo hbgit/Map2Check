@@ -89,7 +89,10 @@ size_t map2check_non_det_size_t();
  * @brief Generates non deterministic loff_t
  * @return Non deterministic unsigned loff_t
  */
+// NOTE: intellisense can't work with loff
+#ifndef __INTELLISENSE__
 loff_t map2check_non_det_loff_t();
+#endif
 
 #define sector_t unsigned long
 /**
@@ -102,6 +105,7 @@ sector_t map2check_non_det_sector_t();
  * @brief Generates non deterministic unsigned
  * @return Non deterministic unsigned
  */
+typedef unsigned uint;
 uint map2check_non_det_uint();
 
 #endif

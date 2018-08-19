@@ -28,10 +28,10 @@ namespace Tools = Map2Check;
 struct GenerateAutomataTruePass : public FunctionPass {
   static char ID;
   GenerateAutomataTruePass() : FunctionPass(ID) {}
-  GenerateAutomataTruePass(std::string cprogram_path) : FunctionPass(ID) {
-    this->cprogram_path = cprogram_path;
+  GenerateAutomataTruePass(std::string c_program_path) : FunctionPass(ID) {
+    this->c_program_path = c_program_path;
     this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
-        Tools::SourceCodeHelper(cprogram_path));
+        Tools::SourceCodeHelper(c_program_path));
   }
 
   virtual bool runOnFunction(Function& F);
@@ -43,9 +43,9 @@ struct GenerateAutomataTruePass : public FunctionPass {
   void checkAndSkipAssume();
   void skipEmptyLine();
   BasicBlock::iterator& skipEmptyLineIt(BasicBlock::iterator& iT);
-  bool checkInstBBIsAssume(BasicBlock::iterator& iT);
+  bool checkInstBbIsAssume(BasicBlock::iterator& iT);
   bool isBranchCond(BasicBlock& B);
-  std::string convertLLPredicatetoXmlText(Instruction& I);
+  std::string convertLLPredicateToXmlText(Instruction& I);
   std::string getPredicateSymOnXmlText(ICmpInst& icmpInst);
   void identifyAssertLoc(BasicBlock& B);
   void printStateData();
@@ -78,7 +78,7 @@ struct GenerateAutomataTruePass : public FunctionPass {
   Function* currentFunction;
   std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
   std::vector<int> assertListLoc;
-  std::string cprogram_path;
+  std::string c_program_path;
   BasicBlock::iterator currentInstruction;
   BasicBlock::iterator lastInstructionMain;
   BasicBlock::iterator firstBlockInst;

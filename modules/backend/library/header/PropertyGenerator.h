@@ -11,7 +11,7 @@
  * Generate a file containing the violated property
  * @param violated   Violated Property of program
  * @param line  Line where store operation was called
- * @param function_name  Name of the function where the operation occured.
+ * @param function_name  Name of the function where the operation occurred.
  */
 void write_property(enum ViolatedProperty violated, int line,
                     const char* function_name);

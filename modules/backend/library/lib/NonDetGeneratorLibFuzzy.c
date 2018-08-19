@@ -24,7 +24,7 @@ pthread_t fuzzer_execution;
 void nondet_init() { nondet_log_init(); }
 void nondet_destroy() { nondet_log_destroy(); }
 #include <signal.h>
-void nondet_cancel() { pthread_exit(fuzzer_execution); }
+void nondet_cancel() { pthread_exit(NULL); }
 void nondet_generate_aux_witness_files() {
   nondet_log_to_file(map2check_nondet_get_log());
 }
@@ -65,7 +65,9 @@ MAP2CHECK_NON_DET_GENERATOR(ulong)
 MAP2CHECK_NON_DET_GENERATOR(bool)
 MAP2CHECK_NON_DET_GENERATOR(uchar)
 MAP2CHECK_NON_DET_GENERATOR(size_t)
+#ifndef __INTELLISENSE__
 MAP2CHECK_NON_DET_GENERATOR(loff_t)
+#endif
 MAP2CHECK_NON_DET_GENERATOR(sector_t)
 // MAP2CHECK_NON_DET_GENERATOR(uint)
 

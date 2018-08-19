@@ -15,15 +15,15 @@ void OverflowPass::hasNonDetUint(Instruction *I) {
   // errs() << *debugInfo.getLineNumberValue() << "================\n";
 }
 
-void OverflowPass::listAllUintAssig(BasicBlock &B) {
+void OverflowPass::listAllUintAssign(BasicBlock &B) {
   for (BasicBlock::iterator i = B.begin(), e = B.end(); i != e; ++i) {
     // i->dump();
 
     if (auto *cI = dyn_cast<CallInst>(&*i)) {
       Value *v = cI->getCalledValue();
-      Function *caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-      if (caleeFunction->getName() == "__VERIFIER_nondet_uint" ||
-          caleeFunction->getName() == "map2check_non_det_uint") {
+      Function *calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+      if (calleeFunction->getName() == "__VERIFIER_nondet_uint" ||
+          calleeFunction->getName() == "map2check_non_det_uint") {
         DebugInfo debugInfoCi(this->Ctx, cI);
         // errs() << debugInfoCi.getLineNumberInt() << "==================\n";
 
@@ -139,8 +139,8 @@ std::string OverflowPass::getValueNameOperator(Value *Vop) {
     }
   } else if (CallInst *callInst = dyn_cast<CallInst>(Vop)) {
     Value *v = callInst->getCalledValue();
-    Function *caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-    valueOp = caleeFunction->getName();
+    Function *calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+    valueOp = calleeFunction->getName();
 
   } else if (BinaryOperator *binOp = dyn_cast<BinaryOperator>(Vop)) {
     Value *fO1 = binOp->getOperand(0);
@@ -169,7 +169,7 @@ bool OverflowPass::runOnFunction(Function &F) {
   /**
     for(auto& B:F)
     {
-    this->listAllUintAssig(B);
+    this->listAllUintAssign(B);
     }**/
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
@@ -252,10 +252,10 @@ bool OverflowPass::runOnFunction(Function &F) {
         }
 
         if (iT != this->listUnsignedVars.end() || isUnsignedNonDet) {
-          this->isUnitAssigment = true;
+          this->isUnitAssignment = true;
           isUnsigned = true;
         } else {
-          this->isUnitAssigment = false;
+          this->isUnitAssignment = false;
           isUnsigned = false;
         }
 
@@ -266,9 +266,9 @@ bool OverflowPass::runOnFunction(Function &F) {
                          this->listUnsignedVars.end(), rvaluep);
 
           if (iT != this->listUnsignedVars.end() || isUnsignedNonDet) {
-            this->isUnitAssigment = true;
+            this->isUnitAssignment = true;
           } else {
-            this->isUnitAssigment = false;
+            this->isUnitAssignment = false;
           }
         }
 
@@ -288,7 +288,7 @@ bool OverflowPass::runOnFunction(Function &F) {
         if (std::find(this->valuesThatShouldBeUint.begin(),
                       this->valuesThatShouldBeUint.end(), firstOperandValue) !=
             this->valuesThatShouldBeUint.end()) {
-          this->isUnitAssigment = true;
+          this->isUnitAssignment = true;
         }
 
         // Check if is implicitly uint
@@ -296,12 +296,12 @@ bool OverflowPass::runOnFunction(Function &F) {
                            this->valuesThatShouldBeUint.end(),
                            secondOperandValue) !=
                  this->valuesThatShouldBeUint.end()) {
-          this->isUnitAssigment = true;
+          this->isUnitAssignment = true;
         }
 
         switch (binOp->getOpcode()) {
           case (Instruction::Add):
-            if (this->isUnitAssigment) {
+            if (this->isUnitAssignment) {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowAddUint();
             } else {
@@ -313,7 +313,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 
             break;
           case (Instruction::Sub):
-            if (this->isUnitAssigment) {
+            if (this->isUnitAssignment) {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowSubUint();
             } else {
@@ -325,7 +325,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 
             break;
           case (Instruction::Mul):
-            if (this->isUnitAssigment) {
+            if (this->isUnitAssignment) {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowMulUint();
             } else {

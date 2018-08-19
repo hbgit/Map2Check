@@ -53,19 +53,19 @@ void GenerateAutomataTruePass::hasCallOnBasicBlock(BasicBlock& B,
       if (!cI->getCalledValue()->getName().empty()) {
         Value* v = cI->getCalledValue();
 
-        Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+        Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
-        if (caleeFunction->getName() != "__VERIFIER_assume" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_int" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_char" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_pointer" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_long" &&
-            caleeFunction->getName() != "__VERIFIER_nondet_ushort" &&
-            caleeFunction->getName() != "map2check_assume" &&
-            caleeFunction->getName() != "malloc" &&
-            caleeFunction->getName() != "calloc" &&
-            caleeFunction->getName() != "realloc" &&
-            caleeFunction->getName() != "free") {
+        if (calleeFunction->getName() != "__VERIFIER_assume" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_int" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_char" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_pointer" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_long" &&
+            calleeFunction->getName() != "__VERIFIER_nondet_ushort" &&
+            calleeFunction->getName() != "map2check_assume" &&
+            calleeFunction->getName() != "malloc" &&
+            calleeFunction->getName() != "calloc" &&
+            calleeFunction->getName() != "realloc" &&
+            calleeFunction->getName() != "free") {
           // BasicBlock::iterator iI= &;
           // i->dump();
           DebugInfo debugInfoFi(this->Ctx, BBIteratorToInst(i));
@@ -199,14 +199,14 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B,
   }
 }
 
-bool GenerateAutomataTruePass::checkInstBBIsAssume(BasicBlock::iterator& iT) {
+bool GenerateAutomataTruePass::checkInstBbIsAssume(BasicBlock::iterator& iT) {
   if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(iT))) {
     if (!cI->getCalledValue()->getName().empty()) {
       Value* v = cI->getCalledValue();
-      Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+      Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
-      if (caleeFunction->getName() == "__VERIFIER_assume" ||
-          caleeFunction->getName() == "map2check_assume") {
+      if (calleeFunction->getName() == "__VERIFIER_assume" ||
+          calleeFunction->getName() == "map2check_assume") {
         return true;
       } else {
         return false;
@@ -222,7 +222,7 @@ void GenerateAutomataTruePass::checkAndSkipAssume() {
   this->numLineBlk_ori = debugInfoLa.getLineNumberInt();
   bool flagAssume = false;
 
-  if (this->checkInstBBIsAssume(this->st_lastBlockInst)) {
+  if (this->checkInstBbIsAssume(this->st_lastBlockInst)) {
     flagAssume = true;
   } else {
     this->st_startline = this->numLineBlk_ori;
@@ -301,9 +301,9 @@ void GenerateAutomataTruePass::identifyAssertLoc(BasicBlock& B) {
     if (auto* cI = dyn_cast<CallInst>(&I)) {
       if (!cI->getCalledValue()->getName().empty()) {
         Value* v = cI->getCalledValue();
-        Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-        // errs() << caleeFunction->getName() << "\n";
-        if (caleeFunction->getName() == "__VERIFIER_assert") {
+        Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+        // errs() << calleeFunction->getName() << "\n";
+        if (calleeFunction->getName() == "__VERIFIER_assert") {
           DebugInfo debugInfoCi(this->Ctx, cI);
           this->assertListLoc.push_back(debugInfoCi.getLineNumberInt());
         }
@@ -352,14 +352,14 @@ BasicBlock::iterator& GenerateAutomataTruePass::skipEmptyLineIt(
 // Identify if the block has a branch and define the condition to true and false
 bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B) {
   // errs() << bbName << "\n";
-  StringRef actualNameInt;
+
   std::vector<int>::const_iterator iT;
   bool retResult = false;
 
   for (auto& I : B) {
     if (auto* bI = dyn_cast<ICmpInst>(&I)) {
       // bI->dump();
-      // errs() << this->convertLLPredicatetoXmlText(I) << "\n";
+      // errs() << this->convertLLPredicateToXmlText(I) << "\n";
       //
       DebugInfo debugInfoBi(this->Ctx, bI);
       // errs() << debugInfoBi.getLineNumberInt() << "\n";
@@ -368,9 +368,9 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B) {
       iT = std::find(this->assertListLoc.begin(), this->assertListLoc.end(),
                      debugInfoBi.getLineNumberInt());
       if (!(iT != this->assertListLoc.end())) {
-        // errs() << "control : " << this->convertLLPredicatetoXmlText(I) <<
+        // errs() << "control : " << this->convertLLPredicateToXmlText(I) <<
         // "\n";
-        this->st_controlCode = this->convertLLPredicatetoXmlText(I);
+        this->st_controlCode = this->convertLLPredicateToXmlText(I);
         this->numLineControlSt = debugInfoBi.getLineNumberInt();
 
         // getting true and false linenum from bb
@@ -441,7 +441,7 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B) {
   }
 }
 
-std::string GenerateAutomataTruePass::convertLLPredicatetoXmlText(
+std::string GenerateAutomataTruePass::convertLLPredicateToXmlText(
     Instruction& I) {
   std::string lvaluep;
   std::string rvaluep;
@@ -554,8 +554,8 @@ bool GenerateAutomataTruePass::checkBBHasLError(BasicBlock& nowB) {
       if (!callInst->getCalledValue()->getName().empty()) {
         // errs() << callInst->getCalledFunction()->getName() << "\n";
         Value* v = callInst->getCalledValue();
-        Function* caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-        if (caleeFunction->getName() == "__VERIFIER_error") {
+        Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+        if (calleeFunction->getName() == "__VERIFIER_error") {
           this->st_isErrorLocation = 1;
           return true;
         }

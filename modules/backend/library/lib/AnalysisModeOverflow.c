@@ -10,9 +10,9 @@
  * would fail.
  * @param param1 First operand
  * @param param2 Second operand
- * @param line Line where operation occured
- * @param scope Scope where operation occured
- * @param function_name Name of the function which operation occured
+ * @param line Line where operation occurred
+ * @param scope Scope where operation occurred
+ * @param function_name Name of the function which operation occurred
  */
 void map2check_binop_add(int param1, int param2, unsigned line, unsigned scope,
                          char *function_name);
@@ -24,9 +24,9 @@ void map2check_binop_add_uint(unsigned param1, unsigned param2, unsigned line,
  * would fail.
  * @param param1 First operand
  * @param param2 Second operand
- * @param line Line where operation occured
- * @param scope Scope where operation occured
- * @param function_name Name of the function which operation occured
+ * @param line Line where operation occurred
+ * @param scope Scope where operation occurred
+ * @param function_name Name of the function which operation occurred
  * */
 void map2check_binop_sub(int param1, int param2, unsigned line, unsigned scope,
                          char *function_name);
@@ -39,9 +39,9 @@ void map2check_binop_sub_uint(unsigned param1, unsigned param2, unsigned line,
  * would fail.
  * @param param1 First operand
  * @param param2 Second operand
- * @param line Line where operation occured
- * @param scope Scope where operation occured
- * @param function_name Name of the function which operation occured
+ * @param line Line where operation occurred
+ * @param scope Scope where operation occurred
+ * @param function_name Name of the function which operation occurred
  * */
 void map2check_binop_mul(int param1, int param2, unsigned line, unsigned scope,
                          char *function_name);
@@ -54,9 +54,9 @@ void map2check_binop_mul_uint(unsigned param1, unsigned param2, unsigned line,
  * would fail.
  * @param param1 First operand
  * @param param2 Second operand
- * @param line Line where operation occured
- * @param scope Scope where operation occured
- * @param function_name Name of the function which operation occured
+ * @param line Line where operation occurred
+ * @param scope Scope where operation occurred
+ * @param function_name Name of the function which operation occurred
  * */
 void map2check_binop_sdiv(int param1, int param2, unsigned line, unsigned scope,
                           char *function_name);
@@ -160,16 +160,16 @@ void map2check_binop_mul(int param1, int param2, unsigned line, unsigned scope,
     int limitPositiveResult = INT_MAX / param1;
 
     switch (isParam1Positive) {
-    case TRUE:
-      if (limitPositiveResult < param2) {
-        overflowError(line, function_name);
-      }
-      break;
-    case FALSE:
-      if (param2 < limitPositiveResult) {
-        overflowError(line, function_name);
-      }
-      break;
+      case TRUE:
+        if (limitPositiveResult < param2) {
+          overflowError(line, function_name);
+        }
+        break;
+      case FALSE:
+        if (param2 < limitPositiveResult) {
+          overflowError(line, function_name);
+        }
+        break;
     }
 
   }
@@ -177,16 +177,16 @@ void map2check_binop_mul(int param1, int param2, unsigned line, unsigned scope,
   else {
     int limitNegativeResult = INT_MIN / param1;
     switch (isParam1Positive) {
-    case TRUE:
-      if (limitNegativeResult > param2) {
-        overflowError(line, function_name);
-      }
-      break;
-    case FALSE:
-      if (param2 > absInteger(limitNegativeResult)) {
-        overflowError(line, function_name);
-      }
-      break;
+      case TRUE:
+        if (limitNegativeResult > param2) {
+          overflowError(line, function_name);
+        }
+        break;
+      case FALSE:
+        if (param2 > absInteger(limitNegativeResult)) {
+          overflowError(line, function_name);
+        }
+        break;
     }
   }
 }
@@ -227,7 +227,7 @@ void map2check_binop_sdiv(int param1, int param2, unsigned line, unsigned scope,
   return;
 }
 
-// Overflow mode does not use any aditional data
+// Overflow mode does not use any additional data
 void analysis_init() {}
 
 void analysis_destroy() {}

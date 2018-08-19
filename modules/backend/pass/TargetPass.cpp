@@ -24,18 +24,18 @@ bool TargetPass::runOnFunction(Function& F) {
 }
 
 void TargetPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
-  Function* caleeFunction = callInst->getCalledFunction();
+  Function* calleeFunction = callInst->getCalledFunction();
 
-  if (caleeFunction == NULL) {
+  if (calleeFunction == NULL) {
     Value* v = callInst->getCalledValue();
-    caleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+    calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
-    if (caleeFunction == NULL) {
+    if (calleeFunction == NULL) {
       return;
     }
   }
 
-  if (caleeFunction->getName() == targetFunctionName) {
+  if (calleeFunction->getName() == targetFunctionName) {
     this->instrumentErrorInstruction(callInst, Ctx);
   }
 }

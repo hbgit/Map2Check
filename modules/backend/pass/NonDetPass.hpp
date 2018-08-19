@@ -42,16 +42,16 @@ enum class NonDetType {
 };
 
 namespace {
-#define INSTRUMENT_HEADER_HELPER(type)                                         \
+#define INSTRUMENT_HEADER_HELPER(type) \
   void instrumentNonDet##type(CallInst *callInst, LLVMContext *Ctx);
-}
+}  // namespace
 
 struct NonDetPass : public FunctionPass {
   static char ID;
   NonDetPass() : FunctionPass(ID) {}
   virtual bool runOnFunction(Function &F);
 
-protected:
+ protected:
   void instrumentInstruction();
   /**
    * @brief Checks if current function is a non det call and instruments it
@@ -59,8 +59,8 @@ protected:
   void runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx);
   Value *getFunctionNameValue() { return this->functionName; }
 
-private:
-  void instrumentNonDet(NonDetType type, Function *caleeFunction);
+ private:
+  void instrumentNonDet(NonDetType type, Function *calleeFunction);
   INSTRUMENT_HEADER_HELPER(Integer)
   INSTRUMENT_HEADER_HELPER(Unsigned)
   INSTRUMENT_HEADER_HELPER(Char)
@@ -82,7 +82,7 @@ private:
 };
 
 class NonDetPassException : public std::runtime_error {
-public:
+ public:
   explicit NonDetPassException(std::string message)
       : std::runtime_error(message) {}
   virtual const char *what() const throw();

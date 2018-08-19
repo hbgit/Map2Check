@@ -61,7 +61,7 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log,
 
 void allocation_log_to_file(MAP2CHECK_CONTAINER* list);
 /**
- * Checks if all addresses of allocation log where dealocatted
+ * Checks if all addresses of allocation log where deallocated
  * @param allocation_log  Address to a allocation log
  * @return A bool representing if allocation log is valid (no memory leaks)
  */

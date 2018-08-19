@@ -21,9 +21,8 @@ Bool mark_deallocation_log(MAP2CHECK_CONTAINER *allocation_log, long address) {
   return append_element(allocation_log, &row);
 }
 
-enum MemoryAddressStatus
-check_address_allocation_log(MAP2CHECK_CONTAINER *allocation_log,
-                             long address) {
+enum MemoryAddressStatus check_address_allocation_log(
+    MAP2CHECK_CONTAINER *allocation_log, long address) {
   int i = allocation_log->size - 1;
 
   for (; i >= 0; i--) {
@@ -48,7 +47,7 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free) {
   return row;
 }
 
-/* The ideia of this function is to check if all address allocated
+/* The idea of this function is to check if all address allocated
 ** were released at the end of the program, to check this, we iterate
 ** over all elements starting from bottom of allocation log, if the
 ** address of the current item is not Free, we iterate from the top
@@ -88,8 +87,8 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
   return !MemTrackError;
 }
 
-MEMORY_ALLOCATIONS_ROW *
-find_row_with_address(MAP2CHECK_CONTAINER *allocation_log, void *ptr) {
+MEMORY_ALLOCATIONS_ROW *find_row_with_address(
+    MAP2CHECK_CONTAINER *allocation_log, void *ptr) {
   int i = allocation_log->size - 1;
 
   unsigned addressToCheck = (unsigned)ptr;
@@ -105,7 +104,7 @@ find_row_with_address(MAP2CHECK_CONTAINER *allocation_log, void *ptr) {
   return NULL;
 }
 
-/* Very simple ideia, we iterate over all elements of the allocation log,
+/* Very simple idea, we iterate over all elements of the allocation log,
  * beggining from top, if the address that we are looking for is in the range of
  * the element address memory space and the element is not free, then it's TRUE
  * otherwise FALSE and we set last_address to the address of last memory address

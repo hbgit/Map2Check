@@ -33,14 +33,14 @@ struct OverflowPass : public FunctionPass {
   }
   virtual bool runOnFunction(Function &F);
 
-protected:
+ protected:
   Value *getFunctionNameValue() { return this->functionName; }
 
-private:
+ private:
   std::unique_ptr<OperationsFunctions> operationsFunctions;
   Value *functionName = NULL;
   void hasNonDetUint(Instruction *I);
-  void listAllUintAssig(BasicBlock &B);
+  void listAllUintAssign(BasicBlock &B);
 
   std::string getValueNameOperator(Value *Vop);
   void listAllUnsignedVar(Function &F);
@@ -50,10 +50,10 @@ private:
   std::vector<Value *> storeInstWithUint;
   std::vector<Value *> loadInstWithUint;
   std::vector<std::string> listUnsignedVars;
-  bool isUnitAssigment = false;
+  bool isUnitAssignment = false;
   std::vector<int> listLineNumUint;
-  bool hasNonDetUintOp_1;
-  bool hasNonDetUintOp_2;
+  // bool hasNonDetUintOp_1;
+  // bool hasNonDetUintOp_2;
   LLVMContext *Ctx;
   /* BasicBlock::iterator currentInstruction; */
 };

@@ -69,7 +69,7 @@ void map2check_error() {
 }
 
 void map2check_destroy() {
-  printf("Destroying map2check\n");
+  // printf("Destroying map2check\n");
   static Bool alreadyReleased = FALSE;
   if (alreadyReleased) return;
   alreadyReleased = TRUE;

@@ -1,5 +1,5 @@
-#include "../header/NonDetGenerator.h"
 #include <stdlib.h>
+#include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
 
 /* Logic used for cases generation:
@@ -56,19 +56,33 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 #define MAP2CHECK_NON_DET_GENERATOR(type) \
   type map2check_non_det_##type() { return (type)get_next_input_from_fuzzer(); }
 
-MAP2CHECK_NON_DET_GENERATOR(int)
 MAP2CHECK_NON_DET_GENERATOR(char)
 MAP2CHECK_NON_DET_GENERATOR(pointer)
 MAP2CHECK_NON_DET_GENERATOR(ushort)
 MAP2CHECK_NON_DET_GENERATOR(long)
-MAP2CHECK_NON_DET_GENERATOR(unsigned)
+// MAP2CHECK_NON_DET_GENERATOR(unsigned)
 MAP2CHECK_NON_DET_GENERATOR(ulong)
 MAP2CHECK_NON_DET_GENERATOR(bool)
 MAP2CHECK_NON_DET_GENERATOR(uchar)
 MAP2CHECK_NON_DET_GENERATOR(size_t)
 MAP2CHECK_NON_DET_GENERATOR(loff_t)
 MAP2CHECK_NON_DET_GENERATOR(sector_t)
-MAP2CHECK_NON_DET_GENERATOR(uint)
+// MAP2CHECK_NON_DET_GENERATOR(uint)
+
+// Considering an int on a x64, then a 64 bit integer is 4 times a 8 bit integer
+int map2check_non_det_int() {
+  uint64_t result = 0;
+  int i = 0;
+  for (; i < 4; i++) result |= get_next_input_from_fuzzer() << (8 * i);
+
+  return (int)result;
+}
+
+uint map2check_non_det_uint() { return (uint)map2check_non_det_int(); }
+
+unsigned map2check_non_det_unsigned() {
+  return (unsigned)map2check_non_det_int();
+}
 
 char *map2check_non_det_pchar() {
   unsigned length = map2check_non_det_unsigned();

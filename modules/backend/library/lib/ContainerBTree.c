@@ -4,53 +4,63 @@
 #include "../header/Container.h"
 #include "BTree.h"
 
+#define B_TREE_FILE_NAME_SIZE 64
+
 MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
   MAP2CHECK_CONTAINER container;
   container.size = 0;
+  int proccess_id = getpid();
+  char* file_suffix;
   B_TREE* btree = malloc(sizeof(B_TREE));
   switch (container.type) {
     case LIST_LOG_CONTAINER:
-      *btree = B_TREE_CREATE("listlog.map2check.bin");
+      file_suffix = "listlog.map2check.bin";
       break;
     case ALLOCATION_LOG_CONTAINER:
-      *btree = B_TREE_CREATE("allocationlog.map2check.bin");
+      file_suffix = "allocationlog.map2check.bin";
       break;
     case NONDET_LOG_CONTAINER:
-      *btree = B_TREE_CREATE("nondetlog.map2check.bin");
+      file_suffix = "nondetlog.map2check.bin";
       break;
     case HEAP_LOG_CONTAINER:
-      *btree = B_TREE_CREATE("heaplog.map2check.bin");
+      file_suffix = "heaplog.map2check.bin";
       break;
     case TRACKBB_LOG_CONTAINER:
-      *btree = B_TREE_CREATE("trackbblog.map2check.bin");
+      file_suffix = "trackbblog.map2check.bin";
       break;
   }
-
+  char name[B_TREE_FILE_NAME_SIZE];
+  snprintf(name, B_TREE_FILE_NAME_SIZE, "%d-%s", proccess_id, file_suffix);
+  *btree = B_TREE_CREATE(name);
   container.values = btree;
   container.type = type;
   return container;
 }
 
 Bool free_container(MAP2CHECK_CONTAINER* container) {
+  int proccess_id = getpid();
+  char* file_suffix;
   switch (container->type) {
     case LIST_LOG_CONTAINER:
-      // TODO (rafa.sa.xp@gmail.com) for some reason this causes a segmentation
-      // fault
-      // system("rm -rf listlog.map2check.bin");
+      file_suffix = "listlog.map2check.bin";
       break;
     case ALLOCATION_LOG_CONTAINER:
-      system("rm -rf allocationlog.map2check.bin");
+      file_suffix = "allocationlog.map2check.bin";
       break;
     case NONDET_LOG_CONTAINER:
-      system("rm -rf nondetlog.map2check.bin");
+      file_suffix = "nondetlog.map2check.bin";
       break;
     case HEAP_LOG_CONTAINER:
-      system("rm -rf heaplog.map2check.bin");
+      file_suffix = "heaplog.map2check.bin";
       break;
     case TRACKBB_LOG_CONTAINER:
-      system("rm -rf trackbblog.map2check.bin");
+      file_suffix = "trackbblog.map2check.bin";
       break;
   }
+  char name[B_TREE_FILE_NAME_SIZE];
+  snprintf(name, B_TREE_FILE_NAME_SIZE, "rm -rf %d-%s", proccess_id,
+           file_suffix);
+  system(name);
   B_TREE_FREE((B_TREE*)container->values);
   free(container->values);
   return TRUE;

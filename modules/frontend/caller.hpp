@@ -20,6 +20,9 @@ enum class NonDetGenerator {
   LibFuzzer /**< LibFuzzer from LLVM */
 };
 
+/** Data Structure */
+enum class DataStructure { Array, BTree };
+
 /** This class is responsible for calling all external and system programs */
 class Caller {
  protected:
@@ -35,6 +38,7 @@ class Caller {
   std::vector<int> processClangOutput();
   Map2CheckMode map2checkMode;
   NonDetGenerator nonDetGenerator;
+  DataStructure dataStructure = DataStructure::Array;
   std::string programHash;
   unsigned timeout;
 
@@ -68,6 +72,9 @@ class Caller {
 
   /** Instrument and execute nondeterministic generator */
   void applyNonDetGenerator();
+
+  /** Use btree mode */
+  void useBTree() { this->dataStructure = DataStructure::BTree; }
 };
 
 }  // namespace Map2Check

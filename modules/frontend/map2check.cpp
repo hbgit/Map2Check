@@ -125,6 +125,7 @@ struct map2check_args {
   bool debugMode = false;
   bool generateTestCase = false;
   bool printCounterExample = false;
+  bool btree = false;
 };
 
 int map2check_execution(map2check_args args) {
@@ -156,6 +157,9 @@ int map2check_execution(map2check_args args) {
   caller->c_program_fullpath = args.inputFile;
   caller->compileCFile();
   caller->setTimeout(args.timeout);
+  if(args.btree) {
+    caller->useBTree();
+  }
 
   // (2) Instrument functions for current mode
   caller->callPass(args.function);
@@ -222,7 +226,10 @@ int main(int argc, char **argv) {
         "check-overflow", "\tAnalyze program for overflow failures")(
         "generate-witness,w", "\tGenerates witness file")(
         "expected-result,e", po::value<string>(),
-        "\tSpecifies type of violation expected");
+        "\tSpecifies type of violation expected")(
+        "btree",
+        "\t Uses btree structure to hold information (experimental, use this "
+        "if you are having memory problems)");
 
     po::positional_options_description p;
     p.add("input-file", -1);
@@ -266,6 +273,9 @@ int main(int argc, char **argv) {
     }
     if (vm.count("check-overflow")) {
       args.mode = Map2Check::Map2CheckMode::OVERFLOW_MODE;
+    }
+    if (vm.count("btree")) {
+      args.btree = true;
     }
     if (vm.count("print-counter")) {
       args.printCounterExample = true;

@@ -165,10 +165,20 @@ void Caller::linkLLVM() {
   linkCommand << " " + programHash + "-output.bc"
               << " ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc"
               << " ${MAP2CHECK_PATH}/lib/TrackBBLog.bc"
-              // TODO: add option for container type
-              << " ${MAP2CHECK_PATH}/lib/ContainerRealloc.bc"
               << " ${MAP2CHECK_PATH}/lib/NonDetLog.bc"
               << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc";
+
+  switch (dataStructure) {
+    case DataStructure::Array: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/ContainerRealloc.bc";
+      break;
+    }
+    case DataStructure::BTree: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/ContainerBTree.bc"
+                  << " ${MAP2CHECK_PATH}/lib/BTree.bc";
+      break;
+    }
+  }
 
   switch (map2checkMode) {
     case Map2CheckMode::MEMTRACK_MODE: {

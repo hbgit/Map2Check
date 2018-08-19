@@ -17,7 +17,7 @@
 
 namespace {
 inline std::string getLibSuffix() { return ".so"; }
-}
+}  // namespace
 
 namespace Map2Check {
 Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
@@ -27,7 +27,7 @@ Caller::Caller(std::string bcprogram_path, Map2CheckMode mode,
   this->map2checkMode = mode;
   this->nonDetGenerator = generator;
   GenHash hash;
-    int teste;
+  int teste;
   hash.setFilePath(bcprogram_path);
   hash.generate_sha1_hash_for_file();
   this->programHash = hash.getOutputSha1HashFile();
@@ -71,31 +71,32 @@ void Caller::cleanGarbage() {
 
 void Caller::applyNonDetGenerator() {
   switch (nonDetGenerator) {
-  case (NonDetGenerator::None): {
-    Map2Check::Log::Info(
-        "Map2Check will not generate non deterministic numbers");
-    break;
-  }
-  case (NonDetGenerator::LibFuzzer): {
-    Map2Check::Log::Info("Instrumenting with LLVM Libfuzzer");
-    std::ostringstream command;
-    command.str("");
-    command << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
-            << Caller::postOptimizationFlags()
-            << " -o " + programHash + "-fuzzed.out"
-            << " " + programHash + "-result.bc";
+    case (NonDetGenerator::None): {
+      Map2Check::Log::Info(
+          "Map2Check will not generate non deterministic numbers");
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      Map2Check::Log::Info("Instrumenting with LLVM Libfuzzer");
+      std::ostringstream command;
+      command.str("");
+      command << Map2Check::clangBinary
+              << " -g -fsanitize=fuzzer -fsanitize-coverage=trace-cmp "
+              << Caller::postOptimizationFlags()
+              << " -o " + programHash + "-fuzzed.out"
+              << " " + programHash + "-result.bc";
 
-    system(command.str().c_str());
+      system(command.str().c_str());
 
-    std::ostringstream commandWitness;
-    commandWitness.str("");
-    commandWitness << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
-                   << " -o " + programHash + "-witness-fuzzed.out"
-                   << " " + programHash + "-witness-result.bc";
+      std::ostringstream commandWitness;
+      commandWitness.str("");
+      commandWitness << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
+                     << " -o " + programHash + "-witness-fuzzed.out"
+                     << " " + programHash + "-witness-result.bc";
 
-    system(commandWitness.str().c_str());
-    break;
-  }
+      system(commandWitness.str().c_str());
+      break;
+    }
   }
 }
 
@@ -113,27 +114,27 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det";
 
   switch (map2checkMode) {
-  case Map2CheckMode::MEMTRACK_MODE: {
-    Map2Check::Log::Info("Adding memtrack pass");
-    std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
-    transformCommand << " -load " << memoryTrackPass << getLibSuffix()
-                     << " -memory_track";
-    break;
-  }
-  case Map2CheckMode::OVERFLOW_MODE: {
-    std::string overflowPass = "${MAP2CHECK_PATH}/lib/libOverflowPass";
-    transformCommand << " -load " << overflowPass << getLibSuffix()
-                     << " -check_overflow";
-    break;
-  }
-  case Map2CheckMode::REACHABILITY_MODE: {
-    Map2Check::Log::Info("Running reachability mode");
-    std::string targetPass = "${MAP2CHECK_PATH}/lib/libTargetPass";
-    transformCommand << " -load " << targetPass << getLibSuffix()
-                     << " -target_function";
+    case Map2CheckMode::MEMTRACK_MODE: {
+      Map2Check::Log::Info("Adding memtrack pass");
+      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
+                       << " -memory_track";
+      break;
+    }
+    case Map2CheckMode::OVERFLOW_MODE: {
+      std::string overflowPass = "${MAP2CHECK_PATH}/lib/libOverflowPass";
+      transformCommand << " -load " << overflowPass << getLibSuffix()
+                       << " -check_overflow";
+      break;
+    }
+    case Map2CheckMode::REACHABILITY_MODE: {
+      Map2Check::Log::Info("Running reachability mode");
+      std::string targetPass = "${MAP2CHECK_PATH}/lib/libTargetPass";
+      transformCommand << " -load " << targetPass << getLibSuffix()
+                       << " -target_function";
 
-    break;
-  }
+      break;
+    }
   }
 
   Map2Check::Log::Info("Adding map2check pass");
@@ -171,34 +172,34 @@ void Caller::linkLLVM() {
               << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc";
 
   switch (map2checkMode) {
-  case Map2CheckMode::MEMTRACK_MODE: {
-    linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemtrack.bc"
-                << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
-                << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
-                << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
-    break;
-  }
-  case Map2CheckMode::OVERFLOW_MODE: {
-    linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeOverflow.bc";
-    break;
-  }
-  case Map2CheckMode::REACHABILITY_MODE: {
-    // Since the map2check api provides the function, we do not need to do any
-    // analysis
-    linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
-    break;
-  }
+    case Map2CheckMode::MEMTRACK_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemtrack.bc"
+                  << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
+      break;
+    }
+    case Map2CheckMode::OVERFLOW_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeOverflow.bc";
+      break;
+    }
+    case Map2CheckMode::REACHABILITY_MODE: {
+      // Since the map2check api provides the function, we do not need to do any
+      // analysis
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
+      break;
+    }
   }
 
   switch (nonDetGenerator) {
-  case (NonDetGenerator::None): {
-    linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
-    break;
-  }
-  case (NonDetGenerator::LibFuzzer): {
-    linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
-    break;
-  }
+    case (NonDetGenerator::None): {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
+      break;
+    }
   }
 
   witnessCommand.str("");
@@ -216,25 +217,26 @@ void Caller::linkLLVM() {
 
 void Caller::executeAnalysis() {
   switch (nonDetGenerator) {
-  // TODO: implement this method
-  case (NonDetGenerator::None): {
-    Map2Check::Log::Info("This mode is not supported");
-    break;
-  }
-  case (NonDetGenerator::LibFuzzer): {
-    Map2Check::Log::Info("Executing libfuzzer with map2check");
-    std::ostringstream command;
-    command.str("");
-    command << "./" + programHash + "-fuzzed.out -jobs=2 "
-            << " -timeout=" << this->timeout << " > fuzzer.output";
-    system(command.str().c_str());
+    // TODO: implement this method
+    case (NonDetGenerator::None): {
+      Map2Check::Log::Info("This mode is not supported");
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      Map2Check::Log::Info("Executing libfuzzer with map2check");
+      std::ostringstream command;
+      command.str("");
+      command << "./" + programHash +
+                     "-fuzzed.out -jobs=2 -use_value_profile=1 "
+              << " -timeout=" << this->timeout << " > fuzzer.output";
+      system(command.str().c_str());
 
-    std::ostringstream commandWitness;
-    commandWitness.str("");
-    commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
-    system(commandWitness.str().c_str());
-    break;
-  }
+      std::ostringstream commandWitness;
+      commandWitness.str("");
+      commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
+      system(commandWitness.str().c_str());
+      break;
+    }
   }
 }
 
@@ -302,4 +304,4 @@ void Caller::compileCFile() {
 
   // TODO: (3) Check for overflow errors on compilation
 }
-} // namespace Map2Check
+}  // namespace Map2Check

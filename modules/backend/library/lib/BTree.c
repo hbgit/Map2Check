@@ -36,12 +36,17 @@ void CHECK_AND_RELEASE_PAGES(B_TREE* btree) {
 }
 
 Bool DISK_READ(B_TREE* btree, fpos_t* stream_pos, B_TREE_PAGE* result) {
-  printf("Reading from file\n");
+  // printf("Reading from file\n");
   btree->currentLoadedPages += 1;
   FILE* fptr;
   fptr = fopen(btree->filename, "rb");
-
+  // printf("File Open\n");
+  if (fptr == NULL) {
+    printf("Could not open file");
+    return FALSE;
+  }
   if (fsetpos(fptr, stream_pos)) {
+    printf("Error setpos file\n");
     fclose(fptr);
     return FALSE;
   }
@@ -51,6 +56,7 @@ Bool DISK_READ(B_TREE* btree, fpos_t* stream_pos, B_TREE_PAGE* result) {
   for (i = 0; i < B_TREE_MAP2CHECK_ORDER * 2; i++) {
     result->children[i] = NULL;
   }
+  fclose(fptr);
   return TRUE;
 }
 

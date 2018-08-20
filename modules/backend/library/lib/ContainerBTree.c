@@ -1,7 +1,7 @@
 
+#include "../header/Container.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../header/Container.h"
 #include "BTree.h"
 
 #define B_TREE_FILE_NAME_SIZE 64
@@ -27,6 +27,9 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
       break;
     case TRACKBB_LOG_CONTAINER:
       file_suffix = "trackbblog.map2check.bin";
+      break;
+    default:
+      file_suffix = "default.map2check.bin";
       break;
   }
   char name[B_TREE_FILE_NAME_SIZE];
@@ -55,6 +58,9 @@ Bool free_container(MAP2CHECK_CONTAINER* container) {
       break;
     case TRACKBB_LOG_CONTAINER:
       file_suffix = "trackbblog.map2check.bin";
+      break;
+    default:
+      file_suffix = "default.map2check.bin";
       break;
   }
   char name[B_TREE_FILE_NAME_SIZE];

@@ -1,5 +1,5 @@
-#include "../header/NonDetGenerator.h"
 #include <stdlib.h>
+#include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
 
 /* Logic used for cases generation:
@@ -75,11 +75,11 @@ MAP2CHECK_NON_DET_GENERATOR(loff_t)
 MAP2CHECK_NON_DET_GENERATOR(sector_t)
 // MAP2CHECK_NON_DET_GENERATOR(uint)
 
-// Considering an int on a x64, then a 64 bit integer is 4 times a 8 bit integer
+// Considering an int on a x64, then a 64 bit integer is 8 times a 8 bit integer
 int map2check_non_det_int() {
   uint64_t result = 0;
   int i = 0;
-  for (; i < 4; i++) result |= get_next_input_from_fuzzer() << (8 * i);
+  for (; i < 8; i++) result |= get_next_input_from_fuzzer() << (8 * i);
 
   return (int)result;
 }

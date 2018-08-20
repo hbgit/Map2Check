@@ -27,8 +27,9 @@ typedef struct B_TREE_ROW {
 
 /* Since Some programs can use tons of RAM in seconds, we should
  * unload some pages before that occurs, so making max size of loaded
- * tree be 2GiB */
-#define B_TREE_MAX_OPEN_PAGES 534731U
+ * tree be 512MiB (so a proccess would use ~ 2GiB of ram)
+ * 512*1024*1024 / 4016 = 133682 */
+#define B_TREE_MAX_OPEN_PAGES 133682U;
 
 /* We should have some kind of limit for infinite programs or some programs will
  * end up using all secondary space, ~4 GiB should be enough for now */

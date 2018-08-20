@@ -69,7 +69,8 @@ void map2check_error() {
 }
 
 void map2check_destroy() {
-  // printf("Destroying map2check\n");
+  // int currentProccess = getpid();
+  // printf("Destroying %d\n", currentProccess);
   static Bool alreadyReleased = FALSE;
   if (alreadyReleased) return;
   alreadyReleased = TRUE;
@@ -85,9 +86,8 @@ void map2check_exit() {
 
   generate_aux_files(&trackbb_log);
   /* gotError = TRUE; */
+  map2check_destroy();
   if (gotError == TRUE) {
     abort();
   }
-
-  map2check_destroy();
 }

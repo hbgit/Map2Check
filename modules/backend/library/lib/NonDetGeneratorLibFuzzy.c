@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include "../header/NonDetGenerator.h"
+#include <stdlib.h>
 #include "../header/NonDetLog.h"
 
 /* Logic used for cases generation:
@@ -46,10 +46,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   map2check_fuzzer_data = Data;
   map2check_fuzzer_size = Size;
   int prevType;
+  // int currentProccess = getpid();
+  // printf("Creating %d\n", currentProccess);
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &prevType);
+  pthread_cleanup_push(map2check_destroy, NULL);
   pthread_create(&fuzzer_execution, NULL, fuzzer_execution_function, NULL);
   pthread_join(fuzzer_execution, NULL);
-  map2check_destroy();
+  pthread_cleanup_pop(0);
+  // map2check_destroy();
   return 0;
 }
 

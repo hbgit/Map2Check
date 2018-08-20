@@ -113,19 +113,14 @@ MEMORY_ALLOCATIONS_ROW *find_row_with_address(
  */
 Bool is_valid_allocation_address(MAP2CHECK_CONTAINER *allocation_log,
                                  void *address, int size_to_destiny) {
-  /*if(!address){
-    return TRUE;
-    }*/
-
   int i = allocation_log->size - 1;
   unsigned long addressToCheck = (unsigned long)address;
   for (; i >= 0; i--) {
     MEMORY_ALLOCATIONS_ROW *iRow =
         (MEMORY_ALLOCATIONS_ROW *)get_element_at(i, *allocation_log);
-    unsigned addressBottom = iRow->addr;
-    unsigned addressTop = addressBottom + iRow->size - size_to_destiny + 1;
+    unsigned long addressBottom = iRow->addr;
+    unsigned long addressTop = addressBottom + iRow->size - size_to_destiny + 1;
     //*last_address = addressTop;
-
     if ((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
       if (iRow->is_free) {
         return FALSE;

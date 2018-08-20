@@ -145,7 +145,6 @@ void analysis_generate_aux_witness_files() {
 #include <stdio.h>
 void map2check_load(void *ptr, int size) {
   if (!is_valid_heap_address(&heap_log, ptr, size)) {
-    printf("Got here with addr %p, and size %d\n", ptr, size);
     if (!is_valid_allocation_address(&allocation_log, ptr, size)) {
       ERROR_DEREF = TRUE;
     }

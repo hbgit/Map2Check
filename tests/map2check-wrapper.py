@@ -23,7 +23,7 @@ benchmark = args.benchmark
 bc_benchmark = args.benchmark
 
 # default args
-extra_tool = "timeout " + str(args.timeout) + " "
+extra_tool = "timeout -s 9 -k 5 " + str(args.timeout) + " "
 command_line = extra_tool + tool_path
 
 
@@ -63,12 +63,12 @@ else:
 
 if is_memsafety:
     # command_line += " --assume-malloc-true --memory-safety "
-    command_line += " "
+    command_line += " --btree "
 elif is_reachability:
     # command_line += " --target-function __VERIFIER_error "
-    command_line += " --target-function "
+    command_line += " --btree --target-function "
 elif is_overflow:
-    command_line += " --check-overflow --generate-witness "
+    command_line += " --btree --check-overflow --generate-witness "
 
 # Calling MAP2CHECK
 command_line += bc_benchmark

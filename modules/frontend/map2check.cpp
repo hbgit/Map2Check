@@ -224,6 +224,7 @@ int main(int argc, char **argv) {
         "memtrack,m", "\tCheck for memory errors")("print-counter",
                                                    "\tPrint Counterexample")(
         "check-overflow", "\tAnalyze program for overflow failures")(
+        "check-asserts", "\tAnalyze program and verify assert failures")(
         "generate-witness,w", "\tGenerates witness file")(
         "expected-result,e", po::value<string>(),
         "\tSpecifies type of violation expected")(
@@ -273,6 +274,9 @@ int main(int argc, char **argv) {
     }
     if (vm.count("check-overflow")) {
       args.mode = Map2Check::Map2CheckMode::OVERFLOW_MODE;
+    }
+    if (vm.count("check-asserts")) {
+      args.mode = Map2Check::Map2CheckMode::ASSERT_MODE;
     }
     if (vm.count("btree")) {
       args.btree = true;

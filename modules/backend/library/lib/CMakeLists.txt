@@ -3,6 +3,7 @@ set(CMAKE_C_FLAGS -c -emit-llvm)
 
 list(APPEND MAP2CHECK_C_LIB "")
 list(APPEND MAP2CHECK_C_LIB "AllocationLog")
+list(APPEND MAP2CHECK_C_LIB "AnalysisModeAssert")
 list(APPEND MAP2CHECK_C_LIB "AnalysisModeMemtrack")
 list(APPEND MAP2CHECK_C_LIB "AnalysisModeNone")
 list(APPEND MAP2CHECK_C_LIB "AnalysisModeOverflow")

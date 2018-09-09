@@ -69,6 +69,11 @@ void write_property(enum ViolatedProperty violated, int line,
       fprintf(output, "Line: %d\n", line);
       fprintf(output, "Function: %s\n", function_name);
       break;
+    case ASSERT:
+      fprintf(output, "ASSERT\n");
+      fprintf(output, "Line: %d\n", line);
+      fprintf(output, "Function: %s\n", function_name);
+      break;  
   }
 
   fclose(output);

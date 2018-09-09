@@ -44,7 +44,8 @@ enum class PropertyViolated {
   FALSE_DEREF,
   FALSE_MEMTRACK,
   UNKNOWN,
-  NONE
+  NONE,
+  ASSERT
 };
 
 /** Class used to check violated property */

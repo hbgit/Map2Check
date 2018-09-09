@@ -10,7 +10,8 @@ namespace Map2Check {
 enum class Map2CheckMode {
   MEMTRACK_MODE,     /**< Check memory errors (memtrack, deref, free) */
   REACHABILITY_MODE, /**< Check if a target function can be executed */
-  OVERFLOW_MODE      /**< Check for signed integer overflows */
+  OVERFLOW_MODE,     /**< Check for signed integer overflows */
+  ASSERT_MODE        /**< Check for asserts (__VERIFIER_assert) */
 };
 
 /** NonDet generators */

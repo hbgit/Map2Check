@@ -134,6 +134,9 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
 
       break;
     }
+    default: {
+      break;
+    }
   }
 
   Map2Check::Log::Info("Adding map2check pass");
@@ -190,6 +193,10 @@ void Caller::linkLLVM() {
     }
     case Map2CheckMode::OVERFLOW_MODE: {
       linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeOverflow.bc";
+      break;
+    }
+    case Map2CheckMode::ASSERT_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeAssert.bc";
       break;
     }
     case Map2CheckMode::REACHABILITY_MODE: {

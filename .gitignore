@@ -27,7 +27,6 @@ release/compiled.ll
 release/heap_log.csv
 *.ll
 compiled.bc 
-tests/*
 release/witness.graphml
 
 

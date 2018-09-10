@@ -101,6 +101,8 @@ def process_test(cmd, test, expect, checkby, log_file):
             expect = "FALSE_FREE"
         elif checkby == "OVERFLOW":
             expect = "FALSE_OVERFLOW"
+        elif checkby == "ASSERT":
+            expect = "FALSE_ASSERT"
         else:
             expect = "FALSE"
     

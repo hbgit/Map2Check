@@ -56,19 +56,21 @@ elif "CHECK( init(main()), LTL(G ! overflow) )" in property_file_content:
     is_overflow = True  
 elif "CHECK( init(main()), LTL(G ! call(__VERIFIER_error())) )" in property_file_content:
     is_reachability = True
+elif "CHECK( init(main()), LTL(G valid-assert) )" in property_file_content:
+    is_assert = True
 else:
     # We don't support termination
     print "Unsupported Property"
     exit(1)
 
-if is_memsafety:
-    # command_line += " --assume-malloc-true --memory-safety "
-    command_line += " --btree "
-elif is_reachability:
-    # command_line += " --target-function __VERIFIER_error "
-    command_line += " --btree --target-function "
+if is_memsafety:    
+    command_line += " "
+elif is_reachability:    
+    command_line += " --target-function "
 elif is_overflow:
-    command_line += " --btree --check-overflow --generate-witness "
+    command_line += " --check-overflow "
+elif is_assert:
+    command_line += " --check-asserts "
 
 # Calling MAP2CHECK
 command_line += bc_benchmark
@@ -90,6 +92,7 @@ free_offset = "\tFALSE-FREE: Operand of free must have zero pointer offset"
 deref_offset = "\tFALSE-DEREF: Reference to pointer was lost"
 memtrack_offset = "\tFALSE-MEMTRACK"
 target_offset = "\tFALSE: Target Reached"
+assert_offset = "FALSE-ASSERT"
 overflow_offset = "\tOVERFLOW"
 
 if "VERIFICATION FAILED" in stdout:
@@ -111,6 +114,10 @@ if "VERIFICATION FAILED" in stdout:
       
     if overflow_offset in stdout:
       print "RESULT: FALSE_OVERFLOW"
+      exit(0)
+      
+    if assert_offset in stdout:
+      print "RESULT: FALSE_ASSERT"
       exit(0)
       
 

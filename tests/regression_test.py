@@ -225,7 +225,7 @@ def main():
                 cmd += ['--propertyfile', str(meta['property'][0])]
                 cmd += [str(test)]
                 # name = path.splitext(path.basename(test))[0]                
-                # process_test(cmd, test, memory, expect, log_file):
+                # process_test(cmd, test, memory, expect, log_file):                
                 """
                 print(cmd[:])
                 print(test)

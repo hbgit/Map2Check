@@ -30,7 +30,6 @@ struct Map2CheckLibrary : public FunctionPass {
  protected:
   void instrumentStartInstruction(LLVMContext* Ctx);
   void instrumentReleaseInstruction(LLVMContext* Ctx);
-  void instrumentAssert(CallInst* assertInst, LLVMContext* Ctx);
   void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
   Value* getFunctionNameValue() { return this->functionName; }
 

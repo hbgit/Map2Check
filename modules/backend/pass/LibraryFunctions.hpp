@@ -19,13 +19,12 @@ class LibraryFunctions {
   Constant* map2check_init = NULL;
   Constant* map2check_exit = NULL;
   Constant* map2check_track_bb = NULL;
-  Constant* map2check_assert = NULL;
+  
 
  public:
   Constant* getInitFunction() { return this->map2check_init; }
   Constant* getTrackBBFunction() { return this->map2check_track_bb; }
-  Constant* getExitFunction() { return this->map2check_exit; }
-  Constant* getAssertFunction() { return this->map2check_assert; }
+  Constant* getExitFunction() { return this->map2check_exit; }  
 
   LibraryFunctions(Function* F, LLVMContext* Ctx) {
     this->map2check_init = F->getParent()->getOrInsertFunction(
@@ -41,8 +40,6 @@ class LibraryFunctions {
         "map2check_track_bb", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
         Type::getInt8PtrTy(*Ctx));
 
-    this->map2check_assert = F->getParent()->getOrInsertFunction(
-        "map2check_assert", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt32Ty(*Ctx), Type::getInt8PtrTy(*Ctx));    
+    
   }
 };

@@ -134,6 +134,14 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
 
       break;
     }
+    case Map2CheckMode::ASSERT_MODE: {
+      Map2Check::Log::Info("Running assert mode");
+      std::string assertPass = "${MAP2CHECK_PATH}/lib/libAssertPass";
+      transformCommand << " -load " << assertPass << getLibSuffix()
+                       << " -validate_asserts";
+
+      break;
+    }
     default: {
       break;
     }

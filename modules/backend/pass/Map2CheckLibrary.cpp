@@ -49,19 +49,6 @@ void Map2CheckLibrary::instrumentReleaseInstruction(LLVMContext* Ctx) {
   builder.CreateCall(this->libraryFunctions->getExitFunction());
 }
 
-void Map2CheckLibrary::instrumentAssert(CallInst* assertInst, LLVMContext* Ctx) {
-  IRBuilder<> builder(assertInst);
-  DebugInfo debugInfo(Ctx, assertInst);
-
-  Value *condition = assertInst->getArgOperand(0);
-  Value *function_llvm =
-      builder.CreateGlobalStringPtr(assertInst->getFunction()->getName());
-
-  Value *args[] = {condition, debugInfo.getLineNumberValue(), function_llvm};
-
-  builder.CreateCall(this->libraryFunctions->getAssertFunction(), args);    
-}
-
 void Map2CheckLibrary::runOnCallInstruction(CallInst* callInst,
                                             LLVMContext* Ctx) {
   Function* calleeFunction = callInst->getCalledFunction();
@@ -79,9 +66,7 @@ void Map2CheckLibrary::runOnCallInstruction(CallInst* callInst,
     this->instrumentReleaseInstruction(Ctx);
   } else if (calleeFunction->getName() == "abort") {
     this->instrumentReleaseInstruction(Ctx);
-  } else if (calleeFunction->getName() == "__VERIFIER_assert") {
-    this->instrumentAssert(callInst, Ctx);
-  }
+  } 
 }
 
 char Map2CheckLibrary::ID = 2;

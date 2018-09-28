@@ -3,7 +3,7 @@
 bool AssertPass::runOnFunction(Function& F) {  
   this->map2check_assert = F.getParent()->getOrInsertFunction(
         "map2check_assert", Type::getVoidTy(F.getContext()), Type::getInt32Ty(F.getContext()),
-        Type::getInt32Ty(F.getContext()), Type::getInt8PtrTy(F.getContext()));    
+        Type::getInt32Ty(F.getContext()), Type::getInt8PtrTy(F.getContext()), NULL);    
 
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();

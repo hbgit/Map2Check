@@ -23,6 +23,7 @@ endif()
 
 include(cmake/FindClang.cmake)
 include(cmake/FindBoost.cmake)
+include(cmake/FindLibFuzzer.cmake)
 if(REGRESSION)
   include(cmake/DownloadRegression.cmake)
 endif()

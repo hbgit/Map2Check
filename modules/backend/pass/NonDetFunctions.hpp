@@ -28,7 +28,7 @@ public:                                                                        \
   this->NonDet##type = F->getParent()->getOrInsertFunction(                    \
       "map2check_nondet_" #c_type, Type::getVoidTy(*Ctx),                      \
       Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),  \
-      Type::getInt8PtrTy(*Ctx));
+      Type::getInt8PtrTy(*Ctx), NULL);
 
 class NonDetFunctions {
 

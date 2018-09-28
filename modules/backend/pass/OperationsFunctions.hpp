@@ -42,40 +42,40 @@ class OperationsFunctions {
     this->OverflowAdd = F->getParent()->getOrInsertFunction(
         "map2check_binop_add", Type::getVoidTy(*Ctx), Type::getInt64Ty(*Ctx),
         Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
+        Type::getInt8PtrTy(*Ctx), NULL);
 
     this->OverflowAddUint = F->getParent()->getOrInsertFunction(
         "map2check_binop_add_uint", Type::getVoidTy(*Ctx),
         Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt8PtrTy(*Ctx));
+        Type::getInt64Ty(*Ctx), Type::getInt8PtrTy(*Ctx), NULL);
 
     this->OverflowSub = F->getParent()->getOrInsertFunction(
         "map2check_binop_sub", Type::getVoidTy(*Ctx), Type::getInt64Ty(*Ctx),
         Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
+        Type::getInt8PtrTy(*Ctx), NULL);
 
     this->OverflowSubUint = F->getParent()->getOrInsertFunction(
         "map2check_binop_sub_uint", Type::getVoidTy(*Ctx),
         Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt8PtrTy(*Ctx));
+        Type::getInt64Ty(*Ctx), Type::getInt8PtrTy(*Ctx), NULL);
 
     this->OverflowMul = F->getParent()->getOrInsertFunction(
         "map2check_binop_mul", Type::getVoidTy(*Ctx), Type::getInt64Ty(*Ctx),
         Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
+        Type::getInt8PtrTy(*Ctx), NULL);
 
     this->OverflowMulUint = F->getParent()->getOrInsertFunction(
         "map2check_binop_mul_uint", Type::getVoidTy(*Ctx),
         Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt8PtrTy(*Ctx));
+        Type::getInt64Ty(*Ctx), Type::getInt8PtrTy(*Ctx), NULL);
 
     this->OverflowSDiv = F->getParent()->getOrInsertFunction(
         "map2check_binop_sdiv", Type::getVoidTy(*Ctx), Type::getInt64Ty(*Ctx),
         Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
+        Type::getInt8PtrTy(*Ctx), NULL);
 
     this->OverflowError = F->getParent()->getOrInsertFunction(
         "overflowError", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
+        Type::getInt8PtrTy(*Ctx), NULL);
   }
 };

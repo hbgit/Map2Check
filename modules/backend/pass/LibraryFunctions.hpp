@@ -28,17 +28,17 @@ class LibraryFunctions {
 
   LibraryFunctions(Function* F, LLVMContext* Ctx) {
     this->map2check_init = F->getParent()->getOrInsertFunction(
-        "map2check_init", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx));
+							       "map2check_init", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx), NULL);
 
     this->map2check_exit = F->getParent()->getOrInsertFunction(
-        "map2check_success", Type::getVoidTy(*Ctx));
+							       "map2check_success", Type::getVoidTy(*Ctx), NULL);
 
     this->map2check_exit = F->getParent()->getOrInsertFunction(
-        "map2check_success", Type::getVoidTy(*Ctx));
+							       "map2check_success", Type::getVoidTy(*Ctx), NULL);
 
     this->map2check_track_bb = F->getParent()->getOrInsertFunction(
         "map2check_track_bb", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
+        Type::getInt8PtrTy(*Ctx), NULL);
 
     
   }

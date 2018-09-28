@@ -80,7 +80,9 @@ void Caller::applyNonDetGenerator() {
       std::ostringstream command;
       command.str("");
       command << Map2Check::clangBinary
-              << " -g -fsanitize=fuzzer -fsanitize-coverage=trace-cmp "
+              << " -g  -std=c++11 -lstdc++ -lm "
+	      << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
+	      << " -pthread "
               << Caller::postOptimizationFlags()
               << " -o " + programHash + "-fuzzed.out"
               << " " + programHash + "-result.bc";
@@ -89,7 +91,8 @@ void Caller::applyNonDetGenerator() {
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << Map2Check::clangBinary << " -g -fsanitize=fuzzer "
+      commandWitness << Map2Check::clangBinary << " -g  -std=c++11 -lstdc++ -lm -pthread "
+		     << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
 
@@ -251,7 +254,7 @@ void Caller::executeAnalysis() {
       std::ostringstream command;
       command.str("");
       command << "./" + programHash +
-                     "-fuzzed.out -jobs=2 -use_value_profile=1 "
+                     "-fuzzed.out -jobs=2 "
               << " -timeout=" << this->timeout << " > fuzzer.output";
       system(command.str().c_str());
 

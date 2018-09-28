@@ -1,4 +1,4 @@
-# FIND LLVM 6.0
+# FIND LLVM 3.8
 function(find_local_llvm VAR_NAME PROGRAM)
   message("Searching ${PROGRAM} in ${SEARCH_PATH}")
   find_program(${VAR_NAME} NAMES ${PROGRAM} PATHS ${SEARCH_PATH}
@@ -12,15 +12,15 @@ if(COPY_EXTERNAL)
   else()
     set(SEARCH_PATH ${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/bin)
     link_directories(${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/lib)
-    find_local_llvm(CLANG_CC clang-6.0)    
+    find_local_llvm(CLANG_CC clang-3.8)    
     find_local_llvm(CLANG_CXX clang++)
     find_local_llvm(LLVM_CONFIG llvm-config)
-    install(DIRECTORY ${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/lib/clang/6.0.0/include/ DESTINATION include)
+    install(DIRECTORY ${PROJECT_BINARY_DIR}/${PRE_BUILT_CLANG_FOLDER}/lib/clang/3.8.1/include/ DESTINATION include)
   endif()  
 else()
-  find_program(CLANG_CC clang-6.0)
-  find_program(CLANG_CXX clang++-6.0)
-  find_program(LLVM_CONFIG llvm-config-6.0 DOC "llvm-config is used to generate flags to link with llvm.")
+  find_program(CLANG_CC clang-3.8)
+  find_program(CLANG_CXX clang++-3.8)
+  find_program(LLVM_CONFIG llvm-config-3.8 DOC "llvm-config is used to generate flags to link with llvm.")
 endif()
 
 # Check if CLANG is present and configure LLVM
@@ -47,4 +47,6 @@ execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPU
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags --link-static)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CPP_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+set (EXECUTE_LLVM_SYSTEMFLAGS ${LLVM_CONFIG} --system-libs)
+execute_process(COMMAND ${EXECUTE_LLVM_SYSTEMFLAGS} OUTPUT_VARIABLE LLVM_SYSTEMFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 

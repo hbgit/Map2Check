@@ -33,13 +33,13 @@ endfunction(install_exec_file)
 
 # Download and install Pre-built clang for ubuntu 14.04
 #TODO: Maybe we should manually compile LLVM/Clang?
-set(PRE_BUILT_CLANG "clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-14.04")
+set(PRE_BUILT_CLANG "clang+llvm-3.8.1-x86_64-linux-gnu-ubuntu-14.04")
 
 if(EXISTS dependencies/${PRE_BUILT_CLANG}.tar.xz)
   message("Found pre-built clang for ubuntu")
 else()
-  message("Will download pre-built clang for ubuntu")
-  file(DOWNLOAD http://releases.llvm.org/6.0.0/${PRE_BUILT_CLANG}.tar.xz dependencies/${PRE_BUILT_CLANG}.tar.xz
+  message("Downloading pre-built clang for ubuntu")
+  file(DOWNLOAD http://releases.llvm.org/3.8.1/${PRE_BUILT_CLANG}.tar.xz dependencies/${PRE_BUILT_CLANG}.tar.xz
     SHOW_PROGRESS)
 endif()
 
@@ -57,8 +57,8 @@ list(APPEND MAP2CHECK_EXTERNAL_CLANG_BIN "opt")
 list(APPEND MAP2CHECK_EXTERNAL_CLANG_BIN "llvm-link")
 
 #Clang/LLVM libs
-list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/6.0.0/lib/linux/libclang_rt.fuzzer-x86_64.a")
-list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/6.0.0/lib/linux/libclang_rt.ubsan_standalone-x86_64.a")
+#list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/6.0.0/lib/linux/libclang_rt.fuzzer-x86_64.a")
+#list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/6.0.0/lib/linux/libclang_rt.ubsan_standalone-x86_64.a")
 
 foreach(B ${MAP2CHECK_EXTERNAL_CLANG_BIN})
   set(BIN ${PRE_BUILT_CLANG_FOLDER}/bin/${B})

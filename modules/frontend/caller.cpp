@@ -57,7 +57,7 @@ std::string Caller::preOptimizationFlags() {
 std::string Caller::postOptimizationFlags() {
   std::ostringstream flags;
   flags.str("");
-  flags << "-O3";
+  flags << "-O2 ";
   return flags.str();
 }
 
@@ -80,6 +80,7 @@ void Caller::applyNonDetGenerator() {
       std::ostringstream command;
       command.str("");
       command << Map2Check::clangBinary
+	      << "  -fsanitize-coverage=trace-cmp,edge,8bit-counters " 
               << " -g  -std=c++11 -lstdc++ -lm "
 	      << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
 	      << " -pthread "
@@ -254,7 +255,7 @@ void Caller::executeAnalysis() {
       std::ostringstream command;
       command.str("");
       command << "./" + programHash +
-                     "-fuzzed.out -jobs=2 "
+                     "-fuzzed.out -jobs=2 -use_value_profile=1 "
               << " -timeout=" << this->timeout << " > fuzzer.output";
       system(command.str().c_str());
 

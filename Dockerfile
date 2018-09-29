@@ -26,6 +26,7 @@ RUN apt-get update
 RUN apt-get install -y sudo \	
     build-essential \
     libboost-all-dev \
+    libboost-program-options-dev \
     cmake \
     ninja-build \
     curl \
@@ -35,7 +36,9 @@ RUN apt-get install -y sudo \
     graphviz \
     python3 \
     python3-pip \
-    subversion
+    subversion \
+    libgmp-dev \
+    libmpfr-dev
     
     
 # Modules Python3

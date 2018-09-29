@@ -29,6 +29,7 @@ RUN apt-get install -y sudo \
     libboost-all-dev \
     llvm-6.0-dev clang-6.0 \
     cmake \
+    ninja-build \
     curl \
     unionfs-fuse \
     vim \

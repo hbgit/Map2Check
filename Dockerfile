@@ -35,6 +35,7 @@ RUN apt-get install -y sudo \
     graphviz \
     python3 \
     python3-pip \
+    subversion
     
     
 # Modules Python3

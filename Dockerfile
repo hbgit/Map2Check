@@ -4,14 +4,13 @@
 # Usage:
 # 
 #  By gitclone https://github.com/hbgit/Map2Check:
-#   $ docker build -t hrocha/mapdevel -f Dockerfile .
+#   $ docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
 #   $ docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash
 #
 # The docker user is "map2check" and the password is "map2check"
 # Docker tips:
 #  You can check that the container still exists by running: $ docker ps -a
 #  You can restart the container by running: docker start -ai mapdevel
-#  You can run any command in running container just knowing its ID (or name): docker exec <container_id_or_name> echo "Hello from container!"
 ############################################################
 FROM ubuntu:16.04
 
@@ -27,7 +26,6 @@ RUN apt-get update
 RUN apt-get install -y sudo \	
     build-essential \
     libboost-all-dev \
-    llvm-6.0-dev clang-6.0 \
     cmake \
     ninja-build \
     curl \
@@ -36,7 +34,8 @@ RUN apt-get install -y sudo \
     doxygen \
     graphviz \
     python3 \
-    python3-pip
+    python3-pip \
+    
     
 # Modules Python3
 RUN pip3 install pyyaml \

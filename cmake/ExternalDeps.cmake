@@ -33,13 +33,13 @@ endfunction(install_exec_file)
 
 # Download and install Pre-built clang for ubuntu 14.04
 #TODO: Maybe we should manually compile LLVM/Clang?
-set(PRE_BUILT_CLANG "clang+llvm-3.8.1-x86_64-linux-gnu-ubuntu-14.04")
+set(PRE_BUILT_CLANG "clang+llvm-3.9.1-x86_64-linux-gnu-ubuntu-16.04")
 
 if(EXISTS dependencies/${PRE_BUILT_CLANG}.tar.xz)
   message("Found pre-built clang for ubuntu")
 else()
   message("Downloading pre-built clang for ubuntu")
-  file(DOWNLOAD http://releases.llvm.org/3.8.1/${PRE_BUILT_CLANG}.tar.xz dependencies/${PRE_BUILT_CLANG}.tar.xz
+  file(DOWNLOAD http://releases.llvm.org/3.9.1/${PRE_BUILT_CLANG}.tar.xz dependencies/${PRE_BUILT_CLANG}.tar.xz
     SHOW_PROGRESS)
 endif()
 

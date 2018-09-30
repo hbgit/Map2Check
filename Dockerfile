@@ -41,7 +41,7 @@ RUN apt-get install -y sudo \
     python3-pip \
     subversion \
     libgmp-dev \
-    libmpfr-dev    
+    libmpfr-dev \   
     libncurses5-dev \
     libncursesw5-dev
 

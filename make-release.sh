@@ -17,6 +17,12 @@ cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=../release/
 ninja
 ninja install
 
+cd ..
+echo ""
+echo "Building Crab-LLVM ..."
+./utils/build_crabllvm.py
+echo ""
+
 echo ""
 echo "DONE"
 echo ""

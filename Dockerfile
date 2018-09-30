@@ -72,7 +72,7 @@ RUN mv /etc/sudoers.bak /etc/sudoers && \
     echo 'map2check  ALL=(root) ALL' >> /etc/sudoers
 USER map2check
 # Configure git
-git config --global user.email "map2check@domain.com"
-git config --global user.name "Map2Check"
+RUN git config --global user.email "map2check@domain.com"
+RUN git config --global user.name "Map2Check"
 
 ##################### INSTALLATION END #####################

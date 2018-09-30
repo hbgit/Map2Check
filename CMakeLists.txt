@@ -4,27 +4,34 @@ project(Map2Check)
 set(Map2Check_VERSION_MAJOR 7)
 set(Map2Check_VERSION_MINOR 0)
 
-option(COPY_EXTERNAL "COPY_EXTERNAL" OFF)
+option(USE_PREBUILT_CLANG "Download and Install pre-built clang" ON)
 option(BUILD_DOC "Build documentation" OFF)
+option(NO_LIB_FUZZER "Don't build libFuzzer" OFF)
+option(NO_KLEE "Don't build KLEE" OFF)
 option(REGRESSION "Prepare Regression Tests" OFF)
 
 set (CMAKE_CXX_STANDARD 11)
 
-# This should only be executed from docker container
-if(COPY_EXTERNAL)
-  #If this option is setted, external deps MUST be called before find clang and findqt
-  set(Map2Check_MODE "STATIC")
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-  set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
-  include(cmake/ExternalDeps.cmake)  
-else()
-    set(Map2Check_MODE "DYNAMIC")
-endif()
+
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
+include(cmake/ExternalDeps.cmake)  
 
 include(cmake/FindClang.cmake)
 include(cmake/FindBoost.cmake)
-include(cmake/FindLibFuzzer.cmake)
-include(cmake/FindZ3.cmake)
+
+if(NOT NO_LIB_FUZZER)
+  include(cmake/FindLibFuzzer.cmake)
+endif()
+
+if(NOT NO_KLEE)
+  include(cmake/FindMiniSat.cmake)
+  include(cmake/FindSTP.cmake)
+  include(cmake/FindKleeUCLibC.cmake)
+  include(cmake/FindKlee.cmake)
+  # include(cmake/FindZ3.cmake)
+endif()
+
 if(REGRESSION)
   include(cmake/DownloadRegression.cmake)
 endif()

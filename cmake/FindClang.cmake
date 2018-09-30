@@ -6,7 +6,7 @@ function(find_local_llvm VAR_NAME PROGRAM)
   message("Found ${${VAR_NAME}}")
 endfunction(find_local_llvm)
 
-if(COPY_EXTERNAL)
+if(USE_PREBUILT_CLANG)
   if(NOT EXISTS dependencies/${PRE_BUILT_CLANG})
     message(FATAL_ERROR "Could not found pre-built directory")
   else()
@@ -34,7 +34,7 @@ set(CMAKE_CXX_COMPILER ${CLANG_CXX})
 
 #Confirm clang version
 execute_process( COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
-message(${clang_full_version_string})
+# message(${clang_full_version_string})
 
 if(NOT LLVM_CONFIG)
     message(FATAL_ERROR "LLVM-CONFIG not found! (Did you execute the bootstrap script?)")
@@ -43,13 +43,10 @@ endif()
 # Get Flags
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cxxflags)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CXX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-message("OK 1")
+
 
 set (EXECUTE_LLVM_CXXFLAGS ${LLVM_CONFIG} --cppflags --link-static)
 execute_process(COMMAND ${EXECUTE_LLVM_CXXFLAGS} OUTPUT_VARIABLE CPP_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-message("OK 2")
 
-set (EXECUTE_LLVM_SYSTEMFLAGS ${LLVM_CONFIG} --system-libs)
-execute_process(COMMAND ${EXECUTE_LLVM_SYSTEMFLAGS} OUTPUT_VARIABLE LLVM_SYSTEMFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-message("OK 3")
+
 

@@ -17,30 +17,34 @@ FROM ubuntu:16.04
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
 
-
 # Update the repository sources list
 RUN apt-get update
 
-############depois tu me manda uma cópia do teu mirrors ###### BEGIN INSTALLATION ######################
 # Devel packages
 RUN apt-get install -y sudo \	
     build-essential \
     libboost-all-dev \
     libboost-program-options-dev \
+    clang-3.8 llvm-3.8 llvm-3.8-dev llvm-3.8-tools \
+    bison flex python perl zlib1g-dev \
+    python-minimal \
     cmake \
     ninja-build \
+    wget \
     curl \
     unionfs-fuse \
     vim \
+    git \
     doxygen \
     graphviz \
     python3 \
     python3-pip \
     subversion \
     libgmp-dev \
-    libmpfr-dev
-    
-    
+    libmpfr-dev    
+    libncurses5-dev \
+    libncursesw5-dev
+
 # Modules Python3
 RUN pip3 install pyyaml \
                  psutil
@@ -67,4 +71,8 @@ USER root
 RUN mv /etc/sudoers.bak /etc/sudoers && \
     echo 'map2check  ALL=(root) ALL' >> /etc/sudoers
 USER map2check
+# Configure git
+git config --global user.email "map2check@domain.com"
+git config --global user.name "Map2Check"
+
 ##################### INSTALLATION END #####################

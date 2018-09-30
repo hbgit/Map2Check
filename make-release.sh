@@ -2,9 +2,6 @@
 
 if [ ! -d "build" ]; then
     mkdir build
-    cd build
-    cmake .. -G Ninja -DCOPY_EXTERNAL=ON -DBUILD_DOC=OFF -DREGRESSION=OFF -DCMAKE_INSTALL_PREFIX=../release/
-    cd ..
 fi
 
 if [ ! -d "release" ]; then
@@ -16,6 +13,7 @@ echo "Building Map2Check release ... "
 echo ""
 
 cd build
+cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=../release/
 ninja
 ninja install
 

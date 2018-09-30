@@ -20,7 +20,8 @@ ninja install
 cd ..
 echo ""
 echo "Building Crab-LLVM ..."
-./utils/build_crabllvm.py
+# TODO: Not working
+# ./utils/build_crabllvm.py
 echo ""
 
 echo ""

@@ -30,9 +30,10 @@ if not os.path.isdir("build"):
 os.chdir("build")
 os.system("cmake -DCMAKE_INSTALL_PREFIX=run -DCMAKE_BUILD_TYPE=Release -DUSE_LDD=ON -DUSE_APRON=ON -DLLVM_DIR="+llvm_dir+" ../")
 # cmake --build . --target extra 
-#os.system("cmake --build . --target crab && cmake ..")
-#os.system("cmake --build . --target ldd && cmake ..")
-#os.system("cmake --build . --target apron && cmake ..")
+os.system("cmake --build . --target crab && cmake ..")
+os.system("cmake --build . --target ldd && cmake ..")
+os.system("cmake --build . --target apron && cmake ..")
+os.system("cmake --build . --target install")
 os.system("")
 os.system("pwd")
 

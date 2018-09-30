@@ -25,7 +25,7 @@ RUN apt-get install -y sudo \
     build-essential \
     libboost-all-dev \
     libboost-program-options-dev \
-    clang-3.8 llvm-3.8 llvm-3.8-dev llvm-3.8-tools \
+    clang-3.8 llvm-3.8 llvm-3.8-dev \
     bison flex python perl zlib1g-dev \
     python-minimal \
     cmake \

@@ -17,8 +17,9 @@ enum class Map2CheckMode {
 /** NonDet generators */
 // TODO: Add suport to other nondet like: klee, afl, afl+klee, LibFuzzer+afl
 enum class NonDetGenerator {
-  None,     /**< Do not generate any input */
-  LibFuzzer /**< LibFuzzer from LLVM */
+  None,      /**< Do not generate any input */
+  LibFuzzer, /**< LibFuzzer from LLVM */
+  Klee,      /**< Use klee for symbolic analysis */
 };
 
 /** Data Structure */

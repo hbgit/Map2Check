@@ -70,9 +70,13 @@ void Caller::cleanGarbage() {
 
 void Caller::applyNonDetGenerator() {
   switch (nonDetGenerator) {
-    case (NonDetGenerator::None): {
+    case (NonDetGenerator::None): {  // TODO: Should generate binary
       Map2Check::Log::Info(
           "Map2Check will not generate non deterministic numbers");
+      break;
+    }
+    case (NonDetGenerator::Klee): {
+      Map2Check::Log::Info("Applying optimizations for klee");
       break;
     }
     case (NonDetGenerator::LibFuzzer): {
@@ -80,11 +84,10 @@ void Caller::applyNonDetGenerator() {
       std::ostringstream command;
       command.str("");
       command << Map2Check::clangBinary
-	      << "  -fsanitize-coverage=trace-cmp,edge,8bit-counters " 
+              << "  -fsanitize-coverage=trace-cmp,edge,8bit-counters "
               << " -g  -std=c++11 -lstdc++ -lm "
-	      << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
-	      << " -pthread "
-              << Caller::postOptimizationFlags()
+              << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
+              << " -pthread " << Caller::postOptimizationFlags()
               << " -o " + programHash + "-fuzzed.out"
               << " " + programHash + "-result.bc";
 
@@ -92,8 +95,9 @@ void Caller::applyNonDetGenerator() {
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << Map2Check::clangBinary << " -g  -std=c++11 -lstdc++ -lm -pthread "
-		     << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
+      commandWitness << Map2Check::clangBinary
+                     << " -g  -std=c++11 -lstdc++ -lm -pthread "
+                     << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
 
@@ -146,9 +150,7 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
 
       break;
     }
-    default: {
-      break;
-    }
+    default: { break; }
   }
 
   Map2Check::Log::Info("Adding map2check pass");
@@ -224,6 +226,10 @@ void Caller::linkLLVM() {
       linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
       break;
     }
+    case (NonDetGenerator::Klee): {  // TODO: Add klee non det generator
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
+      break;
+    }
     case (NonDetGenerator::LibFuzzer): {
       linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
       break;
@@ -246,8 +252,23 @@ void Caller::linkLLVM() {
 void Caller::executeAnalysis() {
   switch (nonDetGenerator) {
     // TODO: implement this method
-    case (NonDetGenerator::None): {
+    case (NonDetGenerator::None): {  // TODO: Activate mode
       Map2Check::Log::Info("This mode is not supported");
+      break;
+    }
+    case (NonDetGenerator::Klee): {
+      Map2Check::Log::Info("Executing Klee with map2check");
+      std::ostringstream kleeCommand;
+      kleeCommand.str("");
+      kleeCommand << Map2Check::kleeBinary;
+      kleeCommand << " -suppress-external-warnings"
+                  << " --allow-external-sym-calls"
+                  << " -exit-on-error-type=Assert"
+                  << " --optimize "
+                  << " ./" + programHash + "-witness-result.bc"
+                  << "  > ExecutionOutput.log";
+
+      system(kleeCommand.str().c_str());
       break;
     }
     case (NonDetGenerator::LibFuzzer): {

@@ -19,7 +19,11 @@ const string clangIncludeFolder("${MAP2CHECK_PATH}/include/");
 /** Path to generated list log file (check MemoryUtils implementation) */
 const string listLogCSV("list_log.csv");
 /** Path to klee binary */
-const string kleeBinary("${MAP2CHECK_PATH}/bin/klee");
+
+// URGENT: FIX THIS!!!!
+const string kleeBinary(
+    "${MAP2CHECK_PATH}/../build/dependencies/Klee/bin/klee");
+
 /** Path to generated klee log file (check MemoryUtils implementation) */
 const string kleeLogCSV("klee_log.csv");
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
@@ -91,7 +95,7 @@ struct CheckViolatedProperty {
 
 /** Helper class to manipulate and transform code based on a C source file */
 class SourceCodeHelper {
-public:
+ public:
   /**
    * Reads all lines from a C source file and adds to a vector structure
    * @param  c_src Path to C file
@@ -120,7 +124,7 @@ public:
                                    std::string result);
   // void changeTokenFromLine(int line, std::string old_token, std::string
   // new_token);
-private:
+ private:
   std::string path;
   std::vector<std::string> cFileLines;
 };
@@ -150,36 +154,36 @@ struct KleeLogRow {
     std::ostringstream cnvt;
     cnvt.str("");
     switch (type) {
-    case KleeLogType::INTEGER:
-      cnvt << "  Call Function  : "
-           << "__VERIFIER_nondet_int()"
-           << "\n";
-      break;
-    case KleeLogType::CHAR:
-      cnvt << "  Call Function  : "
-           << "__VERIFIER_nondet_char()"
-           << "\n";
-      break;
-    case KleeLogType::POINTER:
-      cnvt << "  Call Function  : "
-           << "__VERIFIER_nondet_pointer()"
-           << "\n";
-      break;
-    case KleeLogType::USHORT:
-      cnvt << "  Call Function  : "
-           << "__VERIFIER_nondet_ushort()"
-           << "\n";
-      break;
-    case KleeLogType::LONG:
-      cnvt << "  Call Function  : "
-           << "__VERIFIER_nondet_long()"
-           << "\n";
-      break;
-    case KleeLogType::UNSIGNED:
-      cnvt << "  Call Function  : "
-           << "__VERIFIER_nondet_uint()"
-           << "\n";
-      break;
+      case KleeLogType::INTEGER:
+        cnvt << "  Call Function  : "
+             << "__VERIFIER_nondet_int()"
+             << "\n";
+        break;
+      case KleeLogType::CHAR:
+        cnvt << "  Call Function  : "
+             << "__VERIFIER_nondet_char()"
+             << "\n";
+        break;
+      case KleeLogType::POINTER:
+        cnvt << "  Call Function  : "
+             << "__VERIFIER_nondet_pointer()"
+             << "\n";
+        break;
+      case KleeLogType::USHORT:
+        cnvt << "  Call Function  : "
+             << "__VERIFIER_nondet_ushort()"
+             << "\n";
+        break;
+      case KleeLogType::LONG:
+        cnvt << "  Call Function  : "
+             << "__VERIFIER_nondet_long()"
+             << "\n";
+        break;
+      case KleeLogType::UNSIGNED:
+        cnvt << "  Call Function  : "
+             << "__VERIFIER_nondet_uint()"
+             << "\n";
+        break;
     }
     cnvt << "  Value          : " << this->value << "\n";
     cnvt << "  Line Number    : " << this->line << "\n";
@@ -191,7 +195,7 @@ struct KleeLogRow {
 
 /** Class used to get all KleeLogRow from a CSV file */
 class KleeLogHelper {
-public:
+ public:
   /**
    * Reads a CSV file and returns a vector of KleeLogRow
    * @param path CSV file path
@@ -248,7 +252,7 @@ struct ListLogRow {
 
 /** Class used to get all ListLogRow from a CSV file */
 class ListLogHelper {
-public:
+ public:
   /**
    * Reads a CSV file and returns a vector of ListLogRow
    * @param path CSV file path
@@ -280,7 +284,7 @@ struct StateTrueLogRow {
 
 /** Class used to get all StateTrueLogRow from a CSV file */
 class StateTrueLogHelper {
-public:
+ public:
   /**
    * Reads a CSV file and returns a vector of StateTrueLogRow
    * @param path CSV file path
@@ -306,7 +310,7 @@ struct TrackBBLogRow {
 
 /** Class used to get all TrackBBLogRow from a CSV file */
 class TrackBBLogHelper {
-public:
+ public:
   /**
    * Reads a CSV file and returns a vector of TrackBBLogRow
    * @param path CSV file path
@@ -322,4 +326,4 @@ public:
   }
 };
 
-} // namespace Map2Check
+}  // namespace Map2Check

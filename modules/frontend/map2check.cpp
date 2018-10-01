@@ -132,7 +132,7 @@ int map2check_execution(map2check_args args) {
   Map2Check::Log::Info("Started Map2Check");
   // TODO(rafa.sa.xp@gmail.com): Check current mode
 
-  auto generator = Map2Check::NonDetGenerator::LibFuzzer;
+  auto generator = Map2Check::NonDetGenerator::Klee;
 
   /**
    * Start Map2Check algorithm
@@ -157,7 +157,7 @@ int map2check_execution(map2check_args args) {
   caller->c_program_fullpath = args.inputFile;
   caller->compileCFile();
   caller->setTimeout(args.timeout);
-  if(args.btree) {
+  if (args.btree) {
     caller->useBTree();
   }
 

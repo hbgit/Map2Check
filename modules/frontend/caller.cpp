@@ -227,7 +227,7 @@ void Caller::linkLLVM() {
       break;
     }
     case (NonDetGenerator::Klee): {  // TODO: Add klee non det generator
-      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorKlee.bc";
       break;
     }
     case (NonDetGenerator::LibFuzzer): {

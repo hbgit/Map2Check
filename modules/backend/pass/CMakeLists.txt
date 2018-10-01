@@ -1,7 +1,7 @@
 add_library(DebugInfo OBJECT DebugInfo.cpp)
 # BUG: If we do not set this flag opt will not work with our pass
 # even if it was the same build from llvm
-set(CXX_FLAGS "${CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
+set(CXX_FLAGS "${CXX_FLAGS}  -fno-rtti ")
 
 set_target_properties(DebugInfo PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
 

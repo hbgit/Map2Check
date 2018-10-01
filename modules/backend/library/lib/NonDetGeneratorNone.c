@@ -3,7 +3,12 @@
 /* This mode returns consts */
 
 #include <stdint.h>
+extern int __map2check_main__();
 
+int main() {
+  __map2check_main__();
+  return 0;
+}
 
 int map2check_non_det_int() {
   return 0;

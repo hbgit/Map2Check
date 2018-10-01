@@ -2,8 +2,13 @@ cmake_minimum_required(VERSION 3.5)
   include(ExternalProject)
 find_package(Git REQUIRED)
 
-set(CMAKE_C_COMPILER ${CLANG_CC})
-set(CMAKE_CXX_COMPILER  ${CLANG_CXX})
+# -DENABLE_SOLVER_Z3=ON
+# -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so
+# -DZ3_INCLUDE_DIRS=${Z3_FOLDER}/include
+# TODO: Fix z3
+
+# set(CMAKE_C_COMPILER ${CLANG_CC})
+# set(CMAKE_CXX_COMPILER  ${CLANG_CXX})
 ExternalProject_Add( Klee
   PREFIX dependencies/Klee
   DEPENDS z3Solver STP KleeUCLibC
@@ -12,9 +17,6 @@ ExternalProject_Add( Klee
   CMAKE_ARGS 
      -DCMAKE_INSTALL_PREFIX=${PRE_BUILT_CLANG_FOLDER}
      -DENABLE_SOLVER_STP=ON
-     -DENABLE_SOLVER_Z3=ON
-     -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so
-     -DZ3_INCLUDE_DIRS=${Z3_FOLDER}/include
      -DKLEE_RUNTIME_BUILD_TYPE=Release
      -DENABLE_POSIX_RUNTIME=ON
      -DENABLE_KLEE_UCLIBC=ON
@@ -25,5 +27,7 @@ ExternalProject_Add( Klee
      -DENABLE_SYSTEM_TESTS=OFF 
      -DENABLE_UNIT_TESTS=OFF
      -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+     -DCMAKE_C_COMPILER=${CLANG_CC}
+     -DCMAKE_CXX_COMPILER=${CLANG_CXX}
 )
 

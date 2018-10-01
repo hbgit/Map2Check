@@ -25,7 +25,6 @@ if(NOT SKIP_LIB_FUZZER)
 endif()
 
 if(NOT SKIP_KLEE)
-  include(ExternalProject)
   include(cmake/FindZ3.cmake)
   include(cmake/FindMiniSat.cmake)
   include(cmake/FindSTP.cmake)

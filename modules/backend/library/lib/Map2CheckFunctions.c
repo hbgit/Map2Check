@@ -55,11 +55,12 @@ void __VERIFIER_error() {
 
 void map2check_target_function(const char *func_name, int scope, int line) {
   write_property(TARGET_REACHED, line, func_name);
+
   map2check_error();
 }
 
 void map2check_success() {
-  // write_property(NONE, 0, "");
+  write_property(NONE, 0, "");
   map2check_exit();
 }
 
@@ -88,6 +89,7 @@ void map2check_exit() {
   /* gotError = TRUE; */
   map2check_destroy();
   if (gotError == TRUE) {
+    abort();
     abort();
   }
 }

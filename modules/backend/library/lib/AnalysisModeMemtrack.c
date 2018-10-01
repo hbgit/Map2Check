@@ -130,6 +130,7 @@ void analysis_destroy() {
 Bool analysis_is_program_correct() {
   if (!valid_allocation_log(&allocation_log)) {
     write_property(FALSE_MEMTRACK, 0, "");
+    write_property_memtrack();
     return FALSE;
   }
   return TRUE;
@@ -162,6 +163,7 @@ void map2check_free_resolved_address(void *ptr, unsigned line,
 
   if (error) {
     write_property(FALSE_FREE, line, function_name);
+    write_property_free(line, function_name);
     map2check_error();
   }
   MEMORY_ALLOCATIONS_ROW *row = find_row_with_address(&allocation_log, ptr);
@@ -284,6 +286,7 @@ void map2check_add_store_pointer(void *var, void *value, unsigned scope,
 void map2check_check_deref(int line, const char *function_name) {
   if (ERROR_DEREF) {
     write_property(FALSE_DEREF, line, function_name);
+    write_property_deref(line, function_name);
     map2check_error();
   }
 }

@@ -1,12 +1,12 @@
 #include "tools.hpp"
 #include "log.hpp"
 
-#include <algorithm> // copy
+#include <algorithm>  // copy
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <fstream>  // fstream
-#include <iostream> // cout, endl
-#include <iterator> // ostream_operator
+#include <fstream>   // fstream
+#include <iostream>  // cout, endl
+#include <iterator>  // ostream_operator
 
 #include <sstream>
 
@@ -80,57 +80,150 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
   smatch match;
   string result;
 
+  ifstream unknown("map2check_property_unknown");
+  if (unknown.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
+    return;
+  }
+
+  ifstream false_free("map2check_property_free");
+  if (false_free.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_FREE;
+    getline(false_free, line);
+    getline(false_free, line);
+    if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+      int result = std::stoi(match.str(1));
+      this->line = result;
+      Map2Check::Log::Debug("Line number: " + match.str(1));
+    }
+    getline(false_free, line);
+    if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+      string result = match.str(1);
+      this->function_name = result;
+      Map2Check::Log::Debug("Function name: " + result);
+    }
+
+    return;
+  }
+
+  ifstream deref("map2check_property_deref");
+  if (deref.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
+    getline(deref, line);
+    getline(deref, line);
+    if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+      int result = std::stoi(match.str(1));
+      this->line = result;
+      Map2Check::Log::Debug("Line number: " + match.str(1));
+    }
+    getline(deref, line);
+    if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+      string result = match.str(1);
+      this->function_name = result;
+      Map2Check::Log::Debug("Function name: " + result);
+    }
+    return;
+  }
+
+  Map2Check::Log::Debug("HI1");
+  ifstream assert_ifs("map2check_property_assert");
+  if (assert_ifs.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::ASSERT;
+    Map2Check::Log::Debug("HI3");
+    getline(assert_ifs, line);
+    getline(assert_ifs, line);
+    if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+      int result = std::stoi(match.str(1));
+      this->line = result;
+      Map2Check::Log::Debug("Line number: " + match.str(1));
+    }
+    getline(assert_ifs, line);
+    if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+      string result = match.str(1);
+      this->function_name = result;
+      Map2Check::Log::Debug("Function name: " + result);
+    }
+    return;
+  }
+  Map2Check::Log::Debug("HI2");
+
+  ifstream overflowFile("map2check_property_overflow");
+  if (overflowFile.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
+    getline(overflowFile, line);
+    getline(overflowFile, line);
+    if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+      int result = std::stoi(match.str(1));
+      this->line = result;
+      Map2Check::Log::Debug("Line number: " + match.str(1));
+    }
+    getline(overflowFile, line);
+    if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+      string result = match.str(1);
+      this->function_name = result;
+      Map2Check::Log::Debug("Function name: " + result);
+    }
+    return;
+  }
+
+  ifstream memtrack("map2check_property_memtrack");
+  if (memtrack.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
+    return;
+  }
+
   while (getline(in, line)) {
     switch (fileLineNumber) {
-    case 0:
-      if (line == "FALSE-FREE") {
-        Map2Check::Log::Debug("FALSE-FREE found");
-        this->propertyViolated = Tools::PropertyViolated::FALSE_FREE;
-      } else if (line == "TARGET-REACHED") {
-        Map2Check::Log::Debug("TARGET-REACHED found");
-        this->propertyViolated = Tools::PropertyViolated::TARGET_REACHED;
-      } else if (line == "FALSE-DEREF") {
-        Map2Check::Log::Debug("FALSE-DEREF found");
-        this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
-      } else if (line == "FALSE-MEMTRACK") {
-        Map2Check::Log::Debug("FALSE-MEMTRACK found");
-        this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
-      } else if (line == "OVERFLOW") {
-        Map2Check::Log::Debug("OVERFLOW found");
-        this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
-      } else if (line == "UNKNOWN") {
-        Map2Check::Log::Debug("UNKNOWN found");
-        this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
-      } else if (line == "NONE") {
-        Map2Check::Log::Debug("NONE found");
-        this->propertyViolated = Tools::PropertyViolated::NONE;
-      } else if (line == "ASSERT") {
-        Map2Check::Log::Debug("ASSERT found");
-        this->propertyViolated = Tools::PropertyViolated::ASSERT;  
-      } else {
-        // throw Tools::CheckViolatedPropertyException("Invalid Property");
-      }
-      break;
-    case 1:
-      if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
-        int result = std::stoi(match.str(1));
-        this->line = result;
-        Map2Check::Log::Debug("Line number: " + match.str(1));
-      } else {
-        // throw Tools::CheckViolatedPropertyException(
-        //  "Could not find line number");
-      }
-      break;
-    case 2:
-      if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
-        string result = match.str(1);
-        this->function_name = result;
-        Map2Check::Log::Debug("Function name: " + result);
-      } else {
-        // throw Tools::CheckViolatedPropertyException(
-        //   "Could not find function name");
-      }
-      break;
+      case 0:
+        if (line == "FALSE-FREE") {
+          Map2Check::Log::Debug("FALSE-FREE found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_FREE;
+        } else if (line == "TARGET-REACHED") {
+          Map2Check::Log::Debug("TARGET-REACHED found");
+          this->propertyViolated = Tools::PropertyViolated::TARGET_REACHED;
+        } else if (line == "FALSE-DEREF") {
+          Map2Check::Log::Debug("FALSE-DEREF found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_DEREF;
+        } else if (line == "FALSE-MEMTRACK") {
+          Map2Check::Log::Debug("FALSE-MEMTRACK found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
+        } else if (line == "OVERFLOW") {
+          Map2Check::Log::Debug("OVERFLOW found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
+        } else if (line == "UNKNOWN") {
+          Map2Check::Log::Debug("UNKNOWN found");
+          this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
+        } else if (line == "NONE") {
+          Map2Check::Log::Debug("NONE found");
+          this->propertyViolated = Tools::PropertyViolated::NONE;
+        } else if (line == "ASSERT") {
+          Map2Check::Log::Debug("ASSERT found");
+          this->propertyViolated = Tools::PropertyViolated::ASSERT;
+        } else {
+          // throw Tools::CheckViolatedPropertyException("Invalid Property");
+        }
+        break;
+      case 1:
+        if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+          int result = std::stoi(match.str(1));
+          this->line = result;
+          Map2Check::Log::Debug("Line number: " + match.str(1));
+        } else {
+          // throw Tools::CheckViolatedPropertyException(
+          //  "Could not find line number");
+        }
+        break;
+      case 2:
+        if (std::regex_search(line, match, reFunctionName) &&
+            match.size() > 1) {
+          string result = match.str(1);
+          this->function_name = result;
+          Map2Check::Log::Debug("Function name: " + result);
+        } else {
+          // throw Tools::CheckViolatedPropertyException(
+          //   "Could not find function name");
+        }
+        break;
     }
     fileLineNumber++;
   }
@@ -138,8 +231,8 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
 
 // int Tools::CheckViolatedProperty::getListLogFromCSV(string path) {
 
-std::vector<Tools::KleeLogRow>
-Tools::KleeLogHelper::getListLogFromCSV(string path) {
+std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
+    string path) {
   std::vector<Tools::KleeLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
@@ -169,24 +262,24 @@ Tools::KleeLogHelper::getListLogFromCSV(string path) {
       string value = tokens[5];
       string type = tokens[6];
       switch (stoi(type)) {
-      case 0:
-        row.type = KleeLogType::INTEGER;
-        break;
-      case 1:
-        row.type = KleeLogType::CHAR;
-        break;
-      case 2:
-        row.type = KleeLogType::POINTER;
-        break;
-      case 3:
-        row.type = KleeLogType::USHORT;
-        break;
-      case 4:
-        row.type = KleeLogType::LONG;
-        break;
-      case 5:
-        row.type = KleeLogType::UNSIGNED;
-        break;
+        case 0:
+          row.type = KleeLogType::INTEGER;
+          break;
+        case 1:
+          row.type = KleeLogType::CHAR;
+          break;
+        case 2:
+          row.type = KleeLogType::POINTER;
+          break;
+        case 3:
+          row.type = KleeLogType::USHORT;
+          break;
+        case 4:
+          row.type = KleeLogType::LONG;
+          break;
+        case 5:
+          row.type = KleeLogType::UNSIGNED;
+          break;
       }
       row.id = id;
       row.line = lineNumber;
@@ -202,8 +295,8 @@ Tools::KleeLogHelper::getListLogFromCSV(string path) {
   return listLog;
 }
 
-std::vector<Tools::ListLogRow>
-Tools::ListLogHelper::getListLogFromCSV(string path) {
+std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(
+    string path) {
   std::vector<Tools::ListLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
@@ -303,8 +396,8 @@ Tools::StateTrueLogHelper::getListLogFromCSV(string path) {
   return listLog;
 }
 
-std::vector<Tools::TrackBBLogRow>
-Tools::TrackBBLogHelper::getListLogFromCSV(string path) {
+std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(
+    string path) {
   std::vector<Tools::TrackBBLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 

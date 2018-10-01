@@ -5,12 +5,12 @@
 // #include <string.h>
 
 const char* violated_property_file = "map2check_property";
-const char* violated_property_file_unknown = "map2check_property_klee_unknown";
-const char* violated_property_file_memtrack =
-    "map2check_property_klee_memtrack";
-const char* violated_property_file_deref = "map2check_property_klee_deref";
-const char* violated_property_file_free = "map2check_property_klee_free";
+const char* violated_property_file_unknown = "map2check_property__unknown";
+const char* violated_property_file_memtrack = "map2check_property_memtrack";
+const char* violated_property_file_deref = "map2check_property_deref";
+const char* violated_property_file_free = "map2check_property_free";
 const char* violated_property_file_overflow = "map2check_property_overflow";
+const char* violated_property_file_assert = "map2check_property_assert";
 
 void write_property_unknown() {
   FILE* output = fopen(violated_property_file_unknown, "w");
@@ -65,15 +65,17 @@ void write_property(enum ViolatedProperty violated, int line,
       fprintf(output, "Function: %s\n", function_name);
       break;
     case OVERFLOW:
+      write_property_overflow(line, function_name);
       fprintf(output, "OVERFLOW\n");
       fprintf(output, "Line: %d\n", line);
       fprintf(output, "Function: %s\n", function_name);
       break;
     case ASSERT:
+      write_property_assert(line, function_name);
       fprintf(output, "ASSERT\n");
       fprintf(output, "Line: %d\n", line);
       fprintf(output, "Function: %s\n", function_name);
-      break;  
+      break;
   }
 
   fclose(output);
@@ -90,6 +92,14 @@ void write_property_free(int line, const char* function_name) {
 void write_property_overflow(int line, const char* function_name) {
   FILE* output = fopen(violated_property_file_overflow, "w");
   fprintf(output, "OVERFLOW\n");
+  fprintf(output, "Line: %d\n", line);
+  fprintf(output, "Function: %s\n", function_name);
+  fclose(output);
+}
+
+void write_property_assert(int line, const char* function_name) {
+  FILE* output = fopen(violated_property_file_assert, "w");
+  fprintf(output, "ASSERT\n");
   fprintf(output, "Line: %d\n", line);
   fprintf(output, "Function: %s\n", function_name);
   fclose(output);

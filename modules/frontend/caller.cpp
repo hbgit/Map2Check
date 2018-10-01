@@ -263,8 +263,9 @@ void Caller::executeAnalysis() {
       kleeCommand << Map2Check::kleeBinary;
       kleeCommand << " -suppress-external-warnings"
                   << " --allow-external-sym-calls"
-                  << " -exit-on-error-type=Assert"
+                  << " -exit-on-error-type=Abort"
                   << " --optimize "
+                  // << " -libc=uclibc"
                   << " ./" + programHash + "-witness-result.bc"
                   << "  > ExecutionOutput.log";
 

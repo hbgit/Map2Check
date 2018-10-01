@@ -16,9 +16,10 @@
 void write_property(enum ViolatedProperty violated, int line,
                     const char* function_name);
 void write_property_unknown();
-void write_property_deref();
+void write_property_deref(int line, const char* function_name);
 void write_property_memtrack();
 void write_property_free(int line, const char* function_name);
 void write_property_overflow(int line, const char* function_name);
+void write_property_assert(int line, const char* function_name);
 
 #endif

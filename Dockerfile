@@ -12,7 +12,7 @@
 #  You can check that the container still exists by running: $ docker ps -a
 #  You can restart the container by running: docker start -ai mapdevel
 ############################################################
-FROM ubuntu:16.04
+FROM rafahaskell/llvm-build
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>

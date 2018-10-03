@@ -13,7 +13,7 @@ echo "Building Map2Check release ... "
 echo ""
 
 cd build
-cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=../release/
+cmake .. -G Ninja -DLLVM_DIR=/llvm/release/llvm391/lib/cmake/llvm/ -DCMAKE_INSTALL_PREFIX=../release/
 ninja
 ninja install
 

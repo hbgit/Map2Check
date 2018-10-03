@@ -12,7 +12,7 @@
 #  You can check that the container still exists by running: $ docker ps -a
 #  You can restart the container by running: docker start -ai mapdevel
 ############################################################
-FROM rafahaskell/llvm-build
+FROM rafahaskell/llvm_env:first
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
@@ -25,7 +25,6 @@ RUN apt-get install -y sudo \
     build-essential \
     libboost-all-dev \
     libboost-program-options-dev \
-    clang-3.8 llvm-3.8 llvm-3.8-dev \
     bison flex python perl zlib1g-dev \
     python-minimal \
     cmake \

@@ -35,8 +35,7 @@ cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
 cd ..
 echo ""
 echo "Building Crab-LLVM ..."
-# TODO: Not working
-# ./utils/build_crabllvm.py
+#./utils/build_crabllvm.py
 echo ""
 
 echo ""

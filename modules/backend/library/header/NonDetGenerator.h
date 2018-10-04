@@ -5,6 +5,7 @@ void nondet_init();
 void nondet_destroy();
 void nondet_cancel();
 void nondet_generate_aux_witness_files();
+void nondet_assume(int expr);
 
 // TODO: create macro to generate functions with docs
 /**

@@ -12,6 +12,9 @@ void nondet_generate_aux_witness_files() {
   nondet_log_to_file(map2check_nondet_get_log());
 }
 
+extern void klee_assume(int);
+void nondet_assume(int expr) { klee_assume(expr); }
+
 extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
 #define MAP2CHECK_NON_DET_GENERATOR(type)                           \
   type map2check_non_det_##type() {                                 \

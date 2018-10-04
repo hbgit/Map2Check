@@ -16,10 +16,9 @@ cd build
 cmake .. -G Ninja -DLLVM_DIR=/llvm/release/llvm391/lib/cmake/llvm/ -DCMAKE_INSTALL_PREFIX=../release/
 ninja
 ninja install
-cp -r /llvm/release/llvm391/lib/clang/3.9.1/include/* ./include
 
 cd ../release
-cp -r 
+cp -r /llvm/release/llvm391/lib/clang/3.9.1/include/* ./include
 
 cd ..
 echo ""

@@ -35,11 +35,7 @@ void map2check_init(int isSvComp) {
 unsigned map2check_get_current_step() { return Map2CheckCurrentStep; }
 void map2check_next_current_step() { Map2CheckCurrentStep++; }
 
-void map2check_assume(int expr) {
-  if (!expr) {
-    nondet_cancel();
-  }
-}
+void map2check_assume(int expr) { nondet_assume(expr); }
 
 void map2check_track_bb(unsigned line, const char *function_name) {
   if (!(is_in_tracked(line, &trackbb_log))) {

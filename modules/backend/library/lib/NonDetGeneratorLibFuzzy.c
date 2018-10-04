@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include "../header/NonDetGenerator.h"
+#include <stdlib.h>
 #include "../header/NonDetLog.h"
 
 /* Logic used for cases generation:
@@ -25,6 +25,11 @@ void nondet_init() { nondet_log_init(); }
 void nondet_destroy() { nondet_log_destroy(); }
 #include <signal.h>
 void nondet_cancel() { pthread_exit(NULL); }
+void nondet_assume(int expr) {
+  if (!expr) {
+    nondet_cancel();
+  }
+}
 void nondet_generate_aux_witness_files() {
   nondet_log_to_file(map2check_nondet_get_log());
 }

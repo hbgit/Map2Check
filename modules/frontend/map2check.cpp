@@ -81,7 +81,15 @@ inline void fixPath(char *map2check_bin_string) {
   char *map2check_env_array = new char[map2check_env_var.length() + 1];
   strcpy(map2check_env_array, map2check_env_var.c_str());
   putenv(map2check_env_array);
-  Map2Check::Log::Debug(map2check_env_var);
+  // Map2Check::Log::Debug(map2check_env_var);
+
+  std::string klee_env_var("KLEE_RUNTIME_LIBRARY_PATH=");
+  klee_env_var += pBuf;
+  klee_env_var += "/lib/klee/runtime";
+
+  char *klee_env_array = new char[klee_env_var.length() + 1];
+  strcpy(klee_env_array, klee_env_var.c_str());
+  putenv(klee_env_array);
 }
 }  // namespace
 

@@ -19,11 +19,7 @@ const string clangIncludeFolder("${MAP2CHECK_PATH}/include/");
 /** Path to generated list log file (check MemoryUtils implementation) */
 const string listLogCSV("list_log.csv");
 /** Path to klee binary */
-
-// URGENT: FIX THIS!!!!
-const string kleeBinary(
-    "${MAP2CHECK_PATH}/../build/dependencies/Klee/bin/klee");
-
+const string kleeBinary("${MAP2CHECK_PATH}/bin/klee");
 /** Path to generated klee log file (check MemoryUtils implementation) */
 const string kleeLogCSV("klee_log.csv");
 /** Path to generated Correctness log file (check MemoryUtils implementation) */

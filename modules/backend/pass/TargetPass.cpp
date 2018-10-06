@@ -4,7 +4,7 @@ bool TargetPass::runOnFunction(Function& F) {
   this->targetFunctionMap2Check = F.getParent()->getOrInsertFunction(
       "map2check_target_function", Type::getVoidTy(F.getContext()),
       Type::getInt8PtrTy(F.getContext()), Type::getInt32Ty(F.getContext()),
-      Type::getInt32Ty(F.getContext()), NULL);
+      Type::getInt32Ty(F.getContext()));
 
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();

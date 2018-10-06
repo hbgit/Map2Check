@@ -1,4 +1,4 @@
-set(CMAKE_CXX_COMPILER g++)
+# set(CMAKE_CXX_COMPILER g++)
 add_subdirectory(utils)
 add_subdirectory(counter_example)
 add_subdirectory(witness)

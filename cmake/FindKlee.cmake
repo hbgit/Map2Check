@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
   include(ExternalProject)
 find_package(Git REQUIRED)
-
-# -DENABLE_SOLVER_Z3=ON
-# -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so
-# -DZ3_INCLUDE_DIRS=${Z3_FOLDER}/include
 # TODO: Fix z3
 
 # set(CMAKE_C_COMPILER ${CLANG_CC})
@@ -14,7 +10,10 @@ ExternalProject_Add( Klee
   DEPENDS STP KleeUCLibC
   GIT_REPOSITORY https://github.com/staticafi/klee.git
   GIT_TAG 6.0.0
-  CMAKE_ARGS 
+  CMAKE_ARGS
+     # -DENABLE_SOLVER_Z3=ON
+     # -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so
+     # -DZ3_INCLUDE_DIRS=${Z3_FOLDER}/include
      -DENABLE_SOLVER_STP=ON
      -DKLEE_RUNTIME_BUILD_TYPE=Release
      -DENABLE_POSIX_RUNTIME=ON

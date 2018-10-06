@@ -1,17 +1,17 @@
 #include "AssertPass.hpp"
 
-bool AssertPass::runOnFunction(Function& F) {  
+bool AssertPass::runOnFunction(Function& F) {
   this->map2check_assert = F.getParent()->getOrInsertFunction(
-        "map2check_assert", Type::getVoidTy(F.getContext()), Type::getInt32Ty(F.getContext()),
-        Type::getInt32Ty(F.getContext()), Type::getInt8PtrTy(F.getContext()), NULL);    
+      "map2check_assert", Type::getVoidTy(F.getContext()),
+      Type::getInt32Ty(F.getContext()), Type::getInt32Ty(F.getContext()),
+      Type::getInt8PtrTy(F.getContext()));
 
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
 
   IRBuilder<> builder((Instruction*)&*instructionIterator);
   this->functionName = builder.CreateGlobalStringPtr(F.getName());
-  
-  
+
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
     for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
       currentInstruction = i;
@@ -23,22 +23,20 @@ bool AssertPass::runOnFunction(Function& F) {
   return true;
 }
 
-
 void AssertPass::instrumentAssert(CallInst* assertInst, LLVMContext* Ctx) {
   IRBuilder<> builder(assertInst);
   DebugInfo debugInfo(Ctx, assertInst);
 
-  Value *condition = assertInst->getArgOperand(0);
-  Value *function_llvm =
+  Value* condition = assertInst->getArgOperand(0);
+  Value* function_llvm =
       builder.CreateGlobalStringPtr(assertInst->getFunction()->getName());
 
-  Value *args[] = {condition, debugInfo.getLineNumberValue(), function_llvm};
+  Value* args[] = {condition, debugInfo.getLineNumberValue(), function_llvm};
 
-  builder.CreateCall(this->map2check_assert, args);    
+  builder.CreateCall(this->map2check_assert, args);
 }
 
-void AssertPass::runOnCallInstruction(CallInst* callInst,
-                                            LLVMContext* Ctx) {
+void AssertPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
   Function* calleeFunction = callInst->getCalledFunction();
 
   if (calleeFunction == NULL) {
@@ -49,12 +47,11 @@ void AssertPass::runOnCallInstruction(CallInst* callInst,
       return;
     }
   }
-   if (calleeFunction->getName() == "__VERIFIER_assert") {
+  if (calleeFunction->getName() == "__VERIFIER_assert") {
     this->instrumentAssert(callInst, Ctx);
   }
 }
 
 char AssertPass::ID = 12;
-static RegisterPass<AssertPass> X(
-    "validate_asserts",
-    "Add checks for __VERIFIER_assert");
+static RegisterPass<AssertPass> X("validate_asserts",
+                                  "Add checks for __VERIFIER_assert");

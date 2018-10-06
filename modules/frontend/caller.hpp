@@ -42,6 +42,7 @@ class Caller {
   NonDetGenerator nonDetGenerator;
   DataStructure dataStructure = DataStructure::Array;
   std::string programHash;
+  std::string currentPath;
   unsigned timeout;
 
  public:

@@ -90,6 +90,15 @@ inline void fixPath(char *map2check_bin_string) {
   char *klee_env_array = new char[klee_env_var.length() + 1];
   strcpy(klee_env_array, klee_env_var.c_str());
   putenv(klee_env_array);
+
+  std::string ld_env_var("LD_LIBRARY_PATH=");
+  ld_env_var += "$LD_LIBRARY_PATH:";
+  ld_env_var += pBuf;
+  ld_env_var += "/lib/";
+
+  char *ld_env_array = new char[ld_env_var.length() + 1];
+  strcpy(ld_env_array, ld_env_var.c_str());
+  putenv(ld_env_array);
 }
 }  // namespace
 
@@ -134,13 +143,15 @@ struct map2check_args {
   bool generateTestCase = false;
   bool printCounterExample = false;
   bool btree = false;
+  Map2Check::NonDetGenerator generator;
 };
 
+bool foundViolation = false;
 int map2check_execution(map2check_args args) {
   Map2Check::Log::Info("Started Map2Check");
   // TODO(rafa.sa.xp@gmail.com): Check current mode
 
-  auto generator = Map2Check::NonDetGenerator::Klee;
+  auto generator = args.generator;
 
   /**
    * Start Map2Check algorithm
@@ -186,27 +197,31 @@ int map2check_execution(map2check_args args) {
 
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
-    Map2Check::Log::Info("");
-    Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+    if (generator == Map2Check::NonDetGenerator::Klee) {
+      Map2Check::Log::Info("");
+      Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+      if (args.generateWitness)
+        generate_witness(args.inputFile, propertyViolated);
+    }
+
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
-    Map2Check::Log::Info("Unable to prove or falsify the program.");
-    Map2Check::Log::Info("VERIFICATION UNKNOWN");
-    if (args.debugMode) counterExample->generateTestCase();
+    if (generator == Map2Check::NonDetGenerator::Klee) {
+      Map2Check::Log::Info("Unable to prove or falsify the program.");
+      Map2Check::Log::Info("VERIFICATION UNKNOWN");
+      if (args.debugMode) counterExample->generateTestCase();
+    }
   } else {
     Map2Check::Log::Info("Started counter example generation");
-
     counterExample->printCounterExample();
+    foundViolation = true;
     if (args.generateTestCase) counterExample->generateTestCase();
+    if (args.generateWitness)
+      generate_witness(args.inputFile, propertyViolated);
   }
-
-  // (5) Generate witness (if analysis generated a result)
-  if ((propertyViolated != Map2Check::PropertyViolated::UNKNOWN) &&
-      args.generateWitness)
-    generate_witness(args.inputFile, propertyViolated);
 
   // (6) Clean map2check execution (folders and temp files)
   Map2Check::Log::Debug("Removing temp files");
-  if (!args.debugMode) caller->cleanGarbage();
+  caller->cleanGarbage();
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
@@ -214,6 +229,8 @@ int map2check_execution(map2check_args args) {
       abort();
     }
   }
+
+  system("pwd");
   return SUCCESS;
 }
 
@@ -314,7 +331,12 @@ int main(int argc, char **argv) {
       std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
-      return map2check_execution(args);
+      args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+      map2check_execution(args);
+      if (!foundViolation) {
+        args.generator = Map2Check::NonDetGenerator::Klee;
+        map2check_execution(args);
+      }
     }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;

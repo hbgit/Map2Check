@@ -41,7 +41,7 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   system(moveProgram.str().c_str());
 
   Map2Check::Log::Debug("Changing current dir");
-  std::string currentPath = boost::filesystem::current_path().string();
+  currentPath = boost::filesystem::current_path().string();
   boost::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Current path: " +
                         boost::filesystem::current_path().string());
@@ -62,9 +62,11 @@ std::string Caller::postOptimizationFlags() {
 }
 
 void Caller::cleanGarbage() {
+  boost::filesystem::current_path(currentPath);
   std::ostringstream removeCommand;
   removeCommand.str("");
-  removeCommand << "rm -rf ../" << programHash;
+  removeCommand << "rm -rf " << programHash;
+  Map2Check::Log::Debug("Remove " + removeCommand.str());
   system(removeCommand.str().c_str());
 }
 
@@ -83,11 +85,10 @@ void Caller::applyNonDetGenerator() {
       Map2Check::Log::Info("Instrumenting with LLVM LibFuzzer");
       std::ostringstream command;
       command.str("");
+
       command << Map2Check::clangBinary
-              << "  -fsanitize-coverage=trace-cmp,edge,8bit-counters "
-              << " -g  -std=c++11 -lstdc++ -lm "
-              << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
-              << " -pthread " << Caller::postOptimizationFlags()
+              << "  -g -fsanitize=fuzzer -fsanitize-coverage=trace-cmp "
+              << Caller::postOptimizationFlags()
               << " -o " + programHash + "-fuzzed.out"
               << " " + programHash + "-result.bc";
 
@@ -95,9 +96,7 @@ void Caller::applyNonDetGenerator() {
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << Map2Check::clangBinary
-                     << " -g  -std=c++11 -lstdc++ -lm -pthread "
-                     << " ${MAP2CHECK_PATH}/lib/libFuzzer.a "
+      commandWitness << Map2Check::clangBinary << "  -g -fsanitize=fuzzer "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
 
@@ -260,6 +259,7 @@ void Caller::executeAnalysis() {
       Map2Check::Log::Info("Executing Klee with map2check");
       std::ostringstream kleeCommand;
       kleeCommand.str("");
+      kleeCommand << "timeout " << (0.8 * this->timeout) << " ";
       kleeCommand << Map2Check::kleeBinary;
       kleeCommand << " -suppress-external-warnings"
                   << " --allow-external-sym-calls"
@@ -268,7 +268,7 @@ void Caller::executeAnalysis() {
                   // << " -libc=uclibc"
                   << " ./" + programHash + "-witness-result.bc"
                   << "  > ExecutionOutput.log";
-
+      Map2Check::Log::Debug(kleeCommand.str());
       system(kleeCommand.str().c_str());
       break;
     }
@@ -276,15 +276,18 @@ void Caller::executeAnalysis() {
       Map2Check::Log::Info("Executing LibFuzzer with map2check");
       std::ostringstream command;
       command.str("");
+      command << "timeout " << (0.2 * this->timeout) << " ";
       command << "./" + programHash +
                      "-fuzzed.out -jobs=2 -use_value_profile=1 "
-              << " -timeout=" << this->timeout << " > fuzzer.output";
+              << " > fuzzer.output";
+      Map2Check::Log::Debug(command.str());
       system(command.str().c_str());
 
       std::ostringstream commandWitness;
       commandWitness.str("");
       commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
       system(commandWitness.str().c_str());
+      Map2Check::Log::Debug("Finished fuzzer");
       break;
     }
   }

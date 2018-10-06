@@ -17,21 +17,20 @@
 
 using namespace llvm;
 
-#define CONSTANT_GENERATOR(type)                                               \
-private:                                                                       \
-  Constant *NonDet##type = NULL;                                               \
-                                                                               \
-public:                                                                        \
+#define CONSTANT_GENERATOR(type) \
+ private:                        \
+  Constant *NonDet##type = NULL; \
+                                 \
+ public:                         \
   Constant *getNonDet##type##Function() { return this->NonDet##type; }
 
-#define NON_DET_FUNCTIONS_HELPER(type, c_type)                                 \
-  this->NonDet##type = F->getParent()->getOrInsertFunction(                    \
-      "map2check_nondet_" #c_type, Type::getVoidTy(*Ctx),                      \
-      Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),  \
-      Type::getInt8PtrTy(*Ctx), NULL);
+#define NON_DET_FUNCTIONS_HELPER(type, c_type)                                \
+  this->NonDet##type = F->getParent()->getOrInsertFunction(                   \
+      "map2check_nondet_" #c_type, Type::getVoidTy(*Ctx),                     \
+      Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), \
+      Type::getInt8PtrTy(*Ctx));
 
 class NonDetFunctions {
-
   CONSTANT_GENERATOR(Integer)
   CONSTANT_GENERATOR(Unsigned)
   CONSTANT_GENERATOR(Char)
@@ -48,7 +47,7 @@ class NonDetFunctions {
   CONSTANT_GENERATOR(Uint)
   // Constant* NonDetAssume = NULL;
 
-public:
+ public:
   NonDetFunctions(Function *F, LLVMContext *Ctx) {
     NON_DET_FUNCTIONS_HELPER(Integer, int)
     NON_DET_FUNCTIONS_HELPER(Unsigned, unsigned)

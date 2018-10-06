@@ -18,6 +18,8 @@ if(DEV_CONTAINER)
   else()
     set(PRE_BUILT_CLANG "/llvm/release/391")
   endif()
+
+  set(PRE_BUILT_CLANG "${LLVM_DIR}")
   
 else()
   #TODO: Maybe we should manually compile LLVM/Clang?

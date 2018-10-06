@@ -6,7 +6,7 @@ set(Map2Check_VERSION_MINOR 0)
 
 option(USE_PREBUILT_CLANG "Download and Install pre-built clang" ON)
 option(BUILD_DOC "Build documentation" OFF)
-option(SKIP_LIB_FUZZER "Don't build libFuzzer" ON)
+option(SKIP_LIB_FUZZER "Don't build libFuzzer" OFF)
 option(SKIP_KLEE "Don't build KLEE" OFF)
 option(REGRESSION "Prepare Regression Tests" OFF)
 

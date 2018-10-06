@@ -624,57 +624,57 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
   this->map2check_load = F.getParent()->getOrInsertFunction(
       "map2check_load", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt32Ty(*this->Ctx), NULL);
+      Type::getInt8PtrTy(*this->Ctx), Type::getInt32Ty(*this->Ctx));
 
   this->map2check_free_resolved_address = F.getParent()->getOrInsertFunction(
       "map2check_free_resolved_address", Type::getVoidTy(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx), Type::getInt32Ty(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt1Ty(*this->Ctx), NULL);
+      Type::getInt8PtrTy(*this->Ctx), Type::getInt1Ty(*this->Ctx));
 
   this->map2check_pointer = F.getParent()->getOrInsertFunction(
       "map2check_add_store_pointer", Type::getVoidTy(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
       Type::getInt32Ty(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx), Type::getInt8PtrTy(*this->Ctx), NULL);
+      Type::getInt32Ty(*this->Ctx), Type::getInt8PtrTy(*this->Ctx));
 
   this->map2check_check_deref = F.getParent()->getOrInsertFunction(
       "map2check_check_deref", Type::getVoidTy(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx), Type::getInt8PtrTy(*this->Ctx), NULL);
+      Type::getInt32Ty(*this->Ctx), Type::getInt8PtrTy(*this->Ctx));
 
   this->map2check_malloc = F.getParent()->getOrInsertFunction(
       "map2check_malloc", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx), NULL);
+      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx));
 
   this->map2check_posix = F.getParent()->getOrInsertFunction(
       "map2check_posix", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx), NULL);
+      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx));
 
   this->map2check_calloc = F.getParent()->getOrInsertFunction(
       "map2check_calloc", Type::getVoidTy(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx),
-      Type::getInt64Ty(*this->Ctx), NULL);
+      Type::getInt64Ty(*this->Ctx));
 
   this->map2check_alloca = F.getParent()->getOrInsertFunction(
       "map2check_alloca", Type::getVoidTy(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
       Type::getInt32Ty(*this->Ctx), Type::getInt32Ty(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx), Type::getInt32Ty(*this->Ctx), NULL);
+      Type::getInt32Ty(*this->Ctx), Type::getInt32Ty(*this->Ctx));
 
   this->map2check_non_static_alloca = F.getParent()->getOrInsertFunction(
       "map2check_non_static_alloca", Type::getVoidTy(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
       Type::getInt32Ty(*this->Ctx), Type::getInt32Ty(*this->Ctx),
-      Type::getInt32Ty(*this->Ctx), Type::getInt32Ty(*this->Ctx), NULL);
+      Type::getInt32Ty(*this->Ctx), Type::getInt32Ty(*this->Ctx));
 
   this->map2check_function = F.getParent()->getOrInsertFunction(
       "map2check_function", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx), NULL);
+      Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx));
 
   this->map2check_free = F.getParent()->getOrInsertFunction(
       "map2check_free", Type::getVoidTy(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
       Type::getInt32Ty(*this->Ctx), Type::getInt32Ty(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), NULL);
+      Type::getInt8PtrTy(*this->Ctx));
 }
 
 void MemoryTrackPass::instrumentFunctionArgumentAddress() {

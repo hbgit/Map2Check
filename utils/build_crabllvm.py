@@ -6,10 +6,10 @@ import shutil
 
 FORCE_BUILD = False
 
-if not FORCE_BUILD and os.path.isdir("build/dependencies/crab-llvm/build/run"):
+if not FORCE_BUILD and os.path.isdir("build/dependencies/crab-llvm/build/_DIR_"):
 	if not os.path.isdir("release/bin/crabllvm"):
 		os.system("mkdir release/bin/crabllvm")
-		os.system("cp -r build/dependencies/crab-llvm/build/run/* release/bin/crabllvm/")
+		os.system("cp -r build/dependencies/crab-llvm/build/_DIR_/* release/bin/crabllvm/")
 	sys.exit(0)
 
 
@@ -33,6 +33,7 @@ if not os.path.isdir("build"):
 
 os.chdir("build")
 
+os.system("cmake -DLLVM_DIR=" + llvm_dir + " -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=_DIR_ -DUSE_LDD=ON -DUSE_APRON=ON ../")
 print("cmake -DLLVM_DIR=" + llvm_dir + " -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=_DIR_ -DUSE_LDD=ON -DUSE_APRON=ON ../")
 
 # cmake --build . --target extra 
@@ -43,4 +44,11 @@ os.system("cmake --build . --target apron && cmake ..")
 os.system("cmake --build . --target install")
 os.system("")
 os.system("pwd")
+
+
+#/home/map2check/devel_tool/mygitclone/release/bin
+if not os.path.isdir("release/bin/crabllvm"):
+	os.system("mkdir release/bin/crabllvm")
+	os.system("cp -r build/dependencies/crab-llvm/build/_DIR_/* release/bin/crabllvm/")
+
 

@@ -42,9 +42,19 @@ before_script:
   - export LLVM_DIR=`pwd`/clang/lib/cmake/llvm
   - export CXX=$LLVM_DIR/../../../bin/clang++
   - export CC=$LLVM_DIR/../../../bin/clang
-  - cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/
+  - cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/  
 
 script: ninja && ninja install
+
+after_script:
+  - cd ../release
+  - cp -r $LLVM_DIR_BASE/lib/clang/$LLVM_VERSION/include/* ./include
+  - cp -r $LLVM_DIR_BASE/lib/clang ./lib
+  - cp /usr/bin/ld ./bin/
+  - cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./lib
+  - cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
+  - cd ..
+  - tar czf map2check.tar.gz release
 
 notifications:
   email:

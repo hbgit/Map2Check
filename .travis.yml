@@ -39,7 +39,7 @@ before_script:
   - wget http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
   - tar xf clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
   - mv clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04 clang
-  - export LLVM_DIR=./clang/lib/cmake/llvm
+  - export LLVM_DIR=`pwd`/clang/lib/cmake/llvm
   - export CXX=$LLVM_DIR/../../../bin/clang++
   - export CC=$LLVM_DIR/../../../bin/clang
   - cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/

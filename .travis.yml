@@ -42,7 +42,7 @@ before_script:
   - export LLVM_DIR=./clang/lib/cmake/llvm
   - export CXX=$LLVM_DIR/../../../bin/clang++
   - export CC=$LLVM_DIR/../../../bin/clang
-  - cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=../release/
+  - cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/
 
 script: ninja && ninja install
 

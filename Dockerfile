@@ -12,7 +12,7 @@
 #  You can check that the container still exists by running: $ docker ps -a
 #  You can restart the container by running: docker start -ai mapdevel
 ############################################################
-FROM rafahaskell/llvm_env:first
+FROM herberthb/dev-llvm_6.0:first
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
@@ -71,7 +71,7 @@ RUN mv /etc/sudoers.bak /etc/sudoers && \
     echo 'map2check  ALL=(root) ALL' >> /etc/sudoers
 USER map2check
 # Configure git
-RUN git config --global user.email "map2check@domain.com"
+RUN git config --global user.email "map2check.tool@gmail.com"
 RUN git config --global user.name "Map2Check"
 
 ##################### INSTALLATION END #####################

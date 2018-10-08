@@ -8,8 +8,8 @@ find_package(Git REQUIRED)
 ExternalProject_Add( Klee
   PREFIX dependencies/Klee
   DEPENDS STP KleeUCLibC
-  GIT_REPOSITORY https://github.com/staticafi/klee.git
-  GIT_TAG 6.0.0
+  GIT_REPOSITORY https://github.com/jirislaby/klee.git
+  GIT_TAG llvm_60
   CMAKE_ARGS
      # -DENABLE_SOLVER_Z3=ON
      # -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so

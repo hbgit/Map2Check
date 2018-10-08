@@ -75,7 +75,7 @@ list(APPEND MAP2CHECK_EXTERNAL_CLANG_BIN "llvm-link")
 
 #Clang/LLVM libs
 #list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/6.0.0/lib/linux/libclang_rt.fuzzer-x86_64.a")
-list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/3.9.1/lib/linux/libclang_rt.ubsan_standalone-x86_64.a")
+# list(APPEND MAP2CHECK_EXTERNAL_CLANG_LIBS "clang/3.9.1/lib/linux/libclang_rt.ubsan_standalone-x86_64.a")
 
 foreach(B ${MAP2CHECK_EXTERNAL_CLANG_BIN})
   set(BIN ${LLVM_TOOLS_BINARY_DIR}/${B})

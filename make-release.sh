@@ -32,11 +32,13 @@ cp /usr/bin/ld ./bin/
 cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./lib
 cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
 
-#cd ..
-#echo ""
-#echo "Building Crab-LLVM ..."
-#./utils/build_crabllvm.py
-#echo ""
+cd ..
+echo ""
+echo "Building Crab-LLVM ..."
+export CXX=""
+export CC=""
+./utils/build_crabllvm.py
+echo ""
 
 echo ""
 echo "DONE"

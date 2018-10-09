@@ -33,8 +33,8 @@ if not os.path.isdir("build"):
 
 os.chdir("build")
 
-os.system("cmake -DLLVM_DIR=" + llvm_dir + " -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=_DIR_ -DUSE_LDD=ON -DUSE_APRON=ON ../")
-print("cmake -DLLVM_DIR=" + llvm_dir + " -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=_DIR_ -DUSE_LDD=ON -DUSE_APRON=ON ../")
+os.system("cmake -DLLVM_DIR=" + llvm_dir + " -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-5 -DCMAKE_PROGRAM_PATH=/usr/bin -DCMAKE_INSTALL_PREFIX=_DIR_ -DUSE_LDD=ON -DUSE_APRON=ON ../")
+#print("cmake -DLLVM_DIR=" + llvm_dir + " -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=_DIR_ -DUSE_LDD=ON -DUSE_APRON=ON ../")
 
 # cmake --build . --target extra 
 os.system("cmake --build . --target crab && cmake ..")
@@ -45,7 +45,7 @@ os.system("cmake --build . --target install")
 os.system("")
 os.system("pwd")
 
-
+os.chdir("../../../../")
 #/home/map2check/devel_tool/mygitclone/release/bin
 if not os.path.isdir("release/bin/crabllvm"):
 	os.system("mkdir release/bin/crabllvm")

@@ -51,5 +51,11 @@ export CC=""
 echo ""
 
 echo ""
+echo "Copying extra files ..."
+./utils/cp_utils_file.sh
+echo ""
+
+echo ""
 echo "DONE"
 echo ""
+

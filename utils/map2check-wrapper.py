@@ -9,14 +9,9 @@ tool_path = "./map2check "
 # default args
 extra_tool = "timeout 895s "
 command_line = extra_tool + tool_path
-clang_path = "bin/clang "
-clang_args = "-c -emit-llvm -O0 -g "
-clang_command = clang_path + clang_args
-bcs_files = "bcs_files"
 
 # Options
 parser = argparse.ArgumentParser()
-#parser.add_argument("-a", "--arch", help="Either 32 or 64 bits", type=int, choices=[32, 64], default=64)
 parser.add_argument("-v", "--version", help="Prints Map2check's version", action='store_true')
 parser.add_argument("-p", "--propertyfile", help="Path to the property file")
 parser.add_argument("benchmark", nargs='?', help="Path to the benchmark")
@@ -24,12 +19,9 @@ parser.add_argument("benchmark", nargs='?', help="Path to the benchmark")
 args = parser.parse_args()
 
 # for options
-#arch = args.arch
 version = args.version
 property_file = args.propertyfile
 benchmark = args.benchmark
-bc_benchmark = args.benchmark
-
 
 if version == True:
   os.system(tool_path + "--version")
@@ -65,16 +57,18 @@ else:
   print "Unsupported Property"
   exit(1)
 
+
+# TODO: adding --generate-witness
 if is_memsafety:
-  command_line += " --assume-malloc-true --generate-witness "
+  command_line += " "
 elif is_reachability:
-  command_line += " --target-function __VERIFIER_error --generate-witness "
+  command_line += " --target-function "
 elif is_overflow:
-  command_line += " --check-overflow --generate-witness "
+  command_line += " --check-overflow "
 
 print "Verifying with MAP2CHECK "
 # Call MAP2CHECK
-command_line += bc_benchmark
+command_line += benchmark
 print "Command: " + command_line
 
 args = shlex.split(command_line)
@@ -89,10 +83,10 @@ if "Timed out" in stdout:
 
 
 # Error messages
-free_offset = "\tFALSE-FREE: Operand of free must have zero pointer offset"
-deref_offset = "\tFALSE-DEREF: Reference to pointer was lost"
+free_offset     = "\tFALSE-FREE: Operand of free must have zero pointer offset"
+deref_offset    = "\tFALSE-DEREF: Reference to pointer was lost"
 memtrack_offset = "\tFALSE-MEMTRACK"
-target_offset = "\tFALSE: Target Reached"
+target_offset   = "\tFALSE: Target Reached"
 overflow_offset = "\tOVERFLOW"
 
 if "VERIFICATION FAILED" in stdout:

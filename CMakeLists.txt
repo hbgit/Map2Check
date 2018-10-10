@@ -25,7 +25,7 @@ include(cmake/FindClang.cmake)
 include(cmake/FindBoost.cmake)
 
 if(NOT SKIP_LIB_FUZZER)
-  # include(cmake/FindLibFuzzer.cmake)
+  include(cmake/FindLibFuzzer.cmake)
 endif()
 
 if(NOT SKIP_KLEE)

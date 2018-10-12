@@ -245,15 +245,17 @@ int main(int argc, char **argv) {
         "\tspecifies the files")("timeout,t", po::value<unsigned>(),
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
-        "generate-testcase", "\tCreates c program with fail testcase")(
-        "memtrack,m", "\tCheck for memory errors")("print-counter",
+        "generate-testcase,g", "\tCreates c program with fail testcase")(
+        "memtrack,m", "\tCheck for memory errors")
+("print-counter,p",
                                                    "\tPrint Counterexample")(
-        "check-overflow", "\tAnalyze program for overflow failures")(
-        "check-asserts", "\tAnalyze program and verify assert failures")(
-        "generate-witness,w", "\tGenerates witness file")(
+        "check-overflow,o", "\tAnalyze program for overflow failures")(
+        "check-asserts,c", "\tAnalyze program and verify assert failures")(
+        "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
+  "generate-witness,w", "\tGenerates witness file")(
         "expected-result,e", po::value<string>(),
         "\tSpecifies type of violation expected")(
-        "btree",
+        "btree,b",
         "\t Uses btree structure to hold information (experimental, use this "
         "if you are having memory problems)");
 

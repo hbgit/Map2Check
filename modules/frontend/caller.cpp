@@ -270,8 +270,8 @@ void Caller::executeAnalysis() {
                   << "  > ExecutionOutput.log";
       Map2Check::Log::Debug(kleeCommand.str());
       int result = system(kleeCommand.str().c_str());
-
-      if(result) // Timeout
+      Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
+      if(result == 31744) // Timeout
         gotTimeout = true;
       break;
     }
@@ -286,7 +286,8 @@ void Caller::executeAnalysis() {
 
       
       int result = system(command.str().c_str());
-      if(result) // Timeout
+      Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
+      if(result == 31744) // Timeout
         gotTimeout = true;
       std::ostringstream commandWitness;
       commandWitness.str("");

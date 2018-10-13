@@ -140,6 +140,7 @@ void MemoryTrackPass::instrumentMemcpy() {
 
   auto size = callInst->getArgOperand(2);
   auto pointer_destiny = callInst->getOperand(0);
+  auto pointer_origin = callInst->getArgOperand(1);
 
   Twine bitcast("bitcast_memcpy");
 
@@ -150,22 +151,22 @@ void MemoryTrackPass::instrumentMemcpy() {
   Value *sizeCast = CastInst::CreateIntegerCast(
       size, Type::getInt32Ty(*this->Ctx), true, bitcast, BBIteratorToInst(j));
 
-  // Value *varPointerCastOrigin = CastInst::CreatePointerCast(
-  //     pointer_origin, Type::getInt8PtrTy(*this->Ctx), bitcast,
-  //     BBIteratorToInst(j));
+  Value *varPointerCastOrigin = CastInst::CreatePointerCast(
+      pointer_origin, Type::getInt8PtrTy(*this->Ctx), bitcast,
+      BBIteratorToInst(j));
 
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
-  // Value *args2[] = {varPointerCastOrigin, sizeCast};
-  // builder.CreateCall(map2check_load, args2);
+  Value *args2[] = {varPointerCastOrigin, sizeCast};
+  builder.CreateCall(map2check_load, args2);
 
   Value *args3[] = {this->line_value, function_llvm};
   // builder.CreateCall(map2check_check_deref, args3);
 
   Value *args[] = {varPointerCast, sizeCast};
   builder.CreateCall(map2check_load, args);
-
+  builder.CreateCall(map2check_load, args2);
   builder.CreateCall(map2check_check_deref, args3);
 }
 

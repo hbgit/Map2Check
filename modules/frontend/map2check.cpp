@@ -193,14 +193,16 @@ int map2check_execution(map2check_args args) {
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(
           std::string(args.inputFile));
+        
+  Map2Check::PropertyViolated propertyViolated;
 
   // HACK: Fix this!!!
   if (caller->isTimeout()) {
-    //  counterExample->setProperty(Map2Check::PropertyViolated::UNKNOWN);    
+    Map2Check::Log::Warning("Note: Forcing timeout");
+     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
+  } else {
+     propertyViolated = counterExample->getProperty();
   }
-        
-  Map2Check::PropertyViolated propertyViolated = counterExample->getProperty();
-
   
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE

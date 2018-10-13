@@ -193,8 +193,15 @@ int map2check_execution(map2check_args args) {
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(
           std::string(args.inputFile));
+
+  // HACK: Fix this!!!
+  if (caller->isTimeout()) {
+    //  counterExample->setProperty(Map2Check::PropertyViolated::UNKNOWN);    
+  }
+        
   Map2Check::PropertyViolated propertyViolated = counterExample->getProperty();
 
+  
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     if (generator == Map2Check::NonDetGenerator::Klee) {
@@ -230,7 +237,6 @@ int map2check_execution(map2check_args args) {
     }
   }
 
-  system("pwd");
   return SUCCESS;
 }
 

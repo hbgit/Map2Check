@@ -269,7 +269,10 @@ void Caller::executeAnalysis() {
                   << " ./" + programHash + "-witness-result.bc"
                   << "  > ExecutionOutput.log";
       Map2Check::Log::Debug(kleeCommand.str());
-      system(kleeCommand.str().c_str());
+      int result = system(kleeCommand.str().c_str());
+
+      if(result) // Timeout
+        gotTimeout = true;
       break;
     }
     case (NonDetGenerator::LibFuzzer): {
@@ -280,9 +283,11 @@ void Caller::executeAnalysis() {
       command << "./" + programHash +
                      "-fuzzed.out -jobs=2 -use_value_profile=1 "
               << " > fuzzer.output";
-      Map2Check::Log::Debug(command.str());
-      system(command.str().c_str());
 
+      
+      int result = system(command.str().c_str());
+      if(result) // Timeout
+        gotTimeout = true;
       std::ostringstream commandWitness;
       commandWitness.str("");
       commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";

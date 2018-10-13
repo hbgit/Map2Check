@@ -44,6 +44,7 @@ class Caller {
   std::string programHash;
   std::string currentPath;
   unsigned timeout;
+  bool gotTimeout = false;
 
  public:
   /** @brief Constructor if .bc file already exists
@@ -78,6 +79,8 @@ class Caller {
 
   /** Use btree mode */
   void useBTree() { this->dataStructure = DataStructure::BTree; }
+
+  bool isTimeout() { return gotTimeout; }
 };
 
 }  // namespace Map2Check

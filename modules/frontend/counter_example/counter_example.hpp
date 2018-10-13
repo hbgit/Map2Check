@@ -141,14 +141,13 @@ class CounterExampleProperty : public CounterExampleRow {
         cnvt << "Violated property:\n";
         cnvt << "\tFALSE-MEMTRACK\n\n";
         cnvt << "VERIFICATION FAILED";
-        break;
       case (Tools::PropertyViolated::ASSERT):
         // TODO: Add message for target reached
         cnvt << "Violated property:\n";
         cnvt << "\tfile " << this->fileName << " ";
         cnvt << "line " << this->lineNumber << " ";
         cnvt << "function " << this->functionName << "\n";
-        cnvt << "\FALSE-ASSERT\n\n";
+        cnvt << "\tFALSE-ASSERT\n\n";
         cnvt << "VERIFICATION FAILED";
         break; 
       case (Tools::PropertyViolated::NONE):
@@ -174,6 +173,7 @@ class CounterExample {
   CounterExample(std::string path);
   std::string getViolatedProperty();
   Tools::PropertyViolated getProperty() { return this->property; }
+  Tools::PropertyViolated setProperty(Tools::PropertyViolated newProperty) { this->property = newProperty; }
   void generateTestCase();
 
   void printCounterExample(bool printListLog = false);

@@ -85,6 +85,7 @@ void map2check_exit() {
   /* gotError = TRUE; */
   map2check_destroy();
   if (gotError == TRUE) {
+    generate_confirmation_file();
     abort();
     abort();
   }

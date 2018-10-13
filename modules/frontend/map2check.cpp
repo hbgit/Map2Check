@@ -200,6 +200,9 @@ int map2check_execution(map2check_args args) {
   if (caller->isTimeout()) {
     Map2Check::Log::Warning("Note: Forcing timeout");
      propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
+  } else if (!caller->isVerified() && (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
+    Map2Check::Log::Warning("Note: Could not replicate error");
+     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
   } else {
      propertyViolated = counterExample->getProperty();
   }

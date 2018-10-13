@@ -45,6 +45,7 @@ class Caller {
   std::string currentPath;
   unsigned timeout;
   bool gotTimeout = false;
+  bool witnessVerified = false;
 
  public:
   /** @brief Constructor if .bc file already exists
@@ -81,6 +82,7 @@ class Caller {
   void useBTree() { this->dataStructure = DataStructure::BTree; }
 
   bool isTimeout() { return gotTimeout; }
+  bool isVerified() { return witnessVerified; }
 };
 
 }  // namespace Map2Check

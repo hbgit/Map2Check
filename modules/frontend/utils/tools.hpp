@@ -13,6 +13,8 @@ namespace Map2Check {
 const string ktestBinary("${MAP2CHECK_PATH}/bin/ktest-tool");
 /** Path to clang binary (from llvm) */
 const string clangBinary("${MAP2CHECK_PATH}/bin/clang");
+/** Path to crab-llvm path binary (from crab-llvm) */
+const string crabBinary("${MAP2CHECK_PATH}/bin/crabllvm/bin/crabllvm.py");
 /** Path to clang include folder (usually
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
 const string clangIncludeFolder("${MAP2CHECK_PATH}/include/");

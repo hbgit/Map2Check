@@ -57,6 +57,8 @@ class Caller {
    * operations calls */
   void compileCFile();
 
+  void compileToCrabLlvm();
+
   /** @brief Function to call pass for current verification mode
    *  (for REACHABILITY mode)
    *  @param mode Mode of the current execution

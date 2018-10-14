@@ -91,6 +91,11 @@ inline void fixPath(char *map2check_bin_string) {
   strcpy(klee_env_array, klee_env_var.c_str());
   putenv(klee_env_array);
 
+  //export clang to crab-llvm
+ // cout << "export PATH=$PATH:$MAP2CHECK_PATH/bin/";
+  //system("export PATH=$PATH:$MAP2CHECK_PATH/bin/");
+  //system("clang -v");
+
   std::string ld_env_var("LD_LIBRARY_PATH=");
   ld_env_var += "$LD_LIBRARY_PATH:";
   ld_env_var += pBuf;
@@ -143,6 +148,7 @@ struct map2check_args {
   bool generateTestCase = false;
   bool printCounterExample = false;
   bool btree = false;
+  bool invCrabLlvm = false;
   Map2Check::NonDetGenerator generator;
 };
 
@@ -174,7 +180,13 @@ int map2check_execution(map2check_args args) {
   caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                  generator);
   caller->c_program_fullpath = args.inputFile;
-  caller->compileCFile();
+  if (args.invCrabLlvm)
+  {
+      cout << "crab  \n";
+      caller->compileToCrabLlvm();
+  }else{
+      caller->compileCFile();
+  }
   caller->setTimeout(args.timeout);
   if (args.btree) {
     caller->useBTree();
@@ -308,6 +320,10 @@ int main(int argc, char **argv) {
     if (vm.count("btree")) {
       args.btree = true;
     }
+    if (vm.count("add-invariants")) {
+      args.invCrabLlvm = true;
+    }
+
     if (vm.count("print-counter")) {
       args.printCounterExample = true;
     }

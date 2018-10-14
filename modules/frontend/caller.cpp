@@ -358,4 +358,34 @@ void Caller::compileCFile() {
 
   // TODO: (3) Check for overflow errors on compilation
 }
+
+void Caller::compileToCrabLlvm() {
+  Map2Check::Log::Info("Compiling using crab-llvm" + this->pathprogram);
+
+  // (1) Remove unsupported functions and clean the C code
+  std::ostringstream commandRemoveExternMalloc;
+  commandRemoveExternMalloc.str("");
+  commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
+  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
+                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+                            << " > " << programHash << "-preprocessed.c ";
+
+  system(commandRemoveExternMalloc.str().c_str());
+
+  // (2) Generate .bc file from code
+  // TODO: -Winteger-overflow should be called only if is on overflow mode
+  std::string compiledFile = programHash + "-compiled.bc";
+  std::ostringstream command;
+  command.str("");
+  command << Map2Check::crabBinary << " -o " << compiledFile
+          << " --crab-track=arr --crab-add-invariants=all "
+          << " " << programHash << "-preprocessed.c ";
+  
+
+  system(command.str().c_str());
+
+  this->pathprogram = compiledFile;
+
+}
+
 }  // namespace Map2Check

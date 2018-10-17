@@ -193,27 +193,34 @@ int map2check_execution(map2check_args args) {
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(
           std::string(args.inputFile));
-        
+
   Map2Check::PropertyViolated propertyViolated;
 
   // HACK: Fix this!!!
   if (caller->isTimeout()) {
     Map2Check::Log::Warning("Note: Forcing timeout");
-     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
-  } else if (!caller->isVerified() && (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
+    propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
+  } else if (!caller->isVerified() &&
+             (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
     Map2Check::Log::Warning("Note: Could not replicate error");
-     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
+    propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else {
-     propertyViolated = counterExample->getProperty();
+    propertyViolated = counterExample->getProperty();
   }
-  
+
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     if (generator == Map2Check::NonDetGenerator::Klee) {
-      Map2Check::Log::Info("");
-      Map2Check::Log::Info("VERIFICATION SUCCEEDED");
-      if (args.generateWitness)
-        generate_witness(args.inputFile, propertyViolated);
+      // TODO: Fix this hack!!!
+      if (caller->isVerified()) {
+        Map2Check::Log::Info("Unable to prove or falsify the program.");
+        Map2Check::Log::Info("VERIFICATION UNKNOWN");
+      } else {
+        Map2Check::Log::Info("");
+        Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+        if (args.generateWitness)
+          generate_witness(args.inputFile, propertyViolated);
+      }
     }
 
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {

@@ -314,6 +314,9 @@ void Caller::executeAnalysis() {
       break;
     }
   }
+  if (isWitnessFileCreated()) {
+    witnessVerified = true;
+  }
 }
 
 std::vector<int> Caller::processClangOutput() {

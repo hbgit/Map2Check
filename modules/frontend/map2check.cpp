@@ -219,10 +219,20 @@ int map2check_execution(map2check_args args) {
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     if (generator == Map2Check::NonDetGenerator::Klee) {
-      Map2Check::Log::Info("");
-      Map2Check::Log::Info("VERIFICATION SUCCEEDED");
-      if (args.generateWitness)
-        generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+      //Map2Check::Log::Info("");
+      //Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+      //if (args.generateWitness)
+        //generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+      // TODO: Fix this hack!!!
+      if (caller->isVerified()) {
+        Map2Check::Log::Info("Unable to prove or falsify the program.");
+        Map2Check::Log::Info("VERIFICATION UNKNOWN");
+      } else {
+        Map2Check::Log::Info("");
+        Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+        if (args.generateWitness)
+          generate_witness(args.inputFile, propertyViolated);
+      }
     }
 
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {

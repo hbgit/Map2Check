@@ -398,6 +398,7 @@ void Caller::compileToCrabLlvm() {
 
   // (2) Generate .bc file from code
   // TODO: -Winteger-overflow should be called only if is on overflow mode
+  // CLANG PATH
   std::ostringstream getPathCLCommand;
   getPathCLCommand.str("");
   std::ostringstream getMapPath;
@@ -409,6 +410,18 @@ void Caller::compileToCrabLlvm() {
   char* c_gpcc = new char[tmp_gpcc.length() + 1];
   std::copy(tmp_gpcc.c_str(), tmp_gpcc.c_str() + tmp_gpcc.length() + 1, c_gpcc);
   putenv(c_gpcc);
+
+  // Export libCrab.so from CrabLLVM
+  std::ostringstream getPathLibCrabCommand;
+  getPathLibCrabCommand.str("");
+
+  getPathLibCrabCommand << "LD_LIBRARY_PATH=" << getMapPath.str().c_str() << "/bin/crabllvm/lib";
+
+  std::string tmp_gplibcc = getPathLibCrabCommand.str().c_str();
+  char* c_gplibcc = new char[tmp_gplibcc.length() + 1];
+  std::copy(tmp_gplibcc.c_str(), tmp_gplibcc.c_str() + tmp_gplibcc.length() + 1, c_gplibcc);
+  putenv(c_gplibcc);
+
 
   std::string compiledFile = programHash + "-compiled.bc";
   std::ostringstream command;

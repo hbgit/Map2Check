@@ -67,6 +67,9 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   else if ((calleeFunction->getName() == "__VERIFIER_assume")) {
     this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
   }
+  else if ((calleeFunction->getName() == "verifier.assume")) {
+    this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
+  }
   else if ((calleeFunction->getName() == "map2check_assume")) {
     // TODO(rafa.sa.xp@gmail.com): Implement method
   }

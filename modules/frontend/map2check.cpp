@@ -91,10 +91,6 @@ inline void fixPath(char *map2check_bin_string) {
   strcpy(klee_env_array, klee_env_var.c_str());
   putenv(klee_env_array);
 
-  //export clang to crab-llvm
- // cout << "export PATH=$PATH:$MAP2CHECK_PATH/bin/";
-  //system("export PATH=$PATH:$MAP2CHECK_PATH/bin/");
-  //system("clang -v");
 
   std::string ld_env_var("LD_LIBRARY_PATH=");
   ld_env_var += "$LD_LIBRARY_PATH:";

@@ -360,7 +360,7 @@ void Caller::compileCFile() {
 }
 
 void Caller::compileToCrabLlvm() {
-  Map2Check::Log::Info("Compiling using crab-llvm" + this->pathprogram);
+  Map2Check::Log::Info("Compiling using crab-llvm in " + this->pathprogram);
 
   // (1) Remove unsupported functions and clean the C code
   std::ostringstream commandRemoveExternMalloc;
@@ -374,11 +374,23 @@ void Caller::compileToCrabLlvm() {
 
   // (2) Generate .bc file from code
   // TODO: -Winteger-overflow should be called only if is on overflow mode
+  std::ostringstream getPathCLCommand;
+  getPathCLCommand.str("");
+  std::ostringstream getMapPath;
+  getMapPath << getenv("MAP2CHECK_PATH");
+
+  getPathCLCommand << "CLANG_PATH=" << getMapPath.str().c_str() << "/bin";
+
+  std::string tmp_gpcc = getPathCLCommand.str().c_str();
+  char* c_gpcc = new char[tmp_gpcc.length() + 1];
+  std::copy(tmp_gpcc.c_str(), tmp_gpcc.c_str() + tmp_gpcc.length() + 1, c_gpcc);
+  putenv(c_gpcc);
+
   std::string compiledFile = programHash + "-compiled.bc";
   std::ostringstream command;
   command.str("");
   command << Map2Check::crabBinary << " -o " << compiledFile
-          << " --crab-track=arr --crab-add-invariants=all "
+          << " -m 64 --crab-dom=oct --crab-track=num --crab-add-invariants=all "
           << " " << programHash << "-preprocessed.c ";
   
 

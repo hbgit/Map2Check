@@ -17,6 +17,17 @@
 
 namespace {
 inline std::string getLibSuffix() { return ".so"; }
+
+bool isWitnessFileCreated()
+{
+    Map2Check::Log::Info("Checking file");
+    std::ifstream infile("map2check_checked_error");
+    if(infile.is_open()) {
+      Map2Check::Log::Info("Found file!");
+      return true;
+    }
+    return false;
+}
 }  // namespace
 
 namespace Map2Check {
@@ -269,7 +280,11 @@ void Caller::executeAnalysis() {
                   << " ./" + programHash + "-witness-result.bc"
                   << "  > ExecutionOutput.log";
       Map2Check::Log::Debug(kleeCommand.str());
-      system(kleeCommand.str().c_str());
+      int result = system(kleeCommand.str().c_str());
+      Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
+      if(result == 31744) // Timeout
+        gotTimeout = true;
+    
       break;
     }
     case (NonDetGenerator::LibFuzzer): {
@@ -280,14 +295,23 @@ void Caller::executeAnalysis() {
       command << "./" + programHash +
                      "-fuzzed.out -jobs=2 -use_value_profile=1 "
               << " > fuzzer.output";
-      Map2Check::Log::Debug(command.str());
-      system(command.str().c_str());
+
+      
+      int result = system(command.str().c_str());
+      Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
+      if(result == 31744) // Timeout
+        gotTimeout = true;
 
       std::ostringstream commandWitness;
       commandWitness.str("");
       commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
       system(commandWitness.str().c_str());
       Map2Check::Log::Debug("Finished fuzzer");
+
+      if(isWitnessFileCreated()) {
+        witnessVerified = true;
+      }
+      
       break;
     }
   }

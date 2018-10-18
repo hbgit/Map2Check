@@ -201,8 +201,20 @@ int map2check_execution(map2check_args args) {
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(
           std::string(args.inputFile));
-  Map2Check::PropertyViolated propertyViolated = counterExample->getProperty();
+        
+  Map2Check::PropertyViolated propertyViolated;
 
+  // HACK: Fix this!!!
+  if (caller->isTimeout()) {
+    Map2Check::Log::Warning("Note: Forcing timeout");
+     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
+  } else if (!caller->isVerified() && (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
+    Map2Check::Log::Warning("Note: Could not replicate error");
+     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
+  } else {
+     propertyViolated = counterExample->getProperty();
+  }
+  
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     if (generator == Map2Check::NonDetGenerator::Klee) {
@@ -238,7 +250,6 @@ int map2check_execution(map2check_args args) {
     }
   }
 
-  system("pwd");
   return SUCCESS;
 }
 

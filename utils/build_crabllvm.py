@@ -10,6 +10,7 @@ if not FORCE_BUILD and os.path.isdir("build/dependencies/crab-llvm/build/_DIR_")
 	if not os.path.isdir("release/bin/crabllvm"):
 		os.system("mkdir release/bin/crabllvm")
 		os.system("cp -r build/dependencies/crab-llvm/build/_DIR_/* release/bin/crabllvm/")
+		os.system("sed -i '54s/\"PATH\"/\"CLANG_PATH\"/' release/bin/crabllvm/bin/crabllvm.py")
 	sys.exit(0)
 
 
@@ -50,5 +51,7 @@ os.chdir("../../../../")
 if not os.path.isdir("release/bin/crabllvm"):
 	os.system("mkdir release/bin/crabllvm")
 	os.system("cp -r build/dependencies/crab-llvm/build/_DIR_/* release/bin/crabllvm/")
+	os.system("sed -i '54s/\"PATH\"/\"CLANG_PATH\"/' release/bin/crabllvm/bin/crabllvm.py")
+
 
 

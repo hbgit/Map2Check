@@ -29,11 +29,11 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   GenHash hash;
   hash.setFilePath(bc_program_path);
   hash.generate_sha1_hash_for_file();
-  this->programHash = hash.getOutputSha1HashFile();
+  this->programHash = hash.getOutputSha1HashFile() + ".map2check";
 
   std::ostringstream createTempDir;
   createTempDir.str("");
-  createTempDir << "mkdir " << programHash << ".map2check";
+  createTempDir << "mkdir " << programHash;
   system(createTempDir.str().c_str());
 
   std::ostringstream moveProgram;

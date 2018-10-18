@@ -33,7 +33,7 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
 
   std::ostringstream createTempDir;
   createTempDir.str("");
-  createTempDir << "mkdir " << programHash;
+  createTempDir << "mkdir " << programHash << ".map2check";
   system(createTempDir.str().c_str());
 
   std::ostringstream moveProgram;

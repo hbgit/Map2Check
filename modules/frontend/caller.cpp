@@ -427,7 +427,7 @@ void Caller::compileToCrabLlvm() {
   std::ostringstream command;
   command.str("");
   command << Map2Check::crabBinary << " -o " << compiledFile
-          << " -m 64 --crab-inter --crab-track=arr --crab-add-invariants=after-load "
+          << " -m 64 --disable-lower-gv --llvm-pp-loops --crab-promote-assume --crab-inter --crab-track=num --crab-add-invariants=block-entry "
           << " " << programHash << "-preprocessed.c ";
   
           //<< " -m 64 --crab-dom=oct --crab-track=num --crab-add-invariants=all "

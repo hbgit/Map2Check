@@ -64,13 +64,13 @@ else:
     exit(1)
 
 if is_memsafety:    
-    command_line += " "
+    command_line += " -a "
 elif is_reachability:    
-    command_line += " --target-function "
+    command_line += " -a --target-function "
 elif is_overflow:
-    command_line += " --check-overflow "
+    command_line += " -a --check-overflow "
 elif is_assert:
-    command_line += " --check-asserts "
+    command_line += " -a --check-asserts "
 
 # Calling MAP2CHECK
 command_line += bc_benchmark

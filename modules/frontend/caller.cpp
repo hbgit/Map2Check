@@ -427,9 +427,10 @@ void Caller::compileToCrabLlvm() {
   std::ostringstream command;
   command.str("");
   command << Map2Check::crabBinary << " -o " << compiledFile
-          << " -m 64 --crab-dom=oct --crab-track=num --crab-add-invariants=all "
+          << " -m 64 --crab-inter --crab-track=arr --crab-add-invariants=after-load "
           << " " << programHash << "-preprocessed.c ";
   
+          //<< " -m 64 --crab-dom=oct --crab-track=num --crab-add-invariants=all "
 
   system(command.str().c_str());
 

@@ -38,6 +38,7 @@ os.system("cmake -DLLVM_DIR=" + llvm_dir + " -DCMAKE_BUILD_TYPE=Release -DCMAKE_
 #print("cmake -DLLVM_DIR=" + llvm_dir + " -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=_DIR_ -DUSE_LDD=ON -DUSE_APRON=ON ../")
 
 # cmake --build . --target extra 
+os.system("cmake --build . --target extra && cmake ..")
 os.system("cmake --build . --target crab && cmake ..")
 os.system("cmake --build . --target ldd && cmake ..")
 os.system("cmake --build . --target apron && cmake ..")

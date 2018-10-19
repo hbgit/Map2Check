@@ -178,7 +178,7 @@ int map2check_execution(map2check_args args) {
   caller->c_program_fullpath = args.inputFile;
   if (args.invCrabLlvm)
   {
-      cout << "crab  \n";
+      //cout << "crab  \n";
       caller->compileToCrabLlvm();
   }else{
       caller->compileCFile();

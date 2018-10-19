@@ -18,15 +18,14 @@
 namespace {
 inline std::string getLibSuffix() { return ".so"; }
 
-bool isWitnessFileCreated()
-{
-    Map2Check::Log::Info("Checking file");
-    std::ifstream infile("map2check_checked_error");
-    if(infile.is_open()) {
-      Map2Check::Log::Info("Found file!");
-      return true;
-    }
-    return false;
+bool isWitnessFileCreated() {
+  Map2Check::Log::Info("Checking file");
+  std::ifstream infile("map2check_checked_error");
+  if (infile.is_open()) {
+    Map2Check::Log::Info("Found file!");
+    return true;
+  }
+  return false;
 }
 }  // namespace
 
@@ -97,11 +96,12 @@ void Caller::applyNonDetGenerator() {
       std::ostringstream command;
       command.str("");
 
-      command << Map2Check::clangBinary
-              << "  -g -fsanitize=fuzzer -fsanitize-coverage=trace-cmp "
-              << Caller::postOptimizationFlags()
-              << " -o " + programHash + "-fuzzed.out"
-              << " " + programHash + "-result.bc";
+      command
+          << Map2Check::clangBinary
+          << "  -g -fsanitize=fuzzer -fsanitize-coverage=inline-8bit-counters "
+          << Caller::postOptimizationFlags()
+          << " -o " + programHash + "-fuzzed.out"
+          << " " + programHash + "-result.bc";
 
       system(command.str().c_str());
 
@@ -282,9 +282,9 @@ void Caller::executeAnalysis() {
       Map2Check::Log::Debug(kleeCommand.str());
       int result = system(kleeCommand.str().c_str());
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
-      if(result == 31744) // Timeout
+      if (result == 31744)  // Timeout
         gotTimeout = true;
-    
+
       break;
     }
     case (NonDetGenerator::LibFuzzer): {
@@ -296,10 +296,9 @@ void Caller::executeAnalysis() {
                      "-fuzzed.out -jobs=2 -use_value_profile=1 "
               << " > fuzzer.output";
 
-      
       int result = system(command.str().c_str());
       Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
-      if(result == 31744) // Timeout
+      if (result == 31744)  // Timeout
         gotTimeout = true;
 
       std::ostringstream commandWitness;
@@ -308,17 +307,17 @@ void Caller::executeAnalysis() {
       system(commandWitness.str().c_str());
       Map2Check::Log::Debug("Finished fuzzer");
 
-      if(isWitnessFileCreated()) {
+      if (isWitnessFileCreated()) {
         witnessVerified = true;
       }
-      
+
       break;
     }
   }
 }
 
 std::vector<int> Caller::processClangOutput() {
-  const char *path_name = "clang.out";
+  const char* path_name = "clang.out";
 
   std::vector<int> result;
 
@@ -415,27 +414,29 @@ void Caller::compileToCrabLlvm() {
   std::ostringstream getPathLibCrabCommand;
   getPathLibCrabCommand.str("");
 
-  getPathLibCrabCommand << "LD_LIBRARY_PATH=" << getMapPath.str().c_str() << "/bin/crabllvm/lib";
+  getPathLibCrabCommand << "LD_LIBRARY_PATH=" << getMapPath.str().c_str()
+                        << "/bin/crabllvm/lib";
 
   std::string tmp_gplibcc = getPathLibCrabCommand.str().c_str();
   char* c_gplibcc = new char[tmp_gplibcc.length() + 1];
-  std::copy(tmp_gplibcc.c_str(), tmp_gplibcc.c_str() + tmp_gplibcc.length() + 1, c_gplibcc);
+  std::copy(tmp_gplibcc.c_str(), tmp_gplibcc.c_str() + tmp_gplibcc.length() + 1,
+            c_gplibcc);
   putenv(c_gplibcc);
-
 
   std::string compiledFile = programHash + "-compiled.bc";
   std::ostringstream command;
   command.str("");
   command << Map2Check::crabBinary << " -o " << compiledFile
-          << " -m 64 --crab-disable-warnings --disable-lower-gv --llvm-pp-loops --crab-promote-assume --crab-inter --crab-track=num --crab-add-invariants=block-entry "
+          << " -m 64 --crab-disable-warnings --disable-lower-gv "
+             "--llvm-pp-loops --crab-promote-assume --crab-inter "
+             "--crab-track=num --crab-add-invariants=block-entry "
           << " " << programHash << "-preprocessed.c ";
-  
-          //<< " -m 64 --crab-dom=oct --crab-track=num --crab-add-invariants=all "
+
+  //<< " -m 64 --crab-dom=oct --crab-track=num --crab-add-invariants=all "
 
   system(command.str().c_str());
 
   this->pathprogram = compiledFile;
-
 }
 
 }  // namespace Map2Check

@@ -68,7 +68,7 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
     this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
   }
   else if ((calleeFunction->getName() == "verifier.assume")) {
-    this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
+    this->instrumentNonDet(NonDetType::CRAB_ASSUME, calleeFunction);
   }
   else if ((calleeFunction->getName() == "map2check_assume")) {
     // TODO(rafa.sa.xp@gmail.com): Implement method
@@ -103,6 +103,11 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
     INSTRUMENT_CASE_HELPER(UINT, uint)
     case (NonDetType::ASSUME): {
       Twine assume("map2check_assume");
+      calleeFunction->setName(assume);
+      break;
+    }
+    case (NonDetType::CRAB_ASSUME): {
+      Twine assume("map2check_crab_assume");
       calleeFunction->setName(assume);
       break;
     }

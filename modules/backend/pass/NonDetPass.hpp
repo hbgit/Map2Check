@@ -38,7 +38,8 @@ enum class NonDetType {
   SIZE_T,
   LOFF_T,
   SECTOR_T,
-  UINT
+  UINT,
+  CRAB_ASSUME
 };
 
 namespace {
@@ -75,7 +76,7 @@ struct NonDetPass : public FunctionPass {
   INSTRUMENT_HEADER_HELPER(Loff_t)
   INSTRUMENT_HEADER_HELPER(Sector_t)
   INSTRUMENT_HEADER_HELPER(Uint)
-
+  void instrumentCrabAssume(CallInst *callInst, LLVMContext *Ctx);
   std::unique_ptr<NonDetFunctions> nonDetFunctions;
   Value *functionName = NULL;
   BasicBlock::iterator currentInstruction;

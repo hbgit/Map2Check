@@ -161,7 +161,7 @@ std::string CorrectnessWitnessGraph::convertToString() {
 }
 
 void SVCompWitness::Testify() {
-  ofstream outputFile("../" + programHash + "-witness.graphml");
+  ofstream outputFile("../witness.graphml");
   // cout << (std::string) (*this->automata) << "\n" ;
   outputFile << (std::string)(*this->automata);
 }

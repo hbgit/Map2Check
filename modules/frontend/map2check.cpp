@@ -22,7 +22,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-#define Map2CheckVersion "Map2Check 7.2-Fuzzer : Mon May 28 21:44:38 UTC 2018"
+#define Map2CheckVersion "Map2Check 7.2-Flock : Sat Oct 20 13:25:01 UTC 2018"
 
 // TODO: should get preprocessor flags from CMake
 
@@ -271,7 +271,7 @@ int main(int argc, char **argv) {
         "\tspecifies the files")("timeout,t", po::value<unsigned>(),
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
-        "generate-testcase,g", "\tCreates c program with fail testcase")(
+        "generate-testcase,g", "\tCreates c program with fail testcase (experimental)")(
         "memtrack,m", "\tCheck for memory errors")
 ("print-counter,p",
                                                    "\tPrint Counterexample")(

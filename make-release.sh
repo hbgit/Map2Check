@@ -58,6 +58,7 @@ echo "Building Crab-LLVM ..."
 export CXX=""
 export CC=""
 ./utils/build_crabllvm.py
+cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so release/bin/crabllvm/lib/
 echo ""
 
 echo ""

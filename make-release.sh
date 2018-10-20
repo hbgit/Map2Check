@@ -41,6 +41,16 @@ cp -r /home/map2check/devel_tool/clang600/lib/clang ./lib
 cp /usr/bin/ld ./bin/
 cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./lib
 cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
+cp /lib/x86_64-linux-gnu/libpthread.so.0 ./lib/libpthread.so
+cp /lib/x86_64-linux-gnu/libdl.so.2 ./lib/libdl.so
+cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./lib/libstdc++.so
+cp /lib/x86_64-linux-gnu/libm.so.6 ./lib/libm.so
+cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ./lib/libgcc_s.so
+cp /usr/lib/gcc/x86_64-linux-gnu/5/libgcc.a ./lib/
+cp /lib/x86_64-linux-gnu/libc.so.6 ./lib/libc.so
+cp /usr/lib/gcc/x86_64-linux-gnu/5/crt* ./lib/
+cp /usr/lib/x86_64-linux-gnu/crt* ./lib
+cp /lib/x86_64-linux-gnu/librt.so.1 ./lib/librt.so
 
 cd ..
 echo ""

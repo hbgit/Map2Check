@@ -20,7 +20,7 @@ Extra documentation is available at https://map2check.github.io
 
 Requirements for using the tool<br>
 To use this tool is necessary a Linux 64-bit OS system. In linux, you can install requirements typing the commands:
-> $ sudo apt install python-minimal
+> $ sudo apt install python-minimal <br>
 > $ sudo apt install libc6-dev
 
 
@@ -32,7 +32,7 @@ Our binary tool is avaliable at https://github.com/hbgit/Map2Check/releases
 <b>How to build Map2Check?</b>
 
 <p align="justify">
-You can build Map2Check using our [Dockerfile](Dockerfile), more details at https://map2check.github.io/docker.html
+You can build Map2Check using our [Dockerfile](./Dockerfile), more details at https://map2check.github.io/docker.html
 </p>
 
 

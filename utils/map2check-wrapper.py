@@ -58,13 +58,13 @@ else:
   exit(1)
 
 
-# TODO: adding --generate-witness
+# Set options
 if is_memsafety:
-  command_line += " "
+  command_line += " --memtrack --generate-witness "
 elif is_reachability:
-  command_line += " --target-function "
+  command_line += " --add-invariants --target-function --generate-witness "
 elif is_overflow:
-  command_line += " --check-overflow "
+  command_line += " --check-overflow --generate-witness "
 
 print "Verifying with MAP2CHECK "
 # Call MAP2CHECK

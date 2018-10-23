@@ -432,7 +432,7 @@ std:
 
 // when we don't have KLEE values
 void SVCompWitness::makeViolationAutomataAux() {
-  Map2Check::Log::Debug("Starting Violation Automata Generation Mode 2");
+  Map2Check::Log::Info("Starting Violation Automata Generation Mode 2");
   unsigned runState = 0;
   std::ostringstream cnvt;
   cnvt.str("");
@@ -456,6 +456,9 @@ void SVCompWitness::makeViolationAutomataAux() {
   if (stateTrueLogRows.size() == 0 || trackBBLogRows.size() == 0) {
     std::unique_ptr<Node> newNode = boost::make_unique<Node>("s1");
     std::unique_ptr<Edge> newEdge = boost::make_unique<Edge>("s0", "s1");
+    std::unique_ptr<NodeElement> violationNode =
+        boost::make_unique<ViolationNode>();
+    newNode->AddElement(std::move(violationNode));
     this->automata->AddEdge(std::move(newEdge));
     this->automata->AddNode(std::move(newNode));
   }

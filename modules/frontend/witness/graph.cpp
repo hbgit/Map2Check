@@ -666,8 +666,9 @@ void SVCompWitness::makeViolationAutomata() {
       lastStateId = cnvt.str();
 
       std::unique_ptr<EdgeData> assumption =
-          boost::make_unique<AssumptionEdgeData>(value, "__VERIFIER_nondet_int",
-                                                 functionName);
+          boost::make_unique<AssumptionEdgeData>(
+              value, kleeLogRows[i].generateWitnessFunctionName(),
+              functionName);
       newEdge->AddElement(std::move(assumption));
 
       std::unique_ptr<EdgeData> startLine =

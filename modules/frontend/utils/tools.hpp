@@ -189,6 +189,23 @@ struct KleeLogRow {
 
     return cnvt.str();
   }
+
+  std::string generateWitnessFunctionName() {
+    switch (type) {
+      case KleeLogType::INTEGER:
+        return "__VERIFIER_nondet_int";
+      case KleeLogType::CHAR:
+        return "__VERIFIER_nondet_char";
+      case KleeLogType::POINTER:
+        return "__VERIFIER_nondet_pointer";
+      case KleeLogType::USHORT:
+        return "__VERIFIER_nondet_ushort";
+      case KleeLogType::LONG:
+        return "__VERIFIER_nondet_long";
+      case KleeLogType::UNSIGNED:
+        return "__VERIFIER_nondet_uint";
+    }
+  }
 };
 
 /** Class used to get all KleeLogRow from a CSV file */

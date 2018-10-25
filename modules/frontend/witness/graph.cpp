@@ -209,6 +209,7 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   }
 
   std::unique_ptr<DataElement> witnessType;
+
   if (violationWitness) {
     witnessType = boost::make_unique<WitnessType>(WitnessTypeValues::VIOLATION);
   } else {
@@ -253,8 +254,18 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   if (violationWitness) {
     this->makeViolationAutomata();
   } else {
-    this->makeCorrectnessAutomata();
+    this->makeCorrectnessSVComp();
   }
+}
+
+void SVCompWitness::makeCorrectnessSVComp() {
+  Map2Check::Log::Info("Starting Correctness SVCOMP Generation");
+  std::string lastStateId = "s0";
+  std::unique_ptr<Node> startNode = boost::make_unique<Node>("s0");
+
+  std::unique_ptr<NodeElement> entryNode = boost::make_unique<EntryNode>();
+  startNode->AddElement(std::move(entryNode));
+  this->automata->AddNode(std::move(startNode));
 }
 
 void SVCompWitness::makeCorrectnessAutomata() {

@@ -42,6 +42,7 @@ class SVCompWitness {
   std::unique_ptr<Graph> automata;
   std::string programHash;
   void makeViolationAutomata();
+  void makeCorrectnessSVComp();
   void makeCorrectnessAutomata();
   void makeViolationAutomataAux();  // when we don't have KLEE values
  public:

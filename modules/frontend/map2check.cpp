@@ -91,7 +91,6 @@ inline void fixPath(char *map2check_bin_string) {
   strcpy(klee_env_array, klee_env_var.c_str());
   putenv(klee_env_array);
 
-
   std::string ld_env_var("LD_LIBRARY_PATH=");
   ld_env_var += "$LD_LIBRARY_PATH:";
   ld_env_var += pBuf;
@@ -106,7 +105,8 @@ inline void fixPath(char *map2check_bin_string) {
 // TODO: add support to reachability (check old version of map), maybe this
 // should be handled by caller
 void generate_witness(std::string pathfile,
-                      Map2Check::PropertyViolated propertyViolated) {
+                      Map2Check::PropertyViolated propertyViolated,
+                      std::string specTrue) {
   Map2Check::Log::Info("Generating witness.");
 
   GenHash genhashkey;
@@ -127,7 +127,7 @@ void generate_witness(std::string pathfile,
     // Correctness witness
     Map2Check::Log::Info("Starting Correctness Automata Generation");
     Map2Check::SVCompWitness svcomp(
-        pathfile, genhashkey.getOutputSha1HashFile(), "", "safetyMemory");
+        pathfile, genhashkey.getOutputSha1HashFile(), "", specTrue);
     svcomp.Testify();
   }
 }
@@ -146,6 +146,7 @@ struct map2check_args {
   bool btree = false;
   bool invCrabLlvm = false;
   Map2Check::NonDetGenerator generator;
+  std::string spectTrue = "safetyMemory";
 };
 
 bool foundViolation = false;
@@ -176,12 +177,11 @@ int map2check_execution(map2check_args args) {
   caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                  generator);
   caller->c_program_fullpath = args.inputFile;
-  if (args.invCrabLlvm)
-  {
-      //cout << "crab  \n";
-      caller->compileToCrabLlvm();
-  }else{
-      caller->compileCFile();
+  if (args.invCrabLlvm) {
+    // cout << "crab  \n";
+    caller->compileToCrabLlvm();
+  } else {
+    caller->compileCFile();
   }
   caller->setTimeout(args.timeout);
   if (args.btree) {
@@ -201,27 +201,28 @@ int map2check_execution(map2check_args args) {
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(
           std::string(args.inputFile));
-        
+
   Map2Check::PropertyViolated propertyViolated;
 
   // HACK: Fix this!!!
   if (caller->isTimeout()) {
     Map2Check::Log::Warning("Note: Forcing timeout");
-     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
-  } else if (!caller->isVerified() && (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
+    propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
+  } else if (!caller->isVerified() &&
+             (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
     Map2Check::Log::Warning("Note: Could not replicate error");
-     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;    
+    propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else {
-     propertyViolated = counterExample->getProperty();
+    propertyViolated = counterExample->getProperty();
   }
-  
+
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     if (generator == Map2Check::NonDetGenerator::Klee) {
       Map2Check::Log::Info("");
       Map2Check::Log::Info("VERIFICATION SUCCEEDED");
       if (args.generateWitness)
-        generate_witness(args.inputFile, propertyViolated);
+        generate_witness(args.inputFile, propertyViolated, args.spectTrue);
     }
 
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
@@ -236,7 +237,7 @@ int map2check_execution(map2check_args args) {
     foundViolation = true;
     if (args.generateTestCase) counterExample->generateTestCase();
     if (args.generateWitness)
-      generate_witness(args.inputFile, propertyViolated);
+      generate_witness(args.inputFile, propertyViolated, args.spectTrue);
   }
 
   // (6) Clean map2check execution (folders and temp files)
@@ -265,13 +266,12 @@ int main(int argc, char **argv) {
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
         "generate-testcase,g", "\tCreates c program with fail testcase")(
-        "memtrack,m", "\tCheck for memory errors")
-("print-counter,p",
+        "memtrack,m", "\tCheck for memory errors")("print-counter,p",
                                                    "\tPrint Counterexample")(
         "check-overflow,o", "\tAnalyze program for overflow failures")(
         "check-asserts,c", "\tAnalyze program and verify assert failures")(
         "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
-  "generate-witness,w", "\tGenerates witness file")(
+        "generate-witness,w", "\tGenerates witness file")(
         "expected-result,e", po::value<string>(),
         "\tSpecifies type of violation expected")(
         "btree,b",
@@ -317,9 +317,11 @@ int main(int argc, char **argv) {
       string function = "__VERIFIER_error";
       args.function = function;
       args.mode = Map2Check::Map2CheckMode::REACHABILITY_MODE;
+      args.spectTrue = "target-function";
     }
     if (vm.count("check-overflow")) {
       args.mode = Map2Check::Map2CheckMode::OVERFLOW_MODE;
+      args.spectTrue = "overflow";
     }
     if (vm.count("check-asserts")) {
       args.mode = Map2Check::Map2CheckMode::ASSERT_MODE;

@@ -110,7 +110,7 @@ class Specification : public DataElement {
         std::ostringstream cnvt;
         cnvt.str("");
         cnvt << "CHECK( init(main()), LTL(G ! call(";
-        cnvt << target;
+        cnvt << "__VERIFIER_error";
         cnvt << "())) )";
         this->value = cnvt.str();
         break;

@@ -254,7 +254,7 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   if (violationWitness) {
     this->makeViolationAutomata();
   } else {
-    this->makeCorrectnessSVComp();
+    this->makeCorrectnessAutomata();
   }
 }
 

@@ -8,8 +8,8 @@ find_package(Git REQUIRED)
 ExternalProject_Add( Klee
   PREFIX dependencies/Klee
   DEPENDS STP KleeUCLibC
-  GIT_REPOSITORY https://github.com/jirislaby/klee.git
-  GIT_TAG llvm_60
+  GIT_REPOSITORY https://github.com/RafaelSa94/klee.git
+  GIT_TAG map2check_svcomp2018
   CMAKE_ARGS
      # -DENABLE_SOLVER_Z3=ON
      # -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so
@@ -20,12 +20,11 @@ ExternalProject_Add( Klee
      -DENABLE_KLEE_UCLIBC=ON
      -DKLEE_UCLIBC_PATH=${KLEE_UCLIB_FOLDER}
      -DCMAKE_BUILD_TYPE=Release
-     -DLLVM_CONFIG_BINARY=${LLVM_CONFIG_BIN}      
+     -DLLVM_CONFIG_BINARY=${LLVM_CONFIG_BIN}
      -DENABLE_TCMALLOC=OFF
-     -DENABLE_SYSTEM_TESTS=OFF 
+     -DENABLE_SYSTEM_TESTS=OFF
      -DENABLE_UNIT_TESTS=OFF
      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
      -DCMAKE_C_COMPILER=${CLANG_CC}
      -DCMAKE_CXX_COMPILER=${CLANG_CXX}
 )
-

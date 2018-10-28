@@ -14,7 +14,7 @@ set (CMAKE_CXX_STANDARD 11)
 
 # set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 # set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
-# include(cmake/ExternalDeps.cmake)  
+# include(cmake/ExternalDeps.cmake)
 
 
 set(Map2Check_MODE "STATIC")
@@ -29,7 +29,7 @@ if(NOT SKIP_LIB_FUZZER)
 endif()
 
 if(NOT SKIP_KLEE)
-  # include(cmake/FindZ3.cmake)
+  include(cmake/FindZ3.cmake)
   include(cmake/FindMiniSat.cmake)
   include(cmake/FindSTP.cmake)
   include(cmake/FindKleeUCLibC.cmake)

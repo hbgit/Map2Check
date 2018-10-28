@@ -7,13 +7,13 @@ find_package(Git REQUIRED)
 # set(CMAKE_CXX_COMPILER  ${CLANG_CXX})
 ExternalProject_Add( Klee
   PREFIX dependencies/Klee
-  DEPENDS STP KleeUCLibC
+  DEPENDS STP KleeUCLibC z3Solver
   GIT_REPOSITORY https://github.com/RafaelSa94/klee.git
   GIT_TAG map2check_svcomp2018
   CMAKE_ARGS
-     # -DENABLE_SOLVER_Z3=ON
-     # -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so
-     # -DZ3_INCLUDE_DIRS=${Z3_FOLDER}/include
+     -DENABLE_SOLVER_Z3=ON
+     -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so
+     -DZ3_INCLUDE_DIRS=${Z3_FOLDER}/include
      -DENABLE_SOLVER_STP=ON
      -DKLEE_RUNTIME_BUILD_TYPE=Release
      -DENABLE_POSIX_RUNTIME=ON

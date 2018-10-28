@@ -231,7 +231,7 @@ int map2check_execution(map2check_args args) {
         Map2Check::Log::Info("");
         Map2Check::Log::Info("VERIFICATION SUCCEEDED");
         if (args.generateWitness)
-          generate_witness(args.inputFile, propertyViolated);
+          generate_witness(args.inputFile, propertyViolated, args.spectTrue);
       }
     }
 

@@ -34,6 +34,7 @@ if [ ! -d "/home/map2check/devel_tool/clang600" ]; then
 fi
    
 cd ../release   
+cp -r Z3/lib/* lib/
 cp -r /home/map2check/devel_tool/clang600/lib/clang/$LLVM_VERSION/include/* ./include
 cp -r /home/map2check/devel_tool/clang600/lib/clang ./lib
 
@@ -51,6 +52,7 @@ cp /lib/x86_64-linux-gnu/libc.so.6 ./lib/libc.so
 cp /usr/lib/gcc/x86_64-linux-gnu/5/crt* ./lib/
 cp /usr/lib/x86_64-linux-gnu/crt* ./lib
 cp /lib/x86_64-linux-gnu/librt.so.1 ./lib/librt.so
+cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./lib/
 
 cd ..
 echo ""
@@ -59,6 +61,9 @@ export CXX=""
 export CC=""
 ./utils/build_crabllvm.py
 cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so release/bin/crabllvm/lib/
+cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 release/bin/crabllvm/lib/
+cp release/lib/libz3.so release/bin/crabllvm/lib/
+
 echo ""
 
 echo ""

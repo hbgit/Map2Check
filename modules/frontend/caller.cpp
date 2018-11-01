@@ -276,8 +276,8 @@ void Caller::executeAnalysis() {
                   << " --allow-external-sym-calls"
                   << " -exit-on-error-type=Abort"
                   << " --optimize "
-	          << " -solver-backend=z3 "
-                  // << " -libc=uclibc"
+                  << " -solver-backend=z3 "
+                  << " -libc=uclibc"
                   << " ./" + programHash + "-witness-result.bc"
                   << "  > ExecutionOutput.log";
       Map2Check::Log::Debug(kleeCommand.str());

@@ -276,7 +276,7 @@ void Caller::executeAnalysis() {
                   << " --allow-external-sym-calls"
                   << " -exit-on-error-type=Abort"
                   << " --optimize "
-                  << " -solver-backend=z3 "
+                  << " -solver-backend=stp "
                   << " -libc=uclibc"
                   << " ./" + programHash + "-witness-result.bc"
                   << "  > ExecutionOutput.log";

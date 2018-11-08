@@ -22,7 +22,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-#define Map2CheckVersion "Map2Check 7.2-Flock : Sat Oct 20 13:25:01 UTC 2018"
+#define Map2CheckVersion "Map2Check 7.2-Flock : Thu Nov  8 14:40:25 UTC 2018"
 
 // TODO: should get preprocessor flags from CMake
 

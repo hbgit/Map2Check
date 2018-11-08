@@ -71,6 +71,21 @@ echo "Copying extra files ..."
 ./utils/cp_utils_file.sh
 echo ""
 
+
+echo ""
+echo "Generating archive ..."
+if [ ! -d "map2check" ]; then
+        mkdir map2check
+else
+	rm -rf map2check
+	mkdir map2check
+fi
+cp -r release/* map2check/
+zip -r map2check.zip map2check
+rm -rf map2check
+echo ""
+
+
 echo ""
 echo "DONE"
 echo ""

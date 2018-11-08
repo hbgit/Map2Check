@@ -9,6 +9,7 @@ option(BUILD_DOC "Build documentation" OFF)
 option(SKIP_LIB_FUZZER "Don't build libFuzzer" OFF)
 option(SKIP_KLEE "Don't build KLEE" OFF)
 option(REGRESSION "Prepare Regression Tests" OFF)
+option(ENABLE_TEST "Build all tests" OFF)
 
 set (CMAKE_CXX_STANDARD 11)
 
@@ -38,6 +39,13 @@ endif()
 
 if(REGRESSION)
   include(cmake/DownloadRegression.cmake)
+endif()
+
+if(ENABLE_TEST)
+  enable_testing()
+  include(cmake/FindGTest.cmake)
+  message("Adding tests")
+  add_subdirectory(tests)
 endif()
 
 

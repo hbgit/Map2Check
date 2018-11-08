@@ -14,7 +14,7 @@ addons:
       - flex
       - python
       - perl
-      - zlib1g-dev 
+      - zlib1g-dev
       - python-minimal
       - ninja-build
       - wget
@@ -42,9 +42,9 @@ before_script:
   - export LLVM_DIR=`pwd`/clang/lib/cmake/llvm
   - export CXX=$LLVM_DIR/../../../bin/clang++
   - export CC=$LLVM_DIR/../../../bin/clang
-  - cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/  
+  - cmake .. -G Ninja -DENABLE_TEST=ON -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/
 
-script: ninja && ninja install
+script: ninja && ninja install && ctest
 
 after_script:
   - cd ../release
@@ -60,6 +60,6 @@ notifications:
   email:
     recipients:
       - herberthb12@gmail.com
-      - rafa.sa.xp@gmail.com 
+      - rafa.sa.xp@gmail.com
     on_success: never # default: change
     on_failure: never # default: always

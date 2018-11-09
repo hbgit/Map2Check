@@ -64,7 +64,7 @@ void write_property(enum ViolatedProperty violated, int line,
       fprintf(output, "Line: %d\n", line);
       fprintf(output, "Function: %s\n", function_name);
       break;
-    case OVERFLOW:
+    case FALSE_OVERFLOW:
       write_property_overflow(line, function_name);
       fprintf(output, "OVERFLOW\n");
       fprintf(output, "Line: %d\n", line);

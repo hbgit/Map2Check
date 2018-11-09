@@ -7,3 +7,4 @@ add_executable(HelloGTest
     HelloGTest.cpp
 )
 map2check_test(HelloGTest)
+add_subdirectory(backend-library)

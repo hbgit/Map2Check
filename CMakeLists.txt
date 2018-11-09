@@ -41,6 +41,8 @@ if(REGRESSION)
   include(cmake/DownloadRegression.cmake)
 endif()
 
+include_directories(${PROJECT_SOURCE_DIR})
+
 if(ENABLE_TEST)
   enable_testing()
   include(cmake/FindGTest.cmake)
@@ -48,8 +50,6 @@ if(ENABLE_TEST)
   add_subdirectory(tests)
 endif()
 
-
-include_directories(${PROJECT_SOURCE_DIR})
 add_subdirectory(modules)
 
 if(BUILD_DOC)

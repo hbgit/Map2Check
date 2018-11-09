@@ -11,5 +11,20 @@ add_executable(ContainerBTreeTest
     $<TARGET_OBJECTS:ContainerBTreeLib>
 )
 
+add_executable(MemTrackTest
+    MemTrackTest.cpp
+    $<TARGET_OBJECTS:AllocationLogLib>
+    $<TARGET_OBJECTS:HeapLogLib>
+    $<TARGET_OBJECTS:ListLogLib>
+    $<TARGET_OBJECTS:NonDetLogLib>
+    $<TARGET_OBJECTS:TrackBBLogLib>
+    $<TARGET_OBJECTS:ContainerReallocLib>
+    $<TARGET_OBJECTS:AnalysisModeMemtrackLib>
+    $<TARGET_OBJECTS:Map2CheckFunctionsLib>
+    $<TARGET_OBJECTS:PropertyGeneratorLib>
+    $<TARGET_OBJECTS:NonDetGeneratorNoneLib>
+    $<TARGET_OBJECTS:WitnessGenerationNoneLib>
+)
 map2check_test(ContainerReallocTest)
 map2check_test(ContainerBTreeTest)
+map2check_test(MemTrackTest)

@@ -1,10 +1,12 @@
 add_executable(ContainerReallocTest
     ContainerTest.cpp
+    $<TARGET_OBJECTS:AllocationLogLib>
     $<TARGET_OBJECTS:ContainerReallocLib>
 )
 
 add_executable(ContainerBTreeTest
     ContainerTest.cpp
+    $<TARGET_OBJECTS:AllocationLogLib>
     $<TARGET_OBJECTS:BTreeLib>
     $<TARGET_OBJECTS:ContainerBTreeLib>
 )

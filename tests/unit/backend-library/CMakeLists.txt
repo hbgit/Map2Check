@@ -4,6 +4,12 @@ add_executable(AllocationLogTest
     $<TARGET_OBJECTS:ContainerReallocLib>
 )
 
+add_executable(HeapLogTest
+    HeapLogTest.cpp
+    $<TARGET_OBJECTS:HeapLogLib>
+    $<TARGET_OBJECTS:ContainerReallocLib>
+)
+
 add_executable(ContainerReallocTest
     ContainerTest.cpp
     $<TARGET_OBJECTS:AllocationLogLib>
@@ -38,6 +44,7 @@ add_executable(MemTrackTest
 )
 
 map2check_test(AllocationLogTest)
+map2check_test(HeapLogTest)
 map2check_test(ContainerReallocTest)
 map2check_test(BTreeTest)
 map2check_test(ContainerBTreeTest)

@@ -1,3 +1,9 @@
+add_executable(AllocationLogTest
+    AllocationLogTest.cpp
+    $<TARGET_OBJECTS:AllocationLogLib>
+    $<TARGET_OBJECTS:ContainerReallocLib>
+)
+
 add_executable(ContainerReallocTest
     ContainerTest.cpp
     $<TARGET_OBJECTS:AllocationLogLib>
@@ -30,6 +36,8 @@ add_executable(MemTrackTest
     $<TARGET_OBJECTS:NonDetGeneratorNoneLib>
     $<TARGET_OBJECTS:WitnessGenerationNoneLib>
 )
+
+map2check_test(AllocationLogTest)
 map2check_test(ContainerReallocTest)
 map2check_test(BTreeTest)
 map2check_test(ContainerBTreeTest)

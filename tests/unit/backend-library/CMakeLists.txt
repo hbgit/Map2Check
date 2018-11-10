@@ -1,13 +1,14 @@
+set(DEFAULT_CONTAINER_LIB $<TARGET_OBJECTS:ContainerReallocLib>)
 add_executable(AllocationLogTest
     AllocationLogTest.cpp
     $<TARGET_OBJECTS:AllocationLogLib>
-    $<TARGET_OBJECTS:ContainerReallocLib>
+    ${DEFAULT_CONTAINER_LIB}
 )
 
 add_executable(HeapLogTest
     HeapLogTest.cpp
     $<TARGET_OBJECTS:HeapLogLib>
-    $<TARGET_OBJECTS:ContainerReallocLib>
+    ${DEFAULT_CONTAINER_LIB}
 )
 
 add_executable(ContainerReallocTest
@@ -35,7 +36,7 @@ add_executable(MemTrackTest
     $<TARGET_OBJECTS:ListLogLib>
     $<TARGET_OBJECTS:NonDetLogLib>
     $<TARGET_OBJECTS:TrackBBLogLib>
-    $<TARGET_OBJECTS:ContainerReallocLib>
+    ${DEFAULT_CONTAINER_LIB}
     $<TARGET_OBJECTS:AnalysisModeMemtrackLib>
     $<TARGET_OBJECTS:Map2CheckFunctionsLib>
     $<TARGET_OBJECTS:PropertyGeneratorLib>

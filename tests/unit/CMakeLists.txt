@@ -1,5 +1,10 @@
+function(map2check_test EXECUTABLE)
+  target_link_libraries(${EXECUTABLE} gtest_main)
+  add_test(NAME ${EXECUTABLE} COMMAND ${EXECUTABLE})
+endfunction(map2check_test)
+
 add_executable(HelloGTest
     HelloGTest.cpp
 )
-target_link_libraries(HelloGTest gtest_main)
-add_test(NAME HelloTest COMMAND HelloGTest)
+map2check_test(HelloGTest)
+add_subdirectory(backend-library)

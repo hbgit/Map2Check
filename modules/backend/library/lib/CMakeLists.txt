@@ -1,5 +1,5 @@
 # set(CMAKE_C_COMPILER ${CLANG})
-set(CMAKE_C_FLAGS -c -emit-llvm)
+set(CMAKE_C_EMIT_LLVM_FLAGS -c -emit-llvm)
 
 list(APPEND MAP2CHECK_C_LIB "")
 list(APPEND MAP2CHECK_C_LIB "AllocationLog")
@@ -25,7 +25,7 @@ list(APPEND MAP2CHECK_C_LIB "WitnessGenerationNone")
 foreach(F ${MAP2CHECK_C_LIB})
   add_custom_command(
     OUTPUT "${F}.bc"
-    COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/${F}.c
+    COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_EMIT_LLVM_FLAGS} ${CMAKE_CURRENT_LIST_DIR}/${F}.c
     DEPENDS ${CMAKE_CURRENT_LIST_DIR}/${F}.c
     COMMENT "Compiling ${F} to bytecode")
 
@@ -33,3 +33,9 @@ foreach(F ${MAP2CHECK_C_LIB})
   install(FILES ${PROJECT_BINARY_DIR}/modules/backend/library/lib/${F}.bc
     DESTINATION lib)  
 endforeach()
+
+if(ENABLE_TEST)
+foreach(F ${MAP2CHECK_C_LIB})
+  add_library(${F}Lib OBJECT ${F}.c)
+endforeach()
+endif()

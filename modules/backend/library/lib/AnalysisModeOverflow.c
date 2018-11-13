@@ -69,7 +69,7 @@ int absInteger(int a) {
 }
 
 void overflowError(unsigned line, const char *function_name) {
-  write_property(OVERFLOW, line, function_name);
+  write_property(FALSE_OVERFLOW, line, function_name);
   map2check_error();
 }
 

@@ -1,6 +1,9 @@
 #!/bin/sh
 export LLVM_DIR_BASE=/llvm/release/llvm600
 export LLVM_VERSION=6.0.0
+
+export_svcomp=true
+
 if [ ! -d "build" ]; then
     mkdir build
 fi
@@ -71,6 +74,23 @@ echo "Copying extra files ..."
 ./utils/cp_utils_file.sh
 echo ""
 
+if [ "$export_svcomp" = true ] ; then
+	echo ""
+	echo "Cleaning for SVCOMP"
+	rm -rf release/Z3/include
+	rm -rf release/Z3/lib/python2.7
+	rm -rf release/Z3/lib
+	rm -rf release/lib/python2.7
+	rm -rf release/lib/clang/6.0.0/include
+	rm -rf release/moduleBenchExec
+	rm release/bin/kleaver
+	rm -rf release/bin/crabllvm/ldd
+
+	#rm release/bin/crabllvm/lib/libz3.so
+	#ln -s release/Z3/lib/libz3.so release/bin/crabllvm/lib/libz3.so
+	#rm release/lib/libz3.so
+fi
+
 
 echo ""
 echo "Generating archive ..."
@@ -81,7 +101,7 @@ else
 	mkdir map2check
 fi
 cp -r release/* map2check/
-zip -r map2check.zip map2check
+7z a map2check.zip map2check
 rm -rf map2check
 echo ""
 

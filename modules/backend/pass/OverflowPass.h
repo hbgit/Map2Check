@@ -52,6 +52,8 @@ struct OverflowPass : public FunctionPass {
   std::vector<std::string> listUnsignedVars;
   bool isUnitAssignment = false;
   std::vector<int> listLineNumUint;
+
+  bool isNSWBinaryOperator(BinaryOperator *op);
   // bool hasNonDetUintOp_1;
   // bool hasNonDetUintOp_2;
   LLVMContext *Ctx;

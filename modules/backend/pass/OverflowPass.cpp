@@ -299,11 +299,13 @@ bool OverflowPass::runOnFunction(Function &F) {
           this->isUnitAssignment = true;
         }
 
+        this->isUnitAssignment = !binOp->hasNoSignedWrap();    
+
         switch (binOp->getOpcode()) {
           case (Instruction::Add):
             if (this->isUnitAssignment) {
               instrumentedFunction =
-                  this->operationsFunctions->getOverflowAddUint();
+                  // this->operationsFunctions->getOverflowAddUint();
             } else {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowAdd();
@@ -315,7 +317,7 @@ bool OverflowPass::runOnFunction(Function &F) {
           case (Instruction::Sub):
             if (this->isUnitAssignment) {
               instrumentedFunction =
-                  this->operationsFunctions->getOverflowSubUint();
+                  // this->operationsFunctions->getOverflowSubUint();
             } else {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowSub();
@@ -327,7 +329,7 @@ bool OverflowPass::runOnFunction(Function &F) {
           case (Instruction::Mul):
             if (this->isUnitAssignment) {
               instrumentedFunction =
-                  this->operationsFunctions->getOverflowMulUint();
+                  // this->operationsFunctions->getOverflowMulUint();
             } else {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowMul();

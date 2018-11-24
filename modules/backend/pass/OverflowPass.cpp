@@ -304,7 +304,7 @@ bool OverflowPass::runOnFunction(Function &F) {
         switch (binOp->getOpcode()) {
           case (Instruction::Add):
             if (this->isUnitAssignment) {
-              instrumentedFunction =
+              // instrumentedFunction =
                   // this->operationsFunctions->getOverflowAddUint();
             } else {
               instrumentedFunction =
@@ -316,7 +316,7 @@ bool OverflowPass::runOnFunction(Function &F) {
             break;
           case (Instruction::Sub):
             if (this->isUnitAssignment) {
-              instrumentedFunction =
+              // instrumentedFunction =
                   // this->operationsFunctions->getOverflowSubUint();
             } else {
               instrumentedFunction =
@@ -328,7 +328,7 @@ bool OverflowPass::runOnFunction(Function &F) {
             break;
           case (Instruction::Mul):
             if (this->isUnitAssignment) {
-              instrumentedFunction =
+              // instrumentedFunction =
                   // this->operationsFunctions->getOverflowMulUint();
             } else {
               instrumentedFunction =

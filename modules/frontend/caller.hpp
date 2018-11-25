@@ -57,7 +57,7 @@ class Caller {
   void setTimeout(unsigned timeout) { this->timeout = timeout; }
   /** @brief Function to compile original C file removing external memory
    * operations calls */
-  void compileCFile(bool is_llvm-bc);
+  void compileCFile(bool is_llvm_bc);
 
   void compileToCrabLlvm();
 

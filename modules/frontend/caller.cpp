@@ -353,7 +353,7 @@ std::vector<int> Caller::processClangOutput() {
  * (2) Generate .bc file from code
  * (3) Check for overflow errors on compilation
  */
-void Caller::compileCFile(bool is_llvm-bc) {
+void Caller::compileCFile(bool is_llvm_bc) {
 
   if(!is_llvm-bc){
   Map2Check::Log::Info("Compiling " + this->pathprogram);

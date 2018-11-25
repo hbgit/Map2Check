@@ -41,7 +41,7 @@ inline void help_msg() {
   std::cout << std::endl;
   std::cout << "> > > \t  " << Map2CheckVersion << " \t < < <" << std::endl;
   std::cout << std::endl;
-  std::cout << "Usage: map2check [options] file.[i|c]\n";
+  std::cout << "Usage: map2check [options] file.[i|c|bc]\n";
   std::cout << std::endl;
 }
 
@@ -155,6 +155,7 @@ int map2check_execution(map2check_args args) {
   // TODO(rafa.sa.xp@gmail.com): Check current mode
 
   auto generator = args.generator;
+  bool is_llvmir_in = false;
 
   /**
    * Start Map2Check algorithm
@@ -168,22 +169,31 @@ int map2check_execution(map2check_args args) {
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
   std::string extension = boost::filesystem::extension(args.inputFile);
-  if (extension.compare(".c") && extension.compare(".i")) {
+  cout << extension << endl;
+  if (extension.compare(".c") && extension.compare(".i") && extension.compare(".bc")) {
     help_msg();
     return ERROR_IN_COMMAND_LINE;
+  }else if(extension.compare(".bc") == 0){
+      is_llvmir_in = true;
   }
 
   std::unique_ptr<Map2Check::Caller> caller;
   caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                  generator);
   caller->c_program_fullpath = args.inputFile;
-  if (args.invCrabLlvm) {
-    // cout << "crab  \n";
-    caller->compileToCrabLlvm();
-  } else {
-    caller->compileCFile();
+  caller->setTimeout(args.timeout);  
+
+  if(!is_llvmir_in){
+    if (args.invCrabLlvm) {
+        // cout << "crab  \n";
+        caller->compileToCrabLlvm();
+    } else {
+        caller->compileCFile();
+    }
+  }else{
+      caller->pathprogram = caller->programHash + "-compiled.bc";
   }
-  caller->setTimeout(args.timeout);
+
   if (args.btree) {
     caller->useBTree();
   }
@@ -296,6 +306,8 @@ int main(int argc, char **argv) {
         po::command_line_parser(argc, argv).options(desc).positional(p).run(),
         vm);
     po::notify(vm);
+
+    cout << vm.count("input-file") << endl;
 
     map2check_args args;
     // Default mode

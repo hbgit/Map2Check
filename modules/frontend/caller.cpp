@@ -386,6 +386,10 @@ void Caller::compileCFile(bool is_llvm_bc) {
   this->pathprogram = compiledFile;
   }else{
       std::string compiledFile = programHash + "-compiled.bc";
+      std::ostringstream command;
+      command.str("");
+      command << " cp " << this->pathprogram << " " << compiledFile;
+      system(command.str().c_str());
       this->pathprogram = compiledFile;
   }
 

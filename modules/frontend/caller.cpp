@@ -355,7 +355,7 @@ std::vector<int> Caller::processClangOutput() {
  */
 void Caller::compileCFile(bool is_llvm_bc) {
 
-  if(!is_llvm-bc){
+  if(!is_llvm_bc){
   Map2Check::Log::Info("Compiling " + this->pathprogram);
 
   // (1) Remove unsupported functions and clean the C code

@@ -353,7 +353,9 @@ std::vector<int> Caller::processClangOutput() {
  * (2) Generate .bc file from code
  * (3) Check for overflow errors on compilation
  */
-void Caller::compileCFile() {
+void Caller::compileCFile(bool is_llvm-bc) {
+
+  if(!is_llvm-bc){
   Map2Check::Log::Info("Compiling " + this->pathprogram);
 
   // (1) Remove unsupported functions and clean the C code
@@ -382,6 +384,10 @@ void Caller::compileCFile() {
   system(command.str().c_str());
 
   this->pathprogram = compiledFile;
+  }else{
+      std::string compiledFile = programHash + "-compiled.bc";
+      this->pathprogram = compiledFile;
+  }
 
   // TODO: (3) Check for overflow errors on compilation
 }

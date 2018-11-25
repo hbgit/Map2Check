@@ -188,10 +188,11 @@ int map2check_execution(map2check_args args) {
         // cout << "crab  \n";
         caller->compileToCrabLlvm();
     } else {
-        caller->compileCFile();
+        caller->compileCFile(is_llvmir_in);
     }
   }else{
-      caller->pathprogram = caller->programHash + "-compiled.bc";
+        caller->compileCFile(is_llvmir_in);
+
   }
 
   if (args.btree) {

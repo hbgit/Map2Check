@@ -43,8 +43,7 @@ struct LoopPredAssumePass : public FunctionPass {
   std::string c_program_path;  
   Function* currentFunction;
   LLVMContext* Ctx;
-  Constant* map2check_assume = NULL;
-  Value* functionName = NULL;  
+  Constant* map2check_assume = NULL;    
 };
 
 class LoopPredAssumePassException : public std::runtime_error {

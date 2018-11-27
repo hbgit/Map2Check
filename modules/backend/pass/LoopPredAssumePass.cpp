@@ -25,8 +25,8 @@ void LoopPredAssumePass::getConditionInLoop(Loop *L){
             //e.g., call function map2check_assume(a < b)
             this->map2check_assume = this->currentFunction->getParent()->getOrInsertFunction(
                                      "__VERIFIER_assume",
-                                    Type::getVoidTy(this->currentFunction->getContext()),
-                                    Type::getInt1Ty(this->currentFunction->getContext()), NULL
+                                     Type::getVoidTy(*this->Ctx),                                    
+                                     Type::getInt1Ty(*this->Ctx), NULL
                                     );
 
             Value* args[] = {loopCond};                    

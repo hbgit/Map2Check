@@ -8,22 +8,45 @@ inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
 }  // namespace
 
 void LoopPredAssumePass::getConditionInLoop(Loop* L) {
-  Loop::block_iterator bb;
-  BasicBlock* header = L->getHeader();
+	Loop::block_iterator bb;
+	BasicBlock* header = L->getHeader();
 
-  if (BranchInst* bi = dyn_cast<BranchInst>(header->getTerminator())) {
-    Value* loopCond = bi->getCondition();
+	if (BranchInst *bi = dyn_cast<BranchInst>(header->getTerminator())) {
 
-    if (bi->getNumSuccessors() > 0) {
-      BasicBlock* succ_cond_bb = bi->getSuccessor(0);
-      BasicBlock::iterator iT = --succ_cond_bb->end();
+		//errs() << *bi->getCondition() << "\n";                
+		Value *loopCond = bi->getCondition();                
+		//errs() << *loopCond << "\n";
 
-      IRBuilder<> builder(BBIteratorToInst(iT));
+		CmpInst *cmpInst = dyn_cast<CmpInst>(&*loopCond);                
 
-      Value* args[] = {loopCond};
-      builder.CreateCall(this->map2check_assume, args);
-    }
-  }
+		if( bi->getNumSuccessors() > 0){
+			BasicBlock* succ_cond_bb = bi->getSuccessor(0);
+			BasicBlock::iterator iT = --succ_cond_bb->end();
+
+			auto *new_inst = cmpInst->clone();
+			auto *inst_pos = dyn_cast<Instruction>(&*--succ_cond_bb->end());
+			errs() << *inst_pos << "\n";
+			new_inst->insertBefore(inst_pos);
+			
+			CmpInst *new_cmpInst = dyn_cast<CmpInst>(&*new_inst);
+			new_cmpInst->setPredicate(new_cmpInst->getInversePredicate());
+
+			Value *new_loop_cond = dyn_cast<Value>(&*new_cmpInst); // Convert CmpInst to Value;
+			
+			IRBuilder<> builder(BBIteratorToInst(iT));                                        
+
+			//e.g., call function map2check_assume(a < b)
+			this->map2check_assume = this->currentFunction->getParent()->getOrInsertFunction(
+									 "map2check_assume",
+									Type::getVoidTy(this->currentFunction->getContext()),
+									Type::getInt1Ty(this->currentFunction->getContext()), NULL
+									);
+
+			Value* args[] = {new_loop_cond};                    
+			builder.CreateCall(this->map2check_assume, args);
+		}
+	}
+
 }
 
 bool LoopPredAssumePass::runOnFunction(Function& F) {

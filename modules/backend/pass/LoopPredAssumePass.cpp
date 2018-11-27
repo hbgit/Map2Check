@@ -8,7 +8,7 @@ inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
 }  // namespace
 
 void LoopPredAssumePass::getConditionInLoop(Loop* L) {
-	Loop::block_iterator bb;
+	//Loop::block_iterator bb;
 	BasicBlock* header = L->getHeader();
 
 	if (BranchInst *bi = dyn_cast<BranchInst>(header->getTerminator())) {
@@ -39,7 +39,7 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
 			this->map2check_assume = this->currentFunction->getParent()->getOrInsertFunction(
 									 "map2check_assume",
 									Type::getVoidTy(this->currentFunction->getContext()),
-									Type::getInt1Ty(this->currentFunction->getContext()), NULL
+									Type::getInt1Ty(this->currentFunction->getContext())
 									);
 
 			Value* args[] = {new_loop_cond};                    
@@ -69,5 +69,5 @@ bool LoopPredAssumePass::runOnFunction(Function& F) {
 
 char LoopPredAssumePass::ID = 13;
 static RegisterPass<LoopPredAssumePass> X(
-    "loop_priedicate_assume",
+    "loop_predicate_assume",
     "It takes the loop predicate and force it as loop post-cond assume");

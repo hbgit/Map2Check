@@ -13,9 +13,9 @@ list(APPEND MAP2CHECK_PASS_LIB "TargetPass")
 list(APPEND MAP2CHECK_PASS_LIB "TrackBasicBlockPass")
 list(APPEND MAP2CHECK_PASS_LIB "GenerateAutomataTruePass")
 list(APPEND MAP2CHECK_PASS_LIB "AssertPass")
-
-
 list(APPEND MAP2CHECK_PASS_LIB "OverflowPass")
+list(APPEND MAP2CHECK_PASS_LIB "LoopPredAssume")
+
 
 
 foreach(F ${MAP2CHECK_PASS_LIB})  

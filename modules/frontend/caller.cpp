@@ -125,6 +125,11 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
    *                             and TrackBasicBlockPass now */
 
   std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
+  
+  Map2Check::Log::Info("Adding loop pass");
+  std::string loopPredAssumePass = "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass";
+  transformCommand << " -load " << loopPredAssumePass << getLibSuffix()
+                   << " -loop_predicate_assume";
 
   Map2Check::Log::Info("Adding nondet pass");
   transformCommand << " -tailcallopt";

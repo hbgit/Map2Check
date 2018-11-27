@@ -22,13 +22,6 @@ void LoopPredAssumePass::getConditionInLoop(Loop *L){
             
             IRBuilder<> builder(BBIteratorToInst(iT));                    
             
-            //e.g., call function map2check_assume(a < b)
-            this->map2check_assume = this->currentFunction->getParent()->getOrInsertFunction(
-                                     "__VERIFIER_assume",
-                                     Type::getVoidTy(*this->Ctx),                                    
-                                     Type::getInt1Ty(*this->Ctx), NULL
-                                    );
-
             Value* args[] = {loopCond};                    
             builder.CreateCall(this->map2check_assume, args);
 
@@ -39,6 +32,13 @@ void LoopPredAssumePass::getConditionInLoop(Loop *L){
 bool LoopPredAssumePass::runOnFunction(Function& F) {
   this->Ctx = &F.getContext();
   this->currentFunction = &F;  
+
+  //e.g., call function map2check_assume(a < b)
+  this->map2check_assume = this->currentFunction->getParent()->getOrInsertFunction(
+                           "__VERIFIER_assume",
+                           Type::getVoidTy(*this->Ctx),                                    
+                           Type::getInt1Ty(*this->Ctx), NULL
+                           );
 
   LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
   
@@ -51,4 +51,4 @@ bool LoopPredAssumePass::runOnFunction(Function& F) {
 
 char LoopPredAssumePass::ID = 13;
 static RegisterPass<LoopPredAssumePass> X(
-    "loop_predicate_assume", "It takes the loop predicate and force it as loop post-cond assume");
+    "loop_priedicate_assume", "It takes the loop predicate and force it as loop post-cond assume");

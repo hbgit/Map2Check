@@ -12,7 +12,7 @@
 
 long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log);
 Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log);
-
+Bool is_memcleanup_error(long address, MAP2CHECK_CONTAINER* log);
 Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log);
 
 /**
@@ -47,5 +47,6 @@ void list_log_to_file(MAP2CHECK_CONTAINER* list);
 void print_list_log(MAP2CHECK_CONTAINER* list);
 
 enum MemoryAddressStatus get_type_from_list_log_row(LIST_LOG_ROW* row);
+
 
 #endif

@@ -219,10 +219,10 @@ int map2check_execution(map2check_args args) {
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     if (generator == Map2Check::NonDetGenerator::Klee) {
-      //Map2Check::Log::Info("");
-      //Map2Check::Log::Info("VERIFICATION SUCCEEDED");
-      //if (args.generateWitness)
-        //generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+      // Map2Check::Log::Info("");
+      // Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+      // if (args.generateWitness)
+      // generate_witness(args.inputFile, propertyViolated, args.spectTrue);
       // TODO: Fix this hack!!!
       if (caller->isVerified()) {
         Map2Check::Log::Info("Unable to prove or falsify the program.");
@@ -275,9 +275,11 @@ int main(int argc, char **argv) {
         "\tspecifies the files")("timeout,t", po::value<unsigned>(),
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
-        "generate-testcase,g", "\tCreates c program with fail testcase (experimental)")(
-        "memtrack,m", "\tCheck for memory errors")(
-        "print-counter,p", "\tPrint Counterexample")(
+        "generate-testcase,g",
+        "\tCreates c program with fail testcase (experimental)")(
+        "memtrack,m", "\tCheck for memory errors")("print-counter,p",
+                                                   "\tPrint Counterexample")(
+        "memcleanup-property", "\t Analyze program for memcleanup errors")(
         "check-overflow,o", "\tAnalyze program for overflow failures")(
         "check-asserts,c", "\tAnalyze program and verify assert failures")(
         "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
@@ -335,6 +337,9 @@ int main(int argc, char **argv) {
     }
     if (vm.count("check-asserts")) {
       args.mode = Map2Check::Map2CheckMode::ASSERT_MODE;
+    }
+    if (vm.count("memcleanup-property")) {
+      args.mode = Map2Check::Map2CheckMode::MEMCLEANUP_MODE;
     }
     if (vm.count("btree")) {
       args.btree = true;

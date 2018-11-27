@@ -138,6 +138,13 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
                        << " -memory_track";
       break;
     }
+    case Map2CheckMode::MEMCLEANUP_MODE: {
+      Map2Check::Log::Info("Adding memcleanup pass");
+      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
+                       << " -memory_track";
+      break;
+    }
     case Map2CheckMode::OVERFLOW_MODE: {
       std::string overflowPass = "${MAP2CHECK_PATH}/lib/libOverflowPass";
       transformCommand << " -load " << overflowPass << getLibSuffix()
@@ -210,6 +217,13 @@ void Caller::linkLLVM() {
   switch (map2checkMode) {
     case Map2CheckMode::MEMTRACK_MODE: {
       linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemtrack.bc"
+                  << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
+      break;
+    }
+    case Map2CheckMode::MEMCLEANUP_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemcleanup.bc"
                   << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
                   << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
                   << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";

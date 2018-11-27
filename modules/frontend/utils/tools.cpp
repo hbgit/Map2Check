@@ -125,7 +125,6 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
     return;
   }
 
-  Map2Check::Log::Debug("HI1");
   ifstream assert_ifs("map2check_property_assert");
   if (assert_ifs.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::ASSERT;
@@ -145,7 +144,6 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
     }
     return;
   }
-  Map2Check::Log::Debug("HI2");
 
   ifstream overflowFile("map2check_property_overflow");
   if (overflowFile.is_open()) {
@@ -172,6 +170,12 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
     return;
   }
 
+  ifstream memcleanup("map2check_property_memcleanup");
+  if (memcleanup.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::FALSE_MEMCLEANUP;
+    return;
+  }
+
   while (getline(in, line)) {
     switch (fileLineNumber) {
       case 0:
@@ -187,6 +191,9 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         } else if (line == "FALSE-MEMTRACK") {
           Map2Check::Log::Debug("FALSE-MEMTRACK found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;
+        } else if (line == "FALSE-MEMCLEANUP") {
+          Map2Check::Log::Debug("FALSE-MEMCLEANUP found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_MEMCLEANUP;
         } else if (line == "OVERFLOW") {
           Map2Check::Log::Debug("OVERFLOW found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;

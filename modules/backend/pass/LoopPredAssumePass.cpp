@@ -23,11 +23,11 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
     CmpInst* cmpInst = dyn_cast<CmpInst>(&*loopCond);
 
     if (bi->getNumSuccessors() > 0) {
-      BasicBlock* succ_cond_bb = bi->getSuccessor(0);
-      BasicBlock::iterator iT = --succ_cond_bb->end();
+      BasicBlock* succ_cond_bb = bi->getSuccessor(1);
+      BasicBlock::iterator iT = succ_cond_bb->begin();
 
       auto* new_inst = cmpInst->clone();
-      auto* inst_pos = dyn_cast<Instruction>(&*--succ_cond_bb->end());
+      auto* inst_pos = dyn_cast<Instruction>(&*succ_cond_bb->begin());
       //errs() << *inst_pos << "\n";
       new_inst->insertBefore(inst_pos);
 

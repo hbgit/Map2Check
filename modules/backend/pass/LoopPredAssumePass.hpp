@@ -1,17 +1,16 @@
 #pragma once
 
-#include <llvm/Pass.h>
-#include <llvm/IR/Function.h> 
-#include <llvm/IR/IRBuilder.h>
 #include <llvm/Analysis/LoopInfo.h>
-#include <llvm/Support/raw_ostream.h> 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/Pass.h>
+#include <llvm/Support/raw_ostream.h>
 
 #include <llvm/ADT/Statistic.h>
+#include <llvm/Analysis/LoopInfo.h>
+#include <llvm/Analysis/LoopPass.h>
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Instructions.h>
-#include <llvm/Analysis/LoopInfo.h>
-
-
 
 #include <iostream>
 #include <sstream>
@@ -28,28 +27,14 @@
 using namespace llvm;
 namespace Tools = Map2Check;
 
-struct LoopPredAssumePass : public FunctionPass {
+struct LoopPredAssumePass : public LoopPass {
   static char ID;
-  LoopPredAssumePass() : FunctionPass(ID) {}
-  LoopPredAssumePass(std::string c_program_path) : FunctionPass(ID) {
-    this->c_program_path = c_program_path;
-    this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
-        Tools::SourceCodeHelper(c_program_path));
-  }
-  virtual bool runOnFunction(Function& F);
-  void getConditionInLoop(Loop *L);
- 
- private:
-  std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
-  std::string c_program_path;  
-  Function* currentFunction;
-  LLVMContext* Ctx;
-  Constant* map2check_assume = NULL;    
-};
+  LoopPredAssumePass() : LoopPass(ID) {}
 
-class LoopPredAssumePassException : public std::runtime_error {
- public:
-  LoopPredAssumePassException(std::string message)
-      : std::runtime_error(message) {}
-  virtual const char* what() const throw();
+  virtual bool runOnLoop(Loop* L, LPPassManager& LPM);
+  void getConditionInLoop(Loop* L);
+
+ private:
+  LLVMContext* Ctx;
+  Constant* map2check_assume = NULL;
 };

@@ -8,65 +8,65 @@ inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
 }  // namespace
 
 void LoopPredAssumePass::getConditionInLoop(Loop* L) {
-	//Loop::block_iterator bb;
-	BasicBlock* header = L->getHeader();
+  // Loop::block_iterator bb;
+  BasicBlock* header = L->getHeader();
+  this->map2check_assume =
+      header->getParent()->getParent()->getOrInsertFunction(
+          "map2check_assume_loop", Type::getVoidTy(header->getContext()),
+          Type::getInt1Ty(header->getContext()));
+  if (BranchInst* bi = dyn_cast<BranchInst>(header->getTerminator())) {
+    // errs() << *bi->getCondition() << "\n";
+    Value* loopCond = bi->getCondition();
+    // errs() << *loopCond << "\n";
 
-	if (BranchInst *bi = dyn_cast<BranchInst>(header->getTerminator())) {
+    CmpInst* cmpInst = dyn_cast<CmpInst>(&*loopCond);
 
-		//errs() << *bi->getCondition() << "\n";                
-		Value *loopCond = bi->getCondition();                
-		//errs() << *loopCond << "\n";
+    if (bi->getNumSuccessors() > 0) {
+      BasicBlock* succ_cond_bb = bi->getSuccessor(0);
+      BasicBlock::iterator iT = --succ_cond_bb->end();
 
-		CmpInst *cmpInst = dyn_cast<CmpInst>(&*loopCond);                
+      auto* new_inst = cmpInst->clone();
+      auto* inst_pos = dyn_cast<Instruction>(&*--succ_cond_bb->end());
+      errs() << *inst_pos << "\n";
+      new_inst->insertBefore(inst_pos);
 
-		if( bi->getNumSuccessors() > 0){
-			BasicBlock* succ_cond_bb = bi->getSuccessor(0);
-			BasicBlock::iterator iT = --succ_cond_bb->end();
+      CmpInst* new_cmpInst = dyn_cast<CmpInst>(&*new_inst);
+      new_cmpInst->setPredicate(new_cmpInst->getInversePredicate());
 
-			auto *new_inst = cmpInst->clone();
-			auto *inst_pos = dyn_cast<Instruction>(&*--succ_cond_bb->end());
-			errs() << *inst_pos << "\n";
-			new_inst->insertBefore(inst_pos);
-			
-			CmpInst *new_cmpInst = dyn_cast<CmpInst>(&*new_inst);
-			new_cmpInst->setPredicate(new_cmpInst->getInversePredicate());
+      Value* new_loop_cond =
+          dyn_cast<Value>(&*new_cmpInst);  // Convert CmpInst to Value;
 
-			Value *new_loop_cond = dyn_cast<Value>(&*new_cmpInst); // Convert CmpInst to Value;
-			
-			IRBuilder<> builder(BBIteratorToInst(iT));                                        
+      IRBuilder<> builder(BBIteratorToInst(iT));
 
-			//e.g., call function map2check_assume(a < b)
-			this->map2check_assume = this->currentFunction->getParent()->getOrInsertFunction(
-									 "map2check_assume",
-									Type::getVoidTy(this->currentFunction->getContext()),
-									Type::getInt1Ty(this->currentFunction->getContext())
-									);
-
-			Value* args[] = {new_loop_cond};                    
-			builder.CreateCall(this->map2check_assume, args);
-		}
-	}
-
+      Value* args[] = {new_loop_cond};
+      builder.CreateCall(this->map2check_assume, args);
+    }
+  }
 }
 
+bool LoopPredAssumePass::runOnLoop(Loop* L, LPPassManager& LPM) {
+  getConditionInLoop(L);
+  return true;
+}
+/*
 bool LoopPredAssumePass::runOnFunction(Function& F) {
   this->Ctx = &F.getContext();
-  this->currentFunction = &F;
-
+  // this->currentFunction = &F;
+  Function* f = &F;
   // e.g., call function map2check_assume(a < b)
-  this->map2check_assume =
-      this->currentFunction->getParent()->getOrInsertFunction(
-          "__VERIFIER_assume", Type::getVoidTy(*this->Ctx),
-          Type::getInt1Ty(*this->Ctx));
+  this->map2check_assume = f->getParent()->getOrInsertFunction(
+      "map2check_assume_loop", Type::getVoidTy(*this->Ctx),
+      Type::getInt1Ty(*this->Ctx));
 
   LoopInfo& LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
 
-  for (LoopInfo::iterator i = LI.begin(), e = LI.end(); i != e; ++i)
-    getConditionInLoop(*i);
+  // for (LoopInfo::iterator i = LI.begin(), e = LI.end(); i != e; ++i)
+  // getConditionInLoop(*i)
+  //;
 
-  return (false);
+  return (true);
 }
-
+*/
 char LoopPredAssumePass::ID = 13;
 static RegisterPass<LoopPredAssumePass> X(
     "loop_predicate_assume",

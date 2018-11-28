@@ -37,6 +37,7 @@ void map2check_next_current_step() { Map2CheckCurrentStep++; }
 
 void map2check_assume(int expr) { nondet_assume(expr); }
 void map2check_crab_assume(char expr) { map2check_assume((int)expr); }
+void map2check_assume_loop(char expr) { map2check_assume((int)expr); }
 
 void map2check_track_bb(unsigned line, const char *function_name) {
   if (!(is_in_tracked(line, &trackbb_log))) {

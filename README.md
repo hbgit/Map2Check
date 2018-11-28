@@ -59,6 +59,8 @@ For help and others options:
 
 > $ ./map2check --help
 
+When using a LLVM bytecode, be sure to add `-g` flag when generating the file, it is not required, but map2check will provide better info (like line numbers).
+
 ===========================
 
 <b> Instructions for SV-COMP'19 </b>

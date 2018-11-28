@@ -171,7 +171,7 @@ class CounterExampleProperty : public CounterExampleRow {
 
 class CounterExample {
  public:
-  CounterExample(std::string path);
+  CounterExample(std::string path, bool no_source = false);
   std::string getViolatedProperty();
   Tools::PropertyViolated getProperty() { return this->property; }
   Tools::PropertyViolated setProperty(Tools::PropertyViolated newProperty) {
@@ -186,6 +186,7 @@ class CounterExample {
   std::vector<std::unique_ptr<CounterExampleRow>> counterExampleRows;
   std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
   std::vector<Tools::KleeLogRow> kleeLogRows;
+  bool noSource;
   void processKleeLog();
   void processListLog();
   void processProperty();

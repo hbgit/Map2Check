@@ -5,9 +5,11 @@
 namespace Tools = Map2Check;
 using namespace Map2Check;
 
-CounterExample::CounterExample(std::string path) {
-  this->sourceCodeHelper = boost::make_unique<Tools::SourceCodeHelper>(
-      Tools::SourceCodeHelper(path));
+CounterExample::CounterExample(std::string path, bool no_source) {
+  this->noSource = no_source;
+  if (!no_source)
+    this->sourceCodeHelper = boost::make_unique<Tools::SourceCodeHelper>(
+        Tools::SourceCodeHelper(path));
 
   this->processKleeLog();
   // Log::Debug("started reading list log");
@@ -79,13 +81,15 @@ void CounterExample::processKleeLog() {
   int ref = 0;
   for (int i = 0; i < kleeLogRows.size(); i++) {
     int step = std::stoi(kleeLogRows[i].step);
-    std::string path = this->sourceCodeHelper->getFilePath();
+    std::string path = noSource ? "" : this->sourceCodeHelper->getFilePath();
 
     int state = 0;
 
     int lineNumber = std::stoi(kleeLogRows[i].line);
-    std::string lineC = this->sourceCodeHelper->substituteWithResult(
-        lineNumber, "__VERIFIER_nondet_int()", kleeLogRows[i].value);
+    std::string lineC = noSource ? ""
+                                 : this->sourceCodeHelper->substituteWithResult(
+                                       lineNumber, "__VERIFIER_nondet_int()",
+                                       kleeLogRows[i].value);
 
     std::unique_ptr<CounterExampleRow> row =
         boost::make_unique<CounterExampleKleeRow>(kleeLogRows[i], step, state,
@@ -104,11 +108,12 @@ void CounterExample::processListLog() {
   int ref = 0;
   for (int i = 0; i < listLogRows.size(); i++) {
     int step = std::stoi(listLogRows[i].step);
-    std::string path = this->sourceCodeHelper->getFilePath();
+    std::string path = noSource ? "" : this->sourceCodeHelper->getFilePath();
     int state = 0;
     int lineNumber = std::stoi(listLogRows[i].lineNumber);
     Log::Debug("Line: " + listLogRows[i].lineNumber);
-    std::string lineC = this->sourceCodeHelper->getLine(lineNumber);
+    std::string lineC =
+        noSource ? "" : this->sourceCodeHelper->getLine(lineNumber);
     std::unique_ptr<CounterExampleRow> row =
         boost::make_unique<CounterExampleListLogRow>(listLogRows[i], step,
                                                      state, path, ref, lineC);

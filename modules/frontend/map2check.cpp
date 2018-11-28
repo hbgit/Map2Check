@@ -170,29 +170,29 @@ int map2check_execution(map2check_args args) {
   // Check if input file is supported
   std::string extension = boost::filesystem::extension(args.inputFile);
   cout << extension << endl;
-  if (extension.compare(".c") && extension.compare(".i") && extension.compare(".bc")) {
+  if (extension.compare(".c") && extension.compare(".i") &&
+      extension.compare(".bc")) {
     help_msg();
     return ERROR_IN_COMMAND_LINE;
-  }else if(extension.compare(".bc") == 0){
-      is_llvmir_in = true;
+  } else if (extension.compare(".bc") == 0) {
+    is_llvmir_in = true;
   }
 
   std::unique_ptr<Map2Check::Caller> caller;
   caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                  generator);
   caller->c_program_fullpath = args.inputFile;
-  caller->setTimeout(args.timeout);  
+  caller->setTimeout(args.timeout);
 
-  if(!is_llvmir_in){
+  if (!is_llvmir_in) {
     if (args.invCrabLlvm) {
-        // cout << "crab  \n";
-        caller->compileToCrabLlvm();
+      // cout << "crab  \n";
+      caller->compileToCrabLlvm();
     } else {
-        caller->compileCFile(is_llvmir_in);
+      caller->compileCFile(is_llvmir_in);
     }
-  }else{
-        caller->compileCFile(is_llvmir_in);
-
+  } else {
+    caller->compileCFile(is_llvmir_in);
   }
 
   if (args.btree) {
@@ -210,8 +210,8 @@ int map2check_execution(map2check_args args) {
   // (4) Retrieve results
   // TODO: create methods to generate counter example
   std::unique_ptr<Map2Check::CounterExample> counterExample =
-      boost::make_unique<Map2Check::CounterExample>(
-          std::string(args.inputFile));
+      boost::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
+                                                    is_llvmir_in);
 
   Map2Check::PropertyViolated propertyViolated;
 
@@ -230,10 +230,10 @@ int map2check_execution(map2check_args args) {
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     if (generator == Map2Check::NonDetGenerator::Klee) {
-      //Map2Check::Log::Info("");
-      //Map2Check::Log::Info("VERIFICATION SUCCEEDED");
-      //if (args.generateWitness)
-        //generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+      // Map2Check::Log::Info("");
+      // Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+      // if (args.generateWitness)
+      // generate_witness(args.inputFile, propertyViolated, args.spectTrue);
       // TODO: Fix this hack!!!
       if (caller->isVerified()) {
         Map2Check::Log::Info("Unable to prove or falsify the program.");
@@ -286,9 +286,10 @@ int main(int argc, char **argv) {
         "\tspecifies the files")("timeout,t", po::value<unsigned>(),
                                  "\tTimeout for map2check execution")(
         "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
-        "generate-testcase,g", "\tCreates c program with fail testcase (experimental)")(
-        "memtrack,m", "\tCheck for memory errors")(
-        "print-counter,p", "\tPrint Counterexample")(
+        "generate-testcase,g",
+        "\tCreates c program with fail testcase (experimental)")(
+        "memtrack,m", "\tCheck for memory errors")("print-counter,p",
+                                                   "\tPrint Counterexample")(
         "check-overflow,o", "\tAnalyze program for overflow failures")(
         "check-asserts,c", "\tAnalyze program and verify assert failures")(
         "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(

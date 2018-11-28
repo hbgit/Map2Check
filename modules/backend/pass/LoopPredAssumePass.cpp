@@ -16,6 +16,7 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
           Type::getInt1Ty(header->getContext()));
   if (BranchInst* bi = dyn_cast<BranchInst>(header->getTerminator())) {
     // errs() << *bi->getCondition() << "\n";
+    if(bi->isConditional()){
     Value* loopCond = bi->getCondition();
     // errs() << *loopCond << "\n";
 
@@ -41,6 +42,7 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
       Value* args[] = {new_loop_cond};
       builder.CreateCall(this->map2check_assume, args);
     }
+  }
   }
 }
 

@@ -27,7 +27,7 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
 
       auto* new_inst = cmpInst->clone();
       auto* inst_pos = dyn_cast<Instruction>(&*--succ_cond_bb->end());
-      errs() << *inst_pos << "\n";
+      //errs() << *inst_pos << "\n";
       new_inst->insertBefore(inst_pos);
 
       CmpInst* new_cmpInst = dyn_cast<CmpInst>(&*new_inst);

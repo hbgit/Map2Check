@@ -142,6 +142,12 @@ class CounterExampleProperty : public CounterExampleRow {
         cnvt << "\tFALSE-MEMTRACK\n\n";
         cnvt << "VERIFICATION FAILED";
         break;
+      case (Tools::PropertyViolated::FALSE_MEMCLEANUP):
+        // TODO: Add message for target reached
+        cnvt << "Violated property:\n";
+        cnvt << "\tFALSE-MEMCLEANUP\n\n";
+        cnvt << "VERIFICATION FAILED";
+        break;
       case (Tools::PropertyViolated::ASSERT):
         // TODO: Add message for target reached
         cnvt << "Violated property:\n";

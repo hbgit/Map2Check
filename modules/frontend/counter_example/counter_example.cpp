@@ -59,6 +59,10 @@ std::string CounterExample::getViolatedProperty() {
     return "FALSE-MEMTRACK";
   }
 
+  if (this->property == Tools::PropertyViolated::FALSE_MEMCLEANUP) {
+    return "FALSE-MEMCLEANUP";
+  }
+
   if (this->property == Tools::PropertyViolated::NONE) {
     return "TRUE";
   }

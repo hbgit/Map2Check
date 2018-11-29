@@ -45,6 +45,7 @@ enum class PropertyViolated {
   FALSE_FREE,
   FALSE_DEREF,
   FALSE_MEMTRACK,
+  FALSE_MEMCLEANUP,
   UNKNOWN,
   NONE,
   ASSERT

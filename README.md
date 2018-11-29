@@ -1,7 +1,7 @@
 <h1>Map2Check</h1>
 <h3>Finding Software Vulnerabilities using Symbolic Execution and Fuzzing</h3>
 
-[![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=fuzzy_gen)](https://travis-ci.org/hbgit/Map2Check)
+[![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=develop)](https://travis-ci.org/hbgit/Map2Check)
 
 ================ 
 
@@ -53,7 +53,7 @@ Map2Check can be invoked through a standard command-line interface. Map2Check sh
 in the installation directory as follows:  
 </p>
 
-> $ ./map2check -m sample/svcomp_960521-1_false-valid-free.c
+> $ ./map2check -m svcomp_960521-1_false-valid-free.c
 
 For help and others options: 
 
@@ -74,7 +74,7 @@ Usage:
 <p align="justify">
 Map2Check accepts the property file and the verification task and provides as verification result:
 <b>TRUE + Witness</b>, <b>[FALSE|FALSE(p)] + Witness</b>, or <b>UNKNOWN</b>. 
-FALSE(p), with p in {valid-free, valid-deref, valid-memtrack}, means that the (partial) 
+FALSE(p), with p in {valid-free, valid-deref, valid-memtrack, valid-memcleanup}, means that the (partial) 
 property p is violated. 
 For each verification result the witness file (called <b>witness.graphml</b>) is generated Map2Check root-path folder. 
 There is timeout of 895 seconds set by this script, using "timeout" tool that is part of coreutils 

@@ -38,6 +38,7 @@ if benchmark is None:
 is_memsafety 	= False
 is_reachability = False
 is_overflow 	= False
+is_memcleanup   = False
 
 f = open(property_file, 'r')
 property_file_content = f.read()
@@ -48,8 +49,10 @@ elif "CHECK( init(main()), LTL(G valid-deref) )" in property_file_content:
   is_memsafety = True
 elif "CHECK( init(main()), LTL(G valid-memtrack) )" in property_file_content:
   is_memsafety = True
+elif "CHECK( init(main()), LTL(G valid-memcleanup) )" in property_file_content:
+  is_memcleanup = True
 elif "CHECK( init(main()), LTL(G ! overflow) )" in property_file_content:
-  is_overflow = True  
+  is_overflow = True
 elif "CHECK( init(main()), LTL(G ! call(__VERIFIER_error())) )" in property_file_content:
   is_reachability = True
 else:
@@ -61,6 +64,8 @@ else:
 # Set options
 if is_memsafety:
   command_line += " --memtrack --generate-witness "
+elif is_memcleanup:
+  command_line += " --memcleanup-property --generate-witness "
 elif is_reachability:
   command_line += " --add-invariants --target-function --generate-witness "
 elif is_overflow:
@@ -86,6 +91,7 @@ if "Timed out" in stdout:
 free_offset     = "\tFALSE-FREE: Operand of free must have zero pointer offset"
 deref_offset    = "\tFALSE-DEREF: Reference to pointer was lost"
 memtrack_offset = "\tFALSE-MEMTRACK"
+memcleanup_offset = "\tFALSE-MEMCLEANUP"
 target_offset   = "\tFALSE: Target Reached"
 overflow_offset = "\tOVERFLOW"
 
@@ -93,23 +99,27 @@ if "VERIFICATION FAILED" in stdout:
     if free_offset in stdout:
       print "FALSE_FREE"
       exit(0)
-    
+
     if deref_offset in stdout:
       print "FALSE_DEREF"
       exit(0)
 
     if memtrack_offset in stdout:
       print "FALSE_MEMTRACK"
-      exit(0)  
+      exit(0)
+
+    if memcleanup_offset in stdout:
+      print "FALSE_MEMCLEANUP"
+      exit(0)
 
     if target_offset in stdout:
       print "FALSE"
       exit(0)
-      
+
     if overflow_offset in stdout:
       print "FALSE_OVERFLOW"
       exit(0)
-      
+
 
 if "VERIFICATION SUCCEEDED" in stdout:
   print "TRUE"

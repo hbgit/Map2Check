@@ -53,8 +53,8 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free) {
 ** address of the current item is not Free, we iterate from the top
 ** if we find that the address was released, then we go on
 ** if not we return FALSE. */
-Bool valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
-  Bool MemTrackError = FALSE;
+long valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
+  long MemTrackError = 0;
   int i = 0;
   // int size = allocation_log->size;
   for (; i < allocation_log->size; i++) {
@@ -80,11 +80,11 @@ Bool valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
             (MEMORY_ALLOCATIONS_ROW *)malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
         *row = new_memory_row(addr, TRUE);
         append_element(allocation_log, row);
-        MemTrackError = TRUE;
+        MemTrackError = addr;
       }
     }
   }
-  return !MemTrackError;
+  return MemTrackError;
 }
 
 MEMORY_ALLOCATIONS_ROW *find_row_with_address(

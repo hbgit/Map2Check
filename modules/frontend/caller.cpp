@@ -125,6 +125,11 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
    *                             and TrackBasicBlockPass now */
 
   std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
+  
+  /*Map2Check::Log::Info("Adding loop pass");
+  std::string loopPredAssumePass = "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass";
+  transformCommand << " -load " << loopPredAssumePass << getLibSuffix()
+                   << " -loop_predicate_assume";*/
 
   Map2Check::Log::Info("Adding nondet pass");
   transformCommand << " -tailcallopt";
@@ -133,6 +138,13 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   switch (map2checkMode) {
     case Map2CheckMode::MEMTRACK_MODE: {
       Map2Check::Log::Info("Adding memtrack pass");
+      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
+                       << " -memory_track";
+      break;
+    }
+    case Map2CheckMode::MEMCLEANUP_MODE: {
+      Map2Check::Log::Info("Adding memcleanup pass");
       std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
       transformCommand << " -load " << memoryTrackPass << getLibSuffix()
                        << " -memory_track";
@@ -210,6 +222,13 @@ void Caller::linkLLVM() {
   switch (map2checkMode) {
     case Map2CheckMode::MEMTRACK_MODE: {
       linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemtrack.bc"
+                  << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
+      break;
+    }
+    case Map2CheckMode::MEMCLEANUP_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemcleanup.bc"
                   << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
                   << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
                   << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";

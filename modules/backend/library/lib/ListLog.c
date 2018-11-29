@@ -17,6 +17,44 @@ long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
   return 0;
 }
 
+/*
+  A memcleanup error occurs when a memory leak happens but we still have
+  a pointer that points to the leaked location, so to verify we:
+  1. From last element to the first check if some variable points to the
+  location
+  2. If found, iterates from the found element to the last and check if the
+  pointer does not change.
+  3a. If it doesn't change, then it is a memcleanup error
+  3b. Else, go on 1 loop.
+  4. If loop ends without finding leaked address, then it isn't a memcleanup
+  error.
+*/
+Bool is_memcleanup_error(long address, MAP2CHECK_CONTAINER* log) {
+  int i = log->size - 1;
+  // 1
+  for (; i >= 0; i--) {
+    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
+
+    long points_to = row->memory_address_points_to;
+
+    if (points_to == address) {
+      long pointer_address = row->memory_address;
+      int j = log->size - 1;
+      Bool error = TRUE;
+      for (; j > i; j--) {
+        LIST_LOG_ROW* row_j = (LIST_LOG_ROW*)get_element_at(j, *log);
+        if (pointer_address == row_j->memory_address) {
+          error = row_j->memory_address_points_to == address ? TRUE : FALSE;
+          break;
+        }
+      }
+      if (error) {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
 // TODO: Implement method
 Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
   int i = log->size - 1;

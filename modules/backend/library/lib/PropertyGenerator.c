@@ -7,6 +7,7 @@
 const char* violated_property_file = "map2check_property";
 const char* violated_property_file_unknown = "map2check_property__unknown";
 const char* violated_property_file_memtrack = "map2check_property_memtrack";
+const char* violated_property_file_memcleanup = "map2check_property_memcleanup";
 const char* violated_property_file_deref = "map2check_property_deref";
 const char* violated_property_file_free = "map2check_property_free";
 const char* violated_property_file_overflow = "map2check_property_overflow";
@@ -21,6 +22,12 @@ void write_property_unknown() {
 void write_property_memtrack() {
   FILE* output = fopen(violated_property_file_memtrack, "w");
   fprintf(output, "FALSE-MEMTRACK\n");
+  fclose(output);
+}
+
+void write_property_memcleanup() {
+  FILE* output = fopen(violated_property_file_memcleanup, "w");
+  fprintf(output, "FALSE-MEMCLEANUP\n");
   fclose(output);
 }
 
@@ -58,6 +65,10 @@ void write_property(enum ViolatedProperty violated, int line,
     case FALSE_MEMTRACK:
       write_property_memtrack();
       fprintf(output, "FALSE-MEMTRACK\n");
+      break;
+    case FALSE_MEMCLEANUP:
+      write_property_memcleanup();
+      fprintf(output, "FALSE-MEMCLEANUP\n");
       break;
     case TARGET_REACHED:
       fprintf(output, "TARGET-REACHED\n");

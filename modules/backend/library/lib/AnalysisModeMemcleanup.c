@@ -130,9 +130,11 @@ void analysis_destroy() {
 Bool analysis_is_program_correct() {
   long addr = valid_allocation_log(&allocation_log);
   if (addr != 0) {
-    write_property(FALSE_MEMTRACK, 0, "");
-    write_property_memtrack();
-    return FALSE;
+    if (is_memcleanup_error(addr, &list_log)) {
+      write_property(FALSE_MEMCLEANUP, 0, "");
+      write_property_memcleanup();
+      return FALSE;
+    }
   }
   return TRUE;
 }
@@ -145,13 +147,7 @@ void analysis_generate_aux_witness_files() {
 
 // TODO: FIX THIS, not working for static array
 #include <stdio.h>
-void map2check_load(void *ptr, int size) {
-  if (!is_valid_heap_address(&heap_log, ptr, size)) {
-    if (!is_valid_allocation_address(&allocation_log, ptr, size)) {
-      ERROR_DEREF = TRUE;
-    }
-  }
-}
+void map2check_load(void *ptr, int size) {}
 
 void map2check_free_resolved_address(void *ptr, unsigned line,
                                      const char *function_name,
@@ -160,7 +156,7 @@ void map2check_free_resolved_address(void *ptr, unsigned line,
     return;
   }
 
-  Bool error = is_invalid_free((long)ptr, &list_log);
+  Bool error = FALSE;
 
   if (error) {
     write_property(FALSE_FREE, line, function_name);
@@ -284,13 +280,7 @@ void map2check_add_store_pointer(void *var, void *value, unsigned scope,
   }
 }
 
-void map2check_check_deref(int line, const char *function_name) {
-  if (ERROR_DEREF) {
-    write_property(FALSE_DEREF, line, function_name);
-    write_property_deref(line, function_name);
-    map2check_error();
-  }
-}
+void map2check_check_deref(int line, const char *function_name) {}
 
 void map2check_malloc(void *ptr, int size) {
   int addr = (long)ptr;
@@ -338,7 +328,7 @@ void map2check_free(const char *name, void *ptr, unsigned scope, unsigned line,
                           name, function_name, map2check_get_current_step());
 
   map2check_next_current_step();
-  Bool error = is_invalid_free((long)*addr, &list_log);
+  Bool error = FALSE;
 
   append_element(&list_log, listRow);
 

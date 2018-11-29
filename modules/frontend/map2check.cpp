@@ -22,7 +22,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-#define Map2CheckVersion "v7.2-Flock : Mon Nov 19 19:47:40 UTC 2018"
+#define Map2CheckVersion "v7.2-Flock : Tue Nov 27 22:00:00 -04 2018"
 
 // TODO: should get preprocessor flags from CMake
 
@@ -290,6 +290,7 @@ int main(int argc, char **argv) {
         "\tCreates c program with fail testcase (experimental)")(
         "memtrack,m", "\tCheck for memory errors")("print-counter,p",
                                                    "\tPrint Counterexample")(
+        "memcleanup-property", "\t Analyze program for memcleanup errors")(
         "check-overflow,o", "\tAnalyze program for overflow failures")(
         "check-asserts,c", "\tAnalyze program and verify assert failures")(
         "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
@@ -349,6 +350,9 @@ int main(int argc, char **argv) {
     }
     if (vm.count("check-asserts")) {
       args.mode = Map2Check::Map2CheckMode::ASSERT_MODE;
+    }
+    if (vm.count("memcleanup-property")) {
+      args.mode = Map2Check::Map2CheckMode::MEMCLEANUP_MODE;
     }
     if (vm.count("btree")) {
       args.btree = true;

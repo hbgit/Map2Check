@@ -56,16 +56,16 @@ TEST_F(AllocationLogTest, MemoryAddressStatusCaseStatic) {
 TEST_F(AllocationLogTest, IfAddressIsReleasedThenAllocationLogIsValid) {
   mark_allocation_log(&container, 42);
   mark_deallocation_log(&container, 42);
-  Bool actual = valid_allocation_log(&container);
-  EXPECT_EQ(actual, TRUE);
+  long actual = valid_allocation_log(&container);
+  EXPECT_EQ(actual, 0);
 }
 
 TEST_F(AllocationLogTest, IfAddressIsNotReleasedThenAllocationLogIsInvalid) {
   // Map2check releases all found memleaks, so we need to alloc it
   int *a = (int *)malloc(sizeof(int));
   mark_allocation_log(&container, (long)a);
-  Bool actual = valid_allocation_log(&container);
-  EXPECT_EQ(actual, FALSE);
+  long actual = valid_allocation_log(&container);
+  EXPECT_NE(actual, 0);
 }
 
 TEST_F(AllocationLogTest, AddressIsInAllocationLog) {

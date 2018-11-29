@@ -36,8 +36,8 @@ if [ ! -d "/home/map2check/devel_tool/clang600" ]; then
    cd $CURRENT_DIR
 fi
    
-#cd ../release   
-#cp -r Z3/lib/* lib/
+cd ../release   
+
 mkdir -p ./include
 cp -r /home/map2check/devel_tool/clang600/lib/clang/$LLVM_VERSION/include/* ./include
 cp -r /home/map2check/devel_tool/clang600/lib/clang ./lib
@@ -58,45 +58,49 @@ cp /usr/lib/x86_64-linux-gnu/crt* ./lib
 cp /lib/x86_64-linux-gnu/librt.so.1 ./lib/librt.so
 cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./lib/
 
-
+echo ""
 echo "Copying external tools"
 # LibFuzzer
 cp /deps/install/fuzzer/libFuzzer.a ./lib
 
 # Z3
-#cp -r /deps/install/z3 ./z3
+if [ ! -d "./z3" ]; then
+    cp -r /deps/install/z3 .
+    cp -r z3/lib/* lib/
+fi
 
+# Klee 
+cp -r /deps/install/klee/* .
 
-#export CXX=""
-#export CC=""
-#./utils/build_crabllvm.py
-#cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so release/bin/crabllvm/lib/
-#cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 release/bin/crabllvm/lib/
-#cp release/lib/libz3.so release/bin/crabllvm/lib/
+# Crab
+if [ ! -d "./bin/crabllvm" ]; then
+    cp -r /deps/install/crab ./bin
+    mv ./bin/crab ./bin/crabllvm
+fi
 
-#echo ""
+cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./bin/crabllvm/lib/
+cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./bin/crabllvm/lib/
+cp ./lib/libz3.so ./bin/crabllvm/lib/
 
-#echo ""
-#echo "Copying extra files ..."
-#./utils/cp_utils_file.sh
-#echo ""
+../utils/cp_utils_file.sh
+# #echo ""
 
-#if [ "$export_svcomp" = true ] ; then
-#	echo ""
-#	echo "Cleaning for SVCOMP"
-#	rm -rf release/Z3/include
-#	rm -rf release/Z3/lib/python2.7
-#	rm -rf release/Z3/lib
-#	rm -rf release/lib/python2.7
-#	rm -rf release/lib/clang/6.0.0/include
-#	rm -rf release/moduleBenchExec
-#	rm release/bin/kleaver
-#	rm -rf release/bin/crabllvm/ldd
+if [ "$export_svcomp" = true ] ; then
+	echo ""
+	echo "Cleaning for SVCOMP"
+	rm -rf ./z3/include
+	rm -rf ./z3/lib/python2.7
+	rm -rf ./z3/lib
+	rm -rf ./lib/python2.7
+	rm -rf ./lib/clang/6.0.0/include
+	rm -rf ./moduleBenchExec
+	rm ./bin/kleaver
+	rm -rf ./bin/crabllvm/ldd
 
-	#rm release/bin/crabllvm/lib/libz3.so
-	#ln -s release/Z3/lib/libz3.so release/bin/crabllvm/lib/libz3.so
-	#rm release/lib/libz3.so
-#fi
+    rm ./bin/crabllvm/lib/libz3.so
+	ln -s ./z3/lib/libz3.so ./bin/crabllvm/lib/libz3.so
+	#rm ./lib/libz3.so
+fi
 
 
 #echo ""

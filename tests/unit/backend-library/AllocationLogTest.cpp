@@ -76,8 +76,8 @@ TEST_F(AllocationLogTest, AddressIsInAllocationLog) {
   *row = new_memory_row((long)ptr, FALSE);
   row->size = size;
   append_element(&container, row);
-  Bool actual = is_valid_allocation_address(&container, ptr, 4);
-  EXPECT_EQ(actual, TRUE);
+  long actual = is_valid_allocation_address(&container, ptr, 4);
+  EXPECT_NE(actual, 0);
 }
 
 TEST_F(AllocationLogTest, AddressIsNotInAllocationLog) {
@@ -88,6 +88,6 @@ TEST_F(AllocationLogTest, AddressIsNotInAllocationLog) {
   *row = new_memory_row((long)ptr, FALSE);
   row->size = size;
   append_element(&container, row);
-  Bool actual = is_valid_allocation_address(&container, ptr, size * 2);
-  EXPECT_EQ(actual, FALSE);
+  long actual = is_valid_allocation_address(&container, ptr, size * 2);
+  EXPECT_EQ(actual, 0);
 }

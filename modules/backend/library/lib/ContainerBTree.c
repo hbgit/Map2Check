@@ -1,8 +1,10 @@
 
-#include "../header/Container.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../header/Container.h"
 #include "BTree.h"
+
+extern int getpid();
 
 #define B_TREE_FILE_NAME_SIZE 64
 

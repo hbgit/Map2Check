@@ -41,3 +41,18 @@ foreach(F ${MAP2CHECK_C_LIB})
   add_library(${F}Lib OBJECT ${F}.c)
 endforeach()
 endif()
+
+add_custom_command(
+    OUTPUT "sqlite3-no-threadsafe.bc"
+    COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_EMIT_LLVM_FLAGS} -DSQLITE_THREADSAFE=0 ${CMAKE_CURRENT_LIST_DIR}/sqlite3.c -o sqlite3-no-threadsafe.bc
+    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/sqlite3.c
+    COMMENT "Compiling sqlite3 to bytecode")
+
+add_custom_target(SQLite3 ALL DEPENDS sqlite3-no-threadsafe.bc)  
+install(FILES ${PROJECT_BINARY_DIR}/modules/backend/library/lib/sqlite3-no-threadsafe.bc
+    DESTINATION lib)  
+
+
+set(SQLITE_COMPILER_FLAGS -DSQLITE_THREADSAFE=0)
+add_library(SQLite3Lib OBJECT sqlite3.c)
+set_target_properties(SQLite3Lib PROPERTIES COMPILE_FLAGS ${SQLITE_COMPILER_FLAGS})    

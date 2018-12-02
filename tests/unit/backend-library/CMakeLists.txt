@@ -29,6 +29,13 @@ add_executable(ContainerBTreeTest
     $<TARGET_OBJECTS:ContainerBTreeLib>
 )
 
+add_executable(ContainerSQLiteTest
+    ContainerTest.cpp
+    $<TARGET_OBJECTS:AllocationLogLib>
+    $<TARGET_OBJECTS:SQLite3Lib>
+    $<TARGET_OBJECTS:ContainerSQLiteLib>
+)
+
 add_executable(MemTrackTest
     MemTrackTest.cpp
     $<TARGET_OBJECTS:AllocationLogLib>
@@ -50,3 +57,4 @@ map2check_test(ContainerReallocTest)
 map2check_test(BTreeTest)
 map2check_test(ContainerBTreeTest)
 map2check_test(MemTrackTest)
+map2check_test(ContainerSQLiteTest)

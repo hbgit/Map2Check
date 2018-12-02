@@ -17,13 +17,13 @@ set (CMAKE_CXX_STANDARD 11)
 # set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
 # include(cmake/ExternalDeps.cmake)
 
-
 set(Map2Check_MODE "STATIC")
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
+set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++ -ldl")
 
 include(cmake/FindClang.cmake)
 include(cmake/FindBoost.cmake)
+
 
 if(NOT SKIP_LIB_FUZZER)
   include(cmake/FindLibFuzzer.cmake)

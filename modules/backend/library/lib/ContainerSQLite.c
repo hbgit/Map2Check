@@ -1,13 +1,16 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "../header/Container.h"
-#include "./SQLiteConsts.h"
-#include <sqlite3.h>
+#include "sqlite3.h"
 
+extern int getpid();
+#define SQLITE_FILE_NAME_SIZE 50
 MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
   MAP2CHECK_CONTAINER container;
   container.size = 0;
   int proccess_id = getpid();
   char* file_suffix;
-  sqlite3 *db;
+  sqlite3* db;
   switch (container.type) {
     case LIST_LOG_CONTAINER:
       file_suffix = "listlog.map2check.bin";
@@ -28,11 +31,11 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
       file_suffix = "default.map2check.bin";
       break;
   }
-  char name[B_TREE_FILE_NAME_SIZE];
-  snprintf(name, B_TREE_FILE_NAME_SIZE, "%d-%s", proccess_id, file_suffix);
+  char name[SQLITE_FILE_NAME_SIZE];
+  snprintf(name, SQLITE_FILE_NAME_SIZE, "%d-%s", proccess_id, file_suffix);
   int rc = sqlite3_open(name, &db);
   container.values = db;
-  container.type = type;  
+  container.type = type;
   return container;
 }
 
@@ -59,11 +62,17 @@ Bool free_container(MAP2CHECK_CONTAINER* container) {
       file_suffix = "default.map2check.bin";
       break;
   }
-  char name[B_TREE_FILE_NAME_SIZE];
-  snprintf(name, B_TREE_FILE_NAME_SIZE, "rm -rf %d-%s", proccess_id,
+  char name[SQLITE_FILE_NAME_SIZE];
+  snprintf(name, SQLITE_FILE_NAME_SIZE, "rm -rf %d-%s", proccess_id,
            file_suffix);
-  //system(name);
-  sqlite3 *db = (sqlite3*) container->values;
+  system(name);
+  sqlite3* db = (sqlite3*)container->values;
   sqlite3_close(db);
   return TRUE;
+}
+
+Bool append_element(MAP2CHECK_CONTAINER* container, void* row) { return FALSE; }
+
+void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
+  return NULL;
 }

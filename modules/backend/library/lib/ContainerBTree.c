@@ -108,3 +108,7 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
   B_TREE_ROW* row = B_TREE_SEARCH(container.values, index);
   return &row->value;
 }
+
+void free_used_element(void* addr) {
+  // DO NOTHING
+}

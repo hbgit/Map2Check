@@ -36,8 +36,10 @@ Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address,
     long addressTop = addressBottom + iRow->size - size_to_load + 1;
     if ((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
       //*last_address = addressTop;
+      free_used_element(iRow);
       return TRUE;
     }
+    free_used_element(iRow);
   }
   //*last_address = 0;
   return FALSE;
@@ -53,6 +55,7 @@ void heap_log_to_file(MAP2CHECK_CONTAINER* list) {
     fprintf(output, "%p;", (void*)((long)row->value));
     fprintf(output, "%s;", row->function_name);
     fprintf(output, "%d\n", row->size);
+    free_used_element(row);
   }
   fclose(output);
 }

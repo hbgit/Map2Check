@@ -10,7 +10,9 @@ long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
     LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
 
     if (row->memory_address == var_address) {
-      return row->memory_address_points_to;
+      long result = row->memory_address_points_to;
+      free_used_element(row);
+      return result;
     }
   }
 
@@ -45,13 +47,17 @@ Bool is_memcleanup_error(long address, MAP2CHECK_CONTAINER* log) {
         LIST_LOG_ROW* row_j = (LIST_LOG_ROW*)get_element_at(j, *log);
         if (pointer_address == row_j->memory_address) {
           error = row_j->memory_address_points_to == address ? TRUE : FALSE;
+          free_used_element(row_j);
           break;
         }
+        free_used_element(row_j);
       }
       if (error) {
+        free_used_element(row);
         return TRUE;
       }
     }
+    free_used_element(row);
   }
   return FALSE;
 }
@@ -72,13 +78,14 @@ Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
     if (points_to == address) {
       Bool is_free = row->is_free;
       Bool is_dynamic = row->is_dynamic;
-
+      free_used_element(row);
       if (is_free || (!is_dynamic)) {
         return TRUE;
       } else {
         return FALSE;
       }
     }
+    free_used_element(row);
   }
 
   return TRUE;
@@ -97,13 +104,14 @@ Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
     if (points_to == address) {
       Bool is_free = row->is_free;
       Bool is_dynamic = row->is_dynamic;
-
+      free_used_element(row);
       if (is_free || (!is_dynamic)) {
         return TRUE;
       } else {
         return FALSE;
       }
     }
+    free_used_element(row);
   }
 
   return TRUE;
@@ -144,6 +152,7 @@ void list_log_to_file(MAP2CHECK_CONTAINER* list) {
     fprintf(output, "%d;", row->line_number);
     fprintf(output, "%s;", row->function_name);
     fprintf(output, "%d\n", row->step_on_execution);
+    free_used_element(row);
   }
   fclose(output);
 }

@@ -1,8 +1,8 @@
 #include "../header/NonDetLog.h"
-#include "../header/Map2CheckFunctions.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../header/Map2CheckFunctions.h"
 
 const char *klee_log_file = "klee_log.csv";
 
@@ -27,13 +27,14 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     fprintf(output, "%d;", call->step_on_execution);
 
     if (((int)call->type) == UNSIGNED) {
-      fprintf(output, "%u;", (unsigned)(call->value)); // TODO for unsigned
+      fprintf(output, "%u;", (unsigned)(call->value));  // TODO for unsigned
     } else {
-      fprintf(output, "%d;", ((int)call->value)); // TODO for unsigned
+      fprintf(output, "%d;", ((int)call->value));  // TODO for unsigned
     }
 
     // printf("%u \n;", call->value);
     fprintf(output, "%d\n", ((int)call->type));
+    free_used_element(call);
   }
   fclose(output);
   return TRUE;
@@ -69,13 +70,13 @@ void helper_map2check_nondet_append_element(NONDET_CALL nondetCall) {
   append_element(&nondet_log, row);
 }
 
-#define MAP2CHECK_NONDET_GENERATOR(type, nondet_type)                          \
-  void map2check_nondet_##type(unsigned line, unsigned scope, int value,       \
-                               const char *function_name) {                    \
-    NONDET_CALL nondetCall =                                                   \
-        new_nondet_call(nondet_type, line, scope, value, function_name,        \
-                        map2check_get_current_step());                         \
-    helper_map2check_nondet_append_element(nondetCall);                        \
+#define MAP2CHECK_NONDET_GENERATOR(type, nondet_type)                    \
+  void map2check_nondet_##type(unsigned line, unsigned scope, int value, \
+                               const char *function_name) {              \
+    NONDET_CALL nondetCall =                                             \
+        new_nondet_call(nondet_type, line, scope, value, function_name,  \
+                        map2check_get_current_step());                   \
+    helper_map2check_nondet_append_element(nondetCall);                  \
   }
 
 MAP2CHECK_NONDET_GENERATOR(int, INTEGER)

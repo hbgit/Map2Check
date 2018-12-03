@@ -182,3 +182,5 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
 void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
   return NULL;
 }
+
+void free_used_element(void* addr) { free(addr); }

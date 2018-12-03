@@ -30,11 +30,14 @@ enum MemoryAddressStatus check_address_allocation_log(
         (MEMORY_ALLOCATIONS_ROW *)get_element_at(i, *allocation_log);
     if (row->addr == address) {
       if (row->is_free == TRUE) {
+        free_used_element(row);
         return FREE;
       } else {
+        free_used_element(row);
         return DYNAMIC;
       }
     }
+    free_used_element(row);
   }
 
   return STATIC;
@@ -70,6 +73,7 @@ long valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
             (MEMORY_ALLOCATIONS_ROW *)get_element_at(j, *allocation_log);
         if (jRow->addr == addr && jRow->is_free) {
           foundReleased = TRUE;
+          free_used_element(jRow);
           break;
         }
       }
@@ -82,6 +86,7 @@ long valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
         append_element(allocation_log, row);
         MemTrackError = addr;
       }
+      free_used_element(iRow);
     }
   }
   return MemTrackError;
@@ -98,8 +103,10 @@ MEMORY_ALLOCATIONS_ROW *find_row_with_address(
 
     unsigned addr = (unsigned)iRow->addr;
     if (addressToCheck == addr) {
+      free_used_element(iRow);
       return iRow;
     }
+    free_used_element(iRow);
   }
   return NULL;
 }
@@ -123,11 +130,14 @@ Bool is_valid_allocation_address(MAP2CHECK_CONTAINER *allocation_log,
     //*last_address = addressTop;
     if ((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
       if (iRow->is_free) {
+        free_used_element(iRow);
         return FALSE;
       }
       //*last_address = addressTop;
+      free_used_element(iRow);
       return TRUE;
     }
+    free_used_element(iRow);
   }
 
   //*last_address = 0;
@@ -142,6 +152,7 @@ void release_unreleased_addresses(MAP2CHECK_CONTAINER *list) {
     if (!row->is_free) {
       free((void *)row->addr);
     }
+    free_used_element(row);
   }
 }
 
@@ -156,6 +167,7 @@ void allocation_log_to_file(MAP2CHECK_CONTAINER *list) {
     fprintf(output, "%p;", (void *)row->addr);
     fprintf(output, "%u;", row->size);
     fprintf(output, "%d\n", row->is_free);
+    free_used_element(row);
   }
   fclose(output);
 }

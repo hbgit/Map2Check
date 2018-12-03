@@ -37,4 +37,9 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row);
  */
 void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container);
 
+/**
+ * Free obtained address from get_element_at
+ * @param Address to release
+ */
+void free_used_element(void* addr);
 #endif

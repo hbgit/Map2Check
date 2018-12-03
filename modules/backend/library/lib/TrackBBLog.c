@@ -17,6 +17,7 @@ Bool is_in_tracked(unsigned line, MAP2CHECK_CONTAINER* log) {
   for (; i >= 0; i--) {
     TRACK_BB_ROW* row = (TRACK_BB_ROW*)get_element_at(i, *log);
     unsigned lineN = row->line;
+    free_used_element(row);
     if (lineN == line) {
       return TRUE;
     }
@@ -31,6 +32,7 @@ void trackbb_log_to_file(MAP2CHECK_CONTAINER* list) {
     TRACK_BB_ROW* row = (TRACK_BB_ROW*)get_element_at(i, *list);
     fprintf(output, "%u;", row->line);
     fprintf(output, "%s\n", row->function_name);
+    free_used_element(row);
   }
   fclose(output);
 }

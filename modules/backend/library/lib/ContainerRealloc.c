@@ -119,3 +119,7 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
   }
   return NULL;
 }
+
+void free_used_element(void* addr) {
+  // DO NOTHING
+}

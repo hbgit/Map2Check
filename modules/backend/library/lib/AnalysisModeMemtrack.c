@@ -76,6 +76,16 @@ void map2check_calloc(void *ptr, int quantity, int size);
 void map2check_alloca(const char *name, void *ptr, int size,
                       int size_of_primitive, int line, int scope);
 
+/**
+ * @brief Tracks lost addresses from memory heap
+ * @param name               Name of the variable allocated
+ * @param ptr                Memory address allocated
+ * @param size               Size of the allocated address
+ * @param size_of_primitive  Size of the primitive on allocated address
+ */
+void map2check_alloca_lost(const char *name, void *ptr, int size,
+                           int size_of_primitive, int line, int scope);
+
 // TODO: document method
 void map2check_non_static_alloca(const char *name, void *ptr, int size,
                                  int size_of_primitive, int line, int scope);
@@ -365,6 +375,14 @@ void map2check_alloca(const char *name, void *ptr, int size,
                       int size_of_primitive, int line, int scope) {
   MEMORY_HEAP_ROW *row = (MEMORY_HEAP_ROW *)malloc(sizeof(MEMORY_HEAP_ROW));
   *row = new_heap_row(line, scope, ptr, size, size_of_primitive, name);
+  append_element(&heap_log, row);
+}
+
+void map2check_alloca_lost(const char *name, void *ptr, int size,
+                           int size_of_primitive, int line, int scope) {
+  MEMORY_HEAP_ROW *row = (MEMORY_HEAP_ROW *)malloc(sizeof(MEMORY_HEAP_ROW));
+  *row = new_heap_row(line, scope, ptr, size, size_of_primitive, name);
+  row->status = HEAP_ADDRESS_LOST;
   append_element(&heap_log, row);
 }
 

@@ -29,6 +29,8 @@ enum MemoryAddressStatus {
   //  INVALID = 3
 };
 
+enum HeapAddressStatus { HEAP_ADDRESS_OK = 0, HEAP_ADDRESS_LOST = 1 };
+
 enum NONDET_TYPE {
   INTEGER = 0,
   CHAR = 1,
@@ -160,6 +162,8 @@ typedef
   int size_of_primitive;
   /** Name of the function where operation took place */
   char function_name[FUNCTION_MAX_LENGTH_NAME];
+  /** Current status of Address */
+  enum HeapAddressStatus status;
 } MEMORY_HEAP_ROW;
 
 typedef

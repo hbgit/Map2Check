@@ -20,11 +20,13 @@ MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size,
   row.value = address;
   row.size = size;
   row.size_of_primitive = size_of_primitive;
+  row.status = HEAP_ADDRESS_OK;
   return row;
 }
 
 /* Same idea of is_valid_allocation_address from AllocationLog.c,
  * but the main difference is: there is no need to check if address is free
+ * just check if it is a deref
  */
 Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address,
                            int size_to_load) {
@@ -35,7 +37,9 @@ Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address,
     long addressBottom = (long)iRow->value;
     long addressTop = addressBottom + iRow->size - size_to_load + 1;
     if ((addressBottom <= addressToCheck) && (addressToCheck < addressTop)) {
-      //*last_address = addressTop;
+      if (iRow->status == HEAP_ADDRESS_LOST) {
+        return FALSE;
+      }
       return TRUE;
     }
   }

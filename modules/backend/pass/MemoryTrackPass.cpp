@@ -192,6 +192,15 @@ void MemoryTrackPass::instrumentAlloca() {
   builder.CreateCall(map2check_alloca, args);
 }
 
+void MemoryTrackPass::instrumentAllocaLost(Value *args[6]) {
+  Value *array[] = {args[0], args[1], args[2], args[3], args[4], args[5]};
+  auto j = this->lastInstructionBB;
+
+  // Adds map2check_alloca_lost to known that is a deref on heap
+  IRBuilder<> builder(BBIteratorToInst(j));
+  builder.CreateCall(map2check_alloca_lost, array);
+}
+
 /* For the purpose of memory checking calloc is basically
  * a malloc with 2 args, the first is how many elements
  * and the second is the size of the primitive element
@@ -454,6 +463,7 @@ void MemoryTrackPass::instrumentAllocation() {
   Value *args[] = {name_llvm,          pointerCast,      typeSizeValue,
                    primitiveSizeValue, this->line_value, this->scope_value};
   builder.CreateCall(map2check_alloca, args);
+  instrumentAllocaLost(args);
 }
 
 // TODO: make dynCast only one time
@@ -543,7 +553,10 @@ void MemoryTrackPass::instrumentNotStaticArrayAlloca() {
 
   Value *args[] = {name_llvm,          pointerCast,      sizeCast,
                    primitiveSizeValue, this->line_value, this->scope_value};
+
   builder.CreateCall(map2check_non_static_alloca, args);
+
+  instrumentAllocaLost(args);
 }
 
 void MemoryTrackPass::instrumentArrayAlloca() {
@@ -576,7 +589,10 @@ void MemoryTrackPass::instrumentArrayAlloca() {
 
   Value *args[] = {name_llvm,          pointerCast,      sizeCast,
                    primitiveSizeValue, this->line_value, this->scope_value};
+
   builder.CreateCall(map2check_alloca, args);
+
+  instrumentAllocaLost(args);
 }
 
 void MemoryTrackPass::runOnAllocaInstruction() {
@@ -665,6 +681,12 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx),
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
 
+  this->map2check_alloca_lost = F.getParent()->getOrInsertFunction(
+      "map2check_alloca_lost", Type::getVoidTy(*this->Ctx),
+      Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
+      Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx),
+      Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+
   this->map2check_non_static_alloca = F.getParent()->getOrInsertFunction(
       "map2check_non_static_alloca", Type::getVoidTy(*this->Ctx),
       Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
@@ -741,7 +763,11 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
     this->instrumentInit();  // Related to BUG checkout this
   }
 
-  // this->instrumentFunctionAddress();
+  // TODO: This should be progressive
+  Function::iterator bbEnd = F.end();
+  bbEnd--;
+  this->lastInstructionBB = bbEnd->end();
+  this->lastInstructionBB--;
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
     for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {

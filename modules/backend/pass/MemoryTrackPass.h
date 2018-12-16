@@ -17,6 +17,15 @@
 
 using namespace llvm;
 
+// struct HeapInstructionHolder {
+//   Value *arg[6];
+
+//   HeapInstructionHolder(Value *array[6]) {
+//     for(int i = 0; i < 6; i++) {
+//       arg[i] = array[i];
+//     }
+//   }
+// };
 struct MemoryTrackPass : public FunctionPass {
   static char ID;
   MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
@@ -35,6 +44,7 @@ struct MemoryTrackPass : public FunctionPass {
   void instrumentFree();
   void instrumentInit();
   void instrumentAlloca();
+  void instrumentAllocaLost(Value* args[6]);
   void instrumentArrayAlloca();
   void instrumentNotStaticArrayAlloca();
   void instrumentAllocation();
@@ -58,12 +68,13 @@ struct MemoryTrackPass : public FunctionPass {
   Function* mainFunction;
   Function* calleeFunction;
   BasicBlock::iterator currentInstruction;
-  BasicBlock::iterator lastInstructionMain;
+  BasicBlock::iterator lastInstructionBB;
   Constant* map2check_pointer;
   Constant* map2check_malloc;
   Constant* map2check_calloc;
   Constant* map2check_free;
   Constant* map2check_alloca;
+  Constant* map2check_alloca_lost;
   Constant* map2check_non_static_alloca;
   Constant* map2check_posix;
   Constant* map2check_load;

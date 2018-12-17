@@ -21,7 +21,7 @@ cd build
 export LLVM_DIR=$LLVM_DIR_BASE/lib/cmake/llvm
 export CXX=$LLVM_DIR_BASE/bin/clang++
 export CC=$LLVM_DIR_BASE/bin/clang
-cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/
+cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON  -DCMAKE_INSTALL_PREFIX=../release/
 
 ninja
 ninja install
@@ -37,12 +37,13 @@ if [ ! -d "/home/map2check/devel_tool/clang600" ]; then
 fi
    
 cd ../release   
-cp -r Z3/lib/* lib/
+
+mkdir -p ./include
 cp -r /home/map2check/devel_tool/clang600/lib/clang/$LLVM_VERSION/include/* ./include
 cp -r /home/map2check/devel_tool/clang600/lib/clang ./lib
 
 # Copying external libraries and binaries
-cp /usr/bin/ld ./bin/
+cp /usr/bin/ld ./bin
 cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./lib
 cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
 cp /lib/x86_64-linux-gnu/libpthread.so.0 ./lib/libpthread.so
@@ -57,53 +58,63 @@ cp /usr/lib/x86_64-linux-gnu/crt* ./lib
 cp /lib/x86_64-linux-gnu/librt.so.1 ./lib/librt.so
 cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./lib/
 
-cd ..
 echo ""
-echo "Building Crab-LLVM ..."
-export CXX=""
-export CC=""
-./utils/build_crabllvm.py
-cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so release/bin/crabllvm/lib/
-cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 release/bin/crabllvm/lib/
-cp release/lib/libz3.so release/bin/crabllvm/lib/
+echo "Copying external tools"
+# LibFuzzer
+cp /deps/install/fuzzer/libFuzzer.a ./lib
 
-echo ""
+# Z3
+if [ ! -d "./z3" ]; then
+    cp -r /deps/install/z3 .
+    cp -r z3/lib/* lib/
+fi
 
-echo ""
-echo "Copying extra files ..."
-./utils/cp_utils_file.sh
-echo ""
+# Klee 
+cp -r /deps/install/klee/* .
+
+# Crab
+if [ ! -d "./bin/crabllvm" ]; then
+    cp -r /deps/install/crab ./bin
+    mv ./bin/crab ./bin/crabllvm
+fi
+
+cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./bin/crabllvm/lib/
+cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./bin/crabllvm/lib/
+cp ./lib/libz3.so ./bin/crabllvm/lib/
+
+../utils/cp_utils_file.sh
+# #echo ""
 
 if [ "$export_svcomp" = true ] ; then
 	echo ""
 	echo "Cleaning for SVCOMP"
-	rm -rf release/Z3/include
-	rm -rf release/Z3/lib/python2.7
-	rm -rf release/Z3/lib
-	rm -rf release/lib/python2.7
-	rm -rf release/lib/clang/6.0.0/include
-	rm -rf release/moduleBenchExec
-	rm release/bin/kleaver
-	rm -rf release/bin/crabllvm/ldd
+	rm -rf ./z3/include
+	rm -rf ./z3/lib/python2.7
+	rm -rf ./z3/lib
+	rm -rf ./lib/python2.7
+	rm -rf ./lib/clang/6.0.0/include
+	rm -rf ./moduleBenchExec
+	rm ./bin/kleaver
+	rm -rf ./bin/crabllvm/ldd
 
-	#rm release/bin/crabllvm/lib/libz3.so
-	#ln -s release/Z3/lib/libz3.so release/bin/crabllvm/lib/libz3.so
-	#rm release/lib/libz3.so
+    rm ./bin/crabllvm/lib/libz3.so
+	ln -s ./z3/lib/libz3.so ./bin/crabllvm/lib/libz3.so
+	#rm ./lib/libz3.so
 fi
 
 
-echo ""
-echo "Generating archive ..."
-if [ ! -d "map2check" ]; then
-        mkdir map2check
-else
-	rm -rf map2check
-	mkdir map2check
-fi
-cp -r release/* map2check/
-7z a map2check.zip map2check
-rm -rf map2check
-echo ""
+#echo ""
+#echo "Generating archive ..."
+#if [ ! -d "map2check" ]; then
+#        mkdir map2check
+#else
+	#rm -rf map2check
+	#mkdir map2check
+#fi
+#cp -r release/* map2check/
+#7z a map2check.zip map2check
+#rm -rf map2check
+#echo ""
 
 
 echo ""

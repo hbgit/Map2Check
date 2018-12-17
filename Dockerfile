@@ -12,7 +12,7 @@
 #  You can check that the container still exists by running: $ docker ps -a
 #  You can restart the container by running: docker start -ai mapdevel
 ############################################################
-FROM herberthb/dev-llvm_6.0:first
+FROM rafahaskell/map2check_env:svcomp2019
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
@@ -25,7 +25,6 @@ RUN apt-get install -y sudo \
     build-essential \
     libboost-all-dev \
     libboost-program-options-dev \
-    bison flex python perl zlib1g-dev \
     python-minimal \
     cmake \
     ninja-build \
@@ -33,20 +32,10 @@ RUN apt-get install -y sudo \
     curl \
     unionfs-fuse \
     vim \
-    git \
     doxygen \
     graphviz \
     python3 \
-    python3-pip \
-    subversion \
-    libgmp-dev \
-    libmpfr-dev \   
-    libncurses5-dev \
-    libncursesw5-dev
-
-# Modules Python3
-RUN pip3 install pyyaml \
-                 psutil
+    python3-pip 
 
 # Clean packages installation
 RUN apt-get clean

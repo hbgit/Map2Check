@@ -1,0 +1,3 @@
+time-limit: 15
+property: ["properties/overflow.prp"]
+check-by: ["OVERFLOW"]

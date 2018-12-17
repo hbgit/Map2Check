@@ -1,69 +1,60 @@
 #include "caller.hpp"
 
-// C Libs
 #include <stdlib.h>
-#include <llvm/LinkAllPasses.h>
-#include <llvm/Pass.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/PassRegistry.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/MemoryBuffer.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/Linker/Linker.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/ADT/Statistic.h>
-#include <llvm/Analysis/LoopInfo.h>
-#include <llvm/Bitcode/ReaderWriter.h>
-
 // CPP Libs
+#include <fstream>
 #include <iostream>
-#include <string>
 #include <regex>
+#include <string>
+
 #include <boost/filesystem.hpp>
 
-// Project Libs
-#include "../backend/pass/MemoryTrackPass.h"
-#include "../backend/pass/GenerateAutomataTruePass.h"
-#include "../backend/pass/TrackBasicBlockPass.hpp"
-#include "../backend/pass/NonDetPass.hpp"
-#include "../backend/pass/Map2CheckLibrary.hpp"
-#include "../backend/pass/TargetPass.h"
-#include "../backend/pass/OverflowPass.h"
+#include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
 #include "utils/tools.hpp"
-
-namespace fs = boost::filesystem;
+// namespace fs = boost::filesystem;
+// }  // namespace
 
 namespace {
-static inline void check(std::string E) {
-  if (!E.empty()) {
-    if (llvm::errs().has_colors())
-      llvm::errs().changeColor(raw_ostream::RED);
+inline std::string getLibSuffix() { return ".so"; }
 
-    llvm::errs() << E << "\n";
-
-    if (llvm::errs().has_colors())
-      llvm::errs().resetColor();
-    exit(1);
+bool isWitnessFileCreated() {
+  Map2Check::Log::Info("Checking file");
+  std::ifstream infile("map2check_checked_error");
+  if (infile.is_open()) {
+    Map2Check::Log::Info("Found file!");
+    return true;
   }
+  return false;
 }
-/* TODO(rafa.sa.xp@gmail.com) Should put this in Caller class
- * but including<llvm/IR/Module.h> on header file gives error */
-std::unique_ptr<llvm::Module> M;  //!< Current module */
 }  // namespace
 
+namespace Map2Check {
+Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
+               NonDetGenerator generator) {
+  // this->cleanGarbage();
+  this->pathprogram = bc_program_path;
+  this->map2checkMode = mode;
+  this->nonDetGenerator = generator;
+  GenHash hash;
+  hash.setFilePath(bc_program_path);
+  hash.generate_sha1_hash_for_file();
+  this->programHash = hash.getOutputSha1HashFile() + ".map2check";
 
+  std::ostringstream createTempDir;
+  createTempDir.str("");
+  createTempDir << "mkdir " << programHash;
+  system(createTempDir.str().c_str());
 
-Caller::Caller(std::string bcprogram_path) {
-  this->cleanGarbage();
-  this->pathprogram = bcprogram_path;
+  std::ostringstream moveProgram;
+  moveProgram << "cp " << bc_program_path << " " << programHash;
+  system(moveProgram.str().c_str());
+
+  Map2Check::Log::Debug("Changing current dir");
+  currentPath = boost::filesystem::current_path().string();
+  boost::filesystem::current_path(currentPath + "/" + programHash);
+  Map2Check::Log::Debug("Current path: " +
+                        boost::filesystem::current_path().string());
 }
 
 std::string Caller::preOptimizationFlags() {
@@ -76,178 +67,275 @@ std::string Caller::preOptimizationFlags() {
 std::string Caller::postOptimizationFlags() {
   std::ostringstream flags;
   flags.str("");
-  flags << "-O3";
+  flags << "-O2 ";
   return flags.str();
 }
 
 void Caller::cleanGarbage() {
+  boost::filesystem::current_path(currentPath);
   std::ostringstream removeCommand;
   removeCommand.str("");
-  removeCommand << "rm -rf"
-              << " klee-*"
-              << " *.log"
-              << " list-*"
-              << " *.csv"
-              << " map2check_property"
-              << " automata_list_log.st"
-              << " track_bb_log.st"
-              << " map2check_property_klee_unknown"
-              << " map2check_property_klee_deref"
-              << " map2check_property_klee_memtrack"
-              << " map2check_property_overflow"
-              << " map2check_property_klee_free"
-              << " preprocessed.c"
-              << " optimized.bc"
-              << " output.bc"
-              << " witnessInfo";
+  removeCommand << "rm -rf " << programHash;
+  Map2Check::Log::Debug("Remove " + removeCommand.str());
+  system(removeCommand.str().c_str());
+}
 
-  int result = system(removeCommand.str().c_str());
-  if (result == -1) {
-    throw CallerException("Could not remove files");
+void Caller::applyNonDetGenerator() {
+  switch (nonDetGenerator) {
+    case (NonDetGenerator::None): {  // TODO: Should generate binary
+      Map2Check::Log::Info(
+          "Map2Check will not generate non deterministic numbers");
+      break;
+    }
+    case (NonDetGenerator::Klee): {
+      Map2Check::Log::Info("Applying optimizations for klee");
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      Map2Check::Log::Info("Instrumenting with LLVM LibFuzzer");
+      std::ostringstream command;
+      command.str("");
+
+      command
+          << Map2Check::clangBinary
+          << "  -g -fsanitize=fuzzer -fsanitize-coverage=inline-8bit-counters "
+          << Caller::postOptimizationFlags()
+          << " -o " + programHash + "-fuzzed.out"
+          << " " + programHash + "-result.bc";
+
+      system(command.str().c_str());
+
+      std::ostringstream commandWitness;
+      commandWitness.str("");
+      commandWitness << Map2Check::clangBinary << "  -g -fsanitize=fuzzer "
+                     << " -o " + programHash + "-witness-fuzzed.out"
+                     << " " + programHash + "-witness-result.bc";
+
+      system(commandWitness.str().c_str());
+      break;
+    }
   }
 }
 
-void Caller::parseIrFile() {
-  Map2Check::Log::Debug("Parsing file " + this->pathprogram);
-  StringRef filename = this->pathprogram;
+int Caller::callPass(std::string target_function, bool sv_comp) {
+  std::ostringstream transformCommand;
+  transformCommand.str("");
+  transformCommand << Map2Check::optBinary;
+  /* TODO(rafa.sa.xp@gmail.com): Should apply generate_automata_true
+   *                             and TrackBasicBlockPass now */
 
-  SMDiagnostic SM;
-  LLVMContext & Context = getGlobalContext();
-  M = parseIRFile(filename, SM, Context);
+  std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
+  
+  /*Map2Check::Log::Info("Adding loop pass");
+  std::string loopPredAssumePass = "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass";
+  transformCommand << " -load " << loopPredAssumePass << getLibSuffix()
+                   << " -loop_predicate_assume";*/
 
-  if (!SM.getMessage().empty()) {
-    check("Problem reading input bitcode/IR: " + SM.getMessage().str());
-  } else {
-    std::cout << "Successfully read bitcode/IR" << std::endl;
-  }
-}
+  Map2Check::Log::Info("Adding nondet pass");
+  transformCommand << " -tailcallopt";
+  transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det";
 
-int Caller::callPass(Map2CheckMode mode, bool sv_comp) {
-  llvm::legacy::PassManager AnalysisPasses;
-  // Pass to generate_automata_true
-  Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");
-  AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));
-
-  /* TrackBasicBlockPass is here to avoid lost
-     position after code instrumentation */
-  Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");
-  AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
-
-  Map2Check::Log::Debug("Applying NonDetPass\n");
-  AnalysisPasses.add(new NonDetPass());
-
-  switch (mode) {
-    case (Map2CheckMode::MEMTRACK_MODE):
-      Map2Check::Log::Debug("Applying MemoryTrackPass\n");
-      AnalysisPasses.add(new MemoryTrackPass(sv_comp));
+  switch (map2checkMode) {
+    case Map2CheckMode::MEMTRACK_MODE: {
+      Map2Check::Log::Info("Adding memtrack pass");
+      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
+                       << " -memory_track";
       break;
-    case (Map2CheckMode::OVERFLOW_MODE):
-      Map2Check::Log::Debug("Applying OverflowPass\n");
-      {
-        std::vector<int> lines = this->processClangOutput();
-        AnalysisPasses.add(new OverflowPass(lines));
-      }
+    }
+    case Map2CheckMode::MEMCLEANUP_MODE: {
+      Map2Check::Log::Info("Adding memcleanup pass");
+      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
+                       << " -memory_track";
       break;
-    default:
-      throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
+    }
+    case Map2CheckMode::OVERFLOW_MODE: {
+      std::string overflowPass = "${MAP2CHECK_PATH}/lib/libOverflowPass";
+      transformCommand << " -load " << overflowPass << getLibSuffix()
+                       << " -check_overflow";
+      break;
+    }
+    case Map2CheckMode::REACHABILITY_MODE: {
+      Map2Check::Log::Info("Running reachability mode");
+      std::string targetPass = "${MAP2CHECK_PATH}/lib/libTargetPass";
+      transformCommand << " -load " << targetPass << getLibSuffix()
+                       << " -target_function";
+
+      break;
+    }
+    case Map2CheckMode::ASSERT_MODE: {
+      Map2Check::Log::Info("Running assert mode");
+      std::string assertPass = "${MAP2CHECK_PATH}/lib/libAssertPass";
+      transformCommand << " -load " << assertPass << getLibSuffix()
+                       << " -validate_asserts";
+
+      break;
+    }
+    default: { break; }
   }
 
-  Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
-  AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
-  AnalysisPasses.run(*M);
-  Map2Check::Log::Debug("Finished instrumentation\n");
+  Map2Check::Log::Info("Adding map2check pass");
+  std::string map2checkPass = "${MAP2CHECK_PATH}/lib/libMap2CheckLibrary";
+  transformCommand << " -load " << map2checkPass << getLibSuffix()
+                   << " -map2check ";
+
+  std::string input_file = "< " + this->pathprogram;
+  std::string output_file = "> " + programHash + "-output.bc";
+
+  transformCommand << input_file << output_file;
+  Map2Check::Log::Debug(transformCommand.str());
+
+  system(transformCommand.str().c_str());
 
   return 1;
-}
-
-
-int Caller::callPass(Map2CheckMode mode, std::string target_function,
-                     bool sv_comp) {
-  llvm::legacy::PassManager AnalysisPasses;
-  // Pass to generate_automata_true
-  Map2Check::Log::Debug("Applying GenerateAutomataTruePass\n");
-  AnalysisPasses.add(new GenerateAutomataTruePass(this->cprogram_fullpath));
-
-  // TODO(hbrocha) Improve time verification
-  Map2Check::Log::Debug("Applying TrackBasicBlockPass\n");
-  AnalysisPasses.add(new TrackBasicBlockPass(this->cprogram_fullpath));
-
-  Map2Check::Log::Debug("Applying NonDetPass\n");
-  AnalysisPasses.add(new NonDetPass());
-  switch (mode) {
-    case (Map2CheckMode::REACHABILITY_MODE):
-      Map2Check::Log::Debug
-          ("Starting target pass with function " + target_function);
-      AnalysisPasses.add(new TargetPass(target_function));
-      break;
-    default:
-      throw CallerException("INVALID MODE FOR THIS FUNCTION PROTOTYPE");
-  }
-
-  Map2Check::Log::Debug("Applying Map2CheckLibrary\n");
-  AnalysisPasses.add(new Map2CheckLibrary(sv_comp));
-  AnalysisPasses.run(*M);
-  Map2Check::Log::Debug("Finished instrumentation\n");
-  return 1;
-}
-
-void Caller::generateProcessedByteCodeFile() {
-  const char *Filename = "output.bc";
-  errs() << "";
-  std::error_code EC;
-  llvm::raw_fd_ostream file_descriptor(Filename, EC, llvm::sys::fs::F_None);
-  WriteBitcodeToFile(&(*M), file_descriptor);
-  file_descriptor.flush();
 }
 
 void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
   // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
 
+  Map2Check::Log::Info("Linking with map2check library");
+
+  std::ostringstream witnessCommand;
   std::ostringstream linkCommand;
   linkCommand.str("");
-  linkCommand << Map2Check::Tools::llvmLinkBinary;
-  linkCommand
-      << " output.bc"
-      << " ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc"
-      << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
-      << " ${MAP2CHECK_PATH}/lib/HeapLog.bc"
-      << " ${MAP2CHECK_PATH}/lib/TrackBBLog.bc"
-      << " ${MAP2CHECK_PATH}/lib/BTree.bc"
-      << " ${MAP2CHECK_PATH}/lib/Container.bc"
-      << " ${MAP2CHECK_PATH}/lib/KleeLog.bc"
-      << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
-      << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc"
-      << " ${MAP2CHECK_PATH}/lib/BinaryOperation.bc "
-      << "  > result.bc";
+  linkCommand << Map2Check::llvmLinkBinary;
+  linkCommand << " " + programHash + "-output.bc"
+              << " ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc"
+              << " ${MAP2CHECK_PATH}/lib/TrackBBLog.bc"
+              << " ${MAP2CHECK_PATH}/lib/NonDetLog.bc"
+              << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc";
 
-  if (system(linkCommand.str().c_str()) != 0) {
-      throw CallerException("Could not link against map2check files");
+  switch (dataStructure) {
+    case DataStructure::Array: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/ContainerRealloc.bc";
+      break;
+    }
+    case DataStructure::BTree: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/ContainerBTree.bc"
+                  << " ${MAP2CHECK_PATH}/lib/BTree.bc";
+      break;
+    }
   }
-  // TODO(rafa.sa.xp@gmail.com) Check how optimization can generate errors
-  std::ostringstream optimizeCommand;
-  optimizeCommand.str("");
-  optimizeCommand << Map2Check::Tools::optBinary;
-  optimizeCommand << " " << Caller::postOptimizationFlags()
-           << " result.bc > optimized.bc";
-  if (system(optimizeCommand.str().c_str()) != 0) {
-    throw CallerException("Could not execute optimization command");
+
+  switch (map2checkMode) {
+    case Map2CheckMode::MEMTRACK_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemtrack.bc"
+                  << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
+      break;
+    }
+    case Map2CheckMode::MEMCLEANUP_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemcleanup.bc"
+                  << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
+                  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
+      break;
+    }
+    case Map2CheckMode::OVERFLOW_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeOverflow.bc";
+      break;
+    }
+    case Map2CheckMode::ASSERT_MODE: {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeAssert.bc";
+      break;
+    }
+    case Map2CheckMode::REACHABILITY_MODE: {
+      // Since the map2check api provides the function, we do not need to do any
+      // analysis
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
+      break;
+    }
   }
+
+  switch (nonDetGenerator) {
+    case (NonDetGenerator::None): {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
+      break;
+    }
+    case (NonDetGenerator::Klee): {  // TODO: Add klee non det generator
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorKlee.bc";
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
+      break;
+    }
+  }
+
+  witnessCommand.str("");
+  witnessCommand << linkCommand.str();
+  witnessCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";
+  witnessCommand << "  > " + programHash + "-witness-result.bc";
+  Map2Check::Log::Debug(witnessCommand.str());
+  system(witnessCommand.str().c_str());
+
+  linkCommand << " ${MAP2CHECK_PATH}/lib/WitnessGenerationNone.bc";
+  linkCommand << "  > " + programHash + "-result.bc";
+  Map2Check::Log::Debug(linkCommand.str());
+  system(linkCommand.str().c_str());
 }
 
-void Caller::callKlee() {
-  std::ostringstream kleeCommand;
-  kleeCommand.str("");
-  kleeCommand << Map2Check::Tools::kleeBinary;
-  kleeCommand << " -suppress-external-warnings"
-          << " --allow-external-sym-calls"
-          << " -exit-on-error-type=Assert"
-          << " --optimize optimized.bc"
-          << "  > ExecutionOutput.log";
-  if (system(kleeCommand.str().c_str()) != 0) {
-    Map2Check::Log::Debug("Klee finished with erorr");
-  } else {
-    Map2Check::Log::Debug("Klee finished");
+void Caller::executeAnalysis() {
+  switch (nonDetGenerator) {
+    // TODO: implement this method
+    case (NonDetGenerator::None): {  // TODO: Activate mode
+      Map2Check::Log::Info("This mode is not supported");
+      break;
+    }
+    case (NonDetGenerator::Klee): {
+      Map2Check::Log::Info("Executing Klee with map2check");
+      std::ostringstream kleeCommand;
+      kleeCommand.str("");
+      kleeCommand << "timeout " << (0.8 * this->timeout) << " ";
+      kleeCommand << Map2Check::kleeBinary;
+      kleeCommand << " -suppress-external-warnings"
+                  << " --allow-external-sym-calls"
+                  << " -exit-on-error-type=Abort"
+                  << " --optimize "
+                  << " -solver-backend=z3 "
+                  << " -libc=uclibc"
+                  << " ./" + programHash + "-witness-result.bc"
+                  << "  > ExecutionOutput.log";
+      Map2Check::Log::Debug(kleeCommand.str());
+      int result = system(kleeCommand.str().c_str());
+      Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
+      if (result == 31744)  // Timeout
+        gotTimeout = true;
+
+      break;
+    }
+    case (NonDetGenerator::LibFuzzer): {
+      Map2Check::Log::Info("Executing LibFuzzer with map2check");
+      std::ostringstream command;
+      command.str("");
+      command << "timeout " << (0.2 * this->timeout) << " ";
+      command << "./" + programHash +
+                     "-fuzzed.out -jobs=2 -use_value_profile=1 "
+              << " > fuzzer.output";
+
+      int result = system(command.str().c_str());
+      Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
+      if (result == 31744)  // Timeout
+        gotTimeout = true;
+
+      std::ostringstream commandWitness;
+      commandWitness.str("");
+      commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
+      system(commandWitness.str().c_str());
+      Map2Check::Log::Debug("Finished fuzzer");
+
+      if (isWitnessFileCreated()) {
+        witnessVerified = true;
+      }
+
+      break;
+    }
+  }
+  if (isWitnessFileCreated()) {
+    witnessVerified = true;
   }
 }
 
@@ -261,10 +349,11 @@ std::vector<int> Caller::processClangOutput() {
     Map2Check::Log::Debug("Clang did not generate warning or errors");
     return result;
   }
-
   Map2Check::Log::Debug("Clang generate warning or errors");
 
-  regex overflowWarning(".*:([[:digit:]]+):[[:digit:]]+:.*Winteger-overflow.*");
+  // This regex captures accused line number for overflow warnings (from clang)
+  regex overflowWarning(
+      ".*:([[:digit:]]+):[[:digit:]]+:.*(Winteger-overflow).*");
   string line;
   smatch match;
   while (getline(in, line)) {
@@ -274,73 +363,113 @@ std::vector<int> Caller::processClangOutput() {
       result.push_back(lineNumber);
     }
   }
-  if (system("rm clang.out") != 0) {
-    throw CallerException("Failed to remove clang.out");
-  }
+
   return result;
 }
 
-string Caller::compileCFile(std::string cprogram_path) {
-  Map2Check::Log::Info("Compiling " + cprogram_path);
+/** This function should:
+ * (1) Remove unsupported functions and clean the C code
+ * (2) Generate .bc file from code
+ * (3) Check for overflow errors on compilation
+ */
+void Caller::compileCFile(bool is_llvm_bc) {
 
+  if(!is_llvm_bc){
+  Map2Check::Log::Info("Compiling " + this->pathprogram);
+
+  // (1) Remove unsupported functions and clean the C code
   std::ostringstream commandRemoveExternMalloc;
   commandRemoveExternMalloc.str("");
-  commandRemoveExternMalloc << "cat " << cprogram_path << " | ";
-  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*//g' "
+  commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
+  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
                             << "  -e 's/.*void \\*malloc(size_t size).*//g' "
-                            <<" > preprocessed.c";
+                            << " > " << programHash << "-preprocessed.c ";
 
-  int resultRemove = system(commandRemoveExternMalloc.str().c_str());
-  if (resultRemove == -1) {
-    throw ErrorCompilingCProgramException();
-  }
+  system(commandRemoveExternMalloc.str().c_str());
+
+  // (2) Generate .bc file from code
+  // TODO: -Winteger-overflow should be called only if is on overflow mode
+  std::string compiledFile = programHash + "-compiled.bc";
   std::ostringstream command;
   command.str("");
-  command << Map2Check::Tools::clangBinary << " -I"
-          << Map2Check::Tools::clangIncludeFolder
+  command << Map2Check::clangBinary << " -I" << Map2Check::clangIncludeFolder
           << " -Wno-everything "
           << " -Winteger-overflow "
           << " -c -emit-llvm -g"
-          << " " << Caller::preOptimizationFlags()
-          << " -o compiled.bc "
-          << "preprocessed.c"
-          << " > clang.out 2>&1";
+          << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
+          << " " << programHash << "-preprocessed.c "
+          << " > " << programHash << "-clang.out 2>&1";
 
-  int result = system(command.str().c_str());
-  if (result != 0) {
-    throw ErrorCompilingCProgramException();
+  system(command.str().c_str());
+
+  this->pathprogram = compiledFile;
+  }else{
+      std::string compiledFile = programHash + "-compiled.bc";
+      std::ostringstream command;
+      command.str("");
+      command << " cp " << this->pathprogram << " " << compiledFile;
+      system(command.str().c_str());
+      this->pathprogram = compiledFile;
   }
-  return ("compiled.bc");
+
+  // TODO: (3) Check for overflow errors on compilation
 }
 
-const char* CallerException::what() const throw() {
-  std::ostringstream cnvt;
-  cnvt.str("");
-  cnvt << runtime_error::what();
-  Map2Check::Log::Error(cnvt.str());
-  return cnvt.str().c_str();
+void Caller::compileToCrabLlvm() {
+  Map2Check::Log::Info("Compiling using crab-llvm in " + this->pathprogram);
+
+  // (1) Remove unsupported functions and clean the C code
+  std::ostringstream commandRemoveExternMalloc;
+  commandRemoveExternMalloc.str("");
+  commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
+  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
+                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+                            << " > " << programHash << "-preprocessed.c ";
+
+  system(commandRemoveExternMalloc.str().c_str());
+
+  // (2) Generate .bc file from code
+  // TODO: -Winteger-overflow should be called only if is on overflow mode
+  // CLANG PATH
+  std::ostringstream getPathCLCommand;
+  getPathCLCommand.str("");
+  std::ostringstream getMapPath;
+  getMapPath << getenv("MAP2CHECK_PATH");
+
+  getPathCLCommand << "CLANG_PATH=" << getMapPath.str().c_str() << "/bin";
+
+  std::string tmp_gpcc = getPathCLCommand.str().c_str();
+  char* c_gpcc = new char[tmp_gpcc.length() + 1];
+  std::copy(tmp_gpcc.c_str(), tmp_gpcc.c_str() + tmp_gpcc.length() + 1, c_gpcc);
+  putenv(c_gpcc);
+
+  // Export libCrab.so from CrabLLVM
+  std::ostringstream getPathLibCrabCommand;
+  getPathLibCrabCommand.str("");
+
+  getPathLibCrabCommand << "LD_LIBRARY_PATH=" << getMapPath.str().c_str()
+                        << "/bin/crabllvm/lib";
+
+  std::string tmp_gplibcc = getPathLibCrabCommand.str().c_str();
+  char* c_gplibcc = new char[tmp_gplibcc.length() + 1];
+  std::copy(tmp_gplibcc.c_str(), tmp_gplibcc.c_str() + tmp_gplibcc.length() + 1,
+            c_gplibcc);
+  putenv(c_gplibcc);
+
+  std::string compiledFile = programHash + "-compiled.bc";
+  std::ostringstream command;
+  command.str("");
+  command << Map2Check::crabBinary << " -o " << compiledFile
+          << " -m 64 -g --crab-disable-warnings --disable-lower-gv "
+             "--llvm-pp-loops --crab-promote-assume --crab-inter "
+             "--crab-track=num --crab-add-invariants=block-entry "
+          << " " << programHash << "-preprocessed.c ";
+
+  //<< " -m 64 --crab-dom=oct --crab-track=num --crab-add-invariants=all "
+
+  system(command.str().c_str());
+
+  this->pathprogram = compiledFile;
 }
 
-const char* InvalidClangBinaryException::what() const throw() {
-  std::ostringstream cnvt;
-  cnvt.str("Could not find clang binary");
-  cnvt << runtime_error::what();
-  Map2Check::Log::Error(cnvt.str());
-  return cnvt.str().c_str();
-}
-
-const char* InvalidClangIncludeException::what() const throw() {
-  std::ostringstream cnvt;
-  cnvt.str("Could not find clang include dir");
-  cnvt << runtime_error::what();
-  Map2Check::Log::Error(cnvt.str());
-  return cnvt.str().c_str();
-}
-
-const char* ErrorCompilingCProgramException::what() const throw() {
-  std::ostringstream cnvt;
-  cnvt.str("Error while compiling C program, check clang.out");
-  cnvt << runtime_error::what();
-  Map2Check::Log::Error(cnvt.str());
-  return cnvt.str().c_str();
-}
+}  // namespace Map2Check

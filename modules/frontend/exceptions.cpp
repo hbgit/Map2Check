@@ -1,6 +1,6 @@
 #include "exceptions.hpp"
-#include "utils/log.hpp"
 #include <sstream>
+#include "utils/log.hpp"
 using namespace Map2Check::Exceptions;
 
 const char* Map2CheckException::what() const throw() {

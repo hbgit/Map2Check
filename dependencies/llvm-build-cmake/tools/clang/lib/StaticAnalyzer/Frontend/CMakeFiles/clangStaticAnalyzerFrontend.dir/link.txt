@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../../../../lib/libclangStaticAnalyzerFrontend.a  CMakeFiles/clangStaticAnalyzerFrontend.dir/AnalysisConsumer.cpp.o CMakeFiles/clangStaticAnalyzerFrontend.dir/CheckerRegistration.cpp.o CMakeFiles/clangStaticAnalyzerFrontend.dir/ModelConsumer.cpp.o CMakeFiles/clangStaticAnalyzerFrontend.dir/FrontendActions.cpp.o CMakeFiles/clangStaticAnalyzerFrontend.dir/ModelInjector.cpp.o
-/usr/bin/ranlib ../../../../../lib/libclangStaticAnalyzerFrontend.a

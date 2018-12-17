@@ -1,394 +1,401 @@
-
-#include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
-//using namespace boost;
-namespace po = boost::program_options;
-
-#include <iostream>
-#include <string>
 #include <algorithm>
+#include <cstdlib>
+#include <iostream>
 #include <iterator>
+#include <memory>
 #include <numeric>
 #include <sstream>
-#include <cstdlib>
-#include <memory>
-using namespace std;
+#include <string>
+#include <vector>
+
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+
+#include <boost/filesystem.hpp>
+#include <boost/make_unique.hpp>
 
 #include "caller.hpp"
-// #include "verifier.h"
-#include "utils/log.hpp"
-#include "exceptions.hpp"
-#include "utils/tools.hpp"
 #include "counter_example/counter_example.hpp"
-#include "witness/witness_include.hpp"
-//#include "witness/witness.hpp"
 #include "utils/gen_crypto_hash.hpp"
+#include "utils/log.hpp"
+#include "witness/witness_include.hpp"
 
-#define Map2CheckVersion "Map2Check 7.1 : Wed Nov 22 22:30:11 -04 2017"
+namespace po = boost::program_options;
+namespace fs = boost::filesystem;
+#define Map2CheckVersion "v7.2-Flock : Tue Nov 27 22:00:00 -04 2018"
 
-namespace
-{
-    const size_t SUCCESS = 0;
-    const size_t ERROR_IN_COMMAND_LINE = 1;
-    const size_t ERROR_UNHANDLED_EXCEPTION = 2;
+// TODO: should get preprocessor flags from CMake
 
-} // namespace
+namespace {
 
+const size_t SUCCESS = 0;
+const size_t ERROR_IN_COMMAND_LINE = 1;
 // A helper function to simplify the main part.
-    template<class T>
-ostream& operator<<(ostream& os, const std::vector<T>& v)
-{
-    copy(v.begin(), v.end(), ostream_iterator<T>(os, " "));
-    return os;
+template <class T>
+std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
+  copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
+  return os;
 }
 
-void help_msg(){
-    cout << endl;
-    cout << "> > > \t  "<< Map2CheckVersion << " \t < < <" << endl;
-    cout << endl;
-    cout << "Usage: map2check [options] file.[i|c]\n";
-    cout << endl;
+inline void help_msg() {
+  std::cout << std::endl;
+  std::cout << "> > > \t  " << Map2CheckVersion << " \t < < <" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Usage: map2check [options] file.[i|c|bc]\n";
+  std::cout << std::endl;
 }
 
-int MIN(int a, int b) {
-    if (a > b) {
-        return b;
-    }
-    return a;
+inline int MIN(int a, int b) {
+  if (a > b) {
+    return b;
+  }
+  return a;
 }
 
+inline void fixPath(char *map2check_bin_string) {
+  Map2Check::Log::Debug("Fixing Map2Check path");
 
-int main(int argc, char** argv)
-{
-    std::unique_ptr<Caller> caller;
-    namespace fs = boost::filesystem;
+  const int kSZLength = 32;
+  char szTmp[kSZLength];
+  const int kBufferLength = 500;
+  char pBuf[kBufferLength];
+  snprintf(szTmp, kSZLength, "/proc/%d/exe", getpid());
+  // TODO: fix implicit conversion from bytes
+  ssize_t bytes = MIN(readlink(szTmp, pBuf, kBufferLength), kBufferLength - 1);
+  std::string map2check_bin(map2check_bin_string);
+  int deleteSpace = 0;
+  if (map2check_bin.size() > 9) {
+    deleteSpace = 10;
+  } else {
+    deleteSpace = 9;
+  }
 
+  if (bytes >= 0) {
+    pBuf[bytes - deleteSpace] = '\0';
+  } else {
+  }
 
-#ifndef __unix__
-    throw Map2Check::Exceptions::Map2CheckException("Map2Check only supports unix environments");
-#endif
+  std::string map2check_env_var("MAP2CHECK_PATH=");
+  map2check_env_var += pBuf;
 
-    char szTmp[32];
-    int len = 500;
-    char pBuf[len];
-    sprintf(szTmp, "/proc/%d/exe", getpid());
-    int bytes = MIN(readlink(szTmp, pBuf, len), len - 1);
-    std::string map2check_bin(argv[0]);
-    int deleteSpace = 0;
-    if(map2check_bin.size() > 9) {
-        deleteSpace = 10;
+  char *map2check_env_array = new char[map2check_env_var.length() + 1];
+  strcpy(map2check_env_array, map2check_env_var.c_str());
+  putenv(map2check_env_array);
+  // Map2Check::Log::Debug(map2check_env_var);
+
+  std::string klee_env_var("KLEE_RUNTIME_LIBRARY_PATH=");
+  klee_env_var += pBuf;
+  klee_env_var += "/lib/klee/runtime";
+
+  char *klee_env_array = new char[klee_env_var.length() + 1];
+  strcpy(klee_env_array, klee_env_var.c_str());
+  putenv(klee_env_array);
+
+  std::string ld_env_var("LD_LIBRARY_PATH=");
+  ld_env_var += "$LD_LIBRARY_PATH:";
+  ld_env_var += pBuf;
+  ld_env_var += "/lib/";
+
+  char *ld_env_array = new char[ld_env_var.length() + 1];
+  strcpy(ld_env_array, ld_env_var.c_str());
+  putenv(ld_env_array);
+}
+}  // namespace
+
+// TODO: add support to reachability (check old version of map), maybe this
+// should be handled by caller
+void generate_witness(std::string pathfile,
+                      Map2Check::PropertyViolated propertyViolated,
+                      std::string specTrue) {
+  Map2Check::Log::Info("Generating witness.");
+
+  GenHash genhashkey;
+  // BUG: we should check if path is relative or absolute
+  genhashkey.setFilePath(pathfile);
+  genhashkey.generate_sha1_hash_for_file();
+
+  Map2Check::Log::Debug("Generated hash");
+
+  if ((propertyViolated != Map2Check::PropertyViolated::NONE) &&
+      (propertyViolated != Map2Check::PropertyViolated::UNKNOWN)) {
+    Map2Check::Log::Info("Starting Error Automata Generation");
+    Map2Check::SVCompWitness svcomp(pathfile,
+                                    genhashkey.getOutputSha1HashFile());
+    svcomp.Testify();
+
+  } else if (propertyViolated == Map2Check::PropertyViolated::NONE) {
+    // Correctness witness
+    Map2Check::Log::Info("Starting Correctness Automata Generation");
+    Map2Check::SVCompWitness svcomp(
+        pathfile, genhashkey.getOutputSha1HashFile(), "", specTrue);
+    svcomp.Testify();
+  }
+}
+
+/** Struct to hold some of map2check arguments */
+struct map2check_args {
+  unsigned timeout = 0;
+  std::string inputFile;
+  std::string function;
+  std::string expectedResult = "";
+  Map2Check::Map2CheckMode mode;
+  bool generateWitness = false;
+  bool debugMode = false;
+  bool generateTestCase = false;
+  bool printCounterExample = false;
+  bool btree = false;
+  bool invCrabLlvm = false;
+  Map2Check::NonDetGenerator generator;
+  std::string spectTrue = "safetyMemory";
+};
+
+bool foundViolation = false;
+int map2check_execution(map2check_args args) {
+  Map2Check::Log::Info("Started Map2Check");
+  // TODO(rafa.sa.xp@gmail.com): Check current mode
+
+  auto generator = args.generator;
+  bool is_llvmir_in = false;
+
+  /**
+   * Start Map2Check algorithm
+   * (1) Compile file and check for compiler warnings
+   * (2) Instrument functions for current mode
+   * (3) Apply nondeterministic mode and execute analysis
+   * (4) Retrieve results
+   * (5) Generate witness (if analysis generated a result)
+   * (6) Clean map2check execution (folders and temp files)
+   **/
+  // (1) Compile file and check for compiler warnings
+  // Check if input file is supported
+  std::string extension = boost::filesystem::extension(args.inputFile);
+  cout << extension << endl;
+  if (extension.compare(".c") && extension.compare(".i") &&
+      extension.compare(".bc")) {
+    help_msg();
+    return ERROR_IN_COMMAND_LINE;
+  } else if (extension.compare(".bc") == 0) {
+    is_llvmir_in = true;
+  }
+
+  std::unique_ptr<Map2Check::Caller> caller;
+  caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
+                                                 generator);
+  caller->c_program_fullpath = args.inputFile;
+  caller->setTimeout(args.timeout);
+
+  if (!is_llvmir_in) {
+    if (args.invCrabLlvm) {
+      // cout << "crab  \n";
+      caller->compileToCrabLlvm();
+    } else {
+      caller->compileCFile(is_llvmir_in);
     }
-    else {
-        deleteSpace = 9;
-    }
-    if(bytes >= 0) {
-        pBuf[bytes - deleteSpace] = '\0';
-    }
-    else {
-        // throw error
-    }
+  } else {
+    caller->compileCFile(is_llvmir_in);
+  }
 
-    std::string map2check_env_var("MAP2CHECK_PATH=");
-    map2check_env_var += pBuf; 
+  if (args.btree) {
+    caller->useBTree();
+  }
 
+  // (2) Instrument functions for current mode
+  caller->callPass(args.function);
+  caller->linkLLVM();
 
+  // (3) Apply nondeterministic mode and execute analysis
+  caller->applyNonDetGenerator();
+  caller->executeAnalysis();
 
-    putenv((char*) map2check_env_var.c_str() );
+  // (4) Retrieve results
+  // TODO: create methods to generate counter example
+  std::unique_ptr<Map2Check::CounterExample> counterExample =
+      boost::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
+                                                    is_llvmir_in);
 
-    // TODO: put those vars in a anonimous namespace
-    // fs::path p("${MAP2CHECK_PATH}/lib/klee/runtime");
-    // fs::path klee_lib_path = fs::complete(p); // complete == absolute
-    std::string klee_env_var("KLEE_RUNTIME_LIBRARY_PATH=");
-    klee_env_var += pBuf;
-    klee_env_var += "/lib/klee/runtime";
+  Map2Check::PropertyViolated propertyViolated;
 
+  // HACK: Fix this!!!
+  if (caller->isTimeout()) {
+    Map2Check::Log::Warning("Note: Forcing timeout");
+    propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
+  } else if (!caller->isVerified() &&
+             (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
+    Map2Check::Log::Warning("Note: Could not replicate error");
+    propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
+  } else {
+    propertyViolated = counterExample->getProperty();
+  }
 
-    putenv((char*) klee_env_var.c_str() );
-    //std::system("echo $KLEE_RUNTIME_LIBRARY_PATH");
-    //caller->cleanGarbage();
-
-
-    try
-    {
-        /** Define and parse the program options
-        */
-        po::options_description desc("Options");
-        desc.add_options()
-            ("help,h", "\tshow help")
-            ("version,v", "\tprints map2check version")
-            ("input-file,i", po::value< std::vector<string> >(), "\tspecifies the files, also works only with <file.bc>")
-            ("target-function,f", po::value< string >(), "\tchecks if function can be executed")
-            ("check-overflow,o", "\tchecks if an integer overflow can occur")
-            ("expected-result,e", po::value< string >(), "\tspecifies what output should be, used for tests")
-            ("print-list-log,p", "\tprints list log during counter example")
-            ("generate-witness,w", "\tgenerate witness file")
-            ("generate-instrumentated-only", "\tgenerate instrumentated file and stops")
-            ("debug-info,d", "\tprints debug info")
-            ("assume-malloc-true,m", "\tassumes that all mallocs will not fail")
-            ("html-output", "\tgenerates html file with results")
-
-            ;
-
-        po::positional_options_description p;
-        p.add("input-file", -1);
-
-        po::variables_map vm;
-        try
-        {
-            po::store(po::command_line_parser(argc, argv).
-                    options(desc).positional(p).run(), vm); // can throw
-
-            if ( vm.count("version")  )
-            {
-                cout << Map2CheckVersion << "\n";
-                return SUCCESS;
-            }
-            if ( vm.count("help") == 0 && vm.count("input-file") == 0) {
-                help_msg();
-                cout << desc;
-                return ERROR_IN_COMMAND_LINE;
-            }
-
-            /** --help option */
-            if ( vm.count("help")  )
-            {
-                help_msg();
-                cout << desc;
-                return SUCCESS;
-            }
-
-            bool is_html_output = false;
-            if ( vm.count("html-output")  )
-            {
-              is_html_output = true;
-            }
-
-            if ( !vm.count("debug-info")  ) {
-                Map2Check::Log::initLog();
-
-            }
-            if (vm.count("input-file")) {
-                // TODO: Refactor for better reading
-                // cout << "Input file: "<< vm["input-file"].as< std::vector<string> >() << "\n";
-                std::string pathfile;
-                pathfile = accumulate(boost::begin(vm["input-file"]
-                            .as< std::vector<string> >
-                            ()),
-                        boost::end(vm["input-file"]
-                            .as< std::vector<string> >
-                            ()), pathfile);
-
-                string extension = boost::filesystem::extension(pathfile);
-                if(extension.compare(".bc") && extension.compare(".c") && extension.compare(".i")){
-                    help_msg();
-                    cout << desc;
-                    return ERROR_IN_COMMAND_LINE;
-                }
-                /**
-                 * Start Map2Check algorithm -- See SEFM'15 paper
-                 * (1) Tracking variables
-                 * (2) Generate values to nondet_* functions
-                 * (3) Generate claims adopting ESBMC
-                 * (4) Translating ESBMC claims into assertions
-                 * (5) Added ESBMC claims in the analyzed code
-                 * (6) Generating C code to execute the assertions
-                 **/
-                Map2Check::Log::Info("Started Map2Check");
-                if(extension.compare(".bc")) {
-                    caller = make_unique<Caller>(Caller::compileCFile(pathfile));
-                } else {
-                    caller  =  make_unique<Caller>(pathfile);
-                }
-
-                caller->cprogram_fullpath = pathfile;
-
-                caller->parseIrFile();
-                bool sv_comp = false;
-                if (vm.count("assume-malloc-true")) {
-                    sv_comp = true;
-                }
-
-                /* Checks for which mode map2check will operate, can throw error if user calls multiple modes at once */
-                // BEGIN CHECKING OPERATION MODE
-
-                Map2CheckMode map2checkMode = Map2CheckMode::MEMTRACK_MODE;
-
-                if (vm.count("target-function")) {
-                    if(map2checkMode != Map2CheckMode::MEMTRACK_MODE) {
-                        throw Map2Check::Exceptions::Map2CheckException("Map2Check does not support multiple analysis at the same time");
-                    }
-                    map2checkMode = Map2CheckMode::REACHABILITY_MODE;
-                }
-
-                if (vm.count("check-overflow")) {
-                    if(map2checkMode != Map2CheckMode::MEMTRACK_MODE) {
-                        throw Map2Check::Exceptions::Map2CheckException("Map2Check does not support multiple analysis at the same time");
-                    }
-                    map2checkMode = Map2CheckMode::OVERFLOW_MODE;
-                }
-
-                switch(map2checkMode) {
-                    case (Map2CheckMode::REACHABILITY_MODE):  {
-                                                                  string function = vm["target-function"].as< string >();
-                                                                  caller->callPass(map2checkMode, function, sv_comp);
-                                                                  break;
-                                                              }
-                    default: {
-                                 caller->callPass(map2checkMode, sv_comp);
-                             }
-
-
-                }
-
-                // END CHECKING OPERATION MODE		
-                caller->generateProcessedByteCodeFile();
-
-                if ( vm.count("generate-instrumentated-only")  )
-                {
-                    return SUCCESS;
-                }
-                caller->linkLLVM();
-
-                //return SUCCESS;//STOP
-                Map2Check::Log::Info("Started klee execution");
-                caller->callKlee();
-
-                //Check verification result [TRUE or FALSE]
-                namespace tools = Map2Check::Tools;
-                std::unique_ptr<Map2Check::CounterExample> counterExample = make_unique<Map2Check::CounterExample>(std::string(pathfile));
-                tools::PropertyViolated propertyViolated = counterExample->getProperty();
-                if(propertyViolated == tools::PropertyViolated::NONE){ // This means that result was TRUE	   
-                    Map2Check::Log::Info(" \n");
-                    Map2Check::Log::Info("VERIFICATION SUCCEEDED \n");
-
-                    if(is_html_output) {
-                      std::ostringstream command;
-                      command.str("");
-                      command << "echo '<pre>";
-                      command << "<strong>VERIFICATION SUCCEEDED</strong>";
-                      command << " </pre>' > out.html";
-                      if( system(command.str().c_str()) ) {
-                        Map2Check::Log::Error("Failed to Generate HTML \n");
-                      }
-                    }
-
-                }else if(propertyViolated == tools::PropertyViolated::UNKNOWN)
-                {
-                    Map2Check::Log::Info("Unable to prove or falsify the program. \n");
-                    Map2Check::Log::Info("VERIFICATION UNKNOWN \n");
-
-                    if(is_html_output) {
-                      std::ostringstream command;
-                      command.str("");
-                      command << "echo '<pre>";
-                      command << "<strong>Unable to prove or falsify the program.</strong>";
-                      command << " </pre>' > out.html";
-                      if( system(command.str().c_str()) ) {
-                        Map2Check::Log::Error("Failed to Generate HTML \n");
-                      }
-                    }
-                }else{
-
-                    Map2Check::Log::Info("Started counter example generation");	    
-                    counterExample->printCounterExample();
-
-                     if(is_html_output) {
-                      std::ostringstream command;
-                      command.str("");
-                      command << "echo '<pre> ";
-                      command << counterExample->getHTML();
-                      command << " </pre>' > out.html";
-                      if( system(command.str().c_str()) ) {
-                        Map2Check::Log::Error("Failed to Generate HTML \n");
-                      }
-                    }
-                }
-
-
-                if(vm.count("generate-witness")) {
-                    //Generating hash key to the witness
-                    GenHash genhashkey;
-                    genhashkey.setFilePath(pathfile);
-                    genhashkey.generate_sha1_hash_for_file();
-
-                    if ((propertyViolated != tools::PropertyViolated::NONE) && (propertyViolated != tools::PropertyViolated::UNKNOWN)){
-                        if (vm.count("target-function")) {
-                            string function = vm["target-function"].as< string >();
-                            Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(), function);
-                            svcomp.Testify();
-                        }
-                        else {
-                            Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile());
-                            svcomp.Testify();
-                        }
-                    }else if (propertyViolated == tools::PropertyViolated::NONE)
-                    {
-                        //Correctness witness
-                        Map2Check::Log::Debug("Starting Correctness Automata Generation");
-                        if (vm.count("target-function")) {
-                            string function = vm["target-function"].as< string >();
-                            Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(), function, "target-function");                    
-                            svcomp.Testify();
-                        }
-                        else {                    
-                            if(map2checkMode == Map2CheckMode::OVERFLOW_MODE)
-                            {						
-                                Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(),"","overflow");
-                                svcomp.Testify();
-                            }else{						
-                                Map2Check::SVCompWitness svcomp(pathfile, genhashkey.getOutputSha1HashFile(),"","safetyMemory");
-                                svcomp.Testify();
-                            }
-
-
-                        }
-
-                    }
-
-                    caller->cleanGarbage();
-                    return SUCCESS;
-                }
-
-                if (vm.count("expected-result")) {
-                    string function = vm["expected-result"].as< string >();
-                    Map2Check::Log::Debug("Expected result: " + function );
-
-                    if (counterExample->getViolatedProperty() == function) {
-                        caller->cleanGarbage();
-                        return SUCCESS;
-                    }
-                    else {
-                        throw Map2Check::Exceptions::Map2CheckException("Unexpected result");
-                    }
-                }
-
-                caller->cleanGarbage();
-            }
-
-
-            po::notify(vm); // throws on error, so do after help in case
-            // there are any problems
-        }
-        catch(po::error& e)
-        {
-            Map2Check::Log::Fatal(e.what());
-            std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
-            std::cerr << desc << std::endl;
-            return ERROR_IN_COMMAND_LINE;
-        }
-
-        // application code here //
-
-    }
-    catch(std::exception& e)
-    {      
-        Map2Check::Log::Fatal(e.what());
-        std::cerr << "Unhandled Exception reached the top of main: "
-            << e.what() << ", application will now exit" << std::endl;
-        return ERROR_UNHANDLED_EXCEPTION;
-
+  if (propertyViolated ==
+      Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
+    if (generator == Map2Check::NonDetGenerator::Klee) {
+      // Map2Check::Log::Info("");
+      // Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+      // if (args.generateWitness)
+      // generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+      // TODO: Fix this hack!!!
+      if (caller->isVerified()) {
+        Map2Check::Log::Info("Unable to prove or falsify the program.");
+        Map2Check::Log::Info("VERIFICATION UNKNOWN");
+      } else {
+        Map2Check::Log::Info("");
+        Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+        if (args.generateWitness)
+          generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+      }
     }
 
-    return SUCCESS;
+  } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
+    if (generator == Map2Check::NonDetGenerator::Klee) {
+      Map2Check::Log::Info("Unable to prove or falsify the program.");
+      Map2Check::Log::Info("VERIFICATION UNKNOWN");
+      if (args.debugMode) counterExample->generateTestCase();
+    }
+  } else {
+    Map2Check::Log::Info("Started counter example generation");
+    counterExample->printCounterExample();
+    foundViolation = true;
+    if (args.generateTestCase) counterExample->generateTestCase();
+    if (args.generateWitness)
+      generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+  }
 
+  // (6) Clean map2check execution (folders and temp files)
+  Map2Check::Log::Debug("Removing temp files");
+  caller->cleanGarbage();
+
+  if (args.expectedResult != "") {
+    if (args.expectedResult != counterExample->getViolatedProperty()) {
+      Map2Check::Log::Fatal("Expected result failed");
+      abort();
+    }
+  }
+
+  return SUCCESS;
+}
+
+int main(int argc, char **argv) {
+  fixPath(argv[0]);
+  try {
+    // Define and parse the program options
+    po::options_description desc("Options");
+    desc.add_options()("help,h", "\tshow help")(
+        "version,v", "\tprints map2check version")("debug,d", "\t Debug mode")(
+        "input-file,i", po::value<std::vector<std::string>>(),
+        "\tspecifies the files")("timeout,t", po::value<unsigned>(),
+                                 "\tTimeout for map2check execution")(
+        "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
+        "generate-testcase,g",
+        "\tCreates c program with fail testcase (experimental)")(
+        "memtrack,m", "\tCheck for memory errors")("print-counter,p",
+                                                   "\tPrint Counterexample")(
+        "memcleanup-property", "\t Analyze program for memcleanup errors")(
+        "check-overflow,o", "\tAnalyze program for overflow failures")(
+        "check-asserts,c", "\tAnalyze program and verify assert failures")(
+        "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
+        "generate-witness,w", "\tGenerates witness file")(
+        "expected-result,e", po::value<string>(),
+        "\tSpecifies type of violation expected")(
+        "btree,b",
+        "\t Uses btree structure to hold information (experimental, use this "
+        "if you are having memory problems)");
+
+    po::positional_options_description p;
+    p.add("input-file", -1);
+    po::variables_map vm;
+    // po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::store(
+        po::command_line_parser(argc, argv).options(desc).positional(p).run(),
+        vm);
+    po::notify(vm);
+
+    cout << vm.count("input-file") << endl;
+
+    map2check_args args;
+    // Default mode
+    args.mode = Map2Check::Map2CheckMode::MEMTRACK_MODE;
+    // Handling with the options
+    if (vm.count("version")) {
+      std::cout << Map2CheckVersion << "\n";
+      return SUCCESS;
+    }
+    if (vm.count("help") == 0 && vm.count("input-file") == 0) {
+      help_msg();
+      std::cout << desc;
+      return ERROR_IN_COMMAND_LINE;
+    }
+    if (vm.count("help")) {
+      help_msg();
+      std::cout << desc;
+      return SUCCESS;
+    }
+    if (vm.count("expected-result")) {
+      string expected = vm["expected-result"].as<string>();
+      args.expectedResult = expected;
+    }
+    if (vm.count("timeout")) {
+      unsigned timeout = vm["timeout"].as<unsigned>();
+      args.timeout = timeout;
+    }
+    if (vm.count("target-function")) {
+      string function = "__VERIFIER_error";
+      args.function = function;
+      args.mode = Map2Check::Map2CheckMode::REACHABILITY_MODE;
+      args.spectTrue = "target-function";
+    }
+    if (vm.count("check-overflow")) {
+      args.mode = Map2Check::Map2CheckMode::OVERFLOW_MODE;
+      args.spectTrue = "overflow";
+    }
+    if (vm.count("check-asserts")) {
+      args.mode = Map2Check::Map2CheckMode::ASSERT_MODE;
+    }
+    if (vm.count("memcleanup-property")) {
+      args.mode = Map2Check::Map2CheckMode::MEMCLEANUP_MODE;
+    }
+    if (vm.count("btree")) {
+      args.btree = true;
+    }
+    if (vm.count("add-invariants")) {
+      args.invCrabLlvm = true;
+    }
+
+    if (vm.count("print-counter")) {
+      args.printCounterExample = true;
+    }
+    if (vm.count("generate-witness")) {
+      args.generateWitness = true;
+    }
+    if (vm.count("generate-testcase")) {
+      args.generateTestCase = true;
+    }
+    if (vm.count("debug")) {
+      Map2Check::Log::ActivateDebugMode();
+      args.debugMode = true;
+      Map2Check::Log::Debug("Current path:");
+      system("echo $MAP2CHECK_PATH");
+    }
+    if (vm.count("input-file")) {
+      std::string pathfile;
+      pathfile = accumulate(
+          boost::begin(vm["input-file"].as<std::vector<std::string>>()),
+          boost::end(vm["input-file"].as<std::vector<std::string>>()),
+          pathfile);
+
+      std::cout << pathfile << std::endl;
+      fs::path absolute_path = fs::absolute(pathfile);
+      args.inputFile = absolute_path.string();
+      args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+      map2check_execution(args);
+      if (!foundViolation) {
+        args.generator = Map2Check::NonDetGenerator::Klee;
+        map2check_execution(args);
+      }
+    }
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+    return 1;
+  }
+  return SUCCESS;
 }

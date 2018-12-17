@@ -1,38 +1,25 @@
-include_directories(${LLVM_SOURCE}/include)
-
-set(PASS_FLAGS "-fexceptions -fpic ${LLVM_INCLUDE} ${LLVM_LIBS} -std=c++1z")
-# set( CMAKE_CXX_FLAGS  "${PASS_FLAGS}" )
-
-
-add_library(MemoryTrackPass OBJECT MemoryTrackPass.cpp)
-set_target_properties(MemoryTrackPass PROPERTIES
-  COMPILE_FLAGS ${PASS_FLAGS})
-  
-add_library(NonDetPass OBJECT NonDetPass.cpp)
-set_target_properties(NonDetPass PROPERTIES
-  COMPILE_FLAGS ${PASS_FLAGS})
-  
 add_library(DebugInfo OBJECT DebugInfo.cpp)
-set_target_properties(DebugInfo PROPERTIES
-  COMPILE_FLAGS ${PASS_FLAGS})
+# BUG: If we do not set this flag opt will not work with our pass
+# even if it was the same build from llvm
+set(CXX_FLAGS "${CXX_FLAGS}  -fno-rtti ")
 
-add_library(Map2CheckLibrary OBJECT Map2CheckLibrary.cpp)
-set_target_properties(Map2CheckLibrary PROPERTIES
-  COMPILE_FLAGS ${PASS_FLAGS})
+set_target_properties(DebugInfo PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
 
-add_library(TargetPass OBJECT TargetPass.cpp)
-set_target_properties(TargetPass PROPERTIES
-  COMPILE_FLAGS ${PASS_FLAGS})
-  
-add_library(GenerateAutomataTruePass OBJECT GenerateAutomataTruePass.cpp)
-set_target_properties(GenerateAutomataTruePass PROPERTIES 
-	COMPILE_FLAGS ${PASS_FLAGS})
+list(APPEND MAP2CHECK_PASS_LIB "")
+list(APPEND MAP2CHECK_PASS_LIB "NonDetPass")
+list(APPEND MAP2CHECK_PASS_LIB "MemoryTrackPass")
+list(APPEND MAP2CHECK_PASS_LIB "Map2CheckLibrary")
+list(APPEND MAP2CHECK_PASS_LIB "TargetPass")
+list(APPEND MAP2CHECK_PASS_LIB "TrackBasicBlockPass")
+list(APPEND MAP2CHECK_PASS_LIB "GenerateAutomataTruePass")
+list(APPEND MAP2CHECK_PASS_LIB "AssertPass")
+list(APPEND MAP2CHECK_PASS_LIB "OverflowPass")
+list(APPEND MAP2CHECK_PASS_LIB "LoopPredAssumePass")
 
-add_library(OverflowPass OBJECT OverflowPass.cpp)
-set_target_properties(OverflowPass PROPERTIES
-  COMPILE_FLAGS ${PASS_FLAGS})
-  
-add_library(TrackBasicBlockPass OBJECT TrackBasicBlockPass.cpp)
-set_target_properties(TrackBasicBlockPass PROPERTIES 
-	COMPILE_FLAGS ${PASS_FLAGS})
 
+
+foreach(F ${MAP2CHECK_PASS_LIB})  
+  add_library(${F} SHARED ${F}.cpp $<TARGET_OBJECTS:DebugInfo>)
+  set_target_properties(${F} PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
+  install(TARGETS ${F} DESTINATION lib)  
+endforeach()

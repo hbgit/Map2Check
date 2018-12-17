@@ -19,3 +19,4 @@ LICENSE export-ignore
 .old_travis.yml export-ignore 
 TODO.txt
 
+* text eol=lf

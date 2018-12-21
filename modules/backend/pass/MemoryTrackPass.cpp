@@ -391,6 +391,8 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentCalloc();
   } else if (this->calleeFunction->getName() == "realloc") {
     this->instrumentRealloc();
+  } else if (this->calleeFunction->getName() == "llvm.dbg.declare") {
+    this->runOnDeclareInstruction();
   }
 }
 
@@ -520,6 +522,22 @@ void MemoryTrackPass::runOnStoreInstruction() {
       builder.CreateGlobalStringPtr(this->currentFunction->getName());
   Value *args2[] = {this->line_value, function_name_llvm};
   builder.CreateCall(map2check_check_deref, args2);
+}
+
+void MemoryTrackPass::runOnDeclareInstruction() {
+  errs() << "Got a declare instruction";
+  DbgDeclareInst *inst = dyn_cast<DbgDeclareInst>(&*this->currentInstruction);
+  DILocalVariable *varMD = inst->getVariable();
+  errs() << "\nName: " << varMD->getName();
+  errs() << "\nLine: " << varMD->getLine();
+
+  ScopeObj varScope = scopeMap.get(varMD);
+  errs() << "\nScope: " << varScope.id;
+
+  errs() << "\nParent: " << varScope.parent;
+  errs() << "\n\n";
+
+  scopeMap.dump();
 }
 
 void MemoryTrackPass::instrumentNotStaticArrayAlloca() {

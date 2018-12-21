@@ -1,19 +1,21 @@
 #pragma once
 
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/IntrinsicInst.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 #include <llvm/Support/raw_ostream.h>
-
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "ScopeMap.hpp"
 
 using namespace llvm;
 
@@ -54,17 +56,17 @@ struct MemoryTrackPass : public FunctionPass {
   void runOnCallInstruction();
   void runOnStoreInstruction();
   void runOnLoadInstruction();
+  void runOnDeclareInstruction();
   void switchCallInstruction();
   void prepareMap2CheckInstructions();
   // void addWitnessInfo(std::string info);
   void getDebugInfo();
   int getLineNumber();
-
   bool SVCOMP;
   bool mainFunctionInitialized = false;
   std::vector<Function*> functionsValues;
+  ScopeMap scopeMap;
   Function* currentFunction;
-  // DataLayout* currentDataLayout;
   Function* mainFunction;
   Function* calleeFunction;
   BasicBlock::iterator currentInstruction;

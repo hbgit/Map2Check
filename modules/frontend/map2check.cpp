@@ -169,7 +169,7 @@ int map2check_execution(map2check_args args) {
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
   std::string extension = boost::filesystem::extension(args.inputFile);
-  cout << extension << endl;
+  //cout << extension << endl;
   if (extension.compare(".c") && extension.compare(".i") &&
       extension.compare(".bc")) {
     help_msg();
@@ -310,7 +310,7 @@ int main(int argc, char **argv) {
         vm);
     po::notify(vm);
 
-    cout << vm.count("input-file") << endl;
+    //cout << vm.count("input-file") << endl;
 
     map2check_args args;
     // Default mode
@@ -322,12 +322,12 @@ int main(int argc, char **argv) {
     }
     if (vm.count("help") == 0 && vm.count("input-file") == 0) {
       help_msg();
-      std::cout << desc;
+      //std::cout << desc;
       return ERROR_IN_COMMAND_LINE;
     }
     if (vm.count("help")) {
       help_msg();
-      std::cout << desc;
+      //std::cout << desc;
       return SUCCESS;
     }
     if (vm.count("expected-result")) {
@@ -383,7 +383,7 @@ int main(int argc, char **argv) {
           boost::end(vm["input-file"].as<std::vector<std::string>>()),
           pathfile);
 
-      std::cout << pathfile << std::endl;
+      //std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
       args.generator = Map2Check::NonDetGenerator::LibFuzzer;

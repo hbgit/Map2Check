@@ -19,10 +19,10 @@ namespace {
 inline std::string getLibSuffix() { return ".so"; }
 
 bool isWitnessFileCreated() {
-  Map2Check::Log::Info("Checking file");
+  Map2Check::Log::Debug("Checking file");
   std::ifstream infile("map2check_checked_error");
   if (infile.is_open()) {
-    Map2Check::Log::Info("Found file!");
+    Map2Check::Log::Debug("Found file!");
     return true;
   }
   return false;

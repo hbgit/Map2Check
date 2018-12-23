@@ -1,7 +1,7 @@
 
-#include "../header/Container.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../header/Container.h"
 #include "BTree.h"
 
 #define B_TREE_FILE_NAME_SIZE 64
@@ -27,6 +27,9 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
       break;
     case TRACKBB_LOG_CONTAINER:
       file_suffix = "trackbblog.map2check.bin";
+      break;
+    case SCOPE_LOG_CONTAINER:
+      file_suffix = "scope.map2check.bin";
       break;
     default:
       file_suffix = "default.map2check.bin";
@@ -58,6 +61,9 @@ Bool free_container(MAP2CHECK_CONTAINER* container) {
       break;
     case TRACKBB_LOG_CONTAINER:
       file_suffix = "trackbblog.map2check.bin";
+      break;
+    case SCOPE_LOG_CONTAINER:
+      file_suffix = "scope.map2check.bin";
       break;
     default:
       file_suffix = "default.map2check.bin";
@@ -92,6 +98,9 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
       break;
     case TRACKBB_LOG_CONTAINER:
       btRow.value.trackBBLog = *((TRACK_BB_ROW*)row);
+      break;
+    case SCOPE_LOG_CONTAINER:
+      btRow.value.scopeLog = *((SCOPE_ROW*)row);
       break;
   }
   B_TREE_INSERT(container->values, &btRow);

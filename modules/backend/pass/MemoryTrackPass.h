@@ -76,6 +76,7 @@ struct MemoryTrackPass : public FunctionPass {
   Constant* map2check_calloc;
   Constant* map2check_free;
   Constant* map2check_alloca;
+  // TODO: Alloca Lost is no longer necessary
   Constant* map2check_alloca_lost;
   Constant* map2check_non_static_alloca;
   Constant* map2check_posix;

@@ -53,7 +53,8 @@ enum Container_Type {
   HEAP_LOG_CONTAINER,
   ALLOCATION_LOG_CONTAINER,
   NONDET_LOG_CONTAINER,
-  TRACKBB_LOG_CONTAINER
+  TRACKBB_LOG_CONTAINER,
+  SCOPE_LOG_CONTAINER
 };
 
 enum ViolatedProperty {
@@ -177,12 +178,26 @@ typedef
   char function_name[FUNCTION_MAX_LENGTH_NAME];
 } TRACK_BB_ROW;
 
+typedef
+    /**
+     * Struct to represent the Scope Log
+     */
+    struct obj7 {
+  /** ID of Scope */
+  unsigned id;
+  /** ID of parent Scope */
+  unsigned parent;
+  /** Name of the function of currentscope */
+  char function_name[FUNCTION_MAX_LENGTH_NAME];
+} SCOPE_ROW;
+
 typedef union CONTAINER_ROW {
   LIST_LOG_ROW listLog;
   MEMORY_ALLOCATIONS_ROW allocationLog;
   MEMORY_HEAP_ROW heapLog;
   TRACK_BB_ROW trackBBLog;
   NONDET_CALL kleeLog;
+  SCOPE_ROW scopeLog;
 } CONTAINER_ROW;
 
 #endif

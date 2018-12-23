@@ -16,7 +16,7 @@ MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size,
   MEMORY_HEAP_ROW row;
   strncpy(row.function_name, function_name, FUNCTION_MAX_LENGTH_NAME);
   row.line = line;
-  row.scope = scope;
+  row.scope = 0;
   row.value = address;
   row.size = size;
   row.size_of_primitive = size_of_primitive;
@@ -59,4 +59,17 @@ void heap_log_to_file(MAP2CHECK_CONTAINER* list) {
     fprintf(output, "%d\n", row->size);
   }
   fclose(output);
+}
+
+void update_heap_row_scope(MAP2CHECK_CONTAINER* container, unsigned scope,
+                           void* addr) {
+  unsigned i;
+
+  for (i = 0; i < container->size; i++) {
+    MEMORY_HEAP_ROW* iRow = get_element_at(i, *container);
+    if (iRow->value == addr) {
+      iRow->scope = scope;
+      return;
+    }
+  }
 }

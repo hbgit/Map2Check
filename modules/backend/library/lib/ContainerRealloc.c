@@ -3,6 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/** TODO: Use CONTAINER_ROW instead of each pointer
+ * LIST_LOG_ROW* listLogRows;
+ * MEMORY_ALLOCATIONS_ROW* allocationLog;
+ * NONDET_CALL* nondetLog;
+ * MEMORY_HEAP_ROW* heapLog;
+ * TRACK_BB_ROW* trackBBLog;
+ */
+
 MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
   MAP2CHECK_CONTAINER container;
   container.size = 0;
@@ -27,6 +35,9 @@ Bool free_container(MAP2CHECK_CONTAINER* container) {
       break;
     case TRACKBB_LOG_CONTAINER:
       free((TRACK_BB_ROW*)container->values);
+      break;
+    case SCOPE_LOG_CONTAINER:
+      free((SCOPE_ROW*)container->values);
       break;
   }
 
@@ -54,6 +65,9 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
     case TRACKBB_LOG_CONTAINER:
       new_allocation_size = container->size * sizeof(TRACK_BB_ROW);
       break;
+    case SCOPE_LOG_CONTAINER:
+      new_allocation_size = container->size * sizeof(SCOPE_ROW);
+      break;
   }
   // printf("new allocation size: %d\n", new_allocation_size);
   void* temp_list = realloc(container->values, new_allocation_size);
@@ -63,6 +77,7 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
   MEMORY_HEAP_ROW* heapLog;
   TRACK_BB_ROW* trackBBLog;
   NONDET_CALL* nondetLog;
+  SCOPE_ROW* scopeLog;
   switch (container->type) {
     case LIST_LOG_CONTAINER:
       list = (LIST_LOG_ROW*)temp_list;
@@ -84,6 +99,10 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row) {
       trackBBLog = (TRACK_BB_ROW*)temp_list;
       trackBBLog[container->size - 1] = *((TRACK_BB_ROW*)row);
       break;
+    case SCOPE_LOG_CONTAINER:
+      scopeLog = (SCOPE_ROW*)temp_list;
+      scopeLog[container->size - 1] = *((SCOPE_ROW*)row);
+      break;
   }
 
   container->values = temp_list;
@@ -100,6 +119,8 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
   NONDET_CALL* nondetLog;
   MEMORY_HEAP_ROW* heapLog;
   TRACK_BB_ROW* trackBBLog;
+  SCOPE_ROW* scopeLog;
+
   switch (container.type) {
     case LIST_LOG_CONTAINER:
       listLogRows = (LIST_LOG_ROW*)container.values;
@@ -116,6 +137,9 @@ void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container) {
     case TRACKBB_LOG_CONTAINER:
       trackBBLog = (TRACK_BB_ROW*)container.values;
       return (&trackBBLog[index]);
+    case SCOPE_LOG_CONTAINER:
+      scopeLog = (SCOPE_ROW*)container.values;
+      return (&scopeLog[index]);
   }
   return NULL;
 }

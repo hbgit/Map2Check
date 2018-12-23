@@ -48,4 +48,7 @@ MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size,
  */
 void heap_log_to_file(MAP2CHECK_CONTAINER* list);
 
+void update_heap_row_scope(MAP2CHECK_CONTAINER* container, unsigned scope,
+                           void* addr);
+
 #endif

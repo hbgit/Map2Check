@@ -322,12 +322,12 @@ int main(int argc, char **argv) {
     }
     if (vm.count("help") == 0 && vm.count("input-file") == 0) {
       help_msg();
-      //std::cout << desc;
+      std::cout << desc;
       return ERROR_IN_COMMAND_LINE;
     }
     if (vm.count("help")) {
       help_msg();
-      //std::cout << desc;
+      std::cout << desc;
       return SUCCESS;
     }
     if (vm.count("expected-result")) {

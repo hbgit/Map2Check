@@ -54,6 +54,8 @@ class Caller {
   Caller(std::string bc_program_path, Map2CheckMode mode,
          NonDetGenerator generator);
 
+  std::string getBitcodePath();
+  
   std::string c_program_fullpath;  //!< Path for the original c program */
   void setTimeout(unsigned timeout) { this->timeout = timeout; }
   /** @brief Function to compile original C file removing external memory

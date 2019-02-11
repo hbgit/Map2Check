@@ -145,6 +145,8 @@ struct map2check_args {
   bool printCounterExample = false;
   bool btree = false;
   bool invCrabLlvm = false;
+  bool genInvCrabLlvm = false;
+
   Map2Check::NonDetGenerator generator;
   std::string spectTrue = "safetyMemory";
 };
@@ -192,7 +194,16 @@ int map2check_execution(map2check_args args) {
       caller->compileCFile(is_llvmir_in);
     }
   } else {
+    //TODO: Create warning when add invariants is adopted
     caller->compileCFile(is_llvmir_in);
+  }
+
+  if(args.genInvCrabLlvm){
+    Map2Check::Log::Info("Generating program invariants and stop verification");
+    Map2Check::Log::Info("The bitcode path is: "+ caller->getBitcodePath());
+    //std::cout << caller->getBitcodePath();
+    //return SUCCESS;
+    abort();
   }
 
   if (args.btree) {
@@ -211,7 +222,7 @@ int map2check_execution(map2check_args args) {
   // TODO: create methods to generate counter example
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
-                                                    is_llvmir_in);
+                                                      is_llvmir_in);
 
   Map2Check::PropertyViolated propertyViolated;
 
@@ -294,6 +305,7 @@ int main(int argc, char **argv) {
         "check-overflow,o", "\tAnalyze program for overflow failures")(
         "check-asserts,c", "\tAnalyze program and verify assert failures")(
         "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
+        "gen-invariants,s", "\tOnly generating program invariants adopting Crab-LLVM in Bitcode format")(
         "generate-witness,w", "\tGenerates witness file")(
         "expected-result,e", po::value<string>(),
         "\tSpecifies type of violation expected")(
@@ -359,6 +371,9 @@ int main(int argc, char **argv) {
     }
     if (vm.count("add-invariants")) {
       args.invCrabLlvm = true;
+    }
+    if (vm.count("gen-invariants")) {
+      args.genInvCrabLlvm = true;
     }
 
     if (vm.count("print-counter")) {

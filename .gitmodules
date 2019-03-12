@@ -1,0 +1,3 @@
+[submodule "utils/base_image_map2check"]
+	path = utils/base_image_map2check
+	url = https://github.com/hbgit/base_image_map2check.git

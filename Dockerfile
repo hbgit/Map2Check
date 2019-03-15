@@ -12,7 +12,7 @@
 #  You can check that the container still exists by running: $ docker ps -a
 #  You can restart the container by running: docker start -ai mapdevel
 ############################################################
-FROM rafahaskell/map2check_env:svcomp2019
+FROM herberthb/base-image-map2check:latest
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>

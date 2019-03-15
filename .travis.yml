@@ -7,54 +7,18 @@ addons:
   apt:
     update: true
     packages:
-      - build-essential
-      - libboost-all-dev
-      - libboost-program-options-dev
-      - bison
-      - flex
-      - python
-      - perl
-      - zlib1g-dev
-      - python-minimal
-      - ninja-build
-      - wget
-      - curl
-      - unionfs-fuse
-      - git
-      - doxygen
-      - graphviz
-      - python3
-      - python3-pip
-      - subversion
-      - libgmp-dev
-      - libmpfr-dev
-      - libncurses5-dev
-      - libncursesw5-dev
+	- git	
+
+services: 
+  - docker
 
 before_script:
-  - git config --global user.email "map2check@domain.com"
-  - git config --global user.name "Map2Check"
-  - mkdir build
-  - cd build
-  - wget http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-  - tar xf clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-  - mv clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04 clang
-  - export LLVM_DIR=`pwd`/clang/lib/cmake/llvm
-  - export CXX=$LLVM_DIR/../../../bin/clang++
-  - export CC=$LLVM_DIR/../../../bin/clang
-  - cmake .. -G Ninja -DENABLE_TEST=ON -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/
+  - git clone https://github.com/hbgit/Map2Check.git
+  - cd Map2Check
+  - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
 
-script: ninja && ninja install && ctest
-
-after_script:
-  - cd ../release
-  - cp -r $LLVM_DIR_BASE/lib/clang/$LLVM_VERSION/include/* ./include
-  - cp -r $LLVM_DIR_BASE/lib/clang ./lib
-  - cp /usr/bin/ld ./bin/
-  - cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./lib
-  - cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
-  - cd ..
-  - tar czf map2check.tar.gz release
+script: 
+	- docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh"
 
 notifications:
   email:

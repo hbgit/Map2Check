@@ -3,18 +3,10 @@ sudo: require
 
 language: cpp
 
-addons:
-  apt:
-    update: true
-    packages:
-        - git	
-
 services: 
   - docker
 
 before_script:
-  - git clone https://github.com/hbgit/Map2Check.git
-  - cd Map2Check
   - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
 
 script: 

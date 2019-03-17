@@ -10,7 +10,7 @@ before_script:
   - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
 
 script: 
-  - docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh"
+  - docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; sudo chown -R map2check:map2check .; ./make-release.sh"
 
 notifications:
   email:

@@ -5,7 +5,7 @@
 # 
 #  By gitclone https://github.com/hbgit/Map2Check:
 #   $ docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
-#   $ docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/mygitclone:Z hrocha/mapdevel /bin/bash
+#   $ docker run -it --name=mapdevel -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) hrocha/mapdevel /bin/bash
 #
 # The docker user is "map2check" and the password is "map2check"
 # Docker tips:

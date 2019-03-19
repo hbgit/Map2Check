@@ -4,3 +4,6 @@
 [submodule "utils/dev-llvm_6.0"]
 	path = utils/dev-llvm_6.0
 	url = https://github.com/hbgit/dev-llvm_6.0.git
+[submodule "utils/benchexecrun"]
+	path = utils/benchexecrun
+	url = https://github.com/hbgit/benchexecrun.git

@@ -50,6 +50,12 @@ RUN mkdir /home/map2check/devel_tool
 WORKDIR /home/map2check/devel_tool/
 
 RUN cd /home/map2check/devel_tool/
+
+RUN wget http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+RUN tar xf clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+RUN mv clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04 clang600
+RUN rm clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+
 RUN sudo chown -R map2check:map2check .
 
 VOLUME /home/map2check/devel_tool/

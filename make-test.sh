@@ -18,4 +18,4 @@ export CXX=$LLVM_DIR_BASE/bin/clang++
 export CC=$LLVM_DIR_BASE/bin/clang
 cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON -DENABLE_TEST=ON
 
-ninja
+ninja && ninja install && ctest

@@ -9,4 +9,9 @@
     <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/valid-memsafety.prp</propertyfile>
   </tasks>
 
+  <tasks name="MemSafety-Heap">
+    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/MemSafety-Heap.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/valid-memsafety.prp</propertyfile>
+  </tasks>
+
 </benchmark>

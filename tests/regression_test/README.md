@@ -11,4 +11,4 @@ $ cd Map2Check
 $ ls
 build  cmake  CMakeLists.txt  CODE_OF_CONDUCT.md  Dockerfile  docs  LICENSE  make-release.sh  make-test.sh  modules  README.md  release  tests  utils
 
-$ docker run -it --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw -v $(pwd):/home/bench/benchexec_files:Z hrocha/benchexec /bin/bash -c "cd release; python3 -m benchexec.benchexec ../tests/regression_test/xml_doc_benchexec/map2check_regression_test.xml"
+$ docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw -v $(pwd):/home/bench/benchexec_files:Z hrocha/benchexecrun /bin/bash -c "cd release; python3 -m benchexec.benchexec --no-container ../tests/regression_test/xml_doc_benchexec/map2check_regression_test.xml"

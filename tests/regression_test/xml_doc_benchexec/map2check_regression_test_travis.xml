@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.4//EN" "http://www.sosy-lab.org/benchexec/benchmark-1.4.dtd">
+<benchmark tool="map2check" timelimit="10 s">
+
+  <rundefinition name="sv-comp19_prop-memsafety"></rundefinition>
+
+  <tasks name="MemSafety-Arrays">
+    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/MemSafety-Arrays.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/valid-memsafety.prp</propertyfile>
+  </tasks>
+
+</benchmark>

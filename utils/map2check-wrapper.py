@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import argparse
@@ -28,11 +28,11 @@ if version == True:
   exit(0)
 
 if property_file is None:
-  print "Please, specify a property file"
+  print("Please, specify a property file")
   exit(1)
 
 if benchmark is None:
-  print "Please, specify a benchmark to verify"
+  print("Please, specify a benchmark to verify")
   exit(1)
 
 is_memsafety 	= False
@@ -57,7 +57,7 @@ elif "CHECK( init(main()), LTL(G ! call(__VERIFIER_error())) )" in property_file
   is_reachability = True
 else:
   # We don't support termination
-  print "Unsupported Property"
+  print("Unsupported Property")
   exit(1)
 
 
@@ -71,10 +71,10 @@ elif is_reachability:
 elif is_overflow:
   command_line += " --check-overflow --generate-witness "
 
-print "Verifying with MAP2CHECK "
+print("Verifying with MAP2CHECK ")
 # Call MAP2CHECK
 command_line += benchmark
-print "Command: " + command_line
+print("Command: " + command_line)
 
 args = shlex.split(command_line)
 
@@ -83,7 +83,7 @@ p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 # Parse output
 if "Timed out" in stdout:
-  print "Timed out"
+  print("Timed out")
   exit(1)
 
 
@@ -97,33 +97,33 @@ overflow_offset = "\tOVERFLOW"
 
 if "VERIFICATION FAILED" in stdout:
     if free_offset in stdout:
-      print "FALSE_FREE"
+      print("FALSE_FREE")
       exit(0)
 
     if deref_offset in stdout:
-      print "FALSE_DEREF"
+      print("FALSE_DEREF")
       exit(0)
 
     if memtrack_offset in stdout:
-      print "FALSE_MEMTRACK"
+      print("FALSE_MEMTRACK")
       exit(0)
 
     if memcleanup_offset in stdout:
-      print "FALSE_MEMCLEANUP"
+      print("FALSE_MEMCLEANUP")
       exit(0)
 
     if target_offset in stdout:
-      print "FALSE"
+      print("FALSE")
       exit(0)
 
     if overflow_offset in stdout:
-      print "FALSE_OVERFLOW"
+      print("FALSE_OVERFLOW")
       exit(0)
 
 
 if "VERIFICATION SUCCEEDED" in stdout:
-  print "TRUE"
+  print("TRUE")
   exit(0)
 
-print "UNKNOWN"
+print("UNKNOWN")
 exit(0)

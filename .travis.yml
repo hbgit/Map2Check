@@ -10,8 +10,9 @@ before_script:
     - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .    
     - docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile utils/benchexecrun/ 
 
-script: 
-  - docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh; ./make-unit-test.sh; ./make-regression-test.sh travis"
+script:    
+    - docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh; ./make-unit-test.sh" 
+    - ./make-regression-test.sh travis
 
 notifications:
   email:

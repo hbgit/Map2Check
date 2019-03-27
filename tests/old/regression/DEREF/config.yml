@@ -1,3 +1,0 @@
-time-limit: 5
-property: ["properties/memsafety.prp"]
-check-by: ["DEREF"]

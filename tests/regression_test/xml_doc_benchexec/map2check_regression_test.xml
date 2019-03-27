@@ -14,4 +14,9 @@
     <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/valid-memsafety.prp</propertyfile>
   </tasks>
 
+  <tasks name="Map2Check-Assert">
+    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/Map2Check-Assert.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/unreach-call.prp</propertyfile>
+  </tasks>
+
 </benchmark>

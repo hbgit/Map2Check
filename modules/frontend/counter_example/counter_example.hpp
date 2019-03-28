@@ -1,3 +1,4 @@
+#include <boost/make_unique.hpp>
 #include <iostream>
 #include <memory>
 #include <sstream>

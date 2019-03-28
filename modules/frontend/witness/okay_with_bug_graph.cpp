@@ -1,4 +1,14 @@
+/**
+* Copyright (C) 2014 - 2019 Map2Check tool
+* This file is part of the Map2Check tool, and is made available under
+* the terms of the GNU General Public License version 3.
+**/
+
 #include <fstream>
+#include <memory>
+#include <utility>
+#include <string>
+#include <vector>
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"
 #include "graph.hpp"
@@ -173,7 +183,7 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   std::unique_ptr<DataElement> specification;
   Tools::CheckViolatedProperty violated;
   bool violationWitness = true;
-  // TODO: Add the spection to automa true, what is the property was I checking?
+  // TODO(hbgit): Add the spection to automa true, what is the property was I checking?
   switch (violated.propertyViolated) {
     case Tools::PropertyViolated::FALSE_FREE:
       specification = std::make_unique<Specification>(SpecificationType::FREE);
@@ -325,7 +335,7 @@ std:
             // This state (i.e., the BB) was executed
             std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
             getSt = cnvt.str();
-            // TODO node attributes to invariants
+            // TODO(hbgit): node attributes to invariants
             // std::unique_ptr<NodeElement> violationNode =
             // std::make_unique<ViolationNode>();
             // newNode->AddElement(std::move(violationNode));
@@ -373,7 +383,7 @@ std:
                 newEdge->AddElement(std::move(control));
                 this->automata->AddEdge(std::move(newEdge));
                 hasTrueCond = true;
-                ;
+                // ;
               }
             }
 
@@ -500,7 +510,7 @@ void SVCompWitness::makeViolationAutomataAux() {
 
           // This state (i.e., the BB) was executed
           std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
-          // TODO node attributes to invariants
+          // TODO(hbgit): node attributes to invariants
           // std::unique_ptr<NodeElement> violationNode =
           // std::make_unique<ViolationNode>();
           // newNode->AddElement(std::move(violationNode));
@@ -545,7 +555,7 @@ void SVCompWitness::makeViolationAutomataAux() {
                 newEdge->AddElement(std::move(control));
                 this->automata->AddEdge(std::move(newEdge));
                 hasTrueCond = true;
-                ;
+                // ;
               }
             }
 

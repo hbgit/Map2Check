@@ -1,3 +1,9 @@
+/**
+* Copyright (C) 2014 - 2019 Map2Check tool
+* This file is part of the Map2Check tool, and is made available under
+* the terms of the GNU General Public License version 3.
+**/
+# include "map2check.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -7,12 +13,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-
-#include <boost/filesystem.hpp>
-#include <boost/make_unique.hpp>
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
@@ -24,7 +24,7 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 #define Map2CheckVersion "v7.2-Flock : Tue Nov 27 22:00:00 -04 2018"
 
-// TODO: should get preprocessor flags from CMake
+// TODO(hbgit): should get preprocessor flags from CMake
 
 namespace {
 
@@ -60,7 +60,7 @@ inline void fixPath(char *map2check_bin_string) {
   const int kBufferLength = 500;
   char pBuf[kBufferLength];
   snprintf(szTmp, kSZLength, "/proc/%d/exe", getpid());
-  // TODO: fix implicit conversion from bytes
+  // TODO(hbgit): fix implicit conversion from bytes
   ssize_t bytes = MIN(readlink(szTmp, pBuf, kBufferLength), kBufferLength - 1);
   std::string map2check_bin(map2check_bin_string);
   int deleteSpace = 0;
@@ -102,7 +102,7 @@ inline void fixPath(char *map2check_bin_string) {
 }
 }  // namespace
 
-// TODO: add support to reachability (check old version of map), maybe this
+// TODO(hbgit): add support to reachability (check old version of map), maybe this
 // should be handled by caller
 void generate_witness(std::string pathfile,
                       Map2Check::PropertyViolated propertyViolated,
@@ -169,7 +169,7 @@ int map2check_execution(map2check_args args) {
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
   std::string extension = boost::filesystem::extension(args.inputFile);
-  //cout << extension << endl;
+  // cout << extension << endl;
   if (extension.compare(".c") && extension.compare(".i") &&
       extension.compare(".bc")) {
     help_msg();
@@ -208,7 +208,7 @@ int map2check_execution(map2check_args args) {
   caller->executeAnalysis();
 
   // (4) Retrieve results
-  // TODO: create methods to generate counter example
+  // TODO(hbgit): create methods to generate counter example
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
                                                     is_llvmir_in);
@@ -234,7 +234,7 @@ int map2check_execution(map2check_args args) {
       // Map2Check::Log::Info("VERIFICATION SUCCEEDED");
       // if (args.generateWitness)
       // generate_witness(args.inputFile, propertyViolated, args.spectTrue);
-      // TODO: Fix this hack!!!
+      // TODO(hbgit): Fix this hack!!!
       if (caller->isVerified()) {
         Map2Check::Log::Info("Unable to prove or falsify the program.");
         Map2Check::Log::Info("VERIFICATION UNKNOWN");
@@ -310,7 +310,7 @@ int main(int argc, char **argv) {
         vm);
     po::notify(vm);
 
-    //cout << vm.count("input-file") << endl;
+    // cout << vm.count("input-file") << endl;
 
     map2check_args args;
     // Default mode
@@ -322,12 +322,12 @@ int main(int argc, char **argv) {
     }
     if (vm.count("help") == 0 && vm.count("input-file") == 0) {
       help_msg();
-      //std::cout << desc;
+      // std::cout << desc;
       return ERROR_IN_COMMAND_LINE;
     }
     if (vm.count("help")) {
       help_msg();
-      //std::cout << desc;
+      // std::cout << desc;
       return SUCCESS;
     }
     if (vm.count("expected-result")) {
@@ -383,7 +383,7 @@ int main(int argc, char **argv) {
           boost::end(vm["input-file"].as<std::vector<std::string>>()),
           pathfile);
 
-      //std::cout << pathfile << std::endl;
+      // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
       args.generator = Map2Check::NonDetGenerator::LibFuzzer;

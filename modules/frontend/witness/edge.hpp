@@ -1,5 +1,6 @@
 #pragma once
 #include "node.hpp"
+
 namespace Map2Check {
 class EdgeData {
  protected:

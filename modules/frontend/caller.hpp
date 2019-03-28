@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/filesystem.hpp>
+
 namespace Map2Check {
 
 /** Map2Check verification modes */

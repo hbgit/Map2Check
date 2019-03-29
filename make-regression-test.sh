@@ -34,10 +34,10 @@ if [ $has_docker_img -gt 0 ]; then
         exit 1
       fi
     else
-      if [ $percent_tests -lt 30 ]; then
+      if [ $percent_tests -lt 25 ]; then
         echo ""
         echo "Sorry, the regression testing results were lower than expected, only: $percent_tests %"
-        echo "Expected: 30%"
+        echo "Expected: 25%"
         exit 1
       fi
     fi

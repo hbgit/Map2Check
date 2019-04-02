@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_FRONTEND_UTILS_AFL_HPP_
+#define MODULES_FRONTEND_UTILS_AFL_HPP_
 
 #include <stdint.h>
 #include <boost/make_unique.hpp>
@@ -76,3 +83,5 @@ class AFL_MAP2CHECK : public AFL {
   }
 };
 }  // namespace Map2Check
+
+#endif  // MODULES_FRONTEND_UTILS_AFL_HPP_

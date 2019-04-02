@@ -1,8 +1,21 @@
-#pragma once
-#include <iostream>
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_FRONTEND_UTILS_TOOLS_HPP_
+#define MODULES_FRONTEND_UTILS_TOOLS_HPP_
+
+#include <algorithm>  // copy
+#include <fstream>    // fstream
+#include <iostream>   // cout, endl
+#include <iterator>   // ostream_operator
+#include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
+
 using namespace std;
 
 /**
@@ -64,7 +77,7 @@ struct CheckViolatedProperty {
    * Reads file and initializes the object
    * @param path File describing the property
    */
-  CheckViolatedProperty(std::string path);
+  explicit CheckViolatedProperty(std::string path);
 
   // operator std::string() const {
   //     std::ostringstream cnvt;
@@ -75,7 +88,7 @@ struct CheckViolatedProperty {
   //         cnvt << "FALSE-FREE: Operand of free must have zero pointer
   //         offset"; break;
   //       case(PropertyViolated::TARGET_REACHED):
-  //         //TODO: Add message for target reached
+  //         //TODO(hbgit): Add message for target reached
   //         cnvt << "FALSE: Target Reached";
   //         break;
   //       case(PropertyViolated::NONE) {
@@ -99,7 +112,7 @@ class SourceCodeHelper {
    * Reads all lines from a C source file and adds to a vector structure
    * @param  c_src Path to C file
    */
-  SourceCodeHelper(std::string pathToCSource);
+  explicit SourceCodeHelper(std::string pathToCSource);
 
   operator std::string() const {
     std::ostringstream cnvt;
@@ -343,3 +356,5 @@ class TrackBBLogHelper {
 };
 
 }  // namespace Map2Check
+
+#endif  // MODULES_FRONTEND_UTILS_TOOLS_HPP_

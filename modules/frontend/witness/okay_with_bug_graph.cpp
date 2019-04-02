@@ -1,13 +1,13 @@
 /**
-* Copyright (C) 2014 - 2019 Map2Check tool
-* This file is part of the Map2Check tool, and is made available under
-* the terms of the GNU General Public License version 3.
-**/
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 
 #include <fstream>
 #include <memory>
-#include <utility>
 #include <string>
+#include <utility>
 #include <vector>
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"
@@ -183,7 +183,8 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   std::unique_ptr<DataElement> specification;
   Tools::CheckViolatedProperty violated;
   bool violationWitness = true;
-  // TODO(hbgit): Add the spection to automa true, what is the property was I checking?
+  // TODO(hbgit): Add the spection to automa true, what is the property was I
+  // checking?
   switch (violated.propertyViolated) {
     case Tools::PropertyViolated::FALSE_FREE:
       specification = std::make_unique<Specification>(SpecificationType::FREE);

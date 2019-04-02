@@ -13,8 +13,7 @@ void Log::Warning(std::string msg) {
 }
 
 void Log::Debug(std::string msg) {
-  if(isDebugMode)   
-    std::cout << "\033[0;33m" << msg << "\033[0m\n";
+  if (isDebugMode) std::cout << "\033[0;33m" << msg << "\033[0m\n";
 }
 
 void Log::Info(std::string msg) {

@@ -1,9 +1,9 @@
 /**
-* Copyright (C) 2014 - 2019 Map2Check tool
-* This file is part of the Map2Check tool, and is made available under
-* the terms of the GNU General Public License version 3.
-**/
-# include "map2check.hpp"
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+#include "map2check.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -102,8 +102,8 @@ inline void fixPath(char *map2check_bin_string) {
 }
 }  // namespace
 
-// TODO(hbgit): add support to reachability (check old version of map), maybe this
-// should be handled by caller
+// TODO(hbgit): add support to reachability (check old version of map), maybe
+// this should be handled by caller
 void generate_witness(std::string pathfile,
                       Map2Check::PropertyViolated propertyViolated,
                       std::string specTrue) {

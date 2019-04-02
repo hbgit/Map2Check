@@ -1,12 +1,12 @@
 /**
-* Copyright (C) 2014 - 2019 Map2Check tool
-* This file is part of the Map2Check tool, and is made available under
-* the terms of the GNU General Public License version 3.
-**/
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 
-#include <utility>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "node.hpp"
 

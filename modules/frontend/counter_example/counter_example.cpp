@@ -1,14 +1,14 @@
 /**
-* Copyright (C) 2014 - 2019 Map2Check tool
-* This file is part of the Map2Check tool, and is made available under
-* the terms of the GNU General Public License version 3.
-**/
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 #include "counter_example.hpp"
 
 #include <algorithm>
-#include <utility>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Tools = Map2Check;

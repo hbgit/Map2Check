@@ -6,14 +6,16 @@
 #include "counter_example.hpp"
 
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace Tools = Map2Check;
-// using namespace Map2Check;
-using Map2Check::Tools;
+using namespace Map2Check;
+// using Map2Check::Tools;
 
 CounterExample::CounterExample(std::string path, bool no_source) {
   this->noSource = no_source;
@@ -136,8 +138,6 @@ void CounterExample::processListLog() {
   }
 }
 
-#include <fstream>
-#include <iostream>
 void CounterExample::generateTestCase() {
   std::string file = this->sourceCodeHelper->getFilePath();
   std::string testcase = file + ".testcase";

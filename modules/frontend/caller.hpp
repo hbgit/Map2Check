@@ -1,14 +1,20 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 
-#include <string>
-#include <vector>
+#ifndef MODULES_FRONTEND_CALLER_HPP_
+#define MODULES_FRONTEND_CALLER_HPP_
 
 #include <boost/filesystem.hpp>
+#include <string>
+#include <vector>
 
 namespace Map2Check {
 
 /** Map2Check verification modes */
-// TODO: Add support to custom mode
+// TODO(hbgit): Add support to custom mode
 enum class Map2CheckMode {
   MEMTRACK_MODE,     /**< Check memory errors (memtrack, deref, free) */
   REACHABILITY_MODE, /**< Check if a target function can be executed */
@@ -18,7 +24,8 @@ enum class Map2CheckMode {
 };
 
 /** NonDet generators */
-// TODO: Add suport to other nondet like: klee, afl, afl+klee, LibFuzzer+afl
+// TODO(hbgit): Add suport to other nondet like: klee, afl, afl+klee,
+// LibFuzzer+afl
 enum class NonDetGenerator {
   None,      /**< Do not generate any input */
   LibFuzzer, /**< LibFuzzer from LLVM */
@@ -91,3 +98,5 @@ class Caller {
 };
 
 }  // namespace Map2Check
+
+#endif  // MODULES_FRONTEND_CALLER_HPP_

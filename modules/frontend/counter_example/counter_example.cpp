@@ -12,7 +12,8 @@
 #include <vector>
 
 namespace Tools = Map2Check;
-using namespace Map2Check;
+// using namespace Map2Check;
+using Map2Check::Tools;
 
 CounterExample::CounterExample(std::string path, bool no_source) {
   this->noSource = no_source;

@@ -1,5 +1,5 @@
-#include "../header/NonDetGenerator.h"
 #include <stdlib.h>
+#include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
 
 /* Logic used for cases generation:

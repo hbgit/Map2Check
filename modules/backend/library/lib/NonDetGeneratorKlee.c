@@ -1,5 +1,5 @@
-#include "../header/NonDetGenerator.h"
 #include "../header/Map2CheckFunctions.h"
+#include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
 
 extern int __map2check_main__();

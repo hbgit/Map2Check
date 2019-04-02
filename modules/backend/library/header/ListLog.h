@@ -48,5 +48,4 @@ void print_list_log(MAP2CHECK_CONTAINER* list);
 
 enum MemoryAddressStatus get_type_from_list_log_row(LIST_LOG_ROW* row);
 
-
 #endif

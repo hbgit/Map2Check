@@ -7,7 +7,6 @@ services:
   - docker
 
 before_script:    
-    - ./check_code_style.py -c -p
     - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .    
     - docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile utils/benchexecrun/ 
 

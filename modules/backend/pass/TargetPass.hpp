@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_TARGETPASS_HPP_
+#define MODULES_BACKEND_PASS_TARGETPASS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -16,12 +23,22 @@
 #include <vector>
 #include "DebugInfo.hpp"
 
-using namespace llvm;
+// using namespace llvm;
+using llvm::BasicBlock;
+using llvm::CallInst;
+using llvm::Constant;
+using llvm::dyn_cast;
+using llvm::Function;
+using llvm::FunctionPass;
+using llvm::IRBuilder;
+using llvm::LLVMContext;
+using llvm::RegisterPass;
+using llvm::Value;
 
 struct TargetPass : public FunctionPass {
   static char ID;
   TargetPass() : FunctionPass(ID) {}
-  TargetPass(std::string FunctionName) : FunctionPass(ID) {
+  explicit TargetPass(std::string FunctionName) : FunctionPass(ID) {
     targetFunctionName = FunctionName;
   }
   virtual bool runOnFunction(Function &F);
@@ -37,3 +54,5 @@ struct TargetPass : public FunctionPass {
   Value *functionName = NULL;
   std::string targetFunctionName = "__VERIFIER_error";
 };
+
+#endif  // MODULES_BACKEND_PASS_TARGETPASS_HPP_

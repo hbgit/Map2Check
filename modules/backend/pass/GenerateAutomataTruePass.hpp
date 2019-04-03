@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_GENERATEAUTOMATATRUEPASS_HPP_
+#define MODULES_BACKEND_PASS_GENERATEAUTOMATATRUEPASS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -22,13 +29,22 @@
 #include "../../frontend/utils/tools.hpp"
 #include "DebugInfo.hpp"
 
-using namespace llvm;
+// using namespace llvm;
 namespace Tools = Map2Check;
+
+using llvm::BasicBlock;
+using llvm::Function;
+using llvm::FunctionPass;
+using llvm::ICmpInst;
+using llvm::Instruction;
+using llvm::LLVMContext;
+using llvm::make_unique;
 
 struct GenerateAutomataTruePass : public FunctionPass {
   static char ID;
   GenerateAutomataTruePass() : FunctionPass(ID) {}
-  GenerateAutomataTruePass(std::string c_program_path) : FunctionPass(ID) {
+  explicit GenerateAutomataTruePass(std::string c_program_path)
+      : FunctionPass(ID) {
     this->c_program_path = c_program_path;
     this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
         Tools::SourceCodeHelper(c_program_path));
@@ -86,3 +102,5 @@ struct GenerateAutomataTruePass : public FunctionPass {
   int skipEmptyLineItSize;
   LLVMContext* Ctx;
 };
+
+#endif  // MODULES_BACKEND_PASS_GENERATEAUTOMATATRUEPASS_HPP_

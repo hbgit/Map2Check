@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_MEMORYTRACKPASS_HPP_
+#define MODULES_BACKEND_PASS_MEMORYTRACKPASS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -15,11 +22,17 @@
 #include <string>
 #include <vector>
 
-using namespace llvm;
+// using namespace llvm;
+using llvm::BasicBlock;
+using llvm::Constant;
+using llvm::ConstantInt;
+using llvm::Function;
+using llvm::FunctionPass;
+using llvm::LLVMContext;
 
 struct MemoryTrackPass : public FunctionPass {
   static char ID;
-  MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
+  explicit MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
     this->SVCOMP = SVCOMP;
   }
   virtual bool runOnFunction(Function& F);
@@ -77,6 +90,9 @@ struct MemoryTrackPass : public FunctionPass {
 
 class MemoryTrackPassException : public std::runtime_error {
  public:
-  MemoryTrackPassException(std::string message) : std::runtime_error(message) {}
+  explicit MemoryTrackPassException(std::string message)
+      : std::runtime_error(message) {}
   virtual const char* what() const throw();
 };
+
+#endif  // MODULES_BACKEND_PASS_MEMORYTRACKPASS_HPP_

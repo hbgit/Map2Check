@@ -1,11 +1,26 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "Map2CheckLibrary.hpp"
+
+#include <memory>
+
+using llvm::CallInst;
+using llvm::dyn_cast;
+using llvm::IRBuilder;
+using llvm::RegisterPass;
+using llvm::ReturnInst;
+using llvm::Twine;
 
 bool Map2CheckLibrary::runOnFunction(Function& F) {
   this->libraryFunctions = make_unique<LibraryFunctions>(&F, &F.getContext());
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
 
-  IRBuilder<> builder((Instruction*)&*instructionIterator);
+  IRBuilder<> builder(reinterpret_cast<Instruction*>(&*instructionIterator));
   this->functionName = builder.CreateGlobalStringPtr(F.getName());
   bool isMain = false;
   if (F.getName() == "main") {
@@ -37,7 +52,7 @@ bool Map2CheckLibrary::runOnFunction(Function& F) {
 }
 
 void Map2CheckLibrary::instrumentStartInstruction(LLVMContext* Ctx) {
-  IRBuilder<> builder((Instruction*)&*currentInstruction);
+  IRBuilder<> builder(reinterpret_cast<Instruction*>(&*currentInstruction));
   Value* argument =
       ConstantInt::getSigned(Type::getInt32Ty(*Ctx), this->SVCOMP ? 1 : 0);
   Value* args[] = {argument};
@@ -45,7 +60,7 @@ void Map2CheckLibrary::instrumentStartInstruction(LLVMContext* Ctx) {
 }
 
 void Map2CheckLibrary::instrumentReleaseInstruction(LLVMContext* Ctx) {
-  IRBuilder<> builder((Instruction*)&*currentInstruction);
+  IRBuilder<> builder(reinterpret_cast<Instruction*>(&*currentInstruction));
   builder.CreateCall(this->libraryFunctions->getExitFunction());
 }
 

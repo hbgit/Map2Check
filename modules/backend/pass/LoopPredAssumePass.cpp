@@ -1,4 +1,13 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "LoopPredAssumePass.hpp"
+
+using llvm::IRBuilder;
+using llvm::RegisterPass;
 
 namespace {
 inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {

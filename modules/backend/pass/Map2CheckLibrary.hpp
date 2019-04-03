@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_MAP2CHECKLIBRARY_HPP_
+#define MODULES_BACKEND_PASS_MAP2CHECKLIBRARY_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -17,13 +24,23 @@
 
 #include <memory>
 
-using namespace llvm;
+// using namespace llvm;
 #include "DebugInfo.hpp"
 #include "LibraryFunctions.hpp"
 
+using llvm::BasicBlock;
+using llvm::CallInst;
+using llvm::dyn_cast;
+using llvm::Function;
+using llvm::FunctionPass;
+using llvm::IRBuilder;
+using llvm::LLVMContext;
+using llvm::make_unique;
+using llvm::Value;
+
 struct Map2CheckLibrary : public FunctionPass {
   static char ID;
-  Map2CheckLibrary(bool svcomp) : FunctionPass(ID) { SVCOMP = svcomp; }
+  explicit Map2CheckLibrary(bool svcomp) : FunctionPass(ID) { SVCOMP = svcomp; }
   Map2CheckLibrary() : FunctionPass(ID) {}
   virtual bool runOnFunction(Function& F);
 
@@ -40,3 +57,5 @@ struct Map2CheckLibrary : public FunctionPass {
   Value* functionName = NULL;
   BasicBlock::iterator currentInstruction;
 };
+
+#endif  // MODULES_BACKEND_PASS_MAP2CHECKLIBRARY_HPP_

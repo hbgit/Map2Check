@@ -1,4 +1,12 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "NonDetPass.hpp"
+
+#include <memory>
 
 namespace {
 inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
@@ -63,14 +71,11 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   else CALL_IF_HELPER(Loff_t, LOFF_T, loff_t)
   else CALL_IF_HELPER(Sector_t, SECTOR_T, sector_t)
   else CALL_IF_HELPER(Uint, UINT, uint)
-	 
   else if ((calleeFunction->getName() == "__VERIFIER_assume")) {
     this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
-  }
-  else if ((calleeFunction->getName() == "verifier.assume")) {
+  } else if ((calleeFunction->getName() == "verifier.assume")) {
     this->instrumentNonDet(NonDetType::CRAB_ASSUME, calleeFunction);
-  }
-  else if ((calleeFunction->getName() == "map2check_assume")) {
+  } else if ((calleeFunction->getName() == "map2check_assume")) {
     // TODO(rafa.sa.xp@gmail.com): Implement method
   }
   // clang-format on

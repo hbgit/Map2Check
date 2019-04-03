@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_LIBRARYFUNCTIONS_HPP_
+#define MODULES_BACKEND_PASS_LIBRARYFUNCTIONS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -14,6 +21,9 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+using llvm::Constant;
+using llvm::Function;
 
 class LibraryFunctions {
   Constant* map2check_init = NULL;
@@ -40,3 +50,5 @@ class LibraryFunctions {
         Type::getInt8PtrTy(*Ctx));
   }
 };
+
+#endif  // MODULES_BACKEND_PASS_LIBRARYFUNCTIONS_HPP_

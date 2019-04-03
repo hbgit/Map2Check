@@ -1,4 +1,14 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "AssertPass.hpp"
+
+using llvm::dyn_cast;
+using llvm::IRBuilder;
+using llvm::RegisterPass;
 
 bool AssertPass::runOnFunction(Function& F) {
   this->map2check_assert = F.getParent()->getOrInsertFunction(
@@ -9,7 +19,8 @@ bool AssertPass::runOnFunction(Function& F) {
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
 
-  IRBuilder<> builder((Instruction*)&*instructionIterator);
+  // IRBuilder<> builder((Instruction*)&*instructionIterator);
+  IRBuilder<> builder(reinterpret_cast<Instruction*>(&*instructionIterator));
   this->functionName = builder.CreateGlobalStringPtr(F.getName());
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {

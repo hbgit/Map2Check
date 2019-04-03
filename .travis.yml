@@ -6,7 +6,16 @@ language: cpp
 services: 
   - docker
 
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y python-pip
+  
+install:
+  - pip install pip
+  - pip install --user cpplint
+
 before_script:
+    - cpplint --recursive modules
     - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .    
     - docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile utils/benchexecrun/ 
 

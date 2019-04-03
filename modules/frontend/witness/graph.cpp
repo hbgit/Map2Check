@@ -4,6 +4,7 @@
  * the terms of the GNU General Public License version 3.
  **/
 
+#include "graph.hpp"
 #include <boost/make_unique.hpp>
 #include <fstream>
 #include <memory>
@@ -12,7 +13,6 @@
 #include <vector>
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"
-#include "graph.hpp"
 #include "witness.hpp"
 using namespace Map2Check;
 namespace Tools = Map2Check;

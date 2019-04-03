@@ -4,9 +4,9 @@
  * the terms of the GNU General Public License version 3.
  **/
 
+#include "log.hpp"
 #include <iostream>
 #include <string>
-#include "log.hpp"
 
 namespace Map2Check {
 

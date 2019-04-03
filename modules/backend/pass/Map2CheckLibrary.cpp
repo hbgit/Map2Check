@@ -66,7 +66,7 @@ void Map2CheckLibrary::runOnCallInstruction(CallInst* callInst,
     this->instrumentReleaseInstruction(Ctx);
   } else if (calleeFunction->getName() == "abort") {
     this->instrumentReleaseInstruction(Ctx);
-  } 
+  }
 }
 
 char Map2CheckLibrary::ID = 2;

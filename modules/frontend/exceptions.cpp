@@ -4,8 +4,8 @@
  * the terms of the GNU General Public License version 3.
  **/
 
-#include <sstream>
 #include "exceptions.hpp"
+#include <sstream>
 #include "utils/log.hpp"
 using namespace Map2Check::Exceptions;
 

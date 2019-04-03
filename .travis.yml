@@ -6,9 +6,13 @@ language: cpp
 services: 
   - docker
 
+install:
+  - pip install pip
+  - pip install --user cpplint
+
 before_script:
-    - python utils/cpplint.py --headers=hpp,h --linelength=120  --recursive --counting=detailed modules/frontend
-    - python utils/cpplint.py --headers=hpp,h --linelength=120  --recursive --counting=detailed modules/backend/pass
+    - cpplint --recursive  --headers=hpp,h --linelength=120 modules/frontend
+    - cpplint --recursive  --headers=hpp,h --linelength=120 modules/backend/pass
     - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .    
     - docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile utils/benchexecrun/ 
 

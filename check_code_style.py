@@ -5,6 +5,7 @@
 import os
 import argparse
 import re
+import subprocess
 
 # Options
 parser = argparse.ArgumentParser()
@@ -46,4 +47,4 @@ if cpp_style == True:
       apply_clang_format('google', path, cpp_extensions)
   print("Check issues related to code style ...")
   for path in paths_to_check:
-    os.system('python utils/cpplint.py --recursive --linelength=120 --counting=detailed ' + path)
+    subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--linelength=120', '--counting=detailed', path], check=True)

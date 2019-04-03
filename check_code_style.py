@@ -19,52 +19,31 @@ version = args.version
 c_style = args.checkCodeStyle
 cpp_style = args.checkCppCodeStyle
 
+def apply_clang_format(style, path, extensions):
+  for root, dirs, files in os.walk(path):
+    for file in files:
+      if file.endswith(extensions):
+        root = re.escape(root)
+        file = re.escape(file)
+        os.system("clang-format -i -style=" + style + " " + root + "/" + file)
+
 if version == True:
   os.system(tool_path + "--version")
   exit(0)
 
 if c_style == True:
   print("Formatting C codes with clang-format adopting LLVM style ...")
-
   # File Extension filter. You can add new extension
-  cpp_extensions = (".c", ".h", ".hh")
-
-  # Apply the clang formatting
-  # Please note "-style" is for standard style options
-  # and "-i" is in-place editing
-  for root, dirs, files in os.walk("modules/backend/library"):
-      for file in files:
-          if file.endswith(cpp_extensions):
-              root = re.escape(root)
-              file = re.escape(file)
-              # print(root + "/" + file)
-              os.system("clang-format -i -style=google " + root + "/" + file)
-  exit(0)
+  extensions = (".c", ".h", ".hh")
+  apply_clang_format('llvm', 'modules/backend/library', extensions)
 
 if cpp_style == True:
+  print("Formatting CPP codes with clang-format adopting Google style ...")
   # File Extension filter. You can add new extension
   cpp_extensions = (".cxx",".cpp",".c", ".hxx", ".hh", ".cc", ".hpp")
-
-  # Apply the clang formatting
-  # Please note "-style" is for standard style options
-  # and "-i" is in-place editing
   paths_to_check = ["modules/frontend", "modules/backend/pass"]
   for path in paths_to_check:
-      print("Formatting C++ codes with clang-format adopting Google Style ...")
-      for root, dirs, files in os.walk(path):
-          for file in files:
-              if file.endswith(cpp_extensions):
-                  root = re.escape(root)
-                  file = re.escape(file)
-                  #print(root + "/" + file)
-                  os.system("clang-format -i -style=google " + root + "/" + file)
-
-      print("Check issues related to code style ...")
-      for root, dirs, files in os.walk(path):
-          for file in files:
-              if file.endswith(cpp_extensions):
-                  root = re.escape(root)
-                  file = re.escape(file)
-                  os.system("python utils/cpplint.py --headers=hpp,h --linelength=120 --counting=detailed " + root + "/" + file )
-
-  exit(0)
+      apply_clang_format('google', path, cpp_extensions)
+  print("Check issues related to code style ...")
+  for path in paths_to_check:
+    os.system('python utils/cpplint.py --recursive --linelength=120 --counting=detailed ' + path)

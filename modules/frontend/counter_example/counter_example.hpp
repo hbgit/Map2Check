@@ -7,12 +7,14 @@
 #ifndef MODULES_FRONTEND_COUNTER_EXAMPLE_COUNTER_EXAMPLE_HPP_
 #define MODULES_FRONTEND_COUNTER_EXAMPLE_COUNTER_EXAMPLE_HPP_
 
-#include <boost/make_unique.hpp>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include <boost/make_unique.hpp>
+
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"
 

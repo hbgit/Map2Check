@@ -16,14 +16,11 @@
 #include <llvm/Pass.h>
 #include <llvm/Support/raw_ostream.h>
 
-#include <boost/algorithm/string/replace.hpp>
-#include <fstream>
-#include <iostream>
 #include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 #include <vector>
+
+#include <boost/algorithm/string/replace.hpp>
 
 // From Map2Check Project
 #include "../../frontend/utils/tools.hpp"

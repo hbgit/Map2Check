@@ -8,6 +8,13 @@
 
 #include <memory>
 
+using llvm::CastInst;
+using llvm::dyn_cast;
+using llvm::IRBuilder;
+using llvm::make_unique;
+using llvm::RegisterPass;
+using llvm::Twine;
+
 namespace {
 inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
   Instruction *pointer = reinterpret_cast<Instruction *>(&*i);

@@ -7,7 +7,7 @@
  * @param line      Line of the assert
  * @param func_name Function name
  */
-void map2check_assert(int condition, int line, const char* func_name) {
+void map2check_assert(int condition, int line, const char *func_name) {
   if (!condition) {
     write_property(ASSERT, line, func_name);
     map2check_error();

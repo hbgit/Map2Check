@@ -16,17 +16,18 @@ extern void klee_assume(int);
 void nondet_assume(int expr) { klee_assume(expr); }
 
 extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
-#define MAP2CHECK_NON_DET_GENERATOR(type)                           \
-  type map2check_non_det_##type() {                                 \
-    type non_det;                                                   \
-    klee_make_symbolic(&non_det, sizeof(non_det), "non_det_#type"); \
-    return non_det;                                                 \
+#define MAP2CHECK_NON_DET_GENERATOR(type)                                      \
+  type map2check_non_det_##type() {                                            \
+    type non_det;                                                              \
+    klee_make_symbolic(&non_det, sizeof(non_det), "non_det_#type");            \
+    return non_det;                                                            \
   }
 
 // TODO: this should be dynamic
 char *map2check_non_det_pchar() {
   unsigned length = map2check_non_det_unsigned();
-  if (length == 0) return NULL;
+  if (length == 0)
+    return NULL;
   char string[length];
   unsigned i = 0;
   for (i = 0; i < (length - 1); i++) {

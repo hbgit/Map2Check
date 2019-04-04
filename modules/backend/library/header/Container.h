@@ -19,7 +19,7 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type);
  * @param container  Pointer to the container
  * @return           A boolean representing success of operation
  */
-Bool free_container(MAP2CHECK_CONTAINER* container);
+Bool free_container(MAP2CHECK_CONTAINER *container);
 
 /**
  * Adds new element to container
@@ -27,7 +27,7 @@ Bool free_container(MAP2CHECK_CONTAINER* container);
  * @param row        Pointer to the row to be added
  * @return           A boolean representing success of operation
  */
-Bool append_element(MAP2CHECK_CONTAINER* container, void* row);
+Bool append_element(MAP2CHECK_CONTAINER *container, void *row);
 
 /**
  * Adds new element to container
@@ -35,6 +35,6 @@ Bool append_element(MAP2CHECK_CONTAINER* container, void* row);
  * @param container  Pointer to the container
  * @return           A pointer to the row
  */
-void* get_element_at(unsigned index, MAP2CHECK_CONTAINER container);
+void *get_element_at(unsigned index, MAP2CHECK_CONTAINER container);
 
 #endif

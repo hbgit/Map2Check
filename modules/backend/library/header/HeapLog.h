@@ -15,7 +15,7 @@
  * container
  * @return                Returns success of operation
  */
-Bool mark_heap_log(MAP2CHECK_CONTAINER* heap_log, MEMORY_HEAP_ROW row);
+Bool mark_heap_log(MAP2CHECK_CONTAINER *heap_log, MEMORY_HEAP_ROW row);
 
 /**
  * Iterates over a Heap Log to check if a address is pointing to a valid heap
@@ -26,7 +26,7 @@ Bool mark_heap_log(MAP2CHECK_CONTAINER* heap_log, MEMORY_HEAP_ROW row);
  * space
  * @return                Returns if the address is valid
  */
-Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address,
+Bool is_valid_heap_address(MAP2CHECK_CONTAINER *heap_log, void *address,
                            int size_to_load);
 
 /**
@@ -39,13 +39,13 @@ Bool is_valid_heap_address(MAP2CHECK_CONTAINER* heap_log, void* address,
  * @param  function_name        Name of the function where operation took place
  * @return                      Returns the initialized MEMORY_HEAP_ROW
  */
-MEMORY_HEAP_ROW new_heap_row(int line, int scope, void* address, int size,
-                             int size_of_primitive, const char* function_name);
+MEMORY_HEAP_ROW new_heap_row(int line, int scope, void *address, int size,
+                             int size_of_primitive, const char *function_name);
 
 /**
  * Write elements from HEAP_LOG to a FILE
  * @param row Pointer to the HEAP_LOG to be wrote
  */
-void heap_log_to_file(MAP2CHECK_CONTAINER* list);
+void heap_log_to_file(MAP2CHECK_CONTAINER *list);
 
 #endif

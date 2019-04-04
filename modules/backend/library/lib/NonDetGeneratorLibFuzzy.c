@@ -1,6 +1,6 @@
-#include <stdlib.h>
 #include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
+#include <stdlib.h>
 
 /* Logic used for cases generation:
    1 - main function of original program is changed to _map2check_main
@@ -62,7 +62,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   return 0;
 }
 
-#define MAP2CHECK_NON_DET_GENERATOR(type) \
+#define MAP2CHECK_NON_DET_GENERATOR(type)                                      \
   type map2check_non_det_##type() { return (type)get_next_input_from_fuzzer(); }
 
 MAP2CHECK_NON_DET_GENERATOR(char)
@@ -84,7 +84,8 @@ MAP2CHECK_NON_DET_GENERATOR(sector_t)
 int map2check_non_det_int() {
   uint64_t result = 0;
   int i = 0;
-  for (; i < 8; i++) result |= get_next_input_from_fuzzer() << (8 * i);
+  for (; i < 8; i++)
+    result |= get_next_input_from_fuzzer() << (8 * i);
 
   return (int)result;
 }
@@ -97,7 +98,8 @@ unsigned map2check_non_det_unsigned() {
 
 char *map2check_non_det_pchar() {
   unsigned length = map2check_non_det_unsigned();
-  if (length == 0) return NULL;
+  if (length == 0)
+    return NULL;
   char string[length];
   unsigned i = 0;
   for (i = 0; i < (length - 1); i++) {

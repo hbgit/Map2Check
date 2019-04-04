@@ -2,12 +2,12 @@
 
 #include <stdio.h>
 #include <string.h>
-const char* list_log_file = "list_log.csv";
+const char *list_log_file = "list_log.csv";
 
-long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
+long get_old_reference(long var_address, MAP2CHECK_CONTAINER *log) {
   int i = log->size - 1;
   for (; i >= 0; i--) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
+    LIST_LOG_ROW *row = (LIST_LOG_ROW *)get_element_at(i, *log);
 
     if (row->memory_address == var_address) {
       return row->memory_address_points_to;
@@ -29,11 +29,11 @@ long get_old_reference(long var_address, MAP2CHECK_CONTAINER* log) {
   4. If loop ends without finding leaked address, then it isn't a memcleanup
   error.
 */
-Bool is_memcleanup_error(long address, MAP2CHECK_CONTAINER* log) {
+Bool is_memcleanup_error(long address, MAP2CHECK_CONTAINER *log) {
   int i = log->size - 1;
   // 1
   for (; i >= 0; i--) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
+    LIST_LOG_ROW *row = (LIST_LOG_ROW *)get_element_at(i, *log);
 
     long points_to = row->memory_address_points_to;
 
@@ -42,7 +42,7 @@ Bool is_memcleanup_error(long address, MAP2CHECK_CONTAINER* log) {
       int j = log->size - 1;
       Bool error = TRUE;
       for (; j > i; j--) {
-        LIST_LOG_ROW* row_j = (LIST_LOG_ROW*)get_element_at(j, *log);
+        LIST_LOG_ROW *row_j = (LIST_LOG_ROW *)get_element_at(j, *log);
         if (pointer_address == row_j->memory_address) {
           error = row_j->memory_address_points_to == address ? TRUE : FALSE;
           break;
@@ -56,11 +56,11 @@ Bool is_memcleanup_error(long address, MAP2CHECK_CONTAINER* log) {
   return FALSE;
 }
 // TODO: Implement method
-Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
+Bool is_deref_error(long address, MAP2CHECK_CONTAINER *log) {
   int i = log->size - 1;
 
   for (; i >= 0; i--) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
+    LIST_LOG_ROW *row = (LIST_LOG_ROW *)get_element_at(i, *log);
 
     long points_to = row->memory_address_points_to;
     long address_origin = row->memory_address;
@@ -84,14 +84,14 @@ Bool is_deref_error(long address, MAP2CHECK_CONTAINER* log) {
   return TRUE;
 }
 
-Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
+Bool is_invalid_free(long address, MAP2CHECK_CONTAINER *log) {
   int i = log->size - 1;
   if (address == ((long)NULL)) {
     return FALSE;
   }
 
   for (; i >= 0; i--) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *log);
+    LIST_LOG_ROW *row = (LIST_LOG_ROW *)get_element_at(i, *log);
     long points_to = row->memory_address_points_to;
 
     if (points_to == address) {
@@ -111,8 +111,8 @@ Bool is_invalid_free(long address, MAP2CHECK_CONTAINER* log) {
 
 LIST_LOG_ROW new_list_row(long memory_address, long memory_address_points_to,
                           unsigned scope, Bool is_dynamic, Bool is_free,
-                          unsigned line_number, const char* name,
-                          const char* function_name, unsigned step) {
+                          unsigned line_number, const char *name,
+                          const char *function_name, unsigned step) {
   LIST_LOG_ROW row;
   row.id = 0;
   row.is_dynamic = is_dynamic;
@@ -127,16 +127,16 @@ LIST_LOG_ROW new_list_row(long memory_address, long memory_address_points_to,
   return row;
 }
 
-void list_log_to_file(MAP2CHECK_CONTAINER* list) {
-  FILE* output = fopen(list_log_file, "w");
+void list_log_to_file(MAP2CHECK_CONTAINER *list) {
+  FILE *output = fopen(list_log_file, "w");
   // fprintf(output, "id;memory address;points to;scope;is free;is
   // dynamic;function name\n");
   int i = 0;
   for (; i < list->size; i++) {
-    LIST_LOG_ROW* row = (LIST_LOG_ROW*)get_element_at(i, *list);
+    LIST_LOG_ROW *row = (LIST_LOG_ROW *)get_element_at(i, *list);
     fprintf(output, "%d;", row->id);
-    fprintf(output, "%p;", (void*)row->memory_address);
-    fprintf(output, "%p;", (void*)row->memory_address_points_to);
+    fprintf(output, "%p;", (void *)row->memory_address);
+    fprintf(output, "%p;", (void *)row->memory_address_points_to);
     fprintf(output, "%d;", row->scope);
     fprintf(output, "%d;", row->is_free);
     fprintf(output, "%d;", row->is_dynamic);
@@ -148,7 +148,7 @@ void list_log_to_file(MAP2CHECK_CONTAINER* list) {
   fclose(output);
 }
 
-enum MemoryAddressStatus get_type_from_list_log_row(LIST_LOG_ROW* row) {
+enum MemoryAddressStatus get_type_from_list_log_row(LIST_LOG_ROW *row) {
   if (row->is_free && !row->is_dynamic) {
     return FREE;
   } else if (row->is_dynamic) {

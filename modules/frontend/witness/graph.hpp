@@ -14,7 +14,11 @@
 #include "node.hpp"
 #include "witness.hpp"
 
-using namespace Map2Check;
+// using namespace Map2Check;
+using Map2Check::DataElement;
+using Map2Check::Edge;
+using Map2Check::Node;
+
 namespace Map2Check {
 class Graph {
  protected:

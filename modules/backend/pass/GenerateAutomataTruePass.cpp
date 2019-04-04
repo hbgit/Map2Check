@@ -23,6 +23,8 @@ using llvm::LoadInst;
 using llvm::RegisterPass;
 using llvm::TerminatorInst;
 
+using std::ofstream;
+
 namespace {
 inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
   Instruction* pointer = reinterpret_cast<Instruction*>(&*i);

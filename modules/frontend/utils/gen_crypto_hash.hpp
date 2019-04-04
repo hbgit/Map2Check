@@ -7,10 +7,11 @@
 #ifndef MODULES_FRONTEND_UTILS_GEN_CRYPTO_HASH_HPP_
 #define MODULES_FRONTEND_UTILS_GEN_CRYPTO_HASH_HPP_
 
-#include <boost/uuid/sha1.hpp>
 #include <string>
 
-using namespace std;
+#include <boost/uuid/sha1.hpp>
+
+using std::string;
 
 class GenHash {
  private:

@@ -10,7 +10,7 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
+using std::string;
 
 namespace Map2Check::Exceptions {
 class Map2CheckException : public runtime_error {

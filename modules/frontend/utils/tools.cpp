@@ -16,6 +16,10 @@
 namespace fs = boost::filesystem;
 namespace Tools = Map2Check;
 
+using std::ifstream;
+using std::regex;
+using std::smatch;
+
 Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
   Map2Check::Log::Debug("Reading C File");
   this->path = pathToCSource;

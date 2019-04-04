@@ -21,6 +21,10 @@
 // namespace fs = boost::filesystem;
 // }  // namespace
 
+using std::ifstream;
+using std::regex;
+using std::smatch;
+
 namespace {
 inline std::string getLibSuffix() { return ".so"; }
 

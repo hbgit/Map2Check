@@ -17,6 +17,8 @@ namespace Tools = Map2Check;
 using namespace Map2Check;
 // using Map2Check::Tools;
 
+using std::ios;
+
 CounterExample::CounterExample(std::string path, bool no_source) {
   this->noSource = no_source;
   if (!no_source)

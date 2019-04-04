@@ -16,40 +16,44 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+using std::ostringstream;
+using std::string;
+using std::vector;
 
 /**
  * Namespace for all Map2Check Paths and Helpers
  */
 namespace Map2Check {
 /** Path to ktest-tool binary (from KLEE) */
-const string ktestBinary("${MAP2CHECK_PATH}/bin/ktest-tool");
+// const string ktestBinary("${MAP2CHECK_PATH}/bin/ktest-tool");
+constexpr char const* ktestBinary = "${MAP2CHECK_PATH}/bin/ktest-tool";
 /** Path to clang binary (from llvm) */
-const string clangBinary("${MAP2CHECK_PATH}/bin/clang");
+constexpr char const* clangBinary = "${MAP2CHECK_PATH}/bin/clang";
 /** Path to crab-llvm path binary (from crab-llvm) */
-const string crabBinary("${MAP2CHECK_PATH}/bin/crabllvm/bin/crabllvm.py");
+constexpr char const* crabBinary =
+    "${MAP2CHECK_PATH}/bin/crabllvm/bin/crabllvm.py";
 /** Path to clang include folder (usually
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
-const string clangIncludeFolder("${MAP2CHECK_PATH}/include/");
+constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";
 /** Path to generated list log file (check MemoryUtils implementation) */
-const string listLogCSV("list_log.csv");
+constexpr char const* listLogCSV = "list_log.csv";
 /** Path to klee binary */
-const string kleeBinary("${MAP2CHECK_PATH}/bin/klee");
+constexpr char const* kleeBinary = "${MAP2CHECK_PATH}/bin/klee";
 /** Path to generated klee log file (check MemoryUtils implementation) */
-const string kleeLogCSV("klee_log.csv");
+constexpr char const* kleeLogCSV = "klee_log.csv";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
-const string stateTrueLogCSV("automata_list_log.st");
+constexpr char const* stateTrueLogCSV = "automata_list_log.st";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
-const string trackBBLogCSV("track_bb_log.st");
+constexpr char const* trackBBLogCSV = "track_bb_log.st";
 /** Path to generated map2check_property file (check MemoryUtils implementation)
  */
-const string propertyViolationFile("map2check_property");
+constexpr char const* propertyViolationFile = "map2check_property";
 /** Path to generated klee results (it is created where klee is called) */
-const string kleeResultFolder("./klee-last");
+constexpr char const* kleeResultFolder = "./klee-last";
 /** Path to opt binary (from llvm) */
-const string optBinary("${MAP2CHECK_PATH}/bin/opt");
+constexpr char const* optBinary = "${MAP2CHECK_PATH}/bin/opt";
 /** Path to llvm-link binary (from llvm) */
-const string llvmLinkBinary("${MAP2CHECK_PATH}/bin/llvm-link");
+constexpr char const* llvmLinkBinary = "${MAP2CHECK_PATH}/bin/llvm-link";
 
 /** Represents what kind of property was violated */
 enum class PropertyViolated {

@@ -7,9 +7,10 @@
 #ifndef MODULES_FRONTEND_CALLER_HPP_
 #define MODULES_FRONTEND_CALLER_HPP_
 
-#include <boost/filesystem.hpp>
 #include <string>
 #include <vector>
+
+#include <boost/filesystem.hpp>
 
 namespace Map2Check {
 

@@ -8,9 +8,10 @@
 #define MODULES_FRONTEND_UTILS_AFL_HPP_
 
 #include <stdint.h>
-#include <boost/make_unique.hpp>
 #include <memory>
 #include <string>
+
+#include <boost/make_unique.hpp>
 
 namespace Map2Check {
 

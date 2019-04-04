@@ -10,7 +10,14 @@
 
 #include "node.hpp"
 
-using namespace Map2Check;
+// using namespace Map2Check;
+using Map2Check::EntryNode;
+using Map2Check::Node;
+using Map2Check::NodeElement;
+using Map2Check::SinkNode;
+using Map2Check::ViolationNode;
+using Map2Check::ViolationNodeElement;
+
 std::string NodeElement::convertToString() {
   std::ostringstream cnvt;
   cnvt.str("");

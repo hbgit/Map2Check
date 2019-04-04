@@ -30,8 +30,8 @@ def apply_clang_format(style, path, extensions):
             if file.endswith(extensions):
                 root = re.escape(root)
                 file = re.escape(file)
-                os.system("clang-format -i -style=" +
-                          style + " " + root + "/" + file)
+                os.system("clang-format -i -style="
+                          + style + " " + root + "/" + file)
 
 
 if version == True:
@@ -57,5 +57,9 @@ if cpp_style == True:
     print("Check issues related to code style ...")
 
     for path in paths_to_check:
-        subprocess.run(['python', 'utils/cpplint.py', '--recursive',
-                        '--linelength=120', '--counting=detailed', path], check=True)
+        if path == "modules/backend/pass":
+            subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/references',
+                            '--linelength=120', '--counting=detailed', path], check=True)
+        else:
+            subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/printf',
+                            '--linelength=120', '--counting=detailed', path], check=True)

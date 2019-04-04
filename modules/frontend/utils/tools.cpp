@@ -4,11 +4,12 @@
  * the terms of the GNU General Public License version 3.
  **/
 
+#include <string>
+#include <vector>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
-#include <string>
-#include <vector>
 
 #include "log.hpp"
 #include "tools.hpp"
@@ -247,8 +248,12 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
   std::vector<Tools::KleeLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
-  using namespace boost;
-  using namespace std;
+  // using namespace boost;
+  // using namespace std;
+  using std::ifstream;
+  using std::stoi;
+  using std::string;
+  using std::vector;
 
   // Open file as READ mode
   ifstream in(path.c_str());
@@ -311,8 +316,8 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(
   std::vector<Tools::ListLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
-  using namespace boost;
-  using namespace std;
+  // using namespace boost;
+  // using namespace std;
 
   // Open file as READ mode
   ifstream in(path.c_str());
@@ -361,8 +366,8 @@ Tools::StateTrueLogHelper::getListLogFromCSV(string path) {
   std::vector<Tools::StateTrueLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
-  using namespace boost;
-  using namespace std;
+  // using namespace boost;
+  // using namespace std;
 
   // Open file as READ mode
   ifstream in(path.c_str());
@@ -412,8 +417,8 @@ std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(
   std::vector<Tools::TrackBBLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
-  using namespace boost;
-  using namespace std;
+  // using namespace boost;
+  // using namespace std;
 
   // Open file as READ mode
   ifstream in(path.c_str());

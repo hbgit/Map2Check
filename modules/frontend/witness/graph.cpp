@@ -4,18 +4,29 @@
  * the terms of the GNU General Public License version 3.
  **/
 
-#include <boost/make_unique.hpp>
 #include <fstream>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "graph.hpp"
+
+#include <boost/make_unique.hpp>
+
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"
-#include "graph.hpp"
 #include "witness.hpp"
 
-using namespace Map2Check;
+// using namespace Map2Check;
+using Map2Check::CorrectnessWitnessGraph;
+using Map2Check::DataElement;
+using Map2Check::Edge;
+using Map2Check::Graph;
+using Map2Check::Node;
+using Map2Check::SVCompWitness;
+using Map2Check::ViolationWitnessGraph;
+
 namespace Tools = Map2Check;
 
 using std::ofstream;

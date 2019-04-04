@@ -7,7 +7,9 @@
 #include "exceptions.hpp"
 #include <sstream>
 #include "utils/log.hpp"
-using namespace Map2Check::Exceptions;
+
+using Map2Check::Exceptions;
+using Map2Check::Log;
 
 const char* Map2CheckException::what() const throw() {
   std::ostringstream cnvt;

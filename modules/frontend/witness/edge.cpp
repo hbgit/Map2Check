@@ -11,7 +11,14 @@
 #include "edge.hpp"
 #include "witness.hpp"
 
-using namespace Map2Check;
+// using namespace Map2Check;
+using Map2Check::AssumptionEdgeData;
+using Map2Check::Control;
+using Map2Check::Edge;
+using Map2Check::EdgeData;
+using Map2Check::SourceCode;
+using Map2Check::StartLine;
+
 void Edge::AddElement(std::unique_ptr<EdgeData> element) {
   this->elements.push_back(std::move(element));
 }

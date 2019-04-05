@@ -14,8 +14,9 @@
 #include <vector>
 
 namespace Tools = Map2Check;
-using namespace Map2Check;
-// using Map2Check::Tools;
+// using namespace Map2Check;
+using Map2Check::CounterExample;
+using Map2Check::SourceCodeHelper;
 
 using std::ios;
 

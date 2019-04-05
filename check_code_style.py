@@ -15,6 +15,8 @@ parser.add_argument("-c", "--checkCodeStyle",
                     help="Checks C code in LLVM style", action='store_true')
 parser.add_argument("-p", "--checkCppCodeStyle",
                     help="Checks C++ code Google style", action='store_true')
+parser.add_argument("-t", "--checkInTravis",
+                    help="Checks the code style in Travis service", action='store_true')
 
 args = parser.parse_args()
 
@@ -22,6 +24,7 @@ args = parser.parse_args()
 version = args.version
 c_style = args.checkCodeStyle
 cpp_style = args.checkCppCodeStyle
+travis_flag = args.checkInTravis
 
 
 def apply_clang_format(style, path, extensions):
@@ -39,27 +42,30 @@ if version == True:
     exit(0)
 
 if c_style == True:
-    print("Formatting C codes with clang-format adopting LLVM style ...")
-    # File Extension filter. You can add new extension
-    extensions = (".c", ".h", ".hh")
-    apply_clang_format('llvm', 'modules/backend/library', extensions)
+    if not travis_flag:
+        print("Formatting C codes with clang-format adopting LLVM style ...")
+        # File Extension filter. You can add new extension
+        extensions = (".c", ".h", ".hh")
+        apply_clang_format('llvm', 'modules/backend/library', extensions)
 
 if cpp_style == True:
-    print("Formatting CPP codes with clang-format adopting Google style ...")
-
     # File Extension filter. You can add new extension
     cpp_extensions = (".cxx", ".cpp", ".c", ".hxx", ".hh", ".cc", ".hpp")
     paths_to_check = ["modules/frontend", "modules/backend/pass"]
 
-    for path in paths_to_check:
-        apply_clang_format('google', path, cpp_extensions)
+    if not travis_flag:
+        print("Formatting CPP codes with clang-format adopting Google style ...")
 
-    print("Check issues related to code style ...")
+        for path in paths_to_check:
+            apply_clang_format('google', path, cpp_extensions)
 
-    for path in paths_to_check:
-        if path == "modules/backend/pass":
-            subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/references',
-                            '--linelength=120', '--counting=detailed', path], check=True)
-        else:
-            subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/printf',
-                            '--linelength=120', '--counting=detailed', path], check=True)
+    if travis_flag:
+        print("Check issues related to code style ...")
+
+        for path in paths_to_check:
+            if path == "modules/backend/pass":
+                subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/references',
+                                '--linelength=120', '--counting=detailed', path], check=True)
+            else:
+                subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/printf',
+                                '--linelength=120', '--counting=detailed', path], check=True)

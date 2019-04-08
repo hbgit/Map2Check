@@ -1,24 +1,34 @@
 dist: xenial
-#sudo: require
-
 language: cpp
-
-services: 
-  - docker
-
-before_script:    
-    - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .    
-    - docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile utils/benchexecrun/ 
-
-script:    
-    - docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh; ./make-unit-test.sh" 
-    - ./make-regression-test.sh travis
-    - docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./check_code_style.py -t -c -p"
-
+services:
+- docker
+before_script:
+- docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
+- docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile
+  utils/benchexecrun/
+script:
+- docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id
+  -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh;
+  ./make-unit-test.sh"
+- "./make-regression-test.sh travis"
+- docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id
+  -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./check_code_style.py
+  -t -c -p"
 notifications:
   email:
     recipients:
-      - herberthb12@gmail.com
-      - rafa.sa.xp@gmail.com
-    on_success: never # default: change
-    on_failure: never # default: always
+    - herberthb12@gmail.com
+    - rafa.sa.xp@gmail.com
+    on_success: never
+    on_failure: never
+deploy:
+  provider: releases
+  api_key:
+    secure: hW474mn/IdcXbgq1xLEvt5/jM7cJ9j4xh2xQXX0TwUK51E23sw1BVuFCbdRiDz2pPwbrcEuvoEeOTFhjVfEAaoRtH98ZArno/LdoDjpJQfJ4pIpc4VgbCmCX7OfwJplN0K8YpTHTC00Ft7lsDXDZBSDsFv+N4OjsJu4JjvqFhN7/ybKdQeqW+rLTiG3jXm/gXENJiCNNQDbeSdlO/dmDFoDXt6AxwfgIKGRzB/QEWhyyGhL02HVTzhvjldLAkJUTRQgqI95Cz0rKEUC9KE7a9MDqjaZ460wNTiX1R9QGmPkuDomLFNw8L0J9mSrqDNJVIAA0bVnESiRkU1MqUKul548yvkEM/wtURK491vb0av4iQalLu+TxXhd0Tk92cLVu0HdLLK0sOwDRWlAYaufrVeUcO4GL69nMXk/LKfIM70Tx2N9eRelUyRGsDZQMUA0BMJBH/jxCSuPB9FibIRlQ34JJhXDFR2uVM6D8UvDaI4xLZT98oT6JC61dxAn0VAe6Pl51B4gmzfPwWNvMg4UYcGdxpXdr+j0ITKyuyZnVMFDSuwQp7bCUhF620v8VFEVuib3QuJGzZcN+FFKi9gZJjHEicJ7QXHCE2J/aYISMMftPZEA1vD1jN8EDeFj1RNx6qDDY8lgmBGzpgbNE5Eu3phlHNRO4sFhBgUct8J6nJ1k=
+  file: release/**/*
+  skip_cleanup: true
+  draft: true
+  on:
+    tags: on
+    repo: hbgit/Map2Check
+    branch: develop

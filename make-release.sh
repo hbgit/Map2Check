@@ -44,7 +44,7 @@ cp -r /home/map2check/devel_tool/clang600/lib/clang ./lib
 
 # Copying external libraries and binaries
 cp /usr/bin/ld ./bin
-cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./lib
+cp /usr/lib/x86_64-linux-gnu/libbfd-2.30-system.so ./lib
 cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
 cp /lib/x86_64-linux-gnu/libpthread.so.0 ./lib/libpthread.so
 cp /lib/x86_64-linux-gnu/libdl.so.2 ./lib/libdl.so
@@ -78,7 +78,7 @@ if [ ! -d "./bin/crabllvm" ]; then
     mv ./bin/crab ./bin/crabllvm
 fi
 
-cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./bin/crabllvm/lib/
+cp /usr/lib/x86_64-linux-gnu/libbfd-2.30-system.so ./bin/crabllvm/lib/
 cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./bin/crabllvm/lib/
 cp ./lib/libz3.so ./bin/crabllvm/lib/
 

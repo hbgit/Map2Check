@@ -81,8 +81,8 @@ std::string Caller::postOptimizationFlags() {
   return flags.str();
 }
 
-std::string Caller::getBitcodePath(){
-    return this->programHash + "/" + this->programHash + "-compiled.bc";
+std::string Caller::getBitcodePath() {
+  return this->programHash + "/" + this->programHash + "-compiled.bc";
 }
 
 void Caller::cleanGarbage() {

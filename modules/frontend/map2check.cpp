@@ -3,7 +3,6 @@
  * This file is part of the Map2Check tool, and is made available under
  * the terms of the GNU General Public License version 3.
  **/
-#include "map2check.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -13,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "map2check.hpp"
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
@@ -194,15 +194,15 @@ int map2check_execution(map2check_args args) {
       caller->compileCFile(is_llvmir_in);
     }
   } else {
-    //TODO: Create warning when add invariants is adopted
+    // TODO(hbgit): Create warning when add invariants is adopted
     caller->compileCFile(is_llvmir_in);
   }
 
-  if(args.genInvCrabLlvm){
+  if (args.genInvCrabLlvm) {
     Map2Check::Log::Info("Generating program invariants and stop verification");
-    Map2Check::Log::Info("The bitcode path is: "+ caller->getBitcodePath());
-    //std::cout << caller->getBitcodePath();
-    //return SUCCESS;
+    Map2Check::Log::Info("The bitcode path is: " + caller->getBitcodePath());
+    // std::cout << caller->getBitcodePath();
+    // return SUCCESS;
     abort();
   }
 
@@ -222,7 +222,7 @@ int map2check_execution(map2check_args args) {
   // TODO(hbgit): create methods to generate counter example
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
-                                                      is_llvmir_in);
+                                                    is_llvmir_in);
 
   Map2Check::PropertyViolated propertyViolated;
 
@@ -305,8 +305,9 @@ int main(int argc, char **argv) {
         "check-overflow,o", "\tAnalyze program for overflow failures")(
         "check-asserts,c", "\tAnalyze program and verify assert failures")(
         "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
-        "gen-invariants,s", "\tOnly generating program invariants adopting Crab-LLVM in Bitcode format")(
-        "generate-witness,w", "\tGenerates witness file")(
+        "gen-invariants,s",
+        "\tOnly generating program invariants adopting Crab-LLVM in Bitcode "
+        "format")("generate-witness,w", "\tGenerates witness file")(
         "expected-result,e", po::value<string>(),
         "\tSpecifies type of violation expected")(
         "btree,b",

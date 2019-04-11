@@ -1,8 +1,8 @@
 #ifndef BTREE_H_
 #define BTREE_H_
 
-#include <stdio.h>
 #include "../header/Container.h"
+#include <stdio.h>
 
 /* This file describes an API for a BTree
  *
@@ -48,7 +48,7 @@ typedef struct B_TREE_PAGE {
   /** Returns true if node is a leaf */
   Bool isLeaf;
   /** An arrray of size 2t containing pointers to children */
-  struct B_TREE_PAGE* children[B_TREE_MAP2CHECK_ORDER * 2];
+  struct B_TREE_PAGE *children[B_TREE_MAP2CHECK_ORDER * 2];
   /** An arrray of size 2t containing pointers to children in FILE*/
   fpos_t references[B_TREE_MAP2CHECK_ORDER * 2];
 } B_TREE_PAGE;
@@ -56,7 +56,7 @@ typedef struct B_TREE_PAGE {
 /** Struct that manipulates the B-TREE */
 typedef struct B_TREE {
   /** Root of tree */
-  B_TREE_PAGE* root;
+  B_TREE_PAGE *root;
   /** Current loaded pages */
   unsigned currentLoadedPages;
   /** FILENAME of btree */
@@ -75,32 +75,32 @@ typedef struct B_TREE {
  *  @param btree Pointer to B_TREE
  *  @param stream_pos Position on the FILE where page is
  *  @return Pointer to B_TREE_PAGE or NULL */
-Bool DISK_READ(B_TREE* btree, fpos_t* stream_pos, B_TREE_PAGE* result);
+Bool DISK_READ(B_TREE *btree, fpos_t *stream_pos, B_TREE_PAGE *result);
 
 /** Write page to disk, if new page adds stream_pos, if not, then updates
  *  @param btree Pointer to B_TREE
  *  @param object Pointer to page
  *  @return Success of operation */
-Bool DISK_WRITE(B_TREE* btree, B_TREE_PAGE* object);
+Bool DISK_WRITE(B_TREE *btree, B_TREE_PAGE *object);
 
 /** Search though B_TREE pages to get ROW
  *  @param btree Pointer to B_TREE
  *  @param key Key to be found
  *  @return Pointer to ROW or NULL */
-B_TREE_ROW* B_TREE_SEARCH(B_TREE* btree, unsigned key);
+B_TREE_ROW *B_TREE_SEARCH(B_TREE *btree, unsigned key);
 
-B_TREE B_TREE_CREATE(const char* filename);
-Bool B_TREE_INSERT(B_TREE* btree, B_TREE_ROW* row);
-Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page);
-Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* parent, int index,
-                        B_TREE_PAGE* child);
+B_TREE B_TREE_CREATE(const char *filename);
+Bool B_TREE_INSERT(B_TREE *btree, B_TREE_ROW *row);
+Bool B_TREE_INSERT_NONFULL(B_TREE *btree, B_TREE_ROW *row, B_TREE_PAGE *page);
+Bool B_TREE_SPLIT_CHILD(B_TREE *btree, B_TREE_PAGE *parent, int index,
+                        B_TREE_PAGE *child);
 
-B_TREE_PAGE* B_TREE_PAGE_CREATE(B_TREE* btree);
-void B_TREE_FREE(B_TREE* btree);
+B_TREE_PAGE *B_TREE_PAGE_CREATE(B_TREE *btree);
+void B_TREE_FREE(B_TREE *btree);
 
 // TODO(rafa.sa.xp@gmail.com) After Implementation and test, remove this
-void DumpTree(B_TREE* btree);
-void DumpTreePage(B_TREE_PAGE* page);
-void DumpTreePageChildren(B_TREE_PAGE* page);
-void DumpTreeHelper(B_TREE* btree, unsigned index, B_TREE_PAGE* page);
+void DumpTree(B_TREE *btree);
+void DumpTreePage(B_TREE_PAGE *page);
+void DumpTreePageChildren(B_TREE_PAGE *page);
+void DumpTreeHelper(B_TREE *btree, unsigned index, B_TREE_PAGE *page);
 #endif

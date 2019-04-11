@@ -21,8 +21,9 @@ Bool mark_deallocation_log(MAP2CHECK_CONTAINER *allocation_log, long address) {
   return append_element(allocation_log, &row);
 }
 
-enum MemoryAddressStatus check_address_allocation_log(
-    MAP2CHECK_CONTAINER *allocation_log, long address) {
+enum MemoryAddressStatus
+check_address_allocation_log(MAP2CHECK_CONTAINER *allocation_log,
+                             long address) {
   int i = allocation_log->size - 1;
 
   for (; i >= 0; i--) {
@@ -87,8 +88,8 @@ long valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
   return MemTrackError;
 }
 
-MEMORY_ALLOCATIONS_ROW *find_row_with_address(
-    MAP2CHECK_CONTAINER *allocation_log, void *ptr) {
+MEMORY_ALLOCATIONS_ROW *
+find_row_with_address(MAP2CHECK_CONTAINER *allocation_log, void *ptr) {
   int i = allocation_log->size - 1;
 
   unsigned addressToCheck = (unsigned)ptr;

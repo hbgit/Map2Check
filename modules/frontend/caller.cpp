@@ -1,19 +1,29 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "caller.hpp"
 
 #include <stdlib.h>
 // CPP Libs
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <string>
-
-#include <boost/filesystem.hpp>
+#include <vector>
 
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
 #include "utils/tools.hpp"
 // namespace fs = boost::filesystem;
 // }  // namespace
+
+using std::ifstream;
+using std::regex;
+using std::smatch;
 
 namespace {
 inline std::string getLibSuffix() { return ".so"; }
@@ -86,7 +96,7 @@ void Caller::cleanGarbage() {
 
 void Caller::applyNonDetGenerator() {
   switch (nonDetGenerator) {
-    case (NonDetGenerator::None): {  // TODO: Should generate binary
+    case (NonDetGenerator::None): {  // TODO(hbgit): Should generate binary
       Map2Check::Log::Info(
           "Map2Check will not generate non deterministic numbers");
       break;
@@ -129,10 +139,11 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
    *                             and TrackBasicBlockPass now */
 
   std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
-  
+
   /*Map2Check::Log::Info("Adding loop pass");
-  std::string loopPredAssumePass = "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass";
-  transformCommand << " -load " << loopPredAssumePass << getLibSuffix()
+  std::string loopPredAssumePass =
+  "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass"; transformCommand << " -load "
+  << loopPredAssumePass << getLibSuffix()
                    << " -loop_predicate_assume";*/
 
   Map2Check::Log::Info("Adding nondet pass");
@@ -259,7 +270,7 @@ void Caller::linkLLVM() {
       linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
       break;
     }
-    case (NonDetGenerator::Klee): {  // TODO: Add klee non det generator
+    case (NonDetGenerator::Klee): {  // TODO(hbgit): Add klee non det generator
       linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorKlee.bc";
       break;
     }
@@ -284,8 +295,8 @@ void Caller::linkLLVM() {
 
 void Caller::executeAnalysis() {
   switch (nonDetGenerator) {
-    // TODO: implement this method
-    case (NonDetGenerator::None): {  // TODO: Activate mode
+    // TODO(hbgit): implement this method
+    case (NonDetGenerator::None): {  // TODO(hbgit): Activate mode
       Map2Check::Log::Info("This mode is not supported");
       break;
     }
@@ -377,46 +388,46 @@ std::vector<int> Caller::processClangOutput() {
  * (3) Check for overflow errors on compilation
  */
 void Caller::compileCFile(bool is_llvm_bc) {
+  if (!is_llvm_bc) {
+    Map2Check::Log::Info("Compiling " + this->pathprogram);
 
-  if(!is_llvm_bc){
-  Map2Check::Log::Info("Compiling " + this->pathprogram);
+    // (1) Remove unsupported functions and clean the C code
+    std::ostringstream commandRemoveExternMalloc;
+    commandRemoveExternMalloc.str("");
+    commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
+    commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
+                              << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+                              << " > " << programHash << "-preprocessed.c ";
 
-  // (1) Remove unsupported functions and clean the C code
-  std::ostringstream commandRemoveExternMalloc;
-  commandRemoveExternMalloc.str("");
-  commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
-  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
-                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
-                            << " > " << programHash << "-preprocessed.c ";
+    system(commandRemoveExternMalloc.str().c_str());
 
-  system(commandRemoveExternMalloc.str().c_str());
+    // (2) Generate .bc file from code
+    // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
+    // mode
+    std::string compiledFile = programHash + "-compiled.bc";
+    std::ostringstream command;
+    command.str("");
+    command << Map2Check::clangBinary << " -I" << Map2Check::clangIncludeFolder
+            << " -Wno-everything "
+            << " -Winteger-overflow "
+            << " -c -emit-llvm -g"
+            << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
+            << " " << programHash << "-preprocessed.c "
+            << " > " << programHash << "-clang.out 2>&1";
 
-  // (2) Generate .bc file from code
-  // TODO: -Winteger-overflow should be called only if is on overflow mode
-  std::string compiledFile = programHash + "-compiled.bc";
-  std::ostringstream command;
-  command.str("");
-  command << Map2Check::clangBinary << " -I" << Map2Check::clangIncludeFolder
-          << " -Wno-everything "
-          << " -Winteger-overflow "
-          << " -c -emit-llvm -g"
-          << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
-          << " " << programHash << "-preprocessed.c "
-          << " > " << programHash << "-clang.out 2>&1";
+    system(command.str().c_str());
 
-  system(command.str().c_str());
-
-  this->pathprogram = compiledFile;
-  }else{
-      std::string compiledFile = programHash + "-compiled.bc";
-      std::ostringstream command;
-      command.str("");
-      command << " cp " << this->pathprogram << " " << compiledFile;
-      system(command.str().c_str());
-      this->pathprogram = compiledFile;
+    this->pathprogram = compiledFile;
+  } else {
+    std::string compiledFile = programHash + "-compiled.bc";
+    std::ostringstream command;
+    command.str("");
+    command << " cp " << this->pathprogram << " " << compiledFile;
+    system(command.str().c_str());
+    this->pathprogram = compiledFile;
   }
 
-  // TODO: (3) Check for overflow errors on compilation
+  // TODO(hbgit): (3) Check for overflow errors on compilation
 }
 
 void Caller::compileToCrabLlvm() {
@@ -433,8 +444,8 @@ void Caller::compileToCrabLlvm() {
   system(commandRemoveExternMalloc.str().c_str());
 
   // (2) Generate .bc file from code
-  // TODO: -Winteger-overflow should be called only if is on overflow mode
-  // CLANG PATH
+  // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
+  // mode CLANG PATH
   std::ostringstream getPathCLCommand;
   getPathCLCommand.str("");
   std::ostringstream getMapPath;

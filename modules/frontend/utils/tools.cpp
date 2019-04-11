@@ -1,20 +1,25 @@
-#include "tools.hpp"
-#include "log.hpp"
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 
-#include <algorithm>  // copy
+#include <string>
+#include <vector>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <fstream>   // fstream
-#include <iostream>  // cout, endl
-#include <iterator>  // ostream_operator
-
-#include <sstream>
-
 #include <boost/filesystem.hpp>
-#include <regex>
+
+#include "log.hpp"
+#include "tools.hpp"
 
 namespace fs = boost::filesystem;
 namespace Tools = Map2Check;
+
+using std::ifstream;
+using std::regex;
+using std::smatch;
 
 Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
   Map2Check::Log::Debug("Reading C File");
@@ -38,7 +43,7 @@ Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
 
 std::string Tools::SourceCodeHelper::getFilePath() { return this->path; }
 
-// TODO: replace all should be replace first
+// TODO(hbgit): replace all should be replace first
 std::string Tools::SourceCodeHelper::substituteWithResult(int line,
                                                           std::string old_token,
                                                           std::string result) {
@@ -243,8 +248,12 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
   std::vector<Tools::KleeLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
-  using namespace boost;
-  using namespace std;
+  // using namespace boost;
+  // using namespace std;
+  using std::ifstream;
+  using std::stoi;
+  using std::string;
+  using std::vector;
 
   // Open file as READ mode
   ifstream in(path.c_str());
@@ -254,7 +263,7 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
 
   string line;
   while (getline(in, line)) {
-    // TODO: Check if CSV has valid arguments
+    // TODO(hbgit): Check if CSV has valid arguments
     std::vector<std::string> tokens;
     boost::split(tokens, line, boost::is_any_of(";"));
 
@@ -307,8 +316,8 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(
   std::vector<Tools::ListLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
-  using namespace boost;
-  using namespace std;
+  // using namespace boost;
+  // using namespace std;
 
   // Open file as READ mode
   ifstream in(path.c_str());
@@ -320,7 +329,7 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(
   while (getline(in, line)) {
     std::vector<std::string> tokens;
     boost::split(tokens, line, boost::is_any_of(";"));
-    // TODO: Check if CSV has valid arguments
+    // TODO(hbgit): Check if CSV has valid arguments
     if (tokens.size() == 10) {
       Tools::ListLogRow row;
       string id = tokens[0];
@@ -357,8 +366,8 @@ Tools::StateTrueLogHelper::getListLogFromCSV(string path) {
   std::vector<Tools::StateTrueLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
-  using namespace boost;
-  using namespace std;
+  // using namespace boost;
+  // using namespace std;
 
   // Open file as READ mode
   ifstream in(path.c_str());
@@ -408,8 +417,8 @@ std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(
   std::vector<Tools::TrackBBLogRow> listLog;
   Map2Check::Log::Debug("Started reading file: " + path);
 
-  using namespace boost;
-  using namespace std;
+  // using namespace boost;
+  // using namespace std;
 
   // Open file as READ mode
   ifstream in(path.c_str());

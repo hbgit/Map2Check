@@ -1,7 +1,16 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_FRONTEND_WITNESS_WITNESS_HPP_
+#define MODULES_FRONTEND_WITNESS_WITNESS_HPP_
+
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <string>
 #include <vector>
 
 /* This header describes all used witness arguments from
@@ -26,7 +35,7 @@ class WitnessType : public DataElement {
   virtual std::string convertToString();
 
  public:
-  WitnessType(WitnessTypeValues witnessType)
+  explicit WitnessType(WitnessTypeValues witnessType)
       : DataElement(), witnessType(witnessType) {}
 };
 
@@ -38,7 +47,7 @@ class SourceCodeLang : public DataElement {
   virtual std::string convertToString();
 
  public:
-  SourceCodeLang(SupportedSourceCodeLang language)
+  explicit SourceCodeLang(SupportedSourceCodeLang language)
       : DataElement(), language(language) {}
 };
 
@@ -65,8 +74,8 @@ class Specification : public DataElement {
   virtual std::string convertToString();
 
  public:
-  // TODO: SHOULD THROW ERROR
-  Specification(SpecificationType type) : DataElement() {
+  // TODO(hbgit): SHOULD THROW ERROR
+  explicit Specification(SpecificationType type) : DataElement() {
     switch (type) {
       case SpecificationType::FREE:
         this->value = "CHECK( init(main()), LTL(G valid-free) )";
@@ -91,7 +100,7 @@ class Specification : public DataElement {
         break;
     }
   }
-  // TODO: SHOULD THROW ERROR
+  // TODO(hbgit): SHOULD THROW ERROR
   Specification(SpecificationType type, std::string target) : DataElement() {
     switch (type) {
       case SpecificationType::FREE:
@@ -124,7 +133,7 @@ class ProgramFile : public DataElement {
   virtual std::string convertToString();
 
  public:
-  ProgramFile(std::string path) : path(path), DataElement() {}
+  explicit ProgramFile(std::string path) : path(path), DataElement() {}
 };
 
 class ProgramHash : public DataElement {
@@ -133,7 +142,7 @@ class ProgramHash : public DataElement {
   virtual std::string convertToString();
 
  public:
-  ProgramHash(std::string hash) : hash(hash), DataElement() {}
+  explicit ProgramHash(std::string hash) : hash(hash), DataElement() {}
 };
 
 enum class ArchitectureType { Bit32, Bit64 };
@@ -144,7 +153,9 @@ class Architecture : public DataElement {
   virtual std::string convertToString();
 
  public:
-  Architecture(ArchitectureType type) : DataElement(), type(type) {}
+  explicit Architecture(ArchitectureType type) : DataElement(), type(type) {}
 };
 
 }  // namespace Map2Check
+
+#endif  // MODULES_FRONTEND_WITNESS_WITNESS_HPP_

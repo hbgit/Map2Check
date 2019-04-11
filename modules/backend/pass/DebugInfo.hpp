@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_DEBUGINFO_HPP_
+#define MODULES_BACKEND_PASS_DEBUGINFO_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Instructions.h>
@@ -10,7 +17,14 @@
 #include <string>
 #include <vector>
 
-using namespace llvm;
+// using namespace llvm;
+using llvm::ConstantInt;
+using llvm::DebugLoc;
+using llvm::Instruction;
+using llvm::LLVMContext;
+using llvm::StringRef;
+using llvm::Type;
+using llvm::Value;
 
 struct DebugInfo {
   DebugInfo(LLVMContext* Ctx, Instruction* i);
@@ -25,3 +39,5 @@ struct DebugInfo {
   unsigned lineNumInt = 0;
   StringRef varName;
 };
+
+#endif  // MODULES_BACKEND_PASS_DEBUGINFO_HPP_

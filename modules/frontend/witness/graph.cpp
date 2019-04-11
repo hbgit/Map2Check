@@ -1,11 +1,36 @@
-#include "graph.hpp"
-#include <boost/make_unique.hpp>
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include <fstream>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "graph.hpp"
+
+#include <boost/make_unique.hpp>
+
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"
 #include "witness.hpp"
-using namespace Map2Check;
+
+// using namespace Map2Check;
+using Map2Check::CorrectnessWitnessGraph;
+using Map2Check::DataElement;
+using Map2Check::Edge;
+using Map2Check::Graph;
+using Map2Check::Node;
+using Map2Check::SVCompWitness;
+using Map2Check::ViolationWitnessGraph;
+
 namespace Tools = Map2Check;
+
+using std::ofstream;
+
 void Graph::AddElement(std::unique_ptr<DataElement> element) {
   this->elements.push_back(std::move(element));
 }
@@ -174,8 +199,8 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   std::unique_ptr<DataElement> specification;
   Tools::CheckViolatedProperty violated;
   bool violationWitness = true;
-  // TODO: Add the inspection to automata true, what is the property was I
-  // checking?
+  // TODO(hbgit): Add the inspection to automata true, what is the property was
+  // I checking?
   switch (violated.propertyViolated) {
     case Tools::PropertyViolated::FALSE_FREE:
       specification =
@@ -373,9 +398,8 @@ std:
             /// line number in / stateTrueLogRows was executed
             int tmpi = i + 1;  // next line of trackBBLogRows
             bool lastTrackBBLogRow = false;
-            if (tmpi >=
-                trackBBLogRows.size())  // last postion of trackBBLogRows
-            {
+            // last postion of trackBBLogRows
+            if (tmpi >= trackBBLogRows.size()) {
               tmpi--;
               lastTrackBBLogRow = true;
             }
@@ -398,15 +422,14 @@ std:
                     boost::make_unique<Control>("condition-true");
                 newEdge->AddElement(std::move(control));
                 this->automata->AddEdge(std::move(newEdge));
+              } else if (tmpi < trackBBLogRows.size() && !hasTrueCond) {
+                ////=============== FALSE COND
 
-              }  ////=============== FALSE COND
-
-              /**
-               *  creating a edge to its negation
-               *  create a new node, only if we have a false cond, otherwise we
-               *point to the same node from true cond
-               * */
-              else if (tmpi < trackBBLogRows.size() && !hasTrueCond) {
+                /**
+                 *  creating a edge to its negation
+                 *  create a new node, only if we have a false cond, otherwise
+                 *we point to the same node from true cond
+                 * */
                 // attribute sourcecode
                 std::string falseSourceCond =
                     "[!" + stateTrueLogRows[k].controlCode + "]";
@@ -420,8 +443,8 @@ std:
                 this->automata->AddEdge(std::move(newEdge));
               }
 
-              if (lastTrackBBLogRow)  // last postion with control
-              {
+              // last postion with control
+              if (lastTrackBBLogRow) {
                 i--;
               }
             }
@@ -534,9 +557,8 @@ void SVCompWitness::makeViolationAutomataAux() {
             /// line number in / stateTrueLogRows was executed
             int tmpi = i + 1;  // next line of trackBBLogRows
             bool lastTrackBBLogRow = false;
-            if (tmpi >=
-                trackBBLogRows.size())  // last postion of trackBBLogRows
-            {
+            // last postion of trackBBLogRows
+            if (tmpi >= trackBBLogRows.size()) {
               tmpi--;
               lastTrackBBLogRow = true;
             }
@@ -559,15 +581,14 @@ void SVCompWitness::makeViolationAutomataAux() {
                     boost::make_unique<Control>("condition-true");
                 newEdge->AddElement(std::move(control));
                 this->automata->AddEdge(std::move(newEdge));
+              } else if (tmpi < trackBBLogRows.size() && !hasTrueCond) {
+                ////=============== FALSE COND
 
-              }  ////=============== FALSE COND
-
-              /**
-               *  creating a edge to its negation
-               *  create a new node, only if we have a false cond, otherwise we
-               *point to the same node from true cond
-               * */
-              else if (tmpi < trackBBLogRows.size() && !hasTrueCond) {
+                /**
+                 *  creating a edge to its negation
+                 *  create a new node, only if we have a false cond, otherwise
+                 *we point to the same node from true cond
+                 * */
                 // attribute sourcecode
                 std::string falseSourceCond =
                     "[!" + stateTrueLogRows[k].controlCode + "]";
@@ -581,8 +602,8 @@ void SVCompWitness::makeViolationAutomataAux() {
                 this->automata->AddEdge(std::move(newEdge));
               }
 
-              if (lastTrackBBLogRow)  // last postion with control
-              {
+              // last postion with control
+              if (lastTrackBBLogRow) {
                 i--;
               }
             }

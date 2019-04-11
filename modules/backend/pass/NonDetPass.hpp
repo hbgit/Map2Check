@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_NONDETPASS_HPP_
+#define MODULES_BACKEND_PASS_NONDETPASS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -20,7 +27,13 @@
 #include "DebugInfo.hpp"
 #include "NonDetFunctions.hpp"
 
-using namespace llvm;
+// using namespace llvm;
+using llvm::BasicBlock;
+using llvm::CallInst;
+using llvm::Function;
+using llvm::FunctionPass;
+using llvm::LLVMContext;
+using llvm::Value;
 
 enum class NonDetType {
   INTEGER,
@@ -42,10 +55,10 @@ enum class NonDetType {
   CRAB_ASSUME
 };
 
-namespace {
+namespace InstrumentNonDetS {
 #define INSTRUMENT_HEADER_HELPER(type) \
   void instrumentNonDet##type(CallInst *callInst, LLVMContext *Ctx);
-}  // namespace
+}  // namespace InstrumentNonDetS
 
 struct NonDetPass : public FunctionPass {
   static char ID;
@@ -88,3 +101,5 @@ class NonDetPassException : public std::runtime_error {
       : std::runtime_error(message) {}
   virtual const char *what() const throw();
 };
+
+#endif  // MODULES_BACKEND_PASS_NONDETPASS_HPP_

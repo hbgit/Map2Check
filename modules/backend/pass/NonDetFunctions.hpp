@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_NONDETFUNCTIONS_HPP_
+#define MODULES_BACKEND_PASS_NONDETFUNCTIONS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -15,7 +22,11 @@
 #include <string>
 #include <vector>
 
-using namespace llvm;
+// using namespace llvm;
+using llvm::Constant;
+using llvm::Function;
+using llvm::LLVMContext;
+using llvm::Type;
 
 #define CONSTANT_GENERATOR(type) \
  private:                        \
@@ -54,7 +65,7 @@ class NonDetFunctions {
     NON_DET_FUNCTIONS_HELPER(Pointer, pointer)
     NON_DET_FUNCTIONS_HELPER(Ushort, ushort)
     NON_DET_FUNCTIONS_HELPER(Char, char)
-    NON_DET_FUNCTIONS_HELPER(Long, long)
+    NON_DET_FUNCTIONS_HELPER(Long, Int32)
     NON_DET_FUNCTIONS_HELPER(Ulong, ulong)
     NON_DET_FUNCTIONS_HELPER(Bool, bool)
     NON_DET_FUNCTIONS_HELPER(Uchar, uchar)
@@ -65,3 +76,5 @@ class NonDetFunctions {
     NON_DET_FUNCTIONS_HELPER(Uint, uint)
   }
 };
+
+#endif  // MODULES_BACKEND_PASS_NONDETFUNCTIONS_HPP_

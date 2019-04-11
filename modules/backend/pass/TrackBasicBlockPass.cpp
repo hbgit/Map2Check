@@ -1,4 +1,22 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "TrackBasicBlockPass.hpp"
+
+#include <memory>
+#include <string>
+
+using llvm::CallInst;
+using llvm::dyn_cast;
+using llvm::IRBuilder;
+using llvm::isa;
+using llvm::PHINode;
+using llvm::RegisterPass;
+using llvm::TerminatorInst;
+using llvm::UnreachableInst;
 
 namespace {
 inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
@@ -125,7 +143,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
         this->initializedFunctionName = true;
   }**/
 
-  IRBuilder<> builder((Instruction*)&*this->st_lastBlockInst);
+  IRBuilder<> builder(reinterpret_cast<Instruction*>(&*this->st_lastBlockInst));
   this->functionName =
       builder.CreateGlobalStringPtr(this->currentFunction->getName());
 

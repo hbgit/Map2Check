@@ -1,11 +1,22 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_FRONTEND_COUNTER_EXAMPLE_COUNTER_EXAMPLE_HPP_
+#define MODULES_FRONTEND_COUNTER_EXAMPLE_COUNTER_EXAMPLE_HPP_
+
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <string>
 #include <vector>
+
+#include <boost/make_unique.hpp>
+
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"
-
-#pragma once
 
 namespace Tools = Map2Check;
 namespace Map2Check {
@@ -110,7 +121,7 @@ class CounterExampleProperty : public CounterExampleRow {
         cnvt << "VERIFICATION FAILED";
         break;
       case (Tools::PropertyViolated::TARGET_REACHED):
-        // TODO: Add message for target reached
+        // TODO(hbgit): Add message for target reached
         cnvt << "Violated property:\n";
         cnvt << "\tfile " << this->fileName << " ";
         cnvt << "line " << this->lineNumber << " ";
@@ -119,7 +130,7 @@ class CounterExampleProperty : public CounterExampleRow {
         cnvt << "VERIFICATION FAILED";
         break;
       case (Tools::PropertyViolated::FALSE_DEREF):
-        // TODO: Add message for target reached
+        // TODO(hbgit): Add message for target reached
         cnvt << "Violated property:\n";
         cnvt << "\tfile " << this->fileName << " ";
         cnvt << "line " << this->lineNumber << " ";
@@ -128,7 +139,7 @@ class CounterExampleProperty : public CounterExampleRow {
         cnvt << "VERIFICATION FAILED";
         break;
       case (Tools::PropertyViolated::FALSE_OVERFLOW):
-        // TODO: Add message for target reached
+        // TODO(hbgit): Add message for target reached
         cnvt << "Violated property:\n";
         cnvt << "\tfile " << this->fileName << " ";
         cnvt << "line " << this->lineNumber << " ";
@@ -137,19 +148,19 @@ class CounterExampleProperty : public CounterExampleRow {
         cnvt << "VERIFICATION FAILED";
         break;
       case (Tools::PropertyViolated::FALSE_MEMTRACK):
-        // TODO: Add message for target reached
+        // TODO(hbgit): Add message for target reached
         cnvt << "Violated property:\n";
         cnvt << "\tFALSE-MEMTRACK\n\n";
         cnvt << "VERIFICATION FAILED";
         break;
       case (Tools::PropertyViolated::FALSE_MEMCLEANUP):
-        // TODO: Add message for target reached
+        // TODO(hbgit): Add message for target reached
         cnvt << "Violated property:\n";
         cnvt << "\tFALSE-MEMCLEANUP\n\n";
         cnvt << "VERIFICATION FAILED";
         break;
       case (Tools::PropertyViolated::ASSERT):
-        // TODO: Add message for target reached
+        // TODO(hbgit): Add message for target reached
         cnvt << "Violated property:\n";
         cnvt << "\tfile " << this->fileName << " ";
         cnvt << "line " << this->lineNumber << " ";
@@ -177,7 +188,7 @@ class CounterExampleProperty : public CounterExampleRow {
 
 class CounterExample {
  public:
-  CounterExample(std::string path, bool no_source = false);
+  explicit CounterExample(std::string path, bool no_source = false);
   std::string getViolatedProperty();
   Tools::PropertyViolated getProperty() { return this->property; }
   Tools::PropertyViolated setProperty(Tools::PropertyViolated newProperty) {
@@ -199,3 +210,5 @@ class CounterExample {
 };
 
 }  // namespace Map2Check
+
+#endif  // MODULES_FRONTEND_COUNTER_EXAMPLE_COUNTER_EXAMPLE_HPP_

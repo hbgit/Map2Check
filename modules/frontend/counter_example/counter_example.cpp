@@ -1,9 +1,24 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 #include "counter_example.hpp"
 
 #include <algorithm>
-#include <boost/make_unique.hpp>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace Tools = Map2Check;
-using namespace Map2Check;
+// using namespace Map2Check;
+using Map2Check::CounterExample;
+using Map2Check::SourceCodeHelper;
+
+using std::ios;
 
 CounterExample::CounterExample(std::string path, bool no_source) {
   this->noSource = no_source;
@@ -108,7 +123,7 @@ void CounterExample::processKleeLog() {
 void CounterExample::processListLog() {
   std::vector<Tools::ListLogRow> listLogRows =
       Tools::ListLogHelper::getListLogFromCSV();
-  // TODO: Add flag to map2check to print listlog
+  // TODO(hbgit): Add flag to map2check to print listlog
   int ref = 0;
   for (int i = 0; i < listLogRows.size(); i++) {
     int step = std::stoi(listLogRows[i].step);
@@ -126,8 +141,6 @@ void CounterExample::processListLog() {
   }
 }
 
-#include <fstream>
-#include <iostream>
 void CounterExample::generateTestCase() {
   std::string file = this->sourceCodeHelper->getFilePath();
   std::string testcase = file + ".testcase";

@@ -11,7 +11,7 @@ void generate_aux_files(MAP2CHECK_CONTAINER *trackbb_log) {
 
 #include <stdio.h>
 void generate_confirmation_file() {
-  FILE* output = fopen("map2check_checked_error", "w");
+  FILE *output = fopen("map2check_checked_error", "w");
   fprintf(output, "END OF TIME\n");
   fclose(output);
 }

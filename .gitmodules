@@ -1,0 +1,9 @@
+[submodule "utils/base_image_map2check"]
+	path = utils/base_image_map2check
+	url = https://github.com/hbgit/base_image_map2check.git
+[submodule "utils/dev-llvm_6.0"]
+	path = utils/dev-llvm_6.0
+	url = https://github.com/hbgit/dev-llvm_6.0.git
+[submodule "utils/benchexecrun"]
+	path = utils/benchexecrun
+	url = https://github.com/hbgit/benchexecrun.git

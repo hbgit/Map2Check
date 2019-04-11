@@ -1,6 +1,30 @@
-#include "OverflowPass.h"
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 
-#include <llvm/IR/IntrinsicInst.h>
+#include "OverflowPass.hpp"
+
+#include <memory>
+#include <string>
+#include <vector>
+
+using llvm::CallInst;
+using llvm::cast;
+using llvm::CastInst;
+using llvm::DbgDeclareInst;
+using llvm::DIBasicType;
+using llvm::DILocalVariable;
+using llvm::dyn_cast;
+using llvm::IRBuilder;
+using llvm::isa;
+using llvm::LoadInst;
+using llvm::make_unique;
+using llvm::MDNode;
+using llvm::RegisterPass;
+using llvm::StoreInst;
+using llvm::Twine;
 
 namespace {
 inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
@@ -162,7 +186,7 @@ bool OverflowPass::runOnFunction(Function &F) {
 
   this->Ctx = &F.getContext();
 
-  IRBuilder<> builder((Instruction *)&*instructionIterator);
+  IRBuilder<> builder(reinterpret_cast<Instruction *>(&*instructionIterator));
   this->functionName = builder.CreateGlobalStringPtr(F.getName());
 
   this->listAllUnsignedVar(F);
@@ -201,7 +225,7 @@ bool OverflowPass::runOnFunction(Function &F) {
         std::vector<std::string>::const_iterator iT;
 
         // checking for first operator
-        // TODO: search by map2check_non_det_uint
+        // TODO(hbgit): search by map2check_non_det_uint
 
         bool isUnsignedNonDet = false;
         iT = std::find(this->listUnsignedVars.begin(),
@@ -242,7 +266,7 @@ bool OverflowPass::runOnFunction(Function &F) {
         std::vector<std::string>::const_iterator iT;
 
         // checking for first operator
-        // TODO: search by map2check_non_det_uint
+        // TODO(hbgit): search by map2check_non_det_uint
         bool isUnsigned = false;
         bool isUnsignedNonDet = false;
         iT = std::find(this->listUnsignedVars.begin(),
@@ -289,23 +313,21 @@ bool OverflowPass::runOnFunction(Function &F) {
                       this->valuesThatShouldBeUint.end(), firstOperandValue) !=
             this->valuesThatShouldBeUint.end()) {
           this->isUnitAssignment = true;
-        }
-
-        // Check if is implicitly uint
-        else if (std::find(this->valuesThatShouldBeUint.begin(),
-                           this->valuesThatShouldBeUint.end(),
-                           secondOperandValue) !=
-                 this->valuesThatShouldBeUint.end()) {
+        } else if (std::find(this->valuesThatShouldBeUint.begin(),
+                             this->valuesThatShouldBeUint.end(),
+                             secondOperandValue) !=
+                   this->valuesThatShouldBeUint.end()) {
+          // Check if is implicitly uint
           this->isUnitAssignment = true;
         }
 
-        this->isUnitAssignment = !binOp->hasNoSignedWrap();    
+        this->isUnitAssignment = !binOp->hasNoSignedWrap();
 
         switch (binOp->getOpcode()) {
           case (Instruction::Add):
             if (this->isUnitAssignment) {
               // instrumentedFunction =
-                  // this->operationsFunctions->getOverflowAddUint();
+              // this->operationsFunctions->getOverflowAddUint();
             } else {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowAdd();
@@ -317,7 +339,7 @@ bool OverflowPass::runOnFunction(Function &F) {
           case (Instruction::Sub):
             if (this->isUnitAssignment) {
               // instrumentedFunction =
-                  // this->operationsFunctions->getOverflowSubUint();
+              // this->operationsFunctions->getOverflowSubUint();
             } else {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowSub();
@@ -329,7 +351,7 @@ bool OverflowPass::runOnFunction(Function &F) {
           case (Instruction::Mul):
             if (this->isUnitAssignment) {
               // instrumentedFunction =
-                  // this->operationsFunctions->getOverflowMulUint();
+              // this->operationsFunctions->getOverflowMulUint();
             } else {
               instrumentedFunction =
                   this->operationsFunctions->getOverflowMul();

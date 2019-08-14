@@ -22,8 +22,8 @@ if [ $has_docker_img -gt 0 ]; then
 
     # Analyzing the results
     get_last_file_result=`ls -t release/results/*.txt | head -1`
-    get_total_test_cases=`tail -n 10 $get_last_file_result | grep -oEi "Statistics:(.[^Files]*)" | grep -oe "[0-9][^ ] $" | grep -oe "[0-9]*"`
-    get_total_success=`tail -n 10 $get_last_file_result | grep -oEi "Score:(.[^(]*)" | grep -oe "[0-9][^ ] $" | grep -oe "[0-9]*"`
+    get_total_test_cases=`tail -n 10 $get_last_file_result | grep -oEi "Statistics:(.[^Files]*)" | grep -oe "[0-9]*"`
+    get_total_success=`tail -n 10 $get_last_file_result | grep -oEi "Score:(.[^(]*)" | grep -oe "[0-9]*"`
     percent_tests=$(( ($get_total_success*100)/$get_total_test_cases ))
 
     if [ $travis_flag -eq 0 ]; then

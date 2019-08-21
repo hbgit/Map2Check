@@ -44,11 +44,11 @@ cp -r /home/map2check/devel_tool/clang600/lib/clang ./lib
 
 # Copying external libraries and binaries
 cp /usr/bin/ld ./bin
-cp /usr/lib/x86_64-linux-gnu/libbfd-2.30-system.so ./lib
+cp /usr/lib/x86_64-linux-gnu/libbfd-* ./lib
 cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
 cp /lib/x86_64-linux-gnu/libpthread.so.0 ./lib/libpthread.so
 cp /lib/x86_64-linux-gnu/libdl.so.2 ./lib/libdl.so
-cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25 ./lib/libstdc++.so.6
+cp /usr/lib/x86_64-linux-gnu/libstdc++* ./lib/
 cp /lib/x86_64-linux-gnu/libm.so.6 ./lib/libm.so
 cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ./lib/libgcc_s.so
 cp /usr/lib/gcc/x86_64-linux-gnu/5/libgcc.a ./lib/
@@ -80,9 +80,9 @@ fi
 
 echo "> Crab-LLVM replacing PATH"
 sed -i '54s/\"PATH\"/\"CLANG_PATH\"/' ./bin/crabllvm/bin/crabllvm.py
-cp /usr/lib/x86_64-linux-gnu/libbfd-2.30-system.so ./bin/crabllvm/lib/
+cp /usr/lib/x86_64-linux-gnu/libbfd-* ./bin/crabllvm/lib/
 cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./bin/crabllvm/lib/
-cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25 ./bin/crabllvm/lib/libstdc++.so.6
+cp /usr/lib/x86_64-linux-gnu/libstdc++* ./bin/crabllvm/lib/
 cp ./lib/libz3.so ./bin/crabllvm/lib/
 
 ../utils/cp_utils_file.sh

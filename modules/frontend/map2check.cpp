@@ -280,25 +280,24 @@ int main(int argc, char **argv) {
   try {
     // Define and parse the program options
     po::options_description desc("Options");
-    desc.add_options()("help,h", "\tshow help")(
-        "version,v", "\tprints map2check version")("debug,d", "\t Debug mode")(
-        "input-file,i", po::value<std::vector<std::string>>(),
-        "\tspecifies the files")("timeout,t", po::value<unsigned>(),
-                                 "\tTimeout for map2check execution")(
-        "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
-        "generate-testcase,g",
-        "\tCreates c program with fail testcase (experimental)")(
-        "memtrack,m", "\tCheck for memory errors")("print-counter,p",
-                                                   "\tPrint Counterexample")(
-        "memcleanup-property", "\t Analyze program for memcleanup errors")(
-        "check-overflow,o", "\tAnalyze program for overflow failures")(
-        "check-asserts,c", "\tAnalyze program and verify assert failures")(
-        "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
-        "generate-witness,w", "\tGenerates witness file")(
-        "expected-result,e", po::value<string>(),
-        "\tSpecifies type of violation expected")(
-        "btree,b",
-        "\t Uses btree structure to hold information (experimental, use this "
+    desc.add_options()("help", "\tshow help")
+        ("version", "\tprints map2check version")
+        ("debug", "\tdebug mode")
+        ("input-file", po::value<std::vector<std::string>>(),
+                      "\tspecifies the files")
+        ("timeout", po::value<unsigned>(),
+                      "\ttimeout for map2check execution")
+        ("target-function", "\tsearches for __VERIFIER_error is reachable")
+        ("generate-testcase", "\tcreates c program with fail testcase (experimental)")
+        ("memtrack", "\tcheck for memory errors")
+        ("print-counter", "\tprint counterexample")
+        ("memcleanup-property", "\tanalyze program for memcleanup errors")
+        ("check-overflow", "\tanalyze program for overflow failures")
+        ("check-asserts", "\tanalyze program and verify assert failures")
+        ("add-invariants", "\tadding program invariants adopting Crab-LLVM")
+        ("generate-witness", "\tgenerates witness file")
+        ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
+        ("btree", "\tuses btree structure to hold information (experimental, use this "
         "if you are having memory problems)");
 
     po::positional_options_description p;
@@ -322,12 +321,12 @@ int main(int argc, char **argv) {
     }
     if (vm.count("help") == 0 && vm.count("input-file") == 0) {
       help_msg();
-      // std::cout << desc;
+      std::cout << desc;
       return ERROR_IN_COMMAND_LINE;
     }
     if (vm.count("help")) {
       help_msg();
-      // std::cout << desc;
+      std::cout << desc;
       return SUCCESS;
     }
     if (vm.count("expected-result")) {

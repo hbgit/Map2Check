@@ -1,4 +1,5 @@
 #!/bin/sh
+# Running regression testing
 
 # Checking if testing is adopting travis service
 xml_doc_benchexec_name="map2check_regression_test.xml"
@@ -44,6 +45,17 @@ if [ $has_docker_img -gt 0 ]; then
 
     echo ""
     echo "Regression testing results is: $percent_tests % of correct results"
+
+    echo ""
+    echo "Counterexample format validation result: "
+    # count results
+    get_ce_total_erros=`cat result_ce.tmp | wc -l`
+    if [ $get_ce_total_erros -qt 0 ]; then
+      cat result_ce.tmp
+    else
+      "100% correct output."
+    fi
+
     exit 0
 
   else

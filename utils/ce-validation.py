@@ -45,5 +45,5 @@ for num, line in enumerate(ceoutput_file_content, start=1):
             split = line.split(":")
             if len(split) > 1:
                 if not split[1]:
-                    print("ERROR in line number < " +
+                    print("[ERROR-CE] in line number < " +
                           str(num) + " > of counterexample")

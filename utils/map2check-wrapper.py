@@ -107,16 +107,17 @@ if "VERIFICATION FAILED" in stdout.decode():
       output_tmp_ce = open('ce.tmp', 'w')
       output_tmp_ce.write(stdout.decode())
       output_tmp_ce.close()
-      command_line_ce = "./ce-validation.py ce.tmp"
+      command_line_ce = "../utils/ce-validation.py ce.tmp"
       args = shlex.split(command_line_ce)
 
-      p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      (stdout, stderr) = p.communicate()
+      # checkout same var name!!!!
+      p_ce = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      (stdout_ce, stderr_ce) = p_ce.communicate()
 
       # Parse counterexample output
-      if b'[ERROR-CE]' in stdout:
+      if b'[ERROR-CE]' in stdout_ce:
         result_tmp_ce = open('result_ce.tmp', 'w+')
-        result_tmp_ce.write("ERROR counterexample in " + benchmark)
+        result_tmp_ce.write("ERROR counterexample in " + benchmark + "\n")
         result_tmp_ce.close()
 
 

@@ -48,10 +48,13 @@ if [ $has_docker_img -gt 0 ]; then
 
     echo ""
     echo "Counterexample format validation result: "
-    # count results
-    get_ce_total_erros=`cat result_ce.tmp | wc -l`
-    if [ $get_ce_total_erros -qt 0 ]; then
-      cat result_ce.tmp
+    path_result_ce_f="release/result_ce.tmp"
+    if [ -f $path_result_ce_f ]
+    then
+      # count results
+      get_ce_total_erros=$(cat "$path_result_ce_f" | wc -l)
+      echo "$get_ce_total_erros  ERROR found :("
+      cat $path_result_ce_f
     else
       "100% correct output."
     fi

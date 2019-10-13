@@ -285,6 +285,8 @@ int main(int argc, char **argv) {
         ("debug", "\tdebug mode")
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
+        ("smt-solver", po::value<std::string>()->default_value("z3"),
+                      "\tspecifies the smt-solver, valid values are stp (STP), z3 (Z3 is default), and btor (Boolector)")
         ("timeout", po::value<unsigned>(),
                       "\ttimeout for map2check execution")
         ("target-function", "\tsearches for __VERIFIER_error is reachable")
@@ -319,6 +321,8 @@ int main(int argc, char **argv) {
       std::cout << Map2CheckVersion << "\n";
       return SUCCESS;
     }
+    //if(vm.count("smt-solver")){
+    //}
     if (vm.count("help") == 0 && vm.count("input-file") == 0) {
       help_msg();
       std::cout << desc;

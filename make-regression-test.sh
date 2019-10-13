@@ -1,13 +1,43 @@
-#!/bin/sh
+#!/bin/bash
 # Running regression testing
 
-# Checking if testing is adopting travis service
-xml_doc_benchexec_name="map2check_regression_test.xml"
+# Checking regression type
+# t = Travis service
+# m = Map2Check tests
+# s = SV-COMP tests
+
 travis_flag=0
-if [ "$1" != "" ]; then
+
+# Checking if testing is adopting travis service
+
+if [ "$1" = "t" ]; then
     xml_doc_benchexec_name="map2check_regression_test_travis.xml"
     travis_flag=1
 fi
+
+if [ "$1" = "m" ]; then
+    xml_doc_benchexec_name="map2check_regression_test.xml"
+    travis_flag=0
+fi
+
+if [ "$1" = "s" ]; then
+    xml_doc_benchexec_name="map2check_svcomp_regression.xml"
+    travis_flag=0
+    # checking if you have the svcomp benchmark
+    # the path should be inside the map2check directory
+    if [ ! -e "sv-benchmarks" ]; then
+	    echo "Downloading sv-benchmarks ..."
+	    git clone https://github.com/sosy-lab/sv-benchmarks.git 
+    fi
+fi
+
+if [ -z $1 ]; then
+    echo "Please, define the regression type"
+    exit 1
+fi
+
+
+echo "Adopting: $xml_doc_benchexec_name"
 
 # Check if docker image is already build
 # 1 - Build docker image available at https://github.com/hbgit/benchexecrun

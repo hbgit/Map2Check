@@ -324,7 +324,7 @@ void Caller::executeAnalysis() {
       command.str("");
       command << "timeout " << (0.2 * this->timeout) << " ";
       command << "./" + programHash +
-                     "-fuzzed.out -jobs=2 -use_value_profile=1 "
+                     "-fuzzed.out -jobs=8 -use_value_profile=1 "
               << " > fuzzer.output";
 
       int result = system(command.str().c_str());

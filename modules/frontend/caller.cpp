@@ -289,7 +289,7 @@ void Caller::linkLLVM() {
   system(linkCommand.str().c_str());
 }
 
-void Caller::executeAnalysis() {
+void Caller::executeAnalysis(std::string solvername) {
   switch (nonDetGenerator) {
     // TODO(hbgit): implement this method
     case (NonDetGenerator::None): {  // TODO(hbgit): Activate mode
@@ -306,7 +306,7 @@ void Caller::executeAnalysis() {
                   << " --allow-external-sym-calls"
                   << " -exit-on-error-type=Abort"
                   << " --optimize "
-                  << " -solver-backend=z3 "
+                  << " -solver-backend=" + solvername + " "
                   << " -libc=uclibc"
                   << " ./" + programHash + "-witness-result.bc"
                   << "  > ExecutionOutput.log";

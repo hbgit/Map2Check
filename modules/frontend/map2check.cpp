@@ -137,6 +137,7 @@ struct map2check_args {
   unsigned timeout = 0;
   std::string inputFile;
   std::string function;
+  std::string solvername;
   std::string expectedResult = "";
   Map2Check::Map2CheckMode mode;
   bool generateWitness = false;
@@ -205,7 +206,7 @@ int map2check_execution(map2check_args args) {
 
   // (3) Apply nondeterministic mode and execute analysis
   caller->applyNonDetGenerator();
-  caller->executeAnalysis();
+  caller->executeAnalysis(args.solvername);
 
   // (4) Retrieve results
   // TODO(hbgit): create methods to generate counter example
@@ -286,7 +287,7 @@ int main(int argc, char **argv) {
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
         ("smt-solver", po::value<std::string>()->default_value("z3"),
-                      "\tspecifies the smt-solver, valid values are stp (STP), z3 (Z3 is default), and btor (Boolector)")
+                      "\tspecifies the smt-solver, valid values are stp (STP), z3 (Z3 is default), btor (Boolector), and yices (Yices)")
         ("timeout", po::value<unsigned>(),
                       "\ttimeout for map2check execution")
         ("target-function", "\tsearches for __VERIFIER_error is reachable")
@@ -321,8 +322,6 @@ int main(int argc, char **argv) {
       std::cout << Map2CheckVersion << "\n";
       return SUCCESS;
     }
-    //if(vm.count("smt-solver")){
-    //}
     if (vm.count("help") == 0 && vm.count("input-file") == 0) {
       help_msg();
       std::cout << desc;
@@ -332,6 +331,23 @@ int main(int argc, char **argv) {
       help_msg();
       std::cout << desc;
       return SUCCESS;
+    }
+    if(vm.count("smt-solver")){
+      string solvername = vm["smt-solver"].as<string>();
+      std::transform(solvername.begin(), solvername.end(), solvername.begin(), [](unsigned char c){ return std::tolower(c); });
+
+      std::vector<std::string> vSolver = {"z3", "stp", "btor", "yices"};
+
+      if( !std::count(vSolver.begin(), vSolver.end(), solvername) ) {
+        std::cout << "Solver not supported.\n\n";
+	std::cout << desc;
+        return ERROR_IN_COMMAND_LINE;
+      }else{
+	std::cout << "Adopting " + solvername + " solver... \n";
+	args.solvername = solvername;
+	return SUCCESS;
+      }
+
     }
     if (vm.count("expected-result")) {
       string expected = vm["expected-result"].as<string>();

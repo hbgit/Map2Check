@@ -8,7 +8,7 @@ import subprocess
 tool_path = "./map2check "
 # default args
 extra_tool = "timeout 895s "
-command_line = extra_tool + tool_path
+command_line = extra_tool + tool_path + " --smt-solver yices "
 
 # Options
 parser = argparse.ArgumentParser()

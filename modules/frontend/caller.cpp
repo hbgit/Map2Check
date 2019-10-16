@@ -308,30 +308,36 @@ void Caller::executeAnalysis(std::string solvername) {
       std::vector<std::string> kleemetasolver = {"btor", "yices"};
 
 
-      if( !std::count(kleebackendsolver.begin(), kleebackendsolver.end(), solvername) ) {
+      if( std::count(kleebackendsolver.begin(), kleebackendsolver.end(), solvername) ) {
 
         // Checkout solver adopted, if is z3 or stp
         // in KLEE add -solver-backend option
 
+        Map2Check::Log::Info("Solver backend caller: " + solvername);
+        //  --allow-external-sym-calls
+	//  -use-cache
+	
         kleeCommand << " -suppress-external-warnings"
-                    << " --allow-external-sym-calls"
+                    << " --external-calls=all"
                     << " -exit-on-error-type=Abort"
-                    << " --optimize "
-	    	    << " -use-cache "
+                    << " --optimize"
+	    	    << " -use-cex-cache"
                     << " -solver-backend=" + solvername + " "
+		    << " -use-construct-hash-metasmt "
                     << " -libc=uclibc"
                     << " ./" + programHash + "-witness-result.bc"
                     << "  > ExecutionOutput.log";
 
-      }else if( !std::count(kleemetasolver.begin(), kleemetasolver.end(), solvername) ) {
+      }else if( std::count(kleemetasolver.begin(), kleemetasolver.end(), solvername) ) {
         // Checkout solver adopted, if is btor (Boolector) or yices (Yices)
         // in KLEE add - option
-
+        Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
+	
         kleeCommand << " -suppress-external-warnings"
-                    << " --allow-external-sym-calls"
+		    << " --external-calls=all"
                     << " -exit-on-error-type=Abort"
-                    << " --optimize "
-	    	    << " -use-cache "
+                    << " --optimize"
+	    	    << " -use-cex-cache"
 		    << " -solver-backend=metasmt "
                     << " -metasmt-backend=" + solvername + " "
 		    << " -use-construct-hash-metasmt "

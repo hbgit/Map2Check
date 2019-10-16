@@ -69,8 +69,26 @@ if [ ! -d "./z3" ]; then
     cp -r z3/lib/* lib/
 fi
 
-# Klee 
+# Klee and klee_uclib 
 cp -r /deps/install/klee/* .
+
+# metasmt
+echo "> Copying metaSMT deps ..."
+cp -r /deps/install/metasmt/lib/* lib/
+cp -r /deps/install/metasmt/include/* include/
+# library from metasmt
+cp -r /deps/src/metaSMT/deps/boolector-2.2.0/lib/libboolector.so lib/
+cp -r /deps/src/metaSMT/deps/lingeling-ayv-86bf266-140429/lib/liblingeling.so lib/
+cp -r /deps/src/metaSMT/deps/yices-2.5.1/lib/libyices.so.2.5.1 lib/
+cp -r /deps/src/metaSMT/deps/yices-2.5.1/lib/libyices.so.2.5 lib/
+cp -r /deps/src/metaSMT/deps/yices-2.5.1/lib/libyices.so lib/
+cp -r /deps/src/metaSMT/deps/minisat-git/lib/libminisat.a lib/
+cp -r /deps/src/metaSMT/deps/minisat-git/lib/libminisat.so lib/
+cp -r /deps/src/metaSMT/deps/minisat-git/lib/libminisat.so.2 lib/
+cp -r /deps/src/metaSMT/deps/minisat-git/lib/libminisat.so.2.1.0 lib/
+
+# minisat
+# stp
 
 # Crab
 if [ ! -d "./bin/crabllvm" ]; then

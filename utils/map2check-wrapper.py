@@ -8,7 +8,7 @@ import subprocess
 tool_path = "./map2check "
 # default args
 extra_tool = "timeout 895s "
-command_line = extra_tool + tool_path + " --smt-solver yices "
+command_line = extra_tool + tool_path
 
 # Options
 parser = argparse.ArgumentParser()
@@ -72,7 +72,7 @@ if is_memsafety:
 elif is_memcleanup:
   command_line += " --memcleanup-property --generate-witness "
 elif is_reachability:
-  command_line += " --add-invariants --target-function --generate-witness "
+  command_line += " --smt-solver yices2 --add-invariants --target-function --generate-witness "
 elif is_overflow:
   command_line += " --check-overflow --generate-witness "
 

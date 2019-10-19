@@ -491,8 +491,19 @@ void Caller::compileToCrabLlvm() {
   std::ostringstream getPathLibCrabCommand;
   getPathLibCrabCommand.str("");
 
-  getPathLibCrabCommand << "LD_LIBRARY_PATH=" << getMapPath.str().c_str()
+  std::ostringstream tmp_ld_p;
+  tmp_ld_p << getenv("LD_LIBRARY_PATH");
+
+
+  getPathLibCrabCommand << "LD_LIBRARY_PATH="
+                        << tmp_ld_p.str().c_str()
+                        << ":"
+                        << getMapPath.str().c_str()
                         << "/bin/crabllvm/lib";
+
+  std::ostringstream tmp_ld;
+  tmp_ld << getenv("LD_LIBRARY_PATH");
+  std::cout << tmp_ld.str().c_str();
 
   std::string tmp_gplibcc = getPathLibCrabCommand.str().c_str();
   char* c_gplibcc = new char[tmp_gplibcc.length() + 1];

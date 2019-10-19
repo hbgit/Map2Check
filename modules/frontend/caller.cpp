@@ -305,7 +305,7 @@ void Caller::executeAnalysis(std::string solvername) {
 
 
       std::vector<std::string> kleebackendsolver = {"z3", "stp"};
-      std::vector<std::string> kleemetasolver = {"btor", "yices"};
+      std::vector<std::string> kleemetasolver = {"btor", "yices2"};
 
 
       if( std::count(kleebackendsolver.begin(), kleebackendsolver.end(), solvername) ) {

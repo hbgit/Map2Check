@@ -287,7 +287,7 @@ int main(int argc, char **argv) {
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
         ("smt-solver", po::value<std::string>()->default_value("z3"),
-                      "\tspecifies the smt-solver, valid values are stp (STP), z3 (Z3 is default), btor (Boolector), and yices")
+                      "\tspecifies the smt-solver, valid values are stp (STP), z3 (Z3 is default), btor (Boolector), and yices2 (Yices)")
         ("timeout", po::value<unsigned>(),
                       "\ttimeout for map2check execution")
         ("target-function", "\tsearches for __VERIFIER_error is reachable")
@@ -336,7 +336,7 @@ int main(int argc, char **argv) {
       string solvername = vm["smt-solver"].as<string>();
       std::transform(solvername.begin(), solvername.end(), solvername.begin(), [](unsigned char c){ return std::tolower(c); });
 
-      std::vector<std::string> vSolver = {"z3", "stp", "btor", "yices"};
+      std::vector<std::string> vSolver = {"z3", "stp", "btor", "yices2"};
 
       if( !std::count(vSolver.begin(), vSolver.end(), solvername) ) {
         std::cout << "Solver not supported.\n\n";

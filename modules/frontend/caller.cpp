@@ -308,45 +308,41 @@ void Caller::executeAnalysis(std::string solvername) {
       std::vector<std::string> kleemetasolver = {"btor", "yices2"};
 
 
-      if( std::count(kleebackendsolver.begin(), kleebackendsolver.end(), solvername) ) {
-
+      if ( std::count(kleebackendsolver.begin(), kleebackendsolver.end(), solvername) ) {
         // Checkout solver adopted, if is z3 or stp
         // in KLEE add -solver-backend option
 
         Map2Check::Log::Info("Solver backend caller: " + solvername);
         //  --allow-external-sym-calls
-	//  -use-cache
-	
+        //  -use-cache
         kleeCommand << " -suppress-external-warnings"
                     << " --external-calls=all"
                     << " -exit-on-error-type=Abort"
                     << " --optimize"
-	    	    << " -use-cex-cache"
+                    << " -use-cex-cache"
                     << " -solver-backend=" + solvername + " "
-		    << " -use-construct-hash-metasmt "
+                    << " -use-construct-hash-metasmt "
                     << " -libc=uclibc"
                     << " ./" + programHash + "-witness-result.bc"
                     << "  > ExecutionOutput.log";
-
-      }else if( std::count(kleemetasolver.begin(), kleemetasolver.end(), solvername) ) {
+      } else if ( std::count(kleemetasolver.begin(), kleemetasolver.end(), solvername) ) {
         // Checkout solver adopted, if is btor (Boolector) or yices (Yices)
         // in KLEE add - option
         Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
-	
+
         kleeCommand << " -suppress-external-warnings"
-		    << " --external-calls=all"
+                    << " --external-calls=all"
                     << " -exit-on-error-type=Abort"
                     << " --optimize"
-	    	    << " -use-cex-cache"
-		    << " -solver-backend=metasmt "
+                    << " -use-cex-cache"
+                    << " -solver-backend=metasmt "
                     << " -metasmt-backend=" + solvername + " "
-		    << " -use-construct-hash-metasmt "
+                    << " -use-construct-hash-metasmt "
                     << " -libc=uclibc"
                     << " ./" + programHash + "-witness-result.bc"
                     << "  > ExecutionOutput.log";
-        
       }
-      
+
       Map2Check::Log::Debug(kleeCommand.str());
       int result = system(kleeCommand.str().c_str());
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));

@@ -118,8 +118,11 @@ if [ "$export_svcomp" = true ] ; then
 	rm ./bin/kleaver
 	rm -rf ./bin/crabllvm/ldd
 
-    rm ./bin/crabllvm/lib/libz3.so
-	ln -s ./z3/lib/libz3.so ./bin/crabllvm/lib/libz3.so
+        rm ./bin/crabllvm/lib/libz3.so
+	#ln -s ./z3/lib/libz3.so ./bin/crabllvm/lib/libz3.so
+	cd bin/crabllvm/lib/
+	ln -s ../../../lib/libz3.so .
+	cd ../../../ # go back to release
 	#rm ./lib/libz3.so
 fi
 

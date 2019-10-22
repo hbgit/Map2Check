@@ -63,13 +63,13 @@ else:
 
 # Set options
 if is_memsafety:
-  command_line += " --memtrack --generate-witness "
+  command_line += " --timeout 896 --memtrack --generate-witness "
 elif is_memcleanup:
-  command_line += " --memcleanup-property --generate-witness "
+  command_line += " --timeout 896 --memcleanup-property --generate-witness "
 elif is_reachability:
-  command_line += " --smt-solver yices2 --add-invariants --target-function --generate-witness "
+  command_line += " --timeout 896 --smt-solver yices2 --add-invariants --target-function --generate-witness "
 elif is_overflow:
-  command_line += " --check-overflow --generate-witness "
+  command_line += " --timeout 896 --check-overflow --generate-witness "
 
 print("Verifying with MAP2CHECK ")
 # Call MAP2CHECK

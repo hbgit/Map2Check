@@ -67,19 +67,29 @@ if is_memsafety:
 elif is_memcleanup:
   command_line += " --timeout 896 --memcleanup-property --generate-witness "
 elif is_reachability:
+  command_line_bkp = command_line + " --timeout 896 --smt-solver yices2 --target-function --generate-witness "
   command_line += " --timeout 896 --smt-solver yices2 --add-invariants --target-function --generate-witness "
 elif is_overflow:
   command_line += " --timeout 896 --check-overflow --generate-witness "
 
 print("Verifying with MAP2CHECK ")
+
 # Call MAP2CHECK
 command_line += benchmark
+command_line_bkp += benchmark
+
 print("Command: " + command_line)
-
 args = shlex.split(command_line)
-
 p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 (stdout, stderr) = p.communicate()
+
+# Check invariant conflict
+if b'failed external call: __map2check_main__' in stderr:
+  if is_reachability:
+    args = shlex.split(command_line_bkp)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = p.communicate()
+
 
 # Parse output
 if b'Timed out' in stdout:

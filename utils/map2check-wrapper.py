@@ -62,6 +62,7 @@ else:
 
 
 # Set options
+command_line_bkp = ""
 if is_memsafety:
   command_line += " --timeout 896 --memtrack --generate-witness "
 elif is_memcleanup:

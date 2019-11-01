@@ -83,7 +83,7 @@ class Caller {
   void linkLLVM();
 
   /** Executes analysis with the generated LLVM IR */
-  void executeAnalysis();
+  void executeAnalysis(std::string solvername);
 
   /** Remove generated files for verification */
   void cleanGarbage();

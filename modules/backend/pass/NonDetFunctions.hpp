@@ -65,7 +65,7 @@ class NonDetFunctions {
     NON_DET_FUNCTIONS_HELPER(Pointer, pointer)
     NON_DET_FUNCTIONS_HELPER(Ushort, ushort)
     NON_DET_FUNCTIONS_HELPER(Char, char)
-    NON_DET_FUNCTIONS_HELPER(Long, Int32)
+    NON_DET_FUNCTIONS_HELPER(Long, long)
     NON_DET_FUNCTIONS_HELPER(Ulong, ulong)
     NON_DET_FUNCTIONS_HELPER(Bool, bool)
     NON_DET_FUNCTIONS_HELPER(Uchar, uchar)

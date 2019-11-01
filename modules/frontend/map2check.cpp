@@ -22,7 +22,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-#define Map2CheckVersion "v7.2-Flock : Tue Nov 27 22:00:00 -04 2018"
+#define Map2CheckVersion "v7.3-Flock : Tue Oct 22 16:17:32 -04 2019"
 
 // TODO(hbgit): should get preprocessor flags from CMake
 
@@ -137,6 +137,7 @@ struct map2check_args {
   unsigned timeout = 0;
   std::string inputFile;
   std::string function;
+  std::string solvername;
   std::string expectedResult = "";
   Map2Check::Map2CheckMode mode;
   bool generateWitness = false;
@@ -205,7 +206,7 @@ int map2check_execution(map2check_args args) {
 
   // (3) Apply nondeterministic mode and execute analysis
   caller->applyNonDetGenerator();
-  caller->executeAnalysis();
+  caller->executeAnalysis(args.solvername);
 
   // (4) Retrieve results
   // TODO(hbgit): create methods to generate counter example
@@ -285,6 +286,9 @@ int main(int argc, char **argv) {
         ("debug", "\tdebug mode")
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
+        ("smt-solver", po::value<std::string>()->default_value("z3"),
+                      R"(specifies the smt-solver, valid values are stp (STP), 
+z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("timeout", po::value<unsigned>(),
                       "\ttimeout for map2check execution")
         ("target-function", "\tsearches for __VERIFIER_error is reachable")
@@ -328,6 +332,24 @@ int main(int argc, char **argv) {
       help_msg();
       std::cout << desc;
       return SUCCESS;
+    }
+    if (vm.count("smt-solver")) {
+      string solvername = vm["smt-solver"].as<string>();
+      std::transform(solvername.begin(), solvername.end(),
+                     solvername.begin(), [](unsigned char c){
+                     return std::tolower(c); });
+
+      std::vector<std::string> vSolver = {"z3", "stp", "btor", "yices2"};
+
+      if ( !std::count(vSolver.begin(), vSolver.end(), solvername) ) {
+        std::cout << "Solver not supported.\n\n";
+        std::cout << desc;
+        return ERROR_IN_COMMAND_LINE;
+      } else {
+        std::cout << "Adopting " + solvername + " solver... \n";
+        args.solvername = solvername;
+        // return SUCCESS;
+      }
     }
     if (vm.count("expected-result")) {
       string expected = vm["expected-result"].as<string>();

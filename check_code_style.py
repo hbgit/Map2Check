@@ -64,7 +64,7 @@ if cpp_style == True:
 
         for path in paths_to_check:
             if path == "modules/backend/pass":
-                subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/references',
+                subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/references,-runtime/int',
                                 '--linelength=120', '--counting=detailed', path], check=True)
             else:
                 subprocess.run(['python', 'utils/cpplint.py', '--recursive', '--filter=-runtime/printf',

@@ -14,6 +14,7 @@ command_line = extra_tool + tool_path
 parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--version", help="Prints Map2check's version", action='store_true')
 parser.add_argument("-p", "--propertyfile", help="Path to the property file")
+#parser.add_argument("-c", "--validatece", help="Validating counterexample", action='store_true')
 parser.add_argument("benchmark", nargs='?', help="Path to the benchmark")
 
 args = parser.parse_args()
@@ -21,11 +22,15 @@ args = parser.parse_args()
 # ARG options
 version = args.version
 property_file = args.propertyfile
+validate_ce = True
 benchmark = args.benchmark
 
 if version == True:
   os.system(tool_path + "--version")
   exit(0)
+
+if validate_ce == True:
+  print("Enabled counterexample validation ...")
 
 if property_file is None:
   print("Please, specify a property file")
@@ -62,35 +67,24 @@ else:
 
 
 # Set options
-command_line_bkp = ""
 if is_memsafety:
-  command_line += " --timeout 896 --memtrack --generate-witness "
+  command_line += " --memtrack --generate-witness "
 elif is_memcleanup:
-  command_line += " --timeout 896 --memcleanup-property --generate-witness "
+  command_line += " --memcleanup-property --generate-witness "
 elif is_reachability:
-  command_line_bkp = command_line + " --timeout 896 --smt-solver yices2 --target-function --generate-witness "
-  command_line += " --timeout 896 --smt-solver yices2 --add-invariants --target-function --generate-witness "
+  command_line += " --smt-solver yices2 --add-invariants --target-function --generate-witness "
 elif is_overflow:
-  command_line += " --timeout 896 --check-overflow --generate-witness "
+  command_line += " --check-overflow --generate-witness "
 
 print("Verifying with MAP2CHECK ")
-
 # Call MAP2CHECK
 command_line += benchmark
-command_line_bkp += benchmark
-
 print("Command: " + command_line)
+
 args = shlex.split(command_line)
+
 p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 (stdout, stderr) = p.communicate()
-
-# Check invariant conflict
-if b'failed external call: __map2check_main__' in stderr:
-  if is_reachability:
-    args = shlex.split(command_line_bkp)
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, stderr) = p.communicate()
-
 
 # Parse output
 if b'Timed out' in stdout:
@@ -107,6 +101,26 @@ target_offset   = "\tFALSE: Target Reached"
 overflow_offset = "\tOVERFLOW"
 
 if "VERIFICATION FAILED" in stdout.decode():
+
+    # Validating counterexample
+    if validate_ce == True:
+      output_tmp_ce = open('ce.tmp', 'w')
+      output_tmp_ce.write(stdout.decode())
+      output_tmp_ce.close()
+      command_line_ce = "../utils/ce-validation.py ce.tmp"
+      args = shlex.split(command_line_ce)
+
+      # checkout same var name!!!!
+      p_ce = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      (stdout_ce, stderr_ce) = p_ce.communicate()
+
+      # Parse counterexample output
+      if b'[ERROR-CE]' in stdout_ce:
+        result_tmp_ce = open('result_ce.tmp', 'w+')
+        result_tmp_ce.write("ERROR counterexample in " + benchmark + "\n")
+        result_tmp_ce.close()
+
+
     if free_offset in stdout.decode():
       print("FALSE_FREE")
       exit(0)

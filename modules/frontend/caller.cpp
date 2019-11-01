@@ -289,7 +289,7 @@ void Caller::linkLLVM() {
   system(linkCommand.str().c_str());
 }
 
-void Caller::executeAnalysis() {
+void Caller::executeAnalysis(std::string solvername) {
   switch (nonDetGenerator) {
     // TODO(hbgit): implement this method
     case (NonDetGenerator::None): {  // TODO(hbgit): Activate mode
@@ -302,14 +302,47 @@ void Caller::executeAnalysis() {
       kleeCommand.str("");
       kleeCommand << "timeout " << (0.8 * this->timeout) << " ";
       kleeCommand << Map2Check::kleeBinary;
-      kleeCommand << " -suppress-external-warnings"
-                  << " --allow-external-sym-calls"
-                  << " -exit-on-error-type=Abort"
-                  << " --optimize "
-                  << " -solver-backend=z3 "
-                  << " -libc=uclibc"
-                  << " ./" + programHash + "-witness-result.bc"
-                  << "  > ExecutionOutput.log";
+
+
+      std::vector<std::string> kleebackendsolver = {"z3", "stp"};
+      std::vector<std::string> kleemetasolver = {"btor", "yices2"};
+
+
+      if ( std::count(kleebackendsolver.begin(), kleebackendsolver.end(), solvername) ) {
+        // Checkout solver adopted, if is z3 or stp
+        // in KLEE add -solver-backend option
+
+        Map2Check::Log::Info("Solver backend caller: " + solvername);
+        //  --allow-external-sym-calls
+        //  -use-cache
+        kleeCommand << " -suppress-external-warnings"
+                    << " --external-calls=all"
+                    << " -exit-on-error-type=Abort"
+                    << " --optimize"
+                    << " -use-cex-cache"
+                    << " -solver-backend=" + solvername + " "
+                    << " -use-construct-hash-metasmt "
+                    << " -libc=uclibc"
+                    << " ./" + programHash + "-witness-result.bc"
+                    << "  > ExecutionOutput.log";
+      } else if ( std::count(kleemetasolver.begin(), kleemetasolver.end(), solvername) ) {
+        // Checkout solver adopted, if is btor (Boolector) or yices (Yices)
+        // in KLEE add - option
+        Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
+
+        kleeCommand << " -suppress-external-warnings"
+                    << " --external-calls=all"
+                    << " -exit-on-error-type=Abort"
+                    << " --optimize"
+                    << " -use-cex-cache"
+                    << " -solver-backend=metasmt "
+                    << " -metasmt-backend=" + solvername + " "
+                    << " -use-construct-hash-metasmt "
+                    << " -libc=uclibc"
+                    << " ./" + programHash + "-witness-result.bc"
+                    << "  > ExecutionOutput.log";
+      }
+
       Map2Check::Log::Debug(kleeCommand.str());
       int result = system(kleeCommand.str().c_str());
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
@@ -458,8 +491,19 @@ void Caller::compileToCrabLlvm() {
   std::ostringstream getPathLibCrabCommand;
   getPathLibCrabCommand.str("");
 
-  getPathLibCrabCommand << "LD_LIBRARY_PATH=" << getMapPath.str().c_str()
+  std::ostringstream tmp_ld_p;
+  tmp_ld_p << getenv("LD_LIBRARY_PATH");
+
+
+  getPathLibCrabCommand << "LD_LIBRARY_PATH="
+                        << tmp_ld_p.str().c_str()
+                        << ":"
+                        << getMapPath.str().c_str()
                         << "/bin/crabllvm/lib";
+
+  // std::ostringstream tmp_ld;
+  // tmp_ld << getenv("LD_LIBRARY_PATH");
+  // std::cout << tmp_ld.str().c_str();
 
   std::string tmp_gplibcc = getPathLibCrabCommand.str().c_str();
   char* c_gplibcc = new char[tmp_gplibcc.length() + 1];

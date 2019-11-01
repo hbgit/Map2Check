@@ -5,6 +5,11 @@ PREFIX="."
 cp_utils_file() 
 {
 	# Copying Map2Check license
+	# Licenses from metaSMT
+	# from:
+	# /deps/src/metaSMT/deps/build/boolector-2.2.0-with-lingeling-bal/boolector-2.2.0-8209e6e-151129/COPYING 
+	# /deps/src/metaSMT/deps/build/lingeling-ayv-86bf266-140429/license.txt
+	# /deps/src/metaSMT/deps/build/yices-2.5.1/LICENSE
 	echo "> Map2Check license"
         if [ ! -f $PREFIX/LICENSE ]; then
                 cp ../utils/LICENSE.TXT $PREFIX/

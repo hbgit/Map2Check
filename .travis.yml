@@ -22,11 +22,11 @@ notifications:
     on_success: never
     on_failure: never
 deploy:
+  skip_cleanup: true  
   provider: releases
   api_key:
     secure: hW474mn/IdcXbgq1xLEvt5/jM7cJ9j4xh2xQXX0TwUK51E23sw1BVuFCbdRiDz2pPwbrcEuvoEeOTFhjVfEAaoRtH98ZArno/LdoDjpJQfJ4pIpc4VgbCmCX7OfwJplN0K8YpTHTC00Ft7lsDXDZBSDsFv+N4OjsJu4JjvqFhN7/ybKdQeqW+rLTiG3jXm/gXENJiCNNQDbeSdlO/dmDFoDXt6AxwfgIKGRzB/QEWhyyGhL02HVTzhvjldLAkJUTRQgqI95Cz0rKEUC9KE7a9MDqjaZ460wNTiX1R9QGmPkuDomLFNw8L0J9mSrqDNJVIAA0bVnESiRkU1MqUKul548yvkEM/wtURK491vb0av4iQalLu+TxXhd0Tk92cLVu0HdLLK0sOwDRWlAYaufrVeUcO4GL69nMXk/LKfIM70Tx2N9eRelUyRGsDZQMUA0BMJBH/jxCSuPB9FibIRlQ34JJhXDFR2uVM6D8UvDaI4xLZT98oT6JC61dxAn0VAe6Pl51B4gmzfPwWNvMg4UYcGdxpXdr+j0ITKyuyZnVMFDSuwQp7bCUhF620v8VFEVuib3QuJGzZcN+FFKi9gZJjHEicJ7QXHCE2J/aYISMMftPZEA1vD1jN8EDeFj1RNx6qDDY8lgmBGzpgbNE5Eu3phlHNRO4sFhBgUct8J6nJ1k=
-  file: release/**/*
-  skip_cleanup: true
+  local_dir: release/**/*
   draft: true
   on:
     tags: on

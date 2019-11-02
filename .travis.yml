@@ -29,8 +29,12 @@ notifications:
     - rafa.sa.xp@gmail.com
     on_success: never
     on_failure: never
+
 before_deploy:
+    - sudo rm -rf release/*.map2check
+    - sudo rm -rf release/results
     - ./deploy.sh
+
 deploy:
   skip_cleanup: true  
   provider: releases

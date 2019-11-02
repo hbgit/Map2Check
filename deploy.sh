@@ -1,20 +1,39 @@
 #!/bin/bash
 
+# ------------------------
+# Set Terminal Font Colors
+# ------------------------
+
+bold=$(tput bold)
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+yellow=$(tput setaf 3)
+blue=$(tput setaf 4)
+magenta=$(tput setaf 5)
+cyan=$(tput setaf 6)
+white=$(tput setaf 7)
+defaultcolor=$(tput setaf default)
+
 YEAR=$(date +"%Y")
 MONTH=$(date +"%m")
 
 git config --global user.email "${GIT_EMAIL}"
 git config --global user.name "${GIT_NAME}"
 git config --global push.default simple
-git remote add origin https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git
+# git remote add origin https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git
 
 export GIT_TAG=v7.3.1.$YEAR-$MONTH.$TRAVIS_BUILD_NUMBER
+echo "${bold}${green}DEPLOYING $GIT_TAG"
+
+cd ${TRAVIS_BUILD_DIR}
+
+sudo git remote -v
 git fetch --tags
 
-msg="Tag Generated from TravisCI for build $TRAVIS_BUILD_NUMBER"
+git tag ${GIT_TAG} -a -m "Deploying from Travis ${GIT_TAG}"
+sudo git push origin develop && git push origin develop --tags
 
-if git tag $GIT_TAG -a -m "$msg" 2>/dev/null; then
-    git tag $GIT_TAG -a -m "Tag Generated from TravisCI for build $TRAVIS_BUILD_NUMBER"
-    git push origin develop && git push origin develop --tags
-    ls -aR
-else echo Tag already exists!; fi
+echo "${bold}${green}-------------------------------"
+echo "${bold}${green}Deploying ${GIT_TAG}"
+echo "${bold}${green}-------------------------------"
+echo "\n\n"

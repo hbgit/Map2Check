@@ -3,16 +3,16 @@ language: cpp
 
 env:
     global:
-        - GIT_NAME: Herbert Rocha
-        - GIT_EMAIL: herberthb12@gmail.com
-        - TRAVIS_REPO_SLUG: hbgit/Map2Check
+        - secure: "JlVpGztPCTzPA/F3IpRRxwXTD1kj9hN/Kprd1+TA/tSpDjP/l7U/dHepolEBkXa8DjPXUz93d7UNeasJR+vVbB0qX3VuAeWdYcRqdlqVMLL01qg0N9lKhoC9gdlLJ5dvQ30bA6tV7znbF0SQa8p5612RfJ9CO+CyeUY48+8tUTzt7rLtjmeIzu7+nVScEUVJjrx2OblPeLdomejxv7tVYvWLa2/X515wE7HE8jkbuwFuTrdobcdcB+0JaGv+c9TG/fcZlZc/i6Eq70ImWtGza7OMaFrZn5QFcKfA3TywSpVk7x9a1pdghAfNm6ZA9xQwZrTc+ih4RoMTvrN/3UeWz9GZRZsT+e1n7QYrpeG8VQhwEMpFgOFptGClOJ8CtIN90/Kfuuob7/T7sigs6mmpzhhPrJpid3BwKtnwoctJieZlBUddQ6JX83nQOLDYDsU/1c/JZXvIME46fevp0CMBXyYff2hPBmJESn3k5TOHy5e7RasdqMo1t4mZ5AR1dXys2+JPgGxFm0mboRwKyQByQUOl+ZXXhfw57C9Kpxzwg6gpKSy46nfM2whnv+1tcErvuzUWvvwaQ4qV9uC9xQhRXYMARct313WIQ2ZTkxIaYPIqS3YQgbtpEEO0oNmgLr2fLxhgkaZTN++JmkzPa2uamKjCmc+oaDC8MYqwPFb7An0="
 
 services:
 - docker
+
 before_script:
 - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
 - docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile
   utils/benchexecrun/
+
 script:
 - docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id
   -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh;
@@ -51,7 +51,7 @@ deploy:
   skip_cleanup: true  
   provider: releases
   api_key:
-    secure: ${GH_TOKEN}
+    secure: "JlVpGztPCTzPA/F3IpRRxwXTD1kj9hN/Kprd1+TA/tSpDjP/l7U/dHepolEBkXa8DjPXUz93d7UNeasJR+vVbB0qX3VuAeWdYcRqdlqVMLL01qg0N9lKhoC9gdlLJ5dvQ30bA6tV7znbF0SQa8p5612RfJ9CO+CyeUY48+8tUTzt7rLtjmeIzu7+nVScEUVJjrx2OblPeLdomejxv7tVYvWLa2/X515wE7HE8jkbuwFuTrdobcdcB+0JaGv+c9TG/fcZlZc/i6Eq70ImWtGza7OMaFrZn5QFcKfA3TywSpVk7x9a1pdghAfNm6ZA9xQwZrTc+ih4RoMTvrN/3UeWz9GZRZsT+e1n7QYrpeG8VQhwEMpFgOFptGClOJ8CtIN90/Kfuuob7/T7sigs6mmpzhhPrJpid3BwKtnwoctJieZlBUddQ6JX83nQOLDYDsU/1c/JZXvIME46fevp0CMBXyYff2hPBmJESn3k5TOHy5e7RasdqMo1t4mZ5AR1dXys2+JPgGxFm0mboRwKyQByQUOl+ZXXhfw57C9Kpxzwg6gpKSy46nfM2whnv+1tcErvuzUWvvwaQ4qV9uC9xQhRXYMARct313WIQ2ZTkxIaYPIqS3YQgbtpEEO0oNmgLr2fLxhgkaZTN++JmkzPa2uamKjCmc+oaDC8MYqwPFb7An0="
   file_glob: true
   file: release/**/*
   draft: true

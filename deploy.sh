@@ -25,9 +25,14 @@ git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}.git
 #add
 
 # ssh-keyscan github.com >> ~/.ssh/known_hosts
+# ssh-keyscan -t rsa github.com >> /etc/ssh/known_hosts
 ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> /etc/ssh/ssh_config
 echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
+
+cat /etc/ssh/ssh_config
 cat ~/.ssh/config
 cat ~/.ssh/known_hosts
 
@@ -42,7 +47,8 @@ git fetch --tags
 echo "${bold}${green}Creating TAG ..."
 git tag ${GIT_TAG} -a -m "Deploying from Travis ${GIT_TAG}"
 echo "${bold}${green}Pushing develop ..."
-sudo git push origin develop && git push origin develop --tags
+#sudo 
+git push origin develop && git push origin develop --tags
 
 echo "${bold}${green}-------------------------------"
 echo "${bold}${green}Deploying ${GIT_TAG}"

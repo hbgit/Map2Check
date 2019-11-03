@@ -11,11 +11,6 @@ env:
 services:
 - docker
 
-addons:
-    ssh_known_hosts:
-        - github.com
-        - ssh.github.com
-
 before_script:
 - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
 - docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile
@@ -54,6 +49,9 @@ before_install:
     - chmod 600 github_deploy_key
     - eval $(ssh-agent -s)
     - ssh-add github_deploy_key
+    - ssh -T git@github.com
+    - ls -al ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
 deploy:
   skip_cleanup: true  

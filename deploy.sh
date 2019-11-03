@@ -34,7 +34,9 @@ cd ${TRAVIS_BUILD_DIR}
 sudo git remote -v
 git fetch --tags
 
+echo "${bold}${green}Creating TAG ..."
 git tag ${GIT_TAG} -a -m "Deploying from Travis ${GIT_TAG}"
+echo "${bold}${green}Pushing develop ..."
 sudo git push origin develop && git push origin develop --tags
 
 echo "${bold}${green}-------------------------------"

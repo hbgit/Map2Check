@@ -49,7 +49,6 @@ before_install:
     - chmod 600 github_deploy_key
     - eval $(ssh-agent -s)
     - ssh-add github_deploy_key
-    - ssh -T git@github.com
     - ls -al ~/.ssh
     - echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 

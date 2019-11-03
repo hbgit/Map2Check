@@ -24,7 +24,7 @@ git config --global push.default simple
 git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}.git
 #add
 
-ssh-keyscan github.com >> ~/.ssh/known_hosts
+#ssh-keyscan github.com >> ~/.ssh/known_hosts
 
 export GIT_TAG=v7.3.1.$YEAR-$MONTH.$TRAVIS_BUILD_NUMBER
 echo "${bold}${green}DEPLOYING $GIT_TAG"

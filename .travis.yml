@@ -11,6 +11,11 @@ env:
 services:
 - docker
 
+addons:
+    ssh_known_hosts:
+        - github.com
+        - ssh.github.com
+
 before_script:
 - docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
 - docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile

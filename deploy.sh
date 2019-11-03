@@ -21,6 +21,7 @@ git config --global user.email "${GIT_EMAIL}"
 git config --global user.name "${GIT_NAME}"
 git config --global push.default simple
 # git remote add origin https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git
+git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}.git
 
 export GIT_TAG=v7.3.1.$YEAR-$MONTH.$TRAVIS_BUILD_NUMBER
 echo "${bold}${green}DEPLOYING $GIT_TAG"

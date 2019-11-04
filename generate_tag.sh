@@ -16,9 +16,10 @@ defaultcolor=$(tput setaf default)
 
 YEAR=$(date +"%Y")
 MONTH=$(date +"%m")
+DAY=$(date +%d)
 MIN=$(date +%M)
 
-GIT_TAG=v7.3.1.$YEAR-$MONTH.$MIN
+GIT_TAG=v7.3.1.$YEAR-$MONTH.$DAY.$MIN
 echo "${bold}${green}Tag id =  $GIT_TAG"
 
 git fetch --tags
@@ -27,4 +28,4 @@ echo "${bold}${green}Creating TAG ..."
 git tag ${GIT_TAG} -a -m "Deploying ${GIT_TAG}"
 git push origin develop --tags
 
-echo "\n\n"
+echo "${defaultcolor}"

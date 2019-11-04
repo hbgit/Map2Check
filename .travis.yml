@@ -33,11 +33,6 @@ notifications:
     on_success: never
     on_failure: never
 
-before_deploy:
-    - sudo rm -rf release/*.map2check
-    - sudo rm -rf release/results
-#    - ./deploy.sh
-
 before_install:
     - >-
       openssl aes-256-cbc 
@@ -52,6 +47,13 @@ before_install:
     - ls -al ~/.ssh
     - echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
     - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+    - sudo apt-get -y install p7zip-full p7zip-rar
+
+before_deploy:
+    - sudo rm -rf release/*.map2check
+    - sudo rm -rf release/results
+    - ./utils/create-release.sh "${TRAVIS_TAG}"
+#    - ./deploy.sh
 
 #deploy 
 deploy:
@@ -64,7 +66,11 @@ deploy:
   api_key:
     secure: "dVn9JIBjUKidHhHndmIbbWS6vy2ufPuCSZR/8FJSmx0tHJQVpJ0gvEso4c7xcrO+3c/8YB8DGTp9mQuo8YR5tW7C38YEpQDmskasyr5BxTaVh3RT9Wbo9LOq50DW9dzdcRU6xziS3EEtZLQCND5q+77ZyzBd+ZmmCHWu2TCU5kgrhd7W5VbYjAJG4s1w6tCoeaNBfHNBeWCkdihCtOvunNt9qFw2gFvFQ+d8CjU1+9rXuk2kWFsS2h3Tfm+gtXHew6dEc8lxlOmHrP9okc+/JyJkkvZ60lHp183Nmk5fPYMcfX8UutPgNIq3HCf27Fp5XLBzrXFlR88uIGGJYAK6x7XcfMavssQDoYNeKTmW4boNeY0E26P1Vl5x5jmc93AUMI/crT6A9sKAvtJaYpSSOCuVT2QSM0wc5nqXrSRgcaiM7ZBD9C75WhBXhx8CEWBUzcfbEnwi0Ip6x8epKc5BYn86tbPGuCoj2SnW/fGhFS/A/PBSyNtbczMAtEF+zb1oeexblNL1PEQQXEO/2lSmrXJlKsG6lCctKTwEbmlDP6TarJYyPxylBs3cdzk1a1PWnMaO27YwA1PqxllEAy9NSM9cd8F/pwVz71yExIsC+QUeAa55/Cl912BM91EcCRXYmcSa2XzUbtvX5D+/O0X21d69Kl3Jl/ZOqqvl/UzWr5o="    
   file_glob: true
-  file: release/**/*
+  #file: release/**/*
+  file: deploy/**/*
+  tag_name: $TRAVIS_TAG
+  target_commitish: ${TRAVIS_COMMIT}
+  name: Version ${TRAVIS_TAG}
   draft: true
   on:
     tags: true

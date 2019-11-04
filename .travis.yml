@@ -53,6 +53,7 @@ before_install:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
     - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
+#deploy 
 deploy:
   skip_cleanup: true  
   provider: releases

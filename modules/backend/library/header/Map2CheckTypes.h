@@ -43,7 +43,8 @@ enum NONDET_TYPE {
   SIZE_T = 10,
   LOFF_T = 11,
   SECTOR_T = 12,
-  UINT = 13
+  UINT = 13,
+  SHORT = 14
 };
 
 enum Container_Type {

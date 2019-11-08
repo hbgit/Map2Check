@@ -67,4 +67,8 @@ void map2check_nondet_sector_t(unsigned line, unsigned scope, int value,
 void map2check_nondet_uint(unsigned line, unsigned scope, int value,
                            const char *function_name);
 
+void map2check_nondet_short(unsigned line, unsigned scope, int value,
+                           const char *function_name);
+
+
 #endif

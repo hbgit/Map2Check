@@ -115,4 +115,10 @@ sector_t map2check_non_det_sector_t();
 typedef unsigned uint;
 uint map2check_non_det_uint();
 
+/**
+ * @brief Generates non deterministic double
+ * @return Non deterministic double
+ */
+double map2check_non_det_double();
+
 #endif

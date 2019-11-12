@@ -27,20 +27,27 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     fprintf(output, "%d;", call->step_on_execution);
 
     if (((int)call->type) == UNSIGNED) {
-      fprintf(output, "%u;", (unsigned)(call->value)); // TODO for unsigned
-    } else {
-      fprintf(output, "%d;", ((int)call->value)); // TODO for unsigned
+      unsigned *tmp_uvalue = call->value;
+      fprintf(output, "%u;", *tmp_uvalue); // TODO for unsigned
+    }
+    if (((int)call->type) == DOUBLE) {
+      double *tmp_dvalue = call->value;
+      fprintf(output, "%lf;", *tmp_dvalue); // TODO for unsigned
+    }
+    else {
+      int *tmp_ivalue = call->value;
+      fprintf(output, "%d;", *tmp_ivalue); // TODO for unsigned
     }
 
     // printf("%u \n;", call->value);
-    fprintf(output, "%d\n", ((int)call->type));
+    // fprintf(output, "%d\n", ((int)call->type));
   }
   fclose(output);
   return TRUE;
 }
 
 NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,
-                            unsigned scope, long value,
+                            unsigned scope, void *value,
                             const char *function_name, unsigned step) {
   NONDET_CALL result;
   result.type = type;
@@ -72,8 +79,9 @@ void helper_map2check_nondet_append_element(NONDET_CALL nondetCall) {
 #define MAP2CHECK_NONDET_GENERATOR(type, nondet_type)                          \
   void map2check_nondet_##type(unsigned line, unsigned scope, int value,       \
                                const char *function_name) {                    \
+    void *tmp_void_int = &value;                                               \
     NONDET_CALL nondetCall =                                                   \
-        new_nondet_call(nondet_type, line, scope, value, function_name,        \
+        new_nondet_call(nondet_type, line, scope, tmp_void_int, function_name,        \
                         map2check_get_current_step());                         \
     helper_map2check_nondet_append_element(nondetCall);                        \
   }
@@ -96,8 +104,20 @@ MAP2CHECK_NONDET_GENERATOR(uint, UINT)
 
 void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
                                const char *function_name) {
+  // TODO: save unsigned into ptr void
+  void *tmp_void_uint = &value;
   NONDET_CALL nondetCall =
-      new_nondet_call(UNSIGNED, line, scope, value, function_name,
+      new_nondet_call(UNSIGNED, line, scope, tmp_void_uint, function_name,
+                      map2check_get_current_step());
+  helper_map2check_nondet_append_element(nondetCall);
+}
+
+void map2check_nondet_double(unsigned line, unsigned scope, double value,
+                               const char *function_name) {
+  // TODO: save unsigned into ptr void
+  void *tmp_void_double = &value;
+  NONDET_CALL nondetCall =
+      new_nondet_call(UNSIGNED, line, scope, tmp_void_double, function_name,
                       map2check_get_current_step());
   helper_map2check_nondet_append_element(nondetCall);
 }

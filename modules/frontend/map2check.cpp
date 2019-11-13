@@ -263,8 +263,8 @@ int map2check_execution(map2check_args args) {
   }
 
   // (6) Clean map2check execution (folders and temp files)
-  Map2Check::Log::Debug("Removing temp files");
-  caller->cleanGarbage();
+  // Map2Check::Log::Debug("Removing temp files");
+  // caller->cleanGarbage();
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
@@ -287,7 +287,7 @@ int main(int argc, char **argv) {
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
         ("smt-solver", po::value<std::string>()->default_value("z3"),
-                      R"(specifies the smt-solver, valid values are stp (STP), 
+                      R"(specifies the smt-solver, valid values are stp (STP),
 z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("timeout", po::value<unsigned>(),
                       "\ttimeout for map2check execution")

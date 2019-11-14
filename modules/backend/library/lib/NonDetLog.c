@@ -26,24 +26,27 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     fprintf(output, "%s;", call->function_name);
     fprintf(output, "%d;", call->step_on_execution);
 
+    // The value generated from nondet function
     if (((int)call->type) == UNSIGNED) {
       unsigned *tmp_uvalue = call->value;
-      fprintf(output, "%u;", *tmp_uvalue); // TODO for unsigned
+      fprintf(output, "%u;", *tmp_uvalue); 
     }
     if (((int)call->type) == DOUBLE) {
       double *tmp_dvalue = call->value;
-      fprintf(output, "%lf;", *tmp_dvalue); // TODO for unsigned
+      fprintf(output, "%lf;", *tmp_dvalue); 
     }
     else {
       int *tmp_ivalue = call->value;
-      fprintf(output, "%d;", *tmp_ivalue); // TODO for unsigned
+      fprintf(output, "%d;", *tmp_ivalue); 
     }
 
-    // printf("%u \n;", call->value);
-    // fprintf(output, "%d\n", ((int)call->type));
+    // Type of the nondet function
+    fprintf(output, "%d\n", ((int)call->type));
   }
+
   fclose(output);
   return TRUE;
+  
 }
 
 NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,

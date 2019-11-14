@@ -425,10 +425,25 @@ void Caller::compileCFile(bool is_llvm_bc) {
     commandRemoveExternMalloc.str("");
     commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
     commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
-                              << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+                              << "  -e 's/.*void \\*malloc(size_t size).*//g' "                              
                               << " > " << programHash << "-preprocessed.c ";
-
     system(commandRemoveExternMalloc.str().c_str());
+
+    std::ostringstream commandRemoveExternCalloc;
+    commandRemoveExternCalloc.str("");
+    commandRemoveExternCalloc << "cat " << this->pathprogram << " | ";
+    commandRemoveExternCalloc << "sed -e 's/.*extern.*calloc.*/ / g' "
+                              << "  -e 's/.*void \\*calloc(size_t size).*//g' "                              
+                              << " > " << programHash << "-preprocessed.c ";
+    system(commandRemoveExternCalloc.str().c_str());
+
+    std::ostringstream commandRemoveExternRealloc;
+    commandRemoveExternRealloc.str("");
+    commandRemoveExternRealloc << "cat " << this->pathprogram << " | ";
+    commandRemoveExternRealloc << "sed -e 's/.*extern.*realloc.*/ / g' "
+                              << "  -e 's/.*void \\*realloc(size_t size).*//g' "                              
+                              << " > " << programHash << "-preprocessed.c ";
+    system(commandRemoveExternRealloc.str().c_str());
 
     // (2) Generate .bc file from code
     // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
@@ -467,10 +482,25 @@ void Caller::compileToCrabLlvm() {
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
   commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
-                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "                            
                             << " > " << programHash << "-preprocessed.c ";
-
   system(commandRemoveExternMalloc.str().c_str());
+
+  std::ostringstream commandRemoveExternCalloc;
+  commandRemoveExternCalloc.str("");
+  commandRemoveExternCalloc << "cat " << this->pathprogram << " | ";
+  commandRemoveExternCalloc << "sed -e 's/.*extern.*calloc.*/ / g' "
+                            << "  -e 's/.*void \\*calloc(size_t size).*//g' "                              
+                            << " > " << programHash << "-preprocessed.c ";
+  system(commandRemoveExternCalloc.str().c_str());
+
+  std::ostringstream commandRemoveExternRealloc;
+  commandRemoveExternRealloc.str("");
+  commandRemoveExternRealloc << "cat " << this->pathprogram << " | ";
+  commandRemoveExternRealloc << "sed -e 's/.*extern.*realloc.*/ / g' "
+                             << "  -e 's/.*void \\*realloc(size_t size).*//g' "                              
+                             << " > " << programHash << "-preprocessed.c ";
+  system(commandRemoveExternRealloc.str().c_str());
 
   // (2) Generate .bc file from code
   // TODO(hbgit): -Winteger-overflow should be called only if is on overflow

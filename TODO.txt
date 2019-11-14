@@ -1,0 +1,6 @@
+-------------------------------- MEM
+20:07:39   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memleaks_test1-1.yml                  unknown                   1.15    1.16
+20:07:41   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memleaks_test10-2.yml                 unknown                   1.18    1.18
+20:07:42   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memleaks_test17_2-1.yml               unknown                   1.17    1.17
+20:07:43   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memleaks_test3-2.yml                  unknown                   1.17    1.17
+20:07:44   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memsetNonZero.yml                     unknown                   1.13    1.13

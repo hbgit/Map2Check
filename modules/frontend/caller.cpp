@@ -429,21 +429,21 @@ void Caller::compileCFile(bool is_llvm_bc) {
                               << " > " << programHash << "-preprocessed.c ";
     system(commandRemoveExternMalloc.str().c_str());
 
-    std::ostringstream commandRemoveExternCalloc;
-    commandRemoveExternCalloc.str("");
-    commandRemoveExternCalloc << "cat " << this->pathprogram << " | ";
-    commandRemoveExternCalloc << "sed -e 's/.*extern.*calloc.*/ / g' "
-                              << "  -e 's/.*void \\*calloc(size_t size).*//g' "                              
-                              << " > " << programHash << "-preprocessed.c ";
-    system(commandRemoveExternCalloc.str().c_str());
+    //std::ostringstream commandRemoveExternCalloc;
+    //commandRemoveExternCalloc.str("");
+    //commandRemoveExternCalloc << "cat " << this->pathprogram << " | ";
+    //commandRemoveExternCalloc << "sed -e 's/.*extern.*calloc.*/ / g' "
+    //                          << "  -e 's/.*void \\*calloc(size_t size).*//g' "                              
+    //                          << " > " << programHash << "-preprocessed.c ";
+    //system(commandRemoveExternCalloc.str().c_str());
 
-    std::ostringstream commandRemoveExternRealloc;
-    commandRemoveExternRealloc.str("");
-    commandRemoveExternRealloc << "cat " << this->pathprogram << " | ";
-    commandRemoveExternRealloc << "sed -e 's/.*extern.*realloc.*/ / g' "
-                              << "  -e 's/.*void \\*realloc(size_t size).*//g' "                              
-                              << " > " << programHash << "-preprocessed.c ";
-    system(commandRemoveExternRealloc.str().c_str());
+    //std::ostringstream commandRemoveExternRealloc;
+    //commandRemoveExternRealloc.str("");
+    //commandRemoveExternRealloc << "cat " << this->pathprogram << " | ";
+    //commandRemoveExternRealloc << "sed -e 's/.*extern.*realloc.*/ / g' "
+    //                          << "  -e 's/.*void \\*realloc(size_t size).*//g' "                              
+    //                          << " > " << programHash << "-preprocessed.c ";
+    //system(commandRemoveExternRealloc.str().c_str());
 
     // (2) Generate .bc file from code
     // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
@@ -486,21 +486,21 @@ void Caller::compileToCrabLlvm() {
                             << " > " << programHash << "-preprocessed.c ";
   system(commandRemoveExternMalloc.str().c_str());
 
-  std::ostringstream commandRemoveExternCalloc;
-  commandRemoveExternCalloc.str("");
-  commandRemoveExternCalloc << "cat " << this->pathprogram << " | ";
-  commandRemoveExternCalloc << "sed -e 's/.*extern.*calloc.*/ / g' "
-                            << "  -e 's/.*void \\*calloc(size_t size).*//g' "                              
-                            << " > " << programHash << "-preprocessed.c ";
-  system(commandRemoveExternCalloc.str().c_str());
+  // std::ostringstream commandRemoveExternCalloc;
+  // commandRemoveExternCalloc.str("");
+  // commandRemoveExternCalloc << "cat " << this->pathprogram << " | ";
+  // commandRemoveExternCalloc << "sed -e 's/.*extern.*calloc.*/ / g' "
+  //                           << "  -e 's/.*void \\*calloc(size_t size).*//g' "                              
+  //                           << " > " << programHash << "-preprocessed.c ";
+  // system(commandRemoveExternCalloc.str().c_str());
 
-  std::ostringstream commandRemoveExternRealloc;
-  commandRemoveExternRealloc.str("");
-  commandRemoveExternRealloc << "cat " << this->pathprogram << " | ";
-  commandRemoveExternRealloc << "sed -e 's/.*extern.*realloc.*/ / g' "
-                             << "  -e 's/.*void \\*realloc(size_t size).*//g' "                              
-                             << " > " << programHash << "-preprocessed.c ";
-  system(commandRemoveExternRealloc.str().c_str());
+  // std::ostringstream commandRemoveExternRealloc;
+  // commandRemoveExternRealloc.str("");
+  // commandRemoveExternRealloc << "cat " << this->pathprogram << " | ";
+  // commandRemoveExternRealloc << "sed -e 's/.*extern.*realloc.*/ / g' "
+  //                            << "  -e 's/.*void \\*realloc(size_t size).*//g' "                              
+  //                            << " > " << programHash << "-preprocessed.c ";
+  // system(commandRemoveExternRealloc.str().c_str());
 
   // (2) Generate .bc file from code
   // TODO(hbgit): -Winteger-overflow should be called only if is on overflow

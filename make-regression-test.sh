@@ -7,6 +7,7 @@
 # s = SV-COMP tests
 
 travis_flag=0
+test_ce_format=0
 
 # Checking if testing is adopting travis service
 
@@ -76,17 +77,19 @@ if [ $has_docker_img -gt 0 ]; then
     echo ""
     echo "Regression testing results is: $percent_tests % of correct results"
 
-    echo ""
-    echo "Counterexample format validation result: "
-    path_result_ce_f="release/result_ce.tmp"
-    if [ -f $path_result_ce_f ]
-    then
-      # count results
-      get_ce_total_erros=$(cat "$path_result_ce_f" | wc -l)
-      echo "$get_ce_total_erros  ERROR found :("
-      cat $path_result_ce_f
-    else
-      "100% correct output."
+    if [ $test_ce_format -eq 1 ]; then
+      echo ""
+      echo "Counterexample format validation result: "
+      path_result_ce_f="release/result_ce.tmp"
+      if [ -f $path_result_ce_f ]
+      then
+        # count results
+        get_ce_total_erros=$(cat "$path_result_ce_f" | wc -l)
+        echo "$get_ce_total_erros  ERROR found :("
+        cat $path_result_ce_f
+      else
+        "100% correct output."
+      fi
     fi
 
     exit 0

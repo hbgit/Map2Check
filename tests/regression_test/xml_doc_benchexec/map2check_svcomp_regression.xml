@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.4//EN" "http://www.sosy-lab.org/benchexec/benchmark-1.4.dtd">
-<benchmark tool="map2check" timelimit="200 s">
+<benchmark tool="map2check" timelimit="120 s">
 
   <rundefinition name="sv-comp19_map2check"></rundefinition>
 
@@ -25,13 +25,18 @@
 	  <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/valid-memsafety.prp</propertyfile>
   </tasks>
 
+  <tasks name="MemSafety-TerminCrafted">
+	  <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/MemSafety-TerminCrafted.set</includesfile>
+	  <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/valid-memsafety.prp</propertyfile>
+  </tasks>
+
   <tasks name="MemSafety-MemCleanup">
 	  <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/MemSafety-MemCleanup.set</includesfile>
 	  <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/valid-memcleanup.prp</propertyfile>
   </tasks>
   -->
 
-  
+ <!--  
   <tasks name="ReachSafety-Arrays">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-Arrays.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
@@ -56,9 +61,9 @@
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-Recursive.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
   </tasks>
-  
+  -->
 
-  <!--
+
   <tasks name="NoOverflows-BitVectors">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/NoOverflows-BitVectors.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/no-overflow.prp</propertyfile>
@@ -67,6 +72,6 @@
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/NoOverflows-Other.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/no-overflow.prp</propertyfile>
   </tasks>
-  -->
+
 
 </benchmark>

@@ -1,6 +1,29 @@
--------------------------------- MEM
-20:07:39   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memleaks_test1-1.yml                  unknown                   1.15    1.16
-20:07:41   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memleaks_test10-2.yml                 unknown                   1.18    1.18
-20:07:42   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memleaks_test17_2-1.yml               unknown                   1.17    1.17
-20:07:43   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memleaks_test3-2.yml                  unknown                   1.17    1.17
-20:07:44   tests/regression_test/test_cases/sv-benchmarks/ldv-memsafety/memsetNonZero.yml                     unknown                   1.13    1.13
+ldv-memsafety/memset2_-write.yml                                unknown
+array-memsafety/array01-alloca-2.yml                            unknown
+array-memsafety/count_down-alloca-1.yml                         unknown
+array-memsafety/cstrchr-alloca-2.yml                            unknown
+array-memsafety/cstrcpy-alloca-1.yml                            unknown
+array-memsafety/diff-alloca-2.yml                               unknown
+array-memsafety/insertionsort-alloca-1.yml                      unknown
+array-memsafety/java_BubbleSort-alloca-1.yml                    unknown
+array-memsafety/openbsd_cmemchr-alloca-2.yml                    unknown
+ddv-machzwd/ddv_machzwd_inb_p.yml                               unknown
+ddv-machzwd/ddv_machzwd_inw.yml                                 unknown
+ddv-machzwd/ddv_machzwd_pthread_mutex_unlock.yml                unknown
+list-ext3-properties/sll_length_check-1.yml                     unknown
+list-ext3-properties/sll_of_sll_nondet_append-2.yml             unknown
+
+hrocha@experimentosdcc:~/projects/Map2Check/release$ timeout 201s ./map2check  --timeout 200 --memtrack --generate-witness ../../sv-benchmarks/c/ldv-memsafety/memset2_-write.c
+Adopting z3 solver...
+Started Map2Check
+Compiling /home/hrocha/projects/Map2Check/release/../../sv-benchmarks/c/ldv-memsafety/memset2_-write.c
+cat /home/hrocha/projects/Map2Check/release/../../sv-benchmarks/c/ldv-memsafety/memset2_-write.c | sed -e 's/extern void [*].[^_]*lloc.*/ / g'  > 504b8754db5656e557502f2f9e958956c9b0cd94.map2check-preprocessed.c
+Adding nondet pass
+Adding memtrack pass
+Adding map2check pass
+Call parameter type does not match function signature!
+i32 41
+ i64  call void @map2check_load(i8* %bitcast, i32 41), !dbg !30
+LLVM ERROR: Broken function found, compilation aborted!
+Linking with map2check library
+Instrumenting with LLVM LibFuzzer

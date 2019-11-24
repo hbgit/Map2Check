@@ -61,11 +61,11 @@ if [ $has_docker_img -gt 0 ]; then
 
   if [ $is_main_dir -gt 0 ]; then
     if [ $travis_flag -eq 0 ]; then
-      docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+      time docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
       -v $(pwd):/home/bench/benchexec_files:Z hrocha/benchexecrun \
       /bin/bash -c "cd release; python3 -m benchexec.benchexec --no-container ../$xml_doc_benchexec_name"
     else
-      docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+      time docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
       -v $(pwd):/home/bench/benchexec_files:Z hrocha/benchexecrun \
       /bin/bash -c "cd release; python3 -m benchexec.benchexec --no-container ../tests/regression_test/xml_doc_benchexec/$xml_doc_benchexec_name"
     fi
@@ -92,11 +92,11 @@ if [ $has_docker_img -gt 0 ]; then
           exit 1
         fi
       fi
+      echo "Regression testing results is: $percent_tests % of correct results from $get_total_test_cases test cases."
     fi
 
     echo ""
-    echo "Benchmark Definition Result: $xml_doc_benchexec_name"
-    echo "Regression testing results is: $percent_tests % of correct results from $get_total_test_cases test cases."
+    echo "Benchmark Definition Result from: $xml_doc_benchexec_name"
 
     echo ""
     if [ $test_ce_format -eq 1 ]; then

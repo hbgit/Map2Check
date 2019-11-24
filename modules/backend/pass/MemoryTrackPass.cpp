@@ -155,11 +155,11 @@ void MemoryTrackPass::instrumentMemset() {
 
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
-  
-  //Value *args[] = {varPointerCast, size};
+
+  // Value *args[] = {varPointerCast, size};
   Value *args[] = {pointer, size};
-  builder.CreateCall(map2check_load, args); //modeling incorrect for structs and pointer structs from C
-  
+  builder.CreateCall(map2check_load, args);
+
   Value *args2[] = {this->line_value, function_llvm};
   builder.CreateCall(map2check_check_deref, args2);
 }

@@ -430,11 +430,25 @@ void Caller::compileCFile(bool is_llvm_bc) {
     system(commandRemoveExternMalloc.str().c_str());
 
     std::ostringstream commandRemoveExternMemset;
-    commandRemoveExternMemset.str("");    
+    commandRemoveExternMemset.str("");
     commandRemoveExternMemset << "sed -i 's/extern void [*]memset.*/ / g' "
                               << " " << programHash << "-preprocessed.c ";
     // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
     system(commandRemoveExternMemset.str().c_str());
+
+    std::ostringstream commandRemoveVoidMemset;
+    commandRemoveVoidMemset.str("");
+    commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveVoidMemset.str().c_str());
+
+    std::ostringstream commandRemoveVoidMemcpy;
+    commandRemoveVoidMemcpy.str("");
+    commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveVoidMemcpy.str().c_str());
 
     // (2) Generate .bc file from code
     // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
@@ -478,11 +492,26 @@ void Caller::compileToCrabLlvm() {
   system(commandRemoveExternMalloc.str().c_str());
 
   std::ostringstream commandRemoveExternMemset;
-  commandRemoveExternMemset.str("");    
+  commandRemoveExternMemset.str("");
   commandRemoveExternMemset << "sed -i 's/extern void [*]memset.*/ / g' "
                             << " " << programHash << "-preprocessed.c ";
   // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
   system(commandRemoveExternMemset.str().c_str());
+
+  std::ostringstream commandRemoveVoidMemset;
+  commandRemoveVoidMemset.str("");
+  commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+                            << " " << programHash << "-preprocessed.c ";
+  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+  system(commandRemoveVoidMemset.str().c_str());
+
+  std::ostringstream commandRemoveVoidMemcpy;
+  commandRemoveVoidMemcpy.str("");
+  commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+                            << " " << programHash << "-preprocessed.c ";
+  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+  system(commandRemoveVoidMemcpy.str().c_str());
+
 
   // (2) Generate .bc file from code
   // TODO(hbgit): -Winteger-overflow should be called only if is on overflow

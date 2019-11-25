@@ -13,9 +13,11 @@ void nondet_generate_aux_witness_files() {
 }
 
 extern void klee_assume(int);
+
 void nondet_assume(int expr) { klee_assume(expr); }
 
 extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
+
 #define MAP2CHECK_NON_DET_GENERATOR(type)                                      \
   type map2check_non_det_##type() {                                            \
     type non_det;                                                              \
@@ -42,6 +44,7 @@ MAP2CHECK_NON_DET_GENERATOR(int)
 MAP2CHECK_NON_DET_GENERATOR(char)
 MAP2CHECK_NON_DET_GENERATOR(pointer)
 MAP2CHECK_NON_DET_GENERATOR(ushort)
+MAP2CHECK_NON_DET_GENERATOR(short)
 MAP2CHECK_NON_DET_GENERATOR(long)
 MAP2CHECK_NON_DET_GENERATOR(unsigned)
 MAP2CHECK_NON_DET_GENERATOR(ulong)
@@ -53,3 +56,4 @@ MAP2CHECK_NON_DET_GENERATOR(loff_t)
 #endif
 MAP2CHECK_NON_DET_GENERATOR(sector_t)
 MAP2CHECK_NON_DET_GENERATOR(uint)
+MAP2CHECK_NON_DET_GENERATOR(double)

@@ -22,7 +22,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-#define Map2CheckVersion "v7.3.1-Flock : Fri Nov 15 22:34:24 UTC 2019"
+#define Map2CheckVersion "v7.3.1-Flock : Thu Nov 21 23:12:27 UTC 2019"
 
 // TODO(hbgit): should get preprocessor flags from CMake
 
@@ -287,7 +287,7 @@ int main(int argc, char **argv) {
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
         ("smt-solver", po::value<std::string>()->default_value("z3"),
-                      R"(specifies the smt-solver, valid values are stp (STP), 
+                      R"(specifies the smt-solver, valid values are stp (STP),
 z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("timeout", po::value<unsigned>(),
                       "\ttimeout for map2check execution")

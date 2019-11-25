@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.4//EN" "http://www.sosy-lab.org/benchexec/benchmark-1.4.dtd">
+<benchmark tool="map2check" timelimit="120 s">
+
+  <rundefinition name="sv-comp20_ReachSafety_ControlFlow"></rundefinition>
+  <tasks name="ReachSafety-ControlFlow">
+    <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-ControlFlow.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
+  </tasks>    
+
+</benchmark>

@@ -7,8 +7,9 @@ import subprocess
 
 tool_path = "./map2check "
 # default args
-extra_tool = "timeout 895s "
+extra_tool = "timeout 897s "
 command_line = extra_tool + tool_path
+timemapsplit = "895"
 
 # Options
 parser = argparse.ArgumentParser()
@@ -64,14 +65,14 @@ else:
 # Set options
 command_line_bkp = ""
 if is_memsafety:
-  command_line += " --timeout 896 --memtrack --generate-witness "
+  command_line += " --timeout "+timemapsplit+" --memtrack --smt-solver yices2 --generate-witness "
 elif is_memcleanup:
-  command_line += " --timeout 896 --memcleanup-property --generate-witness "
+  command_line += " --timeout "+timemapsplit+" --memcleanup-property --smt-solver yices2 --generate-witness "
 elif is_reachability:
-  command_line_bkp = command_line + " --timeout 896 --smt-solver yices2 --target-function --generate-witness "
-  command_line += " --timeout 896 --smt-solver yices2 --add-invariants --target-function --generate-witness "
+  command_line_bkp = command_line + " --timeout "+timemapsplit+" --smt-solver yices2 --target-function --generate-witness "
+  command_line += " --timeout "+timemapsplit+" --smt-solver yices2 --add-invariants --target-function --generate-witness "
 elif is_overflow:
-  command_line += " --timeout 896 --check-overflow --generate-witness "
+  command_line += " --timeout "+timemapsplit+" --check-overflow --smt-solver yices2 --generate-witness "
 
 print("Verifying with MAP2CHECK ")
 

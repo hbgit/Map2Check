@@ -1,0 +1,64 @@
+#################### UPDATE library
+
+>> For nondet functions
+    ### In the header
+    - Create or update the proposed type in the Map2CheckTypes.h
+        - PRIMITIVE_TYPE
+        - NONDET_TYPE - tipos para as nondet functions
+        - struct obj3 - Struct to save ROWS from KLEE_LOG
+            - checkout "long value;" to save klee values
+    - Create nondet function prototype in NonDetGenerator.h
+        - e.g., double map2check_non_det_double(); this function will
+                generate nondet values from KLEE or AFL
+    - Create or update the function that gathering the nondet data generated
+        by KLEE or AFL in NonDetLog.h
+        - e.g., void map2check_nondet_double(unsigned line, unsigned scope, int value,
+                           const char *function_name);
+
+    ### In the lib
+    - Create or update the MAP2CHECK_NON_DET_GENERATOR macro for KLEE to
+        support the proposed type, e.g., MAP2CHECK_NON_DET_GENERATOR(double)
+    - Create or update the MAP2CHECK_NON_DET_GENERATOR macro for AFL to
+        support the proposed type, e.g., MAP2CHECK_NON_DET_GENERATOR(bool) OR
+        create a new function to AFL, e.g., uint map2check_non_det_uint()
+    - Update NonDetGeneratorNone.c that is the mode to return consts, e.g.,
+        double map2check_non_det_double() { return 0; }
+    - In the NonDetLog.c create or update MAP2CHECK_NONDET_GENERATOR(int, INTEGER) macro,
+        but checkout the type of value variable, e.g., in:
+        void map2check_nondet_##type(unsigned line, unsigned scope, int value,   <<
+        case need you can create your function to support the new type to the
+        nondet log from values generate by KLEE or AFL
+
+    ### In the PASS, focus on instrumentation
+    - Create or update in the NonDetFunctions.hpp the type of the nondet function
+    - Create or update in the NonDetPass.hpp the type of the nondet function to be inserted in the 
+        LLVM code, e.g.:
+        - enum class NonDetType
+        - INSTRUMENT_HEADER_HELPER
+        - 
+    - Create or update the CALL_IF_HELPER macro for LLVM instrumentation, e.g, 
+        CALL_IF_HELPER(Double, DOUBLE, double)
+    - Create or update the CALL_IF_HELPER macro for LLVM instrumentation, e.g, 
+        INSTRUMENT_CASE_HELPER(DOUBLE, double)
+
+    >>> substituir long value by void *value e para cada tipo criar um ponteiro tmp
+    de cada tipo. Modificar o NONDET_CALL new_nondet_call para void
+  1 #include <stdio.h>
+  2
+  3 void try_void(void *ptr_v)
+  4 {
+  5     double *d = ptr_v;
+  6     printf("%lf \n", *d);
+  7 }
+  8
+  9 main()
+ 10 {
+ 11     long vl;
+ 12     double vd = 2.5;
+ 13     try_void(&vd);
+ 14     vl = vd;
+ 15
+ 16     printf("%lf \n", (double)vl);
+ 17
+ 18 }
+

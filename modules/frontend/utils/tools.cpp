@@ -277,6 +277,7 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
       string step = tokens[4];
       string value = tokens[5];
       string type = tokens[6];
+      Log::Debug(tokens[6]);
       switch (stoi(type)) {
         case 0:
           row.type = KleeLogType::INTEGER;

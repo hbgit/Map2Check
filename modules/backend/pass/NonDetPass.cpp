@@ -72,6 +72,7 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   CALL_IF_HELPER(Pointer, POINTER, pointer)
   CALL_IF_HELPER(Long, LONG, long)
   CALL_IF_HELPER(Ushort, USHORT, ushort)
+  CALL_IF_HELPER(Short, SHORT, short)
   CALL_IF_HELPER(Ulong, ULONG, ulong)
   CALL_IF_HELPER(Bool, BOOL, bool)
   CALL_IF_HELPER(Uchar, UCHAR, uchar)
@@ -80,6 +81,7 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   CALL_IF_HELPER(Loff_t, LOFF_T, loff_t)
   CALL_IF_HELPER(Sector_t, SECTOR_T, sector_t)
   CALL_IF_HELPER(Uint, UINT, uint)
+  CALL_IF_HELPER(Double, DOUBLE, double)
 
   if ((calleeFunction->getName() == "__VERIFIER_assume")) {
     this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
@@ -108,6 +110,7 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
     INSTRUMENT_CASE_HELPER(POINTER, pointer)
     INSTRUMENT_CASE_HELPER(LONG, long)
     INSTRUMENT_CASE_HELPER(USHORT, ushort)
+    INSTRUMENT_CASE_HELPER(SHORT, short)
     INSTRUMENT_CASE_HELPER(ULONG, ulong)
     INSTRUMENT_CASE_HELPER(BOOL, bool)
     INSTRUMENT_CASE_HELPER(UCHAR, uchar)
@@ -116,6 +119,7 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
     INSTRUMENT_CASE_HELPER(LOFF_T, loff_t)
     INSTRUMENT_CASE_HELPER(SECTOR_T, sector_t)
     INSTRUMENT_CASE_HELPER(UINT, uint)
+    INSTRUMENT_CASE_HELPER(DOUBLE, double)
     case (NonDetType::ASSUME): {
       Twine assume("map2check_assume");
       calleeFunction->setName(assume);
@@ -186,8 +190,10 @@ namespace {
 NONDET_IMPL_HELPER(Integer)
 NONDET_IMPL_HELPER(Unsigned)
 NONDET_IMPL_HELPER(Uint)
+NONDET_IMPL_HELPER(Double)
 NONDET_IMPL_HELPER_CAST(Char)
 NONDET_IMPL_HELPER_CAST(Ushort)
+NONDET_IMPL_HELPER_CAST(Short)
 NONDET_IMPL_HELPER_CAST(Long)
 NONDET_IMPL_HELPER_CAST(Ulong)
 NONDET_IMPL_HELPER_CAST(Bool)
@@ -197,6 +203,7 @@ NONDET_IMPL_HELPER_CAST(Loff_t)
 NONDET_IMPL_HELPER_CAST(Sector_t)
 NONDET_IMPL_HELPER_POINTER(Pchar)
 NONDET_IMPL_HELPER_POINTER(Pointer)
+// NONDET_IMPL_HELPER_POINTER(Double)
 
 char NonDetPass::ID = 1;
 static RegisterPass<NonDetPass> X(

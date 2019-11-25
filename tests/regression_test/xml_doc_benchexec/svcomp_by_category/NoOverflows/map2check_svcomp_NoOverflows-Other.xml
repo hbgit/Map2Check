@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.4//EN" "http://www.sosy-lab.org/benchexec/benchmark-1.4.dtd">
+<benchmark tool="map2check" timelimit="120 s">
+
+  <rundefinition name="sv-comp20_nooverflows_other"></rundefinition>
+
+  <tasks name="NoOverflows-Other">
+    <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/NoOverflows-Other.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/no-overflow.prp</propertyfile>
+  </tasks>
+ 
+
+</benchmark>

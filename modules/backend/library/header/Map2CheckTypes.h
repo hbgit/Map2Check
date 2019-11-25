@@ -19,7 +19,8 @@ enum PRIMITIVE_TYPE {
   PRIMITIVE_POINTER = 2,
   PRIMITIVE_USHORT = 3,
   PRIMITIVE_SHORT = 4,
-  PRIMITIVE_UNSIGNED = 5
+  PRIMITIVE_UNSIGNED = 5,
+  PRIMITIVE_DOUBLE = 6
 };
 
 enum MemoryAddressStatus {
@@ -43,7 +44,9 @@ enum NONDET_TYPE {
   SIZE_T = 10,
   LOFF_T = 11,
   SECTOR_T = 12,
-  UINT = 13
+  UINT = 13,
+  SHORT = 14,
+  DOUBLE = 15
 };
 
 enum Container_Type {
@@ -125,7 +128,8 @@ typedef
   unsigned scope;
   // TODO(rafa.sa.xp@gmail.com) Should update to work with a union
   /** Pointer where the generated value is stored */
-  long value;
+  //long value;
+  void *value;
   /** Name of the function where operation took place */
   char function_name[FUNCTION_MAX_LENGTH_NAME];
 } NONDET_CALL;

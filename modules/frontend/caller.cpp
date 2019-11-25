@@ -424,11 +424,31 @@ void Caller::compileCFile(bool is_llvm_bc) {
     std::ostringstream commandRemoveExternMalloc;
     commandRemoveExternMalloc.str("");
     commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
-    commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
-                              << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+    commandRemoveExternMalloc << "sed -e 's/extern void [*].[^_]*lloc.*/ / g' "
                               << " > " << programHash << "-preprocessed.c ";
-
+    // Map2Check::Log::Info(commandRemoveExternMalloc.str().c_str());
     system(commandRemoveExternMalloc.str().c_str());
+
+    std::ostringstream commandRemoveExternMemset;
+    commandRemoveExternMemset.str("");
+    commandRemoveExternMemset << "sed -i 's/extern void [*]memset.*/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveExternMemset.str().c_str());
+
+    std::ostringstream commandRemoveVoidMemset;
+    commandRemoveVoidMemset.str("");
+    commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveVoidMemset.str().c_str());
+
+    std::ostringstream commandRemoveVoidMemcpy;
+    commandRemoveVoidMemcpy.str("");
+    commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveVoidMemcpy.str().c_str());
 
     // (2) Generate .bc file from code
     // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
@@ -463,14 +483,35 @@ void Caller::compileToCrabLlvm() {
   Map2Check::Log::Info("Compiling using crab-llvm in " + this->pathprogram);
 
   // (1) Remove unsupported functions and clean the C code
+  // TODO(hbgit): improve regex to the next line
   std::ostringstream commandRemoveExternMalloc;
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
-  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
-                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+  commandRemoveExternMalloc << "sed -e 's/extern void [*].[^_]*lloc.*/ / g' "
                             << " > " << programHash << "-preprocessed.c ";
-
   system(commandRemoveExternMalloc.str().c_str());
+
+  std::ostringstream commandRemoveExternMemset;
+  commandRemoveExternMemset.str("");
+  commandRemoveExternMemset << "sed -i 's/extern void [*]memset.*/ / g' "
+                            << " " << programHash << "-preprocessed.c ";
+  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+  system(commandRemoveExternMemset.str().c_str());
+
+  std::ostringstream commandRemoveVoidMemset;
+  commandRemoveVoidMemset.str("");
+  commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+                            << " " << programHash << "-preprocessed.c ";
+  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+  system(commandRemoveVoidMemset.str().c_str());
+
+  std::ostringstream commandRemoveVoidMemcpy;
+  commandRemoveVoidMemcpy.str("");
+  commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+                            << " " << programHash << "-preprocessed.c ";
+  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+  system(commandRemoveVoidMemcpy.str().c_str());
+
 
   // (2) Generate .bc file from code
   // TODO(hbgit): -Winteger-overflow should be called only if is on overflow

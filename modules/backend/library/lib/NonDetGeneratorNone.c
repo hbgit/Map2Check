@@ -18,6 +18,10 @@ char map2check_non_det_char() { return 0; }
 
 unsigned short map2check_non_det_ushort() { return 0; }
 
+short map2check_non_det_short() { return 0; }
+
+double map2check_non_det_double() { return 0; }
+
 void *map2check_non_det_pointer() {
   // Ignore warnings from this, it is desired to be undefined behaviour
   return 0;

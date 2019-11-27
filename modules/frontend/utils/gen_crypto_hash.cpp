@@ -1,12 +1,21 @@
-#include "gen_crypto_hash.hpp"
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 
-#include <boost/format.hpp>
-#include <boost/uuid/sha1.hpp>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <vector>
+
+#include "gen_crypto_hash.hpp"
+
+#include <boost/format.hpp>
+#include <boost/uuid/sha1.hpp>
+
 #include "log.hpp"
 
 void GenHash::setOutputSha1HashFile(std::string keysha1) {

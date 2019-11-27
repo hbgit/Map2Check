@@ -1,65 +1,79 @@
 dist: xenial
-sudo: require
-
 language: cpp
 
-addons:
-  apt:
-    update: true
-    packages:
-      - build-essential
-      - libboost-all-dev
-      - libboost-program-options-dev
-      - bison
-      - flex
-      - python
-      - perl
-      - zlib1g-dev
-      - python-minimal
-      - ninja-build
-      - wget
-      - curl
-      - unionfs-fuse
-      - git
-      - doxygen
-      - graphviz
-      - python3
-      - python3-pip
-      - subversion
-      - libgmp-dev
-      - libmpfr-dev
-      - libncurses5-dev
-      - libncursesw5-dev
+env:
+    global:
+        # - secure: "JlVpGztPCTzPA/F3IpRRxwXTD1kj9hN/Kprd1+TA/tSpDjP/l7U/dHepolEBkXa8DjPXUz93d7UNeasJR+vVbB0qX3VuAeWdYcRqdlqVMLL01qg0N9lKhoC9gdlLJ5dvQ30bA6tV7znbF0SQa8p5612RfJ9CO+CyeUY48+8tUTzt7rLtjmeIzu7+nVScEUVJjrx2OblPeLdomejxv7tVYvWLa2/X515wE7HE8jkbuwFuTrdobcdcB+0JaGv+c9TG/fcZlZc/i6Eq70ImWtGza7OMaFrZn5QFcKfA3TywSpVk7x9a1pdghAfNm6ZA9xQwZrTc+ih4RoMTvrN/3UeWz9GZRZsT+e1n7QYrpeG8VQhwEMpFgOFptGClOJ8CtIN90/Kfuuob7/T7sigs6mmpzhhPrJpid3BwKtnwoctJieZlBUddQ6JX83nQOLDYDsU/1c/JZXvIME46fevp0CMBXyYff2hPBmJESn3k5TOHy5e7RasdqMo1t4mZ5AR1dXys2+JPgGxFm0mboRwKyQByQUOl+ZXXhfw57C9Kpxzwg6gpKSy46nfM2whnv+1tcErvuzUWvvwaQ4qV9uC9xQhRXYMARct313WIQ2ZTkxIaYPIqS3YQgbtpEEO0oNmgLr2fLxhgkaZTN++JmkzPa2uamKjCmc+oaDC8MYqwPFb7An0="
+        - GIT_NAME: hbgit
+        - GIT_EMAIL: herberthb12@gmail.com
+        - TRAVIS_REPO_SLUG: hbgit/Map2Check
+
+services:
+- docker
 
 before_script:
-  - git config --global user.email "map2check@domain.com"
-  - git config --global user.name "Map2Check"
-  - mkdir build
-  - cd build
-  - wget http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-  - tar xf clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-  - mv clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04 clang
-  - export LLVM_DIR=`pwd`/clang/lib/cmake/llvm
-  - export CXX=$LLVM_DIR/../../../bin/clang++
-  - export CC=$LLVM_DIR/../../../bin/clang
-  - cmake .. -G Ninja -DENABLE_TEST=ON -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/
+- docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
+- docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile
+  utils/benchexecrun/
 
-script: ninja && ninja install && ctest
-
-after_script:
-  - cd ../release
-  - cp -r $LLVM_DIR_BASE/lib/clang/$LLVM_VERSION/include/* ./include
-  - cp -r $LLVM_DIR_BASE/lib/clang ./lib
-  - cp /usr/bin/ld ./bin/
-  - cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./lib
-  - cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
-  - cd ..
-  - tar czf map2check.tar.gz release
+script:
+- docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id
+  -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh;
+  ./make-unit-test.sh"
+- "./make-regression-test.sh t"
+- docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id
+  -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./check_code_style.py
+  -t -c -p"
 
 notifications:
   email:
     recipients:
-      - herberthb12@gmail.com
-      - rafa.sa.xp@gmail.com
-    on_success: never # default: change
-    on_failure: never # default: always
+    - herberthb12@gmail.com
+    - rafa.sa.xp@gmail.com
+    on_success: never
+    on_failure: never
+
+before_install:
+    - >-
+      openssl aes-256-cbc 
+      -K $encrypted_e6f8e0bf4c27_key 
+      -iv $encrypted_e6f8e0bf4c27_iv 
+      -in github_deploy_key.enc 
+      -out github_deploy_key 
+      -d
+    - chmod 600 github_deploy_key
+    - eval $(ssh-agent -s)
+    - ssh-add github_deploy_key
+    - ls -al ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+    - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+    - sudo apt-get -y install p7zip-full p7zip-rar
+
+before_deploy:
+    - sudo rm -rf release/*.map2check
+    - sudo rm -rf release/results
+    - ./utils/create-release.sh "${TRAVIS_TAG}"
+#    - ./deploy.sh
+
+#deploy 
+deploy:
+  skip_cleanup: true  
+  provider: releases
+  script:
+    - echo "$TRAVIS_TAG"
+    - echo "$TRAVIS_BRANCH"
+  prerelease: true
+  overwrite: true
+  api_key:
+    secure: "dVn9JIBjUKidHhHndmIbbWS6vy2ufPuCSZR/8FJSmx0tHJQVpJ0gvEso4c7xcrO+3c/8YB8DGTp9mQuo8YR5tW7C38YEpQDmskasyr5BxTaVh3RT9Wbo9LOq50DW9dzdcRU6xziS3EEtZLQCND5q+77ZyzBd+ZmmCHWu2TCU5kgrhd7W5VbYjAJG4s1w6tCoeaNBfHNBeWCkdihCtOvunNt9qFw2gFvFQ+d8CjU1+9rXuk2kWFsS2h3Tfm+gtXHew6dEc8lxlOmHrP9okc+/JyJkkvZ60lHp183Nmk5fPYMcfX8UutPgNIq3HCf27Fp5XLBzrXFlR88uIGGJYAK6x7XcfMavssQDoYNeKTmW4boNeY0E26P1Vl5x5jmc93AUMI/crT6A9sKAvtJaYpSSOCuVT2QSM0wc5nqXrSRgcaiM7ZBD9C75WhBXhx8CEWBUzcfbEnwi0Ip6x8epKc5BYn86tbPGuCoj2SnW/fGhFS/A/PBSyNtbczMAtEF+zb1oeexblNL1PEQQXEO/2lSmrXJlKsG6lCctKTwEbmlDP6TarJYyPxylBs3cdzk1a1PWnMaO27YwA1PqxllEAy9NSM9cd8F/pwVz71yExIsC+QUeAa55/Cl912BM91EcCRXYmcSa2XzUbtvX5D+/O0X21d69Kl3Jl/ZOqqvl/UzWr5o="    
+  file_glob: true
+  #file: release/**/*
+  file: deploy/**/*
+  tag_name: $TRAVIS_TAG
+  target_commitish: ${TRAVIS_COMMIT}
+  name: Version ${TRAVIS_TAG}
+  # draft: true
+  on:
+    tags: true
+    repo: hbgit/Map2Check
+    branch: develop

@@ -1,0 +1,165 @@
+Started Map2Check
+Compiling /home/hrocha/Documents/Projects/Map2Check/tests/regression_test/test_cases/sv-benchmarks/memsafety/960521-1-1.i
+Adding nondet pass
+Adding memtrack pass
+Adding map2check pass
+Linking with map2check library
+Instrumenting with LLVM LibFuzzer
+Executing LibFuzzer with map2check
+Running 2 workers
+./fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out -use_value_profile=1 >fuzz-0.log 2>&1
+./fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out -use_value_profile=1 >fuzz-1.log 2>&1
+================== Job 0 exited with exit code 19712 ============
+INFO: Seed: 348164506
+INFO: Loaded 1 modules   (298 inline 8-bit counters): 298 [0x6709f8, 0x670b22),
+INFO: Loaded 1 PC tables (298 PCs): 298 [0x45eea8,0x460148),
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+==28686== ERROR: libFuzzer: deadly signal
+    #0 0x44d1df  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x44d1df)
+    #1 0x415ba6  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x415ba6)
+    #2 0x415b6f  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x415b6f)
+    #3 0x7f8a70ddd06f  (/lib64/libpthread.so.0+0x1306f)
+    #4 0x7f8a70a8b57e  (/lib64/libc.so.6+0x3857e)
+    #5 0x7f8a70a75894  (/lib64/libc.so.6+0x22894)
+    #6 0x44ea44  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x44ea44)
+    #7 0x44e959  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x44e959)
+    #8 0x451c54  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x451c54)
+    #9 0x44e587  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x44e587)
+    #10 0x45363d  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x45363d)
+    #11 0x7f8a70dd258d  (/lib64/libpthread.so.0+0x858d)
+    #12 0x7f8a70b506f2  (/lib64/libc.so.6+0xfd6f2)
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal
+MS: 0 ; base unit: 0000000000000000000000000000000000000000
+
+
+artifact_prefix='./'; Test unit written to ./crash-da39a3ee5e6b4b0d3255bfef95601890afd80709
+Base64:
+================== Job 1 exited with exit code 19712 ============
+INFO: Seed: 357414373
+INFO: Loaded 1 modules   (298 inline 8-bit counters): 298 [0x6709f8, 0x670b22),
+INFO: Loaded 1 PC tables (298 PCs): 298 [0x45eea8,0x460148),
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+==28687== ERROR: libFuzzer: deadly signal
+    #0 0x44d1df  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x44d1df)
+    #1 0x415ba6  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x415ba6)
+    #2 0x415b6f  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x415b6f)
+    #3 0x7f418e9f706f  (/lib64/libpthread.so.0+0x1306f)
+    #4 0x7f418e6a557e  (/lib64/libc.so.6+0x3857e)
+    #5 0x7f418e68f894  (/lib64/libc.so.6+0x22894)
+    #6 0x44ea44  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x44ea44)
+    #7 0x44e959  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x44e959)
+    #8 0x451c54  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x451c54)
+    #9 0x44e587  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x44e587)
+    #10 0x45363d  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-fuzzed.out+0x45363d)
+    #11 0x7f418e9ec58d  (/lib64/libpthread.so.0+0x858d)
+    #12 0x7f418e76a6f2  (/lib64/libc.so.6+0xfd6f2)
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal
+MS: 0 ; base unit: 0000000000000000000000000000000000000000
+
+
+artifact_prefix='./'; Test unit written to ./crash-da39a3ee5e6b4b0d3255bfef95601890afd80709
+Base64:
+Exited fuzzer with 256
+INFO: Seed: 408638908
+INFO: Loaded 1 modules   (300 inline 8-bit counters): 300 [0x6729f8, 0x672b24),
+INFO: Loaded 1 PC tables (300 PCs): 300 [0x460f48,0x462208),
+./fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out: Running 1 inputs 1 time(s) each.
+Running: crash-da39a3ee5e6b4b0d3255bfef95601890afd80709
+==28692== ERROR: libFuzzer: deadly signal
+    #0 0x44d1df  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out+0x44d1df)
+    #1 0x415ba6  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out+0x415ba6)
+    #2 0x415b6f  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out+0x415b6f)
+    #3 0x7f2f4bb1906f  (/lib64/libpthread.so.0+0x1306f)
+    #4 0x7f2f4b7c757e  (/lib64/libc.so.6+0x3857e)
+    #5 0x7f2f4b7b1894  (/lib64/libc.so.6+0x22894)
+    #6 0x44f184  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out+0x44f184)
+    #7 0x44f05c  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out+0x44f05c)
+    #8 0x4531dd  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out+0x4531dd)
+    #9 0x44ebbb  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out+0x44ebbb)
+    #10 0x455391  (/home/hrocha/Documents/Projects/Map2Check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check/fc8a1920b7e9975b4791119a88b50bea9dd9cddc.map2check-witness-fuzzed.out+0x455391)
+    #11 0x7f2f4bb0e58d  (/lib64/libpthread.so.0+0x858d)
+    #12 0x7f2f4b88c6f2  (/lib64/libc.so.6+0xfd6f2)
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal
+Started counter example generation
+Counter-example:
+
+State 0: file /home/hrocha/Documents/Projects/Map2Check/tests/regression_test/test_cases/sv-benchmarks/memsafety/960521-1-1.i
+------------------------------------------------------------
+>>Memory list log
+
+  Line content   :   a = malloc (n * sizeof(*a));
+  Address        : 0x2307c20
+  PointsTo       : 0x7f2f44001430
+  Is Free        : FALSE
+  Is Dynamic     : TRUE
+  Var Name       : a
+  Line Number    : 525
+  Function Scope : main
+
+State 1: file /home/hrocha/Documents/Projects/Map2Check/tests/regression_test/test_cases/sv-benchmarks/memsafety/960521-1-1.i
+------------------------------------------------------------
+>>Memory list log
+
+  Line content   :   b = malloc (n * sizeof(*b));
+  Address        : 0x2307c28
+  PointsTo       : 0x7f2f44003d00
+  Is Free        : FALSE
+  Is Dynamic     : TRUE
+  Var Name       : b
+  Line Number    : 526
+  Function Scope : main
+
+State 2: file /home/hrocha/Documents/Projects/Map2Check/tests/regression_test/test_cases/sv-benchmarks/memsafety/960521-1-1.i
+------------------------------------------------------------
+>>Memory list log
+
+  Line content   :   *b++ = 0;
+  Address        : 0x2307c28
+  PointsTo       : 0x7f2f44003d04
+  Is Free        : FALSE
+  Is Dynamic     : FALSE
+  Var Name       : b
+  Line Number    : 527
+  Function Scope : main
+
+State 3: file /home/hrocha/Documents/Projects/Map2Check/tests/regression_test/test_cases/sv-benchmarks/memsafety/960521-1-1.i
+------------------------------------------------------------
+>>Memory list log
+
+  Line content   :   { free(a); free(b); }
+  Address        : 0x2307c20
+  PointsTo       : 0x7f2f44001430
+  Is Free        : TRUE
+  Is Dynamic     : FALSE
+  Var Name       : a
+  Line Number    : 532
+  Function Scope : main
+
+State 4: file /home/hrocha/Documents/Projects/Map2Check/tests/regression_test/test_cases/sv-benchmarks/memsafety/960521-1-1.i
+------------------------------------------------------------
+>>Memory list log
+
+  Line content   :   { free(a); free(b); }
+  Address        : 0x2307c28
+  PointsTo       : 0x7f2f44003d04
+  Is Free        : TRUE
+  Is Dynamic     : FALSE
+  Var Name       : b
+  Line Number    : 532
+  Function Scope : main
+
+----------------------------------------------------
+Violated property:
+	file map2check_property line 532 function main
+	FALSE-FREE: Operand of free must have zero pointer offset
+
+VERIFICATION FAILED

@@ -1,42 +1,59 @@
-#pragma once
-#include <iostream>
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_FRONTEND_UTILS_TOOLS_HPP_
+#define MODULES_FRONTEND_UTILS_TOOLS_HPP_
+
+#include <algorithm>  // copy
+#include <fstream>    // fstream
+#include <iostream>   // cout, endl
+#include <iterator>   // ostream_operator
+#include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
-using namespace std;
+
+using std::ostringstream;
+using std::string;
+using std::vector;
 
 /**
  * Namespace for all Map2Check Paths and Helpers
  */
 namespace Map2Check {
 /** Path to ktest-tool binary (from KLEE) */
-const string ktestBinary("${MAP2CHECK_PATH}/bin/ktest-tool");
+// const string ktestBinary("${MAP2CHECK_PATH}/bin/ktest-tool");
+constexpr char const* ktestBinary = "${MAP2CHECK_PATH}/bin/ktest-tool";
 /** Path to clang binary (from llvm) */
-const string clangBinary("${MAP2CHECK_PATH}/bin/clang");
+constexpr char const* clangBinary = "${MAP2CHECK_PATH}/bin/clang";
 /** Path to crab-llvm path binary (from crab-llvm) */
-const string crabBinary("${MAP2CHECK_PATH}/bin/crabllvm/bin/crabllvm.py");
+constexpr char const* crabBinary =
+    "${MAP2CHECK_PATH}/bin/crabllvm/bin/crabllvm.py";
 /** Path to clang include folder (usually
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
-const string clangIncludeFolder("${MAP2CHECK_PATH}/include/");
+constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";
 /** Path to generated list log file (check MemoryUtils implementation) */
-const string listLogCSV("list_log.csv");
+constexpr char const* listLogCSV = "list_log.csv";
 /** Path to klee binary */
-const string kleeBinary("${MAP2CHECK_PATH}/bin/klee");
+constexpr char const* kleeBinary = "${MAP2CHECK_PATH}/bin/klee";
 /** Path to generated klee log file (check MemoryUtils implementation) */
-const string kleeLogCSV("klee_log.csv");
+constexpr char const* kleeLogCSV = "klee_log.csv";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
-const string stateTrueLogCSV("automata_list_log.st");
+constexpr char const* stateTrueLogCSV = "automata_list_log.st";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
-const string trackBBLogCSV("track_bb_log.st");
+constexpr char const* trackBBLogCSV = "track_bb_log.st";
 /** Path to generated map2check_property file (check MemoryUtils implementation)
  */
-const string propertyViolationFile("map2check_property");
+constexpr char const* propertyViolationFile = "map2check_property";
 /** Path to generated klee results (it is created where klee is called) */
-const string kleeResultFolder("./klee-last");
+constexpr char const* kleeResultFolder = "./klee-last";
 /** Path to opt binary (from llvm) */
-const string optBinary("${MAP2CHECK_PATH}/bin/opt");
+constexpr char const* optBinary = "${MAP2CHECK_PATH}/bin/opt";
 /** Path to llvm-link binary (from llvm) */
-const string llvmLinkBinary("${MAP2CHECK_PATH}/bin/llvm-link");
+constexpr char const* llvmLinkBinary = "${MAP2CHECK_PATH}/bin/llvm-link";
 
 /** Represents what kind of property was violated */
 enum class PropertyViolated {
@@ -64,7 +81,7 @@ struct CheckViolatedProperty {
    * Reads file and initializes the object
    * @param path File describing the property
    */
-  CheckViolatedProperty(std::string path);
+  explicit CheckViolatedProperty(std::string path);
 
   // operator std::string() const {
   //     std::ostringstream cnvt;
@@ -75,7 +92,7 @@ struct CheckViolatedProperty {
   //         cnvt << "FALSE-FREE: Operand of free must have zero pointer
   //         offset"; break;
   //       case(PropertyViolated::TARGET_REACHED):
-  //         //TODO: Add message for target reached
+  //         //TODO(hbgit): Add message for target reached
   //         cnvt << "FALSE: Target Reached";
   //         break;
   //       case(PropertyViolated::NONE) {
@@ -99,7 +116,7 @@ class SourceCodeHelper {
    * Reads all lines from a C source file and adds to a vector structure
    * @param  c_src Path to C file
    */
-  SourceCodeHelper(std::string pathToCSource);
+  explicit SourceCodeHelper(std::string pathToCSource);
 
   operator std::string() const {
     std::ostringstream cnvt;
@@ -343,3 +360,5 @@ class TrackBBLogHelper {
 };
 
 }  // namespace Map2Check
+
+#endif  // MODULES_FRONTEND_UTILS_TOOLS_HPP_

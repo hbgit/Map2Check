@@ -1,4 +1,10 @@
-#include "TargetPass.h"
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#include "TargetPass.hpp"
 
 bool TargetPass::runOnFunction(Function& F) {
   this->targetFunctionMap2Check = F.getParent()->getOrInsertFunction(
@@ -9,7 +15,7 @@ bool TargetPass::runOnFunction(Function& F) {
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
 
-  IRBuilder<> builder((Instruction*)&*instructionIterator);
+  IRBuilder<> builder(reinterpret_cast<Instruction*>(&*instructionIterator));
   this->functionName = builder.CreateGlobalStringPtr(F.getName());
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
@@ -42,7 +48,7 @@ void TargetPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
 
 void TargetPass::instrumentErrorInstruction(CallInst* callInst,
                                             LLVMContext* Ctx) {
-  IRBuilder<> builder((Instruction*)&*currentInstruction);
+  IRBuilder<> builder(reinterpret_cast<Instruction*>(&*currentInstruction));
   Value* name_llvm = functionName;
 
   DebugInfo debugInfo(Ctx, callInst);

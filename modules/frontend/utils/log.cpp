@@ -1,3 +1,9 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "log.hpp"
 #include <iostream>
 #include <string>
@@ -13,8 +19,7 @@ void Log::Warning(std::string msg) {
 }
 
 void Log::Debug(std::string msg) {
-  if(isDebugMode)   
-    std::cout << "\033[0;33m" << msg << "\033[0m\n";
+  if (isDebugMode) std::cout << "\033[0;33m" << msg << "\033[0m\n";
 }
 
 void Log::Info(std::string msg) {

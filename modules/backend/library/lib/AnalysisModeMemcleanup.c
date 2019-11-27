@@ -101,13 +101,13 @@ void map2check_free(const char *name, void *ptr, unsigned scope, unsigned line,
                     const char *function_name);
 
 // IMPLEMENTATION
-#include <stdlib.h>
 #include "../header/AllocationLog.h"
 #include "../header/Container.h"
 #include "../header/HeapLog.h"
 #include "../header/ListLog.h"
 #include "../header/Map2CheckFunctions.h"
 #include "../header/PropertyGenerator.h"
+#include <stdlib.h>
 
 MAP2CHECK_CONTAINER heap_log;
 MAP2CHECK_CONTAINER allocation_log;
@@ -201,18 +201,18 @@ void update_reference_list_log(long address, enum MemoryAddressStatus status,
             Bool isFree;
 
             switch (status) {
-              case STATIC:
-                isDynamic = FALSE;
-                isFree = FALSE;
-                break;
-              case FREE:
-                isDynamic = FALSE;
-                isFree = TRUE;
-                break;
-              case DYNAMIC:
-                isDynamic = TRUE;
-                isFree = FALSE;
-                break;
+            case STATIC:
+              isDynamic = FALSE;
+              isFree = FALSE;
+              break;
+            case FREE:
+              isDynamic = FALSE;
+              isFree = TRUE;
+              break;
+            case DYNAMIC:
+              isDynamic = TRUE;
+              isFree = FALSE;
+              break;
             }
             LIST_LOG_ROW *row = (LIST_LOG_ROW *)malloc(sizeof(LIST_LOG_ROW));
             *row = new_list_row(
@@ -240,21 +240,21 @@ void map2check_add_store_pointer(void *var, void *value, unsigned scope,
   // Since we check in AllocationLog we can only known if the address is STATIC,
   // FREE or DYNAMIC
   switch (status) {
-    case STATIC:
-      isDynamic = FALSE;
-      isFree = FALSE;
-      break;
-    case FREE:
-      isDynamic = FALSE;
-      isFree = TRUE;
-      break;
-    case DYNAMIC:
-      isDynamic = TRUE;
-      isFree = FALSE;
-      break;
-    default:
-      isDynamic = FALSE;
-      isFree = FALSE;
+  case STATIC:
+    isDynamic = FALSE;
+    isFree = FALSE;
+    break;
+  case FREE:
+    isDynamic = FALSE;
+    isFree = TRUE;
+    break;
+  case DYNAMIC:
+    isDynamic = TRUE;
+    isFree = FALSE;
+    break;
+  default:
+    isDynamic = FALSE;
+    isFree = FALSE;
   }
   int i = list_log.size - 1;
   Bool isRedundant = FALSE;

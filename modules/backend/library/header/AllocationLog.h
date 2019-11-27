@@ -14,7 +14,7 @@
  * @param  address        Memory Address to be added
  * @return                Returns success of operation
  */
-Bool mark_allocation_log(MAP2CHECK_CONTAINER* allocation_log, long address);
+Bool mark_allocation_log(MAP2CHECK_CONTAINER *allocation_log, long address);
 
 /**
  * Mark element as free to a MAP2CHECK_CONTAINER
@@ -22,7 +22,7 @@ Bool mark_allocation_log(MAP2CHECK_CONTAINER* allocation_log, long address);
  * @param  address        Memory Address to be freed
  * @return                Returns success of operation
  */
-Bool mark_deallocation_log(MAP2CHECK_CONTAINER* allocation_log, long address);
+Bool mark_deallocation_log(MAP2CHECK_CONTAINER *allocation_log, long address);
 
 /**
  * @deprecated
@@ -32,8 +32,8 @@ Bool mark_deallocation_log(MAP2CHECK_CONTAINER* allocation_log, long address);
  * @param  address        Memory Address to be checked
  * @return                Returns the most recent status of the address
  */
-enum MemoryAddressStatus check_address_allocation_log(
-    MAP2CHECK_CONTAINER* allocation_log, long address);
+enum MemoryAddressStatus
+check_address_allocation_log(MAP2CHECK_CONTAINER *allocation_log, long address);
 
 // void print_allocation_log(MAP2CHECK_CONTAINER* allocation_log);
 
@@ -45,8 +45,8 @@ enum MemoryAddressStatus check_address_allocation_log(
  */
 MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free);
 
-MEMORY_ALLOCATIONS_ROW* find_row_with_address(
-    MAP2CHECK_CONTAINER* allocation_log, void* ptr);
+MEMORY_ALLOCATIONS_ROW *
+find_row_with_address(MAP2CHECK_CONTAINER *allocation_log, void *ptr);
 
 /**
  * Checks if the address is a valid address
@@ -56,15 +56,15 @@ MEMORY_ALLOCATIONS_ROW* find_row_with_address(
  * space
  * @return A bool representing if address is valid
  */
-Bool is_valid_allocation_address(MAP2CHECK_CONTAINER* allocation_log,
-                                 void* address, int size_to_destiny);
+Bool is_valid_allocation_address(MAP2CHECK_CONTAINER *allocation_log,
+                                 void *address, int size_to_destiny);
 
-void allocation_log_to_file(MAP2CHECK_CONTAINER* list);
+void allocation_log_to_file(MAP2CHECK_CONTAINER *list);
 /**
  * Checks if all addresses of allocation log where deallocated
  * @param allocation_log  Address to a allocation log
  * @return A long for leaked address (0 if none)
  */
-long valid_allocation_log(MAP2CHECK_CONTAINER* allocation_log);
+long valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log);
 
 #endif

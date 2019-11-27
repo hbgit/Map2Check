@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void B_TREE_FREE_PAGE_HELPER(B_TREE_PAGE* page) {
+static void B_TREE_FREE_PAGE_HELPER(B_TREE_PAGE *page) {
   if (page == NULL) {
     return;
   }
@@ -19,9 +19,9 @@ static void B_TREE_FREE_PAGE_HELPER(B_TREE_PAGE* page) {
   free(page);
 }
 
-void B_TREE_FREE(B_TREE* btree) { B_TREE_FREE_PAGE_HELPER(btree->root); }
+void B_TREE_FREE(B_TREE *btree) { B_TREE_FREE_PAGE_HELPER(btree->root); }
 
-void CHECK_AND_RELEASE_PAGES(B_TREE* btree) {
+void CHECK_AND_RELEASE_PAGES(B_TREE *btree) {
   if (btree->currentLoadedPages > B_TREE_MAX_OPEN_PAGES) {
     int i;
     for (i = 0; i < B_TREE_MAP2CHECK_ORDER * 2; i++) {
@@ -35,10 +35,10 @@ void CHECK_AND_RELEASE_PAGES(B_TREE* btree) {
   }
 }
 
-Bool DISK_READ(B_TREE* btree, fpos_t* stream_pos, B_TREE_PAGE* result) {
+Bool DISK_READ(B_TREE *btree, fpos_t *stream_pos, B_TREE_PAGE *result) {
   // printf("Reading from file\n");
   btree->currentLoadedPages += 1;
-  FILE* fptr;
+  FILE *fptr;
   fptr = fopen(btree->filename, "rb");
   // printf("File Open\n");
   if (fptr == NULL) {
@@ -60,8 +60,8 @@ Bool DISK_READ(B_TREE* btree, fpos_t* stream_pos, B_TREE_PAGE* result) {
   return TRUE;
 }
 
-Bool DISK_WRITE(B_TREE* btree, B_TREE_PAGE* object) {
-  FILE* fptr;
+Bool DISK_WRITE(B_TREE *btree, B_TREE_PAGE *object) {
+  FILE *fptr;
 
   if (!object->have_stream_pos) {
     fptr = fopen(btree->filename, "ab");
@@ -87,7 +87,7 @@ Bool DISK_WRITE(B_TREE* btree, B_TREE_PAGE* object) {
   return TRUE;
 }
 
-static B_TREE_ROW* B_TREE_SEARCH_HELPER(B_TREE* btree, B_TREE_PAGE* page,
+static B_TREE_ROW *B_TREE_SEARCH_HELPER(B_TREE *btree, B_TREE_PAGE *page,
                                         unsigned key) {
   int i = 0;
   while ((i < page->n) && (key > page->rows[i].index)) {
@@ -101,7 +101,7 @@ static B_TREE_ROW* B_TREE_SEARCH_HELPER(B_TREE* btree, B_TREE_PAGE* page,
     return NULL;
   } else {
     if (page->children[i] == NULL) {
-      B_TREE_PAGE* new_page = malloc(sizeof(B_TREE_PAGE));
+      B_TREE_PAGE *new_page = malloc(sizeof(B_TREE_PAGE));
       if (!DISK_READ(btree, &page->references[i], new_page)) {
         return NULL;
       }
@@ -113,13 +113,13 @@ static B_TREE_ROW* B_TREE_SEARCH_HELPER(B_TREE* btree, B_TREE_PAGE* page,
   return B_TREE_SEARCH_HELPER(btree, page->children[i], key);
 }
 
-B_TREE_ROW* B_TREE_SEARCH(B_TREE* btree, unsigned key) {
+B_TREE_ROW *B_TREE_SEARCH(B_TREE *btree, unsigned key) {
   CHECK_AND_RELEASE_PAGES(btree);
-  B_TREE_ROW* result = B_TREE_SEARCH_HELPER(btree, btree->root, key);
+  B_TREE_ROW *result = B_TREE_SEARCH_HELPER(btree, btree->root, key);
   return result;
 }
 
-B_TREE B_TREE_CREATE(const char* filename) {
+B_TREE B_TREE_CREATE(const char *filename) {
   B_TREE bt;
   strncpy(bt.filename, filename, FUNCTION_MAX_LENGTH_NAME);
   bt.root = B_TREE_PAGE_CREATE(&bt);
@@ -127,10 +127,10 @@ B_TREE B_TREE_CREATE(const char* filename) {
   return bt;
 }
 
-Bool B_TREE_INSERT(B_TREE* btree, B_TREE_ROW* row) {
-  B_TREE_PAGE* r = btree->root;
+Bool B_TREE_INSERT(B_TREE *btree, B_TREE_ROW *row) {
+  B_TREE_PAGE *r = btree->root;
   if (r->n == (2 * B_TREE_MAP2CHECK_ORDER - 1)) {
-    B_TREE_PAGE* s = B_TREE_PAGE_CREATE(btree);
+    B_TREE_PAGE *s = B_TREE_PAGE_CREATE(btree);
     if (s == NULL) {
       return FALSE;
     }
@@ -155,7 +155,7 @@ Bool B_TREE_INSERT(B_TREE* btree, B_TREE_ROW* row) {
   return TRUE;
 }
 
-Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page) {
+Bool B_TREE_INSERT_NONFULL(B_TREE *btree, B_TREE_ROW *row, B_TREE_PAGE *page) {
   if (row == NULL) {
     return FALSE;
   }
@@ -181,7 +181,7 @@ Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page) {
     i += 1;
 
     if (page->children[i] == NULL) {
-      B_TREE_PAGE* new_page = malloc(sizeof(B_TREE_PAGE));
+      B_TREE_PAGE *new_page = malloc(sizeof(B_TREE_PAGE));
       if (!DISK_READ(btree, &page->references[i], new_page)) {
         return FALSE;
       }
@@ -206,9 +206,9 @@ Bool B_TREE_INSERT_NONFULL(B_TREE* btree, B_TREE_ROW* row, B_TREE_PAGE* page) {
  *  Y  [P,Q,R,S,T,U,V]    ==>          Y[P,Q,R]  Z[T,U,V]
  */
 
-Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* X, int index,
-                        B_TREE_PAGE* Y) {
-  B_TREE_PAGE* Z = B_TREE_PAGE_CREATE(btree);
+Bool B_TREE_SPLIT_CHILD(B_TREE *btree, B_TREE_PAGE *X, int index,
+                        B_TREE_PAGE *Y) {
+  B_TREE_PAGE *Z = B_TREE_PAGE_CREATE(btree);
   if (Z == NULL) {
     return FALSE;
   }
@@ -251,9 +251,9 @@ Bool B_TREE_SPLIT_CHILD(B_TREE* btree, B_TREE_PAGE* X, int index,
   return TRUE;
 }
 
-B_TREE_PAGE* B_TREE_PAGE_CREATE(B_TREE* btree) {
+B_TREE_PAGE *B_TREE_PAGE_CREATE(B_TREE *btree) {
   btree->currentLoadedPages += 1;
-  B_TREE_PAGE* btp = malloc(sizeof(B_TREE_PAGE));
+  B_TREE_PAGE *btp = malloc(sizeof(B_TREE_PAGE));
   if (btp == NULL) {
     return NULL;
   }
@@ -278,9 +278,9 @@ B_TREE_PAGE* B_TREE_PAGE_CREATE(B_TREE* btree) {
 }
 
 // TODO(rafa.sa.xp@gmail.com) After Implementation and test, remove this
-void DumpTree(B_TREE* btree) { DumpTreeHelper(btree, 0, btree->root); }
+void DumpTree(B_TREE *btree) { DumpTreeHelper(btree, 0, btree->root); }
 
-void DumpTreePage(B_TREE_PAGE* page) {
+void DumpTreePage(B_TREE_PAGE *page) {
   printf("Address: %p\n", page);
   printf("VALUES[ ");
   int i = 0;
@@ -290,7 +290,7 @@ void DumpTreePage(B_TREE_PAGE* page) {
   printf("]\n");
 }
 
-void DumpTreePageChildren(B_TREE_PAGE* page) {
+void DumpTreePageChildren(B_TREE_PAGE *page) {
   printf("Address %p\n", page);
   printf("Children[ ");
   int i = 0;
@@ -300,7 +300,7 @@ void DumpTreePageChildren(B_TREE_PAGE* page) {
   printf("]\n\n");
 }
 
-void DumpTreeHelper(B_TREE* btree, unsigned index, B_TREE_PAGE* page) {
+void DumpTreeHelper(B_TREE *btree, unsigned index, B_TREE_PAGE *page) {
   if (page == NULL) {
     return;
   }
@@ -313,7 +313,7 @@ void DumpTreeHelper(B_TREE* btree, unsigned index, B_TREE_PAGE* page) {
   if (!page->isLeaf) {
     for (i = 0; i <= page->n; ++i) {
       if (page->children[i] == NULL) {
-        B_TREE_PAGE* new_page = malloc(sizeof(B_TREE_PAGE));
+        B_TREE_PAGE *new_page = malloc(sizeof(B_TREE_PAGE));
         DISK_READ(btree, &page->references[i], new_page);
       }
 

@@ -44,11 +44,11 @@ cp -r /home/map2check/devel_tool/clang600/lib/clang ./lib
 
 # Copying external libraries and binaries
 cp /usr/bin/ld ./bin
-cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./lib
+cp /usr/lib/x86_64-linux-gnu/libbfd-* ./lib
 cp /usr/lib/gcc/x86_64-linux-gnu/5/libstdc++.a ./lib/
 cp /lib/x86_64-linux-gnu/libpthread.so.0 ./lib/libpthread.so
 cp /lib/x86_64-linux-gnu/libdl.so.2 ./lib/libdl.so
-cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./lib/libstdc++.so
+cp /usr/lib/x86_64-linux-gnu/libstdc++* ./lib/
 cp /lib/x86_64-linux-gnu/libm.so.6 ./lib/libm.so
 cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ./lib/libgcc_s.so
 cp /usr/lib/gcc/x86_64-linux-gnu/5/libgcc.a ./lib/
@@ -69,8 +69,26 @@ if [ ! -d "./z3" ]; then
     cp -r z3/lib/* lib/
 fi
 
-# Klee 
+# Klee and klee_uclib 
 cp -r /deps/install/klee/* .
+
+# metasmt
+echo "> Copying metaSMT deps ..."
+cp -r /deps/install/metasmt/lib/* lib/
+cp -r /deps/install/metasmt/include/* include/
+# library from metasmt
+cp -r /deps/src/metaSMT/deps/boolector-2.2.0/lib/libboolector.so lib/
+cp -r /deps/src/metaSMT/deps/lingeling-ayv-86bf266-140429/lib/liblingeling.so lib/
+cp -r /deps/src/metaSMT/deps/yices-2.5.1/lib/libyices.so.2.5.1 lib/
+cp -r /deps/src/metaSMT/deps/yices-2.5.1/lib/libyices.so.2.5 lib/
+cp -r /deps/src/metaSMT/deps/yices-2.5.1/lib/libyices.so lib/
+cp -r /deps/src/metaSMT/deps/minisat-git/lib/libminisat.a lib/
+cp -r /deps/src/metaSMT/deps/minisat-git/lib/libminisat.so lib/
+cp -r /deps/src/metaSMT/deps/minisat-git/lib/libminisat.so.2 lib/
+cp -r /deps/src/metaSMT/deps/minisat-git/lib/libminisat.so.2.1.0 lib/
+
+# minisat
+# stp
 
 # Crab
 if [ ! -d "./bin/crabllvm" ]; then
@@ -78,8 +96,11 @@ if [ ! -d "./bin/crabllvm" ]; then
     mv ./bin/crab ./bin/crabllvm
 fi
 
-cp /usr/lib/x86_64-linux-gnu/libbfd-2.26.1-system.so ./bin/crabllvm/lib/
+echo "> Crab-LLVM replacing PATH"
+sed -i '54s/\"PATH\"/\"CLANG_PATH\"/' ./bin/crabllvm/bin/crabllvm.py
+cp /usr/lib/x86_64-linux-gnu/libbfd-* ./bin/crabllvm/lib/
 cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./bin/crabllvm/lib/
+cp /usr/lib/x86_64-linux-gnu/libstdc++* ./bin/crabllvm/lib/
 cp ./lib/libz3.so ./bin/crabllvm/lib/
 
 ../utils/cp_utils_file.sh
@@ -97,8 +118,11 @@ if [ "$export_svcomp" = true ] ; then
 	rm ./bin/kleaver
 	rm -rf ./bin/crabllvm/ldd
 
-    rm ./bin/crabllvm/lib/libz3.so
-	ln -s ./z3/lib/libz3.so ./bin/crabllvm/lib/libz3.so
+        rm ./bin/crabllvm/lib/libz3.so
+	#ln -s ./z3/lib/libz3.so ./bin/crabllvm/lib/libz3.so
+	cd bin/crabllvm/lib/
+	ln -s ../../../lib/libz3.so .
+	cd ../../../ # go back to release
 	#rm ./lib/libz3.so
 fi
 

@@ -1,4 +1,15 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_FRONTEND_WITNESS_NODE_HPP_
+#define MODULES_FRONTEND_WITNESS_NODE_HPP_
+
+#include <memory>
+#include <string>
+#include <vector>
 #include "witness.hpp"
 namespace Map2Check {
 class NodeElement {
@@ -49,9 +60,11 @@ class Node {
   virtual std::string convertToString();
 
  public:
-  Node(std::string id) : id(id) {}
+  explicit Node(std::string id) : id(id) {}
   void AddElement(std::unique_ptr<NodeElement> element);
   operator std::string() { return this->convertToString(); }
 };
 
 }  // namespace Map2Check
+
+#endif  // MODULES_FRONTEND_WITNESS_NODE_HPP_

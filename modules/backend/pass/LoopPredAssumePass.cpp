@@ -1,4 +1,13 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "LoopPredAssumePass.hpp"
+
+using llvm::IRBuilder;
+using llvm::RegisterPass;
 
 namespace {
 inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
@@ -16,33 +25,33 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
           Type::getInt1Ty(header->getContext()));
   if (BranchInst* bi = dyn_cast<BranchInst>(header->getTerminator())) {
     // errs() << *bi->getCondition() << "\n";
-    if(bi->isConditional()){
-    Value* loopCond = bi->getCondition();
-    // errs() << *loopCond << "\n";
+    if (bi->isConditional()) {
+      Value* loopCond = bi->getCondition();
+      // errs() << *loopCond << "\n";
 
-    CmpInst* cmpInst = dyn_cast<CmpInst>(&*loopCond);
+      CmpInst* cmpInst = dyn_cast<CmpInst>(&*loopCond);
 
-    if (bi->getNumSuccessors() > 0) {
-      BasicBlock* succ_cond_bb = bi->getSuccessor(0);
-      BasicBlock::iterator iT = --succ_cond_bb->end();
+      if (bi->getNumSuccessors() > 0) {
+        BasicBlock* succ_cond_bb = bi->getSuccessor(0);
+        BasicBlock::iterator iT = --succ_cond_bb->end();
 
-      auto* new_inst = cmpInst->clone();
-      auto* inst_pos = dyn_cast<Instruction>(&*--succ_cond_bb->end());
-      //errs() << *inst_pos << "\n";
-      new_inst->insertBefore(inst_pos);
+        auto* new_inst = cmpInst->clone();
+        auto* inst_pos = dyn_cast<Instruction>(&*--succ_cond_bb->end());
+        // errs() << *inst_pos << "\n";
+        new_inst->insertBefore(inst_pos);
 
-      CmpInst* new_cmpInst = dyn_cast<CmpInst>(&*new_inst);
-      new_cmpInst->setPredicate(new_cmpInst->getInversePredicate());
+        CmpInst* new_cmpInst = dyn_cast<CmpInst>(&*new_inst);
+        new_cmpInst->setPredicate(new_cmpInst->getInversePredicate());
 
-      Value* new_loop_cond =
-          dyn_cast<Value>(&*new_cmpInst);  // Convert CmpInst to Value;
+        Value* new_loop_cond =
+            dyn_cast<Value>(&*new_cmpInst);  // Convert CmpInst to Value;
 
-      IRBuilder<> builder(BBIteratorToInst(iT));
+        IRBuilder<> builder(BBIteratorToInst(iT));
 
-      Value* args[] = {new_loop_cond};
-      builder.CreateCall(this->map2check_assume, args);
+        Value* args[] = {new_loop_cond};
+        builder.CreateCall(this->map2check_assume, args);
+      }
     }
-  }
   }
 }
 

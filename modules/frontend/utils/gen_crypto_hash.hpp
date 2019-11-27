@@ -1,10 +1,17 @@
-#ifndef GEN_CRYPTO_HASH_H
-#define GEN_CRYPTO_HASH_H
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
 
-#include <boost/uuid/sha1.hpp>
+#ifndef MODULES_FRONTEND_UTILS_GEN_CRYPTO_HASH_HPP_
+#define MODULES_FRONTEND_UTILS_GEN_CRYPTO_HASH_HPP_
+
 #include <string>
 
-using namespace std;
+#include <boost/uuid/sha1.hpp>
+
+using std::string;
 
 class GenHash {
  private:
@@ -28,4 +35,4 @@ class GenHash {
   void print_sha1_hash_for_file();
 };
 
-#endif
+#endif  // MODULES_FRONTEND_UTILS_GEN_CRYPTO_HASH_HPP_

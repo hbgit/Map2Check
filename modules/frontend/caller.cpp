@@ -1,19 +1,29 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "caller.hpp"
 
 #include <stdlib.h>
 // CPP Libs
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <string>
-
-#include <boost/filesystem.hpp>
+#include <vector>
 
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
 #include "utils/tools.hpp"
 // namespace fs = boost::filesystem;
 // }  // namespace
+
+using std::ifstream;
+using std::regex;
+using std::smatch;
 
 namespace {
 inline std::string getLibSuffix() { return ".so"; }
@@ -82,7 +92,7 @@ void Caller::cleanGarbage() {
 
 void Caller::applyNonDetGenerator() {
   switch (nonDetGenerator) {
-    case (NonDetGenerator::None): {  // TODO: Should generate binary
+    case (NonDetGenerator::None): {  // TODO(hbgit): Should generate binary
       Map2Check::Log::Info(
           "Map2Check will not generate non deterministic numbers");
       break;
@@ -125,10 +135,11 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
    *                             and TrackBasicBlockPass now */
 
   std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
-  
+
   /*Map2Check::Log::Info("Adding loop pass");
-  std::string loopPredAssumePass = "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass";
-  transformCommand << " -load " << loopPredAssumePass << getLibSuffix()
+  std::string loopPredAssumePass =
+  "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass"; transformCommand << " -load "
+  << loopPredAssumePass << getLibSuffix()
                    << " -loop_predicate_assume";*/
 
   Map2Check::Log::Info("Adding nondet pass");
@@ -255,7 +266,7 @@ void Caller::linkLLVM() {
       linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
       break;
     }
-    case (NonDetGenerator::Klee): {  // TODO: Add klee non det generator
+    case (NonDetGenerator::Klee): {  // TODO(hbgit): Add klee non det generator
       linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorKlee.bc";
       break;
     }
@@ -278,10 +289,10 @@ void Caller::linkLLVM() {
   system(linkCommand.str().c_str());
 }
 
-void Caller::executeAnalysis() {
+void Caller::executeAnalysis(std::string solvername) {
   switch (nonDetGenerator) {
-    // TODO: implement this method
-    case (NonDetGenerator::None): {  // TODO: Activate mode
+    // TODO(hbgit): implement this method
+    case (NonDetGenerator::None): {  // TODO(hbgit): Activate mode
       Map2Check::Log::Info("This mode is not supported");
       break;
     }
@@ -291,14 +302,47 @@ void Caller::executeAnalysis() {
       kleeCommand.str("");
       kleeCommand << "timeout " << (0.8 * this->timeout) << " ";
       kleeCommand << Map2Check::kleeBinary;
-      kleeCommand << " -suppress-external-warnings"
-                  << " --allow-external-sym-calls"
-                  << " -exit-on-error-type=Abort"
-                  << " --optimize "
-                  << " -solver-backend=z3 "
-                  << " -libc=uclibc"
-                  << " ./" + programHash + "-witness-result.bc"
-                  << "  > ExecutionOutput.log";
+
+
+      std::vector<std::string> kleebackendsolver = {"z3", "stp"};
+      std::vector<std::string> kleemetasolver = {"btor", "yices2"};
+
+
+      if ( std::count(kleebackendsolver.begin(), kleebackendsolver.end(), solvername) ) {
+        // Checkout solver adopted, if is z3 or stp
+        // in KLEE add -solver-backend option
+
+        Map2Check::Log::Info("Solver backend caller: " + solvername);
+        //  --allow-external-sym-calls
+        //  -use-cache
+        kleeCommand << " -suppress-external-warnings"
+                    << " --external-calls=all"
+                    << " -exit-on-error-type=Abort"
+                    << " --optimize"
+                    << " -use-cex-cache"
+                    << " -solver-backend=" + solvername + " "
+                    << " -use-construct-hash-metasmt "
+                    << " -libc=uclibc"
+                    << " ./" + programHash + "-witness-result.bc"
+                    << "  > ExecutionOutput.log";
+      } else if ( std::count(kleemetasolver.begin(), kleemetasolver.end(), solvername) ) {
+        // Checkout solver adopted, if is btor (Boolector) or yices (Yices)
+        // in KLEE add - option
+        Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
+
+        kleeCommand << " -suppress-external-warnings"
+                    << " --external-calls=all"
+                    << " -exit-on-error-type=Abort"
+                    << " --optimize"
+                    << " -use-cex-cache"
+                    << " -solver-backend=metasmt "
+                    << " -metasmt-backend=" + solvername + " "
+                    << " -use-construct-hash-metasmt "
+                    << " -libc=uclibc"
+                    << " ./" + programHash + "-witness-result.bc"
+                    << "  > ExecutionOutput.log";
+      }
+
       Map2Check::Log::Debug(kleeCommand.str());
       int result = system(kleeCommand.str().c_str());
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
@@ -313,7 +357,7 @@ void Caller::executeAnalysis() {
       command.str("");
       command << "timeout " << (0.2 * this->timeout) << " ";
       command << "./" + programHash +
-                     "-fuzzed.out -jobs=2 -use_value_profile=1 "
+                     "-fuzzed.out -jobs=8 -use_value_profile=1 "
               << " > fuzzer.output";
 
       int result = system(command.str().c_str());
@@ -373,64 +417,105 @@ std::vector<int> Caller::processClangOutput() {
  * (3) Check for overflow errors on compilation
  */
 void Caller::compileCFile(bool is_llvm_bc) {
+  if (!is_llvm_bc) {
+    Map2Check::Log::Info("Compiling " + this->pathprogram);
 
-  if(!is_llvm_bc){
-  Map2Check::Log::Info("Compiling " + this->pathprogram);
+    // (1) Remove unsupported functions and clean the C code
+    std::ostringstream commandRemoveExternMalloc;
+    commandRemoveExternMalloc.str("");
+    commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
+    commandRemoveExternMalloc << "sed -e 's/extern void [*].[^_]*lloc.*/ / g' "
+                              << " > " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMalloc.str().c_str());
+    system(commandRemoveExternMalloc.str().c_str());
 
-  // (1) Remove unsupported functions and clean the C code
-  std::ostringstream commandRemoveExternMalloc;
-  commandRemoveExternMalloc.str("");
-  commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
-  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
-                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
-                            << " > " << programHash << "-preprocessed.c ";
+    std::ostringstream commandRemoveExternMemset;
+    commandRemoveExternMemset.str("");
+    commandRemoveExternMemset << "sed -i 's/extern void [*]memset.*/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveExternMemset.str().c_str());
 
-  system(commandRemoveExternMalloc.str().c_str());
+    std::ostringstream commandRemoveVoidMemset;
+    commandRemoveVoidMemset.str("");
+    commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveVoidMemset.str().c_str());
 
-  // (2) Generate .bc file from code
-  // TODO: -Winteger-overflow should be called only if is on overflow mode
-  std::string compiledFile = programHash + "-compiled.bc";
-  std::ostringstream command;
-  command.str("");
-  command << Map2Check::clangBinary << " -I" << Map2Check::clangIncludeFolder
-          << " -Wno-everything "
-          << " -Winteger-overflow "
-          << " -c -emit-llvm -g"
-          << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
-          << " " << programHash << "-preprocessed.c "
-          << " > " << programHash << "-clang.out 2>&1";
+    std::ostringstream commandRemoveVoidMemcpy;
+    commandRemoveVoidMemcpy.str("");
+    commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveVoidMemcpy.str().c_str());
 
-  system(command.str().c_str());
+    // (2) Generate .bc file from code
+    // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
+    // mode
+    std::string compiledFile = programHash + "-compiled.bc";
+    std::ostringstream command;
+    command.str("");
+    command << Map2Check::clangBinary << " -I" << Map2Check::clangIncludeFolder
+            << " -Wno-everything "
+            << " -Winteger-overflow "
+            << " -c -emit-llvm -g"
+            << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
+            << " " << programHash << "-preprocessed.c "
+            << " > " << programHash << "-clang.out 2>&1";
 
-  this->pathprogram = compiledFile;
-  }else{
-      std::string compiledFile = programHash + "-compiled.bc";
-      std::ostringstream command;
-      command.str("");
-      command << " cp " << this->pathprogram << " " << compiledFile;
-      system(command.str().c_str());
-      this->pathprogram = compiledFile;
+    system(command.str().c_str());
+
+    this->pathprogram = compiledFile;
+  } else {
+    std::string compiledFile = programHash + "-compiled.bc";
+    std::ostringstream command;
+    command.str("");
+    command << " cp " << this->pathprogram << " " << compiledFile;
+    system(command.str().c_str());
+    this->pathprogram = compiledFile;
   }
 
-  // TODO: (3) Check for overflow errors on compilation
+  // TODO(hbgit): (3) Check for overflow errors on compilation
 }
 
 void Caller::compileToCrabLlvm() {
   Map2Check::Log::Info("Compiling using crab-llvm in " + this->pathprogram);
 
   // (1) Remove unsupported functions and clean the C code
+  // TODO(hbgit): improve regex to the next line
   std::ostringstream commandRemoveExternMalloc;
   commandRemoveExternMalloc.str("");
   commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
-  commandRemoveExternMalloc << "sed -e 's/.*extern.*malloc.*/ / g' "
-                            << "  -e 's/.*void \\*malloc(size_t size).*//g' "
+  commandRemoveExternMalloc << "sed -e 's/extern void [*].[^_]*lloc.*/ / g' "
                             << " > " << programHash << "-preprocessed.c ";
-
   system(commandRemoveExternMalloc.str().c_str());
 
+  std::ostringstream commandRemoveExternMemset;
+  commandRemoveExternMemset.str("");
+  commandRemoveExternMemset << "sed -i 's/extern void [*]memset.*/ / g' "
+                            << " " << programHash << "-preprocessed.c ";
+  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+  system(commandRemoveExternMemset.str().c_str());
+
+  std::ostringstream commandRemoveVoidMemset;
+  commandRemoveVoidMemset.str("");
+  commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+                            << " " << programHash << "-preprocessed.c ";
+  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+  system(commandRemoveVoidMemset.str().c_str());
+
+  std::ostringstream commandRemoveVoidMemcpy;
+  commandRemoveVoidMemcpy.str("");
+  commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+                            << " " << programHash << "-preprocessed.c ";
+  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+  system(commandRemoveVoidMemcpy.str().c_str());
+
+
   // (2) Generate .bc file from code
-  // TODO: -Winteger-overflow should be called only if is on overflow mode
-  // CLANG PATH
+  // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
+  // mode CLANG PATH
   std::ostringstream getPathCLCommand;
   getPathCLCommand.str("");
   std::ostringstream getMapPath;
@@ -447,8 +532,19 @@ void Caller::compileToCrabLlvm() {
   std::ostringstream getPathLibCrabCommand;
   getPathLibCrabCommand.str("");
 
-  getPathLibCrabCommand << "LD_LIBRARY_PATH=" << getMapPath.str().c_str()
+  std::ostringstream tmp_ld_p;
+  tmp_ld_p << getenv("LD_LIBRARY_PATH");
+
+
+  getPathLibCrabCommand << "LD_LIBRARY_PATH="
+                        << tmp_ld_p.str().c_str()
+                        << ":"
+                        << getMapPath.str().c_str()
                         << "/bin/crabllvm/lib";
+
+  // std::ostringstream tmp_ld;
+  // tmp_ld << getenv("LD_LIBRARY_PATH");
+  // std::cout << tmp_ld.str().c_str();
 
   std::string tmp_gplibcc = getPathLibCrabCommand.str().c_str();
   char* c_gplibcc = new char[tmp_gplibcc.length() + 1];

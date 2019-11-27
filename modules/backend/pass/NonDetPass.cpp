@@ -1,4 +1,19 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "NonDetPass.hpp"
+
+#include <memory>
+
+using llvm::CastInst;
+using llvm::dyn_cast;
+using llvm::IRBuilder;
+using llvm::make_unique;
+using llvm::RegisterPass;
+using llvm::Twine;
 
 namespace {
 inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
@@ -48,29 +63,31 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   }
 
   // TODO(rafa.sa.xp@gmail.com): Should not rename __VERIFIER functions
-  // clang-format off
-  CALL_IF_HELPER(Integer, INTEGER, int)
-  else CALL_IF_HELPER(Unsigned, UNSIGNED, unsigned)
-  else CALL_IF_HELPER(Char, CHAR, char)
-  else CALL_IF_HELPER(Pointer, POINTER, pointer)
-  else CALL_IF_HELPER(Long, LONG, long)
-  else CALL_IF_HELPER(Ushort, USHORT, ushort)
-  else CALL_IF_HELPER(Ulong, ULONG, ulong)
-  else CALL_IF_HELPER(Bool, BOOL, bool)
-  else CALL_IF_HELPER(Uchar, UCHAR, uchar)
-  else CALL_IF_HELPER(Pchar, PCHAR, pchar)
-  else CALL_IF_HELPER(Size_t, SIZE_T, size_t)
-  else CALL_IF_HELPER(Loff_t, LOFF_T, loff_t)
-  else CALL_IF_HELPER(Sector_t, SECTOR_T, sector_t)
-  else CALL_IF_HELPER(Uint, UINT, uint)
-	 
-  else if ((calleeFunction->getName() == "__VERIFIER_assume")) {
+  // clang-format
+  if (true) {
+    CALL_IF_HELPER(Integer, INTEGER, int)
+  }
+  CALL_IF_HELPER(Unsigned, UNSIGNED, unsigned)
+  CALL_IF_HELPER(Char, CHAR, char)
+  CALL_IF_HELPER(Pointer, POINTER, pointer)
+  CALL_IF_HELPER(Long, LONG, long)
+  CALL_IF_HELPER(Ushort, USHORT, ushort)
+  CALL_IF_HELPER(Short, SHORT, short)
+  CALL_IF_HELPER(Ulong, ULONG, ulong)
+  CALL_IF_HELPER(Bool, BOOL, bool)
+  CALL_IF_HELPER(Uchar, UCHAR, uchar)
+  CALL_IF_HELPER(Pchar, PCHAR, pchar)
+  CALL_IF_HELPER(Size_t, SIZE_T, size_t)
+  CALL_IF_HELPER(Loff_t, LOFF_T, loff_t)
+  CALL_IF_HELPER(Sector_t, SECTOR_T, sector_t)
+  CALL_IF_HELPER(Uint, UINT, uint)
+  CALL_IF_HELPER(Double, DOUBLE, double)
+
+  if ((calleeFunction->getName() == "__VERIFIER_assume")) {
     this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
-  }
-  else if ((calleeFunction->getName() == "verifier.assume")) {
+  } else if ((calleeFunction->getName() == "verifier.assume")) {
     this->instrumentNonDet(NonDetType::CRAB_ASSUME, calleeFunction);
-  }
-  else if ((calleeFunction->getName() == "map2check_assume")) {
+  } else if ((calleeFunction->getName() == "map2check_assume")) {
     // TODO(rafa.sa.xp@gmail.com): Implement method
   }
   // clang-format on
@@ -93,6 +110,7 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
     INSTRUMENT_CASE_HELPER(POINTER, pointer)
     INSTRUMENT_CASE_HELPER(LONG, long)
     INSTRUMENT_CASE_HELPER(USHORT, ushort)
+    INSTRUMENT_CASE_HELPER(SHORT, short)
     INSTRUMENT_CASE_HELPER(ULONG, ulong)
     INSTRUMENT_CASE_HELPER(BOOL, bool)
     INSTRUMENT_CASE_HELPER(UCHAR, uchar)
@@ -101,6 +119,7 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
     INSTRUMENT_CASE_HELPER(LOFF_T, loff_t)
     INSTRUMENT_CASE_HELPER(SECTOR_T, sector_t)
     INSTRUMENT_CASE_HELPER(UINT, uint)
+    INSTRUMENT_CASE_HELPER(DOUBLE, double)
     case (NonDetType::ASSUME): {
       Twine assume("map2check_assume");
       calleeFunction->setName(assume);
@@ -171,8 +190,10 @@ namespace {
 NONDET_IMPL_HELPER(Integer)
 NONDET_IMPL_HELPER(Unsigned)
 NONDET_IMPL_HELPER(Uint)
+NONDET_IMPL_HELPER(Double)
 NONDET_IMPL_HELPER_CAST(Char)
 NONDET_IMPL_HELPER_CAST(Ushort)
+NONDET_IMPL_HELPER_CAST(Short)
 NONDET_IMPL_HELPER_CAST(Long)
 NONDET_IMPL_HELPER_CAST(Ulong)
 NONDET_IMPL_HELPER_CAST(Bool)
@@ -182,6 +203,7 @@ NONDET_IMPL_HELPER_CAST(Loff_t)
 NONDET_IMPL_HELPER_CAST(Sector_t)
 NONDET_IMPL_HELPER_POINTER(Pchar)
 NONDET_IMPL_HELPER_POINTER(Pointer)
+// NONDET_IMPL_HELPER_POINTER(Double)
 
 char NonDetPass::ID = 1;
 static RegisterPass<NonDetPass> X(

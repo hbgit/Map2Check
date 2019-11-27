@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_NONDETPASS_HPP_
+#define MODULES_BACKEND_PASS_NONDETPASS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -20,7 +27,13 @@
 #include "DebugInfo.hpp"
 #include "NonDetFunctions.hpp"
 
-using namespace llvm;
+// using namespace llvm;
+using llvm::BasicBlock;
+using llvm::CallInst;
+using llvm::Function;
+using llvm::FunctionPass;
+using llvm::LLVMContext;
+using llvm::Value;
 
 enum class NonDetType {
   INTEGER,
@@ -30,6 +43,7 @@ enum class NonDetType {
   LONG,
   ASSUME,
   USHORT,
+  SHORT,
   ULONG,
   CHAR,
   BOOL,
@@ -39,13 +53,14 @@ enum class NonDetType {
   LOFF_T,
   SECTOR_T,
   UINT,
-  CRAB_ASSUME
+  CRAB_ASSUME,
+  DOUBLE
 };
 
-namespace {
+namespace InstrumentNonDetS {
 #define INSTRUMENT_HEADER_HELPER(type) \
   void instrumentNonDet##type(CallInst *callInst, LLVMContext *Ctx);
-}  // namespace
+}  // namespace InstrumentNonDetS
 
 struct NonDetPass : public FunctionPass {
   static char ID;
@@ -68,6 +83,7 @@ struct NonDetPass : public FunctionPass {
   INSTRUMENT_HEADER_HELPER(Pointer)
   INSTRUMENT_HEADER_HELPER(Long)
   INSTRUMENT_HEADER_HELPER(Ushort)
+  INSTRUMENT_HEADER_HELPER(Short)
   INSTRUMENT_HEADER_HELPER(Ulong)
   INSTRUMENT_HEADER_HELPER(Bool)
   INSTRUMENT_HEADER_HELPER(Uchar)
@@ -76,6 +92,7 @@ struct NonDetPass : public FunctionPass {
   INSTRUMENT_HEADER_HELPER(Loff_t)
   INSTRUMENT_HEADER_HELPER(Sector_t)
   INSTRUMENT_HEADER_HELPER(Uint)
+  INSTRUMENT_HEADER_HELPER(Double)
   void instrumentCrabAssume(CallInst *callInst, LLVMContext *Ctx);
   std::unique_ptr<NonDetFunctions> nonDetFunctions;
   Value *functionName = NULL;
@@ -88,3 +105,5 @@ class NonDetPassException : public std::runtime_error {
       : std::runtime_error(message) {}
   virtual const char *what() const throw();
 };
+
+#endif  // MODULES_BACKEND_PASS_NONDETPASS_HPP_

@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_OPERATIONSFUNCTIONS_HPP_
+#define MODULES_BACKEND_PASS_OPERATIONSFUNCTIONS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -9,15 +16,18 @@
 #include <llvm/Pass.h>
 #include <llvm/Support/raw_ostream.h>
 
-#include <llvm/IR/Instructions.h>
 #include <iostream>
-
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-using namespace llvm;
+// using namespace llvm;
+using llvm::Constant;
+using llvm::Function;
+using llvm::LLVMContext;
+using llvm::Type;
+
 class OperationsFunctions {
   Constant *OverflowAdd = NULL;
   Constant *OverflowAddUint = NULL;
@@ -79,3 +89,5 @@ class OperationsFunctions {
         Type::getInt8PtrTy(*Ctx));
   }
 };
+
+#endif  // MODULES_BACKEND_PASS_OPERATIONSFUNCTIONS_HPP_

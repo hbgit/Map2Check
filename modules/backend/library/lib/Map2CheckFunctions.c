@@ -1,13 +1,13 @@
 
 #include "../header/Map2CheckFunctions.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include "../header/AnalysisMode.h"
 #include "../header/Container.h"
 #include "../header/NonDetGenerator.h"
 #include "../header/PropertyGenerator.h"
 #include "../header/TrackBBLog.h"
 #include "../header/WitnessGeneration.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 unsigned Map2CheckCurrentStep;
 
@@ -71,7 +71,8 @@ void map2check_destroy() {
   // int currentProccess = getpid();
   // printf("Destroying %d\n", currentProccess);
   static Bool alreadyReleased = FALSE;
-  if (alreadyReleased) return;
+  if (alreadyReleased)
+    return;
   alreadyReleased = TRUE;
   free_container(&trackbb_log);
   analysis_destroy();

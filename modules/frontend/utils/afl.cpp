@@ -1,6 +1,13 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
 #include "afl.hpp"
 
 #include <sstream>
+#include <string>
 
 void Map2Check::AFL_COMPILE::setPath(std::string path) {
   std::ostringstream cnvt;

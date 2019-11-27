@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_BACKEND_PASS_TRACKBASICBLOCKPASS_HPP_
+#define MODULES_BACKEND_PASS_TRACKBASICBLOCKPASS_HPP_
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
@@ -21,13 +28,20 @@
 #include "DebugInfo.hpp"
 #include "LibraryFunctions.hpp"
 
-using namespace llvm;
+// using namespace llvm;
 namespace Tools = Map2Check;
+
+using llvm::BasicBlock;
+using llvm::Function;
+using llvm::FunctionPass;
+using llvm::LLVMContext;
+using llvm::make_unique;
+using llvm::Value;
 
 struct TrackBasicBlockPass : public FunctionPass {
   static char ID;
   TrackBasicBlockPass() : FunctionPass(ID) {}
-  TrackBasicBlockPass(std::string c_program_path) : FunctionPass(ID) {
+  explicit TrackBasicBlockPass(std::string c_program_path) : FunctionPass(ID) {
     this->c_program_path = c_program_path;
     this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
         Tools::SourceCodeHelper(c_program_path));
@@ -59,7 +73,9 @@ struct TrackBasicBlockPass : public FunctionPass {
 
 class TrackBasicBlockPassException : public std::runtime_error {
  public:
-  TrackBasicBlockPassException(std::string message)
+  explicit TrackBasicBlockPassException(std::string message)
       : std::runtime_error(message) {}
   virtual const char* what() const throw();
 };
+
+#endif  // MODULES_BACKEND_PASS_TRACKBASICBLOCKPASS_HPP_

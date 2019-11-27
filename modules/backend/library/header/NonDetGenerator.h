@@ -34,6 +34,12 @@ typedef unsigned short ushort;
 ushort map2check_non_det_ushort();
 
 /**
+ * @brief Generates non deterministic short
+ * @return Non deterministic short
+ */
+short map2check_non_det_short();
+
+/**
  * @brief Generates non deterministic ptr
  * @return Non deterministic ptr
  */
@@ -108,5 +114,11 @@ sector_t map2check_non_det_sector_t();
  */
 typedef unsigned uint;
 uint map2check_non_det_uint();
+
+/**
+ * @brief Generates non deterministic double
+ * @return Non deterministic double
+ */
+double map2check_non_det_double();
 
 #endif

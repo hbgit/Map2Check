@@ -1,8 +1,36 @@
-#include "MemoryTrackPass.h"
-using namespace llvm;
-std::string infoFile = "witnessInfo";
-std::string echoCommand = "echo";
-// TODO: Work with other types
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#include "MemoryTrackPass.hpp"
+
+#include <vector>
+
+// using namespace llvm;
+using llvm::AllocaInst;
+using llvm::Argument;
+using llvm::BasicBlock;
+using llvm::CallInst;
+using llvm::CastInst;
+using llvm::DataLayout;
+using llvm::DebugLoc;
+using llvm::dyn_cast;
+using llvm::GlobalVariable;
+using llvm::Instruction;
+using llvm::IRBuilder;
+using llvm::LoadInst;
+using llvm::Module;
+using llvm::RegisterPass;
+using llvm::StoreInst;
+using llvm::Twine;
+using llvm::Type;
+using llvm::Value;
+
+// std::string infoFile = "witnessInfo";
+// std::string echoCommand = "echo";
+// TODO(hbgit): Work with other types
 // FIX: It it not current function
 
 /**
@@ -18,7 +46,7 @@ inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
 }
 }  // namespace
 
-// TODO: make dynCast only one time
+// TODO(hbgit): make dynCast only one time
 void MemoryTrackPass::instrumentPointer() {
   StoreInst *storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
   Value *var_address = storeInst->getPointerOperand();
@@ -71,7 +99,7 @@ void MemoryTrackPass::instrumentPosixMemAllign() {
   builder.CreateCall(map2check_posix, args);
 }
 
-// TODO: make dynCast only one time
+// TODO(hbgit): make dynCast only one time
 void MemoryTrackPass::instrumentMalloc() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
@@ -81,8 +109,8 @@ void MemoryTrackPass::instrumentMalloc() {
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *size = callInst->getArgOperand(0);
   Twine bitcast("bitcast");
-  if (size == NULL) {
-  }
+  // if (size == NULL) {
+  // }
   Value *args[] = {callInst, size};
   builder.CreateCall(map2check_malloc, args);
 }
@@ -110,6 +138,7 @@ void MemoryTrackPass::instrumentRealloc() {
   builder.CreateCall(map2check_malloc, args);
 }
 
+// BUG on map2check_load
 void MemoryTrackPass::instrumentMemset() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
@@ -126,8 +155,11 @@ void MemoryTrackPass::instrumentMemset() {
 
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
-  Value *args[] = {varPointerCast, size};
+
+  // Value *args[] = {varPointerCast, size};
+  Value *args[] = {pointer, size};
   builder.CreateCall(map2check_load, args);
+
   Value *args2[] = {this->line_value, function_llvm};
   builder.CreateCall(map2check_check_deref, args2);
 }
@@ -208,7 +240,7 @@ void MemoryTrackPass::instrumentCalloc() {
   builder.CreateCall(map2check_calloc, args);
 }
 
-// TODO: make dynCast only one time
+// TODO(hbgit): make dynCast only one time
 void MemoryTrackPass::instrumentFree() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   auto j = this->currentInstruction;
@@ -252,7 +284,6 @@ void MemoryTrackPass::instrumentFree() {
     Value *args[] = {
         name_llvm,        pointerCast,   this->scope_value,
         this->line_value, function_llvm,
-
     };
 
     builder.CreateCall(map2check_free, args);
@@ -332,7 +363,7 @@ void MemoryTrackPass::instrumentInit() {
     Value *pointerCast = CastInst::CreatePointerCast(
         variable, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(i));
 
-    // TODO:
+    // TODO(hbgit):
     this->currentInstruction = i;
     this->getDebugInfo();
     /**
@@ -353,9 +384,9 @@ void MemoryTrackPass::instrumentInit() {
   }
 }
 
-// TODO: use hash table instead of nested "if's"
+// TODO(hbgit): use hash table instead of nested "if's"
 void MemoryTrackPass::switchCallInstruction() {
-  // TODO: Resolve SVCOMP ISSUE
+  // TODO(hbgit): Resolve SVCOMP ISSUE
   if (this->calleeFunction->getName() == "free") {
     this->instrumentFree();
   } else if (this->calleeFunction->getName() == "cfree") {
@@ -456,7 +487,7 @@ void MemoryTrackPass::instrumentAllocation() {
   builder.CreateCall(map2check_alloca, args);
 }
 
-// TODO: make dynCast only one time
+// TODO(hbgit): make dynCast only one time
 void MemoryTrackPass::runOnCallInstruction() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
 
@@ -476,7 +507,7 @@ void MemoryTrackPass::runOnCallInstruction() {
   this->calleeFunction = NULL;
 }
 
-// TODO: make dynCast only one time
+// TODO(hbgit): make dynCast only one time
 void MemoryTrackPass::runOnStoreInstruction() {
   StoreInst *storeInst = dyn_cast<StoreInst>(&*this->currentInstruction);
   if (storeInst->getValueOperand()->getType()->isPointerTy()) {

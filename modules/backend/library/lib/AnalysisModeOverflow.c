@@ -159,16 +159,16 @@ void map2check_binop_mul(int param1, int param2, unsigned line, unsigned scope,
     int limitPositiveResult = INT_MAX / param1;
 
     switch (isParam1Positive) {
-      case TRUE:
-        if (limitPositiveResult < param2) {
-          overflowError(line, function_name);
-        }
-        break;
-      case FALSE:
-        if (param2 < limitPositiveResult) {
-          overflowError(line, function_name);
-        }
-        break;
+    case TRUE:
+      if (limitPositiveResult < param2) {
+        overflowError(line, function_name);
+      }
+      break;
+    case FALSE:
+      if (param2 < limitPositiveResult) {
+        overflowError(line, function_name);
+      }
+      break;
     }
 
   }
@@ -176,16 +176,16 @@ void map2check_binop_mul(int param1, int param2, unsigned line, unsigned scope,
   else {
     int limitNegativeResult = INT_MIN / param1;
     switch (isParam1Positive) {
-      case TRUE:
-        if (limitNegativeResult > param2) {
-          overflowError(line, function_name);
-        }
-        break;
-      case FALSE:
-        if (param2 > absInteger(limitNegativeResult)) {
-          overflowError(line, function_name);
-        }
-        break;
+    case TRUE:
+      if (limitNegativeResult > param2) {
+        overflowError(line, function_name);
+      }
+      break;
+    case FALSE:
+      if (param2 > absInteger(limitNegativeResult)) {
+        overflowError(line, function_name);
+      }
+      break;
     }
   }
 }

@@ -1,5 +1,17 @@
-#pragma once
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+
+#ifndef MODULES_FRONTEND_WITNESS_EDGE_HPP_
+#define MODULES_FRONTEND_WITNESS_EDGE_HPP_
+
+#include <memory>
+#include <string>
+#include <vector>
 #include "node.hpp"
+
 namespace Map2Check {
 class EdgeData {
  protected:
@@ -16,7 +28,7 @@ class StartLine : public EdgeData {
   virtual std::string convertToString();
 
  public:
-  StartLine(std::string line) : line(line), EdgeData() {}
+  explicit StartLine(std::string line) : line(line), EdgeData() {}
 };
 
 class SourceCode : public EdgeData {
@@ -25,7 +37,8 @@ class SourceCode : public EdgeData {
   virtual std::string convertToString();
 
  public:
-  SourceCode(std::string sourcecode) : sourcecode(sourcecode), EdgeData() {}
+  explicit SourceCode(std::string sourcecode)
+      : sourcecode(sourcecode), EdgeData() {}
 };
 
 class Control : public EdgeData {
@@ -34,7 +47,7 @@ class Control : public EdgeData {
   virtual std::string convertToString();
 
  public:
-  Control(std::string control) : control(control), EdgeData() {}
+  explicit Control(std::string control) : control(control), EdgeData() {}
 };
 
 class AssumptionEdgeData : public EdgeData {
@@ -65,3 +78,5 @@ class Edge {
 };
 
 }  // namespace Map2Check
+
+#endif  // MODULES_FRONTEND_WITNESS_EDGE_HPP_

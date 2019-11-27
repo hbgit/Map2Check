@@ -1,3 +1,9 @@
+/**
+ * Copyright (C) 2014 - 2019 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 3.
+ **/
+#include "map2check.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -8,12 +14,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-
-#include <boost/filesystem.hpp>
-#include <boost/make_unique.hpp>
-
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
 #include "utils/gen_crypto_hash.hpp"
@@ -22,9 +22,9 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-#define Map2CheckVersion "v7.2-Flock : Tue Nov 27 22:00:00 -04 2018"
+#define Map2CheckVersion "v7.3.1-Flock : Mon Nov 25 21:29:59 UTC 2019"
 
-// TODO: should get preprocessor flags from CMake
+// TODO(hbgit): should get preprocessor flags from CMake
 
 namespace {
 
@@ -60,7 +60,7 @@ inline void fixPath(char *map2check_bin_string) {
   const int kBufferLength = 500;
   char pBuf[kBufferLength];
   snprintf(szTmp, kSZLength, "/proc/%d/exe", getpid());
-  // TODO: fix implicit conversion from bytes
+  // TODO(hbgit): fix implicit conversion from bytes
   ssize_t bytes = MIN(readlink(szTmp, pBuf, kBufferLength), kBufferLength - 1);
   std::string map2check_bin(map2check_bin_string);
   int deleteSpace = 0;
@@ -102,8 +102,8 @@ inline void fixPath(char *map2check_bin_string) {
 }
 }  // namespace
 
-// TODO: add support to reachability (check old version of map), maybe this
-// should be handled by caller
+// TODO(hbgit): add support to reachability (check old version of map), maybe
+// this should be handled by caller
 void generate_witness(std::string pathfile,
                       Map2Check::PropertyViolated propertyViolated,
                       std::string specTrue) {
@@ -137,6 +137,7 @@ struct map2check_args {
   unsigned timeout = 0;
   std::string inputFile;
   std::string function;
+  std::string solvername;
   std::string expectedResult = "";
   Map2Check::Map2CheckMode mode;
   bool generateWitness = false;
@@ -169,7 +170,7 @@ int map2check_execution(map2check_args args) {
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
   std::string extension = boost::filesystem::extension(args.inputFile);
-  //cout << extension << endl;
+  // cout << extension << endl;
   if (extension.compare(".c") && extension.compare(".i") &&
       extension.compare(".bc")) {
     help_msg();
@@ -205,10 +206,10 @@ int map2check_execution(map2check_args args) {
 
   // (3) Apply nondeterministic mode and execute analysis
   caller->applyNonDetGenerator();
-  caller->executeAnalysis();
+  caller->executeAnalysis(args.solvername);
 
   // (4) Retrieve results
-  // TODO: create methods to generate counter example
+  // TODO(hbgit): create methods to generate counter example
   std::unique_ptr<Map2Check::CounterExample> counterExample =
       boost::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
                                                     is_llvmir_in);
@@ -234,7 +235,7 @@ int map2check_execution(map2check_args args) {
       // Map2Check::Log::Info("VERIFICATION SUCCEEDED");
       // if (args.generateWitness)
       // generate_witness(args.inputFile, propertyViolated, args.spectTrue);
-      // TODO: Fix this hack!!!
+      // TODO(hbgit): Fix this hack!!!
       if (caller->isVerified()) {
         Map2Check::Log::Info("Unable to prove or falsify the program.");
         Map2Check::Log::Info("VERIFICATION UNKNOWN");
@@ -280,25 +281,27 @@ int main(int argc, char **argv) {
   try {
     // Define and parse the program options
     po::options_description desc("Options");
-    desc.add_options()("help,h", "\tshow help")(
-        "version,v", "\tprints map2check version")("debug,d", "\t Debug mode")(
-        "input-file,i", po::value<std::vector<std::string>>(),
-        "\tspecifies the files")("timeout,t", po::value<unsigned>(),
-                                 "\tTimeout for map2check execution")(
-        "target-function,f", "\tSearches for __VERIFIER_error is reachable")(
-        "generate-testcase,g",
-        "\tCreates c program with fail testcase (experimental)")(
-        "memtrack,m", "\tCheck for memory errors")("print-counter,p",
-                                                   "\tPrint Counterexample")(
-        "memcleanup-property", "\t Analyze program for memcleanup errors")(
-        "check-overflow,o", "\tAnalyze program for overflow failures")(
-        "check-asserts,c", "\tAnalyze program and verify assert failures")(
-        "add-invariants,a", "\tAdding program invariants adopting Crab-LLVM")(
-        "generate-witness,w", "\tGenerates witness file")(
-        "expected-result,e", po::value<string>(),
-        "\tSpecifies type of violation expected")(
-        "btree,b",
-        "\t Uses btree structure to hold information (experimental, use this "
+    desc.add_options()("help", "\tshow help")
+        ("version", "\tprints map2check version")
+        ("debug", "\tdebug mode")
+        ("input-file", po::value<std::vector<std::string>>(),
+                      "\tspecifies the files")
+        ("smt-solver", po::value<std::string>()->default_value("z3"),
+                      R"(specifies the smt-solver, valid values are stp (STP),
+z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
+        ("timeout", po::value<unsigned>(),
+                      "\ttimeout for map2check execution")
+        ("target-function", "\tsearches for __VERIFIER_error is reachable")
+        ("generate-testcase", "\tcreates c program with fail testcase (experimental)")
+        ("memtrack", "\tcheck for memory errors")
+        ("print-counter", "\tprint counterexample")
+        ("memcleanup-property", "\tanalyze program for memcleanup errors")
+        ("check-overflow", "\tanalyze program for overflow failures")
+        ("check-asserts", "\tanalyze program and verify assert failures")
+        ("add-invariants", "\tadding program invariants adopting Crab-LLVM")
+        ("generate-witness", "\tgenerates witness file")
+        ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
+        ("btree", "\tuses btree structure to hold information (experimental, use this "
         "if you are having memory problems)");
 
     po::positional_options_description p;
@@ -310,7 +313,7 @@ int main(int argc, char **argv) {
         vm);
     po::notify(vm);
 
-    //cout << vm.count("input-file") << endl;
+    // cout << vm.count("input-file") << endl;
 
     map2check_args args;
     // Default mode
@@ -322,13 +325,31 @@ int main(int argc, char **argv) {
     }
     if (vm.count("help") == 0 && vm.count("input-file") == 0) {
       help_msg();
-      //std::cout << desc;
+      std::cout << desc;
       return ERROR_IN_COMMAND_LINE;
     }
     if (vm.count("help")) {
       help_msg();
-      //std::cout << desc;
+      std::cout << desc;
       return SUCCESS;
+    }
+    if (vm.count("smt-solver")) {
+      string solvername = vm["smt-solver"].as<string>();
+      std::transform(solvername.begin(), solvername.end(),
+                     solvername.begin(), [](unsigned char c){
+                     return std::tolower(c); });
+
+      std::vector<std::string> vSolver = {"z3", "stp", "btor", "yices2"};
+
+      if ( !std::count(vSolver.begin(), vSolver.end(), solvername) ) {
+        std::cout << "Solver not supported.\n\n";
+        std::cout << desc;
+        return ERROR_IN_COMMAND_LINE;
+      } else {
+        std::cout << "Adopting " + solvername + " solver... \n";
+        args.solvername = solvername;
+        // return SUCCESS;
+      }
     }
     if (vm.count("expected-result")) {
       string expected = vm["expected-result"].as<string>();
@@ -383,7 +404,7 @@ int main(int argc, char **argv) {
           boost::end(vm["input-file"].as<std::vector<std::string>>()),
           pathfile);
 
-      //std::cout << pathfile << std::endl;
+      // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
       args.generator = Map2Check::NonDetGenerator::LibFuzzer;

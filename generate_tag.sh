@@ -17,9 +17,9 @@ defaultcolor=$(tput setaf default)
 YEAR=$(date +"%Y")
 MONTH=$(date +"%m")
 DAY=$(date +%d)
-MIN=$(date +%M)
+shortHash=$(git rev-parse --short HEAD)
 
-GIT_TAG=v7.3.1.$YEAR-$MONTH.$DAY.$MIN
+GIT_TAG=v7.3.1.$YEAR-$MONTH.$DAY.$shortHash
 echo "${bold}${green}Tag id =  $GIT_TAG"
 
 git fetch --tags

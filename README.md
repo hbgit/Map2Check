@@ -3,7 +3,7 @@
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
 
-[![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=feature/smtsolver)](https://travis-ci.org/hbgit/Map2Check)
+[![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=develop)](https://travis-ci.org/hbgit/Map2Check)
 
 ___
 
@@ -36,8 +36,8 @@ After that, you should type the following command:
 </p>
 
 ``` bash
-$ unzip map2check_v7.3.zip
-$ cd map2check_v7.3
+$ unzip map2check-rc-v7.3-svcomp20.zip
+$ cd map2check-rc-v7.3-svcomp20
 ```
 
 #### Running the tool
@@ -68,7 +68,7 @@ You can build Map2Check using our [Dockerfile](./Dockerfile) by clone our reposi
 </p>
 
 ``` bash
-$ git clone gitclone https://github.com/hbgit/Map2Check
+$ git clone https://github.com/hbgit/Map2Check.git
 $ cd Map2Check
 $ git submodule update --init --recursive
 # Build docker image to compile Map2Check
@@ -109,7 +109,7 @@ Map2Check accepts the property file and the verification task and provides as ve
 FALSE(p), with p in {valid-free, valid-deref, valid-memtrack, valid-memcleanup}, means that the (partial)
 property p is violated.
 For each verification result the witness file (called <b>witness.graphml</b>) is generated Map2Check root-path folder.
-There is timeout of 895 seconds set by this script, using "timeout" tool that is part of coreutils
+There is timeout of 897 seconds set by this script, using "timeout" tool that is part of coreutils
 on debian. If these constraints are violated, it should be treated as UNKNOWN result.
 </p>
 

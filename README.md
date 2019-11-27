@@ -3,7 +3,7 @@
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
 
-[![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=feature/smtsolver)](https://travis-ci.org/hbgit/Map2Check)
+[![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=master)](https://travis-ci.org/hbgit/Map2Check)
 
 ___
 

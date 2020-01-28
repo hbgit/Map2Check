@@ -7,9 +7,10 @@
  * CLANG     -> Apache-2.0
  * KLEE      -> NCSA
  * CRAB-LLVM -> Apache-2.0
- * STP,Z3 -> MIT
+ * STP,Z3    -> MIT
+ * BOOST     -> BSL-1.0
  *
- * SPDX-License-Identifier: (GPL-2.0 AND Apache-2.0 AND NCSA AND MIT)
+ * SPDX-License-Identifier: (GPL-2.0 AND Apache-2.0 AND NCSA AND MIT AND BSL-1.0)
  *
  **/
 

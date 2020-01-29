@@ -5,6 +5,7 @@
 
 [![Build Status](https://travis-ci.org/hbgit/Map2Check.svg?branch=develop)](https://travis-ci.org/hbgit/Map2Check)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3639/badge)](https://bestpractices.coreinfrastructure.org/projects/3639)
+[![Gitter](https://badges.gitter.im/map2checkgit/community.svg)](https://gitter.im/map2checkgit/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ___
 

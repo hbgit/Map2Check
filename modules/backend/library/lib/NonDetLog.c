@@ -1,3 +1,11 @@
+/**
+ * Copyright (C) 2014 - 2020 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 2.
+ *
+ * SPDX-License-Identifier: (GPL-2.0)
+ **/
+
 #include "../header/NonDetLog.h"
 #include "../header/Map2CheckFunctions.h"
 #include <stdio.h>
@@ -29,15 +37,15 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     // The value generated from nondet function
     if (((int)call->type) == UNSIGNED) {
       unsigned *tmp_uvalue = call->value;
-      fprintf(output, "%u;", *tmp_uvalue); 
+      fprintf(output, "%u;", *tmp_uvalue);
     }
     if (((int)call->type) == DOUBLE) {
       double *tmp_dvalue = call->value;
-      fprintf(output, "%lf;", *tmp_dvalue); 
+      fprintf(output, "%lf;", *tmp_dvalue);
     }
     else {
       int *tmp_ivalue = call->value;
-      fprintf(output, "%d;", *tmp_ivalue); 
+      fprintf(output, "%d;", *tmp_ivalue);
     }
 
     // Type of the nondet function
@@ -46,7 +54,7 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
 
   fclose(output);
   return TRUE;
-  
+
 }
 
 NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,

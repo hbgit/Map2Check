@@ -363,7 +363,7 @@ void Caller::executeAnalysis(std::string solvername) {
       Map2Check::Log::Info("Executing LibFuzzer with map2check");
       std::ostringstream command;
       command.str("");
-      command << "timeout " << (0.2 * this->timeout) << " ";
+      command << "timeout " << (0.5 * this->timeout) << " ";
       command << "./" + programHash +
                      "-fuzzed.out -rss_limit_mb=4000 -jobs=8 -use_value_profile=1 "
               << " > fuzzer.output";

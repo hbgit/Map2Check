@@ -4,7 +4,7 @@
 
   <rundefinition name="sv-comp19_map2check"></rundefinition>
 
-  <!-- 
+   
   <tasks name="MemSafety-Arrays">
 	  <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/MemSafety-Arrays.set</includesfile>
 	  <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/valid-memsafety.prp</propertyfile>
@@ -34,7 +34,7 @@
 	  <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/MemSafety-MemCleanup.set</includesfile>
 	  <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/valid-memcleanup.prp</propertyfile>
   </tasks>
-  -->
+  
 
  <!--  
   <tasks name="ReachSafety-Arrays">
@@ -63,7 +63,7 @@
   </tasks>
   -->
 
-
+  <!--
   <tasks name="NoOverflows-BitVectors">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/NoOverflows-BitVectors.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/no-overflow.prp</propertyfile>
@@ -72,6 +72,6 @@
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/NoOverflows-Other.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/no-overflow.prp</propertyfile>
   </tasks>
-
+  -->
 
 </benchmark>

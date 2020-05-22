@@ -199,7 +199,12 @@ int map2check_execution(map2check_args args) {
   if (!is_llvmir_in) {
     if (args.invCrabLlvm) {
       // cout << "crab  \n";
-      caller->compileToCrabLlvm();
+      if(args.generator != Map2Check::NonDetGenerator::LibFuzzer){
+        caller->compileToCrabLlvm();
+      }else{
+        caller->compileCFile(is_llvmir_in);
+      }
+      
     } else {
       caller->compileCFile(is_llvmir_in);
     }

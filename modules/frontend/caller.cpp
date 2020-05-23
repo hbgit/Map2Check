@@ -135,6 +135,37 @@ void Caller::applyNonDetGenerator() {
   }
 }
 
+int Caller::checkNondetFunctPass() {
+  std::ostringstream cmd;
+  cmd.str("");
+  cmd << Map2Check::optBinary;
+  
+  Map2Check::Log::Info("Look for nondet function call using LLVM pass");
+  cmd << " -tailcallopt";
+  std::string checkNondetFunctPass = "${MAP2CHECK_PATH}/lib/libCheckNonDetFunctPass";
+  cmd << " -load " << checkNondetFunctPass << getLibSuffix()
+                   << " -check_nondet_functs -disable-output";
+  
+  std::string input_file = "< " + this->pathprogram;
+  std::string output_file = "&> checkNondetFunct-output.txt";
+
+  cmd << input_file << output_file;
+  Map2Check::Log::Debug(cmd.str());
+
+  system(cmd.str().c_str());
+
+  std::ifstream file("checkNondetFunct-output.txt");
+
+  //pFile.peek() == std::ifstream::traits_type::eof()
+  if(file.peek() == std::ifstream::traits_type::eof()){
+    return 0;
+  }else{
+    return 1;
+  }
+
+  //return 1;
+}
+
 int Caller::callPass(std::string target_function, bool sv_comp) {
   std::ostringstream transformCommand;
   transformCommand.str("");

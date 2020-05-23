@@ -212,6 +212,18 @@ int map2check_execution(map2check_args args) {
     caller->compileCFile(is_llvmir_in);
   }
 
+  // Add function to indentify if the
+  // code has a nondet call
+  if(caller->checkNondetFunctPass()){
+    Map2Check::Log::Info("NOTE: Found call nondet functions");
+  }else{
+    Map2Check::Log::Info("NOTE: No call nondet functions");
+  }
+
+  // TODO: Define the flow from found or not a nondet functions
+  exit(0);
+
+
   if (args.btree) {
     caller->useBTree();
   }
@@ -422,10 +434,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
 
       // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
-      args.inputFile = absolute_path.string();
-
-      // TODO: Add function to indentify if the
-      // code has a nondet call
+      args.inputFile = absolute_path.string();      
 
       args.generator = Map2Check::NonDetGenerator::LibFuzzer;
       map2check_execution(args);

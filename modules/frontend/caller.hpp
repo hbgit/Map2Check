@@ -81,6 +81,12 @@ class Caller {
    *  @param sv_comp boolean representing if should use sv-comp rules */
   int callPass(std::string target_function = "", bool sv_comp = false);
 
+  /** 
+   * Identify if the analyzed code has nondet call funct, 
+   * thus avoiding call nondet generators.
+   * */
+  int checkNondetFunctPass();
+
   /** Link functions called after executing the passes */
   void linkLLVM();
 

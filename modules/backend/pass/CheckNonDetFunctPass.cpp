@@ -37,5 +37,5 @@ bool CheckNonDetFunctPass::runOnFunction(Function& F) {
 
 
 char CheckNonDetFunctPass::ID = 14;
-static RegisterPass<CheckNonDetFunctPass> X("list_nondet_functs",
+static RegisterPass<CheckNonDetFunctPass> X("check_nondet_functs",
                                   "Identify nondet function using __VERIFIER_nondet_type() call");

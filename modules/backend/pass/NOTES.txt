@@ -6,7 +6,8 @@
 
 3) Update the Map2Check/modules/backend/pass/CMakeLists.txt file
 
-4) Update the Map2Check/modules/frontend/CMakeLists.txt, e.g.:
+
+OPTIONAL:: 4) Update the Map2Check/modules/frontend/CMakeLists.txt, e.g.:
 	add_executable(map2check map2check.cpp $<TARGET_OBJECTS:MemoryTrackPass> 
 				$<TARGET_OBJECTS:NewPass> 
 				...

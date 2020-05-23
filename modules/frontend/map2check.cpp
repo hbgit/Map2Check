@@ -423,6 +423,10 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
+
+      // TODO: Add function to indentify if the
+      // code has a nondet call
+
       args.generator = Map2Check::NonDetGenerator::LibFuzzer;
       map2check_execution(args);
       if (!foundViolation) {

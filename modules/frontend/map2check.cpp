@@ -214,15 +214,19 @@ int map2check_execution(map2check_args args) {
 
   // Add function to indentify if the
   // code has a nondet call
-  if(caller->checkNondetFunctPass()){
-    Map2Check::Log::Info("NOTE: Found call nondet functions");
-  }else{
-    Map2Check::Log::Info("NOTE: No call nondet functions");
+  int hasNonDetFunct = caller->checkNondetFunctPass();
+  if(hasNonDetFunct == 0 && generator == Map2Check::NonDetGenerator::LibFuzzer){    
+    Map2Check::Log::Info("NOTE: No call nondet functions for LibFuzzer");
+    // set the result UNKNOW for libfuzzer
+    foundViolation = false;    
+    // clean tmp files
+    Map2Check::Log::Debug("Removing temp files");    
+    caller->cleanGarbage();
+    // return SUCCESS
+    return SUCCESS;
   }
-
-  // TODO: Define the flow from found or not a nondet functions
-  exit(0);
-
+  
+  // Map2Check::Log::Info("NOTE: Found call nondet functions");      
 
   if (args.btree) {
     caller->useBTree();

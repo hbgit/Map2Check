@@ -26,21 +26,12 @@ cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON  -DCM
 ninja
 ninja install
 
-if [ ! -d "/home/map2check/devel_tool/clang600" ]; then
-   CURRENT_DIR=`pwd`
-   cd /home/map2check/devel_tool/
-   wget http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-   tar xf clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-   mv clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04 clang600
-   rm clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-   cd $CURRENT_DIR
-fi
-   
 cd ../release   
 
 mkdir -p ./include
-cp -r /home/map2check/devel_tool/clang600/lib/clang/$LLVM_VERSION/include/* ./include
-cp -r /home/map2check/devel_tool/clang600/lib/clang ./lib
+
+cp -r /llvm/release/llvm600/lib/clang/6.0.0/include/* ./include
+cp -r /llvm/release/llvm600/lib/clang ./lib
 
 # Copying external libraries and binaries
 cp /usr/bin/ld ./bin

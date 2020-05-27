@@ -12,7 +12,7 @@
 #  You can check that the container still exists by running: $ docker ps -a
 #  You can restart the container by running: docker start -ai mapdevel
 ############################################################
-FROM herberthb/base-image-map2check:v2
+FROM herberthb/base-image-map2check:v3
 
 # Metadata indicating an image maintainer.
 MAINTAINER <herberthb12@gmail.com>
@@ -50,11 +50,6 @@ RUN mkdir /home/map2check/devel_tool
 WORKDIR /home/map2check/devel_tool/
 
 RUN cd /home/map2check/devel_tool/
-
-RUN wget http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-RUN tar xf clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
-RUN mv clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04 clang600
-RUN rm clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 
 RUN sudo chown -R map2check:map2check .
 

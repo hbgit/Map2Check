@@ -43,7 +43,8 @@ struct TargetPass : public FunctionPass {
   static char ID;
   TargetPass() : FunctionPass(ID) {}
   explicit TargetPass(std::string FunctionName) : FunctionPass(ID) {
-    targetFunctionName = FunctionName;
+    targetFunctionName_v1 = FunctionName;
+    targetFunctionName_v2 = FunctionName;
   }
   virtual bool runOnFunction(Function &F);
 
@@ -56,7 +57,8 @@ struct TargetPass : public FunctionPass {
   BasicBlock::iterator currentInstruction;
   Constant *targetFunctionMap2Check = NULL;
   Value *functionName = NULL;
-  std::string targetFunctionName = "__VERIFIER_error";
+  std::string targetFunctionName_v1 = "__VERIFIER_error";
+  std::string targetFunctionName_v2 = "reach_error";
 };
 
 #endif  // MODULES_BACKEND_PASS_TARGETPASS_HPP_

@@ -31,6 +31,7 @@ cd ../release
 mkdir -p ./include
 
 cp -r /llvm/release/llvm600/lib/clang/6.0.0/include/* ./include
+# Not found libs such as libclang_rt.fuzzer-x86_64.a
 cp -r /llvm/release/llvm600/lib/clang ./lib
 
 # Copying external libraries and binaries

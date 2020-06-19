@@ -147,7 +147,7 @@ int Caller::checkNondetFunctPass() {
                    << " -check_nondet_functs -disable-output";
   
   std::string input_file = "< " + this->pathprogram;
-  std::string output_file = "&> checkNondetFunct-output.txt";
+  std::string output_file = " 2> checkNondetFunct-output.txt";
 
   cmd << input_file << output_file;
   Map2Check::Log::Debug(cmd.str());

@@ -4,3 +4,6 @@
 [submodule "utils/benchexecrun"]
 	path = utils/benchexecrun
 	url = https://github.com/hbgit/benchexecrun.git
+[submodule "utils/llvm-docker-dev"]
+	path = utils/llvm-docker-dev
+	url = https://github.com/hbgit/llvm-docker-dev.git

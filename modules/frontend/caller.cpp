@@ -503,6 +503,8 @@ void Caller::compileCFile(bool is_llvm_bc) {
             << " " << programHash << "-preprocessed.c "
             << " > " << programHash << "-clang.out 2>&1";
 
+    Map2Check::Log::Info(command.str());
+
     system(command.str().c_str());
 
     this->pathprogram = compiledFile;

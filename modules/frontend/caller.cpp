@@ -139,13 +139,13 @@ int Caller::checkNondetFunctPass() {
   std::ostringstream cmd;
   cmd.str("");
   cmd << Map2Check::optBinary;
-  
+
   Map2Check::Log::Info("Look for nondet function call using LLVM pass");
   cmd << " -tailcallopt";
   std::string checkNondetFunctPass = "${MAP2CHECK_PATH}/lib/libCheckNonDetFunctPass";
   cmd << " -load " << checkNondetFunctPass << getLibSuffix()
                    << " -check_nondet_functs -disable-output";
-  
+
   std::string input_file = "< " + this->pathprogram;
   std::string output_file = " 2> checkNondetFunct-output.txt";
 
@@ -156,14 +156,14 @@ int Caller::checkNondetFunctPass() {
 
   std::ifstream file("checkNondetFunct-output.txt");
 
-  //pFile.peek() == std::ifstream::traits_type::eof()
-  if(file.peek() == std::ifstream::traits_type::eof()){
+  // pFile.peek() == std::ifstream::traits_type::eof()
+  if ( file.peek() == std::ifstream::traits_type::eof() ) {
     return 0;
-  }else{
+  } else {
     return 1;
   }
 
-  //return 1;
+  // return 1;
 }
 
 int Caller::callPass(std::string target_function, bool sv_comp) {
@@ -175,7 +175,7 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
 
   std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
 
-  /*Map2Check::Log::Info("Adding loop pass");
+  /* Map2Check::Log::Info("Adding loop pass");
   std::string loopPredAssumePass =
   "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass"; transformCommand << " -load "
   << loopPredAssumePass << getLibSuffix()
@@ -506,7 +506,7 @@ void Caller::compileCFile(bool is_llvm_bc) {
     Map2Check::Log::Info(command.str());
 
     system(command.str().c_str());
-    //exit(0);
+    // exit(0);
 
     this->pathprogram = compiledFile;
   } else {

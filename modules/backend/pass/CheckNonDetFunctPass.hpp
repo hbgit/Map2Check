@@ -8,9 +8,10 @@
  * SPDX-License-Identifier: (GPL-2.0 AND NCSA)
  **/
 
-#ifndef MODULES_BACKEND_PASS_CKNONDETFUNCTPASS_HPP_
+#ifndef MODULES_BACKEND_PASS_CHECKNONDETFUNCTPASS_HPP_
 
-#define MODULES_BACKEND_PASS_CKNONDETFUNCTPASS_HPP_
+
+#define MODULES_BACKEND_PASS_CHECKNONDETFUNCTPASS_HPP_
 
 
 #include <llvm/IR/Function.h>
@@ -30,15 +31,13 @@ using llvm::FunctionPass;
 using llvm::raw_ostream;
 
 struct CheckNonDetFunctPass : public FunctionPass {
-
     static char ID;
-    CheckNonDetFunctPass() : FunctionPass(ID){}
+    CheckNonDetFunctPass() : FunctionPass(ID) {}
     virtual bool runOnFunction(Function& F);
 
-    protected:
-        void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);        
-    
+ protected:
+  void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
 };
 
 
-#endif // MODULES_BACKEND_PASS_CKNONDETFUNCTPASS_HPP_
+#endif  // MODULES_BACKEND_PASS_CHECKNONDETFUNCTPASS_HPP_

@@ -19,9 +19,9 @@ using llvm::IRBuilder;
 using llvm::isa;
 using llvm::PHINode;
 using llvm::RegisterPass;
-//using llvm::TerminatorInst;
+// using llvm::TerminatorInst;
 using llvm::Instruction;
-//using llvm::Instruction::isTerminator;
+// using llvm::Instruction::isTerminator;
 using llvm::UnreachableInst;
 
 namespace {
@@ -158,7 +158,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
   // DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
   // errs() << debugInfoLa.getLineNumberInt() << "\n";
 
-  //if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
+  // if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
   if ( this->st_lastBlockInst->isTerminator() ) {
     if (std::string(this->st_lastBlockInst->getOpcodeName()) == "br") {
       if (B.size() > 1) {

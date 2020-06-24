@@ -24,7 +24,7 @@ using llvm::dyn_cast;
 using llvm::isa;
 using llvm::LoadInst;
 using llvm::RegisterPass;
-//using llvm::TerminatorInst;
+// using llvm::TerminatorInst;
 using llvm::Instruction;
 
 using std::ofstream;
@@ -166,9 +166,9 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B,
   this->st_isControl = isCond;
 
   if (B.size() > 1) {
-    //if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
+    // if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
     if ( this->st_lastBlockInst->isTerminator() ) {
-      //if (std::string(tI->getOpcodeName()) == "br") {
+      // if (std::string(tI->getOpcodeName()) == "br") {
       if (std::string(this->st_lastBlockInst->getOpcodeName()) == "br") {
         --this->st_lastBlockInst;
         this->checkAndSkipAssume();
@@ -409,7 +409,7 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B) {
       }
     }
 
-    //Instruction tmpI = (Instruction) I;
+    // Instruction tmpI = (Instruction) I;
 
     if ( I.isTerminator() ) {
       if (std::string(I.getOpcodeName()) == "br") {

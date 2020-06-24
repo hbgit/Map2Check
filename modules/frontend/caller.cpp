@@ -506,6 +506,7 @@ void Caller::compileCFile(bool is_llvm_bc) {
     Map2Check::Log::Info(command.str());
 
     system(command.str().c_str());
+    //exit(0);
 
     this->pathprogram = compiledFile;
   } else {

@@ -295,8 +295,8 @@ int map2check_execution(map2check_args args) {
   }
 
   // (6) Clean map2check execution (folders and temp files)
-  Map2Check::Log::Debug("Removing temp files");
-  caller->cleanGarbage();
+  //Map2Check::Log::Debug("Removing temp files");
+  //caller->cleanGarbage();
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {

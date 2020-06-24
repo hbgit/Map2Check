@@ -31,7 +31,7 @@ mkdir -p ./include
 
 cp -r /usr/include/clang/8/include/* ./include
 mkdir -p ./lib/clang
-cp -r /usr/lib/clang/8/lib/linux/* ./lib/clang
+cp -r /usr/lib/llvm-8/lib/clang/8.0.1 ./lib/clang/
 
 # Copying external libraries and binaries
 cp /usr/bin/ld ./bin
@@ -48,6 +48,12 @@ cp /usr/lib/gcc/x86_64-linux-gnu/5/crt* ./lib/
 cp /usr/lib/x86_64-linux-gnu/crt* ./lib
 cp /lib/x86_64-linux-gnu/librt.so.1 ./lib/librt.so
 cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./lib/
+cp /lib/x86_64-linux-gnu/ld-2.27.so ./lib/
+
+# Supporting LLVM 8
+cp /usr/lib/x86_64-linux-gnu/libLLVM-8.so.1 ./lib/
+cp /usr/lib/x86_64-linux-gnu/libffi.so.6.0.4 ./lib/libffi.so.6
+cp /lib/x86_64-linux-gnu/libtinfo.so.5.9 ./lib/libtinfo.so.5
 
 echo ""
 echo "Copying external tools"

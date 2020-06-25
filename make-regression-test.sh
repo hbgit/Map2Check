@@ -62,11 +62,11 @@ if [ $has_docker_img -gt 0 ]; then
   if [ $is_main_dir -gt 0 ]; then
     if [ $travis_flag -eq 0 ]; then
       time docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
-      -v $(pwd):/home/bench/benchexec_files:Z hrocha/benchexecrun \
+      -v $(pwd):/home/bench/benchexec_files:Z herberthb/benchexecrun \
       /bin/bash -c "cd release; python3 -m benchexec.benchexec --no-container ../$xml_doc_benchexec_name"
     else
       time docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
-      -v $(pwd):/home/bench/benchexec_files:Z hrocha/benchexecrun \
+      -v $(pwd):/home/bench/benchexec_files:Z herberthb/benchexecrun \
       /bin/bash -c "cd release; python3 -m benchexec.benchexec --no-container ../tests/regression_test/xml_doc_benchexec/$xml_doc_benchexec_name"
     fi
 

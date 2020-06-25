@@ -72,7 +72,7 @@ $ cd Map2Check
 $ git submodule update --init --recursive
 # Build docker image to compile Map2Check
 $ docker build -t herberthb/mapdevel --no-cache -f Dockerfile .
-$ docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) herberthb/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh; ./make-unit-test.sh"
+$ docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) herberthb/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh;"
 ```
 
 More details at https://map2check.github.io/docker.html

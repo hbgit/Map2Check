@@ -20,7 +20,7 @@ cd build
 export LLVM_DIR=/usr/lib/llvm-8/lib/cmake/llvm/
 export CXX=/usr/bin/clang++-8
 export CC=/usr/bin/clang-8
-cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON  -DCMAKE_INSTALL_PREFIX=../release/
+cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_PREFIX=../release/ 
 
 ninja
 ninja install
@@ -122,6 +122,9 @@ if [ "$export_svcomp" = true ] ; then
 	ln -s ../../../lib/libz3.so .
 	cd ../../../ # go back to release	
 fi
+
+
+
 
 
 echo ""

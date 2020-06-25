@@ -54,7 +54,7 @@ echo "Adopting: $xml_doc_benchexec_name"
 
 # Check if docker image is already build
 # 1 - Build docker image available at https://github.com/hbgit/benchexecrun
-has_docker_img=`docker images | grep -c "hrocha/benchexecrun"`
+has_docker_img=`docker images | grep -c "herberthb/benchexecrun"`
 if [ $has_docker_img -gt 0 ]; then
   echo "Found benchexec image to run tests ..."
   is_main_dir=`ls | grep -c "make-regression-test.sh"`

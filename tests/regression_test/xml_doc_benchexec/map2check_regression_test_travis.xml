@@ -2,21 +2,23 @@
 <!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.4//EN" "http://www.sosy-lab.org/benchexec/benchmark-1.4.dtd">
 <benchmark tool="map2check" timelimit="10 s">
 
-  <rundefinition name="sv-comp19_map2check"></rundefinition>
+  <rundefinition name="Map2Check-Basic"></rundefinition>
 
-  <tasks name="MemSafety-Arrays">
-    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/MemSafety-Arrays.set</includesfile>
+  <tasks name="MemSafety-Map">
+    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/map2check-test/MemSafety-Map.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/valid-memsafety.prp</propertyfile>
   </tasks>
 
-  <tasks name="MemSafety-Heap">
-    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/MemSafety-Heap.set</includesfile>
-    <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/valid-memsafety.prp</propertyfile>
-  </tasks>
-
-  <tasks name="Map2Check-Assert">
-    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/Map2Check-Assert.set</includesfile>
+  <tasks name="ReachSafety-Map">
+    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/map2check-test/ReachSafety-Map.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/unreach-call.prp</propertyfile>
   </tasks>
+
+  <tasks name="Overflow-Map">
+    <includesfile>/home/bench/benchexec_files/tests/regression_test/test_cases/map2check-test/Overflow-Map.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/tests/regression_test/test_cases/sv-benchmarks/properties/no-overflow.prp</propertyfile>
+  </tasks>
+
+  
 
 </benchmark>

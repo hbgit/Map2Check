@@ -4,6 +4,7 @@ int main(void)
 	int i=1;
 	int j=0;
 	int n = __VERIFIER_nondet_int();
+	
 	while(i<n) {
 		j=0;
 		while(j<i) {

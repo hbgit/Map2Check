@@ -35,7 +35,7 @@ constexpr char const* ktestBinary = "${MAP2CHECK_PATH}/bin/ktest-tool";
 constexpr char const* clangBinary = "${MAP2CHECK_PATH}/bin/clang";
 /** Path to crab-llvm path binary (from crab-llvm) */
 constexpr char const* crabBinary =
-    "${MAP2CHECK_PATH}/bin/crabllvm/bin/crabllvm.py";
+    "${MAP2CHECK_PATH}/bin/crabllvm/bin/clam.py";
 /** Path to clang include folder (usually
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
 constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";

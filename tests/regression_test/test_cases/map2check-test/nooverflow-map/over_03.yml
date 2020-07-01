@@ -1,0 +1,7 @@
+format_version: '1.0'
+
+input_files: 'over_03.c'
+
+properties:
+  - property_file: ../../sv-benchmarks/properties/no-overflow.prp
+    expected_verdict: false

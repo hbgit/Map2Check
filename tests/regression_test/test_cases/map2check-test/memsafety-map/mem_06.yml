@@ -1,0 +1,8 @@
+format_version: '1.0'
+
+input_files: 'mem_06.c'
+
+properties:
+  - property_file: ../../sv-benchmarks/properties/valid-memsafety.prp
+    expected_verdict: true
+    subproperty: valid-deref

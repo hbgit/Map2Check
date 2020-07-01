@@ -10,7 +10,7 @@
 
 #include "CheckNonDetFunctPass.hpp"
 
-#include <llvm/Support/raw_ostream.h> 
+#include <llvm/Support/raw_ostream.h>
 
 using llvm::dyn_cast;
 using llvm::RegisterPass;
@@ -18,21 +18,21 @@ using llvm::errs;
 
 
 bool CheckNonDetFunctPass::runOnFunction(Function& F) {
-
     // run on each basic block
-    for(auto &BB : F){
+    for (auto &BB : F) {
         // run on each instruction from the basic block
-        for(auto &I : BB){
-            if(CallInst *callInst = dyn_cast<CallInst>(&I)){
-                if(Function *calledFunct = callInst->getCalledFunction()){
-                    if(calledFunct->getName().startswith("__VERIFIER_nondet")){
+        for (auto &I : BB) {
+            if (CallInst *callInst = dyn_cast<CallInst>(&I)) {
+                if (Function *calledFunct = callInst->getCalledFunction()) {
+                    if (calledFunct->getName().startswith("__VERIFIER_nondet")) {
                         errs() << calledFunct->getName() << "\n";
                     }
                 }
             }
         }
     }
-    return false; // The IR was not modified
+    // The IR was not modified
+    return false;
 }
 
 

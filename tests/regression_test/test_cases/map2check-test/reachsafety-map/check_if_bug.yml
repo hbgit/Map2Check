@@ -3,5 +3,5 @@ format_version: '1.0'
 input_files: 'check_if_bug.c'
 
 properties:
-  - property_file: ../properties/unreach-call.prp
+  - property_file: ../../sv-benchmarks/properties/unreach-call.prp
     expected_verdict: false

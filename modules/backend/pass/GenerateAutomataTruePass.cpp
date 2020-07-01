@@ -24,7 +24,8 @@ using llvm::dyn_cast;
 using llvm::isa;
 using llvm::LoadInst;
 using llvm::RegisterPass;
-using llvm::TerminatorInst;
+// using llvm::TerminatorInst;
+using llvm::Instruction;
 
 using std::ofstream;
 
@@ -165,8 +166,10 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B,
   this->st_isControl = isCond;
 
   if (B.size() > 1) {
-    if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
-      if (std::string(tI->getOpcodeName()) == "br") {
+    // if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
+    if ( this->st_lastBlockInst->isTerminator() ) {
+      // if (std::string(tI->getOpcodeName()) == "br") {
+      if (std::string(this->st_lastBlockInst->getOpcodeName()) == "br") {
         --this->st_lastBlockInst;
         this->checkAndSkipAssume();
         // DebugInfo debugInfoLa(this->Ctx,
@@ -197,8 +200,8 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B,
 
   } else {
     // In case this unique instruction be a "br" then we remove this basic block
-    if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
-      if (std::string(tI->getOpcodeName()) != "br") {
+    if ( this->st_lastBlockInst->isTerminator() ) {
+      if (std::string(this->st_lastBlockInst->getOpcodeName()) != "br") {
         this->st_lastBlockInst = this->firstBlockInst;
 
         // DebugInfo debugInfoLa(this->Ctx,
@@ -406,16 +409,18 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B) {
       }
     }
 
-    if (auto* tI = dyn_cast<TerminatorInst>(&I)) {
-      if (std::string(tI->getOpcodeName()) == "br") {
+    // Instruction tmpI = (Instruction) I;
+
+    if ( I.isTerminator() ) {
+      if (std::string(I.getOpcodeName()) == "br") {
         // tI->dump();
-        if (tI->getNumSuccessors() > 1) {
+        if (I.getNumSuccessors() > 1) {
           // TRUE cond
-          this->skipEmptyLineItSize = tI->getSuccessor(0)->size();
-          BasicBlock::iterator trueCond = --tI->getSuccessor(0)->end();
+          this->skipEmptyLineItSize = I.getSuccessor(0)->size();
+          BasicBlock::iterator trueCond = --I.getSuccessor(0)->end();
           if (std::string(trueCond->getOpcodeName()) == "br" &&
-              tI->getSuccessor(0)->size() == 1) {
-            trueCond = --tI->getSuccessor(0)->getSingleSuccessor()->end();
+              I.getSuccessor(0)->size() == 1) {
+            trueCond = --I.getSuccessor(0)->getSingleSuccessor()->end();
           }
 
           if (std::string(trueCond->getOpcodeName()) == "br" ||
@@ -433,18 +438,18 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B) {
           // tI->getSuccessor(1)->dump();
           // tI->getSuccessor(1)->begin()->dump();
           BasicBlock::iterator falseCond;
-          this->skipEmptyLineItSize = tI->getSuccessor(1)->size();
+          this->skipEmptyLineItSize = I.getSuccessor(1)->size();
           if (this->actualSizeBB > 1) {
-            falseCond = --tI->getSuccessor(1)->end();
+            falseCond = --I.getSuccessor(1)->end();
           } else {
-            falseCond = tI->getSuccessor(1)->begin();
+            falseCond = I.getSuccessor(1)->begin();
           }
 
           // falseCond->dump();
 
           if (std::string(falseCond->getOpcodeName()) == "br" &&
-              tI->getSuccessor(1)->size() == 1) {
-            falseCond = --tI->getSuccessor(1)->getSingleSuccessor()->end();
+              I.getSuccessor(1)->size() == 1) {
+            falseCond = --I.getSuccessor(1)->getSingleSuccessor()->end();
           }
 
           if (std::string(falseCond->getOpcodeName()) == "br" ||

@@ -199,12 +199,12 @@ int map2check_execution(map2check_args args) {
   if (!is_llvmir_in) {
     if (args.invCrabLlvm) {
       // cout << "crab  \n";
-      if(args.generator != Map2Check::NonDetGenerator::LibFuzzer){
+      if (args.generator != Map2Check::NonDetGenerator::LibFuzzer) {
         caller->compileToCrabLlvm();
-      }else{
+      } else {
         caller->compileCFile(is_llvmir_in);
       }
-      
+
     } else {
       caller->compileCFile(is_llvmir_in);
     }
@@ -215,18 +215,18 @@ int map2check_execution(map2check_args args) {
   // Add function to indentify if the
   // code has a nondet call
   int hasNonDetFunct = caller->checkNondetFunctPass();
-  if(hasNonDetFunct == 0 && generator == Map2Check::NonDetGenerator::LibFuzzer){    
+  if (hasNonDetFunct == 0 && generator == Map2Check::NonDetGenerator::LibFuzzer) {
     Map2Check::Log::Info("NOTE: No call nondet functions for LibFuzzer");
     // set the result UNKNOW for libfuzzer
-    foundViolation = false;    
+    foundViolation = false;
     // clean tmp files
-    Map2Check::Log::Debug("Removing temp files");    
+    Map2Check::Log::Debug("Removing temp files");
     caller->cleanGarbage();
     // return SUCCESS
     return SUCCESS;
   }
-  
-  // Map2Check::Log::Info("NOTE: Found call nondet functions");      
+
+  // Map2Check::Log::Info("NOTE: Found call nondet functions");
 
   if (args.btree) {
     caller->useBTree();
@@ -438,7 +438,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
 
       // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
-      args.inputFile = absolute_path.string();      
+      args.inputFile = absolute_path.string();
 
       args.generator = Map2Check::NonDetGenerator::LibFuzzer;
       map2check_execution(args);

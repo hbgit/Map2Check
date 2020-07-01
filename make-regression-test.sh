@@ -54,7 +54,7 @@ echo "Adopting: $xml_doc_benchexec_name"
 
 # Check if docker image is already build
 # 1 - Build docker image available at https://github.com/hbgit/benchexecrun
-has_docker_img=`docker images | grep -c "hrocha/benchexecrun"`
+has_docker_img=`docker images | grep -c "herberthb/benchexecrun"`
 if [ $has_docker_img -gt 0 ]; then
   echo "Found benchexec image to run tests ..."
   is_main_dir=`ls | grep -c "make-regression-test.sh"`
@@ -62,11 +62,11 @@ if [ $has_docker_img -gt 0 ]; then
   if [ $is_main_dir -gt 0 ]; then
     if [ $travis_flag -eq 0 ]; then
       time docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
-      -v $(pwd):/home/bench/benchexec_files:Z hrocha/benchexecrun \
+      -v $(pwd):/home/bench/benchexec_files:Z herberthb/benchexecrun \
       /bin/bash -c "cd release; python3 -m benchexec.benchexec --no-container ../$xml_doc_benchexec_name"
     else
       time docker run --rm -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
-      -v $(pwd):/home/bench/benchexec_files:Z hrocha/benchexecrun \
+      -v $(pwd):/home/bench/benchexec_files:Z herberthb/benchexecrun \
       /bin/bash -c "cd release; python3 -m benchexec.benchexec --no-container ../tests/regression_test/xml_doc_benchexec/$xml_doc_benchexec_name"
     fi
 
@@ -74,8 +74,10 @@ if [ $has_docker_img -gt 0 ]; then
       # Analyzing the results
       get_last_file_result=`ls -t release/results/*.txt | head -1`
       get_total_test_cases=`tail -n 10 $get_last_file_result | grep -oEi "Statistics:(.[^Files]*)" | grep -oe "[0-9]*"`
-      get_total_success=`tail -n 10 $get_last_file_result | grep -oEi "Score:(.[^(]*)" | grep -oe "[0-9]*"`
-      percent_tests=$(( ($get_total_success*100)/$get_total_test_cases ))
+      get_total_success=`tail -n 8 $get_last_file_result | grep -oEi "correct:              (.[^a-z]*)" | grep -oe "[0-9]*"`
+            
+      percent_tests=$((($get_total_success*100)/$get_total_test_cases))
+      #percent_tests=10
 
       if [ $travis_flag -eq 0 ]; then
         if [ $percent_tests -lt 20 ]; then

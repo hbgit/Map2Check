@@ -16,7 +16,8 @@
   <tasks name="ReachSafety-ControlFlow">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-ControlFlow.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
-  </tasks>    
+  </tasks>   
+  --> 
   <tasks name="ReachSafety-ECA">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-ECA.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
@@ -24,7 +25,8 @@
   <tasks name="ReachSafety-Floats">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-Floats.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
-  </tasks>    
+  </tasks> 
+  <!--    
   <tasks name="ReachSafety-Heap">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-Heap.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
@@ -32,20 +34,23 @@
   <tasks name="ReachSafety-Loops">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-Loops.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
-  </tasks>  
+  </tasks> 
+  -->  
   <tasks name="ReachSafety-ProductLines">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-ProductLines.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
-  </tasks>  
+  </tasks> 
+  <!--  
   <tasks name="ReachSafety-Recursive">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-Recursive.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
   </tasks>
+  -->
   <tasks name="ReachSafety-Sequentialized">
     <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ReachSafety-Sequentialized.set</includesfile>
     <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
   </tasks>
-  -->
+  
 
   <!-- 
   <tasks name="MemSafety-Arrays">
@@ -79,10 +84,12 @@
   </tasks>   
   -->
 
+  <!--
   <tasks name="ConcurrencySafety-Main">
 	  <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/ConcurrencySafety-Main.set</includesfile>
 	  <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
   </tasks>
+  -->
 
   <!--
   <tasks name="NoOverflows-BitVectors">
@@ -95,7 +102,7 @@
   </tasks>
   -->
 
-  <!--
+  
   <tasks name="SoftwareSystems-AWS-C-Common-ReachSafety">
 	  <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/SoftwareSystems-AWS-C-Common-ReachSafety.set</includesfile>
 	  <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/unreach-call.prp</propertyfile>
@@ -125,6 +132,6 @@
 	  <includesfile>/home/bench/benchexec_files/sv-benchmarks/c/SoftwareSystems-SQLite-MemSafety.set</includesfile>
 	  <propertyfile>/home/bench/benchexec_files/sv-benchmarks/c/properties/valid-memsafety.prp</propertyfile>
   </tasks>
-  -->
+  
 
 </benchmark>

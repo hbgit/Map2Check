@@ -1,0 +1,62 @@
+                  C  S e q   
+                              1 . 9
+
+             November 2019
+              SV-COMP 2020
+                              https://github.com/omainv/cseq
+                              http://cseq.cc
+
+
+   * Package contents *
+
+README.txt        this file
+
+cseq.py           CSeq command-line front-end
+lazy-cseq.py      SV-COMP wrapper script
+
+core/             CSeq core framework
+modules/          modules and configuration files
+
+pycparser/        C99 parser
+pycparserext/     GNU C parser
+
+examples/         examples programs to analyse.
+
+cbmc-5.4          default backend CBMC (linux binary) for sequential analysis
+
+
+   * Installation *
+
+To install CSeq, please follow the steps below:
+
+    1. make sure that Python 2.7.14 and GNU gcc (for preprocessing)
+       are installed on the system
+      (all other required packages are already included in this package)
+
+    2. create a directory, suppose this is called /workspace
+
+    3. extract the entire package contents in /workspace
+    
+    4. set execution (+x) permissions for cseq.py
+
+    5. set execution (+x) permissions for cbmc-5.4
+    
+    6. to choose a different backend than the default one
+       make sure that the backend's binary is in the search path, or
+       amend the command strings in feeder.py, sect. Options and Parameters,
+       accordingly.
+
+
+   * Usage *
+
+To try CSeq, please use the following command:
+
+    ./cseq.py -i examples/lazy_unsafe.c
+
+which should report the file to be unsafe.
+Invoking the tool without options:
+
+    ./cseq.py
+
+will provide further usage directions.
+

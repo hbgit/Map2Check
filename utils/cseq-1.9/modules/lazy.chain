@@ -1,0 +1,38 @@
+### CSeq Lazy sequentialisation
+### based on 
+### "Bounded Model Checking of Multi-threaded C Programs via Lazy Sequentialization" (CAV 2014) and
+### "Lazy-CSeq: A Context-Bounded Model Checking Tool for Multi-threaded C-Programs" (ASE 2015).
+### Improved version for SVCOMP 2019.
+
+## Program simplification
+workarounds
+functiontracker
+
+preinstrumenter
+constants
+spinlock
+
+## Loop and control-flow transformation
+switchtransformer
+dowhileconverter
+conditionextractor
+
+## Program flattening
+varnames
+preinliner
+inliner
+unroller
+
+## Sequentialization
+#preinstrumenter
+duplicator
+condwaitconverter
+lazyseq
+#newschedule
+
+## Instrumentation
+instrumenter
+
+## Analysis
+feeder
+cex

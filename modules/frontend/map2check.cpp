@@ -33,7 +33,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-#define Map2CheckVersion "v7.3.2-Flock : Fri 22 May 2020 12:12:43 PM -04"
+#define Map2CheckVersion "v8.0.0-Fractal : Fri Jul  3 18:13:20 UTC 2020"
 
 // TODO(hbgit): should get preprocessor flags from CMake
 

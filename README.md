@@ -37,8 +37,8 @@ After that, you should type the following command:
 </p>
 
 ``` bash
-$ unzip map2check-rc-v7.3-svcomp20.zip
-$ cd map2check-rc-v7.3-svcomp20
+$ unzip map2check-rc-v8.zip
+$ cd map2check-rc-v8-svcomp20
 ```
 
 #### Running the tool
@@ -49,7 +49,7 @@ in the installation directory as follows:
 </p>
 
 ``` bash
-$ ./map2check --memtrack svcomp_960521-1_false-valid-free.c
+$ ./map2check --memtrack code.c
 ```
 
 In this case, --memtrack is the option to check for memory errors. For help and others tool options:

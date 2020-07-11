@@ -632,8 +632,12 @@ def run():
 
 	# Run all modules in a sequence
 	for cseqenv.transforms, m in enumerate(cseqenv.modules):
+		print(">>>>>>>>>>>>>>>>...")
 		if cseqenv.transforms in cseqenv.modulecomment:
-			print ("%s" % cseqenv.modulecomment[cseqenv.transforms])
+			print (">>%s" % cseqenv.modulecomment[cseqenv.transforms])
+			if cseqenv.modulecomment[cseqenv.transforms] == "Analysis":
+				print("FOUND")
+				break
 
 		try:
 			timeBefore = time.time()
@@ -726,6 +730,7 @@ def run():
 			print(colors.NO,end='')
 			sys.exit(1)
 
+	print(">>>>>>>>>>>>>>>>...")
 	print(output)
 
 	if cseqenv.showlinemap:

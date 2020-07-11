@@ -156,6 +156,7 @@ struct map2check_args {
   bool generateTestCase = false;
   bool printCounterExample = false;
   bool btree = false;
+  bool concurrent = false;
   bool invCrabLlvm = false;
   Map2Check::NonDetGenerator generator;
   std::string spectTrue = "safetyMemory";
@@ -195,6 +196,7 @@ int map2check_execution(map2check_args args) {
                                                  generator);
   caller->c_program_fullpath = args.inputFile;
   caller->setTimeout(args.timeout);
+  caller->pthreadCheck = args.concurrent;
 
   if (!is_llvmir_in) {
     if (args.invCrabLlvm) {
@@ -325,11 +327,12 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
                       "\ttimeout for map2check execution")
         ("target-function", "\tsearches for __VERIFIER_error is reachable")
         ("generate-testcase", "\tcreates c program with fail testcase (experimental)")
-        ("memtrack", "\tcheck for memory errors")
-        ("print-counter", "\tprint counterexample")
+        ("memtrack", "\tcheck for memory errors")        
         ("memcleanup-property", "\tanalyze program for memcleanup errors")
         ("check-overflow", "\tanalyze program for overflow failures")
         ("check-asserts", "\tanalyze program and verify assert failures")
+        ("check-threads", "\tanalyze concurrent programs with POSIX threads")
+        ("print-counter", "\tprint counterexample")
         ("add-invariants", "\tadding program invariants adopting Crab-LLVM")
         ("generate-witness", "\tgenerates witness file")
         ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
@@ -403,6 +406,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     }
     if (vm.count("check-asserts")) {
       args.mode = Map2Check::Map2CheckMode::ASSERT_MODE;
+    }
+    if (vm.count("check-threads")) {
+      args.concurrent = true;
     }
     if (vm.count("memcleanup-property")) {
       args.mode = Map2Check::Map2CheckMode::MEMCLEANUP_MODE;

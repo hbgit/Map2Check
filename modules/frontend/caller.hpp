@@ -58,7 +58,7 @@ class Caller {
   std::string currentPath;
   unsigned timeout;
   bool gotTimeout = false;
-  bool witnessVerified = false;
+  bool witnessVerified = false;  
 
  public:
   /** @brief Constructor if .bc file already exists
@@ -67,10 +67,13 @@ class Caller {
          NonDetGenerator generator);
 
   std::string c_program_fullpath;  //!< Path for the original c program */
+  bool pthreadCheck = false;
   void setTimeout(unsigned timeout) { this->timeout = timeout; }
   /** @brief Function to compile original C file removing external memory
    * operations calls */
   void compileCFile(bool is_llvm_bc);
+  
+  void applyCSeqTransformation(std::string preprocessed_code);
 
   void compileToCrabLlvm();
 

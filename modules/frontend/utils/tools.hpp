@@ -36,6 +36,9 @@ constexpr char const* clangBinary = "${MAP2CHECK_PATH}/bin/clang";
 /** Path to crab-llvm path binary (from crab-llvm) */
 constexpr char const* crabBinary =
     "${MAP2CHECK_PATH}/bin/crabllvm/bin/clam.py";
+/** Path to CSeq path binary */
+constexpr char const* cseqBinary =
+    "${MAP2CHECK_PATH}/bin/cseq-1.9/cseq.py";
 /** Path to clang include folder (usually
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
 constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";

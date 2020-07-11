@@ -450,6 +450,16 @@ std::vector<int> Caller::processClangOutput() {
   return result;
 }
 
+/**
+* Apply source code transformation for concurrent 
+* programs adopting Lazy CSeq
+* https://www.southampton.ac.uk/~gp1y10/cseq/
+**/
+void applyCSeqTransformation(std::string preprocessed_code){
+  Map2Check::Log::Info("Applying CSeq on " + preprocessed_code);
+  
+}
+
 /** This function should:
  * (1) Remove unsupported functions and clean the C code
  * (2) Generate .bc file from code
@@ -488,6 +498,11 @@ void Caller::compileCFile(bool is_llvm_bc) {
                               << " " << programHash << "-preprocessed.c ";
     // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
     system(commandRemoveVoidMemcpy.str().c_str());
+
+    // TODO: if is a concurrent program then apply the code transformation
+    if(this->pthreadCheck){
+      this->applyCSeqTransformation(programHash + "-preprocessed.c");
+    }
 
     // (2) Generate .bc file from code
     // TODO(hbgit): -Winteger-overflow should be called only if is on overflow

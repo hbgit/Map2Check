@@ -73,7 +73,8 @@ class Caller {
    * operations calls */
   void compileCFile(bool is_llvm_bc);
   
-  void applyCSeqTransformation(std::string preprocessed_code);
+  // Apply Cseq and return the file new from cseq output
+  std::string applyCSeqTransformation(std::string preprocessed_code);
 
   void compileToCrabLlvm();
 

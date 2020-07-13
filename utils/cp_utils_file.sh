@@ -11,12 +11,20 @@ cp_utils_file()
 	# /deps/src/metaSMT/deps/build/lingeling-ayv-86bf266-140429/license.txt
 	# /deps/src/metaSMT/deps/build/yices-2.5.1/LICENSE
 	echo "> Map2Check license"
-        if [ ! -f $PREFIX/LICENSE ]; then
-                cp ../utils/LICENSE.TXT $PREFIX/
-        else
-                rm $PREFIX/LICENSE
-                cp ../utils/LICENSE.TXT $PREFIX/
-        fi
+	if [ ! -f $PREFIX/LICENSE ]; then
+			cp ../utils/LICENSE.TXT $PREFIX/
+	else
+			rm $PREFIX/LICENSE
+			cp ../utils/LICENSE.TXT $PREFIX/
+	fi
+
+	echo "> Install CSeq v1.9"
+	if [ ! -f $PREFIX/bin/cseq-1.9 ]; then
+			cp -r ../utils/cseq-1.9 $PREFIX/bin/
+	else
+			rm -r $PREFIX/bin/cseq-1.9
+			cp -r ../utils/cseq-1.9 $PREFIX/bin/
+	fi
 
 	# Copying licenses tools
 	echo "> Extra tools licenses"

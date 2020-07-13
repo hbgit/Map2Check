@@ -455,8 +455,45 @@ std::vector<int> Caller::processClangOutput() {
 * programs adopting Lazy CSeq
 * https://www.southampton.ac.uk/~gp1y10/cseq/
 **/
-void applyCSeqTransformation(std::string preprocessed_code){
+std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
   Map2Check::Log::Info("Applying CSeq on " + preprocessed_code);
+
+  std::string cseq_code_output = preprocessed_code + ".cseq.c";
+
+  /**
+   * Flow:
+   * 1) Change to Cseq directory, because cseq modules limitation of the
+   *    absolute path
+   * 2) Run CSeq and print the code transformation 
+   * */
+
+  Map2Check::Log::Debug("Changing to CSeq dir");
+  std::string currentPathTrack = boost::filesystem::current_path().string();
+ 
+  std::string path_cseq = currentPath + Map2Check::cseqPath;
+  
+  boost::filesystem::current_path(path_cseq);
+
+  Map2Check::Log::Debug("Current path: " +
+                        boost::filesystem::current_path().string());  
+
+  std::ostringstream command;
+  command.str("");
+  command << "./" << Map2Check::cseqBinary << " --input "<< currentPathTrack << "/" << preprocessed_code
+          << " --load lazy "
+          << " --backend cpachecker > " << currentPathTrack << "/" << cseq_code_output;
+  //<< cseq_code_output;          
+
+  Map2Check::Log::Info(command.str());
+
+  system(command.str().c_str());
+
+  // Returning the current Map2Check directory
+  boost::filesystem::current_path(currentPathTrack);
+
+  exit(0);
+
+  return cseq_code_output;
   
 }
 
@@ -500,8 +537,14 @@ void Caller::compileCFile(bool is_llvm_bc) {
     system(commandRemoveVoidMemcpy.str().c_str());
 
     // TODO: if is a concurrent program then apply the code transformation
+    std::string preprocessedFile = programHash + "-preprocessed.c";
     if(this->pthreadCheck){
-      this->applyCSeqTransformation(programHash + "-preprocessed.c");
+     // In function `Map2Check::Caller::compileCFile(bool)': caller.cpp:(.text+0x5cce): undefined reference to 
+     // `Map2Check::Caller::applyCSeqTransformation(
+     //  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >
+     //)'
+
+      preprocessedFile = this->applyCSeqTransformation(preprocessedFile);
     }
 
     // (2) Generate .bc file from code
@@ -515,7 +558,7 @@ void Caller::compileCFile(bool is_llvm_bc) {
             << " -Winteger-overflow "
             << " -c -emit-llvm -g"
             << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
-            << " " << programHash << "-preprocessed.c "
+            << " " << preprocessedFile
             << " > " << programHash << "-clang.out 2>&1";
 
     Map2Check::Log::Info(command.str());

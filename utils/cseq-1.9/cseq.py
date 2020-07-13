@@ -546,7 +546,7 @@ def run():
 	''' III. Merging '''
 	'''              '''
 	# Load the input file.
-	print ("Merging")
+	# print ("Merging")
 	input = core.utils.printFileRows(cseqenv.inputfile)
 
 	# Might need to sanitise preprocessed (.i) files due to non-standard syntax.
@@ -631,12 +631,11 @@ def run():
 	cseqenv.outputtofiles = Merger.outputtofiles
 
 	# Run all modules in a sequence
-	for cseqenv.transforms, m in enumerate(cseqenv.modules):
-		print(">>>>>>>>>>>>>>>>...")
+	for cseqenv.transforms, m in enumerate(cseqenv.modules):		
 		if cseqenv.transforms in cseqenv.modulecomment:
-			print (">>%s" % cseqenv.modulecomment[cseqenv.transforms])
+			# print (">>%s" % cseqenv.modulecomment[cseqenv.transforms])
 			if cseqenv.modulecomment[cseqenv.transforms] == "Analysis":
-				print("FOUND")
+				# print("FOUND") Stop here to print the code
 				break
 
 		try:
@@ -730,7 +729,7 @@ def run():
 			print(colors.NO,end='')
 			sys.exit(1)
 
-	print(">>>>>>>>>>>>>>>>...")
+	
 	print(output)
 
 	if cseqenv.showlinemap:

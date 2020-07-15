@@ -34,7 +34,7 @@ void nondet_init() { nondet_log_init(); }
 
 void nondet_destroy() { nondet_log_destroy(); }
 
-void nondet_cancel() { pthread_exit(NULL); }
+void nondet_cancel() { pthread_exit(NULL); } // TODO: checkout that
 
 void nondet_assume(int expr) {
   if (!expr) {
@@ -63,6 +63,7 @@ uint8_t get_next_input_from_fuzzer() {
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   map2check_fuzzer_data = Data;
   map2check_fuzzer_size = Size;
+
   int prevType;
   // int currentProccess = getpid();
   // printf("Creating %d\n", currentProccess);

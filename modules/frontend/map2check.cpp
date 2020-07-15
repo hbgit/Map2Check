@@ -225,22 +225,22 @@ int map2check_execution(map2check_args args) {
     Map2Check::Log::Debug("Removing temp files");
     caller->cleanGarbage();
     // return SUCCESS
+    Map2Check::Log::Debug("Jumping to verify with KLEE");
     return SUCCESS;
-  }
-
-  // Map2Check::Log::Info("NOTE: Found call nondet functions");
+  }  
 
   if (args.btree) {
     caller->useBTree();
   }
 
   // (2) Instrument functions for current mode
-  caller->callPass(args.function);
-  caller->linkLLVM();
+  caller->callPass(args.function);  
+  caller->linkLLVM();  
 
   // (3) Apply nondeterministic mode and execute analysis
   caller->applyNonDetGenerator();
   caller->executeAnalysis(args.solvername);
+  exit(1);
 
   // (4) Retrieve results
   // TODO(hbgit): create methods to generate counter example
@@ -297,8 +297,8 @@ int map2check_execution(map2check_args args) {
   }
 
   // (6) Clean map2check execution (folders and temp files)
-  Map2Check::Log::Debug("Removing temp files");
-  caller->cleanGarbage();
+  //Map2Check::Log::Debug("Removing temp files");
+  //caller->cleanGarbage();
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
@@ -448,6 +448,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
 
       args.generator = Map2Check::NonDetGenerator::LibFuzzer;
       map2check_execution(args);
+      Map2Check::Log::Debug("Finished LibFuzzer execution");
+      exit(1);
+
       if (!foundViolation) {
         args.generator = Map2Check::NonDetGenerator::Klee;
         map2check_execution(args);

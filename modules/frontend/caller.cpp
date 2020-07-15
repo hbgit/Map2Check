@@ -67,11 +67,10 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   std::ostringstream moveProgram;
   moveProgram << "cp " << bc_program_path << " " << programHash;
   system(moveProgram.str().c_str());
-
-  Map2Check::Log::Debug("Changing current dir");
+  
   currentPath = boost::filesystem::current_path().string();
   boost::filesystem::current_path(currentPath + "/" + programHash);
-  Map2Check::Log::Debug("Current path: " +
+  Map2Check::Log::Debug("Changing to Map2Check tmp files dir: " +
                         boost::filesystem::current_path().string());
 }
 
@@ -120,7 +119,8 @@ void Caller::applyNonDetGenerator() {
           << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
           << " " + programHash + "-result.bc";
-
+          
+      Map2Check::Log::Debug(command.str().c_str());
       system(command.str().c_str());
 
       std::ostringstream commandWitness;
@@ -161,9 +161,7 @@ int Caller::checkNondetFunctPass() {
     return 0;
   } else {
     return 1;
-  }
-
-  // return 1;
+  }  
 }
 
 int Caller::callPass(std::string target_function, bool sv_comp) {
@@ -207,7 +205,7 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
       break;
     }
     case Map2CheckMode::REACHABILITY_MODE: {
-      Map2Check::Log::Info("Running reachability mode");
+      Map2Check::Log::Info("Adding reachability pass");
       std::string targetPass = "${MAP2CHECK_PATH}/lib/libTargetPass";
       transformCommand << " -load " << targetPass << getLibSuffix()
                        << " -target_function";
@@ -215,7 +213,7 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
       break;
     }
     case Map2CheckMode::ASSERT_MODE: {
-      Map2Check::Log::Info("Running assert mode");
+      Map2Check::Log::Info("Adding assert pass");
       std::string assertPass = "${MAP2CHECK_PATH}/lib/libAssertPass";
       transformCommand << " -load " << assertPass << getLibSuffix()
                        << " -validate_asserts";
@@ -245,7 +243,7 @@ void Caller::linkLLVM() {
   /* Link functions called after executing the passes */
   // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
 
-  Map2Check::Log::Info("Linking with map2check library");
+  Map2Check::Log::Info("Linking with map2check library using llvm-link");
 
   std::ostringstream witnessCommand;
   std::ostringstream linkCommand;
@@ -315,6 +313,7 @@ void Caller::linkLLVM() {
     }
   }
 
+  Map2Check::Log::Debug("Compiling to generate the witness");
   witnessCommand.str("");
   witnessCommand << linkCommand.str();
   witnessCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";
@@ -322,6 +321,7 @@ void Caller::linkLLVM() {
   Map2Check::Log::Debug(witnessCommand.str());
   system(witnessCommand.str().c_str());
 
+  Map2Check::Log::Debug("Compiling to verify the properties");
   linkCommand << " ${MAP2CHECK_PATH}/lib/WitnessGenerationNone.bc";
   linkCommand << "  > " + programHash + "-result.bc";
   Map2Check::Log::Debug(linkCommand.str());
@@ -396,9 +396,12 @@ void Caller::executeAnalysis(std::string solvername) {
       command.str("");
       command << "timeout " << (0.5 * this->timeout) << " ";
       command << "./" + programHash +
-                     "-fuzzed.out -rss_limit_mb=4000 -jobs=8 -use_value_profile=1 "
+                     "-fuzzed.out -rss_limit_mb=0 -jobs=8"
               << " > fuzzer.output";
 
+      // "-fuzzed.out -rss_limit_mb=4000 -jobs=8 -use_value_profile=1 "
+
+      Map2Check::Log::Debug(command.str().c_str());
       int result = system(command.str().c_str());
       Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
       if (result == 31744)  // Timeout
@@ -467,14 +470,13 @@ std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
    * 2) Run CSeq and print the code transformation 
    * */
 
-  Map2Check::Log::Debug("Changing to CSeq dir");
   std::string currentPathTrack = boost::filesystem::current_path().string();
  
   std::string path_cseq = currentPath + Map2Check::cseqPath;
   
   boost::filesystem::current_path(path_cseq);
 
-  Map2Check::Log::Debug("Current path: " +
+  Map2Check::Log::Debug("Changing to CSeq dir: " +
                         boost::filesystem::current_path().string());  
 
   std::ostringstream command;
@@ -489,9 +491,8 @@ std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
   system(command.str().c_str());
 
   // Returning the current Map2Check directory
+  Map2Check::Log::Debug("Changing to Map2Check tmp files dir");
   boost::filesystem::current_path(currentPathTrack);
-
-  exit(0);
 
   return cseq_code_output;
   
@@ -504,7 +505,8 @@ std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
  */
 void Caller::compileCFile(bool is_llvm_bc) {
   if (!is_llvm_bc) {
-    Map2Check::Log::Info("Compiling " + this->pathprogram);
+    Map2Check::Log::Debug("The input is a C source code");
+    Map2Check::Log::Info("Preprocessing the code: " + this->pathprogram);
 
     // (1) Remove unsupported functions and clean the C code
     std::ostringstream commandRemoveExternMalloc;
@@ -539,11 +541,6 @@ void Caller::compileCFile(bool is_llvm_bc) {
     // TODO: if is a concurrent program then apply the code transformation
     std::string preprocessedFile = programHash + "-preprocessed.c";
     if(this->pthreadCheck){
-     // In function `Map2Check::Caller::compileCFile(bool)': caller.cpp:(.text+0x5cce): undefined reference to 
-     // `Map2Check::Caller::applyCSeqTransformation(
-     //  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >
-     //)'
-
       preprocessedFile = this->applyCSeqTransformation(preprocessedFile);
     }
 
@@ -561,13 +558,14 @@ void Caller::compileCFile(bool is_llvm_bc) {
             << " " << preprocessedFile
             << " > " << programHash << "-clang.out 2>&1";
 
+    Map2Check::Log::Info("Compiling: " + preprocessedFile);
     Map2Check::Log::Info(command.str());
 
     system(command.str().c_str());
-    // exit(0);
-
     this->pathprogram = compiledFile;
+
   } else {
+    Map2Check::Log::Debug("The input is a LLVM bitcode");
     std::string compiledFile = programHash + "-compiled.bc";
     std::ostringstream command;
     command.str("");

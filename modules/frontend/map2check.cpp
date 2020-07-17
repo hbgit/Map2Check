@@ -240,7 +240,7 @@ int map2check_execution(map2check_args args) {
   // (3) Apply nondeterministic mode and execute analysis
   caller->applyNonDetGenerator();
   caller->executeAnalysis(args.solvername);
-  exit(1);
+  //exit(1);
 
   // (4) Retrieve results
   // TODO(hbgit): create methods to generate counter example
@@ -446,14 +446,17 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
 
-      args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+      /*
+      * TODO: uncomment after add Cseq in the flow
+      * args.generator = Map2Check::NonDetGenerator::LibFuzzer;
       map2check_execution(args);
       Map2Check::Log::Debug("Finished LibFuzzer execution");
-      exit(1);
+      */
 
       if (!foundViolation) {
         args.generator = Map2Check::NonDetGenerator::Klee;
         map2check_execution(args);
+        exit(1);
       }
     }
   } catch (std::exception &e) {

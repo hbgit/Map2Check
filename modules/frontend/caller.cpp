@@ -484,11 +484,23 @@ std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
   command << "./" << Map2Check::cseqBinary << " --input "<< currentPathTrack << "/" << preprocessed_code
           << " --load lazy "
           << " --backend cpachecker > " << currentPathTrack << "/" << cseq_code_output;
-  //<< cseq_code_output;          
+  //<< cseq_code_output;      
+
+  /**
+   * For Cseq is necessary some code transformation, e.g., all variable 
+   * not initialize on main function need to be initialized with nondet values
+   * Checkout example: ./map2check --debug --target-function --smt-solver z3 ../samples/map2check-preprocessed.c.cseq.c
+   * 
+   * */    
 
   Map2Check::Log::Info(command.str());
-
   system(command.str().c_str());
+
+  /**
+   * Since CSeq dont include pthread.h header file
+   * We need to replace the name of the pthread functions, e.g.,
+   * pthread_create, once LibFuzzer fail in it's execution 
+   * */
 
   // Returning the current Map2Check directory
   Map2Check::Log::Debug("Changing to Map2Check tmp files dir");
@@ -550,11 +562,13 @@ void Caller::compileCFile(bool is_llvm_bc) {
     std::string compiledFile = programHash + "-compiled.bc";
     std::ostringstream command;
     command.str("");
+    // for KLEE dont forget https://github.com/klee/klee/issues/902
     command << Map2Check::clangBinary << " -I" << Map2Check::clangIncludeFolder
             << " -Wno-everything "
             << " -Winteger-overflow "
             << " -c -emit-llvm -g"
-            << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
+            << " " << Caller::preOptimizationFlags() 
+            << " -Xclang -disable-O0-optnone -o " << compiledFile
             << " " << preprocessedFile
             << " > " << programHash << "-clang.out 2>&1";
 

@@ -16,6 +16,7 @@ list(APPEND MAP2CHECK_PASS_LIB "AssertPass")
 list(APPEND MAP2CHECK_PASS_LIB "OverflowPass")
 list(APPEND MAP2CHECK_PASS_LIB "LoopPredAssumePass")
 list(APPEND MAP2CHECK_PASS_LIB "CheckNonDetFunctPass")
+list(APPEND MAP2CHECK_PASS_LIB "InitVar2NonDetFunctPass")
 
 
 

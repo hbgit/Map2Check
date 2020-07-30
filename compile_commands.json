@@ -1,0 +1,127 @@
+[
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DTrackBasicBlockPass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/TrackBasicBlockPass.dir/TrackBasicBlockPass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/TrackBasicBlockPass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/TrackBasicBlockPass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DMap2CheckLibrary_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/Map2CheckLibrary.dir/Map2CheckLibrary.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/Map2CheckLibrary.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/Map2CheckLibrary.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DOverflowPass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/OverflowPass.dir/OverflowPass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/OverflowPass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/OverflowPass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DMemoryTrackPass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/MemoryTrackPass.dir/MemoryTrackPass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/MemoryTrackPass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/MemoryTrackPass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DTargetPass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/TargetPass.dir/TargetPass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/TargetPass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/TargetPass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/DebugInfo.dir/DebugInfo.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/DebugInfo.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/DebugInfo.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DNonDetPass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/NonDetPass.dir/NonDetPass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/NonDetPass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/NonDetPass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DGenerateAutomataTruePass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/GenerateAutomataTruePass.dir/GenerateAutomataTruePass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/GenerateAutomataTruePass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/GenerateAutomataTruePass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DAssertPass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/AssertPass.dir/AssertPass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/AssertPass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/AssertPass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DLoopPredAssumePass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/LoopPredAssumePass.dir/LoopPredAssumePass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/LoopPredAssumePass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/LoopPredAssumePass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++  -DCheckNonDetFunctPass_EXPORTS -I../  -fPIC   -I/usr/lib/llvm-8/include -std=c++11  -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS  -fno-rtti  -std=gnu++11 -o modules/backend/pass/CMakeFiles/CheckNonDetFunctPass.dir/CheckNonDetFunctPass.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/CheckNonDetFunctPass.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/backend/pass/CheckNonDetFunctPass.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -std=gnu++11 -o modules/frontend/CMakeFiles/map2check.dir/map2check.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/map2check.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/map2check.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -std=gnu++11 -o modules/frontend/CMakeFiles/Caller.dir/caller.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/caller.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/caller.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=gnu++11 -o modules/frontend/utils/CMakeFiles/Tools.dir/tools.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/utils/tools.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/utils/tools.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=gnu++11 -o modules/frontend/utils/CMakeFiles/Log.dir/log.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/utils/log.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/utils/log.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=gnu++11 -o modules/frontend/utils/CMakeFiles/GenCryptoHash.dir/gen_crypto_hash.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/utils/gen_crypto_hash.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/utils/gen_crypto_hash.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=gnu++11 -o modules/frontend/counter_example/CMakeFiles/CounterExample.dir/counter_example.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/counter_example/counter_example.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/counter_example/counter_example.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=gnu++11 -o modules/frontend/witness/CMakeFiles/Edge.dir/edge.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/witness/edge.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/witness/edge.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=gnu++11 -o modules/frontend/witness/CMakeFiles/Witness.dir/witness.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/witness/witness.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/witness/witness.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=gnu++11 -o modules/frontend/witness/CMakeFiles/Graph.dir/graph.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/witness/graph.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/witness/graph.cpp"
+},
+
+{
+  "directory": "/home/hrocha/Documents/Projects/Map2Check/build",
+  "command": "/usr/lib/llvm-8/bin/clang++   -I../    -I/usr/lib/llvm-8/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -std=gnu++11 -o modules/frontend/witness/CMakeFiles/Node.dir/node.cpp.o -c /home/hrocha/Documents/Projects/Map2Check/modules/frontend/witness/node.cpp",
+  "file": "/home/hrocha/Documents/Projects/Map2Check/modules/frontend/witness/node.cpp"
+}
+]

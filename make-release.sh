@@ -99,7 +99,7 @@ sed -i '54s/\"PATH\"/\"CLANG_PATH\"/' ./bin/crabllvm/bin/clam.py
 cp /usr/lib/x86_64-linux-gnu/libbfd-* ./bin/crabllvm/lib/
 cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./bin/crabllvm/lib/
 cp /usr/lib/x86_64-linux-gnu/libstdc++* ./bin/crabllvm/lib/
-cp ./lib/libz3.so ./bin/crabllvm/lib/
+# cp ./lib/libz3.so ./bin/crabllvm/lib/
 
 
 ../utils/cp_utils_file.sh

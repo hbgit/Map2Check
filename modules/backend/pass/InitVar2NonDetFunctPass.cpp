@@ -20,6 +20,8 @@ using llvm::IRBuilder;
 
 
 bool InitVar2NonDetFunctionPass::runOnFunction(Function& F) {
+
+    bool flag_modified = false;
     
     // Look for main function
     if (F.getName() == "main") {
@@ -61,6 +63,8 @@ bool InitVar2NonDetFunctionPass::runOnFunction(Function& F) {
                             builder.SetInsertPoint(&bb, builder.GetInsertPoint());
                             builder.CreateStore(cInst, al);
 
+                            flag_modified = true;
+
                         }
                     }
                 }
@@ -69,8 +73,13 @@ bool InitVar2NonDetFunctionPass::runOnFunction(Function& F) {
 
     }
 
-    // The IR was not modified
-    return false;
+    if(flag_modified){
+        return true;
+    }else{
+        // The IR was not modified
+        return false;
+    }
+    
 }
 
 

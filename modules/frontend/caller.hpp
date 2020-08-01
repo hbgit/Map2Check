@@ -91,6 +91,11 @@ class Caller {
    * */
   int checkNondetFunctPass();
 
+  std::ostringstream resetCmdPass();
+
+  /**To support CSeq-Lazy execution for concurrency**/
+  void applyInitVar2NondetFunctPass(std::string in_path_bc_program, std::string out_path_bc_program);
+
   /** Link functions called after executing the passes */
   void linkLLVM();
 

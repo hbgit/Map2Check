@@ -214,9 +214,19 @@ int map2check_execution(map2check_args args) {
     caller->compileCFile(is_llvmir_in);
   }
 
+  /**
+   * For Cseq is necessary some code transformation, e.g., all variable 
+   * not initialize on main function need to be initialized with nondet values
+   * Checkout example: ./map2check --debug --target-function --smt-solver z3 ../samples/map2check-preprocessed.c.cseq.c
+   * 
+   * */
+  // (1) In the main function the variables not initialized will be assigned with nondet values
+  
+  
   // Add function to indentify if the
   // code has a nondet call
   int hasNonDetFunct = caller->checkNondetFunctPass();
+
   if (hasNonDetFunct == 0 && generator == Map2Check::NonDetGenerator::LibFuzzer) {
     Map2Check::Log::Info("NOTE: No call nondet functions for LibFuzzer");
     // set the result UNKNOW for libfuzzer
@@ -234,6 +244,7 @@ int map2check_execution(map2check_args args) {
   }
 
   // (2) Instrument functions for current mode
+  // TODO: BUG on Adding reachability pass, cuz cseq output had not label __VERIFIER_ERROR()
   caller->callPass(args.function);  
   caller->linkLLVM();  
 

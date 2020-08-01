@@ -67,7 +67,7 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   std::ostringstream moveProgram;
   moveProgram << "cp " << bc_program_path << " " << programHash;
   system(moveProgram.str().c_str());
-  
+
   currentPath = boost::filesystem::current_path().string();
   boost::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Changing to Map2Check tmp files dir: " +
@@ -119,7 +119,7 @@ void Caller::applyNonDetGenerator() {
           << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
           << " " + programHash + "-result.bc";
-          
+
       Map2Check::Log::Debug(command.str().c_str());
       system(command.str().c_str());
 
@@ -142,9 +142,10 @@ int Caller::checkNondetFunctPass() {
 
   Map2Check::Log::Info("Look for nondet function call using LLVM pass");
   cmd << " -tailcallopt";
-  std::string checkNondetFunctPass = "${MAP2CHECK_PATH}/lib/libCheckNonDetFunctPass";
+  std::string checkNondetFunctPass =
+      "${MAP2CHECK_PATH}/lib/libCheckNonDetFunctPass";
   cmd << " -load " << checkNondetFunctPass << getLibSuffix()
-                   << " -check_nondet_functs -disable-output";
+      << " -check_nondet_functs -disable-output";
 
   std::string input_file = "< " + this->pathprogram;
   std::string output_file = " 2> checkNondetFunct-output.txt";
@@ -157,84 +158,139 @@ int Caller::checkNondetFunctPass() {
   std::ifstream file("checkNondetFunct-output.txt");
 
   // pFile.peek() == std::ifstream::traits_type::eof()
-  if ( file.peek() == std::ifstream::traits_type::eof() ) {
+  if (file.peek() == std::ifstream::traits_type::eof()) {
     return 0;
   } else {
     return 1;
-  }  
+  }
+}
+
+std::ostringstream Caller::resetCmdPass() {
+  std::ostringstream transformCommand;
+  transformCommand.str("");
+  transformCommand << Map2Check::optBinary;
+
+  return transformCommand;
 }
 
 int Caller::callPass(std::string target_function, bool sv_comp) {
   std::ostringstream transformCommand;
   transformCommand.str("");
   transformCommand << Map2Check::optBinary;
+  std::string input_file = this->pathprogram;
+  std::string output_file = programHash + "-output.bc";
   /* TODO(rafa.sa.xp@gmail.com): Should apply generate_automata_true
    *                             and TrackBasicBlockPass now */
 
+  if (this->pthreadCheck) {
+    // this->applyInitVar2NondetFunctPass(input_file, output_file);
+    Map2Check::Log::Info(
+      "In the main function the variables not initialized will be assigned "
+      "with nondet values");
+    // cmd << " -tailcallopt";
+    std::string initVar2NondetFunctPass =
+        "${MAP2CHECK_PATH}/lib/libInitVar2NonDetFunctPass";
+    transformCommand << " -load " << initVar2NondetFunctPass << getLibSuffix()
+        << " -init_var2_nondet ";
+    // exit(0);
+  }
+
+
   std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
-
-  /* Map2Check::Log::Info("Adding loop pass");
-  std::string loopPredAssumePass =
-  "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass"; transformCommand << " -load "
-  << loopPredAssumePass << getLibSuffix()
-                   << " -loop_predicate_assume";*/
-
   Map2Check::Log::Info("Adding nondet pass");
-  transformCommand << " -tailcallopt";
-  transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det";
+  //transformCommand << " -tailcallopt";
+  transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det ";
+  /* output_file = programHash + "-output_nondet.bc";
+  transformCommand << " < " << input_file << " > " << output_file;
+  input_file = output_file;
+  Map2Check::Log::Debug(transformCommand.str());
+  system(transformCommand.str().c_str());
+  transformCommand = this->resetCmdPass();*/ 
+  // exit(0);
+  // End nondet pass
 
   switch (map2checkMode) {
     case Map2CheckMode::MEMTRACK_MODE: {
       Map2Check::Log::Info("Adding memtrack pass");
       std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
       transformCommand << " -load " << memoryTrackPass << getLibSuffix()
-                       << " -memory_track";
+                       << " -memory_track ";
+      /* output_file = programHash + "-output_memtrack.bc";
+      transformCommand << " < " << input_file << " > " << output_file;
+      input_file = output_file;
+      Map2Check::Log::Debug(transformCommand.str());
+      system(transformCommand.str().c_str());
+      transformCommand = this->resetCmdPass();*/
       break;
     }
     case Map2CheckMode::MEMCLEANUP_MODE: {
       Map2Check::Log::Info("Adding memcleanup pass");
       std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
       transformCommand << " -load " << memoryTrackPass << getLibSuffix()
-                       << " -memory_track";
+                       << " -memory_track ";
+      /*output_file = programHash + "-output_memcleanup.bc";
+      transformCommand << " < " << input_file << " > " << output_file;
+      input_file = output_file;
+      Map2Check::Log::Debug(transformCommand.str());
+      system(transformCommand.str().c_str());
+      transformCommand = this->resetCmdPass();*/
       break;
     }
     case Map2CheckMode::OVERFLOW_MODE: {
       std::string overflowPass = "${MAP2CHECK_PATH}/lib/libOverflowPass";
       transformCommand << " -load " << overflowPass << getLibSuffix()
-                       << " -check_overflow";
+                       << " -check_overflow ";
+      /* output_file = programHash + "-output_overflow.bc";
+      transformCommand << " < " << input_file << " > " << output_file;
+      input_file = output_file;
+      Map2Check::Log::Debug(transformCommand.str());
+      system(transformCommand.str().c_str());
+      transformCommand = this->resetCmdPass();*/
       break;
     }
     case Map2CheckMode::REACHABILITY_MODE: {
       Map2Check::Log::Info("Adding reachability pass");
       std::string targetPass = "${MAP2CHECK_PATH}/lib/libTargetPass";
       transformCommand << " -load " << targetPass << getLibSuffix()
-                       << " -target_function";
-
+                       << " -target_function ";
+      /*output_file = programHash + "-output_reach.bc";
+      transformCommand << " < " << input_file << " > " << output_file;
+      input_file = output_file;
+      Map2Check::Log::Debug(transformCommand.str());
+      system(transformCommand.str().c_str());
+      transformCommand = this->resetCmdPass();*/
+      // exit(0);
       break;
     }
     case Map2CheckMode::ASSERT_MODE: {
       Map2Check::Log::Info("Adding assert pass");
       std::string assertPass = "${MAP2CHECK_PATH}/lib/libAssertPass";
       transformCommand << " -load " << assertPass << getLibSuffix()
-                       << " -validate_asserts";
+                       << " -validate_asserts ";
+      /*output_file = programHash + "-output_assert.bc";
+      transformCommand << " < " << input_file << " > " << output_file;
+      input_file = output_file;
+      Map2Check::Log::Debug(transformCommand.str());
+      system(transformCommand.str().c_str());
+      transformCommand = this->resetCmdPass();*/
 
       break;
     }
-    default: { break; }
+    default: {
+      break;
+    }
   }
 
   Map2Check::Log::Info("Adding map2check pass");
   std::string map2checkPass = "${MAP2CHECK_PATH}/lib/libMap2CheckLibrary";
   transformCommand << " -load " << map2checkPass << getLibSuffix()
                    << " -map2check ";
-
-  std::string input_file = "< " + this->pathprogram;
-  std::string output_file = "> " + programHash + "-output.bc";
-
-  transformCommand << input_file << output_file;
+  
+  transformCommand << " < " << input_file << " > " << output_file;
+  
   Map2Check::Log::Debug(transformCommand.str());
-
   system(transformCommand.str().c_str());
+  transformCommand = this->resetCmdPass();
 
   return 1;
 }
@@ -326,6 +382,8 @@ void Caller::linkLLVM() {
   linkCommand << "  > " + programHash + "-result.bc";
   Map2Check::Log::Debug(linkCommand.str());
   system(linkCommand.str().c_str());
+
+  // exit(0);
 }
 
 void Caller::executeAnalysis(std::string solvername) {
@@ -342,12 +400,11 @@ void Caller::executeAnalysis(std::string solvername) {
       kleeCommand << "timeout " << (0.8 * this->timeout) << " ";
       kleeCommand << Map2Check::kleeBinary;
 
-
       std::vector<std::string> kleebackendsolver = {"z3", "stp"};
       std::vector<std::string> kleemetasolver = {"btor", "yices2"};
 
-
-      if ( std::count(kleebackendsolver.begin(), kleebackendsolver.end(), solvername) ) {
+      if (std::count(kleebackendsolver.begin(), kleebackendsolver.end(),
+                     solvername)) {
         // Checkout solver adopted, if is z3 or stp
         // in KLEE add -solver-backend option
 
@@ -364,7 +421,8 @@ void Caller::executeAnalysis(std::string solvername) {
                     << " -libc=uclibc"
                     << " ./" + programHash + "-witness-result.bc"
                     << "  > ExecutionOutput.log";
-      } else if ( std::count(kleemetasolver.begin(), kleemetasolver.end(), solvername) ) {
+      } else if (std::count(kleemetasolver.begin(), kleemetasolver.end(),
+                            solvername)) {
         // Checkout solver adopted, if is btor (Boolector) or yices (Yices)
         // in KLEE add - option
         Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
@@ -395,8 +453,7 @@ void Caller::executeAnalysis(std::string solvername) {
       std::ostringstream command;
       command.str("");
       command << "timeout " << (0.5 * this->timeout) << " ";
-      command << "./" + programHash +
-                     "-fuzzed.out -rss_limit_mb=0 -jobs=8"
+      command << "./" + programHash + "-fuzzed.out -rss_limit_mb=0 -jobs=8"
               << " > fuzzer.output";
 
       // "-fuzzed.out -rss_limit_mb=4000 -jobs=8 -use_value_profile=1 "
@@ -454,11 +511,11 @@ std::vector<int> Caller::processClangOutput() {
 }
 
 /**
-* Apply source code transformation for concurrent 
-* programs adopting Lazy CSeq
-* https://www.southampton.ac.uk/~gp1y10/cseq/
-**/
-std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
+ * Apply source code transformation for concurrent
+ * programs adopting Lazy CSeq
+ * https://www.southampton.ac.uk/~gp1y10/cseq/
+ **/
+std::string Caller::applyCSeqTransformation(std::string preprocessed_code) {
   Map2Check::Log::Info("Applying CSeq on " + preprocessed_code);
 
   std::string cseq_code_output = preprocessed_code + ".cseq.c";
@@ -467,31 +524,25 @@ std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
    * Flow:
    * 1) Change to Cseq directory, because cseq modules limitation of the
    *    absolute path
-   * 2) Run CSeq and print the code transformation 
+   * 2) Run CSeq and print the code transformation
    * */
 
   std::string currentPathTrack = boost::filesystem::current_path().string();
- 
+
   std::string path_cseq = currentPath + Map2Check::cseqPath;
-  
+
   boost::filesystem::current_path(path_cseq);
 
   Map2Check::Log::Debug("Changing to CSeq dir: " +
-                        boost::filesystem::current_path().string());  
+                        boost::filesystem::current_path().string());
 
   std::ostringstream command;
   command.str("");
-  command << "./" << Map2Check::cseqBinary << " --input "<< currentPathTrack << "/" << preprocessed_code
-          << " --load lazy "
-          << " --backend cpachecker > " << currentPathTrack << "/" << cseq_code_output;
-  //<< cseq_code_output;      
-
-  /**
-   * For Cseq is necessary some code transformation, e.g., all variable 
-   * not initialize on main function need to be initialized with nondet values
-   * Checkout example: ./map2check --debug --target-function --smt-solver z3 ../samples/map2check-preprocessed.c.cseq.c
-   * 
-   * */    
+  command << "./" << Map2Check::cseqBinary << " --input " << currentPathTrack
+          << "/" << preprocessed_code << " --load lazy "
+          << " --backend cpachecker > " << currentPathTrack << "/"
+          << cseq_code_output;
+  //<< cseq_code_output;
 
   Map2Check::Log::Info(command.str());
   system(command.str().c_str());
@@ -499,7 +550,7 @@ std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
   /**
    * Since CSeq dont include pthread.h header file
    * We need to replace the name of the pthread functions, e.g.,
-   * pthread_create, once LibFuzzer fail in it's execution 
+   * pthread_create, once LibFuzzer fail in it's execution
    * */
 
   // Returning the current Map2Check directory
@@ -507,7 +558,31 @@ std::string Caller::applyCSeqTransformation(std::string preprocessed_code){
   boost::filesystem::current_path(currentPathTrack);
 
   return cseq_code_output;
+}
+
+void Caller::applyInitVar2NondetFunctPass(std::string in_path_bc_program,
+                                          std::string out_path_bc_program) {
+  std::ostringstream cmd;
+  cmd.str("");
+  cmd << Map2Check::optBinary;
+
+  Map2Check::Log::Info(
+      "In the main function the variables not initialized will be assigned "
+      "with nondet values");
+  // cmd << " -tailcallopt";
+  std::string initVar2NondetFunctPass =
+      "${MAP2CHECK_PATH}/lib/libInitVar2NonDetFunctPass";
+  cmd << " -load " << initVar2NondetFunctPass << getLibSuffix()
+      << " -init_var2_nondet ";
+
+  // std::string input_and_output_file =
+  //    in_path_bc_program + out_path_bc_program;
+  // exit(0);
   
+  cmd << " < " << in_path_bc_program << " > " << out_path_bc_program;
+  Map2Check::Log::Debug(cmd.str());
+
+  system(cmd.str().c_str());
 }
 
 /** This function should:
@@ -538,21 +613,23 @@ void Caller::compileCFile(bool is_llvm_bc) {
 
     std::ostringstream commandRemoveVoidMemset;
     commandRemoveVoidMemset.str("");
-    commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
-                              << " " << programHash << "-preprocessed.c ";
+    commandRemoveVoidMemset
+        << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+        << " " << programHash << "-preprocessed.c ";
     // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
     system(commandRemoveVoidMemset.str().c_str());
 
     std::ostringstream commandRemoveVoidMemcpy;
     commandRemoveVoidMemcpy.str("");
-    commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
-                              << " " << programHash << "-preprocessed.c ";
+    commandRemoveVoidMemcpy
+        << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+        << " " << programHash << "-preprocessed.c ";
     // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
     system(commandRemoveVoidMemcpy.str().c_str());
 
     // TODO: if is a concurrent program then apply the code transformation
     std::string preprocessedFile = programHash + "-preprocessed.c";
-    if(this->pthreadCheck){
+    if (this->pthreadCheck) {
       preprocessedFile = this->applyCSeqTransformation(preprocessedFile);
     }
 
@@ -567,10 +644,9 @@ void Caller::compileCFile(bool is_llvm_bc) {
             << " -Wno-everything "
             << " -Winteger-overflow "
             << " -c -emit-llvm -g"
-            << " " << Caller::preOptimizationFlags() 
-            << " -Xclang -disable-O0-optnone -o " << compiledFile
-            << " " << preprocessedFile
-            << " > " << programHash << "-clang.out 2>&1";
+            << " " << Caller::preOptimizationFlags()
+            << " -Xclang -disable-O0-optnone -o " << compiledFile << " "
+            << preprocessedFile << " > " << programHash << "-clang.out 2>&1";
 
     Map2Check::Log::Info("Compiling: " + preprocessedFile);
     Map2Check::Log::Info(command.str());
@@ -612,18 +688,19 @@ void Caller::compileToCrabLlvm() {
 
   std::ostringstream commandRemoveVoidMemset;
   commandRemoveVoidMemset.str("");
-  commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
-                            << " " << programHash << "-preprocessed.c ";
+  commandRemoveVoidMemset
+      << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+      << " " << programHash << "-preprocessed.c ";
   // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
   system(commandRemoveVoidMemset.str().c_str());
 
   std::ostringstream commandRemoveVoidMemcpy;
   commandRemoveVoidMemcpy.str("");
-  commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
-                            << " " << programHash << "-preprocessed.c ";
+  commandRemoveVoidMemcpy
+      << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+      << " " << programHash << "-preprocessed.c ";
   // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
   system(commandRemoveVoidMemcpy.str().c_str());
-
 
   // (2) Generate .bc file from code
   // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
@@ -647,12 +724,8 @@ void Caller::compileToCrabLlvm() {
   std::ostringstream tmp_ld_p;
   tmp_ld_p << getenv("LD_LIBRARY_PATH");
 
-
-  getPathLibCrabCommand << "LD_LIBRARY_PATH="
-                        << tmp_ld_p.str().c_str()
-                        << ":"
-                        << getMapPath.str().c_str()
-                        << "/bin/crabllvm/lib";
+  getPathLibCrabCommand << "LD_LIBRARY_PATH=" << tmp_ld_p.str().c_str() << ":"
+                        << getMapPath.str().c_str() << "/bin/crabllvm/lib";
 
   // std::ostringstream tmp_ld;
   // tmp_ld << getenv("LD_LIBRARY_PATH");

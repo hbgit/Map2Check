@@ -59,6 +59,8 @@ struct TargetPass : public FunctionPass {
   Value *functionName = NULL;
   std::string targetFunctionName_v1 = "__VERIFIER_error";
   std::string targetFunctionName_v2 = "reach_error";
+  std::string targetFunctionName_v3 = "__VERIFIER_assert";
+  // 
 };
 
 #endif  // MODULES_BACKEND_PASS_TARGETPASS_HPP_

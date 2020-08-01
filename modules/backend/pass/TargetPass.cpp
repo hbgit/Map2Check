@@ -45,8 +45,10 @@ void TargetPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
     }
   }
 
+  // llvm::errs() << calleeFunction->getName() << "\n";
   if (calleeFunction->getName() == targetFunctionName_v1 ||
-      calleeFunction->getName() == targetFunctionName_v2) {
+      calleeFunction->getName() == targetFunctionName_v2 || 
+      calleeFunction->getName() == targetFunctionName_v3) {
     this->instrumentErrorInstruction(callInst, Ctx);
   }
 }

@@ -18,7 +18,11 @@
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/BasicBlock.h>
 #include <llvm/Pass.h>
+#include <llvm/ADT/None.h>
+#include <llvm/Support/Casting.h>
+
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>

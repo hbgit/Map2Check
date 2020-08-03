@@ -272,7 +272,7 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
     boost::split(tokens, line, boost::is_any_of(";"));
 
     if (tokens.size() == 7) {
-      Log::Debug("started klee log");
+      Log::Debug("Started klee log");
       Tools::KleeLogRow row;
       string id = tokens[0];
       string lineNumber = tokens[1];

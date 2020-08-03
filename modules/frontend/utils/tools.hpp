@@ -46,7 +46,7 @@ constexpr char const* cseqBinary =
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
 constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";
 /** Path to generated list log file (check MemoryUtils implementation) */
-constexpr char const* listLogCSV = "list_log.csv";
+constexpr char const* listLogCSV = "list_mem_log.csv";
 /** Path to klee binary */
 constexpr char const* kleeBinary = "${MAP2CHECK_PATH}/bin/klee";
 /** Path to generated klee log file (check MemoryUtils implementation) */

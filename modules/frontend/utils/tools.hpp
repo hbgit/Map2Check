@@ -91,27 +91,7 @@ struct CheckViolatedProperty {
    * Reads file and initializes the object
    * @param path File describing the property
    */
-  explicit CheckViolatedProperty(std::string path);
-
-  // operator std::string() const {
-  //     std::ostringstream cnvt;
-  //     cnvt.str("");
-  //     // cnvt <<"Function: " << this->function_name;
-  //     switch(this->propertyViolated) {
-  //       case(PropertyViolated::FALSE_FREE):
-  //         cnvt << "FALSE-FREE: Operand of free must have zero pointer
-  //         offset"; break;
-  //       case(PropertyViolated::TARGET_REACHED):
-  //         //TODO(hbgit): Add message for target reached
-  //         cnvt << "FALSE: Target Reached";
-  //         break;
-  //       case(PropertyViolated::NONE) {
-  //         cnvt << "TRUE";
-  //         break;
-  //       }
-  //     }
-  //     return cnvt.str();
-  // }
+  explicit CheckViolatedProperty(std::string path);  
 
   /**
    * Reads default file and initializes the object

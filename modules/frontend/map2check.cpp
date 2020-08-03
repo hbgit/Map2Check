@@ -10,7 +10,8 @@
  * STP,Z3    -> MIT
  * BOOST     -> BSL-1.0
  *
- * SPDX-License-Identifier: (GPL-2.0 AND Apache-2.0 AND NCSA AND MIT AND BSL-1.0)
+ * SPDX-License-Identifier: (GPL-2.0 AND Apache-2.0 AND NCSA AND MIT AND
+ *BSL-1.0)
  *
  **/
 
@@ -215,19 +216,21 @@ int map2check_execution(map2check_args args) {
   }
 
   /**
-   * For Cseq is necessary some code transformation, e.g., all variable 
+   * For Cseq is necessary some code transformation, e.g., all variable
    * not initialize on main function need to be initialized with nondet values
-   * Checkout example: ./map2check --debug --target-function --smt-solver z3 ../samples/map2check-preprocessed.c.cseq.c
-   * 
+   * Checkout example: ./map2check --debug --target-function --smt-solver z3
+   * ../samples/map2check-preprocessed.c.cseq.c
+   *
    * */
-  // (1) In the main function the variables not initialized will be assigned with nondet values
-  
-  
+  // (1) In the main function the variables not initialized will be assigned
+  // with nondet values
+
   // Add function to indentify if the
   // code has a nondet call
   int hasNonDetFunct = caller->checkNondetFunctPass();
 
-  if (hasNonDetFunct == 0 && generator == Map2Check::NonDetGenerator::LibFuzzer) {
+  if (hasNonDetFunct == 0 &&
+      generator == Map2Check::NonDetGenerator::LibFuzzer) {
     Map2Check::Log::Info("NOTE: No call nondet functions for LibFuzzer");
     // set the result UNKNOW for libfuzzer
     foundViolation = false;
@@ -237,21 +240,21 @@ int map2check_execution(map2check_args args) {
     // return SUCCESS
     Map2Check::Log::Debug("Jumping to verify with KLEE");
     return SUCCESS;
-  }  
+  }
 
   if (args.btree) {
     caller->useBTree();
   }
 
   // (2) Instrument functions for current mode
-  // TODO: BUG on Adding reachability pass, cuz cseq output had not label __VERIFIER_ERROR()
-  caller->callPass(args.function);  
-  caller->linkLLVM();  
+  // TODO: BUG on Adding reachability pass, cuz cseq output had not label
+  // __VERIFIER_ERROR()
+  caller->callPass(args.function);
+  caller->linkLLVM();
 
   // (3) Apply nondeterministic mode and execute analysis
   caller->applyNonDetGenerator();
   caller->executeAnalysis(args.solvername);
-  //exit(1);
 
   // (4) Retrieve results
   // TODO(hbgit): create methods to generate counter example
@@ -265,11 +268,14 @@ int map2check_execution(map2check_args args) {
   if (caller->isTimeout()) {
     Map2Check::Log::Warning("Note: Forcing timeout");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
-  } else if (!caller->isVerified() &&
-             (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
+  } 
+  // WHY this?
+  /*else if (!caller->isVerified() &&
+           (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
     Map2Check::Log::Warning("Note: Could not replicate error");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
-  } else {
+  } */
+  else {
     propertyViolated = counterExample->getProperty();
   }
 
@@ -308,8 +314,8 @@ int map2check_execution(map2check_args args) {
   }
 
   // (6) Clean map2check execution (folders and temp files)
-  //Map2Check::Log::Debug("Removing temp files");
-  //caller->cleanGarbage();
+  // Map2Check::Log::Debug("Removing temp files");
+  // caller->cleanGarbage();
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
@@ -326,29 +332,30 @@ int main(int argc, char **argv) {
   try {
     // Define and parse the program options
     po::options_description desc("Options");
-    desc.add_options()("help", "\tshow help")
-        ("version", "\tprints map2check version")
-        ("debug", "\tdebug mode")
-        ("input-file", po::value<std::vector<std::string>>(),
-                      "\tspecifies the files")
-        ("smt-solver", po::value<std::string>()->default_value("z3"),
-                      R"(specifies the smt-solver, valid values are stp (STP),
-z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
-        ("timeout", po::value<unsigned>(),
-                      "\ttimeout for map2check execution")
-        ("target-function", "\tsearches for __VERIFIER_error is reachable")
-        ("generate-testcase", "\tcreates c program with fail testcase (experimental)")
-        ("memtrack", "\tcheck for memory errors")        
-        ("memcleanup-property", "\tanalyze program for memcleanup errors")
-        ("check-overflow", "\tanalyze program for overflow failures")
-        ("check-asserts", "\tanalyze program and verify assert failures")
-        ("check-threads", "\tanalyze concurrent programs with POSIX threads")
-        ("print-counter", "\tprint counterexample")
-        ("add-invariants", "\tadding program invariants adopting Crab-LLVM")
-        ("generate-witness", "\tgenerates witness file")
-        ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
-        ("btree", "\tuses btree structure to hold information (experimental, use this "
-        "if you are having memory problems)");
+    desc.add_options()("help", "\tshow help")(
+        "version", "\tprints map2check version")("debug", "\tdebug mode")(
+        "input-file", po::value<std::vector<std::string>>(),
+        "\tspecifies the files")(
+        "smt-solver", po::value<std::string>()->default_value("z3"),
+        R"(specifies the smt-solver, valid values are stp (STP),
+z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")(
+        "timeout", po::value<unsigned>(), "\ttimeout for map2check execution")(
+        "target-function", "\tsearches for __VERIFIER_error is reachable")(
+        "generate-testcase",
+        "\tcreates c program with fail testcase (experimental)")(
+        "memtrack", "\tcheck for memory errors")(
+        "memcleanup-property", "\tanalyze program for memcleanup errors")(
+        "check-overflow", "\tanalyze program for overflow failures")(
+        "check-asserts", "\tanalyze program and verify assert failures")(
+        "check-threads", "\tanalyze concurrent programs with POSIX threads")(
+        "print-counter", "\tprint counterexample")(
+        "add-invariants", "\tadding program invariants adopting Crab-LLVM")(
+        "generate-witness", "\tgenerates witness file")
+        //("expected-result", po::value<string>(), "\tspecifies type of
+        //violation expected")
+        ("btree",
+         "\tuses btree structure to hold information (experimental, use this "
+         "if you are having memory problems)");
 
     po::positional_options_description p;
     p.add("input-file", -1);
@@ -381,13 +388,12 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     }
     if (vm.count("smt-solver")) {
       string solvername = vm["smt-solver"].as<string>();
-      std::transform(solvername.begin(), solvername.end(),
-                     solvername.begin(), [](unsigned char c){
-                     return std::tolower(c); });
+      std::transform(solvername.begin(), solvername.end(), solvername.begin(),
+                     [](unsigned char c) { return std::tolower(c); });
 
       std::vector<std::string> vSolver = {"z3", "stp", "btor", "yices2"};
 
-      if ( !std::count(vSolver.begin(), vSolver.end(), solvername) ) {
+      if (!std::count(vSolver.begin(), vSolver.end(), solvername)) {
         std::cout << "Solver not supported.\n\n";
         std::cout << desc;
         return ERROR_IN_COMMAND_LINE;
@@ -457,12 +463,13 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
 
-      /*
-      * TODO: uncomment after add Cseq in the flow
-      * args.generator = Map2Check::NonDetGenerator::LibFuzzer;
-      map2check_execution(args);
-      Map2Check::Log::Debug("Finished LibFuzzer execution");
-      */
+      if (!args.concurrent) {
+        args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+        map2check_execution(args);
+        Map2Check::Log::Debug("Finished LibFuzzer execution");
+      }
+
+      exit(0);
 
       if (!foundViolation) {
         args.generator = Map2Check::NonDetGenerator::Klee;

@@ -37,10 +37,10 @@ namespace {
 inline std::string getLibSuffix() { return ".so"; }
 
 bool isWitnessFileCreated() {
-  Map2Check::Log::Debug("Checking file");
+  Map2Check::Log::Debug("Checking file: map2check_checked_error");
   std::ifstream infile("map2check_checked_error");
   if (infile.is_open()) {
-    Map2Check::Log::Debug("Found file!");
+    Map2Check::Log::Debug("Found < map2check_checked_error > file!");
     return true;
   }
   return false;
@@ -99,15 +99,18 @@ void Caller::cleanGarbage() {
 
 void Caller::applyNonDetGenerator() {
   switch (nonDetGenerator) {
+
     case (NonDetGenerator::None): {  // TODO(hbgit): Should generate binary
       Map2Check::Log::Info(
           "Map2Check will not generate non deterministic numbers");
       break;
     }
+
     case (NonDetGenerator::Klee): {
       Map2Check::Log::Info("Applying optimizations for klee");
       break;
     }
+
     case (NonDetGenerator::LibFuzzer): {
       Map2Check::Log::Info("Instrumenting with LLVM LibFuzzer");
       std::ostringstream command;
@@ -123,13 +126,13 @@ void Caller::applyNonDetGenerator() {
       Map2Check::Log::Debug(command.str().c_str());
       system(command.str().c_str());
 
-      std::ostringstream commandWitness;
+      /*std::ostringstream commandWitness;
       commandWitness.str("");
       commandWitness << Map2Check::clangBinary << "  -g -fsanitize=fuzzer "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
 
-      system(commandWitness.str().c_str());
+      system(commandWitness.str().c_str());*/
       break;
     }
   }
@@ -369,16 +372,18 @@ void Caller::linkLLVM() {
     }
   }
 
+  /* TODO: Checkout this
   Map2Check::Log::Debug("Compiling to generate the witness");
   witnessCommand.str("");
   witnessCommand << linkCommand.str();
   witnessCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";
   witnessCommand << "  > " + programHash + "-witness-result.bc";
   Map2Check::Log::Debug(witnessCommand.str());
-  system(witnessCommand.str().c_str());
+  system(witnessCommand.str().c_str());*/
 
   Map2Check::Log::Debug("Compiling to verify the properties");
-  linkCommand << " ${MAP2CHECK_PATH}/lib/WitnessGenerationNone.bc";
+  //linkCommand << " ${MAP2CHECK_PATH}/lib/WitnessGenerationNone.bc";
+  linkCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";
   linkCommand << "  > " + programHash + "-result.bc";
   Map2Check::Log::Debug(linkCommand.str());
   system(linkCommand.str().c_str());
@@ -393,6 +398,7 @@ void Caller::executeAnalysis(std::string solvername) {
       Map2Check::Log::Info("This mode is not supported");
       break;
     }
+    // KLEE analysis
     case (NonDetGenerator::Klee): {
       Map2Check::Log::Info("Executing Klee with map2check");
       std::ostringstream kleeCommand;
@@ -448,6 +454,8 @@ void Caller::executeAnalysis(std::string solvername) {
 
       break;
     }
+    
+    // LIbFUZZER analysis
     case (NonDetGenerator::LibFuzzer): {
       Map2Check::Log::Info("Executing LibFuzzer with map2check");
       std::ostringstream command;
@@ -464,22 +472,24 @@ void Caller::executeAnalysis(std::string solvername) {
       if (result == 31744)  // Timeout
         gotTimeout = true;
 
-      std::ostringstream commandWitness;
+      /*std::ostringstream commandWitness;
       commandWitness.str("");
       commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
-      system(commandWitness.str().c_str());
+      system(commandWitness.str().c_str());*/
       Map2Check::Log::Debug("Finished fuzzer");
 
-      if (isWitnessFileCreated()) {
+      /*if (isWitnessFileCreated()) {
         witnessVerified = true;
-      }
+      }*/
 
       break;
     }
   }
-  if (isWitnessFileCreated()) {
+
+  /*if (isWitnessFileCreated()) {
     witnessVerified = true;
-  }
+  }*/
+
 }
 
 std::vector<int> Caller::processClangOutput() {

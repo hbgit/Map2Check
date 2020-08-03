@@ -42,7 +42,7 @@ Tools::SourceCodeHelper::SourceCodeHelper(std::string pathToCSource) {
     // throw Map2Check::Exceptions::ErrorOpeningFileException(pathToCSource);
   }
 
-  Map2Check::Log::Debug(*this);
+  // Map2Check::Log::Debug(*this);
 }
 
 std::string Tools::SourceCodeHelper::getFilePath() { return this->path; }

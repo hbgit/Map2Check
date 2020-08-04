@@ -472,10 +472,11 @@ void Caller::executeAnalysis(std::string solvername) {
       if (result == 31744)  // Timeout
         gotTimeout = true;
 
-      /*std::ostringstream commandWitness;
+      std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
-      system(commandWitness.str().c_str());*/
+      //commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
+      commandWitness << "./" + programHash + "-fuzzed.out -rss_limit_mb=0 crash-*";
+      system(commandWitness.str().c_str());
       Map2Check::Log::Debug("Finished fuzzer");
 
       /*if (isWitnessFileCreated()) {

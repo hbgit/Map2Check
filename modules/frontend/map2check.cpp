@@ -297,6 +297,9 @@ int main(int argc, char **argv) {
         ("debug", "\tdebug mode")
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
+        ("nondet-generator", po::value<std::string>(),
+                      R"(specifies the nondet-generator, valid values are fuzzer (libFuzzer),
+symex (Klee))")
         ("smt-solver", po::value<std::string>()->default_value("z3"),
                       R"(specifies the smt-solver, valid values are stp (STP),
 z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
@@ -408,6 +411,31 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       Map2Check::Log::Debug("Current path:");
       system("echo $MAP2CHECK_PATH");
     }
+    if (vm.count("nondet-generator")) {
+      string generatorname = vm["nondet-generator"].as<string>();
+      std::transform(generatorname.begin(), generatorname.end(),
+                     generatorname.begin(), [](unsigned char c){
+                     return std::tolower(c); });
+
+      std::vector<std::string> available_generators = {"fuzzer", "symex"};
+
+      if ( !std::count(available_generators.begin(), available_generators.end(), generatorname) ) {
+        std::cout << "Selected generator don't exist, available: ";
+        for(auto &s : available_generators) {
+          std::cout << " " << s << " ";
+        }
+        std::cout << desc << "\n";
+        return ERROR_IN_COMMAND_LINE;
+      } else {
+        std::cout << "Adopting " + generatorname + " nondet-generator... \n";
+        if(generatorname == available_generators[0])
+          args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+        if(generatorname == available_generators[1])
+          args.generator = Map2Check::NonDetGenerator::Klee;
+      }
+    } else {
+      args.generator = Map2Check::NonDetGenerator::None;
+    }
     if (vm.count("input-file")) {
       std::string pathfile;
       pathfile = accumulate(
@@ -418,10 +446,15 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
-      args.generator = Map2Check::NonDetGenerator::LibFuzzer;
-      map2check_execution(args);
-      if (!foundViolation) {
-        args.generator = Map2Check::NonDetGenerator::Klee;
+      if(args.generator == Map2Check::NonDetGenerator::None) {
+        args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+        map2check_execution(args);
+        if (!foundViolation) {
+          args.generator = Map2Check::NonDetGenerator::Klee;
+          map2check_execution(args);
+        }
+      }
+      else {
         map2check_execution(args);
       }
     }

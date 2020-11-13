@@ -19,6 +19,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/CommandLine.h>
 
 #include <iostream>
 #include <sstream>
@@ -38,10 +39,15 @@ using llvm::IRBuilder;
 using llvm::LLVMContext;
 using llvm::RegisterPass;
 using llvm::Value;
+//using llvm::cl;
 
+// Target option
+static llvm::cl::opt<std::string> TargetNameOption("function-name", llvm::cl::desc("Specify the target function"), llvm::cl::init("__VERIFIER_error"));
 struct TargetPass : public FunctionPass {
   static char ID;
-  TargetPass() : FunctionPass(ID) {}
+  TargetPass() : FunctionPass(ID) {
+    targetFunctionName = TargetNameOption;
+  }
   explicit TargetPass(std::string FunctionName) : FunctionPass(ID) {
     targetFunctionName = FunctionName;
   }
@@ -56,7 +62,7 @@ struct TargetPass : public FunctionPass {
   BasicBlock::iterator currentInstruction;
   Constant *targetFunctionMap2Check = NULL;
   Value *functionName = NULL;
-  std::string targetFunctionName = "__VERIFIER_error";
+  std::string targetFunctionName;
 };
 
 #endif  // MODULES_BACKEND_PASS_TARGETPASS_HPP_

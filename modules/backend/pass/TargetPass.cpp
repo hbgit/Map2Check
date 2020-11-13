@@ -11,6 +11,12 @@
 #include "TargetPass.hpp"
 
 bool TargetPass::runOnFunction(Function& F) {
+  llvm::errs() << "Running TargetPass with: " << this->targetFunctionName;
+
+  // We need to have the definition of the function
+  F.getParent()->getOrInsertFunction(
+        this->targetFunctionName, Type::getVoidTy(F.getContext()));
+
   this->targetFunctionMap2Check = F.getParent()->getOrInsertFunction(
       "map2check_target_function", Type::getVoidTy(F.getContext()),
       Type::getInt8PtrTy(F.getContext()), Type::getInt32Ty(F.getContext()),

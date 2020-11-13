@@ -177,9 +177,10 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
     }
     case Map2CheckMode::REACHABILITY_MODE: {
       Map2Check::Log::Info("Running reachability mode");
+      Map2Check::Log::Debug("Target function: " + target_function);
       std::string targetPass = "${MAP2CHECK_PATH}/lib/libTargetPass";
       transformCommand << " -load " << targetPass << getLibSuffix()
-                       << " -target_function";
+                       << " -target_function -function-name " << target_function;
 
       break;
     }

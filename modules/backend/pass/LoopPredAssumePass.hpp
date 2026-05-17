@@ -40,6 +40,8 @@ using llvm::BasicBlock;
 using llvm::BranchInst;
 using llvm::CmpInst;
 using llvm::Constant;
+using llvm::FunctionCallee;
+using llvm::PointerType;
 using llvm::dyn_cast;
 using llvm::LLVMContext;
 using llvm::Loop;
@@ -55,7 +57,7 @@ struct LoopPredAssumePass : public LoopPass {
 
  private:
   LLVMContext* Ctx;
-  Constant* map2check_assume = NULL;
+  FunctionCallee map2check_assume;
 };
 
 #endif  // MODULES_BACKEND_PASS_LOOPPREDASSUMEPASS_HPP_

@@ -39,7 +39,7 @@ using llvm::Function;
 using llvm::FunctionPass;
 using llvm::IRBuilder;
 using llvm::LLVMContext;
-using llvm::make_unique;
+using std::make_unique;
 using llvm::Value;
 
 struct Map2CheckLibrary : public FunctionPass {

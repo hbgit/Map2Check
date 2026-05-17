@@ -32,6 +32,8 @@
 using llvm::BasicBlock;
 using llvm::CallInst;
 using llvm::Constant;
+using llvm::FunctionCallee;
+using llvm::PointerType;
 using llvm::dyn_cast;
 using llvm::Function;
 using llvm::FunctionPass;
@@ -60,7 +62,7 @@ struct TargetPass : public FunctionPass {
 
  private:
   BasicBlock::iterator currentInstruction;
-  Constant *targetFunctionMap2Check = NULL;
+  FunctionCallee targetFunctionMap2Check;
   Value *functionName = NULL;
   std::string targetFunctionName;
 };

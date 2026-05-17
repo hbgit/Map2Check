@@ -13,12 +13,13 @@
 using llvm::dyn_cast;
 using llvm::IRBuilder;
 using llvm::RegisterPass;
+using llvm::FunctionCallee;
 
 bool AssertPass::runOnFunction(Function& F) {
   this->map2check_assert = F.getParent()->getOrInsertFunction(
       "map2check_assert", Type::getVoidTy(F.getContext()),
       Type::getInt32Ty(F.getContext()), Type::getInt32Ty(F.getContext()),
-      Type::getInt8PtrTy(F.getContext()));
+      PointerType::get(F.getContext(), 0));
 
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
@@ -55,7 +56,7 @@ void AssertPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
   Function* calleeFunction = callInst->getCalledFunction();
 
   if (calleeFunction == NULL) {
-    Value* v = callInst->getCalledValue();
+    Value* v = callInst->getCalledOperand();
     calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
     if (calleeFunction == NULL) {

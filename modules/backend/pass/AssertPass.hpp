@@ -37,6 +37,8 @@
 using llvm::BasicBlock;
 using llvm::CallInst;
 using llvm::Constant;
+using llvm::FunctionCallee;
+using llvm::PointerType;
 using llvm::Function;
 using llvm::FunctionPass;
 using llvm::IRBuilder;
@@ -54,7 +56,7 @@ struct AssertPass : public FunctionPass {
   Value* getFunctionNameValue() { return this->functionName; }
 
  private:
-  Constant* map2check_assert = NULL;
+  FunctionCallee map2check_assert;
   Value* functionName = NULL;
   BasicBlock::iterator currentInstruction;
 };

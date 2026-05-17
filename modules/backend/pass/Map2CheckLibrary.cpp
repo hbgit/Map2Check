@@ -73,7 +73,7 @@ void Map2CheckLibrary::runOnCallInstruction(CallInst* callInst,
   Function* calleeFunction = callInst->getCalledFunction();
 
   if (calleeFunction == NULL) {
-    Value* v = callInst->getCalledValue();
+    Value* v = callInst->getCalledOperand();
     calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
     if (calleeFunction == NULL) {

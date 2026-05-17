@@ -1,0 +1,155 @@
+############################################################
+# Dockerfile.dev - Map2Check 2.0 Development Environment
+# Based on Ubuntu 22.04 with LLVM 16 + KLEE 3.1
+#
+# Usage:
+#   $ docker build -t map2check-dev -f Dockerfile.dev .
+#   $ docker run -it --rm -v $(pwd):/workspace map2check-dev /bin/bash
+#
+# Migration Phase 1.1 — Task 1.1.1, 1.1.2, 1.1.3
+############################################################
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+# ============================================================
+# 1. Base system + build tools (Task 1.1.3)
+# ============================================================
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    wget \
+    curl \
+    python3 \
+    python3-pip \
+    software-properties-common \
+    lsb-release \
+    gnupg \
+    zlib1g-dev \
+    libboost-all-dev \
+    vim \
+    sudo \
+    ca-certificates \
+    subversion \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================
+# 2. LLVM 16 via apt.llvm.org (Task 1.1.2)
+# ============================================================
+RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
+    echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" > /etc/apt/sources.list.d/llvm-16.list && \
+    apt-get update && apt-get install -y \
+    clang-16 \
+    llvm-16 \
+    llvm-16-dev \
+    llvm-16-tools \
+    libclang-16-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Symlinks for convenience
+RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100 && \
+    update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-16 100 && \
+    update-alternatives --install /usr/bin/opt opt /usr/bin/opt-16 100 && \
+    update-alternatives --install /usr/bin/llvm-link llvm-link /usr/bin/llvm-link-16 100
+
+# ============================================================
+# 3. Z3 Solver (via apt — version 4.8.12)
+# ============================================================
+RUN apt-get update && apt-get install -y libz3-dev z3 && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================================
+# 4. STP Solver (from source — requires minisat first)
+# ============================================================
+RUN apt-get update && apt-get install -y \
+    libboost-program-options-dev \
+    bison \
+    flex \
+    libgmp-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# minisat (STP fork)
+RUN git clone --depth 1 https://github.com/stp/minisat.git /tmp/minisat && \
+    cd /tmp/minisat && mkdir build && cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local && \
+    make -j$(nproc) && make install && \
+    ldconfig && rm -rf /tmp/minisat
+
+# STP
+RUN git clone --depth 1 -b 2.3.4 https://github.com/stp/stp.git /tmp/stp && \
+    cd /tmp/stp && mkdir build && cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local \
+             -DCMAKE_BUILD_TYPE=Release \
+             -DBUILD_SHARED_LIBS=ON && \
+    make -j$(nproc) && make install && \
+    ldconfig && rm -rf /tmp/stp
+
+# ============================================================
+# 5. klee-uclibc (built with clang-16)
+# ============================================================
+RUN git clone --depth 1 https://github.com/klee/klee-uclibc.git /opt/klee-uclibc && \
+    cd /opt/klee-uclibc && \
+    ./configure --make-llvm-lib \
+                --with-cc /usr/bin/clang-16 \
+                --with-llvm-config /usr/bin/llvm-config-16 && \
+    make -j$(nproc)
+
+# ============================================================
+# 6. KLEE 3.1 (with LLVM 16 + Z3 + STP + uclibc)
+# ============================================================
+RUN apt-get update && apt-get install -y \
+    libgoogle-perftools-dev \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 -b v3.1 https://github.com/klee/klee.git /tmp/klee && \
+    cd /tmp/klee && mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release \
+             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+             -DENABLE_SOLVER_Z3=ON \
+             -DENABLE_SOLVER_STP=ON \
+             -DENABLE_POSIX_RUNTIME=ON \
+             -DKLEE_UCLIBC_PATH=/opt/klee-uclibc \
+             -DCMAKE_INSTALL_PREFIX=/opt/klee \
+             -DENABLE_UNIT_TESTS=OFF \
+             -DENABLE_SYSTEM_TESTS=OFF && \
+    make -j$(nproc) && make install && \
+    rm -rf /tmp/klee
+
+# Add KLEE to PATH
+ENV PATH="/opt/klee/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/klee/lib"
+
+# ============================================================
+# 7. LibFuzzer (already included in LLVM 16 compiler-rt)
+# ============================================================
+# No extra install needed — available via clang-16 -fsanitize=fuzzer
+
+# ============================================================
+# 8. User setup
+# ============================================================
+RUN useradd -m map2check && \
+    echo "map2check:map2check" | chpasswd && \
+    echo "map2check ALL=(root) NOPASSWD: ALL" >> /etc/sudoers
+
+USER map2check
+WORKDIR /workspace
+
+# Git config
+RUN git config --global user.email "map2check.tool@gmail.com" && \
+    git config --global user.name "Map2Check" && \
+    git config --global --add safe.directory /workspace
+
+# ============================================================
+# 9. Environment variables for Map2Check build
+# ============================================================
+ENV LLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm
+ENV CC=/usr/bin/clang-16
+ENV CXX=/usr/bin/clang++-16
+ENV KLEE_DIR=/opt/klee
+
+CMD ["/bin/bash"]

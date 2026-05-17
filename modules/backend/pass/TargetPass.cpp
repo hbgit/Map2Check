@@ -15,7 +15,7 @@ bool TargetPass::runOnFunction(Function& F) {
 
   this->targetFunctionMap2Check = F.getParent()->getOrInsertFunction(
       "map2check_target_function", Type::getVoidTy(F.getContext()),
-      Type::getInt8PtrTy(F.getContext()), Type::getInt32Ty(F.getContext()),
+      PointerType::get(F.getContext(), 0), Type::getInt32Ty(F.getContext()),
       Type::getInt32Ty(F.getContext()));
 
   Function::iterator functionIterator = F.begin();
@@ -39,7 +39,7 @@ void TargetPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
   Function* calleeFunction = callInst->getCalledFunction();
 
   if (calleeFunction == NULL) {
-    Value* v = callInst->getCalledValue();
+    Value* v = callInst->getCalledOperand();
     calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
     if (calleeFunction == NULL) {

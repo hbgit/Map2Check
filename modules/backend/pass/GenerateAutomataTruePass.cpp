@@ -24,7 +24,7 @@ using llvm::dyn_cast;
 using llvm::isa;
 using llvm::LoadInst;
 using llvm::RegisterPass;
-using llvm::TerminatorInst;
+// TerminatorInst removed in LLVM 10+ — use Instruction directly
 
 using std::ofstream;
 
@@ -77,8 +77,8 @@ void GenerateAutomataTruePass::hasCallOnBasicBlock(BasicBlock& B,
     //{
     if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(i))) {
       // avoid bug if call pointer functions
-      if (!cI->getCalledValue()->getName().empty()) {
-        Value* v = cI->getCalledValue();
+      if (!cI->getCalledOperand()->getName().empty()) {
+        Value* v = cI->getCalledOperand();
 
         Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
@@ -165,7 +165,7 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B,
   this->st_isControl = isCond;
 
   if (B.size() > 1) {
-    if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
+    if (auto* tI = dyn_cast<Instruction>(&*this->st_lastBlockInst)) {
       if (std::string(tI->getOpcodeName()) == "br") {
         --this->st_lastBlockInst;
         this->checkAndSkipAssume();
@@ -197,7 +197,7 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B,
 
   } else {
     // In case this unique instruction be a "br" then we remove this basic block
-    if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
+    if (auto* tI = dyn_cast<Instruction>(&*this->st_lastBlockInst)) {
       if (std::string(tI->getOpcodeName()) != "br") {
         this->st_lastBlockInst = this->firstBlockInst;
 
@@ -228,8 +228,8 @@ void GenerateAutomataTruePass::runOnBasicBlock(BasicBlock& B,
 
 bool GenerateAutomataTruePass::checkInstBbIsAssume(BasicBlock::iterator& iT) {
   if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(iT))) {
-    if (!cI->getCalledValue()->getName().empty()) {
-      Value* v = cI->getCalledValue();
+    if (!cI->getCalledOperand()->getName().empty()) {
+      Value* v = cI->getCalledOperand();
       Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
       if (calleeFunction->getName() == "__VERIFIER_assume" ||
@@ -326,8 +326,8 @@ void GenerateAutomataTruePass::skipEmptyLine() {
 void GenerateAutomataTruePass::identifyAssertLoc(BasicBlock& B) {
   for (auto& I : B) {
     if (auto* cI = dyn_cast<CallInst>(&I)) {
-      if (!cI->getCalledValue()->getName().empty()) {
-        Value* v = cI->getCalledValue();
+      if (!cI->getCalledOperand()->getName().empty()) {
+        Value* v = cI->getCalledOperand();
         Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
         // errs() << calleeFunction->getName() << "\n";
         if (calleeFunction->getName() == "__VERIFIER_assert") {
@@ -406,7 +406,7 @@ bool GenerateAutomataTruePass::isBranchCond(BasicBlock& B) {
       }
     }
 
-    if (auto* tI = dyn_cast<TerminatorInst>(&I)) {
+    if (auto* tI = dyn_cast<Instruction>(&I)) {
       if (std::string(tI->getOpcodeName()) == "br") {
         // tI->dump();
         if (tI->getNumSuccessors() > 1) {
@@ -577,9 +577,9 @@ bool GenerateAutomataTruePass::checkBBHasLError(BasicBlock& nowB) {
   this->st_isErrorLocation = 0;
   for (auto& I : nowB) {
     if (CallInst* callInst = dyn_cast<CallInst>(&I)) {
-      if (!callInst->getCalledValue()->getName().empty()) {
+      if (!callInst->getCalledOperand()->getName().empty()) {
         // errs() << callInst->getCalledFunction()->getName() << "\n";
-        Value* v = callInst->getCalledValue();
+        Value* v = callInst->getCalledOperand();
         Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
         if (calleeFunction->getName() == "__VERIFIER_error") {
           this->st_isErrorLocation = 1;

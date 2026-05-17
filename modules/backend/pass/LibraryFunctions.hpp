@@ -27,17 +27,19 @@
 #include <vector>
 
 using llvm::Constant;
+using llvm::FunctionCallee;
+using llvm::PointerType;
 using llvm::Function;
 
 class LibraryFunctions {
-  Constant* map2check_init = NULL;
-  Constant* map2check_exit = NULL;
-  Constant* map2check_track_bb = NULL;
+  FunctionCallee map2check_init;
+  FunctionCallee map2check_exit;
+  FunctionCallee map2check_track_bb;
 
  public:
-  Constant* getInitFunction() { return this->map2check_init; }
-  Constant* getTrackBBFunction() { return this->map2check_track_bb; }
-  Constant* getExitFunction() { return this->map2check_exit; }
+  FunctionCallee getInitFunction() { return this->map2check_init; }
+  FunctionCallee getTrackBBFunction() { return this->map2check_track_bb; }
+  FunctionCallee getExitFunction() { return this->map2check_exit; }
 
   LibraryFunctions(Function* F, LLVMContext* Ctx) {
     this->map2check_init = F->getParent()->getOrInsertFunction(
@@ -51,7 +53,7 @@ class LibraryFunctions {
 
     this->map2check_track_bb = F->getParent()->getOrInsertFunction(
         "map2check_track_bb", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt8PtrTy(*Ctx));
+        PointerType::get(*Ctx, 0));
   }
 };
 

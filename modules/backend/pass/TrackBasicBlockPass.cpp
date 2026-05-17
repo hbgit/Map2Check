@@ -19,7 +19,7 @@ using llvm::IRBuilder;
 using llvm::isa;
 using llvm::PHINode;
 using llvm::RegisterPass;
-using llvm::TerminatorInst;
+// TerminatorInst removed in LLVM 10+ — use Instruction directly
 using llvm::UnreachableInst;
 
 namespace {
@@ -106,8 +106,8 @@ void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
     // for(auto& I:B)
     //{
     if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(i))) {
-      if (!cI->getCalledValue()->getName().empty()) {
-        Value* v = cI->getCalledValue();
+      if (!cI->getCalledOperand()->getName().empty()) {
+        Value* v = cI->getCalledOperand();
         Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
         if (calleeFunction->getName() != "__VERIFIER_assume" &&
@@ -156,7 +156,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
   // DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
   // errs() << debugInfoLa.getLineNumberInt() << "\n";
 
-  if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
+  if (auto* tI = dyn_cast<Instruction>(&*this->st_lastBlockInst)) {
     if (std::string(tI->getOpcodeName()) == "br") {
       if (B.size() > 1) {
         --this->st_lastBlockInst;
@@ -256,8 +256,8 @@ bool TrackBasicBlockPass::checkInstBbIsAssume(BasicBlock::iterator& iT) {
   // errs() << iT->getOpcodeName() << " \n";
   this->isUnreachableInst = false;
   if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(iT))) {
-    if (!cI->getCalledValue()->getName().empty()) {
-      Value* v = cI->getCalledValue();
+    if (!cI->getCalledOperand()->getName().empty()) {
+      Value* v = cI->getCalledOperand();
       Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
       if (calleeFunction->getName() == "__VERIFIER_assume" ||

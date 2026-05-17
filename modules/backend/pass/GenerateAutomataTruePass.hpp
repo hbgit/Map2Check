@@ -39,7 +39,7 @@ using llvm::FunctionPass;
 using llvm::ICmpInst;
 using llvm::Instruction;
 using llvm::LLVMContext;
-using llvm::make_unique;
+using std::make_unique;
 
 struct GenerateAutomataTruePass : public FunctionPass {
   static char ID;

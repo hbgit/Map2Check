@@ -15,7 +15,7 @@
 using llvm::CastInst;
 using llvm::dyn_cast;
 using llvm::IRBuilder;
-using llvm::make_unique;
+using std::make_unique;
 using llvm::RegisterPass;
 using llvm::Twine;
 
@@ -59,7 +59,7 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   Function *calleeFunction = callInst->getCalledFunction();
 
   if (calleeFunction == NULL) {
-    Value *v = callInst->getCalledValue();
+    Value *v = callInst->getCalledOperand();
     calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
     if (calleeFunction == NULL) {
       return;
@@ -149,7 +149,7 @@ namespace {
     DebugInfo debugInfo(Ctx, callInst);                                     \
     Value *args[] = {debugInfo.getLineNumberValue(),                        \
                      debugInfo.getScopeNumberValue(), cast, function_llvm}; \
-    Constant *NonDetFunction =                                              \
+    FunctionCallee NonDetFunction =                                              \
         this->nonDetFunctions->getNonDet##type##Function();                 \
     builder.CreateCall(NonDetFunction, args);                               \
   }
@@ -169,7 +169,7 @@ namespace {
     Value *args[] = {debugInfo.getLineNumberValue(),                         \
                      debugInfo.getScopeNumberValue(), castInteger,           \
                      function_llvm};                                         \
-    Constant *NonDetFunction =                                               \
+    FunctionCallee NonDetFunction =                                               \
         this->nonDetFunctions->getNonDet##type##Function();                  \
     builder.CreateCall(NonDetFunction, args);                                \
   }
@@ -185,7 +185,7 @@ namespace {
     Value *args[] = {debugInfo.getLineNumberValue(),            \
                      debugInfo.getScopeNumberValue(), callInst, \
                      function_llvm};                            \
-    Constant *NonDetFunction =                                  \
+    FunctionCallee NonDetFunction =                                  \
         this->nonDetFunctions->getNonDet##type##Function();     \
     builder.CreateCall(NonDetFunction, args);                   \
   }

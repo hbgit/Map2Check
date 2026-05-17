@@ -61,11 +61,11 @@ void MemoryTrackPass::instrumentPointer() {
   Twine bitcast("bitcast");
 
   Value *varPointerCast =
-      CastInst::CreatePointerCast(var_address, Type::getInt8PtrTy(*this->Ctx),
+      CastInst::CreatePointerCast(var_address, PointerType::get(*this->Ctx, 0),
                                   bitcast, BBIteratorToInst(j));
 
   Value *receivesPointerCast = CastInst::CreatePointerCast(
-      receives, Type::getInt8PtrTy(*this->Ctx), bitcast, BBIteratorToInst(j));
+      receives, PointerType::get(*this->Ctx, 0), bitcast, BBIteratorToInst(j));
 
   ++j;
 
@@ -97,7 +97,7 @@ void MemoryTrackPass::instrumentPosixMemAllign() {
   Twine bitcast("bitcast");
 
   Value *varPointerCast = CastInst::CreatePointerCast(
-      pointer, Type::getInt8PtrTy(*this->Ctx), bitcast, BBIteratorToInst(j));
+      pointer, PointerType::get(*this->Ctx, 0), bitcast, BBIteratorToInst(j));
 
   Value *args[] = {varPointerCast, size};
   builder.CreateCall(map2check_posix, args);
@@ -155,7 +155,7 @@ void MemoryTrackPass::instrumentMemset() {
   Twine bitcast("bitcast");
 
   Value *varPointerCast = CastInst::CreatePointerCast(
-      pointer, Type::getInt8PtrTy(*this->Ctx), bitcast, BBIteratorToInst(j));
+      pointer, PointerType::get(*this->Ctx, 0), bitcast, BBIteratorToInst(j));
 
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
@@ -181,14 +181,14 @@ void MemoryTrackPass::instrumentMemcpy() {
   Twine bitcast("bitcast_memcpy");
 
   Value *varPointerCast = CastInst::CreatePointerCast(
-      pointer_destiny, Type::getInt8PtrTy(*this->Ctx), bitcast,
+      pointer_destiny, PointerType::get(*this->Ctx, 0), bitcast,
       BBIteratorToInst(j));
 
   Value *sizeCast = CastInst::CreateIntegerCast(
       size, Type::getInt64Ty(*this->Ctx), true, bitcast, BBIteratorToInst(j));
 
   Value *varPointerCastOrigin = CastInst::CreatePointerCast(
-      pointer_origin, Type::getInt8PtrTy(*this->Ctx), bitcast,
+      pointer_origin, PointerType::get(*this->Ctx, 0), bitcast,
       BBIteratorToInst(j));
 
   IRBuilder<> builder(BBIteratorToInst(j));
@@ -217,7 +217,7 @@ void MemoryTrackPass::instrumentAlloca() {
 
   Twine non_det("bitcast_map2check_alloca");
   Value *pointerCast = CastInst::CreatePointerCast(
-      callInst, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
+      callInst, PointerType::get(*this->Ctx, 0), non_det, BBIteratorToInst(j));
 
   auto function_name = "";
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
@@ -259,7 +259,7 @@ void MemoryTrackPass::instrumentFree() {
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
   if (this->calleeFunction == NULL) {
-    Value *v = callInst->getCalledValue();
+    Value *v = callInst->getCalledOperand();
     this->calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
     li = dyn_cast<LoadInst>(callInst->getArgOperand(0));
 
@@ -282,7 +282,7 @@ void MemoryTrackPass::instrumentFree() {
 
     Twine non_det("bitcast_map2check");
     Value *pointerCast = CastInst::CreatePointerCast(
-        li->getPointerOperand(), Type::getInt8PtrTy(*this->Ctx), non_det,
+        li->getPointerOperand(), PointerType::get(*this->Ctx, 0), non_det,
         BBIteratorToInst(j));
 
     Value *args[] = {
@@ -342,7 +342,7 @@ void MemoryTrackPass::instrumentInit() {
     GlobalVariable *variable = globals[pos];
     // errs () << "VAR: " << variable->getName() << "\n";
     const DataLayout dataLayout = currentModule->getDataLayout();
-    auto type = variable->getType()->getPointerElementType();
+    auto type = variable->getValueType();
     unsigned typeSize = dataLayout.getTypeSizeInBits(type) / 8;
     unsigned primitiveSize = 0;
 
@@ -351,7 +351,7 @@ void MemoryTrackPass::instrumentInit() {
     }
 
     if (type->isVectorTy()) {
-      type = type->getVectorElementType();
+      type = type->getScalarType();
     }
 
     primitiveSize = dataLayout.getTypeSizeInBits(type) / 8;
@@ -365,7 +365,7 @@ void MemoryTrackPass::instrumentInit() {
 
     Twine non_det("bitcast_map2check");
     Value *pointerCast = CastInst::CreatePointerCast(
-        variable, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(i));
+        variable, PointerType::get(*this->Ctx, 0), non_det, BBIteratorToInst(i));
 
     // TODO(hbgit):
     this->currentInstruction = i;
@@ -440,7 +440,7 @@ void MemoryTrackPass::instrumentFunctionAddress() {
 
     Twine non_det("bitcast_map2check");
     Value *pointerCast = CastInst::CreatePointerCast(
-        this->functionsValues[iterator], Type::getInt8PtrTy(*this->Ctx),
+        this->functionsValues[iterator], PointerType::get(*this->Ctx, 0),
         non_det, BBIteratorToInst(i));
 
     Value *instrumentationArgs[] = {name_llvm, pointerCast};
@@ -459,7 +459,7 @@ void MemoryTrackPass::instrumentAllocation() {
   Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
-  auto type = allocaInst->getType()->getPointerElementType();
+  auto type = allocaInst->getAllocatedType();
 
   unsigned typeSize = dataLayout.getTypeSizeInBits(type) / 8;
 
@@ -470,7 +470,7 @@ void MemoryTrackPass::instrumentAllocation() {
   }
 
   if (type->isVectorTy()) {
-    type = type->getVectorElementType();
+    type = type->getScalarType();
   }
 
   primitiveSize = dataLayout.getTypeSizeInBits(type) / 8;
@@ -484,7 +484,7 @@ void MemoryTrackPass::instrumentAllocation() {
 
   Twine non_det("bitcast_map2check");
   Value *pointerCast = CastInst::CreatePointerCast(
-      allocaInst, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
+      allocaInst, PointerType::get(*this->Ctx, 0), non_det, BBIteratorToInst(j));
 
   Value *args[] = {name_llvm,          pointerCast,      typeSizeValue,
                    primitiveSizeValue, this->line_value, this->scope_value};
@@ -498,7 +498,7 @@ void MemoryTrackPass::runOnCallInstruction() {
   this->calleeFunction = callInst->getCalledFunction();
 
   if (this->calleeFunction == NULL) {
-    Value *v = callInst->getCalledValue();
+    Value *v = callInst->getCalledOperand();
     this->calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
     if (this->calleeFunction != NULL) {
@@ -534,7 +534,7 @@ void MemoryTrackPass::runOnStoreInstruction() {
 
   Twine non_det("bitcast_map2check_store");
   Value *pointerCast =
-      CastInst::CreatePointerCast(var_address, Type::getInt8PtrTy(*this->Ctx),
+      CastInst::CreatePointerCast(var_address, PointerType::get(*this->Ctx, 0),
                                   non_det, BBIteratorToInst(j));
   //    j++;
   IRBuilder<> builder(BBIteratorToInst(j));
@@ -558,7 +558,7 @@ void MemoryTrackPass::instrumentNotStaticArrayAlloca() {
   Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
-  auto type = allocaInst->getType()->getPointerElementType();
+  auto type = allocaInst->getAllocatedType();
   unsigned primitiveSize = 0;
   //    type->get
 
@@ -571,7 +571,7 @@ void MemoryTrackPass::instrumentNotStaticArrayAlloca() {
 
   Twine non_det("bitcast_map2check");
   Value *pointerCast = CastInst::CreatePointerCast(
-      allocaInst, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
+      allocaInst, PointerType::get(*this->Ctx, 0), non_det, BBIteratorToInst(j));
 
   Value *sizeCast = CastInst::CreateIntegerCast(
       v, Type::getInt64Ty(*this->Ctx), true, non_det, BBIteratorToInst(j));
@@ -604,7 +604,7 @@ void MemoryTrackPass::instrumentArrayAlloca() {
 
   Twine non_det("bitcast_map2check");
   Value *pointerCast = CastInst::CreatePointerCast(
-      allocaInst, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
+      allocaInst, PointerType::get(*this->Ctx, 0), non_det, BBIteratorToInst(j));
 
   Value *sizeCast = CastInst::CreateIntegerCast(
       v, Type::getInt64Ty(*this->Ctx), true, non_det, BBIteratorToInst(j));
@@ -637,7 +637,7 @@ void MemoryTrackPass::runOnLoadInstruction() {
   Module *M = this->currentFunction->getParent();
   const DataLayout dataLayout = M->getDataLayout();
 
-  auto type = loadInst->getPointerOperand()->getType()->getPointerElementType();
+  auto type = loadInst->getType();
   unsigned typeSize = dataLayout.getTypeSizeInBits(type) / 8;
   ConstantInt *typeSizeValue =
       ConstantInt::getSigned(Type::getInt64Ty(*this->Ctx), typeSize);
@@ -647,7 +647,7 @@ void MemoryTrackPass::runOnLoadInstruction() {
 
   Twine non_det("bitcast_map2check");
   Value *pointerCast = CastInst::CreatePointerCast(
-      v, Type::getInt8PtrTy(*this->Ctx), non_det, BBIteratorToInst(j));
+      v, PointerType::get(*this->Ctx, 0), non_det, BBIteratorToInst(j));
   //    j++;
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *args[] = {pointerCast, typeSizeValue};
@@ -664,57 +664,57 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
 
   this->map2check_load = F.getParent()->getOrInsertFunction(
       "map2check_load", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+      PointerType::get(*this->Ctx, 0), Type::getInt64Ty(*this->Ctx));
 
   this->map2check_free_resolved_address = F.getParent()->getOrInsertFunction(
       "map2check_free_resolved_address", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt1Ty(*this->Ctx));
+      PointerType::get(*this->Ctx, 0), Type::getInt64Ty(*this->Ctx),
+      PointerType::get(*this->Ctx, 0), Type::getInt1Ty(*this->Ctx));
 
   this->map2check_pointer = F.getParent()->getOrInsertFunction(
       "map2check_add_store_pointer", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
-      Type::getInt64Ty(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
-      Type::getInt64Ty(*this->Ctx), Type::getInt8PtrTy(*this->Ctx));
+      PointerType::get(*this->Ctx, 0), PointerType::get(*this->Ctx, 0),
+      Type::getInt64Ty(*this->Ctx), PointerType::get(*this->Ctx, 0),
+      Type::getInt64Ty(*this->Ctx), PointerType::get(*this->Ctx, 0));
 
   this->map2check_check_deref = F.getParent()->getOrInsertFunction(
       "map2check_check_deref", Type::getVoidTy(*this->Ctx),
-      Type::getInt64Ty(*this->Ctx), Type::getInt8PtrTy(*this->Ctx));
+      Type::getInt64Ty(*this->Ctx), PointerType::get(*this->Ctx, 0));
 
   this->map2check_malloc = F.getParent()->getOrInsertFunction(
       "map2check_malloc", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+      PointerType::get(*this->Ctx, 0), Type::getInt64Ty(*this->Ctx));
 
   this->map2check_posix = F.getParent()->getOrInsertFunction(
       "map2check_posix", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+      PointerType::get(*this->Ctx, 0), Type::getInt64Ty(*this->Ctx));
 
   this->map2check_calloc = F.getParent()->getOrInsertFunction(
       "map2check_calloc", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt64Ty(*this->Ctx),
+      PointerType::get(*this->Ctx, 0), Type::getInt64Ty(*this->Ctx),
       Type::getInt64Ty(*this->Ctx));
 
   this->map2check_alloca = F.getParent()->getOrInsertFunction(
       "map2check_alloca", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
+      PointerType::get(*this->Ctx, 0), PointerType::get(*this->Ctx, 0),
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx),
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
 
   this->map2check_non_static_alloca = F.getParent()->getOrInsertFunction(
       "map2check_non_static_alloca", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
+      PointerType::get(*this->Ctx, 0), PointerType::get(*this->Ctx, 0),
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx),
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
 
   this->map2check_function = F.getParent()->getOrInsertFunction(
       "map2check_function", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx));
+      PointerType::get(*this->Ctx, 0), PointerType::get(*this->Ctx, 0));
 
   this->map2check_free = F.getParent()->getOrInsertFunction(
       "map2check_free", Type::getVoidTy(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx), Type::getInt8PtrTy(*this->Ctx),
+      PointerType::get(*this->Ctx, 0), PointerType::get(*this->Ctx, 0),
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx),
-      Type::getInt8PtrTy(*this->Ctx));
+      PointerType::get(*this->Ctx, 0));
 }
 
 void MemoryTrackPass::instrumentFunctionArgumentAddress() {
@@ -745,7 +745,7 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
     if (type->isPointerTy()) {
       Twine mapcheck_bitcast_argument("mapcheck_bitcast_argument");
       argCast = CastInst::CreatePointerCast(
-          functionArg, Type::getInt8PtrTy(*this->Ctx),
+          functionArg, PointerType::get(*this->Ctx, 0),
           mapcheck_bitcast_argument, BBIteratorToInst(i));
 
     } else {

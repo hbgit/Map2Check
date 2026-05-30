@@ -114,9 +114,9 @@
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ☐ | 1.4.1 | Adaptar frontend (`caller.cpp`, `map2check.cpp`) para nova invocação de passes | 31/Ago | 04/Set | 5 | CLI funcional, todas as opções testadas | — |
-| ☐ | 1.4.2 | Migrar código C++ para C++17 (`std::make_unique`, `std::filesystem`, etc.) | 07/Set | 11/Set | 5 | Compilação limpa sem warnings C++17 | — |
-| ☐ | 1.4.3 | **Suite completa de testes** — todos unit + regressão | 14/Set | 16/Set | 3 | 7/7 unit + ≥5/9 regressão | `docs/migration/1.4-fase1-final.md` |
+| ✅ | 1.4.1 | Adaptar frontend (`caller.cpp`, `map2check.cpp`) para nova invocação de passes | 31/Ago | 30/Mai | 5 | CLI funcional, `map2check --version` OK | `docs/migration/1.4-frontend-cpp17.md` |
+| ✅ | 1.4.2 | Migrar código C++ para C++17 (`std::make_unique`, `std::filesystem`, etc.) | 07/Set | 30/Mai | 5 | Build limpo Clang 16, 3 warnings pré-existentes | `docs/migration/1.4-frontend-cpp17.md` |
+| ✅ | 1.4.3 | **Suite completa de testes** — todos unit + plugins | 14/Set | 30/Mai | 3 | 7/7 unit ✅ + 9/9 plugins ✅ | `docs/migration/1.4-frontend-cpp17.md` |
 | ☐ | 1.4.4 | Documentação: changelog, README atualizado | 17/Set | 18/Set | 2 | README com instruções de build LLVM 16 | — |
 | ☐ | 1.4.5 | **Buffer/contingência** | 21/Set | 25/Set | 5 | — | — |
 

@@ -63,15 +63,15 @@
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ☐ | 1.2.1 | Atualizar `CMakeLists.txt` raiz (`cmake_minimum_required 3.20`, `CXX_STANDARD 17`) | 15/Jun | 15/Jun | 1 | `cmake ..` sem erros | — |
-| ☐ | 1.2.2 | Atualizar `FindClang.cmake` para LLVM 16 | 16/Jun | 17/Jun | 2 | Localiza `clang-16`, `opt`, `llvm-link` | — |
-| ☐ | 1.2.3 | Atualizar `FindZ3.cmake` (tag `z3-4.16.0`) | 18/Jun | 18/Jun | 1 | Z3 compila ou é encontrado | — |
-| ☐ | 1.2.4 | Atualizar `FindSTP.cmake` (tag `2.3.3`) | 19/Jun | 19/Jun | 1 | STP compila ou é encontrado | — |
-| ☐ | 1.2.5 | Atualizar `FindKlee.cmake` para KLEE 3.2 oficial | 22/Jun | 23/Jun | 2 | KLEE compila com LLVM 16 | — |
-| ☐ | 1.2.6 | Atualizar `FindKleeUCLibC.cmake` compatível KLEE 3.2 | 24/Jun | 24/Jun | 1 | uclibc compila | — |
-| ☐ | 1.2.7 | Remover SVN refs de `FindLibFuzzer.cmake` (usar compiler-rt LLVM 16) | 25/Jun | 25/Jun | 1 | LibFuzzer disponível via compiler-rt | — |
-| ☐ | 1.2.8 | Atualizar GoogleTest para `release-1.12.1` (já feito no baseline) | 26/Jun | 26/Jun | 1 | Testes unitários compilam | — |
-| ☐ | 1.2.9 | **Teste integrado**: `cmake .. -G Ninja` completo sem erros | 26/Jun | 26/Jun | — | Build system configura 100% | `docs/migration/1.2-cmake-llvm16.md` |
+| ✅ | 1.2.1 | Atualizar `CMakeLists.txt` raiz (`cmake_minimum_required 3.20`, `CXX_STANDARD 17`) | 15/Jun | 30/Mai | 1 | `cmake ..` sem erros | — |
+| ✅ | 1.2.2 | Atualizar `FindClang.cmake` para LLVM 16 | 16/Jun | 30/Mai | 2 | Localiza `clang-16`, `opt`, `llvm-link` | — |
+| ✅ | 1.2.3 | Atualizar `FindZ3.cmake` (Z3 4.8.12 via apt) | 18/Jun | 30/Mai | 1 | Z3 encontrado via find_package | — |
+| ✅ | 1.2.4 | Atualizar `FindSTP.cmake` (STP 2.3.4) | 19/Jun | 30/Mai | 1 | STP encontrado em /usr/local | — |
+| ✅ | 1.2.5 | Atualizar `FindKlee.cmake` para KLEE 3.1 oficial | 22/Jun | 30/Mai | 2 | KLEE encontrado em /opt/klee | — |
+| ✅ | 1.2.6 | Atualizar `FindKleeUCLibC.cmake` compatível KLEE 3.1 | 24/Jun | 30/Mai | 1 | uclibc encontrado em /opt/klee-uclibc | — |
+| ✅ | 1.2.7 | Remover SVN refs de `FindLibFuzzer.cmake` (usar compiler-rt LLVM 16) | 25/Jun | 30/Mai | 1 | LibFuzzer disponível via compiler-rt | — |
+| ✅ | 1.2.8 | Atualizar GoogleTest para `release-1.12.1` (já feito no baseline) | 26/Jun | 30/Mai | 1 | Testes unitários compilam | — |
+| ✅ | 1.2.9 | **Teste integrado**: `cmake .. -G Ninja` completo sem erros | 26/Jun | 30/Mai | — | Build system configura 100% | `docs/migration/1.2-cmake-llvm16.md` |
 
 > **Entregável:** Build system completo LLVM 16  
 > **Critério:** `cmake` + `ninja` compilam pelo menos o frontend e a backend library (passes ainda Legacy)

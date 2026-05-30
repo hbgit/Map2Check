@@ -19,7 +19,7 @@
 #include <llvm/IR/IntrinsicInst.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>
@@ -36,18 +36,15 @@
 using llvm::BasicBlock;
 using llvm::BinaryOperator;
 using llvm::Function;
-using llvm::FunctionPass;
 using llvm::Instruction;
 using llvm::LLVMContext;
+using llvm::PreservedAnalyses;
 using llvm::Value;
 
-struct OverflowPass : public FunctionPass {
-  static char ID;
-  OverflowPass() : FunctionPass(ID) {}
-  explicit OverflowPass(std::vector<int> lines) : FunctionPass(ID) {
-    this->errorLines = lines;
-  }
-  virtual bool runOnFunction(Function &F);
+struct OverflowPass : public llvm::PassInfoMixin<OverflowPass> {
+  OverflowPass() = default;
+  explicit OverflowPass(std::vector<int> lines) : errorLines(std::move(lines)) {}
+  PreservedAnalyses run(Function &F, llvm::FunctionAnalysisManager &AM);
 
  protected:
   Value *getFunctionNameValue() { return this->functionName; }

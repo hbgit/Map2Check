@@ -17,7 +17,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>
@@ -33,15 +33,12 @@ using llvm::FunctionCallee;
 using llvm::PointerType;
 using llvm::ConstantInt;
 using llvm::Function;
-using llvm::FunctionPass;
 using llvm::LLVMContext;
+using llvm::PreservedAnalyses;
 
-struct MemoryTrackPass : public FunctionPass {
-  static char ID;
-  explicit MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
-    this->SVCOMP = SVCOMP;
-  }
-  virtual bool runOnFunction(Function& F);
+struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
+  explicit MemoryTrackPass(bool SVCOMP = false) : SVCOMP(SVCOMP) {}
+  PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
 
  private:
   void instrumentPointer();

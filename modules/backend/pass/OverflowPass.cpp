@@ -14,6 +14,9 @@
 #include <string>
 #include <vector>
 
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
 using llvm::CallInst;
 using llvm::cast;
 using llvm::CastInst;
@@ -26,7 +29,6 @@ using llvm::isa;
 using llvm::LoadInst;
 using std::make_unique;
 using llvm::MDNode;
-using llvm::RegisterPass;
 using llvm::StoreInst;
 using llvm::Twine;
 using llvm::FunctionCallee;
@@ -183,7 +185,8 @@ std::string OverflowPass::getValueNameOperator(Value *Vop) {
   return valueOp;
 }
 
-bool OverflowPass::runOnFunction(Function &F) {
+PreservedAnalyses OverflowPass::run(Function &F,
+                                    llvm::FunctionAnalysisManager &AM) {
   this->operationsFunctions =
       make_unique<OperationsFunctions>(&F, &F.getContext());
   Function::iterator functionIterator = F.begin();
@@ -436,10 +439,22 @@ bool OverflowPass::runOnFunction(Function &F) {
       }
     }
   }
-  return true;
+  return PreservedAnalyses::none();
 }
 
-char OverflowPass::ID = 10;
-static RegisterPass<OverflowPass> X(
-    "check_overflow",
-    "Validate overflow on signed integer dynamic operations tracking");
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "OverflowPass", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "overflow-pass") {
+                    FPM.addPass(OverflowPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}

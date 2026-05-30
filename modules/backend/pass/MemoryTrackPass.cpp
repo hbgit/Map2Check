@@ -12,6 +12,9 @@
 
 #include <vector>
 
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
 // using namespace llvm;
 using llvm::AllocaInst;
 using llvm::Argument;
@@ -26,7 +29,6 @@ using llvm::Instruction;
 using llvm::IRBuilder;
 using llvm::LoadInst;
 using llvm::Module;
-using llvm::RegisterPass;
 using llvm::StoreInst;
 using llvm::Twine;
 using llvm::Type;
@@ -762,7 +764,8 @@ void MemoryTrackPass::instrumentFunctionArgumentAddress() {
   }
 }
 
-bool MemoryTrackPass::runOnFunction(Function &F) {
+PreservedAnalyses MemoryTrackPass::run(Function &F,
+                                       llvm::FunctionAnalysisManager &AM) {
   this->Ctx = &F.getContext();
   this->currentFunction = &F;
   this->prepareMap2CheckInstructions();
@@ -805,10 +808,22 @@ bool MemoryTrackPass::runOnFunction(Function &F) {
     }
   }
 
-  return true;
+  return PreservedAnalyses::none();
 }
 
-char MemoryTrackPass::ID = 0;
-static RegisterPass<MemoryTrackPass> X(
-    "memory_track",
-    "Validate memory security proprieties using dynamic memory tracking");
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "MemoryTrackPass", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "memory-track") {
+                    FPM.addPass(MemoryTrackPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}

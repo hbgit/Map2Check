@@ -17,7 +17,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <memory>
@@ -35,23 +35,21 @@ namespace Tools = Map2Check;
 
 using llvm::BasicBlock;
 using llvm::Function;
-using llvm::FunctionPass;
 using llvm::ICmpInst;
 using llvm::Instruction;
 using llvm::LLVMContext;
+using llvm::PreservedAnalyses;
 using std::make_unique;
 
-struct GenerateAutomataTruePass : public FunctionPass {
-  static char ID;
-  GenerateAutomataTruePass() : FunctionPass(ID) {}
+struct GenerateAutomataTruePass : public llvm::PassInfoMixin<GenerateAutomataTruePass> {
+  GenerateAutomataTruePass() = default;
   explicit GenerateAutomataTruePass(std::string c_program_path)
-      : FunctionPass(ID) {
-    this->c_program_path = c_program_path;
+      : c_program_path(std::move(c_program_path)) {
     this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
-        Tools::SourceCodeHelper(c_program_path));
+        Tools::SourceCodeHelper(this->c_program_path));
   }
 
-  virtual bool runOnFunction(Function& F);
+  PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
 
  protected:
   void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);

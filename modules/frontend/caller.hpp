@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace Map2Check {
 

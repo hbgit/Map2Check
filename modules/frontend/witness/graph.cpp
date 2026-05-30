@@ -16,7 +16,7 @@
 
 #include "graph.hpp"
 
-#include <boost/make_unique.hpp>
+#include <memory>
 
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"
@@ -208,31 +208,31 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   switch (violated.propertyViolated) {
     case Tools::PropertyViolated::FALSE_FREE:
       specification =
-          boost::make_unique<Specification>(SpecificationType::FREE);
-      this->automata = boost::make_unique<ViolationWitnessGraph>();
+          std::make_unique<Specification>(SpecificationType::FREE);
+      this->automata = std::make_unique<ViolationWitnessGraph>();
       break;
     case Tools::PropertyViolated::FALSE_DEREF:
       specification =
-          boost::make_unique<Specification>(SpecificationType::DEREF);
-      this->automata = boost::make_unique<ViolationWitnessGraph>();
+          std::make_unique<Specification>(SpecificationType::DEREF);
+      this->automata = std::make_unique<ViolationWitnessGraph>();
       break;
     case Tools::PropertyViolated::FALSE_MEMTRACK:
       specification =
-          boost::make_unique<Specification>(SpecificationType::MEMLEAK);
-      this->automata = boost::make_unique<ViolationWitnessGraph>();
+          std::make_unique<Specification>(SpecificationType::MEMLEAK);
+      this->automata = std::make_unique<ViolationWitnessGraph>();
       break;
     case Tools::PropertyViolated::TARGET_REACHED:
-      specification = boost::make_unique<Specification>(
+      specification = std::make_unique<Specification>(
           SpecificationType::TARGET, targetFunction);
-      this->automata = boost::make_unique<ViolationWitnessGraph>();
+      this->automata = std::make_unique<ViolationWitnessGraph>();
       break;
     case Tools::PropertyViolated::FALSE_OVERFLOW:
       specification =
-          boost::make_unique<Specification>(SpecificationType::SPECOVERFLOW);
-      this->automata = boost::make_unique<ViolationWitnessGraph>();
+          std::make_unique<Specification>(SpecificationType::SPECOVERFLOW);
+      this->automata = std::make_unique<ViolationWitnessGraph>();
       break;
     default:
-      this->automata = boost::make_unique<CorrectnessWitnessGraph>();
+      this->automata = std::make_unique<CorrectnessWitnessGraph>();
       violationWitness = false;
       break;
   }
@@ -240,44 +240,44 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
   std::unique_ptr<DataElement> witnessType;
 
   if (violationWitness) {
-    witnessType = boost::make_unique<WitnessType>(WitnessTypeValues::VIOLATION);
+    witnessType = std::make_unique<WitnessType>(WitnessTypeValues::VIOLATION);
   } else {
     witnessType =
-        boost::make_unique<WitnessType>(WitnessTypeValues::CORRECTNESS);
+        std::make_unique<WitnessType>(WitnessTypeValues::CORRECTNESS);
     if (specTrueString == "target-function") {
       // cout << specTrueString << "\n";
-      specification = boost::make_unique<Specification>(
+      specification = std::make_unique<Specification>(
           SpecificationType::TARGET, targetFunction);
     } else if (specTrueString == "overflow") {
       specification =
-          boost::make_unique<Specification>(SpecificationType::SPECOVERFLOW);
+          std::make_unique<Specification>(SpecificationType::SPECOVERFLOW);
     } else {
       specification =
-          boost::make_unique<Specification>(SpecificationType::MEMSAFETY);
+          std::make_unique<Specification>(SpecificationType::MEMSAFETY);
     }
   }
 
   this->automata->AddElement(std::move(witnessType));
 
   std::unique_ptr<DataElement> sourceCodeType =
-      boost::make_unique<SourceCodeLang>(SupportedSourceCodeLang::C);
+      std::make_unique<SourceCodeLang>(SupportedSourceCodeLang::C);
   this->automata->AddElement(std::move(sourceCodeType));
 
-  std::unique_ptr<DataElement> producer = boost::make_unique<Producer>();
+  std::unique_ptr<DataElement> producer = std::make_unique<Producer>();
   this->automata->AddElement(std::move(producer));
 
   this->automata->AddElement(std::move(specification));
 
   std::unique_ptr<DataElement> programFile =
-      boost::make_unique<ProgramFile>(programPath);
+      std::make_unique<ProgramFile>(programPath);
   this->automata->AddElement(std::move(programFile));
 
   std::unique_ptr<DataElement> programHashElement =
-      boost::make_unique<ProgramHash>(programHash);
+      std::make_unique<ProgramHash>(programHash);
   this->automata->AddElement(std::move(programHashElement));
 
   std::unique_ptr<DataElement> architecture =
-      boost::make_unique<Architecture>(ArchitectureType::Bit32);
+      std::make_unique<Architecture>(ArchitectureType::Bit32);
   this->automata->AddElement(std::move(architecture));
 
   if (violationWitness) {
@@ -290,9 +290,9 @@ SVCompWitness::SVCompWitness(std::string programPath, std::string programHash,
 void SVCompWitness::makeCorrectnessSVComp() {
   Map2Check::Log::Info("Starting Correctness SVCOMP Generation");
   std::string lastStateId = "s0";
-  std::unique_ptr<Node> startNode = boost::make_unique<Node>("s0");
+  std::unique_ptr<Node> startNode = std::make_unique<Node>("s0");
 
-  std::unique_ptr<NodeElement> entryNode = boost::make_unique<EntryNode>();
+  std::unique_ptr<NodeElement> entryNode = std::make_unique<EntryNode>();
   startNode->AddElement(std::move(entryNode));
   this->automata->AddNode(std::move(startNode));
 }
@@ -304,11 +304,11 @@ void SVCompWitness::makeCorrectnessAutomata() {
   cnvt.str("");
   cnvt << "s" << runState;
 
-  std::unique_ptr<Node> startNode = boost::make_unique<Node>(cnvt.str());
+  std::unique_ptr<Node> startNode = std::make_unique<Node>(cnvt.str());
   std::string lastStateId;  // = "s0";
   runState++;               // s1
 
-  std::unique_ptr<NodeElement> entryNode = boost::make_unique<EntryNode>();
+  std::unique_ptr<NodeElement> entryNode = std::make_unique<EntryNode>();
   startNode->AddElement(std::move(entryNode));
 
   std::vector<Tools::StateTrueLogRow> stateTrueLogRows =
@@ -336,8 +336,8 @@ std:
       Tools::TrackBBLogHelper::getListLogFromCSV();
 
   if (stateTrueLogRows.size() == 0 || trackBBLogRows.size() == 0) {
-    std::unique_ptr<Node> newNode = boost::make_unique<Node>("s1");
-    std::unique_ptr<Edge> newEdge = boost::make_unique<Edge>("s0", "s1");
+    std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
+    std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
     this->automata->AddEdge(std::move(newEdge));
     this->automata->AddNode(std::move(newNode));
   }
@@ -385,15 +385,15 @@ std:
           // This state (i.e., the BB) was executed
           // CREATING NODE
           tmpLastStateId = lastStateId;
-          std::unique_ptr<Node> newNode = boost::make_unique<Node>(cnvt.str());
+          std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
           runState++;
 
           // Create the edge to the new node
           std::unique_ptr<Edge> newEdge =
-              boost::make_unique<Edge>(lastStateId, cnvt.str());
+              std::make_unique<Edge>(lastStateId, cnvt.str());
 
           // attribute startline
-          std::unique_ptr<EdgeData> startLine = boost::make_unique<StartLine>(
+          std::unique_ptr<EdgeData> startLine = std::make_unique<StartLine>(
               std::to_string(stateTrueNumLineStart));
           newEdge->AddElement(std::move(startLine));
 
@@ -418,12 +418,12 @@ std:
                 // create edge
                 // attribute sourcecode
                 std::unique_ptr<EdgeData> sourcecode =
-                    boost::make_unique<SourceCode>(
+                    std::make_unique<SourceCode>(
                         stateTrueLogRows[k].controlCode);
                 newEdge->AddElement(std::move(sourcecode));
                 // attribute control
                 std::unique_ptr<EdgeData> control =
-                    boost::make_unique<Control>("condition-true");
+                    std::make_unique<Control>("condition-true");
                 newEdge->AddElement(std::move(control));
                 this->automata->AddEdge(std::move(newEdge));
               } else if (tmpi < trackBBLogRows.size() && !hasTrueCond) {
@@ -438,11 +438,11 @@ std:
                 std::string falseSourceCond =
                     "[!" + stateTrueLogRows[k].controlCode + "]";
                 std::unique_ptr<EdgeData> sourcecodeF =
-                    boost::make_unique<SourceCode>(falseSourceCond);
+                    std::make_unique<SourceCode>(falseSourceCond);
                 newEdge->AddElement(std::move(sourcecodeF));
                 // attribute control
                 std::unique_ptr<EdgeData> controlF =
-                    boost::make_unique<Control>("condition-false");
+                    std::make_unique<Control>("condition-false");
                 newEdge->AddElement(std::move(controlF));
                 this->automata->AddEdge(std::move(newEdge));
               }
@@ -456,7 +456,7 @@ std:
           } else {
             // attribute sourcecode
             std::unique_ptr<EdgeData> sourcecode =
-                boost::make_unique<SourceCode>(stateTrueLogRows[k].sourceCode);
+                std::make_unique<SourceCode>(stateTrueLogRows[k].sourceCode);
             newEdge->AddElement(std::move(sourcecode));
             this->automata->AddEdge(std::move(newEdge));
           }
@@ -476,11 +476,11 @@ void SVCompWitness::makeViolationAutomataAux() {
   cnvt.str("");
   cnvt << "s" << runState;
 
-  std::unique_ptr<Node> startNode = boost::make_unique<Node>(cnvt.str());
+  std::unique_ptr<Node> startNode = std::make_unique<Node>(cnvt.str());
   std::string lastStateId;  // = "s0";
   runState++;               // s1
 
-  std::unique_ptr<NodeElement> entryNode = boost::make_unique<EntryNode>();
+  std::unique_ptr<NodeElement> entryNode = std::make_unique<EntryNode>();
   startNode->AddElement(std::move(entryNode));
 
   std::vector<Tools::StateTrueLogRow> stateTrueLogRows =
@@ -492,10 +492,10 @@ void SVCompWitness::makeViolationAutomataAux() {
       Tools::TrackBBLogHelper::getListLogFromCSV();
 
   if (stateTrueLogRows.size() == 0 || trackBBLogRows.size() == 0) {
-    std::unique_ptr<Node> newNode = boost::make_unique<Node>("s1");
-    std::unique_ptr<Edge> newEdge = boost::make_unique<Edge>("s0", "s1");
+    std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
+    std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
     std::unique_ptr<NodeElement> violationNode =
-        boost::make_unique<ViolationNode>();
+        std::make_unique<ViolationNode>();
     newNode->AddElement(std::move(violationNode));
     this->automata->AddEdge(std::move(newEdge));
     this->automata->AddNode(std::move(newNode));
@@ -544,15 +544,15 @@ void SVCompWitness::makeViolationAutomataAux() {
           // This state (i.e., the BB) was executed
           // CREATING NODE
           tmpLastStateId = lastStateId;
-          std::unique_ptr<Node> newNode = boost::make_unique<Node>(cnvt.str());
+          std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
           runState++;
 
           // Create the edge to the new node
           std::unique_ptr<Edge> newEdge =
-              boost::make_unique<Edge>(lastStateId, cnvt.str());
+              std::make_unique<Edge>(lastStateId, cnvt.str());
 
           // attribute startline
-          std::unique_ptr<EdgeData> startLine = boost::make_unique<StartLine>(
+          std::unique_ptr<EdgeData> startLine = std::make_unique<StartLine>(
               std::to_string(stateTrueNumLineStart));
           newEdge->AddElement(std::move(startLine));
 
@@ -577,12 +577,12 @@ void SVCompWitness::makeViolationAutomataAux() {
                 // create edge
                 // attribute sourcecode
                 std::unique_ptr<EdgeData> sourcecode =
-                    boost::make_unique<SourceCode>(
+                    std::make_unique<SourceCode>(
                         stateTrueLogRows[k].controlCode);
                 newEdge->AddElement(std::move(sourcecode));
                 // attribute control
                 std::unique_ptr<EdgeData> control =
-                    boost::make_unique<Control>("condition-true");
+                    std::make_unique<Control>("condition-true");
                 newEdge->AddElement(std::move(control));
                 this->automata->AddEdge(std::move(newEdge));
               } else if (tmpi < trackBBLogRows.size() && !hasTrueCond) {
@@ -597,11 +597,11 @@ void SVCompWitness::makeViolationAutomataAux() {
                 std::string falseSourceCond =
                     "[!" + stateTrueLogRows[k].controlCode + "]";
                 std::unique_ptr<EdgeData> sourcecodeF =
-                    boost::make_unique<SourceCode>(falseSourceCond);
+                    std::make_unique<SourceCode>(falseSourceCond);
                 newEdge->AddElement(std::move(sourcecodeF));
                 // attribute control
                 std::unique_ptr<EdgeData> controlF =
-                    boost::make_unique<Control>("condition-false");
+                    std::make_unique<Control>("condition-false");
                 newEdge->AddElement(std::move(controlF));
                 this->automata->AddEdge(std::move(newEdge));
               }
@@ -615,14 +615,14 @@ void SVCompWitness::makeViolationAutomataAux() {
           } else {
             // attribute sourcecode
             std::unique_ptr<EdgeData> sourcecode =
-                boost::make_unique<SourceCode>(stateTrueLogRows[k].sourceCode);
+                std::make_unique<SourceCode>(stateTrueLogRows[k].sourceCode);
             newEdge->AddElement(std::move(sourcecode));
             this->automata->AddEdge(std::move(newEdge));
           }
 
           if (i == trackBBLogRows.size() - 1) {
             std::unique_ptr<NodeElement> violationNode =
-                boost::make_unique<ViolationNode>();
+                std::make_unique<ViolationNode>();
             newNode->AddElement(std::move(violationNode));
           }
           this->automata->AddNode(std::move(newNode));
@@ -636,10 +636,10 @@ void SVCompWitness::makeViolationAutomata() {
   Map2Check::Log::Debug("Starting Violation Automata Generation");
   unsigned lastState = 0;
   std::string lastStateId = "s0";
-  std::unique_ptr<Node> startNode = boost::make_unique<Node>("s0");
+  std::unique_ptr<Node> startNode = std::make_unique<Node>("s0");
   lastState++;
 
-  std::unique_ptr<NodeElement> entryNode = boost::make_unique<EntryNode>();
+  std::unique_ptr<NodeElement> entryNode = std::make_unique<EntryNode>();
   startNode->AddElement(std::move(entryNode));
 
   std::vector<Tools::KleeLogRow> kleeLogRows =
@@ -657,15 +657,15 @@ void SVCompWitness::makeViolationAutomata() {
 
     this->automata->AddNode(std::move(startNode));  // s0
 
-    std::unique_ptr<Node> newNode = boost::make_unique<Node>("s1");
+    std::unique_ptr<Node> newNode = std::make_unique<Node>("s1");
     std::unique_ptr<NodeElement> violationNode =
-        boost::make_unique<ViolationNode>();
+        std::make_unique<ViolationNode>();
     newNode->AddElement(std::move(violationNode));
 
-    std::unique_ptr<Edge> newEdge = boost::make_unique<Edge>("s0", "s1");
+    std::unique_ptr<Edge> newEdge = std::make_unique<Edge>("s0", "s1");
     // attribute startline
     std::unique_ptr<EdgeData> startLine =
-        boost::make_unique<StartLine>(std::to_string(violated.line));
+        std::make_unique<StartLine>(std::to_string(violated.line));
     newEdge->AddElement(std::move(startLine));
 
     this->automata->AddEdge(std::move(newEdge));
@@ -688,27 +688,27 @@ void SVCompWitness::makeViolationAutomata() {
       cnvt << "s" << lastState;
       lastState++;
 
-      std::unique_ptr<Node> newNode = boost::make_unique<Node>(cnvt.str());
+      std::unique_ptr<Node> newNode = std::make_unique<Node>(cnvt.str());
       if (i == (kleeLogRows.size() - 1)) {
         std::unique_ptr<NodeElement> violationNode =
-            boost::make_unique<ViolationNode>();
+            std::make_unique<ViolationNode>();
         newNode->AddElement(std::move(violationNode));
       }
 
       this->automata->AddNode(std::move(newNode));
 
       std::unique_ptr<Edge> newEdge =
-          boost::make_unique<Edge>(lastStateId, cnvt.str());
+          std::make_unique<Edge>(lastStateId, cnvt.str());
       lastStateId = cnvt.str();
 
       std::unique_ptr<EdgeData> assumption =
-          boost::make_unique<AssumptionEdgeData>(
+          std::make_unique<AssumptionEdgeData>(
               value, kleeLogRows[i].generateWitnessFunctionName(),
               functionName);
       newEdge->AddElement(std::move(assumption));
 
       std::unique_ptr<EdgeData> startLine =
-          boost::make_unique<StartLine>(lineNumber);
+          std::make_unique<StartLine>(lineNumber);
       newEdge->AddElement(std::move(startLine));
 
       this->automata->AddEdge(std::move(newEdge));

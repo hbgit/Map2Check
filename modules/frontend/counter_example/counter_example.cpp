@@ -27,7 +27,7 @@ using std::ios;
 CounterExample::CounterExample(std::string path, bool no_source) {
   this->noSource = no_source;
   if (!no_source)
-    this->sourceCodeHelper = boost::make_unique<Tools::SourceCodeHelper>(
+    this->sourceCodeHelper = std::make_unique<Tools::SourceCodeHelper>(
         Tools::SourceCodeHelper(path));
 
   this->processKleeLog();
@@ -54,7 +54,7 @@ void CounterExample::processProperty() {
   int state = 0;
   std::string path = violated.path_name;
   std::unique_ptr<CounterExampleRow> row =
-      boost::make_unique<CounterExampleProperty>(
+      std::make_unique<CounterExampleProperty>(
           step, state, path, 0, violated.propertyViolated, violated.line,
           violated.function_name);
   this->counterExampleRows.push_back(std::move(row));
@@ -115,7 +115,7 @@ void CounterExample::processKleeLog() {
                                        kleeLogRows[i].value);
 
     std::unique_ptr<CounterExampleRow> row =
-        boost::make_unique<CounterExampleKleeRow>(kleeLogRows[i], step, state,
+        std::make_unique<CounterExampleKleeRow>(kleeLogRows[i], step, state,
                                                   path, ref, lineC);
     // Log::Info(*row);
 
@@ -138,7 +138,7 @@ void CounterExample::processListLog() {
     std::string lineC =
         noSource ? "" : this->sourceCodeHelper->getLine(lineNumber);
     std::unique_ptr<CounterExampleRow> row =
-        boost::make_unique<CounterExampleListLogRow>(listLogRows[i], step,
+        std::make_unique<CounterExampleListLogRow>(listLogRows[i], step,
                                                      state, path, ref, lineC);
     this->counterExampleRows.push_back(std::move(row));
     ref++;

@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/algorithm/string/replace.hpp>
 
 // From Map2Check Project
 #include "../../frontend/utils/tools.hpp"

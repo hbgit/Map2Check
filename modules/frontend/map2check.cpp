@@ -32,7 +32,7 @@
 #include "witness/witness_include.hpp"
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 #define Map2CheckVersion "v7.3.1-Flock : Wed Nov 27 20:38:14 UTC 2019"
 
 // TODO(hbgit): should get preprocessor flags from CMake
@@ -180,7 +180,7 @@ int map2check_execution(map2check_args args) {
    **/
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
-  std::string extension = boost::filesystem::extension(args.inputFile);
+  std::string extension = fs::path(args.inputFile).extension().string();
   // cout << extension << endl;
   if (extension.compare(".c") && extension.compare(".i") &&
       extension.compare(".bc")) {
@@ -191,7 +191,7 @@ int map2check_execution(map2check_args args) {
   }
 
   std::unique_ptr<Map2Check::Caller> caller;
-  caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
+  caller = std::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                  generator);
   caller->c_program_fullpath = args.inputFile;
   caller->setTimeout(args.timeout);
@@ -222,7 +222,7 @@ int map2check_execution(map2check_args args) {
   // (4) Retrieve results
   // TODO(hbgit): create methods to generate counter example
   std::unique_ptr<Map2Check::CounterExample> counterExample =
-      boost::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
+      std::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
                                                     is_llvmir_in);
 
   Map2Check::PropertyViolated propertyViolated;
@@ -441,8 +441,8 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     if (vm.count("input-file")) {
       std::string pathfile;
       pathfile = accumulate(
-          boost::begin(vm["input-file"].as<std::vector<std::string>>()),
-          boost::end(vm["input-file"].as<std::vector<std::string>>()),
+          std::begin(vm["input-file"].as<std::vector<std::string>>()),
+          std::end(vm["input-file"].as<std::vector<std::string>>()),
           pathfile);
 
       // std::cout << pathfile << std::endl;

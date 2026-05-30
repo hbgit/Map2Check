@@ -69,10 +69,10 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   system(moveProgram.str().c_str());
 
   Map2Check::Log::Debug("Changing current dir");
-  currentPath = boost::filesystem::current_path().string();
-  boost::filesystem::current_path(currentPath + "/" + programHash);
+  currentPath = std::filesystem::current_path().string();
+  std::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Current path: " +
-                        boost::filesystem::current_path().string());
+                        std::filesystem::current_path().string());
 }
 
 std::string Caller::preOptimizationFlags() {
@@ -90,7 +90,7 @@ std::string Caller::postOptimizationFlags() {
 }
 
 void Caller::cleanGarbage() {
-  boost::filesystem::current_path(currentPath);
+  std::filesystem::current_path(currentPath);
   std::ostringstream removeCommand;
   removeCommand.str("");
   removeCommand << "rm -rf " << programHash;
@@ -139,66 +139,72 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   std::ostringstream transformCommand;
   transformCommand.str("");
   transformCommand << Map2Check::optBinary;
-  /* TODO(rafa.sa.xp@gmail.com): Should apply generate_automata_true
-   *                             and TrackBasicBlockPass now */
 
-  std::string nonDetPass = "${MAP2CHECK_PATH}/lib/libNonDetPass";
-
-  /*Map2Check::Log::Info("Adding loop pass");
-  std::string loopPredAssumePass =
-  "${MAP2CHECK_PATH}/lib/libLoopPredAssumePass"; transformCommand << " -load "
-  << loopPredAssumePass << getLibSuffix()
-                   << " -loop_predicate_assume";*/
+  // --- New Pass Manager: use -load-pass-plugin + -passes= ---
+  std::string nonDetPlugin = "${MAP2CHECK_PATH}/lib/libNonDetPass";
 
   Map2Check::Log::Info("Adding nondet pass");
   transformCommand << " -tailcallopt";
-  transformCommand << " -load " << nonDetPass << getLibSuffix() << " -non_det";
+  transformCommand << " -load-pass-plugin=" << nonDetPlugin << getLibSuffix();
+
+  // Build the passes pipeline
+  std::ostringstream passesArg;
+  passesArg << "nondet-pass";
 
   switch (map2checkMode) {
     case Map2CheckMode::MEMTRACK_MODE: {
       Map2Check::Log::Info("Adding memtrack pass");
-      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
-      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
-                       << " -memory_track";
+      std::string memPlugin = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+      transformCommand << " -load-pass-plugin=" << memPlugin << getLibSuffix();
+      passesArg << ",memory-track";
       break;
     }
     case Map2CheckMode::MEMCLEANUP_MODE: {
       Map2Check::Log::Info("Adding memcleanup pass");
-      std::string memoryTrackPass = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
-      transformCommand << " -load " << memoryTrackPass << getLibSuffix()
-                       << " -memory_track";
+      std::string memPlugin = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
+      transformCommand << " -load-pass-plugin=" << memPlugin << getLibSuffix();
+      passesArg << ",memory-track";
       break;
     }
     case Map2CheckMode::OVERFLOW_MODE: {
-      std::string overflowPass = "${MAP2CHECK_PATH}/lib/libOverflowPass";
-      transformCommand << " -load " << overflowPass << getLibSuffix()
-                       << " -check_overflow";
+      std::string overflowPlugin = "${MAP2CHECK_PATH}/lib/libOverflowPass";
+      transformCommand << " -load-pass-plugin=" << overflowPlugin
+                       << getLibSuffix();
+      passesArg << ",overflow-pass";
       break;
     }
     case Map2CheckMode::REACHABILITY_MODE: {
       Map2Check::Log::Info("Running reachability mode");
       Map2Check::Log::Debug("Target function: " + target_function);
-      std::string targetPass = "${MAP2CHECK_PATH}/lib/libTargetPass";
-      transformCommand << " -load " << targetPass << getLibSuffix()
-                       << " -target_function -function-name " << target_function;
-
+      std::string targetPlugin = "${MAP2CHECK_PATH}/lib/libTargetPass";
+      transformCommand << " -load-pass-plugin=" << targetPlugin
+                       << getLibSuffix();
+      // Pass target function name via environment variable
+      std::string envVar = "MAP2CHECK_TARGET_FUNCTION=" + target_function;
+      char* env_array = new char[envVar.length() + 1];
+      strcpy(env_array, envVar.c_str());
+      putenv(env_array);
+      passesArg << ",target-pass";
       break;
     }
     case Map2CheckMode::ASSERT_MODE: {
       Map2Check::Log::Info("Running assert mode");
-      std::string assertPass = "${MAP2CHECK_PATH}/lib/libAssertPass";
-      transformCommand << " -load " << assertPass << getLibSuffix()
-                       << " -validate_asserts";
-
+      std::string assertPlugin = "${MAP2CHECK_PATH}/lib/libAssertPass";
+      transformCommand << " -load-pass-plugin=" << assertPlugin
+                       << getLibSuffix();
+      passesArg << ",assert-pass";
       break;
     }
     default: { break; }
   }
 
   Map2Check::Log::Info("Adding map2check pass");
-  std::string map2checkPass = "${MAP2CHECK_PATH}/lib/libMap2CheckLibrary";
-  transformCommand << " -load " << map2checkPass << getLibSuffix()
-                   << " -map2check ";
+  std::string map2checkPlugin = "${MAP2CHECK_PATH}/lib/libMap2CheckLibrary";
+  transformCommand << " -load-pass-plugin=" << map2checkPlugin
+                   << getLibSuffix();
+  passesArg << ",map2check-library";
+
+  transformCommand << " -passes='" << passesArg.str() << "'";
 
   std::string input_file = "< " + this->pathprogram;
   std::string output_file = "> " + programHash + "-output.bc";

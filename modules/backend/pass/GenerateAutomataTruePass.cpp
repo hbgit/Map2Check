@@ -58,14 +58,24 @@ PreservedAnalyses GenerateAutomataTruePass::run(Function& F,
   return PreservedAnalyses::none();
 }
 
+namespace {
+inline void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+  std::string::size_type pos = 0;
+  while ((pos = str.find(from, pos)) != std::string::npos) {
+    str.replace(pos, from.length(), to);
+    pos += to.length();
+  }
+}
+}  // namespace
+
 // Replace text code not allowed in XML
 std::string GenerateAutomataTruePass::replaceCodeByXml(
     std::string sourceCodeTxt) {
-  boost::replace_all(sourceCodeTxt, "&", "&amp;");
-  boost::replace_all(sourceCodeTxt, "<", "&lt;");
-  boost::replace_all(sourceCodeTxt, ">", "&gt;");
-  boost::replace_all(sourceCodeTxt, "<=", "&lt;= ");
-  boost::replace_all(sourceCodeTxt, ">=", "&gt;= ");
+  replaceAll(sourceCodeTxt, "&", "&amp;");
+  replaceAll(sourceCodeTxt, "<", "&lt;");
+  replaceAll(sourceCodeTxt, ">", "&gt;");
+  replaceAll(sourceCodeTxt, "<=", "&lt;= ");
+  replaceAll(sourceCodeTxt, ">=", "&gt;= ");
 
   return sourceCodeTxt;
 }

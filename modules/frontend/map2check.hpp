@@ -9,8 +9,8 @@
 #ifndef MODULES_FRONTEND_MAP2CHECK_HPP_
 #define MODULES_FRONTEND_MAP2CHECK_HPP_
 
-#include <boost/filesystem.hpp>
-#include <boost/make_unique.hpp>
+#include <filesystem>
+#include <memory>
 #include <boost/program_options.hpp>
 
 #endif  // MODULES_FRONTEND_MAP2CHECK_HPP_

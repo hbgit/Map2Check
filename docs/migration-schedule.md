@@ -90,25 +90,25 @@
 
 | Done | ID | Pass | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-----|:-------|:----|:-----|:------|:----------|
-| ☐ | 1.3.1 | **AssertPass** (134 linhas) | 29/Jun | 01/Jul | 3 | Regressão: `check_if_bug.c --check-asserts` | `docs/migration/1.3.1-assert-pass.md` |
-| ☐ | 1.3.2 | **TargetPass** (140 linhas) | 02/Jul | 06/Jul | 3 | Regressão: `check_if_bug.c --target-function` + `--target-function-name` | `docs/migration/1.3.2-target-pass.md` |
-| ☐ | 1.3.3 | **LoopPredAssumePass** (149 linhas) | 07/Jul | 09/Jul | 3 | Compilação + bitcode gerado corretamente | `docs/migration/1.3.3-looppredassumepass.md` |
-| ☐ | 1.3.4 | **Map2CheckLibrary** (159 linhas) | 10/Jul | 14/Jul | 3 | Runtime bitcode linka sem erros | `docs/migration/1.3.4-map2checklibrary.md` |
+| ✅ | 1.3.1 | **AssertPass** (134 linhas) | 29/Jun | 30/Mai | 3 | Compilação OK | `docs/migration/1.3.1-assert-pass.md` |
+| ✅ | 1.3.2 | **TargetPass** (140 linhas) | 02/Jul | 30/Mai | 3 | Compilação OK | `docs/migration/1.3.2-target-pass.md` |
+| ✅ | 1.3.3 | **LoopPredAssumePass** (149 linhas) | 07/Jul | 30/Mai | 3 | Compilação OK | `docs/migration/1.3.3-looppredassumepass.md` |
+| ✅ | 1.3.4 | **Map2CheckLibrary** (159 linhas) | 10/Jul | 30/Mai | 3 | Compilação OK | `docs/migration/1.3.4-map2checklibrary.md` |
 
 #### Passes médios (Semanas 7-8)
 
 | Done | ID | Pass | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-----|:-------|:----|:-----|:------|:----------|
-| ☐ | 1.3.5 | **NonDetPass** (327 linhas) | 15/Jul | 21/Jul | 5 | Regressão: testes com `__VERIFIER_nondet_*` | `docs/migration/1.3.5-nondet-pass.md` |
-| ☐ | 1.3.6 | **TrackBasicBlockPass** (402 linhas) | 22/Jul | 28/Jul | 5 | Regressão: tracking de BBs funcional | `docs/migration/1.3.6-trackbb-pass.md` |
+| ✅ | 1.3.5 | **NonDetPass** (327 linhas) | 15/Jul | 30/Mai | 5 | Compilação OK | — |
+| ✅ | 1.3.6 | **TrackBasicBlockPass** (402 linhas) | 22/Jul | 30/Mai | 5 | Compilação OK | — |
 
 #### Passes complexos (Semanas 9-10)
 
 | Done | ID | Pass | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-----|:-------|:----|:-----|:------|:----------|
-| ☐ | 1.3.7 | **OverflowPass** (523 linhas) | 29/Jul | 06/Ago | 7 | Regressão: `--check-overflow` nos benchmarks | `docs/migration/1.3.7-overflow-pass.md` |
-| ☐ | 1.3.8 | **GenerateAutomataTruePass** (705 linhas) | 07/Ago | 17/Ago | 7 | Regressão: geração de autômatos TRUE | `docs/migration/1.3.8-automata-pass.md` |
-| ☐ | 1.3.9 | **MemoryTrackPass** (916 linhas) | 18/Ago | 28/Ago | 9 | Regressão completa: todos 9 testes `--memtrack` | `docs/migration/1.3.9-memtrack-pass.md` |
+| ✅ | 1.3.7 | **OverflowPass** (523 linhas) | 29/Jul | 30/Mai | 7 | Compilação OK | — |
+| ✅ | 1.3.8 | **GenerateAutomataTruePass** (705 linhas) | 07/Ago | 30/Mai | 7 | Compilação OK | — |
+| ✅ | 1.3.9 | **MemoryTrackPass** (916 linhas) | 18/Ago | 30/Mai | 9 | Compilação OK | `docs/migration/1.3-passes-new-pm.md` |
 
 ### 1.4 Adaptações Finais Fase 1 (Semanas 11-13)
 

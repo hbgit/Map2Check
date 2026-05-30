@@ -46,8 +46,8 @@ if(NOT LLVM_CONFIG_BIN)
 endif()
 
 # Set CLANG as the default C/CXX compiler
-set(CMAKE_C_COMPILER ${CLANG_CC})
-set(CMAKE_CXX_COMPILER ${CLANG_CXX})
+set(CMAKE_C_COMPILER ${CLANG_CC} CACHE FILEPATH "C compiler" FORCE)
+set(CMAKE_CXX_COMPILER ${CLANG_CXX} CACHE FILEPATH "CXX compiler" FORCE)
 
 # Confirm clang version
 execute_process(COMMAND ${CMAKE_C_COMPILER} --version

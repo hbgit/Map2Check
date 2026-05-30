@@ -10,7 +10,11 @@
 
 #include "TargetPass.hpp"
 
-bool TargetPass::runOnFunction(Function& F) {
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
+PreservedAnalyses TargetPass::run(Function& F,
+                                  llvm::FunctionAnalysisManager& AM) {
   llvm::errs() << "Running TargetPass with: " << this->targetFunctionName;
 
   this->targetFunctionMap2Check = F.getParent()->getOrInsertFunction(
@@ -32,7 +36,7 @@ bool TargetPass::runOnFunction(Function& F) {
       }
     }
   }
-  return true;
+  return PreservedAnalyses::none();
 }
 
 void TargetPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
@@ -59,14 +63,25 @@ void TargetPass::instrumentErrorInstruction(CallInst* callInst,
 
   DebugInfo debugInfo(Ctx, callInst);
 
-  // errs() << *debugInfo.getLineNumberValue() << "----\n";
-
   Value* args[] = {name_llvm, debugInfo.getScopeNumberValue(),
                    debugInfo.getLineNumberValue()};
 
   builder.CreateCall(targetFunctionMap2Check, args);
 }
 
-char TargetPass::ID = 4;
-static RegisterPass<TargetPass> X("target_function",
-                                  "Adds map2check calls to check reachability");
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "TargetPass", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "target-pass") {
+                    FPM.addPass(TargetPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}

@@ -10,12 +10,16 @@
 
 #include "AssertPass.hpp"
 
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
 using llvm::dyn_cast;
 using llvm::IRBuilder;
-using llvm::RegisterPass;
 using llvm::FunctionCallee;
+using llvm::PassPluginLibraryInfo;
 
-bool AssertPass::runOnFunction(Function& F) {
+PreservedAnalyses AssertPass::run(Function& F,
+                                  llvm::FunctionAnalysisManager& AM) {
   this->map2check_assert = F.getParent()->getOrInsertFunction(
       "map2check_assert", Type::getVoidTy(F.getContext()),
       Type::getInt32Ty(F.getContext()), Type::getInt32Ty(F.getContext()),
@@ -24,7 +28,6 @@ bool AssertPass::runOnFunction(Function& F) {
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
 
-  // IRBuilder<> builder((Instruction*)&*instructionIterator);
   IRBuilder<> builder(reinterpret_cast<Instruction*>(&*instructionIterator));
   this->functionName = builder.CreateGlobalStringPtr(F.getName());
 
@@ -36,7 +39,7 @@ bool AssertPass::runOnFunction(Function& F) {
       }
     }
   }
-  return true;
+  return PreservedAnalyses::none();
 }
 
 void AssertPass::instrumentAssert(CallInst* assertInst, LLVMContext* Ctx) {
@@ -68,6 +71,19 @@ void AssertPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
   }
 }
 
-char AssertPass::ID = 12;
-static RegisterPass<AssertPass> X("validate_asserts",
-                                  "Add checks for __VERIFIER_assert");
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "AssertPass", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "assert-pass") {
+                    FPM.addPass(AssertPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}

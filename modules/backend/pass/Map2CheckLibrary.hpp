@@ -17,7 +17,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>
@@ -28,7 +28,6 @@
 
 #include <memory>
 
-// using namespace llvm;
 #include "DebugInfo.hpp"
 #include "LibraryFunctions.hpp"
 
@@ -36,17 +35,16 @@ using llvm::BasicBlock;
 using llvm::CallInst;
 using llvm::dyn_cast;
 using llvm::Function;
-using llvm::FunctionPass;
 using llvm::IRBuilder;
 using llvm::LLVMContext;
+using llvm::PreservedAnalyses;
 using std::make_unique;
 using llvm::Value;
 
-struct Map2CheckLibrary : public FunctionPass {
-  static char ID;
-  explicit Map2CheckLibrary(bool svcomp) : FunctionPass(ID) { SVCOMP = svcomp; }
-  Map2CheckLibrary() : FunctionPass(ID) {}
-  virtual bool runOnFunction(Function& F);
+struct Map2CheckLibrary : public llvm::PassInfoMixin<Map2CheckLibrary> {
+  explicit Map2CheckLibrary(bool svcomp = false) : SVCOMP(svcomp) {}
+
+  PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
 
  protected:
   void instrumentStartInstruction(LLVMContext* Ctx);
@@ -56,7 +54,6 @@ struct Map2CheckLibrary : public FunctionPass {
 
  private:
   std::unique_ptr<LibraryFunctions> libraryFunctions;
-  // bool hasInitialized = false;
   bool SVCOMP = false;
   Value* functionName = NULL;
   BasicBlock::iterator currentInstruction;

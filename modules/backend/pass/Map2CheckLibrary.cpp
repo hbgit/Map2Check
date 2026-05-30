@@ -12,14 +12,17 @@
 
 #include <memory>
 
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
 using llvm::CallInst;
 using llvm::dyn_cast;
 using llvm::IRBuilder;
-using llvm::RegisterPass;
 using llvm::ReturnInst;
 using llvm::Twine;
 
-bool Map2CheckLibrary::runOnFunction(Function& F) {
+PreservedAnalyses Map2CheckLibrary::run(Function& F,
+                                        llvm::FunctionAnalysisManager& AM) {
   this->libraryFunctions = make_unique<LibraryFunctions>(&F, &F.getContext());
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
@@ -46,13 +49,11 @@ bool Map2CheckLibrary::runOnFunction(Function& F) {
   }
 
   if (F.getName() == "main") {
-    // currentInstruction--;
-    // instrumentReleaseInstruction(&F.getContext());
     Twine new_entry_name("__map2check_main__");
     F.setName(new_entry_name);
   }
 
-  return true;
+  return PreservedAnalyses::none();
 }
 
 void Map2CheckLibrary::instrumentStartInstruction(LLVMContext* Ctx) {
@@ -88,7 +89,19 @@ void Map2CheckLibrary::runOnCallInstruction(CallInst* callInst,
   }
 }
 
-char Map2CheckLibrary::ID = 2;
-static RegisterPass<Map2CheckLibrary> X(
-    "map2check",
-    "Adds support for map2check library (MUST be executed before other pass)");
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "Map2CheckLibrary", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "map2check-library") {
+                    FPM.addPass(Map2CheckLibrary());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}

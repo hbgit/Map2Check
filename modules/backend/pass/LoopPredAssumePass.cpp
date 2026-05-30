@@ -10,8 +10,10 @@
 
 #include "LoopPredAssumePass.hpp"
 
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
 using llvm::IRBuilder;
-using llvm::RegisterPass;
 
 namespace {
 inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
@@ -21,17 +23,14 @@ inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
 }  // namespace
 
 void LoopPredAssumePass::getConditionInLoop(Loop* L) {
-  // Loop::block_iterator bb;
   BasicBlock* header = L->getHeader();
   this->map2check_assume =
       header->getParent()->getParent()->getOrInsertFunction(
           "map2check_assume_loop", Type::getVoidTy(header->getContext()),
           Type::getInt1Ty(header->getContext()));
   if (BranchInst* bi = dyn_cast<BranchInst>(header->getTerminator())) {
-    // errs() << *bi->getCondition() << "\n";
     if (bi->isConditional()) {
       Value* loopCond = bi->getCondition();
-      // errs() << *loopCond << "\n";
 
       CmpInst* cmpInst = dyn_cast<CmpInst>(&*loopCond);
 
@@ -41,7 +40,6 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
 
         auto* new_inst = cmpInst->clone();
         auto* inst_pos = dyn_cast<Instruction>(&*--succ_cond_bb->end());
-        // errs() << *inst_pos << "\n";
         new_inst->insertBefore(inst_pos);
 
         CmpInst* new_cmpInst = dyn_cast<CmpInst>(&*new_inst);
@@ -59,30 +57,27 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
   }
 }
 
-bool LoopPredAssumePass::runOnLoop(Loop* L, LPPassManager& LPM) {
-  getConditionInLoop(L);
-  return true;
+PreservedAnalyses LoopPredAssumePass::run(Loop& L,
+                                           llvm::LoopAnalysisManager& AM,
+                                           llvm::LoopStandardAnalysisResults& AR,
+                                           llvm::LPMUpdater& U) {
+  getConditionInLoop(&L);
+  return PreservedAnalyses::none();
 }
-/*
-bool LoopPredAssumePass::runOnFunction(Function& F) {
-  this->Ctx = &F.getContext();
-  // this->currentFunction = &F;
-  Function* f = &F;
-  // e.g., call function map2check_assume(a < b)
-  this->map2check_assume = f->getParent()->getOrInsertFunction(
-      "map2check_assume_loop", Type::getVoidTy(*this->Ctx),
-      Type::getInt1Ty(*this->Ctx));
 
-  LoopInfo& LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
-
-  // for (LoopInfo::iterator i = LI.begin(), e = LI.end(); i != e; ++i)
-  // getConditionInLoop(*i)
-  //;
-
-  return (true);
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "LoopPredAssumePass", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::LoopPassManager& LPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "loop-pred-assume") {
+                    LPM.addPass(LoopPredAssumePass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
 }
-*/
-char LoopPredAssumePass::ID = 13;
-static RegisterPass<LoopPredAssumePass> X(
-    "loop_predicate_assume",
-    "It takes the loop predicate and force it as loop post-cond assume");

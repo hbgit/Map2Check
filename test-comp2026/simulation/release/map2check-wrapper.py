@@ -96,6 +96,11 @@ elif is_overflow:
 
 print("Verifying with MAP2CHECK v8 (LLVM 16)")
 
+# Set KLEE runtime library path (needed for klee-uclibc.bca)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+klee_runtime = os.path.join(script_dir, "lib", "klee", "runtime")
+os.environ["KLEE_RUNTIME_LIBRARY_PATH"] = klee_runtime
+
 # Call MAP2CHECK
 command_line += benchmark
 print("Command: " + command_line)

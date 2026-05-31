@@ -6,10 +6,11 @@ bench-defs/
 # Ignore test results (generated)
 resultados_de_testes/
 
-# Ignore release binaries (built from Docker)
-release/map2check
-release/lib/
-release/bin/
+# Ignore release binaries and includes (built/copied from Docker)
+simulation/release/map2check
+simulation/release/lib/
+simulation/release/bin/
+simulation/release/include/
 
 # Keep wrapper and scripts
 !release/map2check-wrapper.py

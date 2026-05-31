@@ -330,14 +330,12 @@ void Caller::executeAnalysis(std::string solvername) {
         Map2Check::Log::Info("Solver backend caller: " + solvername);
         //  --allow-external-sym-calls
         //  -use-cache
-        kleeCommand << " -suppress-external-warnings"
-                    << " --external-calls=all"
-                    << " -exit-on-error-type=Abort"
+        kleeCommand << " --external-calls=all"
+                    << " --exit-on-error-type=Abort"
                     << " --optimize"
-                    << " -use-cex-cache"
-                    << " -solver-backend=" + solvername + " "
-                    << " -use-construct-hash-metasmt "
-                    << " -libc=uclibc"
+                    << " --use-cex-cache"
+                    << " --solver-backend=" + solvername + " "
+                    << " --libc=uclibc"
                     << " ./" + programHash + "-witness-result.bc"
                     << "  > ExecutionOutput.log";
       } else if ( std::count(kleemetasolver.begin(), kleemetasolver.end(), solvername) ) {
@@ -345,15 +343,13 @@ void Caller::executeAnalysis(std::string solvername) {
         // in KLEE add - option
         Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
 
-        kleeCommand << " -suppress-external-warnings"
-                    << " --external-calls=all"
-                    << " -exit-on-error-type=Abort"
+        kleeCommand << " --external-calls=all"
+                    << " --exit-on-error-type=Abort"
                     << " --optimize"
-                    << " -use-cex-cache"
-                    << " -solver-backend=metasmt "
-                    << " -metasmt-backend=" + solvername + " "
-                    << " -use-construct-hash-metasmt "
-                    << " -libc=uclibc"
+                    << " --use-cex-cache"
+                    << " --solver-backend=metasmt "
+                    << " --metasmt-backend=" + solvername + " "
+                    << " --libc=uclibc"
                     << " ./" + programHash + "-witness-result.bc"
                     << "  > ExecutionOutput.log";
       }

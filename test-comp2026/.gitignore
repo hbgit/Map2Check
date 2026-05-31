@@ -1,0 +1,16 @@
+# Ignore cloned repositories (too large for git)
+sv-benchmarks/
+testcov/
+bench-defs/
+
+# Ignore test results (generated)
+resultados_de_testes/
+
+# Ignore release binaries (built from Docker)
+release/map2check
+release/lib/
+release/bin/
+
+# Keep wrapper and scripts
+!release/map2check-wrapper.py
+!release/data_extractor.py

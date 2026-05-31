@@ -179,11 +179,8 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
       std::string targetPlugin = "${MAP2CHECK_PATH}/lib/libTargetPass";
       transformCommand << " -load-pass-plugin=" << targetPlugin
                        << getLibSuffix();
-      // Pass target function name via environment variable
-      std::string envVar = "MAP2CHECK_TARGET_FUNCTION=" + target_function;
-      char* env_array = new char[envVar.length() + 1];
-      strcpy(env_array, envVar.c_str());
-      putenv(env_array);
+      // Pass target function name via cl::opt flag to opt
+      transformCommand << " -function-name=" << target_function;
       passesArg << ",target-pass";
       break;
     }

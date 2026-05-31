@@ -45,6 +45,7 @@ struct Map2CheckLibrary : public llvm::PassInfoMixin<Map2CheckLibrary> {
   explicit Map2CheckLibrary(bool svcomp = false) : SVCOMP(svcomp) {}
 
   PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
+  static bool isRequired() { return true; }
 
  protected:
   void instrumentStartInstruction(LLVMContext* Ctx);

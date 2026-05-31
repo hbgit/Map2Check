@@ -50,6 +50,7 @@ struct TrackBasicBlockPass : public llvm::PassInfoMixin<TrackBasicBlockPass> {
         Tools::SourceCodeHelper(this->c_program_path));
   }
   PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
+  static bool isRequired() { return true; }
 
  protected:
   void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);

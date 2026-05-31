@@ -52,6 +52,7 @@ struct TargetPass : public llvm::PassInfoMixin<TargetPass> {
       : targetFunctionName(std::move(FunctionName)) {}
 
   PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
+  static bool isRequired() { return true; }
 
  protected:
   Value* getFunctionNameValue() { return this->functionName; }

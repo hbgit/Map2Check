@@ -45,6 +45,7 @@ struct OverflowPass : public llvm::PassInfoMixin<OverflowPass> {
   OverflowPass() = default;
   explicit OverflowPass(std::vector<int> lines) : errorLines(std::move(lines)) {}
   PreservedAnalyses run(Function &F, llvm::FunctionAnalysisManager &AM);
+  static bool isRequired() { return true; }
 
  protected:
   Value *getFunctionNameValue() { return this->functionName; }

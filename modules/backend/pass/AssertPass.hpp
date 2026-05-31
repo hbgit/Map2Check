@@ -43,6 +43,7 @@ using llvm::Value;
 
 struct AssertPass : public llvm::PassInfoMixin<AssertPass> {
   PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
+  static bool isRequired() { return true; }
 
  protected:
   void instrumentAssert(CallInst* assertInst, LLVMContext* Ctx);

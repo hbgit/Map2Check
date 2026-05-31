@@ -67,6 +67,7 @@ namespace InstrumentNonDetS {
 
 struct NonDetPass : public llvm::PassInfoMixin<NonDetPass> {
   PreservedAnalyses run(Function &F, llvm::FunctionAnalysisManager &AM);
+  static bool isRequired() { return true; }
 
  protected:
   void instrumentInstruction();

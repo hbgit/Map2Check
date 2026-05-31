@@ -49,6 +49,7 @@ struct GenerateAutomataTruePass : public llvm::PassInfoMixin<GenerateAutomataTru
   }
 
   PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
+  static bool isRequired() { return true; }
 
  protected:
   void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);

@@ -39,6 +39,7 @@ using llvm::PreservedAnalyses;
 struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   explicit MemoryTrackPass(bool SVCOMP = false) : SVCOMP(SVCOMP) {}
   PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
+  static bool isRequired() { return true; }
 
  private:
   void instrumentPointer();

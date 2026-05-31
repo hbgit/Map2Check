@@ -51,6 +51,7 @@ struct LoopPredAssumePass : public llvm::PassInfoMixin<LoopPredAssumePass> {
   PreservedAnalyses run(Loop& L, llvm::LoopAnalysisManager& AM,
                         llvm::LoopStandardAnalysisResults& AR,
                         llvm::LPMUpdater& U);
+  static bool isRequired() { return true; }
 
   void getConditionInLoop(Loop* L);
 

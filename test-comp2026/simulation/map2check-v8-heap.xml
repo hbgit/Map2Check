@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.18//EN" "https://www.sosy-lab.org/benchexec/benchmark-1.18.dtd">
+<benchmark tool="map2check" displayName="Map2Check-v8-Heap" timelimit="5 min" memlimit="8 GB" cpuCores="4">
+
+  <resultfiles>**/test-suite</resultfiles>
+
+  <!-- C.coverage-error-call.Heap -->
+  <rundefinition name="TestComp26_coverage-error-call">
+    <propertyfile>coverage-error-call.prp</propertyfile>
+  </rundefinition>
+
+  <tasks name="CoverError-Heap">
+    <includesfile>./sv-benchmarks/c/Heap.set</includesfile>
+  </tasks>
+  <tasks name="CoverError-LinkedLists">
+    <includesfile>./sv-benchmarks/c/LinkedLists.set</includesfile>
+  </tasks>
+</benchmark>

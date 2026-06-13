@@ -50,11 +50,11 @@
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ☐ | 1.1.1 | Criar `Dockerfile.dev` baseado em Ubuntu 22.04 | 01/Jun | 03/Jun | 3 | Container compila `hello.c` com Clang 16 | — |
-| ☐ | 1.1.2 | Instalar LLVM 16 pre-built no container | 04/Jun | 05/Jun | 2 | `clang-16 --version` e `opt --version` OK | — |
-| ☐ | 1.1.3 | Instalar dependências (Boost ≥1.74, CMake ≥3.20, Ninja) | 08/Jun | 08/Jun | 1 | `cmake --version` ≥ 3.20 | — |
-| ☐ | 1.1.4 | Configurar GitHub Actions CI (build + unit tests) | 09/Jun | 11/Jun | 3 | Push dispara CI, badge verde | — |
-| ☐ | 1.1.5 | **Teste integrado**: build de um pass simples no novo container | 12/Jun | 12/Jun | 1 | AssertPass compila como shared lib | `docs/migration/1.1-docker-ci.md` |
+| ✅ | 1.1.1 | Criar `Dockerfile.dev` baseado em Ubuntu 22.04 | 01/Jun | 17/Mai | 3 | Container compila `hello.c` com Clang 16 | — |
+| ✅ | 1.1.2 | Instalar LLVM 16 pre-built no container | 04/Jun | 17/Mai | 2 | `clang-16 --version` e `opt --version` OK | — |
+| ✅ | 1.1.3 | Instalar dependências (Boost ≥1.74, CMake ≥3.20, Ninja) | 08/Jun | 17/Mai | 1 | `cmake --version` ≥ 3.20 | — |
+| ☐ | 1.1.4 | Configurar GitHub Actions CI (build + unit tests) | 09/Jun | — | 3 | Push dispara CI, badge verde | — |
+| ✅ | 1.1.5 | **Teste integrado**: build de um pass simples no novo container | 12/Jun | 17/Mai | 1 | AssertPass compila como shared lib | `docs/migration/1.1-dockerfile-llvm16.md` |
 
 > **Entregável:** Docker image funcional com LLVM 16 + CI operacional  
 > **Critério de aceitação:** `docker build` + `docker run make-unit-test.sh` sem erros
@@ -116,7 +116,7 @@
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
 | ✅ | 1.4.1 | Adaptar frontend (`caller.cpp`, `map2check.cpp`) para nova invocação de passes | 31/Ago | 30/Mai | 5 | CLI funcional, `map2check --version` OK | `docs/migration/1.4-frontend-cpp17.md` |
 | ✅ | 1.4.2 | Migrar código C++ para C++17 (`std::make_unique`, `std::filesystem`, etc.) | 07/Set | 30/Mai | 5 | Build limpo Clang 16, 3 warnings pré-existentes | `docs/migration/1.4-frontend-cpp17.md` |
-| ✅ | 1.4.3 | **Suite completa de testes** — todos unit + plugins | 14/Set | 30/Mai | 3 | 7/7 unit ✅ + 9/9 plugins ✅ | `docs/migration/1.4-frontend-cpp17.md` |
+| ✅ | 1.4.3 | **Suite completa de testes** — unit + plugins + TestComp Heap completo | 14/Set | 12-13/Jun | 3 | 7/7 unit ✅ + 9/9 plugins ✅ + 594 tasks Heap (score 57, 98.8% accuracy) | `docs/migration/1.4.3-checkpoint-testcomp2026.md` |
 | ☐ | 1.4.4 | Documentação: changelog, README atualizado | 17/Set | 18/Set | 2 | README com instruções de build LLVM 16 | — |
 | ☐ | 1.4.5 | **Buffer/contingência** | 21/Set | 25/Set | 5 | — | — |
 

@@ -1,0 +1,24 @@
+# ============================================================
+# cppcheck suppressions for Map2Check
+#
+# False positives and known acceptable patterns.
+# See: https://cppcheck.sourceforge.io/manual.html#inline-suppressions
+# ============================================================
+
+# GoogleTest macros generate false positives
+unmatchedSuppression
+
+# LLVM headers may trigger warnings in system includes
+missingIncludeSystem
+
+# External/third-party code
+*:modules/backend/library/lib/json11/*
+
+# LLVM API usage patterns that cppcheck doesn't understand well
+unknownMacro
+
+# Unused functions may be used via LLVM pass registration (dynamic loading)
+unusedFunction:modules/backend/pass/*
+
+# C library runtime functions called via KLEE/LibFuzzer
+unusedFunction:modules/backend/library/*

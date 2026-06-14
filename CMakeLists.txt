@@ -17,6 +17,9 @@ if(MAP2CHECK_ENABLE_SANITIZERS)
   message(STATUS "Sanitizers enabled: ASan + UBSan (dynamic linking)")
   add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -g)
   add_link_options(-fsanitize=address,undefined)
+  # Ensure all targets (including OBJECT libraries) are compiled with -fPIC,
+  # required for LLVM pass shared libraries (.so)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   # ASan requires dynamic linking — skip static config
   set(Map2Check_MODE "SHARED")
 else()

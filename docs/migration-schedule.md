@@ -125,6 +125,28 @@
 
 ---
 
+## FASE 1.5 — OpenSSF Best Practices Badge (Jun/2026) — 1 semana
+
+> **Objetivo:** Elevar o score do [OpenSSF Best Practices Badge](https://www.bestpractices.dev/en/projects/3639/passing) de 88% para 100% (Passing), resolvendo os 8 critérios pendentes da seção **Analysis** (0/8).
+
+### 1.5.1 CI + Análise Estática + Dinâmica
+
+| Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
+|:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
+| ☐ | 1.5.1 | Criar workflow GitHub Actions CI (`ci.yml`) com build + unit tests | 16/Jun | 16/Jun | 1 | Push dispara CI, jobs verdes | — |
+| ☐ | 1.5.2 | Publicar imagem Docker `map2check-dev` no GHCR | 16/Jun | 17/Jun | 1 | `docker pull ghcr.io/hbgit/map2check-dev` OK | — |
+| ☐ | 1.5.3 | Adicionar cppcheck + clang-tidy ao CI (análise estática) | 17/Jun | 18/Jun | 1 | Job `static-analysis` verde, 0 erros medium+ | — |
+| ☐ | 1.5.4 | Configurar CMake com `MAP2CHECK_ENABLE_SANITIZERS` (ASan + UBSan) | 18/Jun | 18/Jun | 0.5 | Build com sanitizers compila OK | — |
+| ☐ | 1.5.5 | Adicionar job de testes com ASan/UBSan ao CI (análise dinâmica) | 18/Jun | 19/Jun | 0.5 | 7/7 unit tests passam com ASan sem erros | — |
+| ☐ | 1.5.6 | Triagem e correção de findings estáticos (medium+) | 19/Jun | 20/Jun | 2 | cppcheck + clang-tidy sem erros medium+ | — |
+| ☐ | 1.5.7 | Atualizar perfil bestpractices.dev (8 critérios da seção Analysis) | 23/Jun | 23/Jun | 0.5 | Badge score 100%, status "passing" ✅ | — |
+| ☐ | 1.5.8 | Documentação: README atualizado + relatório da fase | 23/Jun | 24/Jun | 0.5 | README com badge CI + instruções LLVM 16 | `docs/migration/1.5-openssf-badge.md` |
+
+> **Marco Fase 1.5:** OpenSSF Best Practices Badge "Passing" (100%)  
+> **Data-alvo:** 24/Jun/2026
+
+---
+
 ## FASE 2 — Integração de Slicing (Out–Nov/2026) — 9 semanas
 
 ### 2.1 Integração da DG Library (Semanas 14-17)
@@ -249,6 +271,10 @@ gantt
     Passes Complexos (3)       :f1e, after f1d, 23d
     Frontend + C++17 + Testes  :f1f, after f1e, 15d
     Buffer                     :f1g, after f1f, 5d
+
+    section Fase 1.5: OpenSSF Badge
+    CI + Análise Estática      :f15a, after f1g, 3d
+    Sanitizers + Triagem       :f15b, after f15a, 4d
 
     section Fase 2: Slicing
     DG Library                 :f2a, 2026-09-28, 20d

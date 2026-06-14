@@ -159,13 +159,16 @@
 | ☐ | 2.0.2 | **BTree debug print OOB:** Corrigir `BTree.c:306` — mesmo padrão no loop de print | 🔴 cppcheck Error | Sem crash em debug print | — |
 | ☐ | 2.0.3 | **Return dangling pointer:** Corrigir `NonDetGeneratorKlee.c:47` e `NonDetGeneratorLibFuzzy.c:124` — retornam ponteiro para VLA local | 🔴 cppcheck Error | Sem `-Wreturn-stack-address` | — |
 | ☐ | 2.0.4 | **Shift UB:** Corrigir `NonDetGeneratorLibFuzzy.c:103` — shift 32-bit por 56 bits | 🔴 cppcheck Error | Sem UBSan violation | — |
-| ☐ | 2.0.5 | **Uninit vars:** Corrigir `AllocationLog.c:56`, `NonDetLog.c:70`, `ContainerBTree.c:23` — structs retornadas com campos não inicializados | 🟡 cppcheck Error | cppcheck C sem `uninitvar` | — |
-| ☐ | 2.0.6 | **Printf format:** Corrigir `ListLog.c:145-154`, `NonDetLog.c:32-35` — `%d` com `unsigned` (usar `%u`) | 🟡 cppcheck Warning | cppcheck C sem `invalidPrintfArgType` | — |
-| ☐ | 2.0.7 | **Frontend:** Corrigir `counter_example.hpp:197` missing return + enum `UNKNOWN`/`MEMSAFETY` não tratados em switches | 🟡 cppcheck Error | cppcheck C++ sem `missingReturn`, build sem `-Wswitch` | — |
-| ☐ | 2.0.8 | **Test leaks:** Adicionar `free()` nos testes `AllocationLogTest` (linhas 75, 87) | 🟢 ASan Leak | ASan com `detect_leaks=1` sem erros | — |
-| ☐ | 2.0.9 | **CI strict mode:** Após correções, reabilitar cppcheck C como bloqueante e `halt_on_error=1` no UBSan | 🟢 CI Config | Todos os 3 jobs passam em modo estrito | — |
+| ☐ | 2.0.5 | **strcpy → strncpy/std::string:** Corrigir `map2check.cpp:93,102,111` — 3x `strcpy` inseguro (CWE-119, buffer overflow) | 🔴 clang-tidy Security | clang-tidy sem `clang-analyzer-security.insecureAPI.strcpy` | — |
+| ☐ | 2.0.6 | **Uninit vars:** Corrigir `AllocationLog.c:56`, `NonDetLog.c:70`, `ContainerBTree.c:23` — structs retornadas com campos não inicializados | 🟡 cppcheck Error | cppcheck C sem `uninitvar` | — |
+| ☐ | 2.0.7 | **Printf format:** Corrigir `ListLog.c:145-154`, `NonDetLog.c:32-35` — `%d` com `unsigned` (usar `%u`) | 🟡 cppcheck Warning | cppcheck C sem `invalidPrintfArgType` | — |
+| ☐ | 2.0.8 | **Frontend:** Corrigir `counter_example.hpp:197` missing return + enum `UNKNOWN`/`MEMSAFETY` não tratados em switches | 🟡 cppcheck Error | cppcheck C++ sem `missingReturn`, build sem `-Wswitch` | — |
+| ☐ | 2.0.9 | **Exceptions namespace:** Corrigir `exceptions.hpp/cpp` — `using` incorreto, falta `std::runtime_error` | 🟡 clang-tidy Error | clang-tidy sem erros de compilação | — |
+| ☐ | 2.0.10 | **Test leaks:** Adicionar `free()` nos testes `AllocationLogTest` (linhas 75, 87) | 🟢 ASan Leak | ASan com `detect_leaks=1` sem erros | — |
+| ☐ | 2.0.11 | **Modernização C++:** Aplicar `override` em ~20 funções virtuais, `const&` em ~30 parâmetros, remover dead stores em `graph.cpp` | 🟢 clang-tidy Quality | clang-tidy sem warnings em user code | — |
+| ☐ | 2.0.12 | **CI strict mode:** Após correções, reabilitar cppcheck C como bloqueante e `halt_on_error=1` no UBSan | 🟢 CI Config | Todos os 3 jobs passam em modo estrito | — |
 
-> **Nota:** As tarefas 2.0.1–2.0.4 são bugs de segurança/UB que podem causar comportamento indefinido em runtime. Devem ser priorizadas antes de qualquer nova implementação.
+> **Nota:** As tarefas 2.0.1–2.0.5 são bugs de segurança/UB que podem causar comportamento indefinido ou buffer overflow em runtime. Devem ser priorizadas antes de qualquer nova implementação.
 
 ### 2.1 Integração da DG Library (Semanas 14-17)
 

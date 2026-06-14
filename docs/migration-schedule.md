@@ -149,6 +149,24 @@
 
 ## FASE 2 — Integração de Slicing (Out–Nov/2026) — 9 semanas
 
+### 2.0 Code Health — Correção de Findings Pré-existentes (Pré-requisito)
+
+> **Objetivo:** Resolver os bugs identificados pelas ferramentas de análise estática e dinâmica (Fase 1.5) antes de iniciar novas implementações. Ver relatório completo: `docs/migration/1.5-openssf-badge.md`, seções 5-7.
+
+| Done | ID | Tarefa | Severidade | Teste | Relatório |
+|:-----|:---|:-------|:-----------|:------|:----------|
+| ☐ | 2.0.1 | **BTree off-by-one:** Corrigir `BTree.c:276` — `children[34]` OOB (array size 34). Ajustar loop `i < ORDER*2+1` para `i < ORDER*2` ou aumentar array para `ORDER*2+1` | 🔴 UBSan Error | `BTreeTest` e `ContainerBTreeTest` passam com `halt_on_error=1` | — |
+| ☐ | 2.0.2 | **BTree debug print OOB:** Corrigir `BTree.c:306` — mesmo padrão no loop de print | 🔴 cppcheck Error | Sem crash em debug print | — |
+| ☐ | 2.0.3 | **Return dangling pointer:** Corrigir `NonDetGeneratorKlee.c:47` e `NonDetGeneratorLibFuzzy.c:124` — retornam ponteiro para VLA local | 🔴 cppcheck Error | Sem `-Wreturn-stack-address` | — |
+| ☐ | 2.0.4 | **Shift UB:** Corrigir `NonDetGeneratorLibFuzzy.c:103` — shift 32-bit por 56 bits | 🔴 cppcheck Error | Sem UBSan violation | — |
+| ☐ | 2.0.5 | **Uninit vars:** Corrigir `AllocationLog.c:56`, `NonDetLog.c:70`, `ContainerBTree.c:23` — structs retornadas com campos não inicializados | 🟡 cppcheck Error | cppcheck C sem `uninitvar` | — |
+| ☐ | 2.0.6 | **Printf format:** Corrigir `ListLog.c:145-154`, `NonDetLog.c:32-35` — `%d` com `unsigned` (usar `%u`) | 🟡 cppcheck Warning | cppcheck C sem `invalidPrintfArgType` | — |
+| ☐ | 2.0.7 | **Frontend:** Corrigir `counter_example.hpp:197` missing return + enum `UNKNOWN`/`MEMSAFETY` não tratados em switches | 🟡 cppcheck Error | cppcheck C++ sem `missingReturn`, build sem `-Wswitch` | — |
+| ☐ | 2.0.8 | **Test leaks:** Adicionar `free()` nos testes `AllocationLogTest` (linhas 75, 87) | 🟢 ASan Leak | ASan com `detect_leaks=1` sem erros | — |
+| ☐ | 2.0.9 | **CI strict mode:** Após correções, reabilitar cppcheck C como bloqueante e `halt_on_error=1` no UBSan | 🟢 CI Config | Todos os 3 jobs passam em modo estrito | — |
+
+> **Nota:** As tarefas 2.0.1–2.0.4 são bugs de segurança/UB que podem causar comportamento indefinido em runtime. Devem ser priorizadas antes de qualquer nova implementação.
+
 ### 2.1 Integração da DG Library (Semanas 14-17)
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |

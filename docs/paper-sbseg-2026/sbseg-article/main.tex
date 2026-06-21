@@ -1,0 +1,346 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage{graphicx,url}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{booktabs}
+
+\sloppy
+
+\title{Map2Check 2026: Modernização Sustentável de uma Ferramenta de Verificação de Memory Safety com LLVM~16 e New Pass Manager}
+
+\author{Guilherme L. P. Bernardo\inst{1}, Inácio Viana\inst{1}, Francisco Nobre\inst{2}, Herbert Rocha\inst{1}}
+
+\address{Departamento de Informática e Matemática Aplicada -- Universidade Federal do Rio Grande do Norte (UFRN)\\
+  Natal -- RN -- Brasil
+\nextinstitute
+  Departamento de Engenharia Elétrica -- Universidade Federal de Roraima (UFRR)\\
+  Boa Vista -- RR -- Brasil
+  \email{bguilherme51@gmail.com, inacioviana.iv@gmail.com,}\\[-2pt]
+  {\footnotesize\texttt{\{diego.nobre,herbert.rocha\}@ufrr.br}}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  Map2Check is a hybrid verification tool for C programs that combines symbolic
+  execution and fuzzing to detect memory safety vulnerabilities. After a period
+  of stagnation since 2019 (LLVM~6.0), the tool underwent a complete stack
+  modernization in 2026: migration to LLVM~16, adoption of the New Pass Manager,
+  C++17 standard, CI/CD infrastructure, static analysis, and sanitizers. This
+  paper presents the engineering modernization, reports results from TestComp
+  2026 (594 tasks, score~57), and discusses ongoing WebAssembly support.
+\end{abstract}
+
+\begin{resumo}
+  O Map2Check é uma ferramenta de verificação híbrida para programas em C que
+  combina execução simbólica e fuzzing para detectar vulnerabilidades de
+  memory safety. Após um período de estagnação desde 2019 (LLVM~6.0), a
+  ferramenta passou por uma modernização completa da stack em 2026: migração
+  para LLVM~16, adoção do New Pass Manager, padrão C++17, infraestrutura de
+  CI/CD, análise estática e sanitizers. Este artigo apresenta a modernização
+  de engenharia, reporta resultados do TestComp~2026 (594 tarefas, score~57)
+  e discute o suporte em desenvolvimento a WebAssembly.
+\end{resumo}
+
+
+\section{Introdução e Motivação}
+\label{sec:intro}
+
+\textbf{[PARÁGRAFO -- Problema de memory safety em C/C++]}
+Abrir com estatísticas de vulnerabilidades de memória (CWEs 119, 416, 415,
+401, 787). Memory-safety bugs continuam entre as principais causas de CVEs
+exploráveis~
+.
+
+\textbf{[PARÁGRAFO -- Verificação híbrida como abordagem]}
+Breve explicação da combinação análise estática + dinâmica (fuzzing +
+execução simbólica). Citar trabalhos de ponta: FuSeBMC (smart seeds),
+Symbiotic (slicing + KLEE)~
+.
+
+\textbf{[PARÁGRAFO -- Posicionamento do Map2Check]}
+Map2Check como verificador híbrido consolidado. Menção às publicações
+anteriores (TACAS 2016, 2018, 2020)~
+.
+O problema: estagnação desde 2019 (LLVM~6.0, Ubuntu~16.04, último release
+nov/2019).
+
+\textbf{[PARÁGRAFO -- Contribuições desta versão]}
+Lista de contribuições: (1) migração LLVM~6$\rightarrow$16, New Pass
+Manager, C++17; (2) infraestrutura CI/CD, Docker, sanitizers, análise
+estática; (3) validação em benchmarks reais: TestComp~2026 (Heap, 594
+tarefas, score~57); (4) fortalecimento em cibersegurança (mapeamento CWE);
+(5) suporte a WebAssembly em desenvolvimento.
+
+
+\section{História e Evolução}
+\label{sec:historia}
+
+\textbf{[PARÁGRAFO -- Linha do tempo 2016$\rightarrow$2026]}
+2016 (TACAS): ``Hunting Memory Bugs'' --- BMC com CBLEC.
+2018 (TACAS): migração para LLVM + KLEE~
+.
+2020 (TACAS): abordagem híbrida --- fuzzing + execução simbólica +
+invariantes indutivos com LibFuzzer/KLEE/Crab-LLVM~
+.
+2019--2025: estagnação.
+2026: renascimento.
+Figura~\ref{fig:timeline}.
+
+\textbf{[PARÁGRAFO -- O que motivou o renascimento]}
+Obsolescência técnica: LLVM~6.0 EOL, Ubuntu~16.04 EOL, KLEE~2.0 sem
+suporte. Impossibilidade de competir em SV-COMP/TestComp com stack legada.
+Necessidade de sustentabilidade de engenharia.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.9\textwidth]{img/fig1-timeline}
+\caption{Evolução do Map2Check: de 2016 a 2026.}
+\label{fig:timeline}
+\end{figure}
+
+
+\section{Arquitetura e Funcionalidades}
+\label{sec:arquitetura}
+
+\subsection{Pipeline de Verificação}
+\label{subsec:pipeline}
+
+\textbf{[PARÁGRAFO -- Visão geral]}
+Fluxo completo: Código C $\rightarrow$ clang-16 $\rightarrow$ LLVM IR
+$\rightarrow$ opt (passes) $\rightarrow$ llvm-link $\rightarrow$ runtime
+$\rightarrow$ KLEE / LibFuzzer $\rightarrow$ Veredito + Witness.
+Figura~\ref{fig:pipeline}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.95\textwidth]{img/fig2-pipeline}
+\caption{Pipeline de verificação do Map2Check 2026.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Passes de Instrumentação}
+\label{subsec:passes}
+
+\textbf{[PARÁGRAFO -- New Pass Manager]}
+Descrição dos 9 passes migrados: AssertPass, TargetPass,
+LoopPredAssumePass, Map2CheckLibrary, NonDetPass, TrackBasicBlockPass,
+OverflowPass, GenerateAutomataTruePass, MemoryTrackPass.
+Destacar: \texttt{static bool isRequired() \{ return true; \}} como fix
+crítico~
+.
+Figura~\ref{fig:passes}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.95\textwidth]{img/fig3-passes}
+\caption{Os 9 passes de instrumentação do Map2Check.}
+\label{fig:passes}
+\end{figure}
+
+\subsection{Modernização de Engenharia}
+\label{subsec:engenharia}
+
+\textbf{[PARÁGRAFO -- Infraestrutura]}
+LLVM~16 + New Pass Manager; C++17 (\texttt{std::filesystem}, structured
+bindings); CI/CD (GitHub Actions); Docker (\texttt{Dockerfile.dev},
+Ubuntu~22.04); análise estática (clang-tidy, cppcheck); sanitizers
+(ASAN, UBSAN, TSAN); OpenSSF Best Practices (em andamento).
+Esta infraestrutura pontua nos critérios CTA~
+.
+Figura~\ref{fig:cicd}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.95\textwidth]{img/fig5-cicd}
+\caption{Workflow CI/CD e qualidade de artefato.}
+\label{fig:cicd}
+\end{figure}
+
+
+\section{Features de Cibersegurança}
+\label{sec:ciberseguranca}
+
+\subsection{Mapeamento de Memory Safety para CWEs}
+\label{subsec:cwe}
+
+\textbf{[PARÁGRAFO -- Mapeamento]}
+CWE-401 (Memory Leak), CWE-416 (Use-After-Free), CWE-415 (Double-Free),
+CWE-119/787 (Buffer Overflow). Tabela~\ref{tab:cwe}.
+
+\begin{table}[ht]
+\centering
+\caption{Mapeamento propriedade SV-COMP $\rightarrow$ CWE $\rightarrow$ pass.}
+\label{tab:cwe}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Propriedade SV-COMP & CWE & Pass responsável \\
+\midrule
+\texttt{valid-free} & CWE-415 & MemoryTrackPass \\
+\texttt{valid-deref} & CWE-119/787 & MemoryTrackPass + OverflowPass \\
+\texttt{valid-memtrack} & CWE-401 & MemoryTrackPass \\
+\texttt{no-overflow} & CWE-190 & OverflowPass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{TestComp 2026 --- Execução Heap}
+\label{subsec:testcomp}
+
+\textbf{[PARÁGRAFO -- Contexto e resultados]}
+Sub-categoria \texttt{C.coverage-error-call.Heap}. Configuração:
+timeout 300s, Z3, target \texttt{reach\_error}, Docker single-container.
+Resultados em 594 tarefas~
+:
+Tabela~\ref{tab:testcomp}.
+Figura~\ref{fig:testcomp}.
+
+\begin{table}[ht]
+\centering
+\caption{Resultados TestComp 2026 --- C.coverage-error-call.Heap.}
+\label{tab:testcomp}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Resultado & Contagem & \% \\
+\midrule
+TRUE & 264 & 44,4 \% \\
+UNKNOWN & 271 & 45,6 \% \\
+FALSE & 56 & 9,4 \% \\
+FALSE\_FREE & 1 & 0,2 \% \\
+TIMEOUT & 2 & 0,3 \% \\
+\midrule
+\textbf{Total} & \textbf{594} & \textbf{100 \%} \\
+\textbf{Score} & \textbf{57} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.7\textwidth]{img/fig4-testcomp2026}
+\caption{Resultados consolidados TestComp 2026 --- Heap.}
+\label{fig:testcomp}
+\end{figure}
+
+\subsection{Smoke Test e Validação de Vereditos}
+\label{subsec:smoke}
+
+\textbf{[PARÁGRAFO -- E2E]}
+Execução manual em \texttt{loops/array-1.c} (TRUE) e
+\texttt{loops/array-2.c} (FALSE + counter-example). Framework de
+checkpoint automatizado.
+
+\subsection{Bugs Críticos Encontrados e Corrigidos}
+\label{subsec:bugs}
+
+\textbf{[PARÁGRAFO -- Tabela dos 3 bugs]}
+Tabela~\ref{tab:bugs}.
+
+\begin{table}[ht]
+\centering
+\caption{Bugs críticos descobertos durante a migração.}
+\label{tab:bugs}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Bug & Sintoma & Causa root & Commit \\
+\midrule
+KLEE 3.x flags & Arg. desconhecida & Flags removidas na v3.x & \texttt{284aef1} \\
+\texttt{isRequired()} & Passes pulados & \texttt{optnone} + New PM & \texttt{0deb84e} \\
+Target function & Função errada & env var vs \texttt{cl::opt} & \texttt{0deb84e} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Suporte a WebAssembly (WASM) --- Em Desenvolvimento}
+\label{subsec:wasm}
+
+\textbf{[PARÁGRAFO -- WASM]}
+Extensão do pipeline LLVM~16 para análise de módulos WASM. Backend
+LLVM-WASM: compilação C $\rightarrow$ LLVM IR $\rightarrow$ WASM
+$\rightarrow$ instrumentação $\rightarrow$ verificação. Vetor de ataque:
+memory safety em runtimes WASM (Wasmtime, Wasmer). Testes preliminares
+em benchmarks SV-COMP adaptados. Status: implementação em andamento.
+
+
+\section{Demonstração Planejada}
+\label{sec:demo}
+
+\textbf{[PARÁGRAFO -- O que será demonstrado]}
+Pipeline completo em Docker: compilação $\rightarrow$ instrumentação
+$\rightarrow$ execução $\rightarrow$ veredito. Exemplo interativo:
+\texttt{loops/array-2.c} mostrando veredito FALSE + counter-example.
+Execução do framework TestComp~2026 (subset).
+
+\textbf{[PARÁGRAFO -- Equipamentos]}
+Laptop com Docker instalado. Imagem \texttt{map2check-dev}
+pré-construída. Subconjunto de benchmarks SV-COMP. Acesso à internet.
+
+\textbf{[PARÁGRAFO -- Vídeo técnico]}
+Link do vídeo (5--7 min): instalação, build, execução E2E, resultados
+TestComp~2026.
+
+
+\section{Avaliação, Perspectivas e Conclusão}
+\label{sec:conclusao}
+
+\textbf{[PARÁGRAFO -- Resumo]}
+Modernização: 35 commits, 84 arquivos, +5.785/$-$657 linhas. 9 passes
+migrados, 7/7 unit tests, 9/9 passes carregando. TestComp~2026 Heap:
+594 tarefas, score~57, 56 bugs reais.
+
+\textbf{[PARÁGRAFO -- Limitações]}
+Taxa de UNKNOWN alta (45,6\%). Ausência de testes E2E no CI.
+
+\textbf{[PARÁGRAFO -- Perspectivas]}
+Aprofundamento do suporte a WebAssembly. Redução da taxa de UNKNOWN.
+Testes de integração E2E no CI.
+
+\textbf{[PARÁGRAFO -- Conclusão]}
+O Map2Check renasceu como plataforma sustentável de verificação de
+memory safety. A modernização de engenharia é pré-requisito para
+qualquer avanço futuro.
+
+
+\section*{Agradecimentos}
+
+Agradecemos ao CNPq e à CAPES pelo apoio financeiro.
+
+\bibliographystyle{sbc}
+\bibliography{references}
+
+\newpage
+\appendix
+
+\section{Reprodutibilidade}
+\label{ap:repro}
+
+\subsection{Build com Docker}
+
+\begin{verbatim}
+docker build -f Dockerfile.dev -t map2check-dev .
+docker run -it --rm map2check-dev
+\end{verbatim}
+
+\subsection{Execução de Benchmarks}
+
+\begin{verbatim}
+map2check --property-file coverage-error-call.prp \
+  --target-function-name reach_error loops/array-1.c
+
+cd test-comp2026/simulation/
+./run_checkpoint.sh --category Heap --timeout 300
+./verify_verdicts.sh
+\end{verbatim}
+
+\subsection{Declaração de Uso de IA Generativa}
+\label{ap:ia}
+
+Ferramentas de Inteligência Artificial Generativa foram utilizadas
+como assistentes de escrita e revisão no processo de redação deste
+artigo, conforme o Código de Conduta da SBC.
+
+\end{document}

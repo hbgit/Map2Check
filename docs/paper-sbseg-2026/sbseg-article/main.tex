@@ -6,6 +6,31 @@
 \usepackage[brazil]{babel}
 \usepackage{booktabs}
 
+% Macros para dados numéricos (ajustáveis em um único lugar)
+\newcommand{\TotalTasks}{594}
+\newcommand{\ScoreTestComp}{57}
+\newcommand{\CountTrue}{264}
+\newcommand{\CountUnknown}{271}
+\newcommand{\CountFalse}{56}
+\newcommand{\CountFalseFree}{1}
+\newcommand{\CountTimeout}{2}
+\newcommand{\PctTrue}{44,4}
+\newcommand{\PctUnknown}{45,6}
+\newcommand{\PctFalse}{9,4}
+\newcommand{\CountBugsFixed}{3}
+\newcommand{\CountCommits}{35}
+\newcommand{\CountFiles}{84}
+\newcommand{\LinesAdded}{5.785}
+\newcommand{\LinesRemoved}{657}
+\newcommand{\UnitTests}{7/7}
+\newcommand{\PassTests}{9/9}
+\newcommand{\CountPasses}{9}
+\newcommand{\LLVMVersion}{16}
+\newcommand{\KLEEVersion}{3.x}
+\newcommand{\CppStandard}{C++17}
+\newcommand{\DockerBase}{Ubuntu~22.04}
+\newcommand{\TimeoutVal}{300}
+
 \sloppy
 
 \title{Map2Check 2026: Modernização Sustentável de uma Ferramenta de Verificação de Memory Safety com LLVM~16 e New Pass Manager}
@@ -29,10 +54,10 @@
   Map2Check is a hybrid verification tool for C programs that combines symbolic
   execution and fuzzing to detect memory safety vulnerabilities. After a period
   of stagnation since 2019 (LLVM~6.0), the tool underwent a complete stack
-  modernization in 2026: migration to LLVM~16, adoption of the New Pass Manager,
-  C++17 standard, CI/CD infrastructure, static analysis, and sanitizers. This
+  modernization in 2026: migration to LLVM~\LLVMVersion, adoption of the New Pass Manager,
+  \CppStandard{} standard, CI/CD infrastructure, static analysis, and sanitizers. This
   paper presents the engineering modernization, reports results from TestComp
-  2026 (594 tasks, score~57), and discusses ongoing WebAssembly support.
+  2026 (\TotalTasks{} tasks, score~\ScoreTestComp), and discusses ongoing WebAssembly support.
 \end{abstract}
 
 \begin{resumo}
@@ -40,9 +65,9 @@
   combina execução simbólica e fuzzing para detectar vulnerabilidades de
   memory safety. Após um período de estagnação desde 2019 (LLVM~6.0), a
   ferramenta passou por uma modernização completa da stack em 2026: migração
-  para LLVM~16, adoção do New Pass Manager, padrão C++17, infraestrutura de
+  para LLVM~\LLVMVersion, adoção do New Pass Manager, padrão \CppStandard, infraestrutura de
   CI/CD, análise estática e sanitizers. Este artigo apresenta a modernização
-  de engenharia, reporta resultados do TestComp~2026 (594 tarefas, score~57)
+  de engenharia, reporta resultados do TestComp~2026 (\TotalTasks{} tarefas, score~\ScoreTestComp)
   e discute o suporte em desenvolvimento a WebAssembly.
 \end{resumo}
 
@@ -70,10 +95,10 @@ O problema: estagnação desde 2019 (LLVM~6.0, Ubuntu~16.04, último release
 nov/2019).
 
 \textbf{[PARÁGRAFO -- Contribuições desta versão]}
-Lista de contribuições: (1) migração LLVM~6$\rightarrow$16, New Pass
-Manager, C++17; (2) infraestrutura CI/CD, Docker, sanitizers, análise
-estática; (3) validação em benchmarks reais: TestComp~2026 (Heap, 594
-tarefas, score~57); (4) fortalecimento em cibersegurança (mapeamento CWE);
+Lista de contribuições: (1) migração LLVM~6$\rightarrow$\LLVMVersion, New Pass
+Manager, \CppStandard; (2) infraestrutura CI/CD, Docker, sanitizers, análise
+estática; (3) validação em benchmarks reais: TestComp~2026 (Heap, \TotalTasks{}
+tarefas, score~\ScoreTestComp); (4) fortalecimento em cibersegurança (mapeamento CWE);
 (5) suporte a WebAssembly em desenvolvimento.
 
 
@@ -193,8 +218,8 @@ Propriedade SV-COMP & CWE & Pass responsável \\
 
 \textbf{[PARÁGRAFO -- Contexto e resultados]}
 Sub-categoria \texttt{C.coverage-error-call.Heap}. Configuração:
-timeout 300s, Z3, target \texttt{reach\_error}, Docker single-container.
-Resultados em 594 tarefas~
+timeout \TimeoutVal{}s, Z3, target \texttt{reach\_error}, Docker single-container.
+Resultados em \TotalTasks{} tarefas~
 :
 Tabela~\ref{tab:testcomp}.
 Figura~\ref{fig:testcomp}.
@@ -207,14 +232,14 @@ Figura~\ref{fig:testcomp}.
 \toprule
 Resultado & Contagem & \% \\
 \midrule
-TRUE & 264 & 44,4 \% \\
-UNKNOWN & 271 & 45,6 \% \\
-FALSE & 56 & 9,4 \% \\
-FALSE\_FREE & 1 & 0,2 \% \\
-TIMEOUT & 2 & 0,3 \% \\
+TRUE & \CountTrue & \PctTrue \% \\
+UNKNOWN & \CountUnknown & \PctUnknown \% \\
+FALSE & \CountFalse & \PctFalse \% \\
+FALSE\_FREE & \CountFalseFree & 0,2 \% \\
+TIMEOUT & \CountTimeout & 0,3 \% \\
 \midrule
-\textbf{Total} & \textbf{594} & \textbf{100 \%} \\
-\textbf{Score} & \textbf{57} & --- \\
+\textbf{Total} & \textbf{\TotalTasks} & \textbf{100 \%} \\
+\textbf{Score} & \textbf{\ScoreTestComp} & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -288,12 +313,12 @@ TestComp~2026.
 \label{sec:conclusao}
 
 \textbf{[PARÁGRAFO -- Resumo]}
-Modernização: 35 commits, 84 arquivos, +5.785/$-$657 linhas. 9 passes
-migrados, 7/7 unit tests, 9/9 passes carregando. TestComp~2026 Heap:
-594 tarefas, score~57, 56 bugs reais.
+Modernização: \CountCommits{} commits, \CountFiles{} arquivos, +\LinesAdded{}/$-$\LinesRemoved{} linhas. \CountPasses{} passes
+migrados, \UnitTests{} unit tests, \PassTests{} passes carregando. TestComp~2026 Heap:
+\TotalTasks{} tarefas, score~\ScoreTestComp, \CountFalse{} bugs reais.
 
 \textbf{[PARÁGRAFO -- Limitações]}
-Taxa de UNKNOWN alta (45,6\%). Ausência de testes E2E no CI.
+Taxa de UNKNOWN alta (\PctUnknown\%). Ausência de testes E2E no CI.
 
 \textbf{[PARÁGRAFO -- Perspectivas]}
 Aprofundamento do suporte a WebAssembly. Redução da taxa de UNKNOWN.
@@ -332,7 +357,7 @@ map2check --property-file coverage-error-call.prp \
   --target-function-name reach_error loops/array-1.c
 
 cd test-comp2026/simulation/
-./run_checkpoint.sh --category Heap --timeout 300
+./run_checkpoint.sh --category Heap --timeout \TimeoutVal
 ./verify_verdicts.sh
 \end{verbatim}
 

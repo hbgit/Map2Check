@@ -64,7 +64,7 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 | 2 | **Idioma** | Português | 🟢 OK | ✅ Decidido |
 | 3 | **Template LaTeX SBC** | Geração do PDF final | 🔴 Alta | 🟡 Aguardando usuário |
 | 4 | **Aprovação do orientador** no outline | Sprint 1 (redação das secções 1–3) | 🔴 Alta | 🟡 Aguardando usuário |
-| 5 | **Gravação do vídeo técnico** | Seção 5 (Demonstração) | 🟡 Média | 🟡 Aguardando usuário |
+| 5 | **Gravação do vídeo técnico** (YouTube) | Seção 5 (Demonstração) | 🟡 Média | 🟡 Aguardando usuário |
 | 6 | **Verificação Código de Conduta SBC** (IA generativa) | Declaração no artigo | 🟡 Média | 🟡 Aguardando usuário |
 | 7 | **Presença no evento** (Búzios, 01–04/set) | Condição de aceitação | 🟢 OK | ✅ Confirmada |
 
@@ -133,18 +133,14 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 
 ## Notas de Iteração
 
-### Iteração 0 — 2026-06-18
-- Criada estrutura completa do artigo (diretórios, skill, figuras, outline, roteiro, dados).
-- Revisão do edital oficial SBSeg 2026 SF (https://www.sbseg2026.uff.br/chamadas/sf/):
-  - **Single-blind** (não precisa anonimizar) ✓
-  - **Camera ready:** 14/ago/2026 (novo prazo) ✓
-  - **CTA após notificação:** artefato refinado junto com camera ready ✓
-  - **Demonstração ao vivo obrigatória:** 1 autor inscrito no evento (01–04/set, Búzios) ✅ CONFIRMADA
-  - **Idioma:** Português ✅ DECIDIDO
-  - **Uso de IA:** DECLARADO — ferramentas de IA usadas como assistentes de escrita/revisão
-- Mudança de escopo: **WebAssembly não é mais apenas trabalho futuro** — será implementado na Sprint 0 (após merge feat-update → develop) com testes SV-COMP. Será apresentado como **feature em desenvolvimento ativo** na Seção 4.5.
-- Ainda não redigido conteúdo textual das secções.
-- BACKLOG: referências BibTeX + template SBC aguardando usuário.
+### Iteração 1 — 2026-06-20
+- **Todas as 6 seções redigidas** em português (Introdução, História, Arquitetura, Cibersegurança, Demonstração, Conclusão + Apêndice).
+- **Macros LaTeX** criadas para todos os dados numéricos (\TotalTasks, \ScoreTestComp, etc.).
+- **Tabelas** inseridas: passes de instrumentação, mapeamento CWE, resultados TestComp 2026, bugs críticos.
+- **Figuras** referenciadas: timeline, pipeline, passes, TestComp 2026, CI/CD.
+- **Referências** ainda com placeholders `~\cite{}` — aguardando usuário inserir as chaves BibTeX corretas.
+- **PDF não compilado** — ambiente sem pdflatex. Compilação a ser feita pelo usuário.
+- BACKLOG: referências BibTeX + figuras PNG + compilação PDF + gravação vídeo.
 
 ---
 

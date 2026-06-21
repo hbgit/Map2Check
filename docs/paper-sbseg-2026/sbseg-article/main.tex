@@ -494,40 +494,63 @@ de integrar essa funcionalidade ao pipeline principal do Map2Check.
 \section{Demonstração Planejada}
 \label{sec:demo}
 
-\textbf{[PARÁGRAFO -- O que será demonstrado]}
-Pipeline completo em Docker: compilação $\rightarrow$ instrumentação
-$\rightarrow$ execução $\rightarrow$ veredito. Exemplo interativo:
-\texttt{loops/array-2.c} mostrando veredito FALSE + counter-example.
-Execução do framework TestComp~2026 (subset).
+A demonstração ao vivo no Salão de Ferramentas será estruturada em três
+momentos. Primeiro, o pipeline completo de verificação em tempo real:
+compilação de um benchmark C com \texttt{clang-16}, instrumentação pelos
+nove passes via \texttt{opt-16}, ligação com a biblioteca de runtime e
+execução com KLEE, culminando na geração do veredito e do witness. Como
+exemplo interativo, utilizaremos o benchmark
+\texttt{loops/array-2.c}, que produz o veredito FALSE e um
+counter-example concreto. Em seguida, executaremos um subset do
+framework TestComp~2026 para demonstrar o throughput da ferramenta em
+múltiplas tarefas com timeout controlado.
 
-\textbf{[PARÁGRAFO -- Equipamentos]}
-Laptop com Docker instalado. Imagem \texttt{map2check-dev}
-pré-construída. Subconjunto de benchmarks SV-COMP. Acesso à internet.
+Os equipamentos necessários são um laptop com Docker instalado, a
+imagem \texttt{map2check-dev} pré-construída (disponível no GitHub
+Container Registry), um subconjunto de benchmarks SV-COMP (tag
+\texttt{testcomp26}) e acesso à internet para pull da imagem, se
+necessário.
 
-\textbf{[PARÁGRAFO -- Vídeo técnico]}
-Link do vídeo (5--7 min): instalação, build, execução E2E, resultados
-TestComp~2026.
+O vídeo técnico obrigatório (5--7 minutos) está disponível em:
+\texttt{https://youtu.be/[LINK\_A\_SER\_INSERIDO]}. O vídeo cobre a
+instalação via Docker, o processo de build, uma execução E2E completa
+e a apresentação dos resultados do TestComp~2026. A gravação foi
+produzida seguindo um roteiro de oito cenas, incluindo um ``sneak
+peek'' do suporte a WebAssembly em desenvolvimento.
 
 
 \section{Avaliação, Perspectivas e Conclusão}
 \label{sec:conclusao}
 
-\textbf{[PARÁGRAFO -- Resumo]}
-Modernização: \CountCommits{} commits, \CountFiles{} arquivos, +\LinesAdded{}/$-$\LinesRemoved{} linhas. \CountPasses{} passes
-migrados, \UnitTests{} unit tests, \PassTests{} passes carregando. TestComp~2026 Heap:
-\TotalTasks{} tarefas, score~\ScoreTestComp, \CountFalse{} bugs reais.
+A modernização do Map2Check em 2026 consolidou \CountCommits{} commits
+em \CountFiles{} arquivos (+\LinesAdded{}/$-$\LinesRemoved{} linhas),
+migrando \CountPasses{} passes do Legacy PM para o New Pass Manager,
+mantendo \UnitTests{} testes unitários passando e \PassTests{} passes
+carregando corretamente no \texttt{opt-16}. A execução no TestComp~2026
+sub-categoria Heap demonstrou viabilidade competitiva: \TotalTasks{}
+tarefas, score~\ScoreTestComp, com \CountFalse{} bugs reais detectados.
 
-\textbf{[PARÁGRAFO -- Limitações]}
-Taxa de UNKNOWN alta (\PctUnknown\%). Ausência de testes E2E no CI.
+As principais limitações identificadas são a taxa de UNKNOWN elevada
+(\PctUnknown\%), que indica a necessidade de tuning de heurísticas de
+exploração de caminhos e estratégias de solver; e a ausência de testes
+de integração E2E no CI, que permitiriam detectar regressões no pipeline
+completo (compile $\rightarrow$ instrument $\rightarrow$ link
+$\rightarrow$ execute) antes que afetassem os benchmarks de validação.
 
-\textbf{[PARÁGRAFO -- Perspectivas]}
-Aprofundamento do suporte a WebAssembly. Redução da taxa de UNKNOWN.
-Testes de integração E2E no CI.
+As perspectivas de trabalho incluem: (i) aprofundamento do suporte a
+WebAssembly, com expansão dos benchmarks e modelagem formal da memória
+linear WASM; (ii) redução da taxa de UNKNOWN via tuning de timeout,
+heurísticas de path exploration e portfólio de solvers SMT; e (iii)
+implementação de testes de integração E2E no CI, automatizando o
+pipeline completo.
 
-\textbf{[PARÁGRAFO -- Conclusão]}
-O Map2Check renasceu como plataforma sustentável de verificação de
-memory safety. A modernização de engenharia é pré-requisito para
-qualquer avanço futuro.
+Em suma, o Map2Check renasceu como uma plataforma sustentável de
+verificação de memory safety. A modernização de engenharia (LLVM~\LLVMVersion,
+CI/CD, Docker, análise estática) não é um fim em si: é o
+pré-requisito fundamental que viabiliza qualquer avanço algorítmico
+futuro. Com o código aberto, o repositório público e a infraestrutura
+de artefato validada, o projeto está posicionado para contribuir
+ativamente com a comunidade de verificação e cibersegurança.
 
 
 \section*{Agradecimentos}

@@ -179,11 +179,31 @@ uma base insustentável.
 \subsection{Pipeline de Verificação}
 \label{subsec:pipeline}
 
-\textbf{[PARÁGRAFO -- Visão geral]}
-Fluxo completo: Código C $\rightarrow$ clang-16 $\rightarrow$ LLVM IR
-$\rightarrow$ opt (passes) $\rightarrow$ llvm-link $\rightarrow$ runtime
-$\rightarrow$ KLEE / LibFuzzer $\rightarrow$ Veredito + Witness.
-Figura~\ref{fig:pipeline}.
+O pipeline do Map2Check 2026 inicia com a compilação do código-fonte C
+pelo Clang~\LLVMVersion{} com a flag \texttt{-O0}, gerando bitcode LLVM
+(IR). Esse bitcode é então submetido a uma cadeia de nove passes de
+instrumentação executados via \texttt{opt} com o New Pass Manager. O
+bitcode instrumentado é ligado à biblioteca de runtime do Map2Check
+através do \texttt{llvm-link}, produzindo um módulo executável que pode
+ser analisado pelos motores de execução simbólica (KLEE~\KLEEVersion) ou
+de fuzzing (LibFuzzer, via AFL++). O resultado final consiste em um
+veredito (TRUE, FALSE ou UNKNOWN) e, quando aplicável, um witness no
+formato GraphML e um caso de teste concreto. A Figura~\ref{fig:pipeline}
+apresenta uma visão geral desse fluxo.
+
+O uso do New Pass Manager (NPM), consolidado no LLVM~15+, representa uma
+mudança arquitetural significativa em relação ao Legacy Pass Manager
+(LPM) utilizado na versão anterior. O NPM oferece melhor granularidade de
+análise, paralelismo implícito e compatibilidade com os pipelines de
+otimização modernos. Contudo, essa migração não foi trivial: a API do
+NPM quebra a compatibilidade com as classes \texttt{FunctionPass} e
+\texttt{ModulePass} legadas, exigindo a reescrita completa de todos os
+passes de instrumentação. Além disso, ao compilar com \texttt{-O0}, o
+Clang adiciona o atributo \texttt{optnone} a todas as funções — e no NPM,
+qualquer \texttt{FunctionPass} em funções \texttt{optnone} é
+\textit{silenciosamente ignorado} a menos que declare
+\texttt{isRequired() = true}. Esse comportamento, inexistente no LPM, foi
+a causa do bug crítico #2 descrito na Seção~\ref{subsec:bugs}.
 
 \begin{figure}[ht]
 \centering
@@ -195,14 +215,39 @@ Figura~\ref{fig:pipeline}.
 \subsection{Passes de Instrumentação}
 \label{subsec:passes}
 
-\textbf{[PARÁGRAFO -- New Pass Manager]}
-Descrição dos 9 passes migrados: AssertPass, TargetPass,
-LoopPredAssumePass, Map2CheckLibrary, NonDetPass, TrackBasicBlockPass,
-OverflowPass, GenerateAutomataTruePass, MemoryTrackPass.
-Destacar: \texttt{static bool isRequired() \{ return true; \}} como fix
-crítico~
-.
-Figura~\ref{fig:passes}.
+A instrumentação do código-fonte é realizada por nove passes LLVM
+migrados do Legacy Pass Manager para o New Pass Manager. A
+Tabela~\ref{tab:passes} resume esses passes, suas funções e sua
+complexidade estimada em linhas de código.
+
+\begin{table}[ht]
+\centering
+\caption{Passes de instrumentação do Map2Check 2026.}
+\label{tab:passes}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Pass & Função & Complexidade \\
+\midrule
+AssertPass & Instrumenta \texttt{asserts} do verificador & Baixa \\
+TargetPass & Marca função-alvo (ex.: \texttt{reach\_error}) & Baixa \\
+LoopPredAssumePass & Injeta predicados em laços & Baixa \\
+Map2CheckLibrary & Renomeia \texttt{main} para \texttt{\_\_map2check\_main\_\_} & Baixa \\
+NonDetPass & Substitui \texttt{\_\_VERIFIER\_nondet\_*} & Média \\
+TrackBasicBlockPass & Rastreia cobertura de blocos básicos & Média \\
+OverflowPass & Instrumenta operações aritméticas & Alta \\
+GenerateAutomataTruePass & Gera autômato de witness (GraphML) & Alta \\
+MemoryTrackPass & Instrumenta acessos a memória & Alta \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Todos os nove passes declaram \texttt{static bool isRequired() \{ return
+true; \}}, conforme exigido pelo New Pass Manager para evitar que sejam
+pulados em funções com o atributo \texttt{optnone}~
+. A
+Figura~\ref{fig:passes} ilustra as dependências entre os passes e seus
+respectivos produtos (bitcode instrumentado, metadados de witness,
+chamadas para a biblioteca de runtime).
 
 \begin{figure}[ht]
 \centering
@@ -214,14 +259,34 @@ Figura~\ref{fig:passes}.
 \subsection{Modernização de Engenharia}
 \label{subsec:engenharia}
 
-\textbf{[PARÁGRAFO -- Infraestrutura]}
-LLVM~16 + New Pass Manager; C++17 (\texttt{std::filesystem}, structured
-bindings); CI/CD (GitHub Actions); Docker (\texttt{Dockerfile.dev},
-Ubuntu~22.04); análise estática (clang-tidy, cppcheck); sanitizers
-(ASAN, UBSAN, TSAN); OpenSSF Best Practices (em andamento).
-Esta infraestrutura pontua nos critérios CTA~
-.
-Figura~\ref{fig:cicd}.
+Além da migração dos passes, a modernização de 2026 abrangeu toda a
+infraestrutura de desenvolvimento. A adoção do padrão \CppStandard{}
+permitiu o uso de \texttt{std::filesystem} para manipulação de caminhos,
+structured bindings para desempacotamento de tuplas e melhorias na
+biblioteca padrão que simplificaram o frontend. O ambiente de build foi
+completamente containerizado com uma imagem Docker baseada em
+\DockerBase{} LTS, incluindo LLVM~\LLVMVersion, KLEE~\KLEEVersion, Z3,
+Boost e todas as dependências de build — garantindo reprodutibilidade em
+qualquer máquina com Docker instalado.
+
+A qualidade do código é assegurada por múltiplas camadas de verificação
+automatizada via GitHub Actions: build com GCC e Clang, execução de
+testes unitários (\UnitTests{}), testes de carga dos passes no
+\texttt{opt} (\PassTests{}), análise estática com clang-tidy
+(\.clang-tidy) e cppcheck (\.cppcheck-suppressions.txt), e testes com
+sanitizers de endereço (ASAN), comportamento indefinido (UBSAN) e
+threads (TSAN). A Figura~\ref{fig:cicd} apresenta o workflow CI/CD
+completo.
+
+Essa infraestrutura de engenharia não é mero ``hardening'': ela pontua
+diretamente nos critérios de avaliação de artefatos (CTA) do Salão de
+Ferramentas do SBSeg~
+. Os critérios de
+\textit{disponibilidade} (repositório público + Docker image GHCR),
+\textit{funcionalidade} (build passando + testes unitários),
+\textit{reprodutibilidade} (Dockerfile + scripts de benchmark) e
+\textit{sustentabilidade} (CI/CD + análise estática + documentação)
+são todos atendidos pelos commits de maio--junho/2026.
 
 \begin{figure}[ht]
 \centering

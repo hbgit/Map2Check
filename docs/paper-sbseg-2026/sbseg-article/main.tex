@@ -303,8 +303,13 @@ são todos atendidos pelos commits de maio--junho/2026.
 \label{subsec:cwe}
 
 \textbf{[PARÁGRAFO -- Mapeamento]}
-CWE-401 (Memory Leak), CWE-416 (Use-After-Free), CWE-415 (Double-Free),
-CWE-119/787 (Buffer Overflow). Tabela~\ref{tab:cwe}.
+O reposicionamento do Map2Check sob a ótica de cibersegurança exige um
+mapeamento formal entre as propriedades verificadas pela ferramenta e
+os identificadores CWE (Common Weakness Enumeration). Esse mapeamento,
+apresentado na Tabela~\ref{tab:cwe}, permite que os resultados de
+verificação sejam comunicados em uma linguagem compreensível tanto para
+a comunidade acadêmica quanto para profissionais de segurança da
+informação.
 
 \begin{table}[ht]
 \centering
@@ -326,12 +331,66 @@ Propriedade SV-COMP & CWE & Pass responsável \\
 \label{subsec:testcomp}
 
 \textbf{[PARÁGRAFO -- Contexto e resultados]}
-Sub-categoria \texttt{C.coverage-error-call.Heap}. Configuração:
-timeout \TimeoutVal{}s, Z3, target \texttt{reach\_error}, Docker single-container.
-Resultados em \TotalTasks{} tarefas~
-:
-Tabela~\ref{tab:testcomp}.
-Figura~\ref{fig:testcomp}.
+Para validar a ferramenta em benchmarks reais, executamos o framework de
+checkpoint do Map2Check contra a sub-categoria
+\texttt{C.coverage-error-call.Heap} do TestComp~2026. A configuração
+experimental utilizou timeout de \TimeoutVal{}s por tarefa, solver Z3,
+função-alvo \texttt{reach\_error} e propriedade
+\texttt{coverage-error-call.prp}. O ambiente foi um container Docker
+\texttt{map2check-dev} em modo single-container. A execução abrangeu
+\TotalTasks{} tarefas (Heap: 428, LinkedLists: 166) e durou
+aproximadamente 20 horas, com retomada automática após interrupção.
+
+Os resultados consolidados (Tabela~\ref{tab:testcomp}) mostram que a
+ferramenta obteve \CountTrue{} vereditos TRUE (\PctTrue\%),
+\CountUnknown{} UNKNOWN (\PctUnknown\%) e \CountFalse{} FALSE
+(\PctFalse\%). O score final foi \ScoreTestComp{}. A taxa de FALSE
+(9,4\%) representa bugs reais encontrados nos benchmarks, enquanto a
+taxa de UNKNOWN (45,6\%) reflete principalmente timeouts antes da
+conclusão da análise — um indicativo de que o tuning de heurísticas de
+exploração de caminhos ainda pode ser aprimorado.
+
+\begin{table}[ht]
+\centering
+\caption{Resultados TestComp 2026 --- C.coverage-error-call.Heap.}
+\label{tab:testcomp}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Resultado & Contagem & \% \\
+\midrule
+TRUE & \CountTrue & \PctTrue \% \\
+UNKNOWN & \CountUnknown & \PctUnknown \% \\
+FALSE & \CountFalse & \PctFalse \% \\
+FALSE\_FREE & \CountFalseFree & 0,2 \% \\
+TIMEOUT & \CountTimeout & 0,3 \% \\
+\midrule
+\textbf{Total} & \textbf{\TotalTasks} & \textbf{100 \%} \\
+\textbf{Score} & \textbf{\ScoreTestComp} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.7\textwidth]{img/fig4-testcomp2026}
+\caption{Resultados consolidados TestComp 2026 --- Heap.}
+\label{fig:testcomp}
+\end{figure}
+
+\subsection{Smoke Test e Validação de Vereditos}
+\label{subsec:smoke}
+
+Além da execução em massa do TestComp, realizamos um smoke test
+end-to-end em benchmarks individuais para validar o pipeline completo.
+O benchmark \texttt{loops/array-1.c}, cuja função \texttt{reach\_error}
+não é alcançável, corretamente produziu o veredito TRUE
+(VERIFICATION SUCCEEDED). O benchmark \texttt{loops/array-2.c}, por sua
+vez, produziu o veredito FALSE (VERIFICATION FAILED) com um
+counter-example válido: a entrada \texttt{\_\_VERIFIER\_nondet\_int()
+$\rightarrow$ 31763} na linha~19, escopo \texttt{main}, levando à
+violação da propriedade. Esse resultado demonstra que a geração de
+casos de teste concretos e a validação interna de witnesses estão
+funcionais no pipeline LLVM~\LLVMVersion.
 
 \begin{table}[ht]
 \centering
@@ -372,7 +431,35 @@ checkpoint automatizado.
 \label{subsec:bugs}
 
 \textbf{[PARÁGRAFO -- Tabela dos 3 bugs]}
-Tabela~\ref{tab:bugs}.
+Durante a migração e validação, três bugs críticos foram descobertos.
+Importante: nenhum deles era detectável pelos testes unitários existentes
+(\UnitTests{}), que testam apenas a biblioteca C de runtime, não o
+pipeline completo de instrumentação e execução. A
+Tabela~\ref{tab:bugs} resume esses bugs.
+
+\begin{table}[ht]
+\centering
+\caption{Bugs críticos descobertos durante a migração.}
+\label{tab:bugs}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Bug & Sintoma & Causa root & Commit \\
+\midrule
+KLEE 3.x flags & Arg. desconhecida & Flags removidas na v3.x & \texttt{284aef1} \\
+\texttt{isRequired()} & Passes pulados & \texttt{optnone} + New PM & \texttt{0deb84e} \\
+Target function & Função errada & env var vs \texttt{cl::opt} & \texttt{0deb84e} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O bug #2 foi particularmente insidioso: como o New Pass Manager pula
+silenciosamente passes em funções \texttt{optnone}, a instrumentação
+não ocorria, mas nenhum erro era reportado. O bitcode não
+instrumentado era então ligado à biblioteca de runtime, onde a função
+\texttt{main} não renomeada entrava em conflito com o \texttt{main} da
+biblioteca, causando falha no \texttt{llvm-link} com ``symbol multiply
+defined''. A correção foi adicionar \texttt{isRequired() = true} em
+todos os nove passes.
 
 \begin{table}[ht]
 \centering
@@ -393,11 +480,15 @@ Target function & Função errada & env var vs \texttt{cl::opt} & \texttt{0deb84
 \label{subsec:wasm}
 
 \textbf{[PARÁGRAFO -- WASM]}
-Extensão do pipeline LLVM~16 para análise de módulos WASM. Backend
-LLVM-WASM: compilação C $\rightarrow$ LLVM IR $\rightarrow$ WASM
-$\rightarrow$ instrumentação $\rightarrow$ verificação. Vetor de ataque:
-memory safety em runtimes WASM (Wasmtime, Wasmer). Testes preliminares
-em benchmarks SV-COMP adaptados. Status: implementação em andamento.
+Como direção de pesquisa em andamento, estamos estendendo o pipeline
+LLVM~\LLVMVersion{} para análise de módulos WebAssembly (WASM). O
+backend LLVM-WASM permite compilar código C para LLVM IR e, a partir
+desse IR, gerar módulos WASM instrumentados. A verificação de memory
+safety em runtimes WASM (Wasmtime, Wasmer) representa um vetor de
+ataque emergente, dado o crescente uso de WASM em edge computing,
+serverless e aplicações web críticas. Testes preliminares com
+benchmarks SV-COMP adaptados para WASM estão em curso, com o objetivo
+de integrar essa funcionalidade ao pipeline principal do Map2Check.
 
 
 \section{Demonstração Planejada}

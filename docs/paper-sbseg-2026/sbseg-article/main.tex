@@ -302,7 +302,7 @@ são todos atendidos pelos commits de maio--junho/2026.
 \subsection{Mapeamento de Memory Safety para CWEs}
 \label{subsec:cwe}
 
-\textbf{[PARÁGRAFO -- Mapeamento]}
+
 O reposicionamento do Map2Check sob a ótica de cibersegurança exige um
 mapeamento formal entre as propriedades verificadas pela ferramenta e
 os identificadores CWE (Common Weakness Enumeration). Esse mapeamento,
@@ -330,7 +330,7 @@ Propriedade SV-COMP & CWE & Pass responsável \\
 \subsection{TestComp 2026 --- Execução Heap}
 \label{subsec:testcomp}
 
-\textbf{[PARÁGRAFO -- Contexto e resultados]}
+
 Para validar a ferramenta em benchmarks reais, executamos o framework de
 checkpoint do Map2Check contra a sub-categoria
 \texttt{C.coverage-error-call.Heap} do TestComp~2026. A configuração
@@ -422,7 +422,7 @@ TIMEOUT & \CountTimeout & 0,3 \% \\
 \subsection{Smoke Test e Validação de Vereditos}
 \label{subsec:smoke}
 
-\textbf{[PARÁGRAFO -- E2E]}
+
 Execução manual em \texttt{loops/array-1.c} (TRUE) e
 \texttt{loops/array-2.c} (FALSE + counter-example). Framework de
 checkpoint automatizado.
@@ -430,7 +430,7 @@ checkpoint automatizado.
 \subsection{Bugs Críticos Encontrados e Corrigidos}
 \label{subsec:bugs}
 
-\textbf{[PARÁGRAFO -- Tabela dos 3 bugs]}
+
 Durante a migração e validação, três bugs críticos foram descobertos.
 Importante: nenhum deles era detectável pelos testes unitários existentes
 (\UnitTests{}), que testam apenas a biblioteca C de runtime, não o
@@ -479,7 +479,7 @@ Target function & Função errada & env var vs \texttt{cl::opt} & \texttt{0deb84
 \subsection{Suporte a WebAssembly (WASM) --- Em Desenvolvimento}
 \label{subsec:wasm}
 
-\textbf{[PARÁGRAFO -- WASM]}
+
 Como direção de pesquisa em andamento, estamos estendendo o pipeline
 LLVM~\LLVMVersion{} para análise de módulos WebAssembly (WASM). O
 backend LLVM-WASM permite compilar código C para LLVM IR e, a partir

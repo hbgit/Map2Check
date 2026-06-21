@@ -273,7 +273,7 @@ A qualidade do código é assegurada por múltiplas camadas de verificação
 automatizada via GitHub Actions: build com GCC e Clang, execução de
 testes unitários (\UnitTests{}), testes de carga dos passes no
 \texttt{opt} (\PassTests{}), análise estática com clang-tidy
-(\.clang-tidy) e cppcheck (\.cppcheck-suppressions.txt), e testes com
+(\texttt{.clang-tidy}) e cppcheck (\texttt{.cppcheck-suppressions.txt}), e testes com
 sanitizers de endereço (ASAN), comportamento indefinido (UBSAN) e
 threads (TSAN). A Figura~\ref{fig:cicd} apresenta o workflow CI/CD
 completo.
@@ -392,44 +392,8 @@ violação da propriedade. Esse resultado demonstra que a geração de
 casos de teste concretos e a validação interna de witnesses estão
 funcionais no pipeline LLVM~\LLVMVersion.
 
-\begin{table}[ht]
-\centering
-\caption{Resultados TestComp 2026 --- C.coverage-error-call.Heap.}
-\label{tab:testcomp}
-\begin{tabular}{@{}lrr@{}}
-\toprule
-Resultado & Contagem & \% \\
-\midrule
-TRUE & \CountTrue & \PctTrue \% \\
-UNKNOWN & \CountUnknown & \PctUnknown \% \\
-FALSE & \CountFalse & \PctFalse \% \\
-FALSE\_FREE & \CountFalseFree & 0,2 \% \\
-TIMEOUT & \CountTimeout & 0,3 \% \\
-\midrule
-\textbf{Total} & \textbf{\TotalTasks} & \textbf{100 \%} \\
-\textbf{Score} & \textbf{\ScoreTestComp} & --- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=.7\textwidth]{img/fig4-testcomp2026}
-\caption{Resultados consolidados TestComp 2026 --- Heap.}
-\label{fig:testcomp}
-\end{figure}
-
-\subsection{Smoke Test e Validação de Vereditos}
-\label{subsec:smoke}
-
-
-Execução manual em \texttt{loops/array-1.c} (TRUE) e
-\texttt{loops/array-2.c} (FALSE + counter-example). Framework de
-checkpoint automatizado.
-
 \subsection{Bugs Críticos Encontrados e Corrigidos}
 \label{subsec:bugs}
-
 
 Durante a migração e validação, três bugs críticos foram descobertos.
 Importante: nenhum deles era detectável pelos testes unitários existentes
@@ -452,7 +416,7 @@ Target function & Função errada & env var vs \texttt{cl::opt} & \texttt{0deb84
 \end{tabular}
 \end{table}
 
-O bug #2 foi particularmente insidioso: como o New Pass Manager pula
+O bug \#2 foi particularmente insidioso: como o New Pass Manager pula
 silenciosamente passes em funções \texttt{optnone}, a instrumentação
 não ocorria, mas nenhum erro era reportado. O bitcode não
 instrumentado era então ligado à biblioteca de runtime, onde a função
@@ -460,21 +424,6 @@ instrumentado era então ligado à biblioteca de runtime, onde a função
 biblioteca, causando falha no \texttt{llvm-link} com ``symbol multiply
 defined''. A correção foi adicionar \texttt{isRequired() = true} em
 todos os nove passes.
-
-\begin{table}[ht]
-\centering
-\caption{Bugs críticos descobertos durante a migração.}
-\label{tab:bugs}
-\begin{tabular}{@{}llll@{}}
-\toprule
-Bug & Sintoma & Causa root & Commit \\
-\midrule
-KLEE 3.x flags & Arg. desconhecida & Flags removidas na v3.x & \texttt{284aef1} \\
-\texttt{isRequired()} & Passes pulados & \texttt{optnone} + New PM & \texttt{0deb84e} \\
-Target function & Função errada & env var vs \texttt{cl::opt} & \texttt{0deb84e} \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{Suporte a WebAssembly (WASM) --- Em Desenvolvimento}
 \label{subsec:wasm}
@@ -580,7 +529,7 @@ map2check --property-file coverage-error-call.prp \
   --target-function-name reach_error loops/array-1.c
 
 cd test-comp2026/simulation/
-./run_checkpoint.sh --category Heap --timeout \TimeoutVal
+./run_checkpoint.sh --category Heap --timeout 300
 ./verify_verdicts.sh
 \end{verbatim}
 

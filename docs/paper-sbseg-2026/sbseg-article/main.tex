@@ -75,31 +75,62 @@
 \section{Introdução e Motivação}
 \label{sec:intro}
 
-\textbf{[PARÁGRAFO -- Problema de memory safety em C/C++]}
-Abrir com estatísticas de vulnerabilidades de memória (CWEs 119, 416, 415,
-401, 787). Memory-safety bugs continuam entre as principais causas de CVEs
-exploráveis~
+Vulnerabilidades de memory safety em programas escritos em C e C++
+permanecem como uma das classes mais críticas e persistentes de falhas de
+segurança. De acordo com o CWE/SANS Top 25, problemas como buffer overflow
+(CWE-119), use-after-free (CWE-416), double-free (CWE-415) e memory leak
+(CWE-401) continuam ocupando posições de destaque entre as principais causas
+de vulnerabilidades exploráveis em software de sistemas~
+. A
+massiva integração de código C em sistemas críticos — desde infraestrutura de
+rede até dispositivos médicos e automotivos — amplifica o impacto potencial
+dessas falhas, que podem resultar em execução remota de código, elevação de
+privilégios ou negação de serviço~
 .
 
-\textbf{[PARÁGRAFO -- Verificação híbrida como abordagem]}
-Breve explicação da combinação análise estática + dinâmica (fuzzing +
-execução simbólica). Citar trabalhos de ponta: FuSeBMC (smart seeds),
-Symbiotic (slicing + KLEE)~
-.
+Diante desse cenário, a verificação híbrida emerge como uma abordagem
+promissora, combinando o rigor da análise formal com a escalabilidade dos
+testes dinâmicos. Técnicas como execução simbólica (exemplificada pelo
+KLEE~
+) e fuzzing guiado por cobertura (AFL++
+) são
+complementares: enquanto o fuzzing é rápido para encontrar bugs superficiais,
+a execução simbólica é eficaz em penetrar guardas lógicas complexas. O estado
+da arte em competições de verificação, como SV-COMP e TestComp, demonstra que
+as ferramentas mais bem-sucedidas — FuSeBMC~
+,
+Symbiotic~
+, ESBMC~
+— adotam
+arquiteturas de orquestração que integram múltiplos motores de análise.
 
-\textbf{[PARÁGRAFO -- Posicionamento do Map2Check]}
-Map2Check como verificador híbrido consolidado. Menção às publicações
-anteriores (TACAS 2016, 2018, 2020)~
-.
-O problema: estagnação desde 2019 (LLVM~6.0, Ubuntu~16.04, último release
-nov/2019).
+O Map2Check é uma ferramenta brasileira de verificação híbrida para programas
+em C, com histórico de participações nas competições TACAS (2016, 2018,
+2020)~
+. Desde 2019, contudo, a ferramenta
+encontrava-se em estado de estagnação: a última versão estável (v7.3.1)
+operava sobre LLVM~6.0 e Ubuntu~16.04 — ambos em fim de vida — com um fork
+customizado do KLEE~2.0. Essa obsolescência técnica impossibilitava a
+participação em competições contemporâneas e comprometia a reprodutibilidade
+dos resultados científicos.
 
-\textbf{[PARÁGRAFO -- Contribuições desta versão]}
-Lista de contribuições: (1) migração LLVM~6$\rightarrow$\LLVMVersion, New Pass
-Manager, \CppStandard; (2) infraestrutura CI/CD, Docker, sanitizers, análise
-estática; (3) validação em benchmarks reais: TestComp~2026 (Heap, \TotalTasks{}
-tarefas, score~\ScoreTestComp); (4) fortalecimento em cibersegurança (mapeamento CWE);
-(5) suporte a WebAssembly em desenvolvimento.
+Este artigo apresenta o Map2Check 2026, fruto de uma modernização
+sistemática da stack completa. As principais contribuições desta versão são:
+\begin{enumerate}
+\item Migração completa da infraestrutura LLVM: da versão~6 para a
+  versão~\LLVMVersion, com adoção do New Pass Manager e do padrão
+  \CppStandard;
+\item Infraestrutura de engenharia de software: CI/CD via GitHub Actions,
+  containerização Docker, análise estática (clang-tidy, cppcheck) e
+  sanitizers (ASAN, UBSAN, TSAN);
+\item Validação em benchmarks reais do TestComp~2026: execução completa da
+  sub-categoria Heap (\TotalTasks{} tarefas, score~\ScoreTestComp),
+  com \CountFalse{} bugs reais detectados;
+\item Fortalecimento do posicionamento em cibersegurança, com mapeamento
+  formal das propriedades de memory safety para CWEs;
+\item Suporte em desenvolvimento a WebAssembly, estendendo o pipeline
+  LLVM existente para análise de módulos WASM.
+\end{enumerate}
 
 
 \section{História e Evolução}

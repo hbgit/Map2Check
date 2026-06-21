@@ -136,21 +136,34 @@ sistemática da stack completa. As principais contribuições desta versão são
 \section{História e Evolução}
 \label{sec:historia}
 
-\textbf{[PARÁGRAFO -- Linha do tempo 2016$\rightarrow$2026]}
-2016 (TACAS): ``Hunting Memory Bugs'' --- BMC com CBLEC.
-2018 (TACAS): migração para LLVM + KLEE~
-.
-2020 (TACAS): abordagem híbrida --- fuzzing + execução simbólica +
-invariantes indutivos com LibFuzzer/KLEE/Crab-LLVM~
-.
-2019--2025: estagnação.
-2026: renascimento.
-Figura~\ref{fig:timeline}.
+O desenvolvimento do Map2Check remonta a 2016, quando foi apresentado na
+conferência TACAS como uma ferramenta de ``Hunting Memory Bugs'' baseada
+em Bounded Model Checking (BMC) com o verificador CBMC. Na edição de
+2018, a ferramenta migrou para a infraestrutura LLVM e adotou o KLEE como
+motor de execução simbólica, permitindo a geração de casos de teste por
+path-based symbolic execution~
+. A versão
+apresentada em 2020 consolidou a abordagem híbrida, combinando fuzzing
+(LibFuzzer), execução simbólica (KLEE) e inferência de invariantes
+indutivos (Crab-LLVM) em uma estratégia de \textit{iterative deepening}
+~
+. A Figura~\ref{fig:timeline} ilustra essa
+trajetória, destacando o hiato de 2019 a 2025 como período de
+estagnação.
 
-\textbf{[PARÁGRAFO -- O que motivou o renascimento]}
-Obsolescência técnica: LLVM~6.0 EOL, Ubuntu~16.04 EOL, KLEE~2.0 sem
-suporte. Impossibilidade de competir em SV-COMP/TestComp com stack legada.
-Necessidade de sustentabilidade de engenharia.
+A estagnação não foi apenas de código: ela refletiu uma obsolescência
+técnica profunda. O LLVM~6.0 atingiu fim de vida em 2019, seguido pelo
+Ubuntu~16.04 em 2021. O KLEE~2.0, fork customizado para o projeto,
+perdeu compatibilidade com as novas versões do solver Z3 e das
+bibliotecas de runtime. Consequentemente, a ferramenta tornou-se
+incapaz de participar das competições SV-COMP e TestComp, cujas
+regras e benchmarks evoluíam em ritmo acelerado. Além disso, a
+ausência de CI/CD, testes automatizados e containerização impedia a
+reprodução dos resultados por terceiros — um requisito crítico para
+a validação científica. O ``renascimento'' em 2026 surgiu da
+consciência de que, sem uma modernização de engenharia radical,
+todas as contribuições algorítmicas futuras seriam construídas sobre
+uma base insustentável.
 
 \begin{figure}[ht]
 \centering

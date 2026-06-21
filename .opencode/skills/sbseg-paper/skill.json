@@ -1,0 +1,199 @@
+{
+  "name": "sbseg-paper",
+  "description": "Contexto persistente para redação do artigo SBSeg 2026 SF — Map2Check 2026. Carrega automaticamente metadados da submissão, estrutura do artigo, estado de progresso, fontes de dados do repo e restrições críticas.",
+  "tags": ["sbseg", "paper", "map2check", "sbsseg2026"],
+  "activation": {
+    "files": [
+      "docs/paper-sbseg-2026/**",
+      "*sbseg*",
+      "*artigo*",
+      "*paper*"
+    ]
+  },
+  "context": {
+    "submission": {
+      "venue": "SBSeg 2026 — Salão de Ferramentas (SF)",
+      "deadline_submission": "2026-07-20",
+      "deadline_notification": "2026-08-03",
+      "deadline_camera_ready": "2026-08-14",
+      "event_dates": "2026-09-01 a 2026-09-04",
+      "event_location": "Armação dos Búzios - RJ",
+      "template": "SBC (a ser obtido)",
+      "page_limit": "8 páginas de corpo + até 2 de referências/apêndices",
+      "language": "Português",
+      "mode": "Single-blind (identidade dos autores é conhecida pelos revisores)",
+      "cta": "Avaliação de artefato integrada ao CTA: disponibilidade, funcionalidade, reprodutibilidade, sustentabilidade. Submissão do artefato APÓS notificação (até 14/ago), junto com camera ready.",
+      "video_required": true,
+      "live_demo_required": true,
+      "live_demo_note": "Pelo menos 1 autor inscrito no evento (01-04/set, Búzios). Presenca CONFIRMADA.",
+      "submission_system": "JEMS3"
+    },
+    "article": {
+      "title_provisional": "Map2Check 2026: Modernização Sustentável de uma Ferramenta de Verificação de Memory Safety com LLVM 16 e New Pass Manager",
+      "authors": "Guilherme Lucas Pereira Bernardo (UFRN) / Herbert Oliveira Rocha (orientador) — Single-blind, nomes podem constar normalmente",
+      "structure": [
+        {
+          "id": "sec01",
+          "name": "Introdução e Motivação",
+          "pages": "~1",
+          "status": "0% — não iniciado",
+          "topics": [
+            "CWEs de memory safety (401, 416, 415, 119, 787) como classe crítica",
+            "Estado da arte (FuSeBMC, Symbiotic)",
+            "Contribuições da versão 2026 (LLVM 16, New PM, C++17, CI/CD, TestComp 2026)"
+          ],
+          "data_sources": [
+            "docs/pré-projeto -Map2Check 2.0_ Verificação Híbrida com Slicing Estático e Orquestração de Smart Seeds.md"
+          ]
+        },
+        {
+          "id": "sec02",
+          "name": "História e Evolução",
+          "pages": "~1",
+          "status": "0% — não iniciado",
+          "topics": [
+            "TACAS 2016 (BMC, Hunting Memory Bugs)",
+            "TACAS 2018 (LLVM + KLEE)",
+            "TACAS 2020 (híbrido: fuzzing + symex + invariantes)",
+            "2026: renascimento após estagnação (LLVM 6→16, estagnado desde 2019)"
+          ],
+          "data_sources": ["CHANGELOG.md", "docs/migration/"]
+        },
+        {
+          "id": "sec03",
+          "name": "Arquitetura e Funcionalidades",
+          "pages": "~2.5",
+          "status": "0% — não iniciado",
+          "topics": [
+            "Pipeline LLVM 16: C → clang-16 → opt (9 passes New PM) → llvm-link → KLEE 3.x / LibFuzzer",
+            "Os 9 passes de instrumentação (AssertPass, TargetPass, LoopPredAssumePass, Map2CheckLibrary, NonDetPass, TrackBasicBlockPass, OverflowPass, GenerateAutomataTruePass, MemoryTrackPass)",
+            "Modernização de engenharia: CI/CD (GitHub Actions), Docker, sanitizers (ASAN/UBSAN/TSAN), static analysis (clang-tidy, cppcheck), C++17, OpenSSF Best Practices",
+            "Sustentabilidade e qualidade de artefato (pontua no CTA)"
+          ],
+          "data_sources": [
+            "docs/migration/1.3-passes-new-pm.md",
+            "docs/migration/1.4-frontend-cpp17.md",
+            "docs/migration/1.5-openssf-badge.md",
+            ".github/workflows/ci.yml",
+            ".github/workflows/docker-publish.yml",
+            "Dockerfile.dev"
+          ],
+          "figures": ["fig1-timeline", "fig2-pipeline", "fig3-passes", "fig5-cicd"]
+        },
+        {
+          "id": "sec04",
+          "name": "Features de Cibersegurança",
+          "pages": "~2",
+          "status": "0% — não iniciado",
+          "topics": [
+            "Memory safety mapeado para CWEs (CWE-401, 416, 415, 119, 787)",
+            "TestComp 2026 execução Heap (594 tasks, score 57, 56 bugs encontrados)",
+            "Smoke test e validação de vereditos",
+            "3 bugs críticos encontrados e corrigidos",
+            "WebAssembly (WASM): suporte em desenvolvimento via pipeline LLVM-WASM, testes preliminares SV-COMP"
+          ],
+          "data_sources": [
+            "docs/migration/1.4-checkpoint-smoke-test.md",
+            "docs/migration/1.4.3-checkpoint-testcomp2026.md",
+            "test-comp2026/simulation/"
+          ],
+          "figures": ["fig4-testcomp2026"]
+        },
+        {
+          "id": "sec05",
+          "name": "Demonstração Planejada",
+          "pages": "~0.5",
+          "status": "0% — não iniciado",
+          "topics": [
+            "O que será mostrado ao vivo (pipeline E2E em Docker)",
+            "Equipamentos necessários (laptop, Docker, benchmarks SV-COMP)",
+            "Link do vídeo técnico (obrigatório no edital)"
+          ],
+          "data_sources": ["test-comp2026/simulation/", "Dockerfile.dev"]
+        },
+        {
+          "id": "sec06",
+          "name": "Avaliação, Perspectivas e Conclusão",
+          "pages": "~1",
+          "status": "0% — não iniciado",
+          "topics": [
+            "Resumo dos resultados quantitativos",
+            "Limitações (UNKNOWN 45.6%, timeout tuning)",
+            "Perspectivas: aprofundamento WASM, redução UNKNOWN, testes E2E no CI",
+            "Conclusão"
+          ]
+        }
+      ],
+      "backlog": [
+        {
+          "item": "Referências BibTeX (TACAS 2016, 2018, 2020 + outros)",
+          "owner": "usuário",
+          "blocks": "Seção 2 (História) e Referências",
+          "priority": "Alta"
+        },
+        {
+          "item": "Template LaTeX SBC",
+          "owner": "usuário",
+          "blocks": "Geração do PDF final",
+          "priority": "Alta"
+        },
+        {
+          "item": "Aprovação do orientador no outline",
+          "owner": "usuário",
+          "blocks": "Sprint 1",
+          "priority": "Alta"
+        },
+        {
+          "item": "Gravação do vídeo técnico",
+          "owner": "usuário",
+          "blocks": "Seção 5 (Demonstração)",
+          "priority": "Média"
+        },
+        {
+          "item": "Validação do build por terceiro (CTA)",
+          "owner": "usuário",
+          "blocks": "Checklist de artefato",
+          "priority": "Baixa"
+        }
+      ]
+    },
+    "restrictions": {
+      "anonymity": "Single-blind: identidade dos autores é conhecida pelos revisores. NÃO precisa remover nomes, instituições, emails ou URLs do artigo.",
+      "page_limit": "8 páginas de corpo (incluindo figuras e tabelas) + até 2 de referências e apêndices.",
+      "ai_disclosure": "Uso de IA Generativa DECLARADO: ferramentas de IA foram utilizadas como assistentes de escrita e revisão no processo de redação deste artigo, conforme Código de Conduta SBC. URL: https://sol.sbc.org.br/index.php/indice/conduta",
+      "cta_checklist": {
+        "disponibilidade": "Repositório público + Docker image GHCR",
+        "funcionalidade": "Build passa + 7/7 unit tests + 9/9 passes",
+        "reprodutibilidade": "Dockerfile.dev + scripts de benchmark",
+        "sustentabilidade": "CI/CD, static analysis, sanitizers, docs"
+      }
+    },
+    "data_consolidated": {
+      "testcomp2026_heap": {
+        "total_tasks": 594,
+        "score": 57,
+        "true": 264,
+        "unknown": 271,
+        "false": 56,
+        "false_free": 1,
+        "timeout": 2,
+        "sets": {
+          "Heap": {"tasks": 428, "false": 39, "true": 203, "unknown": 184, "timeout": 2},
+          "LinkedLists": {"tasks": 166, "false": 18, "true": 61, "unknown": 87, "timeout": 0}
+        }
+      },
+      "unit_tests": "7/7 passing",
+      "pass_plugin_load": "9/9 loading correctly with opt-16",
+      "smoke_test_e2e": "2/2 loops benchmarks correct",
+      "commits_fase1": 35,
+      "files_changed": 84,
+      "lines_added": 5785,
+      "lines_removed": 657,
+      "critical_bugs_fixed": 3,
+      "docker_base": "Ubuntu 22.04 LTS",
+      "llvm_version": "16.0",
+      "klee_version": "3.x",
+      "cpp_standard": "C++17"
+    }
+  }
+}

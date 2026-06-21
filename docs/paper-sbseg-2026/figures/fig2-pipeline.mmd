@@ -1,0 +1,50 @@
+## Figura 2 — Pipeline de Verificação Map2Check 2026
+
+```mermaid
+flowchart LR
+    subgraph Entrada
+        A[Código C\n(.c/.i)]
+    end
+
+    subgraph Frontend
+        B[clang-16\n-O0 -emit-llvm]
+        C[LLVM IR\n(.bc)]
+    end
+
+    subgraph Instrumentação
+        D[opt-16\n-load-pass-plugin]
+        E["9 Passes New PM\n(Assert, Target, LoopPred,\nMap2CheckLib, NonDet,\nTrackBB, Overflow,\nAutomata, MemoryTrack)"]
+    end
+
+    subgraph Linking
+        F[llvm-link]
+        G[Bitcode\nInstrumentado]
+    end
+
+    subgraph Motores
+        H["KLEE 3.x\n(Execução Simbólica)"]
+        I["LibFuzzer\n(Fuzzing)"]
+    end
+
+    subgraph Saída
+        J[Veredito\nTRUE / FALSE / UNKNOWN]
+        K[Witness\n(GraphML)]
+        L[Teste\n(Concreto)]
+    end
+
+    A --> B --> C --> D --> E --> F --> G
+    G --> H
+    G --> I
+    H --> J
+    H --> K
+    H --> L
+    I --> J
+```
+
+---
+
+**Nota:** Para inserir no artigo LaTeX, exportar como SVG/PNG.
+
+**Observação para redação:**
+- Destacar que o pipeline é executado inteiramente dentro do container Docker
+- Usar como figura principal na Seção 3 (Arquitetura)

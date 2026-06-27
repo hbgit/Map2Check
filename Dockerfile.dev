@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y \
 # 2. LLVM 16 via apt.llvm.org (Task 1.1.2)
 # ============================================================
 RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421 && \
     echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" > /etc/apt/sources.list.d/llvm-16.list && \
     apt-get update && apt-get install -y \
     clang-16 \
@@ -131,7 +132,48 @@ ENV LD_LIBRARY_PATH="/opt/klee/lib"
 # No extra install needed — available via clang-16 -fsanitize=fuzzer
 
 # ============================================================
-# 8. User setup
+# 8. WABT (WebAssembly Binary Toolkit) — wasm2c, wasm2wat, wasm-ld
+# ============================================================
+# Using latest stable release (1.0.41) instead of apt (1.0.27)
+# to support bulk memory operations and reference types
+RUN apt-get update && apt-get install -y lld-16 libc6-dev linux-libc-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Download WABT 1.0.41 from GitHub releases
+RUN wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz && \
+    tar xzf /tmp/wabt.tar.gz -C /opt && \
+    rm /tmp/wabt.tar.gz && \
+    ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c && \
+    ln -sf /opt/wabt-1.0.41/bin/wasm2wat /usr/local/bin/wasm2wat && \
+    ln -sf /opt/wabt-1.0.41/bin/wat2wasm /usr/local/bin/wat2wasm && \
+    ln -sf /opt/wabt-1.0.41/bin/wasm-objdump /usr/local/bin/wasm-objdump && \
+    ln -sf /opt/wabt-1.0.41/bin/wasm-interp /usr/local/bin/wasm-interp
+
+# Symlink wasm-ld from lld-16
+RUN update-alternatives --install /usr/bin/wasm-ld wasm-ld /usr/bin/wasm-ld-16 100
+
+# Verify WABT installation
+RUN wasm2c --version && wasm2wat --version && wasm-ld --version
+
+# ============================================================
+# 9. WASI SDK (C/C++ toolchain for WebAssembly)
+# ============================================================
+# Using latest stable release (33.0) for full WASM feature support
+RUN wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-33/wasi-sdk-33.0-x86_64-linux.tar.gz" -O /tmp/wasi-sdk.tar.gz && \
+    tar xzf /tmp/wasi-sdk.tar.gz -C /opt && \
+    rm /tmp/wasi-sdk.tar.gz
+
+# Add WASI SDK to PATH
+# Note: wasi-sdk-33.0 extracts to wasi-sdk-33.0-x86_64-linux/
+ENV WASI_SDK_PATH=/opt/wasi-sdk-33.0-x86_64-linux
+ENV PATH="${WASI_SDK_PATH}/bin:${PATH}"
+
+# Verify WASI SDK
+RUN ${WASI_SDK_PATH}/bin/clang --version && \
+    ${WASI_SDK_PATH}/bin/wasm-ld --version
+
+# ============================================================
+# 10. User setup
 # ============================================================
 RUN useradd -m map2check && \
     echo "map2check:map2check" | chpasswd && \
@@ -146,11 +188,12 @@ RUN git config --global user.email "map2check.tool@gmail.com" && \
     git config --global --add safe.directory /workspace
 
 # ============================================================
-# 9. Environment variables for Map2Check build
+# 11. Environment variables for Map2Check build
 # ============================================================
 ENV LLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm
 ENV CC=/usr/bin/clang-16
 ENV CXX=/usr/bin/clang++-16
 ENV KLEE_DIR=/opt/klee
+ENV WASI_SDK_PATH=/opt/wasi-sdk-33.0-x86_64-linux
 
 CMD ["/bin/bash"]

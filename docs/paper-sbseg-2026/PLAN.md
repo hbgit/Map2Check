@@ -24,7 +24,7 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 | **Sistema** | JEMS3 |
 | **IA Generativa** | Verificar Código de Conduta SBC — declarar uso se aplicável |
 
-**Título provisório:** *Map2Check 2026: Modernização Sustentável de uma Ferramenta de Verificação de Memory Safety com LLVM 16 e New Pass Manager*
+**Título provisório:** *Map2Check 2026: Modernização Sustentável de uma Ferramenta de Verificação de Memory Safety com LLVM 16 e Extensão para WebAssembly*
 
 ---
 
@@ -36,12 +36,30 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 | 2 | História e Evolução | ~1 | 🔴 0% — não iniciado | — |
 | 3 | Arquitetura e Funcionalidades | ~2.5 | 🔴 0% — não iniciado | — |
 | 4 | Features de Cibersegurança | ~2 | 🔴 0% — não iniciado | — |
-| 5 | Demonstração Planejada | ~0.5 | 🔴 0% — não iniciado | — |
-| 6 | Avaliação, Perspectivas e Conclusão | ~1 | 🔴 0% — não iniciado | — |
+| 5 | WebAssembly (Lifting + Verificação) | ~1 | 🟡 10% — plano detalhado em `docs/migration/1.7-wasm-pipeline.md` | 2026-06-23 |
+| 6 | Demonstração Planejada | ~0.5 | 🔴 0% — não iniciado | — |
+| 7 | Avaliação, Perspectivas e Conclusão | ~1 | 🔴 0% — não iniciado | — |
 | — | Referências | ~1 | 🟡 Em backlog — aguardando usuário | — |
 | — | Apêndice de Reprodutibilidade | ~1 | 🔴 0% — não iniciado | — |
 
-**Progresso geral:** 0% (estrutura criada, conteúdo ainda não redigido)
+**Progresso geral:** ~8% (estrutura criada, plano WASM detalhado, conteúdo do artigo em rascunho)
+
+---
+
+## Progresso Específico — WebAssembly (Map2Check-WASM)
+
+**Documento de referência:** [`docs/migration/1.7-wasm-pipeline.md`](../migration/1.7-wasm-pipeline.md)
+
+| Sub-etapa | Descrição | Status | Sessão |
+|:---|:---|:---|:---|
+| 1.7.1 | Infraestrutura WABT no Docker | ✅ Concluído — 2026-06-27 | 1 |
+| 1.7.2 | WasmLifter (frontend) | ✅ Concluído — 2026-06-27 | 1 |
+| 1.7.3 | PoC end-to-end manual | 🟡 Em andamento — teste manual validado | 2 |
+| 1.7.4 | MemoryTrackPass adaptado para WASM | 🔴 Não iniciado | 2 |
+| 1.7.5 | CLI `--wasm` + WasmBackend | 🔴 Não iniciado | 3 |
+| 1.7.6 | Benchmarks Juliet WASM | 🔴 Não iniciado | 3 |
+| 1.7.7 | Documentação e integração ao artigo | 🔴 Não iniciado | 4 |
+| 1.7.8–1.7.12 | Taint analysis, threat modeling IoT, otimização SMT | 🔴 Trabalho futuro (pós-SBSeg) | — |
 
 ---
 
@@ -79,10 +97,13 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 | 0 | Escrever PLAN.md + outline.md | ✅ Feito |
 | 0 | Preparar roteiro do vídeo | ✅ Feito |
 | 0 | Consolidar dados brutos em `data/` | ✅ Feito |
-| 1 | Implementar WASM (pipeline LLVM-WASM) + testes SV-COMP | 🟡 Em andamento — após merge feat-update |
-| 2–4 | Revisar outline com orientador + integrar resultados WASM | 🟡 Pendente |
+| 1 | Definir plano de implementação WASM (`docs/migration/1.7-wasm-pipeline.md`) | ✅ Feito |
+| 1–2 | Implementar infraestrutura WABT no Docker + WasmLifter (1.7.1–1.7.2) | 🟡 Em andamento — sessão 1 |
+| 2–3 | PoC end-to-end + adaptar MemoryTrackPass WASM (1.7.3–1.7.4) | 🔴 Não iniciado — sessão 2 |
+| 3–4 | CLI `--wasm` + WasmBackend + benchmarks Juliet (1.7.5–1.7.6) | 🔴 Não iniciado — sessão 3 |
+| 4 | Integrar resultados WASM ao outline + revisar com orientador | 🟡 Pendente |
 
-**Entregável Sprint 0:** Outline aprovado + ambiente de build reprodutível validado.
+**Entregável Sprint 0:** Outline aprovado + ambiente de build reprodutível validado + plano WASM detalhado.
 
 ---
 
@@ -99,17 +120,19 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 
 ---
 
-## Sprint 2 — Cibersegurança + Demo + Vídeo (03–13/jul, ~10 dias)
+## Sprint 2 — Cibersegurança + WASM + Demo + Vídeo (03–13/jul, ~10 dias)
 
 | Dia | Tarefa | Seções | Status |
 |:---|:---|:---|:---|
-| 1–3 | Redigir Features de Cibersegurança | Sec 4 | 🔴 Não iniciado |
-| 4–5 | Redigir Demonstração Planejada | Sec 5 | 🔴 Não iniciado |
-| 6–7 | Redigir Avaliação, Perspectivas e Conclusão | Sec 6 | 🔴 Não iniciado |
-| 8–9 | Gravar e editar vídeo técnico | — | 🔴 Não iniciado |
+| 1–2 | Redigir Features de Cibersegurança | Sec 4 | 🔴 Não iniciado |
+| 3–5 | Implementar pipeline WASM (sessões 2–3 de `1.7-wasm-pipeline.md`) | Sec 5 | 🟡 Em andamento — aguardando sessões |
+| 5–6 | Redigir seção WebAssembly + resultados Juliet | Sec 5 | 🔴 Não iniciado |
+| 7 | Redigir Demonstração Planejada | Sec 6 | 🔴 Não iniciado |
+| 8 | Redigir Avaliação, Perspectivas e Conclusão | Sec 7 | 🔴 Não iniciado |
+| 9–10 | Gravar e editar vídeo técnico | — | 🔴 Não iniciado |
 | 10 | Escrever Apêndice de Reprodutibilidade | Apêndice | 🔴 Não iniciado |
 
-**Entregável Sprint 2:** Artigo completo em draft + vídeo publicado + checklist CTA.
+**Entregável Sprint 2:** Artigo completo em draft + pipeline WASM funcional + vídeo publicado + checklist CTA.
 
 ---
 
@@ -134,7 +157,7 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 ## Notas de Iteração
 
 ### Iteração 1 — 2026-06-20
-- **Todas as 6 seções redigidas** em português (Introdução, História, Arquitetura, Cibersegurança, Demonstração, Conclusão + Apêndice).
+- **Todas as 7 seções redigidas** em português (Introdução, História, Arquitetura, Cibersegurança, WebAssembly, Demonstração, Conclusão + Apêndice).
 - **Macros LaTeX** criadas para todos os dados numéricos (\TotalTasks, \ScoreTestComp, etc.).
 - **Tabelas** inseridas: passes de instrumentação, mapeamento CWE, resultados TestComp 2026, bugs críticos.
 - **Figuras** referenciadas: timeline, pipeline, passes, TestComp 2026, CI/CD.
@@ -142,6 +165,27 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 - **PDF não compilado** — ambiente sem pdflatex. Compilação a ser feita pelo usuário.
 - BACKLOG: referências BibTeX + figuras PNG + compilação PDF + gravação vídeo.
 
+### Iteração 2 — 2026-06-23
+- **Plano WASM detalhado** criado em `docs/migration/1.7-wasm-pipeline.md` com 4 sessões de implementação.
+- **Migration plan atualizado** (`docs/map2check_migration_plan.md`) com Fase 1.7, riscos e dependências.
+- **PLAN.md do SBSeg atualizado** com nova seção WebAssembly (Sec 5) e título provisório revisado.
+- **Status das sub-etapas WASM:**
+  - 1.7.1–1.7.2: 🟡 Em andamento (sessão 1 — infra + lifter)
+  - 1.7.3–1.7.4: 🔴 Não iniciado (sessão 2 — PoC + passes)
+  - 1.7.5–1.7.6: 🔴 Não iniciado (sessão 3 — CLI + benchmarks)
+  - 1.7.7: 🔴 Não iniciado (sessão 4 — artigo)
+  - 1.7.8–1.7.12: 🔴 Trabalho futuro (pós-SBSeg)
+
+### Iteração 3 — 2026-06-27
+- **Sessão 1 WASM concluída** (infra + WasmLifter):
+  - Dockerfile.dev atualizado com WABT 1.0.27, wasi-sdk-20.0, lld-16
+  - Pipeline validado: `C → WASM (clang-16 --target=wasm32-unknown-unknown) → C (wasm2c) → LLVM IR (clang-16)`
+  - Módulo `WasmLifter` implementado (`wasm_lifter.hpp` + `wasm_lifter.cpp`) e compilando
+  - Integrado ao `CMakeLists.txt` do frontend
+  - Descoberta técnica: wasm32-wasi gera opcodes não suportados pelo wasm2c 1.0.27; usar `wasm32-unknown-unknown -nostdlib`
+- **TestComp ControlFlow coverage-error-call concluído**: 138 tasks, 38 FALSE, 30 TRUE, score 38/138
+- **Artigo ainda pendente** — Trilha A (atualização com dados TestComp) não iniciada
+
 ---
 
-*Última atualização: 2026-06-18*
+*Última atualização: 2026-06-27*

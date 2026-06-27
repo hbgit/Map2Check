@@ -1,30 +1,51 @@
-cmake_minimum_required(VERSION 3.5)
-  include(ExternalProject)
-find_package(Git REQUIRED)
-# TODO: Fix z3
+# FindKlee.cmake — Locate KLEE 3.1 (pre-installed in container)
+#
+# In the Dockerfile.dev environment, KLEE 3.1 is built from source and
+# installed to /opt/klee:
+#   git clone -b v3.1 https://github.com/klee/klee.git
+#   cmake .. -DCMAKE_INSTALL_PREFIX=/opt/klee ...
+#   make install
+#
+# Sets:
+#   KLEE_DIR          — KLEE installation prefix
+#   KLEE_BIN_DIR      — KLEE binary directory (contains klee, kleaver, etc.)
+#   KLEE_INCLUDE_DIR  — KLEE header directory
+#   KLEE_LIB_DIR      — KLEE library directory
 
-# set(CMAKE_C_COMPILER ${CLANG_CC})
-# set(CMAKE_CXX_COMPILER  ${CLANG_CXX})
-ExternalProject_Add( Klee
-  PREFIX dependencies/Klee
-  DEPENDS STP KleeUCLibC z3Solver
-  GIT_REPOSITORY https://github.com/RafaelSa94/klee.git
-  GIT_TAG map2check_svcomp2018
-  CMAKE_ARGS
-     -DENABLE_SOLVER_Z3=ON
-     -DZ3_LIBRARIES=${Z3_FOLDER}/lib/libz3.so
-     -DZ3_INCLUDE_DIRS=${Z3_FOLDER}/include
-     -DENABLE_SOLVER_STP=ON
-     -DKLEE_RUNTIME_BUILD_TYPE=Release
-     -DENABLE_POSIX_RUNTIME=ON
-     -DENABLE_KLEE_UCLIBC=ON
-     -DKLEE_UCLIBC_PATH=${KLEE_UCLIB_FOLDER}
-     -DCMAKE_BUILD_TYPE=Release
-     -DLLVM_CONFIG_BINARY=${LLVM_CONFIG_BIN}
-     -DENABLE_TCMALLOC=OFF
-     -DENABLE_SYSTEM_TESTS=OFF
-     -DENABLE_UNIT_TESTS=OFF
-     -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
-     -DCMAKE_C_COMPILER=${CLANG_CC}
-     -DCMAKE_CXX_COMPILER=${CLANG_CXX}
-)
+# Check KLEE_DIR env var first, then default paths
+if(DEFINED ENV{KLEE_DIR})
+  set(KLEE_DIR "$ENV{KLEE_DIR}")
+elseif(EXISTS "/opt/klee")
+  set(KLEE_DIR "/opt/klee")
+else()
+  message(FATAL_ERROR "KLEE not found! Set KLEE_DIR or install to /opt/klee")
+endif()
+
+set(KLEE_BIN_DIR "${KLEE_DIR}/bin")
+set(KLEE_INCLUDE_DIR "${KLEE_DIR}/include")
+set(KLEE_LIB_DIR "${KLEE_DIR}/lib")
+
+# Validate installation
+find_program(KLEE_EXECUTABLE NAMES klee PATHS ${KLEE_BIN_DIR} NO_DEFAULT_PATH)
+
+if(KLEE_EXECUTABLE)
+  execute_process(COMMAND ${KLEE_EXECUTABLE} --version
+    OUTPUT_VARIABLE KLEE_VERSION_STRING
+    ERROR_VARIABLE KLEE_VERSION_STRING
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message(STATUS "Found KLEE: ${KLEE_EXECUTABLE}")
+  message(STATUS "KLEE version: ${KLEE_VERSION_STRING}")
+else()
+  message(WARNING "KLEE binary not found in ${KLEE_BIN_DIR}. Runtime execution will fail.")
+endif()
+
+# Install KLEE binaries for release packaging
+if(KLEE_EXECUTABLE)
+  list(APPEND MAP2CHECK_KLEE_BINS "klee" "kleaver" "ktest-tool")
+  foreach(B ${MAP2CHECK_KLEE_BINS})
+    set(BIN "${KLEE_BIN_DIR}/${B}")
+    if(EXISTS "${BIN}")
+      install(PROGRAMS ${BIN} DESTINATION bin)
+    endif()
+  endforeach()
+endif()

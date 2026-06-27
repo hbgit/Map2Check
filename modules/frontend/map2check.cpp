@@ -32,7 +32,7 @@
 #include "witness/witness_include.hpp"
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 #define Map2CheckVersion "v7.3.1-Flock : Wed Nov 27 20:38:14 UTC 2019"
 
 // TODO(hbgit): should get preprocessor flags from CMake
@@ -180,7 +180,7 @@ int map2check_execution(map2check_args args) {
    **/
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
-  std::string extension = boost::filesystem::extension(args.inputFile);
+  std::string extension = fs::path(args.inputFile).extension().string();
   // cout << extension << endl;
   if (extension.compare(".c") && extension.compare(".i") &&
       extension.compare(".bc")) {
@@ -191,7 +191,7 @@ int map2check_execution(map2check_args args) {
   }
 
   std::unique_ptr<Map2Check::Caller> caller;
-  caller = boost::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
+  caller = std::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                  generator);
   caller->c_program_fullpath = args.inputFile;
   caller->setTimeout(args.timeout);
@@ -222,7 +222,7 @@ int map2check_execution(map2check_args args) {
   // (4) Retrieve results
   // TODO(hbgit): create methods to generate counter example
   std::unique_ptr<Map2Check::CounterExample> counterExample =
-      boost::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
+      std::make_unique<Map2Check::CounterExample>(std::string(args.inputFile),
                                                     is_llvmir_in);
 
   Map2Check::PropertyViolated propertyViolated;
@@ -297,12 +297,17 @@ int main(int argc, char **argv) {
         ("debug", "\tdebug mode")
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
+        ("nondet-generator", po::value<std::string>(),
+                      R"(specifies the nondet-generator, valid values are fuzzer (libFuzzer),
+symex (Klee))")
         ("smt-solver", po::value<std::string>()->default_value("z3"),
                       R"(specifies the smt-solver, valid values are stp (STP),
 z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("timeout", po::value<unsigned>(),
                       "\ttimeout for map2check execution")
-        ("target-function", "\tsearches for __VERIFIER_error is reachable")
+        ("target-function", "\tchecks wether <target-functions> is reachable")
+        ("target-function-name", po::value<std::string>()->default_value("__VERIFIER_error"),
+                      R"(define the function name to be searched)")
         ("generate-testcase", "\tcreates c program with fail testcase (experimental)")
         ("memtrack", "\tcheck for memory errors")
         ("print-counter", "\tprint counterexample")
@@ -371,7 +376,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       args.timeout = timeout;
     }
     if (vm.count("target-function")) {
-      string function = "__VERIFIER_error";
+      string function = vm["target-function-name"].as<string>();
       args.function = function;
       args.mode = Map2Check::Map2CheckMode::REACHABILITY_MODE;
       args.spectTrue = "target-function";
@@ -408,20 +413,50 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       Map2Check::Log::Debug("Current path:");
       system("echo $MAP2CHECK_PATH");
     }
+    if (vm.count("nondet-generator")) {
+      string generatorname = vm["nondet-generator"].as<string>();
+      std::transform(generatorname.begin(), generatorname.end(),
+                     generatorname.begin(), [](unsigned char c){
+                     return std::tolower(c); });
+
+      std::vector<std::string> available_generators = {"fuzzer", "symex"};
+
+      if ( !std::count(available_generators.begin(), available_generators.end(), generatorname) ) {
+        std::cout << "Selected generator don't exist, available: ";
+        for(auto &s : available_generators) {
+          std::cout << " " << s << " ";
+        }
+        std::cout << desc << "\n";
+        return ERROR_IN_COMMAND_LINE;
+      } else {
+        std::cout << "Adopting " + generatorname + " nondet-generator... \n";
+        if(generatorname == available_generators[0])
+          args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+        if(generatorname == available_generators[1])
+          args.generator = Map2Check::NonDetGenerator::Klee;
+      }
+    } else {
+      args.generator = Map2Check::NonDetGenerator::None;
+    }
     if (vm.count("input-file")) {
       std::string pathfile;
       pathfile = accumulate(
-          boost::begin(vm["input-file"].as<std::vector<std::string>>()),
-          boost::end(vm["input-file"].as<std::vector<std::string>>()),
+          std::begin(vm["input-file"].as<std::vector<std::string>>()),
+          std::end(vm["input-file"].as<std::vector<std::string>>()),
           pathfile);
 
       // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
-      args.generator = Map2Check::NonDetGenerator::LibFuzzer;
-      map2check_execution(args);
-      if (!foundViolation) {
-        args.generator = Map2Check::NonDetGenerator::Klee;
+      if(args.generator == Map2Check::NonDetGenerator::None) {
+        args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+        map2check_execution(args);
+        if (!foundViolation) {
+          args.generator = Map2Check::NonDetGenerator::Klee;
+          map2check_execution(args);
+        }
+      }
+      else {
         map2check_execution(args);
       }
     }

@@ -29,27 +29,29 @@
 // using namespace llvm;
 using llvm::Constant;
 using llvm::Function;
+using llvm::FunctionCallee;
 using llvm::LLVMContext;
+using llvm::PointerType;
 using llvm::Type;
 
 #define CONSTANT_GENERATOR(type) \
  private:                        \
-  Constant *NonDet##type = NULL; \
+  FunctionCallee NonDet##type; \
                                  \
  public:                         \
-  Constant *getNonDet##type##Function() { return this->NonDet##type; }
+  FunctionCallee getNonDet##type##Function() { return this->NonDet##type; }
 
 #define NON_DET_FUNCTIONS_HELPER(type, c_type)                                \
   this->NonDet##type = F->getParent()->getOrInsertFunction(                   \
       "map2check_nondet_" #c_type, Type::getVoidTy(*Ctx),                     \
       Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), \
-      Type::getInt8PtrTy(*Ctx));
+      PointerType::get(*Ctx, 0));
 
 #define NON_DET_FUNCTIONS_HELPER_DOUBLE(type, c_type)                                \
   this->NonDet##type = F->getParent()->getOrInsertFunction(                   \
       "map2check_nondet_" #c_type, Type::getVoidTy(*Ctx),                     \
       Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getDoubleTy(*Ctx), \
-      Type::getInt8PtrTy(*Ctx));
+      PointerType::get(*Ctx, 0));
 
 class NonDetFunctions {
   CONSTANT_GENERATOR(Integer)

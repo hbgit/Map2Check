@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/make_unique.hpp>
+#include <memory>
 
 #include "../utils/log.hpp"
 #include "../utils/tools.hpp"

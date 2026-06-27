@@ -74,3 +74,4 @@ target_wrapper.*
 
 # QtCreator CMake
 CMakeLists.txt.user*
+test-comp2026/simulation/release/*

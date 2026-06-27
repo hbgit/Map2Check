@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include <boost/uuid/sha1.hpp>
+#include <boost/uuid/detail/sha1.hpp>
 
 using std::string;
 

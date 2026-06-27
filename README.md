@@ -21,10 +21,9 @@ ___
 
 #### Requirements for using the tool
 
-To use the Map2Check tool is necessary a Linux 64-bit OS system. In the linux OS, you should install the  requirements, typing the commands:
+To use the Map2Check tool is necessary a Linux 64-bit OS system (Ubuntu 22.04 recommended). In the linux OS, you should install the requirements, typing the commands:
 ``` bash
-$ sudo apt install python-minimal
-$ sudo apt install libc6-dev
+$ sudo apt install python3 libc6-dev
 ```
 
 Our binary tool is avaliable at https://github.com/hbgit/Map2Check/releases
@@ -64,25 +63,46 @@ ___
 
 #### How to build Map2Check?
 
-You can build Map2Check using our [Dockerfile](/Dockerfile) by clone our repository:
+You can build Map2Check using our development Docker image ([Dockerfile.dev](/Dockerfile.dev)), which provides Ubuntu 22.04 with LLVM 16 and KLEE 3.1 pre-installed:
 
 ``` bash
 $ git clone https://github.com/hbgit/Map2Check.git
 $ cd Map2Check
 $ git submodule update --init --recursive
-# Build docker image to compile Map2Check
-$ docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
-$ docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh; ./make-unit-test.sh"
+# Build the development Docker image
+$ docker build -t map2check-dev -f Dockerfile.dev .
+$ docker run -it --rm -v $(pwd):/workspace map2check-dev /bin/bash
 ```
+
+Inside the container (or on a host with LLVM 16 installed):
+
+``` bash
+$ mkdir build && cd build
+$ cmake .. -G Ninja \
+    -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+    -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON
+$ ninja && ninja install
+```
+
+Requires: **CMake ≥ 3.20**, **C++17**, **LLVM 16**, **Boost**.
 
 More details at https://map2check.github.io/docker.html
 
-#### How to run the regression testing
+#### How to run the tests
 
-You should build the [Benchexec](https://github.com/sosy-lab/benchexec) docker image that is available in our repository in the [submodule](utils/benchexecrun):
+**Unit tests** (no KLEE/LibFuzzer required):
 
 ``` bash
-$ cd Map2Check
+$ mkdir build && cd build
+$ cmake .. -G Ninja \
+    -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+    -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON -DENABLE_TEST=ON
+$ ninja && ctest --output-on-failure
+```
+
+**Regression tests** require the [Benchexec](https://github.com/sosy-lab/benchexec) docker image available in the [submodule](utils/benchexecrun):
+
+``` bash
 $ docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile utils/benchexecrun/
 # Running the regression testing
 $ ./make-regression-test.sh t
@@ -117,6 +137,7 @@ ___
 Maintainers:
   - Herbert O. Rocha (since 2014), Federal University of Roraima, Brazil - https://hbgit.github.io/
   - Rafael Menezes   (since 2016), Federal University of Roraima, Brazil - https://rafaelsa94.github.io/
+  - Guilherme Bernardo   (since 2025), Federal University of Roraima, Brazil - https://github.com/GuilhermeBn198
 
 Questions and bug reports:  
   E-mail: map2check.tool@gmail.com

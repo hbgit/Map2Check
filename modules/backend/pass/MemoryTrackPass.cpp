@@ -14,22 +14,37 @@
 
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
+#include <llvm/Support/CommandLine.h>
+
+static llvm::cl::opt<std::string> MemTrackEntryFunction(
+    "m2c-entry-function",
+    llvm::cl::desc("Name of the entry function for MemoryTrackPass"),
+    llvm::cl::init("main"));
+
+static llvm::cl::opt<bool> WasmMode(
+    "wasm-mode",
+    llvm::cl::desc("Enable WASM bounds checking on linear memory accesses"),
+    llvm::cl::init(false));
 
 // using namespace llvm;
 using llvm::AllocaInst;
+using llvm::APInt;
 using llvm::Argument;
 using llvm::BasicBlock;
 using llvm::CallInst;
 using llvm::CastInst;
+using llvm::ConstantInt;
 using llvm::DataLayout;
 using llvm::DebugLoc;
 using llvm::dyn_cast;
+using llvm::GetElementPtrInst;
 using llvm::GlobalVariable;
 using llvm::Instruction;
 using llvm::IRBuilder;
 using llvm::LoadInst;
 using llvm::Module;
 using llvm::StoreInst;
+using llvm::StructType;
 using llvm::Twine;
 using llvm::Type;
 using llvm::Value;
@@ -771,31 +786,23 @@ PreservedAnalyses MemoryTrackPass::run(Function &F,
   this->prepareMap2CheckInstructions();
   // this->instrumentInit(); //overhead BUG
 
-  if (F.getName() == "main") {
-    // auto globalVars = currentModule->getGlobalList();
+  if (F.getName() == MemTrackEntryFunction) {
     this->functionsValues.push_back(this->currentFunction);
     this->mainFunctionInitialized = true;
     this->mainFunction = &F;
-    this->instrumentInit();  // Related to BUG checkout this
+    this->instrumentInit();
   }
-
-  // this->instrumentFunctionAddress();
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
     for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
       this->currentInstruction = i;
 
-      // i->dump();
-
       if (dyn_cast<CallInst>(&*i) != NULL) {
-        // callInst->dump();
         this->getDebugInfo();
         this->runOnCallInstruction();
-        // errs() << "runOnCallInstruction() \n";
       } else if (dyn_cast<StoreInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnStoreInstruction();
-        // errs() << "runOnStoreInstruction() \n";
       } else if (dyn_cast<AllocaInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnAllocaInstruction();
@@ -803,12 +810,68 @@ PreservedAnalyses MemoryTrackPass::run(Function &F,
       } else if (dyn_cast<LoadInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnLoadInstruction();
-        // errs() << "runOnLoadInstruction() \n";
+      }
+      if (WasmMode) {
+        if (auto* SI = dyn_cast<StoreInst>(&*i)) {
+          instrumentWasmBoundsCheck(&*i, SI->getPointerOperand(), SI->getValueOperand()->getType());
+        } else if (auto* LI = dyn_cast<LoadInst>(&*i)) {
+          instrumentWasmBoundsCheck(&*i, LI->getPointerOperand(), LI->getType());
+        }
       }
     }
   }
 
   return PreservedAnalyses::none();
+}
+
+void MemoryTrackPass::instrumentWasmBoundsCheck(llvm::Instruction* I,
+                                                  llvm::Value* ptr,
+                                                  llvm::Type* accessType) {
+  Value* base = ptr->stripPointerCasts();
+  GlobalVariable* global = nullptr;
+  while (auto* GEP = dyn_cast<GetElementPtrInst>(base)) {
+    base = GEP->getPointerOperand();
+  }
+  global = dyn_cast<GlobalVariable>(base);
+  if (!global) return;
+
+  llvm::StringRef name = global->getName();
+  if (!name.contains("memory") && !name.contains("Memory")) return;
+
+  auto* structTy = dyn_cast<StructType>(global->getValueType());
+  if (!structTy) return;
+  unsigned sizeFieldIdx = 1;
+  if (structTy->getNumElements() <= sizeFieldIdx) return;
+
+  auto* M = I->getModule();
+  auto& Ctx = I->getContext();
+  auto* int64Ty = Type::getInt64Ty(Ctx);
+  auto* dataLayout = &M->getDataLayout();
+
+  IRBuilder<> builder(I);
+  auto* sizePtr = builder.CreateStructGEP(structTy, global, sizeFieldIdx);
+  auto* sizeLoad = builder.CreateLoad(int64Ty, sizePtr);
+
+  APInt constOffset(64, 0);
+  auto* gep = dyn_cast<GetElementPtrInst>(ptr->stripPointerCasts());
+  if (gep && gep->accumulateConstantOffset(*dataLayout, constOffset)) {
+    uint64_t typeSize = dataLayout->getTypeStoreSize(accessType);
+    uint64_t totalOffset = constOffset.getZExtValue() + typeSize;
+    auto* offsetVal = ConstantInt::get(int64Ty, totalOffset);
+    auto* cond = builder.CreateICmpUGT(offsetVal, sizeLoad, "wasm_oob");
+
+    auto* errorBB = llvm::BasicBlock::Create(Ctx, "wasm_bounds_error", I->getFunction());
+    auto* contBB  = llvm::BasicBlock::Create(Ctx, "wasm_bounds_ok", I->getFunction());
+
+    builder.CreateCondBr(cond, errorBB, contBB);
+
+    IRBuilder<> errBuilder(errorBB);
+    auto trapFn = M->getOrInsertFunction("map2check_error", Type::getVoidTy(Ctx));
+    errBuilder.CreateCall(trapFn, {});
+    errBuilder.CreateBr(contBB);
+
+    I->moveBefore(&contBB->front());
+  }
 }
 
 // --- New Pass Manager plugin registration ---

@@ -63,6 +63,8 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   void runOnLoadInstruction();
   void switchCallInstruction();
   void prepareMap2CheckInstructions();
+  void instrumentWasmBoundsCheck(llvm::Instruction* I, llvm::Value* ptr,
+                                   llvm::Type* accessType);
   // void addWitnessInfo(std::string info);
   void getDebugInfo();
   int getLineNumber();

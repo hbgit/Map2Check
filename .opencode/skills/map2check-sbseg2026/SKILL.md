@@ -85,18 +85,22 @@ TestComp 2026 Heap (C.coverage-error-call.Heap):
 Bugs críticos corrigidos:  3 (KLEE flags, isRequired, target function)
 
 WASM Pipeline:
-  Branch:          feat-wasm-verification (47 files diff from feat-update)
+  Branch:          feat-wasm-verification
   WABT:            1.0.41 (wasm2c)
   wasi-sdk:        33.0 (clang --target=wasm32-wasip1)
-  WasmLifter:      ✅ modules/frontend/wasm_lifter.{hpp,cpp} compilando
-  Pipeline script: ✅ test_wasm_pipeline.sh — 3 cenários C→WASM→LLVM IR validados
+  WasmLifter:      ✅ modules/frontend/wasm_lifter.{hpp,cpp} — lifting funcional
+  Entry point:     ✅ Detecção automática de w2c_*_0x5Fstart
+  Pipeline script: ✅ test_wasm_pipeline.sh — 3 cenários validados
   Docker:          ✅ WABT + wasi-sdk no Dockerfile.dev
-  CLI --wasm:      🔴 Não integrado
-  Passes adaptados:🔴 Não iniciado (MemoryTrackPass p/ WASM, Map2CheckLibrary p/ w2c__start)
-  PoC E2E:         🔴 Não testado (detectar overflow em WASM via KLEE)
+  CLI --wasm:      ✅ Integrado ao map2check.cpp + flag --entry-function
+  WasmRuntimeStubs:✅ Stubs malloc-based para compatibilidade KLEE
+  Wrapper auto:    ✅ generateWasmWrapperStatic() — main() → wasm bridge
+  Passes:          ✅ Map2CheckLibrary + MemoryTrackPass com --entry-function configurável
+  Bounds check:    ✅ instrumentWasmBoundsCheck() — detecta stores/loads em memória WASM
+  KLEE E2E:        ✅ 250M instruções executadas no pipeline WASM completo
+  Bugs detectados: 🟡 PoC funcional, bounds check precisa de tuning de performance KLEE
   Juliet benchmarks:🔴 Não iniciado
-  Seção no artigo: 🔴 Não iniciado (~1 pág, pipeline + resultados)
-  Deadline MVP:    13/jul/2026
+  Seção no artigo: 🔴 Não iniciado
 ```
 
 ## 🖼️ Figure Inventory

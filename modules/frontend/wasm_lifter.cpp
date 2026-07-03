@@ -149,18 +149,23 @@ void WasmLifter::extractMetadata(const std::string& llPath,
   }
   
   std::string line;
-  std::regex entryPointRegex("define.*@w2c_(start|main)\\(");
   std::regex exportRegex("define.*@w2c_([A-Za-z0-9_]+)\\(");
-  
   while (std::getline(llFile, line)) {
     std::smatch match;
-    
-    // Look for entry point
-    if (std::regex_search(line, match, entryPointRegex)) {
-      result.entryPointName = "w2c_" + std::string(match[1]);
+
+    // Look for entry point: w2c_*_0x5Fstart (mangled WASM start function)
+    if (result.entryPointName.empty() &&
+        line.find("_0x5Fstart") != std::string::npos &&
+        line.find("@w2c_") != std::string::npos &&
+        line.find("define") != std::string::npos) {
+      size_t atPos = line.find("@w2c_");
+      size_t endPos = line.find("(", atPos);
+      if (atPos != std::string::npos && endPos != std::string::npos) {
+        result.entryPointName = line.substr(atPos + 1, endPos - atPos - 1);
+      }
     }
-    
-    // Look for exported functions
+
+    // Look for exported functions (skip if it's the entry point)
     if (std::regex_search(line, match, exportRegex)) {
       std::string funcName = "w2c_" + std::string(match[1]);
       if (funcName != result.entryPointName) {
@@ -168,9 +173,9 @@ void WasmLifter::extractMetadata(const std::string& llPath,
       }
     }
   }
-  
+
   llFile.close();
-  
+
   // Default entry point if not found
   if (result.entryPointName.empty()) {
     result.entryPointName = "w2c__start";

@@ -23,6 +23,18 @@ list(APPEND MAP2CHECK_C_LIB "TrackBBLog")
 list(APPEND MAP2CHECK_C_LIB "WitnessGeneration")
 list(APPEND MAP2CHECK_C_LIB "WitnessGenerationNone")
 
+# WasmRuntimeStubs requires WABT include path for wasm-rt.h
+add_custom_command(
+  OUTPUT "WasmRuntimeStubs.bc"
+  COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_EMIT_LLVM_FLAGS}
+    -I/opt/wabt-1.0.41/include
+    ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
+  DEPENDS ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
+  COMMENT "Compiling WasmRuntimeStubs to bytecode")
+add_custom_target(WasmRuntimeStubs ALL DEPENDS WasmRuntimeStubs.bc)
+install(FILES ${PROJECT_BINARY_DIR}/modules/backend/library/lib/WasmRuntimeStubs.bc
+  DESTINATION lib)
+
 foreach(F ${MAP2CHECK_C_LIB})
   add_custom_command(
     OUTPUT "${F}.bc"

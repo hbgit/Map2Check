@@ -6,7 +6,7 @@ description: "Contexto completo do artigo SBSeg 2026 SF — Map2Check 2026. Meta
 <!-- argument-hint: [topic, framework name, or chapter number] -->
 
 # Map2Check 2.0 — SBSeg 2026 SF
-**Autores**: Guilherme Lucas Pereira Bernardo (UFRN), Herbert Oliveira Rocha (orientador) | **Submissão**: 20/jul/2026 | **Sections**: 6 | **Single-blind** — nomes podem constar
+**Autores**: Guilherme Lucas Pereira Bernardo (UFRN), Inácio Viana (UFRN), Francisco Nobre (UFRR), Herbert Oliveira Rocha (orientador, UFRR) | **Submissão**: 20/jul/2026 | **Sections**: 5 | **Single-blind** — nomes podem constar
 
 ## How to Use This Skill
 
@@ -101,14 +101,14 @@ WASM Pipeline:
 
 ## 🖼️ Figure Inventory
 
-| ID | Descrição | Seção |
-|:---|:----------|:------|
-| `fig1-timeline` | Timeline visual 2016→2026 | Sec 2 |
-| `fig2-pipeline` | Diagrama do pipeline de verificação | Sec 3 |
-| `fig3-passes` | Diagrama dos 9 passes com dependências | Sec 3 |
-| `fig4-testcomp2026` | Gráfico de resultados TestComp 2026 | Sec 4 |
-| `fig5-cicd` | Workflow CI/CD (GitHub Actions) | Sec 3 |
-| `fig6-wasm-pipeline` | Pipeline WASM: .wasm → wasm2c → LLVM IR → Passes → KLEE | Sec 4 |
+| ID | Descrição | Seção | Status |
+|:---|:----------|:------|:------|
+| `fig1-timeline` | Timeline visual 2016→2026 com comparação de concorrentes | Sec 2 | Redesenhar (fonte maior, TikZ) |
+| `fig2-pipeline` | Diagrama do pipeline de verificação (5 estágios) | Sec 3 | Redesenhar (fonte maior, TikZ) |
+| ~~`fig3-passes`~~ | ~~Diagrama dos passes~~ | — | Removida (orientador) |
+| ~~`fig4-testcomp2026`~~ | ~~Gráfico de pizza TestComp~~ | — | Removida (orientador: nunca usar pizza) |
+| ~~`fig5-cicd`~~ | ~~Workflow CI/CD~~ | — | Removida (substituída por parágrafo + OpenSSF) |
+| `fig6-wasm-pipeline` | Pipeline WASM: .wasm → wasm2c → LLVM IR → Passes → KLEE | Sec 4 | A criar |
 
 ---
 
@@ -157,12 +157,12 @@ O mapeamento torna resultados de verificação formal acionáveis para times de 
 
 | # | Title | Pages | Figures | Data Sources | Key Frameworks |
 |---|-------|-------|---------|--------------|----------------|
-| [ch01](chapters/ch01-introducao-motivacao.md) | Introdução e Motivação | ~1 | — | `docs/pré-projeto -Map2Check 2.0...md` | Memory Safety, Verificação Híbrida, Smart Seeds, CWE mapping |
-| [ch02](chapters/ch02-historia-evolucao.md) | História e Evolução | ~1 | fig1-timeline | `CHANGELOG.md`, `docs/migration/` | BMC → KLEE → Híbrido, Linha do tempo 2016-2026 |
-| [ch03](chapters/ch03-arquitetura.md) | Arquitetura e Funcionalidades | ~2.5 | fig2-pipeline, fig3-passes, fig5-cicd | `docs/migration/1.3-*.md`, `docs/migration/1.4-*.md`, `docs/migration/1.5-*.md`, `.github/workflows/`, `Dockerfile.dev` | 9 Passes New PM, Pipeline 5 estágios, isRequired fix, CI/CD |
-| [ch04](chapters/ch04-ciberseguranca.md) | Features de Cibersegurança | ~2 | fig4-testcomp2026 | `docs/migration/1.4-*.md`, `test-comp2026/simulation/` | CWE mapping, TestComp 2026, Smoke tests, 3 bugs críticos |
-| [ch05](chapters/ch05-demonstracao.md) | Demonstração Planejada | ~0.5 | — | `test-comp2026/simulation/`, `Dockerfile.dev` | Pipeline E2E Docker, array-2.c, Vídeo técnico |
-| [ch06](chapters/ch06-conclusao.md) | Avaliação, Perspectivas e Conclusão | ~1 | — | `docs/paper-sbseg-2026/data/consolidated-data.md` | Resultados, Limitações, WASM, Testes E2E |
+| [ch01](chapters/ch01-introducao-motivacao.md) | Introdução | ~1 | — | `docs/paper-sbseg-2026/sbseg-article/main.tex` | Memory Safety, Verificação Híbrida, CWE Top 25, Trabalhos Relacionados |
+| [ch02](chapters/ch02-historia-evolucao.md) | História e Evolução | ~1 | fig1-timeline | `CHANGELOG.md`, `docs/migration/` | BMC→KLEE→Híbrido, Comparação com concorrentes (CPAchecker, Symbiotic, FuSeBMC, ESBMC) |
+| [ch03](chapters/ch03-arquitetura.md) | Arquitetura e Funcionalidades | ~2.5 | fig2-pipeline | `docs/migration/1.3-*.md`, `.github/workflows/`, `Dockerfile.dev` | Pipeline 5 estágios, Técnicas (fluxo de dados, intervalos), OpenSSF |
+| [ch04](chapters/ch04-ciberseguranca.md) | Análise Experimental | ~2 | — | `test-comp2026/simulation/` | CWE mapping, TestComp 2026 resultados, WASM lifting |
+| ~~[ch05]~~ | ~~Demonstração Planejada~~ | — | — | — | Removida do artigo (orientador: demo não é conteúdo de paper) |
+| [ch06](chapters/ch06-conclusao.md) | Conclusão | ~1 | — | `docs/paper-sbseg-2026/data/consolidated-data.md` | Resultados, Limitações (UNKNOWN 45.6%), Perspectivas (WASM, E2E tests) |
 
 ## Topic Index
 

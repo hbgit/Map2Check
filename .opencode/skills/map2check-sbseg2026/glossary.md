@@ -14,9 +14,13 @@
 
 **CI/CD** — Continuous Integration / Continuous Deployment com GitHub Actions (Ch 3)
 
+**CPAchecker** — Framework de verificação configurável com múltiplas estratégias, referência desde SV-COMP 2013 (Ch 2)
+
 **Crab-LLVM** — Análise estática baseada em interpretação abstrata para invariantes indutivos (Ch 2)
 
 **CWE-119** — Buffer Overflow: acesso fora dos limites de buffer (Ch 1, Ch 4)
+
+**CWE-190** — Integer Overflow/Wraparound (Ch 4)
 
 **CWE-401** — Memory Leak: vazamento de memória alocada (Ch 1, Ch 4)
 
@@ -64,7 +68,9 @@
 
 **OpenSSF** — Open Source Security Foundation, checklist Best Practices (Ch 3)
 
-**OverflowPass** — Pass que instrumenta operações aritméticas para detecção de overflow (Ch 3, Ch 4)
+**OpenSSF Best Practices** — Programa de certificação de boas práticas para projetos open source (Ch 1, Ch 3, Ch 6)
+
+**OverflowPass** — Pass LLVM que emprega análise de intervalos para detectar buffer overflow e integer overflow (Ch 3, Ch 4)
 
 **SBSeg** — Simpósio Brasileiro de Segurança da Informação e de Sistemas Computacionais (Ch 5)
 
@@ -93,3 +99,15 @@
 **WASM** — WebAssembly, módulos portáteis para runtimes como Wasmtime/Wasmer (Ch 4, Ch 6)
 
 **Witness** — Evidência de verificação: contra-exemplo ou prova de corretude (Ch 3)
+
+**Z3** — Solver SMT da Microsoft Research, usado como solver padrão no Map2Check (Ch 4)
+
+**CPAchecker** — Framework de verificação configurável com múltiplas estratégias (análise de valor, predicate abstraction, BMC) (Ch 2)
+
+**Program Slicing** — Técnica de redução de código que remove trechos irrelevantes para a propriedade de segurança (Ch 1, Ch 2)
+
+**Smart Seeds** — Sementes geradas por BMC e injetadas no fuzzer para desbloquear caminhos com magic numbers (Ch 1, Pré-projeto)
+
+**wasi-sdk** — Toolchain para compilar C para WASM com target `wasm32-wasip1` (Ch 4, Implementation Plan)
+
+**Portfólio de Solver** — Uso combinado de múltiplos solvers SMT (Z3, Boolector, Yices) para maximizar taxa de resultados conclusivos (Ch 2)

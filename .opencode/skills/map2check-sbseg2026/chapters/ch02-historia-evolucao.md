@@ -1,45 +1,44 @@
 # Chapter 2: História e Evolução
 
 ## Core Idea
-O Map2Check percorreu 10 anos de evolução arquitetural — de BMC monolítico com CBMC até uma plataforma híbrida moderna — com um período de estagnação (2019-2025) que demandou renascimento completo da stack para voltar a ser competitivo.
+O Map2Check passou por 3 fases arquiteturais (BMC → KLEE → Híbrido) em 10 anos, mas perdeu competitividade por falta de features que os concorrentes adotaram em cada checkpoint: CPAchecker já usava múltiplas estratégias em 2016, Symbiotic integrava slicing com KLEE em 2018, e FuSeBMC introduziu smart seeds com orquestração dinâmica em 2020.
 
-## Frameworks Introduced
-- **BMC (Bounded Model Checking)**: verificação exaustiva até profundidade K de loops — usado na origem (2016, TACAS: "Hunting Memory Bugs")
-  - When to use: programas com loops de profundidade limitada
-  - How: desenrola o programa até bound K e verifica propriedades via SAT/SMT
-- **Execução Simbólica com KLEE**: migração de CBMC → LLVM + KLEE (2018, TACAS)
-  - When to use: quando se precisa de contra-exemplos precisos e cobertura de caminhos profundos
-  - How: interpreta LLVM IR com valores simbólicos, resolve path constraints com Z3
-- **Abordagem Híbrida (2020, TACAS)**: fuzzing (LibFuzzer) + execução simbólica (KLEE) + invariantes indutivos (Crab-LLVM)
-  - When to use: programas complexos onde nem fuzzing puro nem simbólico puro bastam
-  - How: fases alternadas entre exploração rápida e resolução de guardas lógicas
+## Frameworks Introduzidos
+- **BMC (2016, TACAS)**: Map2Check usava CBMC como único solver BMC para "Hunting Memory Bugs"
+  - Concorrente: CPAchecker já combinava análise de valor, predicate abstraction e BMC com múltiplas estratégias
+- **Execução Simbólica (2018, TACAS)**: migração para LLVM + KLEE, path-based symbolic execution
+  - Concorrente: Symbiotic integrava program slicing estático (DG) com KLEE — otimização ausente no Map2Check
+  - Concorrente: ESBMC usava portfólio de solvers SMT (Z3, Boolector, Yices) para reduzir UNKNOWN
+- **Híbrido (2020, TACAS)**: fuzzing (LibFuzzer) + execução simbólica (KLEE) + invariantes indutivos (Crab-LLVM) em iterative deepening
+  - Concorrente: FuSeBMC introduzia smart seeds com orquestração BMC→fuzzer, atingindo >81% cobertura — Map2Check operava motores em fases estanques
 
 ## Key Concepts
-- **CBMC**: C Bounded Model Checker — verificador BMC original usado na primeira versão
-- **LibFuzzer**: motor de fuzzing do LLVM, guiado por cobertura via SanitizerCoverage
-- **Crab-LLVM**: análise estática baseada em interpretação abstrata para geração de invariantes indutivos
-- **New Pass Manager**: API C++ moderna do LLVM (v13+), substitui Legacy Pass Manager — requer reescrita de todos os passes
-- **Opaque Pointers**: simplificação do LLVM IR (v15+), remove tipos dos ponteiros, afeta instrumentação
+- **CPAchecker**: framework de verificação configurável com múltiplas estratégias — referência desde SV-COMP 2013
+- **Iterative Deepening**: estratégia de aprofundamento progressivo alternando fuzzing e execução simbólica
+- **Crab-LLVM**: análise estática baseada em interpretação abstrata para geração de invariantes indutivos — `crabllvm2021`
+- **Portfólio de solvers SMT**: uso combinado de Z3, Boolector, Yices para maximizar a taxa de resultados conclusivos
+- **Estagnação (2019-2025)**: LLVM 6.0 EOL (2019), Ubuntu 16.04 EOL (2021), KLEE 2.0 fork perdeu compatibilidade com Z3
 
 ## Mental Models
-- Pense na **evolução como camadas sobrepostas**: cada nova técnica (BMC → KLEE → LibFuzzer → Crab-LLVM) expande o envelope de bugs detectáveis
-- Use a **linha do tempo como diagnóstico**: 2019-2025 sem releases → obsolescência técnica é risco existencial para ferramentas acadêmicas
-- Pense no **renascimento como investimento de engenharia**, não como nova pesquisa: 35 commits, 84 arquivos, +5.785/-657 linhas para modernizar o que já existia
+- Pense na **evolução como débito técnico acumulado**: sem manutenção contínua, 7 anos de stack parada exigem migração completa (35 commits, 84 arquivos, +5.785/-657 linhas)
+- Use **comparação com concorrentes como diagnóstico**: cada checkpoint revela a feature ausente (multi-estratégia em 2016, slicing em 2018, orquestração em 2020)
+- Pense no **renascimento como pré-requisito de engenharia**: a base moderna (LLVM 16, CI/CD, Docker) é condição necessária para qualquer avanço algorítmico futuro
 
 ## Anti-patterns
-- **Publicar e abandonar**: 3 artigos no TACAS (2016, 2018, 2020) sem manutenção contínua do código leva à estagnação
-- **Depender de versões EOL**: LLVM 6.0 e Ubuntu 16.04 tornaram-se bloqueadores para uso em competições modernas
-- **Subestimar custo de migração**: migrar 9 passes do Legacy PM para New PM + atualizar KLEE, LibFuzzer, e runtime library é esforço de meses
+- **Publicar e abandonar**: 3 artigos TACAS (2016, 2018, 2020) sem manutenção contínua → estagnação de 7 anos
+- **Depender de fork customizado**: KLEE 2.0 fork perdeu compatibilidade com Z3 e bibliotecas de runtime — usar upstream sempre que possível
+- **Motores sem orquestração dinâmica**: fases estanques perdem eficiência vs. smart seeds com realimentação em tempo real
 
 ## Key Takeaways
-1. Linha do tempo: 2016 (BMC/CBMC) → 2018 (LLVM+KLEE) → 2020 (Híbrido) → 2019-2025 (Estagnação) → 2026 (Renascimento)
-2. Sustentabilidade de engenharia (CI/CD, Docker, reproducibilidade) é tão importante quanto inovação algorítmica
-3. CWEs fornecem linguagem comum entre a ferramenta acadêmica e a indústria de segurança
-4. O alinhamento com cibersegurança foi motivação estratégica para o renascimento
-5. KLEE 3.x (LLVM 16) é uma migração crítica — flags e APIs mudaram significativamente desde a v2.0
+1. 2016: BMC com CBMC — CPAchecker já usava múltiplas estratégias, Map2Check dependia de 1 solver
+2. 2018: KLEE + LLVM — Symbiotic integrava slicing, ESBMC usava portfólio de solvers
+3. 2020: Fuzzing + KLEE + Crab-LLVM — FuSeBMC introduzia smart seeds com >81% cobertura
+4. 2019-2025: Estagnação total — LLVM 6 EOL, Ubuntu 16.04 EOL, sem CI/CD
+5. 2026: Renascimento — 35 commits, 84 arquivos, modernização completa
+6. A ausência de slicing, orquestração dinâmica e portfólio de solvers são débitos técnicos identificados
 
 ## Connects To
-- **Ch 1**: Introdução — contexto dos problemas de memory safety que motivaram a ferramenta
-- **Ch 3**: Arquitetura — detalhamento dos 9 passes migrados e pipeline atual
-- **Ch 4**: Cibersegurança — como a modernização viabilizou mapeamento CWE e TestComp 2026
-- **Pré-projeto Map2Check 2.0**: DG Library, AFL++, Smart Seeds, Coordenador como próximos passos (fora do escopo do paper SBSeg)
+- **Ch 1**: Introdução — contexto dos concorrentes e motivação para o renascimento
+- **Ch 3**: Arquitetura — o pipeline modernizado que endereça a estagnação técnica
+- **Ch 4**: Análise Experimental — resultados que validam a viabilidade competitiva após o renascimento
+- **Pré-projeto Map2Check 2.0**: próximos passos (DG Library, AFL++, Smart Seeds) — features que os concorrentes já tinham

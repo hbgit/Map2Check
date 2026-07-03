@@ -1,46 +1,71 @@
-# Chapter 1: Introdução e Motivação
+# Chapter 1: Introdução
 
 ## Core Idea
-Memory safety em C/C++ é uma das principais causas de CVEs exploráveis. A verificação híbrida — combinando análise estática e dinâmica — é a abordagem mais promissora para detectar esses bugs, e o Map2Check se posiciona como ferramenta consolidada nesse espaço, renascida em 2026 após 7 anos de estagnação tecnológica.
+Memory safety em C/C++ lidera o *2025 CWE Top 25* com Out-of-bounds Write (CWE-787), Use-After-Free (CWE-416) e Buffer Overflow (CWE-119). A verificação híbrida — combinando execução simbólica (KLEE) e fuzzing (AFL++) — é a abordagem mais promissora, e o Map2Check 2026 renasce como ferramenta competitiva após 7 anos de estagnação técnica.
 
 ## Frameworks Introduced
-- **Verificação Híbrida**: combinação de fuzzing (LibFuzzer) + execução simbólica (KLEE) + invariantes indutivos (Crab-LLVM)
-  - When to use: quando se precisa de cobertura de código profunda sem explosão de caminhos
-  - How: fases alternadas entre exploração rápida (fuzzer) e resolução de guardas complexas (simbólico)
-- **Smart Seeds (FuSeBMC)**: injeção de sementes geradas por BMC no fuzzer para desbloquear caminhos
-  - When to use: quando o fuzzer estagna em branches protegidos por "números mágicos"
+- **Verificação Híbrida**: combinação de execução simbólica (KLEE) + fuzzing guiado por cobertura (AFL++)
+  - When to use: quando fuzzing puro não penetra guardas lógicas complexas, e execução simbólica pura sofre de path explosion
+  - How: fases alternadas entre exploração rápida (fuzzer) e resolução de path constraints via SMT (execução simbólica)
+- **Smart Seeds (FuSeBMC)**: injeção de sementes geradas por BMC no fuzzer, atingindo >81% de cobertura em categorias críticas da Test-Comp
+  - When to use: quando o fuzzer estagna em branches com magic numbers
+  - How: BMC resolve guardas lógicas e injeta entradas concretas de volta na fila do fuzzer
+- **Program Slicing (Symbiotic)**: integração de slicing estático (DG Library) com KLEE para reduzir espaço de busca
+  - When to use: programas grandes onde a análise simbólica sofre de path explosion
+  - How: remove trechos de código que não afetam as propriedades de segurança antes da execução simbólica
 
 ## Key Concepts
-- **Memory Safety**: ausência de bugs como use-after-free, double-free, buffer overflow, memory leak
-- **CWE-119/CWE-787**: Buffer Overflow — acesso fora dos limites de buffer
-- **CWE-416**: Use-After-Free — acesso a memória já liberada
-- **CWE-415**: Double-Free — liberação dupla do mesmo ponteiro
-- **CWE-401**: Memory Leak — vazamento de memória alocada
-- **SV-COMP/TestComp**: competições internacionais de verificação de software que impulsionam o estado da arte
-- **LLVM IR**: representação intermediária do LLVM, base para análise e instrumentação
-- **Execução Simbólica**: técnica que analisa programas com valores simbólicos, construindo path constraints resolvidas por solvers SMT
+- **CWE Top 25 (2025)**: CWE-787, CWE-416, CWE-119 entre as vulnerabilidades mais perigosas — fonte: `cwe2025`
+- **SV-COMP / TestComp**: competições internacionais de verificação de software — fonte: `beyersvcomp2013`, `beyertestcomp2023`
+- **KLEE**: motor de execução simbólica de referência para LLVM bitcode — fonte: `klee2008`
+- **AFL++**: fuzzer guiado por cobertura, sucessor do AFL — fonte: `fioraldi2020aflpp`
+- **FuSeBMC**: ferramenta com smart seeds + BMC, líder em cobertura na Test-Comp — fonte: `fusebmc2022`
+- **Symbiotic**: ferramenta com program slicing + KLEE, destaque em MemSafety — fonte: `chalupa2021symbiotic`
+- **ESBMC**: bounded model checker com múltiplos solvers SMT — fonte: `gadelha2021esbmc`
+- **OpenSSF Best Practices**: certificação de boas práticas para projetos open source — fonte: `openssf2024`
+- **Therac-25**: caso histórico de falha de software em sistema crítico médico — fonte: `leveson1993investigation`
 
 ## Mental Models
-- Use **fuzzing** como primeira linha de ataque — rápido para bugs superficiais, mas cego para branches complexos
-- Use **execução simbólica** como solver de guardas — lento mas preciso para desbloquear caminhos com magic numbers
-- Pense na **modernização de engenharia** como pré-requisito para qualquer avanço científico — sem CI/CD e Docker, resultados não são reproduzíveis
-- Pense em **CWE como linguagem comum** entre verificação formal e indústria de segurança — torna resultados acionáveis para times de AppSec
+- Use **fuzzing como primeira linha** — rápido, cobre caminhos superficiais, detecta bugs fáceis
+- Use **execução simbólica como solver de guardas** — preciso para branches com magic numbers, mas caro
+- Pense em **orquestração como diferencial competitivo**: FuSeBMC ganhou com smart seeds, Symbiotic com slicing — o Map2Check 2026 precisa dessa camada
+- Use **CWE como linguagem comum** entre verificação formal e times de AppSec — torna resultados acionáveis
 
 ## Anti-patterns
-- **Execução monolítica sem orquestração**: motores operando em fases distintas sem compartilhar aprendizado geram redundância e timeouts
-- **Depender de stack legada**: LLVM 6.0 EOL, Ubuntu 16.04 EOL, KLEE 2.0 sem suporte torna a ferramenta incomparável em competições
-- **Ignorar engenharia de software**: sem CI/CD, sanitizers, static analysis, bugs de regressão passam despercebidos nos unit tests
+- **Ferramenta sem CI/CD**: sem reprodutibilidade, resultados não são validáveis por terceiros — pré-requisito para publicação científica
+- **Stack EOL (LLVM 6, Ubuntu 16.04)**: inviabiliza participação em competições e perde compatibilidade com solvers modernos
+- **Motores sem orquestração**: KLEE e LibFuzzer operando em fases estanques, sem compartilhamento de estado — perde eficiência vs. FuSeBMC
+
+## Worked Example
+**Exemplo de uso do Map2Check 2026:**
+
+```c
+// array-2.c — buffer overflow intencional
+int main() {
+    int a[10], i = __VERIFIER_nondet_int();
+    a[i] = 42;  // i pode ser >= 10 → buffer overflow
+    return 0;
+}
+```
+
+Pipeline completo via CLI:
+```bash
+$ map2check --property-file coverage-error-call.prp array-2.c
+VERIFICATION FAILED
+Counter-example: nondet_int() -> 31763, line 3, scope main
+```
+
+O comando `map2check` compila com Clang-16, instrumenta com os passes de memory safety, executa o KLEE e reporta o veredito FALSE com contra-exemplo concreto.
 
 ## Key Takeaways
-1. Bugs de memory safety continuam entre as principais causas de CVEs exploráveis globalmente
-2. Ferramentas de competição (SV-COMP, TestComp) são o benchmark de facto para verificadores
-3. A estagnação desde 2019 (LLVM 6, Ubuntu 16.04) impedia o Map2Check de competir
-4. As 4 contribuições da versão 2026: (1) LLVM 6→16 + New PM + C++17, (2) CI/CD + Docker + sanitizers, (3) TestComp 2026 Heap score 57, (4) mapeamento CWE
-5. Symbiotic (slicing + KLEE) e FuSeBMC (smart seeds + BMC) definem o estado da arte atual
-6. Abordagem híbrida resolve o trade-off entre velocidade do fuzzing e precisão da execução simbólica
+1. Memory safety bugs lideram o CWE Top 25 2025 — CWE-787, CWE-416, CWE-119
+2. Verificação híbrida é o estado da arte — FuSeBMC (>81% cobertura), Symbiotic (slicing+KLEE), ESBMC (multi-solver BMC)
+3. Map2Check estava estagnado desde 2019 (LLVM 6.0, Ubuntu 16.04 EOL, KLEE 2.0 fork)
+4. 5 contribuições da versão 2026: (1) LLVM 6→16 + New PM + C++17, (2) CI/CD + Docker + sanitizers + OpenSSF, (3) TestComp 2026 score 57, (4) CWE mapping, (5) WASM suporte
+5. Exemplo concreto: `map2check array-2.c` → VERIFICATION FAILED + counter-example `nondet_int() → 31763`
 
 ## Connects To
-- **Ch 2**: História e evolução — de BMC (CBMC) à hibridização completa
-- **Ch 3**: Arquitetura — pipeline de verificação e passes de instrumentação
-- **Ch 4**: Cibersegurança — mapeamento CWE e resultados TestComp 2026
-- **CWEs**: linguagem padrão MITRE para classificação de vulnerabilidades
+- **Ch 2**: História e evolução — como cada checkpoint do Map2Check se compara aos concorrentes
+- **Ch 3**: Arquitetura — pipeline de 5 estágios com passes de instrumentação
+- **Ch 4**: Análise Experimental — resultados TestComp 2026 e CWE mapping
+- **CWE Top 25 2025**: referência do MITRE para classificação de vulnerabilidades

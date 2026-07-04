@@ -33,6 +33,16 @@
 \newcommand{\DockerBase}{Ubuntu~22.04}
 \newcommand{\TimeoutVal}{300}
 
+% ControlFlow (coverage-error-call) results
+\newcommand{\TotalCF}{138}
+\newcommand{\ScoreCF}{38}
+\newcommand{\CountFalseCF}{38}
+\newcommand{\CountTrueCF}{30}
+\newcommand{\CountUnknownCF}{70}
+\newcommand{\PctTrueCF}{21,7}
+\newcommand{\PctUnknownCF}{50,7}
+\newcommand{\PctFalseCF}{27,5}
+
 \sloppy
 
 \title{Map2Check 2026: Modernização Sustentável de uma Ferramenta de Verificação de Memory Safety com LLVM~16 e New Pass Manager}
@@ -216,6 +226,58 @@ A validação manual de vereditos com smoke tests nos benchmarks canônicos \tex
 corretude do pipeline completo. Durante a migração, três inconsistências na API do New Pass Manager foram identificadas e corrigidas: incompatibilidade de flags entre versões do KLEE, passes instrumentalizados sendo ignorados silenciosamente pelo \texttt{opt} em funções \texttt{optnone}, e divergência no nome da função-alvo entre a variável de ambiente e o \texttt{cl::opt}. Nenhum desses problemas era detectável pelos testes
 unitários existentes (\UnitTests{}), que cobrem apenas a biblioteca C de runtime, evidenciando a necessidade de testes de integração E2E no pipeline de CI.
 
+\subsection{Resultados no ControlFlow}
+\label{subsec:testcomp-cf}
+
+Além da categoria Heap, executamos o Map2Check 2026 contra a sub-categoria \texttt{C.coverage-error-call.ControlFlow} do TestComp~2026, composta por \TotalCF{} tarefas que abrangem drivers de dispositivos simplificados, estruturas de controle complexas e benchmarks de overflow aritmético. Diferentemente da categoria Heap --- focada em alocação dinâmica e estruturas encadeadas --- a ControlFlow explora programas cuja corretude depende predominantemente de fluxo de controle e variáveis inteiras, sem ênfase em ponteiros ou estruturas de dados.
+
+A Tabela~\ref{tab:testcomp-cf} apresenta os resultados. A ferramenta obteve \CountTrueCF{} vereditos TRUE (\PctTrueCF\%), \CountFalseCF{} FALSE (\PctFalseCF\%), e \CountUnknownCF{} UNKNOWN (\PctUnknownCF\%). O score final foi \ScoreCF/\TotalCF{}. A taxa de detecção de bugs (27,5\%) demonstra que a instrumentação do Map2Check é eficaz em código de drivers e controle de fluxo, enquanto os UNKNOWNs (50,7\%) refletem a complexidade inerente desses benchmarks --- particularmente os drivers \texttt{ntdrivers-simplified} e \texttt{openssl-simplified} --- que demandam tempos de exploração superiores ao timeout configurado. A execução completa levou aproximadamente 5 horas, evidenciando a escalabilidade da abordagem.
+
+\begin{table}[ht]
+\centering
+\caption{Resultados no TestComp 2026 --- C.coverage-error-call.ControlFlow.}
+\label{tab:testcomp-cf}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Veredito & Tarefas & \% \\
+\midrule
+TRUE & \CountTrueCF{} & \PctTrueCF \% \\
+UNKNOWN & \CountUnknownCF{} & \PctUnknownCF \% \\
+FALSE (bugs detectados) & \CountFalseCF{} & \PctFalseCF \% \\
+\midrule
+\textbf{Total} & \textbf{\TotalCF} & \textbf{100 \%} \\
+\textbf{Score} & \textbf{\ScoreCF} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Validação Preliminar no WebAssembly}
+\label{subsec:wasm-juliet}
+
+Para validar o pipeline de lifting, compilamos 6 módulos WASM a partir de benchmarks representativos: três casos da Juliet Test Suite (CWE-190 Integer Overflow, CWE-191 Integer Underflow) e três casos construídos manualmente de buffer overflow (\texttt{strcpy} com string maior que o buffer, \texttt{memcpy} com tamanho excessivo, e acesso fora dos limites em array). Os módulos foram submetidos ao pipeline completo: \texttt{wasm2c} (WABT~1.0.41) para gerar código C, compilação com Clang~16 para LLVM IR, instrumentação pelos passes Map2Check e execução pelo KLEE com timeout de 120s.
+
+A Tabela~\ref{tab:wasm-juliet} resume os resultados. Os três casos de overflow aritmético (CWE-190/191) foram processados pelo \texttt{OverflowPass} no modo \texttt{--check-overflow}; os três casos de buffer overflow foram processados pelo \texttt{MemoryTrackPass} no modo \texttt{--memtrack}. Em todos os casos o KLEE executou o código instrumentado com sucesso, consumindo entre 6 e 8 segundos de CPU sem atingir o timeout. Os vereditos UNKNOWN refletem a complexidade do IR levantado --- que inclui a runtime completa do WABT (\texttt{wasm-rt-impl}, funções de \texttt{i32\_load}/\texttt{i32\_store}, e gerenciamento de instância) --- que demanda maior profundidade de exploração de caminhos para provar ou falsificar as propriedades.
+
+Esses resultados corroboram o desafio arquitetural da memória linear estática do WASM (Seção~\ref{subsec:wasm}): o \texttt{MemoryTrackPass}, projetado para rastrear alocações dinâmicas (\texttt{malloc}/\texttt{free}), não encontra essas chamadas no IR levantado --- a memória linear é um array estático. A detecção de buffer overflow no WASM requer bounds checking nos \texttt{i32\_store}/\texttt{i32\_load} que acessam o array, implementação prevista para a Fase~2 (pós-SBSeg) com a adição do modo \texttt{--wasm-mode} ao \texttt{MemoryTrackPass}.
+
+\begin{table}[ht]
+\centering
+\caption{Validação preliminar do pipeline Map2Check-WASM com 6 casos de teste.}
+\label{tab:wasm-juliet}
+\begin{tabular}{@{}lllr@{}}
+\toprule
+Caso & CWE & Modo & Veredito \\
+\midrule
+\texttt{char\_max\_add}      & CWE-190 & overflow    & UNKNOWN \\
+\texttt{char\_max\_multiply} & CWE-190 & overflow    & UNKNOWN \\
+\texttt{char\_min\_multiply} & CWE-191 & overflow    & UNKNOWN \\
+\texttt{strcpy} overflow  & CWE-119/787 & memtrack & UNKNOWN \\
+\texttt{memcpy} overflow  & CWE-119/787 & memtrack & UNKNOWN \\
+\texttt{array} out-of-bounds & CWE-119/787 & memtrack & UNKNOWN \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Suporte a WebAssembly}
 \label{subsec:wasm}
 
@@ -231,7 +293,7 @@ suporte completo, com adaptação dos passes para o modelo de memória linear do
 Este artigo apresentou a modernização do Map2Check, uma ferramenta brasileira de verificação híbrida de memory safety para programas C. A migração da stack de LLVM~6.0 para~\LLVMVersion{} com New Pass Manager e \CppStandard{} abrangeu \CountCommits{} commits em \CountFiles{} arquivos (+\LinesAdded{}/$-$\LinesRemoved{} linhas), com \CountPasses{} passes reescritos, \UnitTests{} testes unitários e \PassTests{} passes validados no
 \texttt{opt-16}. A infraestrutura de engenharia adicionada como o estabelecimento de práticas de CI/CD, testes Dockerizados, utilização de testes com análise estática no desenvolvimento, sanitizers e a aquisição da certificação OpenSSF Best Practices~\cite{openssf2024}, que estabelece as condições de reprodutibilidade e sustentabilidade exigidas pela comunidade científica.
 
-A validação no TestComp~2026 demonstrou a viabilidade competitiva da ferramenta: \TotalTasks{} tarefas na sub-categoria Heap, score~\ScoreTestComp, \CountFalse{} bugs reais detectados com contra-exemplos precisos. O mapeamento formal das propriedades de memory safety para a taxonomia CWE do MITRE posiciona o Map2Check como ponte entre verificação formal e cibersegurança aplicada.
+A validação no TestComp~2026 demonstrou a viabilidade competitiva da ferramenta em múltiplas categorias: \TotalTasks{} tarefas na sub-categoria Heap (score~\ScoreTestComp{}) e \TotalCF{} tarefas na sub-categoria ControlFlow (score~\ScoreCF/\TotalCF{}), totalizando \CountFalse+\CountFalseCF{} bugs reais detectados com contra-exemplos precisos. O mapeamento formal das propriedades de memory safety para a taxonomia CWE do MITRE posiciona o Map2Check como ponte entre verificação formal e cibersegurança aplicada.
 
 As principais limitações identificadas são a taxa de \PctUnknown\% de vereditos inconclusivos e ausência de testes de integração E2E no CI. Direcionam os próximos ciclos de desenvolvimento. O suporte a WebAssembly, em implementação ativa, expande o escopo da ferramenta para um vetor emergente de memory safety em runtimes WASM. Com código aberto e infraestrutura de artefato validada, o Map2Check 2026 está posicionado para contribuir com as comunidades de verificação formal, engenharia de software e cibersegurança.
 

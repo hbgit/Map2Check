@@ -39,9 +39,9 @@ jobs:
             clang-16 llvm-16 llvm-16-dev libclang-16-dev \
             cmake ninja-build libboost-all-dev zlib1g-dev \
             wabt
-          mkdir -p /opt/wabt/include
-          ln -sf /usr/include/wasm-rt.h /opt/wabt/include/wasm-rt.h
-          ln -sf /usr/include/wasm-rt-impl.h /opt/wabt/include/wasm-rt-impl.h
+          sudo mkdir -p /opt/wabt/include
+          sudo ln -sf /usr/include/wasm-rt.h /opt/wabt/include/wasm-rt.h
+          sudo ln -sf /usr/include/wasm-rt-impl.h /opt/wabt/include/wasm-rt-impl.h
 
       - name: Configure CMake
         run: |
@@ -74,7 +74,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install LLVM 16 + cppcheck
+      - name: Install LLVM 16 + cppcheck + WABT
         run: |
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
           echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
@@ -82,7 +82,10 @@ jobs:
           sudo apt-get install -y \
             clang-16 clang-tidy-16 llvm-16 llvm-16-dev libclang-16-dev \
             cmake ninja-build libboost-all-dev zlib1g-dev \
-            cppcheck
+            cppcheck wabt
+          sudo mkdir -p /opt/wabt/include
+          sudo ln -sf /usr/include/wasm-rt.h /opt/wabt/include/wasm-rt.h
+          sudo ln -sf /usr/include/wasm-rt-impl.h /opt/wabt/include/wasm-rt-impl.h
 
       - name: Generate compile_commands.json
         run: |
@@ -165,9 +168,9 @@ jobs:
             clang-16 llvm-16 llvm-16-dev libclang-16-dev \
             cmake ninja-build libboost-all-dev zlib1g-dev \
             wabt
-          mkdir -p /opt/wabt/include
-          ln -sf /usr/include/wasm-rt.h /opt/wabt/include/wasm-rt.h
-          ln -sf /usr/include/wasm-rt-impl.h /opt/wabt/include/wasm-rt-impl.h
+          sudo mkdir -p /opt/wabt/include
+          sudo ln -sf /usr/include/wasm-rt.h /opt/wabt/include/wasm-rt.h
+          sudo ln -sf /usr/include/wasm-rt-impl.h /opt/wabt/include/wasm-rt-impl.h
 
       - name: Configure CMake with Sanitizers
         run: |

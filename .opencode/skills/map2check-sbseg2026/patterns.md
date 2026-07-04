@@ -57,3 +57,30 @@
 3. Script `run-static-analysis.sh` executa todas as verificações
 4. CI (GitHub Actions) roda static analysis + sanitizers em cada push
 **Trade-offs**: sanitizers adicionam overhead de runtime (2-5x), mas detectam bugs que testes unitários perdem
+
+## WASM Lifting Pipeline
+**When to use**: verificar memory safety em binarios .wasm de terceiros
+**How**:
+1. wasm2c (WABT 1.0.41) converte .wasm para codigo C com runtime musl inline
+2. Clang-16 compila o C para LLVM IR, preservando semantica de alocacao
+3. generateWasmWrapperStatic cria main() canonica que instancia o modulo e invoca w2c_*_start
+4. llvm-link une IR levantado + wrapper, aplica passes Map2Check
+5. KLEE executa o IR instrumentado com WasmRuntimeStubs.bc (KLEE-friendly)
+**Trade-offs**: overhead do IR levantado (~43 funcoes) vs C nativo (~15 funcoes)
+
+## dlmalloc Interception for Per-Allocation Bounds
+**When to use**: detectar heap overflow em codigo WASM gerado a partir de C (wasi-sdk/musl)
+**How**:
+1. MemoryTrackPass identifica w2c_*_dlmalloc/dlfree por StringRef::contains
+2. instrumentWasmMalloc extrai offset (i32 retorno) + size (arg), registra no AllocationLog
+3. instrumentWasmFree marca offset como liberado
+4. instrumentWasmBoundsCheck extrai offset do GEP e verifica via is_valid_allocation_address
+**Trade-offs**: funciona para heap (3/3 Juliet FALSE), nao para stack/globals (12/12 UNKNOWN)
+
+## Entrypoint Translation
+**When to use**: unificar pipeline Map2Check (que espera main) com codigo levantado do wasm2c
+**How**:
+1. Extrair nome do modulo: w2c_<modulo>_start
+2. Gerar wrapper C com main() que instancia, invoca _start e libera
+3. Compilar wrapper para .bc, linkar com IR levantado via llvm-link
+**Trade-offs**: wrapper adiciona overhead minimo. Nomes hex (0x5F para _) tratados pelo WasmLifter

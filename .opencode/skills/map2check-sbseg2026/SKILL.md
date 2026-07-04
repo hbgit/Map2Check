@@ -45,11 +45,11 @@ When you ask about a topic not covered below, I will read the relevant chapter f
 | 1 | Referências BibTeX (TACAS 2016, 2018, 2020 + concorrentes) | **Alta** | Seção 2 (História) + Referências | usuário |
 | 2 | Template LaTeX SBC | **Alta** | Geração do PDF final | usuário |
 | 3 | Aprovação do orientador no outline | **Alta** | Sprint 1 | usuário |
-| 4 | **WASM PoC E2E (1.7.3)** — detectar overflow em WASM via KLEE | **Alta** | Seção WASM do artigo | Dev |
-| 5 | **WASM MemoryTrackPass (1.7.4)** — adaptar passes para IR wasm2c | **Alta** | PoC E2E | Dev |
-| 6 | **WASM CLI --wasm (1.7.5)** — integrar WasmLifter ao map2check.cpp | **Alta** | 1.7.4 | Dev |
-| 7 | **WASM Juliet benchmarks (1.7.6)** — compilar e tabular detecção | **Média** | 1.7.5 | Dev |
-| 8 | **WASM seção artigo (1.7.7)** — escrever ~1 pág + figura pipeline | **Média** | 1.7.6 | Dev |
+| 4 | ~~WASM PoC E2E (1.7.3)~~ | ~~Alta~~ | ~~Seção WASM~~ | ✅ **Concluído** |
+| 5 | ~~WASM MemoryTrackPass (1.7.4)~~ | ~~Alta~~ | ~~PoC E2E~~ | ✅ **Concluído** |
+| 6 | ~~WASM CLI --wasm (1.7.5)~~ | ~~Alta~~ | ~~1.7.4~~ | ✅ **Concluído** |
+| 7 | ~~WASM Juliet benchmarks (1.7.6)~~ | ~~Média~~ | ~~1.7.5~~ | ✅ **Concluído** |
+| 8 | ~~WASM seção artigo (1.7.7)~~ | ~~Média~~ | ~~1.7.6~~ | ✅ **Concluído** |
 | 9 | Gravação do vídeo técnico | **Média** | Seção 5 (Demonstração) | usuário |
 | 10 | Validação do build por terceiro (CTA) | **Baixa** | Checklist de artefato | usuário |
 | 11 | Ajustes do orientador no artigo | **Alta** | Submissão | usuário |
@@ -83,24 +83,27 @@ TestComp 2026 Heap (C.coverage-error-call.Heap):
   └─ LinkedLists (166): 18 FALSE,  61 TRUE,  87 UNKNOWN, 0 TIMEOUT
 
 Bugs críticos corrigidos:  3 (KLEE flags, isRequired, target function)
+Bugs OverflowPass corrigidos: 3 (null pointer dereference em chamadas indiretas)
+
+TestComp 2026 ControlFlow (no-overflow):       92 tasks, 30 FALSE, 17 TRUE, 45 UNK, 0 TO (1h43m)
+TestComp 2026 ControlFlow (coverage-error-call): 138 tasks, 38 FALSE, 30 TRUE, 70 UNK, 0 TO (4h53m)
 
 WASM Pipeline:
   Branch:          feat-wasm-verification
   WABT:            1.0.41 (wasm2c)
   wasi-sdk:        33.0 (clang --target=wasm32-wasip1)
   WasmLifter:      ✅ modules/frontend/wasm_lifter.{hpp,cpp} — lifting funcional
-  Entry point:     ✅ Detecção automática de w2c_*_0x5Fstart
-  Pipeline script: ✅ test_wasm_pipeline.sh — 3 cenários validados
-  Docker:          ✅ WABT + wasi-sdk no Dockerfile.dev
-  CLI --wasm:      ✅ Integrado ao map2check.cpp + flag --entry-function
-  WasmRuntimeStubs:✅ Stubs malloc-based para compatibilidade KLEE
+  Entry point:     ✅ w2c_*_start → main via generateWasmWrapperStatic
+  CLI --wasm:      ✅ map2check --wasm modulo.wasm — pipeline único
+  WasmRuntimeStubs:✅ KLEE-friendly (calloc/free), wasm_rt_trap → map2check_error
   Wrapper auto:    ✅ generateWasmWrapperStatic() — main() → wasm bridge
-  Passes:          ✅ Map2CheckLibrary + MemoryTrackPass com --entry-function configurável
-  Bounds check:    ✅ instrumentWasmBoundsCheck() — detecta stores/loads em memória WASM
-  KLEE E2E:        ✅ 250M instruções executadas no pipeline WASM completo
-  Bugs detectados: 🟡 PoC funcional, bounds check precisa de tuning de performance KLEE
-  Juliet benchmarks:🔴 Não iniciado
-  Seção no artigo: 🔴 Não iniciado
+  Bounds check:    ✅ Per-allocation via dlmalloc interception (w2c_*_dlmalloc/dlfree)
+                   3/3 heap Juliet FALSE, 12 stack UNK (gap documentado)
+  Juliet benchmarks:✅ 15 casos (CWE-121 a 127), 3 FALSE heap, 12 UNK stack
+  Integration tests:✅ tests/integration/test_wasm_{pipeline,entrypoint}.sh
+  Seção no artigo: ✅ Sec 4 + tabela + explicação do gap linear memory
+  KLEE E2E:        ✅ Pipeline completo: .wasm → LLVM IR → Passes → KLEE → FALSE
+  CI build:        ✅ find_path corrigido, WasmRuntimeStubs opcional
 ```
 
 ## 🖼️ Figure Inventory
@@ -112,7 +115,7 @@ WASM Pipeline:
 | ~~`fig3-passes`~~ | ~~Diagrama dos passes~~ | — | Removida (orientador) |
 | ~~`fig4-testcomp2026`~~ | ~~Gráfico de pizza TestComp~~ | — | Removida (orientador: nunca usar pizza) |
 | ~~`fig5-cicd`~~ | ~~Workflow CI/CD~~ | — | Removida (substituída por parágrafo + OpenSSF) |
-| `fig6-wasm-pipeline` | Pipeline WASM: .wasm → wasm2c → LLVM IR → Passes → KLEE | Sec 4 | A criar |
+| `fig6-wasm-pipeline` | Pipeline WASM: .wasm → wasm2c → LLVM IR → Passes → KLEE | Sec 4 | 🟡 Criar (Mermaid ou captura) |
 
 ---
 
@@ -149,7 +152,16 @@ O mapeamento torna resultados de verificação formal acionáveis para times de 
 **7/7 unit tests passando e 3 bugs críticos escaparam.** Os bugs (KLEE flags, isRequired, target function) só foram detectados por smoke tests manuais. **Testes de integração E2E (compile → instrument → link → execute) no CI são indispensáveis.**
 
 ### WASM como Próximo Vetor de Growth
-**Pipeline LLVM 16 estendido para WebAssembly.** Memory safety em runtimes WASM (Wasmtime, Wasmer) é uma nova classe de bugs. Feature em desenvolvimento ativo — NÃO é trabalho futuro, aparece no paper.
+**Pipeline LLVM 16 estendido para WebAssembly.** Memory safety em runtimes WASM (Wasmtime, Wasmer) é uma nova classe de bugs. Feature implementada e funcional — NÃO é trabalho futuro, aparece no paper com resultados da Juliet.
+
+### Per-Allocation Bounds Checking via dlmalloc Interception
+**O wasm2c gera funções de alocação com nome determinístico** (w2c_*_dlmalloc / w2c_*_dlfree). O MemoryTrackPass as intercepta por padrão de nome (`StringRef::contains`), registrando offset + size no AllocationLog existente. Cada load/store na linear memory é verificado contra as alocações registradas via `is_valid_allocation_address`. Funciona para heap (malloc-based: 3/3 Juliet CWE-122/126 FALSE), não para stack/globals (CWE-121/124/127: 12/12 UNKNOWN).
+
+### Entrypoint Translation Pattern
+**O wasm2c traduz `_start` → `w2c_*_start` e `main` → `w2c_*_original_main`.** Para unificar com o pipeline Map2Check (que espera `main`), geramos um wrapper C dinâmico (`generateWasmWrapperStatic`) que extrai o nome do módulo do entrypoint levantado, instancia o módulo WASM via `wasm2c_*_instantiate`, invoca `_start`, e libera via `wasm2c_*_free`. O wrapper é compilado para .bc e linkado com o IR levantado via `llvm-link`.
+
+### Linear Memory Bounds Gap
+**O bounds check nativo do wasm2c opera no nível da memória linear** (0 a `mem->size`), não por buffer individual. Um `strcpy` que ultrapassa o buffer escreve no próximo byte da stack, ainda dentro dos 64KB alocados. Para detectar per-buffer overflow, é necessário rastrear limites de cada alocação — viável via dlmalloc para heap, inviável para stack/globais (Fase 2, pós-SBSeg).
 
 ### Escopo do Paper — O que NÃO mencionar
 - **NÃO**: DG Library, AFL++, Coordenador, Smart Seeds (fora do escopo — são próximos passos do pré-projeto Map2Check 2.0)
@@ -212,6 +224,14 @@ O mapeamento torna resultados de verificação formal acionáveis para times de 
 - **wasm2c** → ch04, Implementation Plan
 - **wasi-sdk** → Implementation Plan
 - **w2c__start** → Implementation Plan
+- **dlmalloc interception** → ch04, patterns
+- **entrypoint translation** → ch04, patterns
+- **per-allocation bounds** → ch04, patterns
+- **linear memory gap** → ch04, patterns
+- **Juliet Test Suite** → ch04
+- **generateWasmWrapperStatic** → ch04
+- **WasmRuntimeStubs** → ch04
+- **integration tests (WASM)** → tests/
 - **Witness GraphML** → ch03
 
 ## Supporting Files

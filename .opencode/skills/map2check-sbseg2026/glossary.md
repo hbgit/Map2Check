@@ -111,3 +111,15 @@
 **wasi-sdk** — Toolchain para compilar C para WASM com target `wasm32-wasip1` (Ch 4, Implementation Plan)
 
 **Portfólio de Solver** — Uso combinado de múltiplos solvers SMT (Z3, Boolector, Yices) para maximizar taxa de resultados conclusivos (Ch 2)
+
+**wasm2c** — Ferramenta do WABT que converte binários `.wasm` para código C com semântica preservada. Gera funções `w2c_*_dlmalloc`/`w2c_*_dlfree` para alocação dinâmica e `w2c_*_start` como entrypoint (Ch 4)
+
+**Linear Memory** — Array contíguo de bytes (`u8[]`) que serve como heap, stack e dados no WebAssembly. O `wasm2c` modela como `wasm_rt_memory_t` com campos `data` (ptr) e `size` (bytes) (Ch 4)
+
+**dlmalloc** — Doug Lea's malloc, implementação do alocador do musl libc. Quando código C é compilado para WASM, o dlmalloc é compilado inline no binário; após lifting com `wasm2c`, aparece como funções `w2c_*_dlmalloc` (Ch 4)
+
+**Entrypoint Translation** — Padrão para converter o entrypoint do WASM (`w2c_*_start`) para `main()` compatível com o pipeline Map2Check. Implementado via `generateWasmWrapperStatic` que instancia o módulo, invoca `_start` e libera recursos (Ch 4)
+
+**Per-Allocation Bounds** — Rastreamento de limites de memória por alocação individual, via interceptação de `w2c_*_dlmalloc`/`dlfree` no MemoryTrackPass. Detecta buffer overflow em heap (malloc-based) mas não em stack/globais (Ch 4)
+
+**WasmRuntimeStubs** — Substitui as funções de runtime do WABT (`wasm_rt_allocate_memory` baseado em mmap) por implementações KLEE-friendly (`calloc`/`free`). Redireciona `wasm_rt_trap` para `map2check_error` (Ch 4)

@@ -50,3 +50,31 @@
 - [ ] CTA integrado ao camera ready (até 14/ago)
 - [ ] Single-blind (autores conhecidos)
 - [ ] Código aberto (elegível a prêmios)
+
+## WASM Pipeline Quick Reference
+
+| Comando | Descricao |
+|:--------|:----------|
+| `map2check --wasm --memtrack modulo.wasm` | Pipeline completo: lift + instrument + KLEE |
+| `map2check --wasm --check-overflow modulo.wasm` | Deteccao de overflow aritmetico no WASM |
+| `/opt/wasi-sdk-33.0-x86_64-linux/bin/clang --target=wasm32-wasip1 -o modulo.wasm modulo.c` | Compilar C para WASM |
+| `wasm2c modulo.wasm -o modulo.c` | Lifting WASM para C (WABT 1.0.41) |
+
+## Propriedades Detectaveis no WASM
+
+| Propriedade | Detectavel? | Mecanismo |
+|:------------|:------------|:----------|
+| no-overflow (CWE-190) | Sim | OverflowPass: opera em operacoes binarias |
+| coverage-error-call | Sim | TargetPass: busca reach_error() por nome |
+| valid-free (CWE-415) | Parcial (heap) | dlmalloc interception: w2c_*_dlfree |
+| valid-memtrack (CWE-401) | Parcial (heap) | dlmalloc interception: w2c_*_dlmalloc |
+| valid-deref (CWE-119/787) | Parcial (heap) | Per-allocation bounds check |
+| valid-memsafety (stack) | Nao | Linear memory gap: stack usa alloca, nao dlmalloc |
+
+## CI Debug (wasm-rt.h)
+
+| Erro | Causa | Correcao |
+|:-----|:------|:---------|
+| fatal error: wasm-rt.h not found | WABT nao instalado no CI | apt install wabt; find_path busca /usr/include |
+| NO_DEFAULT_PATH bloqueia find_path | flag NO_DEFAULT_PATH em find_path | Remover NO_DEFAULT_PATH do CMakeLists.txt |
+| WasmRuntimeStubs.bc falha | add_custom_target ALL forcou build | Remover ALL, tornar target opcional |

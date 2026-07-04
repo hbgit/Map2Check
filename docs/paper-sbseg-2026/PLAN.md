@@ -1,7 +1,7 @@
 # Map2Check 2026 — Artigo SBSeg SF
 
 **Documento-mestre de planejamento e progresso.**
-Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
+Atualizado a cada iteração. Estado atual: Sprint 2 — Cibersegurança + WASM (artigo ~85% completo).
 
 ---
 
@@ -32,17 +32,17 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 
 | # | Seção | Páginas | Status | Última atualização |
 |:---|:---|:---|:---|:---|
-| 1 | Introdução e Motivação | ~1 | 🔴 0% — não iniciado | — |
-| 2 | História e Evolução | ~1 | 🔴 0% — não iniciado | — |
-| 3 | Arquitetura e Funcionalidades | ~2.5 | 🔴 0% — não iniciado | — |
-| 4 | Features de Cibersegurança | ~2 | 🔴 0% — não iniciado | — |
-| 5 | WebAssembly (Lifting + Verificação) | ~1 | 🟡 10% — plano detalhado em `docs/migration/1.7-wasm-pipeline.md` | 2026-06-23 |
-| 6 | Demonstração Planejada | ~0.5 | 🔴 0% — não iniciado | — |
-| 7 | Avaliação, Perspectivas e Conclusão | ~1 | 🔴 0% — não iniciado | — |
+| 1 | Introdução e Motivação | ~1 | ✅ 95% — escrito e revisado | 2026-07-04 |
+| 2 | História e Evolução | ~1 | ✅ 95% — escrito e revisado | 2026-07-04 |
+| 3 | Arquitetura e Funcionalidades | ~2.5 | ✅ 90% — escrito e revisado | 2026-07-04 |
+| 4 | Features de Cibersegurança | ~2 | ✅ 90% — Heap + CF×2 + Juliet WASM | 2026-07-04 |
+| 5 | WebAssembly (Lifting + Verificação) | ~1 | ✅ 85% — pipeline + entrypoint + dlmalloc | 2026-07-04 |
+| 6 | Demonstração Planejada | ~0.5 | 🟡 50% — texto escrito, falta URL do vídeo | 2026-07-04 |
+| 7 | Avaliação, Perspectivas e Conclusão | ~1 | ✅ 90% — com resultados WASM | 2026-07-04 |
 | — | Referências | ~1 | 🟡 Em backlog — aguardando usuário | — |
-| — | Apêndice de Reprodutibilidade | ~1 | 🔴 0% — não iniciado | — |
+| — | Apêndice de Reprodutibilidade | ~1 | ✅ 90% — Docker + scripts | 2026-07-04 |
 
-**Progresso geral:** ~8% (estrutura criada, plano WASM detalhado, conteúdo do artigo em rascunho)
+**Progresso geral:** ~85% (artigo redigido, dados consolidados, pipeline WASM validado)
 
 ---
 
@@ -54,11 +54,11 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
 |:---|:---|:---|:---|
 | 1.7.1 | Infraestrutura WABT no Docker | ✅ Concluído — 2026-06-27 | 1 |
 | 1.7.2 | WasmLifter (frontend) | ✅ Concluído — 2026-06-27 | 1 |
-| 1.7.3 | PoC end-to-end manual | 🟡 Em andamento — teste manual validado | 2 |
-| 1.7.4 | MemoryTrackPass adaptado para WASM | 🔴 Não iniciado | 2 |
-| 1.7.5 | CLI `--wasm` + WasmBackend | 🔴 Não iniciado | 3 |
-| 1.7.6 | Benchmarks Juliet WASM | 🔴 Não iniciado | 3 |
-| 1.7.7 | Documentação e integração ao artigo | 🔴 Não iniciado | 4 |
+| 1.7.3 | PoC end-to-end manual | ✅ Concluído — 2026-07-04 | 2 |
+| 1.7.4 | MemoryTrackPass com bounds per-allocation | ✅ Concluído — 2026-07-04 | 2 |
+| 1.7.5 | CLI `--wasm` + pipeline integrado | ✅ Concluído — 2026-07-04 | 3 |
+| 1.7.6 | Benchmarks Juliet WASM (15 casos) | ✅ Concluído — 2026-07-04 | 3 |
+| 1.7.7 | Documentação e integração ao artigo | ✅ Concluído — 2026-07-04 | 4 |
 | 1.7.8–1.7.12 | Taint analysis, threat modeling IoT, otimização SMT | 🔴 Trabalho futuro (pós-SBSeg) | — |
 
 ---
@@ -176,16 +176,15 @@ Atualizado a cada iteração. Estado atual: Sprint 0 — Fundação.
   - 1.7.7: 🔴 Não iniciado (sessão 4 — artigo)
   - 1.7.8–1.7.12: 🔴 Trabalho futuro (pós-SBSeg)
 
-### Iteração 3 — 2026-06-27
-- **Sessão 1 WASM concluída** (infra + WasmLifter):
-  - Dockerfile.dev atualizado com WABT 1.0.27, wasi-sdk-20.0, lld-16
-  - Pipeline validado: `C → WASM (clang-16 --target=wasm32-unknown-unknown) → C (wasm2c) → LLVM IR (clang-16)`
-  - Módulo `WasmLifter` implementado (`wasm_lifter.hpp` + `wasm_lifter.cpp`) e compilando
-  - Integrado ao `CMakeLists.txt` do frontend
-  - Descoberta técnica: wasm32-wasi gera opcodes não suportados pelo wasm2c 1.0.27; usar `wasm32-unknown-unknown -nostdlib`
-- **TestComp ControlFlow coverage-error-call concluído**: 138 tasks, 38 FALSE, 30 TRUE, score 38/138
-- **Artigo ainda pendente** — Trilha A (atualização com dados TestComp) não iniciada
+### Iteração 4 — 2026-07-04
+- **Artigo ~85% completo** — todas as 7 seções redigidas, travessões removidos, texto corrido
+- **Bounds checking por alocação implementado** — 3/3 Juliet heap FALSE (CWE-122, 126)
+- **Pipeline WASM validado end-to-end** — CLI `--wasm` funcional, 15 Juliet compilados
+- **CI/CD corrigido** — `find_path` sem `NO_DEFAULT_PATH`, WasmRuntimeStubs opcional
+- **Testes de integração** — `test_wasm_pipeline.sh` + `test_wasm_entrypoint.sh`
+- **Pendente:** vídeo técnico + referências BibTeX + template SBC
+- **Deadline:** 20/jul — 16 dias restantes
 
 ---
 
-*Última atualização: 2026-06-27*
+*Última atualização: 2026-07-04*

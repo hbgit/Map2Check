@@ -26,8 +26,7 @@ list(APPEND MAP2CHECK_C_LIB "WitnessGenerationNone")
 # WasmRuntimeStubs: only needed for WASM mode, optional for CI builds
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c")
   find_path(WASM_RT_INCLUDE wasm-rt.h
-    PATHS /opt/wabt-1.0.41/include /usr/include /usr/local/include
-    NO_DEFAULT_PATH)
+    PATHS /opt/wabt-1.0.41/include /usr/include /usr/local/include)
   if(WASM_RT_INCLUDE)
     message(STATUS "WABT found at ${WASM_RT_INCLUDE} — compiling WasmRuntimeStubs")
     add_custom_command(

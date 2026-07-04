@@ -14,6 +14,8 @@
 
 #include "Map2CheckTypes.h"
 
+#include <stdint.h>
+
 /** Initializes variables used in map2check */
 void map2check_init(int isSvComp);
 
@@ -76,4 +78,10 @@ unsigned map2check_get_current_step();
  * Increments current step
  */
 void map2check_next_current_step();
+
+/* WASM-specific runtime functions */
+void map2check_wasm_malloc(uint64_t offset, uint64_t size);
+void map2check_wasm_free(uint64_t offset, int line);
+void map2check_wasm_check_access(uint64_t offset, uint64_t access_size);
+
 #endif

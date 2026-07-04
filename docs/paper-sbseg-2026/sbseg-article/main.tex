@@ -254,37 +254,36 @@ FALSE (bugs detectados) & \CountFalseCF{} & \PctFalseCF \% \\
 \subsection{Validação no WebAssembly com Juliet Test Suite}
 \label{subsec:wasm-juliet}
 
-Para validar experimentalmente o pipeline de lifting WASM, selecionamos 15 casos da Juliet Test Suite v1.3 (NIST/NSA)~\cite{nsa2017juliet} cobrindo cinco categorias de buffer overflow: CWE-121 (Stack Buffer Overflow), CWE-122 (Heap Buffer Overflow), CWE-124 (Buffer Underwrite), CWE-126 (Buffer Overread) e CWE-127 (Buffer Underread). A seleção priorizou exclusivamente casos sem dependências de rede --- usando três mecanismos de entrada que representam vetores de ataque realistas em aplicações WASM: entrada do usuário via \texttt{fgets}/stdin (5 casos), valores hardcoded que simulam corrupção de dados constantes (5 casos), e operações locais de memória como \texttt{memcpy}/\texttt{strcpy}/\texttt{alloca} (5 casos). Todos os 15 casos são da variante \texttt{\_01} (baseline) e compilam para WASM via \texttt{wasi-sdk-33.0} com o arquivo de suporte \texttt{io.c}, sem modificações.
+Para validar experimentalmente o pipeline de lifting WASM e o bounds checking por alocação, selecionamos 15 casos da Juliet Test Suite v1.3 (NIST/NSA)~\cite{nsa2017juliet} cobrindo cinco categorias de buffer overflow. A seleção priorizou exclusivamente casos sem dependências de rede --- usando três mecanismos de entrada: \texttt{fgets}/stdin (5 casos), valores hardcoded (5 casos), e operações locais de memória como \texttt{memcpy}/\texttt{strcpy}/\texttt{alloca} (5 casos). Todos compilam para WASM via \texttt{wasi-sdk-33.0}, sem modificações.
 
-Os 15 módulos WASM foram submetidos ao pipeline Map2Check-WASM via \texttt{map2check --wasm --memtrack} com timeout de 60s. Em todos os casos, o pipeline executou com sucesso todas as etapas: lifting via \texttt{wasm2c} (WABT~1.0.41), compilação para LLVM IR via Clang~16, geração de wrapper com \texttt{main()} e funções de inicialização \texttt{wasm2c\_instantiate}/\texttt{wasm2c\_free}, aplicação dos passes de instrumentação (\texttt{--wasm-mode}) e execução pelo KLEE com Z3. Não houve falhas de compilação, segfaults ou erros de linkagem.
+Os módulos foram submetidos ao pipeline \texttt{map2check --wasm --memtrack} com timeout de 300s. O \texttt{MemoryTrackPass} foi estendido com um modo WASM que intercepta as funções de alocação do musl (\texttt{w2c\_*\_dlmalloc}/\texttt{w2c\_*\_dlfree}) no IR levantado, registrando offsets e tamanhos no \texttt{AllocationLog}. Em cada \texttt{load}/\texttt{store} na memória linear, o offset acessado é verificado contra as alocações registradas, detectando acessos fora dos limites --- o mecanismo de bounds checking por alocação individual.
 
-Os vereditos obtidos foram UNKNOWN em todos os 15 casos (Tabela~\ref{tab:wasm-juliet}), com tempo médio de 2 segundos. Esta aparente conclusão negativa revela um resultado fundamental da pesquisa: o bounds checking nativo do \texttt{wasm2c} opera no nível da memória linear do WASM --- verificando que o acesso está dentro de $[0, \texttt{mem.size})$ --- não no nível de buffers individuais. Um \texttt{strcpy} que ultrapassa o tamanho do buffer de destino escreve no próximo byte da região de stack dentro da mesma memória linear, sem violar o limite global de 64~KB. Para detectar buffer overflows no WASM, seria necessário rastrear os limites de cada alocação individual --- informação que o \texttt{MemoryTrackPass} normalmente obtém interceptando \texttt{malloc}/\texttt{free} no código C nativo, mas que não estão disponíveis no código levantado do \texttt{wasm2c}.
+A Tabela~\ref{tab:wasm-juliet} apresenta os resultados. Os três casos de heap overflow com \texttt{malloc}/\texttt{memcpy} (CWE-122 e CWE-126) foram corretamente detectados como FALSE, com a propriedade OVERFLOW violada --- confirmando que a interceptação do alocador funciona e o bounds checking por alocação é eficaz. Os 12 casos restantes, que dependem de alocações de stack (\texttt{alloca}, arrays estáticos) ou manipulação de índices sem alocação dinâmica, retornaram UNKNOWN --- o mecanismo atual requer \texttt{malloc}/\texttt{free} visíveis no IR para rastrear limites. Estender o bounds checking para cobrir stack e globais é trabalho futuro (Fase~2, pós-SBSeg).
 
-Esta limitação é inerente ao modelo de memória linear do WebAssembly e afeta qualquer ferramenta de análise que opere sobre código levantado. A implementação de bounds checking por alocação está planejada para a Fase~2 (pós-SBSeg), com duas abordagens possíveis: (a) convenção de exportação onde módulos WASM exportam \texttt{\_\_m2c\_malloc}/\texttt{\_\_m2c\_free}; ou (b) detecção heurística de alocadores conhecidos (dlmalloc, wee\_alloc) no IR levantado. Ambas são problemas de pesquisa em aberto.
-
-Apesar dos vereditos inconclusivos nos casos de buffer overflow, a validação confirma que o pipeline Map2Check-WASM está funcional end-to-end: o CLI \texttt{--wasm} integrado compila, levanta, instrumenta e executa módulos WASM no KLEE sem intervenção manual. Para o SBSeg, a contribuição é o pipeline funcional e a caracterização precisa do gap arquitetural que orienta trabalhos futuros.
+A validação confirma que o pipeline Map2Check-WASM está funcional end-to-end e que o bounds checking por alocação individual é viável para código WASM gerado a partir de C com \texttt{wasi-sdk} --- a primeira demonstração, até onde sabemos, de verificação formal de memory safety em binários WASM via lifting para LLVM IR com instrumentação do alocador.
 
 \begin{table}[ht]
 \centering
-\caption{Validação do Map2Check-WASM com 15 casos da Juliet Test Suite (CWE-121 a 127).}
+\caption{Bounds checking por alocação no Map2Check-WASM (Juliet, 300s timeout).}
 \label{tab:wasm-juliet}
-\begin{tabular}{@{}llcr@{}}
+\begin{tabular}{@{}lllr@{}}
 \toprule
 CWE & Buffer & Entrada & Veredito \\
+\midrule
+122 & Heap Overflow   & \texttt{malloc+memcpy} & FALSE (OVERFLOW) \\
+122 & Heap Overflow   & \texttt{sizeof} errado & FALSE (OVERFLOW) \\
+126 & Buffer Overread & \texttt{malloc+memcpy} & FALSE (OVERFLOW) \\
 \midrule
 121 & Stack Overflow  & \texttt{fgets}     & UNKNOWN \\
 121 & Stack Overflow  & valor hardcoded   & UNKNOWN \\
 121 & Stack Overflow  & \texttt{alloca+memcpy} & UNKNOWN \\
 122 & Heap Overflow   & \texttt{fgets}     & UNKNOWN \\
 122 & Heap Overflow   & valor hardcoded   & UNKNOWN \\
-122 & Heap Overflow   & \texttt{malloc+memcpy} & UNKNOWN \\
-122 & Heap Overflow   & \texttt{sizeof} errado & UNKNOWN \\
 124 & Buffer Underwrite & \texttt{fgets}     & UNKNOWN \\
 124 & Buffer Underwrite & valor hardcoded   & UNKNOWN \\
 124 & Buffer Underwrite & \texttt{alloca+strcpy} & UNKNOWN \\
 126 & Buffer Overread & \texttt{fgets}     & UNKNOWN \\
 126 & Buffer Overread & valor hardcoded   & UNKNOWN \\
-126 & Buffer Overread & \texttt{malloc+memcpy} & UNKNOWN \\
 127 & Buffer Underread & \texttt{fgets}     & UNKNOWN \\
 127 & Buffer Underread & valor hardcoded   & UNKNOWN \\
 \bottomrule

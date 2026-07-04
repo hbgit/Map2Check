@@ -406,7 +406,63 @@ void MemoryTrackPass::instrumentInit() {
 }
 
 // TODO(hbgit): use hash table instead of nested "if's"
+bool MemoryTrackPass::isWasmAllocator(llvm::StringRef name) {
+  if (!name.startswith("w2c_")) return false;
+  if (name.contains("wasm_rt_")) return false;
+  return name.endswith("_dlmalloc") || name.endswith("_malloc");
+}
+
+bool MemoryTrackPass::isWasmDeallocator(llvm::StringRef name) {
+  if (!name.startswith("w2c_")) return false;
+  if (name.contains("wasm_rt_")) return false;
+  return name.endswith("_dlfree") || name.endswith("_free");
+}
+
+void MemoryTrackPass::instrumentWasmMalloc() {
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  ++j;
+  IRBuilder<> builder(BBIteratorToInst(j));
+
+  // Arg 1 = size (i32)
+  Value *size32 = callInst->getArgOperand(1);
+  Value *size64 = builder.CreateZExt(size32, Type::getInt64Ty(*this->Ctx));
+
+  // callInst (return value) = offset i32 → i64
+  Value *offset64 = builder.CreateZExt(callInst, Type::getInt64Ty(*this->Ctx));
+
+  Value *args[] = {offset64, size64};
+  builder.CreateCall(map2check_wasm_malloc, args);
+}
+
+void MemoryTrackPass::instrumentWasmFree() {
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  IRBuilder<> builder(BBIteratorToInst(j));
+
+  // Arg 1 = offset (i32) → i64
+  Value *offset32 = callInst->getArgOperand(1);
+  Value *offset64 = builder.CreateZExt(offset32, Type::getInt64Ty(*this->Ctx));
+
+  Value *args[] = {offset64, this->line_value};
+  builder.CreateCall(map2check_wasm_free, args);
+}
+
 void MemoryTrackPass::switchCallInstruction() {
+  llvm::StringRef calleeName = this->calleeFunction->getName();
+
+  // WASM mode: intercept wasm2c allocator functions
+  if (WasmModeActive) {
+    if (isWasmAllocator(calleeName)) {
+      this->instrumentWasmMalloc();
+      return;
+    }
+    if (isWasmDeallocator(calleeName)) {
+      this->instrumentWasmFree();
+      return;
+    }
+  }
+
   // TODO(hbgit): Resolve SVCOMP ISSUE
   if (this->calleeFunction->getName() == "free") {
     this->instrumentFree();
@@ -732,6 +788,20 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
       PointerType::get(*this->Ctx, 0), PointerType::get(*this->Ctx, 0),
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx),
       PointerType::get(*this->Ctx, 0));
+
+  if (WasmModeActive) {
+    this->map2check_wasm_malloc = F.getParent()->getOrInsertFunction(
+        "map2check_wasm_malloc", Type::getVoidTy(*this->Ctx),
+        Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+
+    this->map2check_wasm_free = F.getParent()->getOrInsertFunction(
+        "map2check_wasm_free", Type::getVoidTy(*this->Ctx),
+        Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+
+    this->map2check_wasm_check_access = F.getParent()->getOrInsertFunction(
+        "map2check_wasm_check_access", Type::getVoidTy(*this->Ctx),
+        Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+  }
 }
 
 void MemoryTrackPass::instrumentFunctionArgumentAddress() {
@@ -827,15 +897,27 @@ PreservedAnalyses MemoryTrackPass::run(Function &F,
 void MemoryTrackPass::instrumentWasmBoundsCheck(llvm::Instruction* I,
                                                   llvm::Value* ptr,
                                                   llvm::Type* accessType) {
-  // NOTE: The wasm2c generated code already contains native bounds checks
-  // via wasm_rt_trap → map2check_error (provided by WasmRuntimeStubs.c).
-  // Per-allocation bounds checking (detecting buffer overflow within the
-  // linear memory) requires modelar o alocador da linguagem-fonte e está
-  // planejado para a Fase 2 (pós-SBSeg).
-  //
-  // See docs/migration/1.7-wasm-pipeline.md for the full architectural gap.
-  (void)I; (void)ptr; (void)accessType;
-  return;
+  // Extract offset from GEP into w2c_memory.data
+  Value* stripped = ptr->stripPointerCasts();
+  auto* GEP = dyn_cast<GetElementPtrInst>(stripped);
+  if (!GEP) return;
+
+  if (GEP->getNumOperands() < 3) return;
+  Value* offset = GEP->getOperand(GEP->getNumOperands() - 1);
+  if (!offset) return;
+
+  Module* M = I->getModule();
+  if (!M) return;
+  const DataLayout DL(M);
+  uint64_t accessSize = DL.getTypeStoreSize(accessType);
+  auto* int64Ty = Type::getInt64Ty(I->getContext());
+
+  IRBuilder<> builder(I);
+  Value* offset64 = builder.CreateZExtOrTrunc(offset, int64Ty);
+  Value* sizeVal = ConstantInt::get(int64Ty, accessSize);
+
+  Value* args[] = {offset64, sizeVal};
+  builder.CreateCall(map2check_wasm_check_access, args);
 }
 
 // --- New Pass Manager plugin registration ---

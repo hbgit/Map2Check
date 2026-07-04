@@ -66,6 +66,10 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   void prepareMap2CheckInstructions();
   void instrumentWasmBoundsCheck(llvm::Instruction* I, llvm::Value* ptr,
                                    llvm::Type* accessType);
+  void instrumentWasmMalloc();
+  void instrumentWasmFree();
+  bool isWasmAllocator(llvm::StringRef name);
+  bool isWasmDeallocator(llvm::StringRef name);
   // void addWitnessInfo(std::string info);
   void getDebugInfo();
   int getLineNumber();
@@ -91,6 +95,9 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   FunctionCallee map2check_check_deref;
   FunctionCallee map2check_function;
   FunctionCallee map2check_free_resolved_address;
+  FunctionCallee map2check_wasm_malloc;
+  FunctionCallee map2check_wasm_free;
+  FunctionCallee map2check_wasm_check_access;
   ConstantInt* scope_value;
   ConstantInt* line_value;
   LLVMContext* Ctx;

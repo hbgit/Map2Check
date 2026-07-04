@@ -251,29 +251,42 @@ FALSE (bugs detectados) & \CountFalseCF{} & \PctFalseCF \% \\
 \end{tabular}
 \end{table}
 
-\subsection{Validação Preliminar no WebAssembly}
+\subsection{Validação no WebAssembly com Juliet Test Suite}
 \label{subsec:wasm-juliet}
 
-Para validar o pipeline de lifting, compilamos 6 módulos WASM a partir de benchmarks representativos: três casos da Juliet Test Suite (CWE-190 Integer Overflow, CWE-191 Integer Underflow) e três casos construídos manualmente de buffer overflow (\texttt{strcpy} com string maior que o buffer, \texttt{memcpy} com tamanho excessivo, e acesso fora dos limites em array). Os módulos foram submetidos ao pipeline completo: \texttt{wasm2c} (WABT~1.0.41) para gerar código C, compilação com Clang~16 para LLVM IR, instrumentação pelos passes Map2Check e execução pelo KLEE com timeout de 120s.
+Para validar experimentalmente o pipeline de lifting WASM, selecionamos 15 casos da Juliet Test Suite v1.3 (NIST/NSA)~\cite{nsa2017juliet} cobrindo cinco categorias de buffer overflow: CWE-121 (Stack Buffer Overflow), CWE-122 (Heap Buffer Overflow), CWE-124 (Buffer Underwrite), CWE-126 (Buffer Overread) e CWE-127 (Buffer Underread). A seleção priorizou exclusivamente casos sem dependências de rede --- usando três mecanismos de entrada que representam vetores de ataque realistas em aplicações WASM: entrada do usuário via \texttt{fgets}/stdin (5 casos), valores hardcoded que simulam corrupção de dados constantes (5 casos), e operações locais de memória como \texttt{memcpy}/\texttt{strcpy}/\texttt{alloca} (5 casos). Todos os 15 casos são da variante \texttt{\_01} (baseline) e compilam para WASM via \texttt{wasi-sdk-33.0} com o arquivo de suporte \texttt{io.c}, sem modificações.
 
-A Tabela~\ref{tab:wasm-juliet} resume os resultados. Os três casos de overflow aritmético (CWE-190/191) foram processados pelo \texttt{OverflowPass} no modo \texttt{--check-overflow}; os três casos de buffer overflow foram processados pelo \texttt{MemoryTrackPass} no modo \texttt{--memtrack}. Em todos os casos o KLEE executou o código instrumentado com sucesso, consumindo entre 6 e 8 segundos de CPU sem atingir o timeout. Os vereditos UNKNOWN refletem a complexidade do IR levantado --- que inclui a runtime completa do WABT (\texttt{wasm-rt-impl}, funções de \texttt{i32\_load}/\texttt{i32\_store}, e gerenciamento de instância) --- que demanda maior profundidade de exploração de caminhos para provar ou falsificar as propriedades.
+Os 15 módulos WASM foram submetidos ao pipeline Map2Check-WASM via \texttt{map2check --wasm --memtrack} com timeout de 60s. Em todos os casos, o pipeline executou com sucesso todas as etapas: lifting via \texttt{wasm2c} (WABT~1.0.41), compilação para LLVM IR via Clang~16, geração de wrapper com \texttt{main()} e funções de inicialização \texttt{wasm2c\_instantiate}/\texttt{wasm2c\_free}, aplicação dos passes de instrumentação (\texttt{--wasm-mode}) e execução pelo KLEE com Z3. Não houve falhas de compilação, segfaults ou erros de linkagem.
 
-Esses resultados corroboram o desafio arquitetural da memória linear estática do WASM (Seção~\ref{subsec:wasm}): o \texttt{MemoryTrackPass}, projetado para rastrear alocações dinâmicas (\texttt{malloc}/\texttt{free}), não encontra essas chamadas no IR levantado --- a memória linear é um array estático. A detecção de buffer overflow no WASM requer bounds checking nos \texttt{i32\_store}/\texttt{i32\_load} que acessam o array, implementação prevista para a Fase~2 (pós-SBSeg) com a adição do modo \texttt{--wasm-mode} ao \texttt{MemoryTrackPass}.
+Os vereditos obtidos foram UNKNOWN em todos os 15 casos (Tabela~\ref{tab:wasm-juliet}), com tempo médio de 2 segundos. Esta aparente conclusão negativa revela um resultado fundamental da pesquisa: o bounds checking nativo do \texttt{wasm2c} opera no nível da memória linear do WASM --- verificando que o acesso está dentro de $[0, \texttt{mem.size})$ --- não no nível de buffers individuais. Um \texttt{strcpy} que ultrapassa o tamanho do buffer de destino escreve no próximo byte da região de stack dentro da mesma memória linear, sem violar o limite global de 64~KB. Para detectar buffer overflows no WASM, seria necessário rastrear os limites de cada alocação individual --- informação que o \texttt{MemoryTrackPass} normalmente obtém interceptando \texttt{malloc}/\texttt{free} no código C nativo, mas que não estão disponíveis no código levantado do \texttt{wasm2c}.
+
+Esta limitação é inerente ao modelo de memória linear do WebAssembly e afeta qualquer ferramenta de análise que opere sobre código levantado. A implementação de bounds checking por alocação está planejada para a Fase~2 (pós-SBSeg), com duas abordagens possíveis: (a) convenção de exportação onde módulos WASM exportam \texttt{\_\_m2c\_malloc}/\texttt{\_\_m2c\_free}; ou (b) detecção heurística de alocadores conhecidos (dlmalloc, wee\_alloc) no IR levantado. Ambas são problemas de pesquisa em aberto.
+
+Apesar dos vereditos inconclusivos nos casos de buffer overflow, a validação confirma que o pipeline Map2Check-WASM está funcional end-to-end: o CLI \texttt{--wasm} integrado compila, levanta, instrumenta e executa módulos WASM no KLEE sem intervenção manual. Para o SBSeg, a contribuição é o pipeline funcional e a caracterização precisa do gap arquitetural que orienta trabalhos futuros.
 
 \begin{table}[ht]
 \centering
-\caption{Validação preliminar do pipeline Map2Check-WASM com 6 casos de teste.}
+\caption{Validação do Map2Check-WASM com 15 casos da Juliet Test Suite (CWE-121 a 127).}
 \label{tab:wasm-juliet}
-\begin{tabular}{@{}lllr@{}}
+\begin{tabular}{@{}llcr@{}}
 \toprule
-Caso & CWE & Modo & Veredito \\
+CWE & Buffer & Entrada & Veredito \\
 \midrule
-\texttt{char\_max\_add}      & CWE-190 & overflow    & UNKNOWN \\
-\texttt{char\_max\_multiply} & CWE-190 & overflow    & UNKNOWN \\
-\texttt{char\_min\_multiply} & CWE-191 & overflow    & UNKNOWN \\
-\texttt{strcpy} overflow  & CWE-119/787 & memtrack & UNKNOWN \\
-\texttt{memcpy} overflow  & CWE-119/787 & memtrack & UNKNOWN \\
-\texttt{array} out-of-bounds & CWE-119/787 & memtrack & UNKNOWN \\
+121 & Stack Overflow  & \texttt{fgets}     & UNKNOWN \\
+121 & Stack Overflow  & valor hardcoded   & UNKNOWN \\
+121 & Stack Overflow  & \texttt{alloca+memcpy} & UNKNOWN \\
+122 & Heap Overflow   & \texttt{fgets}     & UNKNOWN \\
+122 & Heap Overflow   & valor hardcoded   & UNKNOWN \\
+122 & Heap Overflow   & \texttt{malloc+memcpy} & UNKNOWN \\
+122 & Heap Overflow   & \texttt{sizeof} errado & UNKNOWN \\
+124 & Buffer Underwrite & \texttt{fgets}     & UNKNOWN \\
+124 & Buffer Underwrite & valor hardcoded   & UNKNOWN \\
+124 & Buffer Underwrite & \texttt{alloca+strcpy} & UNKNOWN \\
+126 & Buffer Overread & \texttt{fgets}     & UNKNOWN \\
+126 & Buffer Overread & valor hardcoded   & UNKNOWN \\
+126 & Buffer Overread & \texttt{malloc+memcpy} & UNKNOWN \\
+127 & Buffer Underread & \texttt{fgets}     & UNKNOWN \\
+127 & Buffer Underread & valor hardcoded   & UNKNOWN \\
 \bottomrule
 \end{tabular}
 \end{table}

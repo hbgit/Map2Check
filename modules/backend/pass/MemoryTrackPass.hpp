@@ -37,7 +37,8 @@ using llvm::LLVMContext;
 using llvm::PreservedAnalyses;
 
 struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
-  explicit MemoryTrackPass(bool SVCOMP = false) : SVCOMP(SVCOMP) {}
+  explicit MemoryTrackPass(bool SVCOMP = false, bool WasmMode = false)
+      : SVCOMP(SVCOMP), WasmModeActive(WasmMode) {}
   PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
   static bool isRequired() { return true; }
 
@@ -70,6 +71,7 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   int getLineNumber();
 
   bool SVCOMP;
+  bool WasmModeActive = false;
   bool mainFunctionInitialized = false;
   std::vector<Function*> functionsValues;
   Function* currentFunction;

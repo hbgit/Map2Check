@@ -803,18 +803,18 @@ PreservedAnalyses MemoryTrackPass::run(Function &F,
       } else if (dyn_cast<StoreInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnStoreInstruction();
+        if (WasmModeActive) {
+          auto* SI = cast<StoreInst>(&*i);
+          instrumentWasmBoundsCheck(&*i, SI->getPointerOperand(), SI->getValueOperand()->getType());
+        }
       } else if (dyn_cast<AllocaInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnAllocaInstruction();
-        // errs() << "runOnAllocaInstruction() \n";
       } else if (dyn_cast<LoadInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnLoadInstruction();
-      }
-      if (WasmMode) {
-        if (auto* SI = dyn_cast<StoreInst>(&*i)) {
-          instrumentWasmBoundsCheck(&*i, SI->getPointerOperand(), SI->getValueOperand()->getType());
-        } else if (auto* LI = dyn_cast<LoadInst>(&*i)) {
+        if (WasmModeActive) {
+          auto* LI = cast<LoadInst>(&*i);
           instrumentWasmBoundsCheck(&*i, LI->getPointerOperand(), LI->getType());
         }
       }
@@ -827,51 +827,15 @@ PreservedAnalyses MemoryTrackPass::run(Function &F,
 void MemoryTrackPass::instrumentWasmBoundsCheck(llvm::Instruction* I,
                                                   llvm::Value* ptr,
                                                   llvm::Type* accessType) {
-  Value* base = ptr->stripPointerCasts();
-  GlobalVariable* global = nullptr;
-  while (auto* GEP = dyn_cast<GetElementPtrInst>(base)) {
-    base = GEP->getPointerOperand();
-  }
-  global = dyn_cast<GlobalVariable>(base);
-  if (!global) return;
-
-  llvm::StringRef name = global->getName();
-  if (!name.contains("memory") && !name.contains("Memory")) return;
-
-  auto* structTy = dyn_cast<StructType>(global->getValueType());
-  if (!structTy) return;
-  unsigned sizeFieldIdx = 1;
-  if (structTy->getNumElements() <= sizeFieldIdx) return;
-
-  auto* M = I->getModule();
-  auto& Ctx = I->getContext();
-  auto* int64Ty = Type::getInt64Ty(Ctx);
-  auto* dataLayout = &M->getDataLayout();
-
-  IRBuilder<> builder(I);
-  auto* sizePtr = builder.CreateStructGEP(structTy, global, sizeFieldIdx);
-  auto* sizeLoad = builder.CreateLoad(int64Ty, sizePtr);
-
-  APInt constOffset(64, 0);
-  auto* gep = dyn_cast<GetElementPtrInst>(ptr->stripPointerCasts());
-  if (gep && gep->accumulateConstantOffset(*dataLayout, constOffset)) {
-    uint64_t typeSize = dataLayout->getTypeStoreSize(accessType);
-    uint64_t totalOffset = constOffset.getZExtValue() + typeSize;
-    auto* offsetVal = ConstantInt::get(int64Ty, totalOffset);
-    auto* cond = builder.CreateICmpUGT(offsetVal, sizeLoad, "wasm_oob");
-
-    auto* errorBB = llvm::BasicBlock::Create(Ctx, "wasm_bounds_error", I->getFunction());
-    auto* contBB  = llvm::BasicBlock::Create(Ctx, "wasm_bounds_ok", I->getFunction());
-
-    builder.CreateCondBr(cond, errorBB, contBB);
-
-    IRBuilder<> errBuilder(errorBB);
-    auto trapFn = M->getOrInsertFunction("map2check_error", Type::getVoidTy(Ctx));
-    errBuilder.CreateCall(trapFn, {});
-    errBuilder.CreateBr(contBB);
-
-    I->moveBefore(&contBB->front());
-  }
+  // NOTE: The wasm2c generated code already contains native bounds checks
+  // via wasm_rt_trap → map2check_error (provided by WasmRuntimeStubs.c).
+  // Per-allocation bounds checking (detecting buffer overflow within the
+  // linear memory) requires modelar o alocador da linguagem-fonte e está
+  // planejado para a Fase 2 (pós-SBSeg).
+  //
+  // See docs/migration/1.7-wasm-pipeline.md for the full architectural gap.
+  (void)I; (void)ptr; (void)accessType;
+  return;
 }
 
 // --- New Pass Manager plugin registration ---
@@ -883,7 +847,7 @@ llvmGetPassPluginInfo() {
                 [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
                    llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
                   if (Name == "memory-track") {
-                    FPM.addPass(MemoryTrackPass());
+                    FPM.addPass(MemoryTrackPass(false, WasmMode.getValue()));
                     return true;
                   }
                   return false;

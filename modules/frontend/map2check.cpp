@@ -24,6 +24,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
@@ -198,6 +199,15 @@ int map2check_execution(map2check_args args) {
     lifterCfg.wasm2cPath = "wasm2c";
     lifterCfg.clangPath = "/usr/bin/clang-16";
     lifterCfg.wasmRtIncludePath = "/opt/wabt-1.0.41/include";
+    // Fallback for CI: try /opt/wabt/include, then system /usr/include
+    struct stat st;
+    if (stat("/opt/wabt-1.0.41/include", &st) != 0) {
+      if (stat("/opt/wabt/include", &st) == 0) {
+        lifterCfg.wasmRtIncludePath = "/opt/wabt/include";
+      } else {
+        lifterCfg.wasmRtIncludePath = "/usr/include";
+      }
+    }
     lifterCfg.keepIntermediate = true;
     Map2Check::WasmLifter lifter(lifterCfg);
     Map2Check::WasmLifterResult result = lifter.lift(args.inputFile);

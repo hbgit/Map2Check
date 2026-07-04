@@ -23,6 +23,7 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "utils/gen_crypto_hash.hpp"
@@ -351,9 +352,18 @@ std::string Caller::generateWasmWrapperStatic(const std::string& wasmOutHeaderPa
   outFile.close();
 
   std::string headerDir = wasmOutHeaderPath.substr(0, wasmOutHeaderPath.find_last_of("/"));
+  std::string wasmIncludePath;
+  struct stat st;
+  if (stat("/opt/wabt-1.0.41/include", &st) == 0) {
+    wasmIncludePath = "/opt/wabt-1.0.41/include";
+  } else if (stat("/opt/wabt/include", &st) == 0) {
+    wasmIncludePath = "/opt/wabt/include";
+  } else {
+    wasmIncludePath = "/usr/include";
+  }
   std::ostringstream compileCmd;
   compileCmd << Map2Check::clangBinary << " -c -emit-llvm"
-             << " -I/opt/wabt-1.0.41/include"
+             << " -I" << wasmIncludePath
              << " -I" << headerDir
              << " " << wrapperPath << " -o " << wrapperBcPath;
   system(compileCmd.str().c_str());

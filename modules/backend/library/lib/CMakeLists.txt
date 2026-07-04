@@ -24,10 +24,20 @@ list(APPEND MAP2CHECK_C_LIB "WitnessGeneration")
 list(APPEND MAP2CHECK_C_LIB "WitnessGenerationNone")
 
 # WasmRuntimeStubs requires WABT include path for wasm-rt.h
+# Try Docker path first, fall back to system path
+if(EXISTS "/opt/wabt-1.0.41/include/wasm-rt.h")
+  set(WABT_INCLUDE_DIR "/opt/wabt-1.0.41/include")
+elseif(EXISTS "/opt/wabt/include/wasm-rt.h")
+  set(WABT_INCLUDE_DIR "/opt/wabt/include")
+else()
+  set(WABT_INCLUDE_DIR "/usr/include")
+endif()
+message(STATUS "WABT include dir: ${WABT_INCLUDE_DIR}")
+
 add_custom_command(
   OUTPUT "WasmRuntimeStubs.bc"
   COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_EMIT_LLVM_FLAGS}
-    -I/opt/wabt-1.0.41/include
+    -I${WABT_INCLUDE_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
   DEPENDS ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
   COMMENT "Compiling WasmRuntimeStubs to bytecode")

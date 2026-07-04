@@ -30,14 +30,18 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install LLVM 16
+      - name: Install LLVM 16 + WABT
         run: |
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
           echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
           sudo apt-get update
           sudo apt-get install -y \
             clang-16 llvm-16 llvm-16-dev libclang-16-dev \
-            cmake ninja-build libboost-all-dev zlib1g-dev
+            cmake ninja-build libboost-all-dev zlib1g-dev \
+            wabt
+          mkdir -p /opt/wabt/include
+          ln -sf /usr/include/wasm-rt.h /opt/wabt/include/wasm-rt.h
+          ln -sf /usr/include/wasm-rt-impl.h /opt/wabt/include/wasm-rt-impl.h
 
       - name: Configure CMake
         run: |
@@ -152,14 +156,18 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install LLVM 16
+      - name: Install LLVM 16 + WABT
         run: |
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
           echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
           sudo apt-get update
           sudo apt-get install -y \
             clang-16 llvm-16 llvm-16-dev libclang-16-dev \
-            cmake ninja-build libboost-all-dev zlib1g-dev
+            cmake ninja-build libboost-all-dev zlib1g-dev \
+            wabt
+          mkdir -p /opt/wabt/include
+          ln -sf /usr/include/wasm-rt.h /opt/wabt/include/wasm-rt.h
+          ln -sf /usr/include/wasm-rt-impl.h /opt/wabt/include/wasm-rt-impl.h
 
       - name: Configure CMake with Sanitizers
         run: |

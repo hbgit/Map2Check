@@ -24,28 +24,35 @@ list(APPEND MAP2CHECK_C_LIB "WitnessGeneration")
 list(APPEND MAP2CHECK_C_LIB "WitnessGenerationNone")
 
 # WasmRuntimeStubs requires WABT include path for wasm-rt.h
-# Docker: /opt/wabt-1.0.41/include, CI: /usr/include (apt package)
+# Optional: only compiled when WABT is available (Docker). CI skips it.
+# Docker: /opt/wabt-1.0.41/include, CI: apt wabt → /usr/include
 if(DEFINED WABT_INCLUDE_DIR)
-  set(WABT_INCLUDE_DIR "${WABT_INCLUDE_DIR}")
+  set(_wasm_rt_include "${WABT_INCLUDE_DIR}")
 elseif(EXISTS "/opt/wabt-1.0.41/include/wasm-rt.h")
-  set(WABT_INCLUDE_DIR "/opt/wabt-1.0.41/include")
+  set(_wasm_rt_include "/opt/wabt-1.0.41/include")
 elseif(EXISTS "/usr/include/wasm-rt.h")
-  set(WABT_INCLUDE_DIR "/usr/include")
+  set(_wasm_rt_include "/usr/include")
+elseif(EXISTS "/usr/local/include/wasm-rt.h")
+  set(_wasm_rt_include "/usr/local/include")
 else()
-  set(WABT_INCLUDE_DIR "/opt/wabt/include")
+  set(_wasm_rt_include "")
 endif()
-message(STATUS "WABT include dir: ${WABT_INCLUDE_DIR}")
 
-add_custom_command(
-  OUTPUT "WasmRuntimeStubs.bc"
-  COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_EMIT_LLVM_FLAGS}
-    -I${WABT_INCLUDE_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
-  DEPENDS ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
-  COMMENT "Compiling WasmRuntimeStubs to bytecode")
-add_custom_target(WasmRuntimeStubs ALL DEPENDS WasmRuntimeStubs.bc)
-install(FILES ${PROJECT_BINARY_DIR}/modules/backend/library/lib/WasmRuntimeStubs.bc
-  DESTINATION lib)
+if(_wasm_rt_include)
+  message(STATUS "WABT found at ${_wasm_rt_include} — compiling WasmRuntimeStubs")
+  add_custom_command(
+    OUTPUT "WasmRuntimeStubs.bc"
+    COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_EMIT_LLVM_FLAGS}
+      -I${_wasm_rt_include}
+      ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
+    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
+    COMMENT "Compiling WasmRuntimeStubs to bytecode")
+  add_custom_target(WasmRuntimeStubs ALL DEPENDS WasmRuntimeStubs.bc)
+  install(FILES ${PROJECT_BINARY_DIR}/modules/backend/library/lib/WasmRuntimeStubs.bc
+    DESTINATION lib)
+else()
+  message(STATUS "WABT not found — skipping WasmRuntimeStubs (WASM support needs Docker)")
+endif()
 
 foreach(F ${MAP2CHECK_C_LIB})
   add_custom_command(

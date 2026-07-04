@@ -42,19 +42,12 @@ jobs:
 
       - name: Configure CMake
         run: |
-          echo "=== WABT diagnostics ==="
-          apt list --installed 2>/dev/null | grep wabt || echo "wabt NOT installed"
-          find /usr -name "wasm-rt.h" 2>/dev/null || echo "wasm-rt.h NOT found in /usr"
-          find / -name "wasm-rt.h" 2>/dev/null || echo "wasm-rt.h NOT found anywhere"
-          ls -la /usr/include/wasm-rt.h 2>/dev/null || echo "/usr/include/wasm-rt.h does not exist"
-          echo "=== End diagnostics ==="
           mkdir -p build && cd build
           cmake .. -G Ninja \
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
             -DSKIP_LIB_FUZZER=ON \
             -DSKIP_KLEE=ON \
-            -DENABLE_TEST=ON \
-            -DWABT_INCLUDE_DIR=/usr/include
+            -DENABLE_TEST=ON
         env:
           CC: /usr/bin/clang-16
           CXX: /usr/bin/clang++-16

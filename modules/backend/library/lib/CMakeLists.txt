@@ -25,7 +25,9 @@ list(APPEND MAP2CHECK_C_LIB "WitnessGenerationNone")
 
 # WasmRuntimeStubs requires WABT include path for wasm-rt.h
 # Docker: /opt/wabt-1.0.41/include, CI: /usr/include (apt package)
-if(EXISTS "/opt/wabt-1.0.41/include/wasm-rt.h")
+if(DEFINED WABT_INCLUDE_DIR)
+  set(WABT_INCLUDE_DIR "${WABT_INCLUDE_DIR}")
+elseif(EXISTS "/opt/wabt-1.0.41/include/wasm-rt.h")
   set(WABT_INCLUDE_DIR "/opt/wabt-1.0.41/include")
 elseif(EXISTS "/usr/include/wasm-rt.h")
   set(WABT_INCLUDE_DIR "/usr/include")

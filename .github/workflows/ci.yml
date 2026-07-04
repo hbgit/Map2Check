@@ -47,7 +47,8 @@ jobs:
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
             -DSKIP_LIB_FUZZER=ON \
             -DSKIP_KLEE=ON \
-            -DENABLE_TEST=ON
+            -DENABLE_TEST=ON \
+            -DWABT_INCLUDE_DIR=/usr/include
         env:
           CC: /usr/bin/clang-16
           CXX: /usr/bin/clang++-16

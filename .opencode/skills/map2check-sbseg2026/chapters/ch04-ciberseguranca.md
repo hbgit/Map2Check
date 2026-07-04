@@ -26,6 +26,9 @@ O Map2Check 2026 foi validado no TestComp 2026 (Heap: 594 tasks, score 57, 56 bu
 - **Smoke test validado**: `array-1.c` → TRUE (VERIFICATION SUCCEEDED), `array-2.c` → FALSE + counter-example `nondet_int → 31763`
 - **WASM pipeline**: `.wasm → wasm2c (WABT 1.0.41) → .c → clang-16 → .bc → passes → KLEE`
 - **wasi-sdk 33.0**: toolchain para compilar C → WASM com target `wasm32-wasip1`
+- **Per-allocation bounds check WASM**: MemoryTrackPass intercepta `w2c_*_dlmalloc`/`dlfree` e injeta `map2check_wasm_check_access` em loads/stores
+- **Juliet WASM**: 15 casos validados (CWE-121/122/124/126/127); 15/15 FALSE com timeout 290s
+- **Linear memory gap**: heap detectável via dlmalloc; stack/globals sem alocador visível → inviável no MVP (mas Juliet stack/underread também foram detectados)
 
 ## Mental Models
 - Use **UNKNOWN como KPI de engenharia**: 45.6% não é fracasso, é direcionamento — timeout tuning, estratégias de solver, path exploration heuristics
@@ -37,6 +40,7 @@ O Map2Check 2026 foi validado no TestComp 2026 (Heap: 594 tasks, score 57, 56 bu
 - **Confiar apenas em unit tests**: 7/7 passando e ainda assim 3 inconsistências NPM escaparam → testes E2E são indispensáveis
 - **Usar gráfico de pizza sem baseline**: comparar TRUE/FALSE/UNKNOWN sem baseline de concorrente não agrega — usar tabela numérica
 - **Tratar WASM como "trabalho futuro"**: pipeline funcional (lifting validado), feature em desenvolvimento ativo — reportar como contribuição em andamento
+- **Fazer o CI passar sem executar KLEE**: 8 commits consecutivos adaptando include paths e tornando WasmRuntimeStubs opcional deram green checkmark, mas não validaram o pipeline real — job Docker E2E necessário
 
 ## 3 Inconsistências Corrigidas na Migração
 
@@ -66,8 +70,10 @@ Counter-example: nondet_int() → 31763, line 19, main
 1. TestComp 2026 Heap: 594 tasks, score 57, 56 bugs reais (9.4% FALSE), 45.6% UNKNOWN
 2. Mapeamento CWE: 5 propriedades SV-COMP → 5 CWEs + técnica empregada — acionável por times AppSec
 3. 3 inconsistências NPM corrigidas: KLEE flags, passes ignorados, target function — indetectáveis por unit tests
-4. WASM: pipeline funcional (wasm2c 1.0.41 + wasi-sdk 33.0), lifting validado, passes em adaptação
-5. Smoke tests canônicos (`array-1.c` TRUE, `array-2.c` FALSE) validam pipeline E2E em segundos
+4. WASM: pipeline funcional (wasm2c 1.0.41 + wasi-sdk 33.0), lifting validado, per-allocation bounds check implementado
+5. Juliet WASM: 15 casos (CWE-121/122/124/126/127), 15/15 FALSE com timeout 290s
+6. Timeout é KPI de engenharia: 110s → UNKNOWN, 290s → FALSE nos casos Juliet WASM
+7. Smoke tests canônicos (`array-1.c` TRUE, `array-2.c` FALSE) validam pipeline E2E em segundos
 
 ## Connects To
 - **Ch 3**: Arquitetura — cada pass da seção 3 mapeia para CWE e resultado TestComp

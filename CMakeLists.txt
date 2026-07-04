@@ -7,6 +7,7 @@ option(SKIP_KLEE "Don't use KLEE" OFF)
 option(REGRESSION "Prepare Regression Tests" OFF)
 option(ENABLE_TEST "Build all tests" OFF)
 option(MAP2CHECK_ENABLE_SANITIZERS "Enable AddressSanitizer + UndefinedBehaviorSanitizer for testing" OFF)
+option(MAP2CHECK_DYNAMIC_LINK "Link dynamically (required when KLEE/Z3 are only available as shared libraries)" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,10 +24,17 @@ if(MAP2CHECK_ENABLE_SANITIZERS)
   # ASan requires dynamic linking — skip static config
   set(Map2Check_MODE "SHARED")
 else()
-  # --- Static linking configuration ---
-  set(Map2Check_MODE "STATIC")
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-  set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
+  if(MAP2CHECK_DYNAMIC_LINK)
+    # --- Dynamic linking configuration ---
+    # Use this when dependencies (Z3, STP, KLEE) are only available as .so
+    set(Map2Check_MODE "SHARED")
+    message(STATUS "Dynamic linking enabled (MAP2CHECK_DYNAMIC_LINK=ON)")
+  else()
+    # --- Static linking configuration ---
+    set(Map2Check_MODE "STATIC")
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
+  endif()
 endif()
 
 # --- Core dependencies ---

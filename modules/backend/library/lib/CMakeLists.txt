@@ -36,7 +36,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c")
         ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
       DEPENDS ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
       COMMENT "Compiling WasmRuntimeStubs to bytecode")
-    add_custom_target(WasmRuntimeStubs DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/WasmRuntimeStubs.bc")
+    add_custom_target(WasmRuntimeStubs ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/WasmRuntimeStubs.bc")
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/WasmRuntimeStubs.bc" DESTINATION lib)
   else()
     message(WARNING "wasm-rt.h not found — WasmRuntimeStubs skipped (WASM needs Docker)")

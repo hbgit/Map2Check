@@ -38,7 +38,7 @@ if echo "$output" | grep -q "Lifting complete. Entry point:"; then
     ep=$(echo "$output" | grep "Lifting complete" | sed 's/.*Entry point: //' | sed 's/\x1b\[[0-9;]*m//g' | xargs)
     echo "  Entry point detected: $ep"
     
-    if echo "$ep" | grep -q "w2c_.*_start"; then
+    if echo "$ep" | grep -qE "w2c_.*(_start|_0x5Fstart)"; then
         echo "  PASS: _start entrypoint correctly identified"
         PASSED=$((PASSED+1))
     else

@@ -48,8 +48,8 @@ When you ask about a topic not covered below, I will read the relevant chapter f
 | 4 | ~~WASM PoC E2E (1.7.3)~~ | ~~Alta~~ | ~~Seção WASM~~ | ✅ **Concluído** |
 | 5 | ~~WASM MemoryTrackPass (1.7.4)~~ | ~~Alta~~ | ~~PoC E2E~~ | ✅ **Concluído** |
 | 6 | ~~WASM CLI --wasm (1.7.5)~~ | ~~Alta~~ | ~~1.7.4~~ | ✅ **Concluído** |
-| 7 | ~~WASM Juliet benchmarks (1.7.6)~~ | ~~Média~~ | ~~1.7.5~~ | ✅ **Concluído** |
-| 8 | ~~WASM seção artigo (1.7.7)~~ | ~~Média~~ | ~~1.7.6~~ | ✅ **Concluído** |
+| 7 | WASM Juliet benchmarks (1.7.6) | Média | 1.7.5 | ✅ Concluído — 15 casos, 15/15 FALSE (com timeout 290s) |
+| 8 | WASM seção artigo (1.7.7) | Média | 1.7.6 | 🟡 Em andamento — texto base no artigo, falta figura final |
 | 9 | Gravação do vídeo técnico | **Média** | Seção 5 (Demonstração) | usuário |
 | 10 | Validação do build por terceiro (CTA) | **Baixa** | Checklist de artefato | usuário |
 | 11 | Ajustes do orientador no artigo | **Alta** | Submissão | usuário |
@@ -61,7 +61,7 @@ When you ask about a topic not covered below, I will read the relevant chapter f
 | **Disponibilidade** | Repositório público + Docker image (GHCR) |
 | **Funcionalidade** | Build passa + 7/7 unit tests + 9/9 passes carregando |
 | **Reprodutibilidade** | Dockerfile.dev (Ubuntu 22.04) + scripts de benchmark |
-| **Sustentabilidade** | CI/CD (GitHub Actions), static analysis (clang-tidy, cppcheck), sanitizers (ASAN/UBSAN/TSAN), docs atualizados |
+| **Sustentabilidade** | CI/CD (GitHub Actions): build, unit tests, static analysis, sanitizers, e novo job E2E com Docker; docs atualizados |
 
 ## 📊 Consolidated Data
 
@@ -98,12 +98,14 @@ WASM Pipeline:
   WasmRuntimeStubs:✅ KLEE-friendly (calloc/free), wasm_rt_trap → map2check_error
   Wrapper auto:    ✅ generateWasmWrapperStatic() — main() → wasm bridge
   Bounds check:    ✅ Per-allocation via dlmalloc interception (w2c_*_dlmalloc/dlfree)
-                   3/3 heap Juliet FALSE, 12 stack UNK (gap documentado)
-  Juliet benchmarks:✅ 15 casos (CWE-121 a 127), 3 FALSE heap, 12 UNK stack
-  Integration tests:✅ tests/integration/test_wasm_{pipeline,entrypoint}.sh
-  Seção no artigo: ✅ Sec 4 + tabela + explicação do gap linear memory
+                   implementado e validado
+  Juliet benchmarks:✅ 15 casos (CWE-121/122/124/126/127), 15/15 FALSE
+                   timeout 110s → UNKNOWN; timeout 290s → FALSE
+  Integration tests:✅ tests/integration/test_wasm_{pipeline,entrypoint}.sh (3/3 + 3/3)
+  Seção no artigo: 🟡 Texto base em main.tex, figura pipeline pendente
   KLEE E2E:        ✅ Pipeline completo: .wasm → LLVM IR → Passes → KLEE → FALSE
   CI build:        ✅ find_path corrigido, WasmRuntimeStubs opcional
+  CI E2E:          ✅ Novo job e2e-wasm executa integração dentro do Docker
 ```
 
 ## 🖼️ Figure Inventory
@@ -149,7 +151,7 @@ O mapeamento torna resultados de verificação formal acionáveis para times de 
 **Não é fracasso, é sinal de onde investir.** Causas: timeout 300s insuficiente, path exploration do KLEE não otimizada, solver SMT (Z3) sem tuning. Cada ponto percentual reduzido de UNKNOWN é ganho real de cobertura.
 
 ### Testes Unitários são Necessários mas Insuficientes
-**7/7 unit tests passando e 3 bugs críticos escaparam.** Os bugs (KLEE flags, isRequired, target function) só foram detectados por smoke tests manuais. **Testes de integração E2E (compile → instrument → link → execute) no CI são indispensáveis.**
+**7/7 unit tests passando e 3 bugs críticos escaparam.** Os bugs (KLEE flags, isRequired, target function) só foram detectados por smoke tests manuais. **Testes de integração E2E (compile → instrument → link → execute) no CI são indispensáveis.** No WASM, 8 commits consecutivos de "fix(ci)" tentaram fazer o CI passar sem executar KLEE; o job `e2e-wasm` baseado em Docker foi criado justamente para quebrar esse ciclo.
 
 ### WASM como Próximo Vetor de Growth
 **Pipeline LLVM 16 estendido para WebAssembly.** Memory safety em runtimes WASM (Wasmtime, Wasmer) é uma nova classe de bugs. Feature implementada e funcional — NÃO é trabalho futuro, aparece no paper com resultados da Juliet.

@@ -12,6 +12,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/release"
+      CACHE PATH "Install prefix (default: <repo>/release)" FORCE)
+endif()
+
 # --- Sanitizer configuration (Phase 1.5 — OpenSSF Best Practices) ---
 if(MAP2CHECK_ENABLE_SANITIZERS)
   message(STATUS "Sanitizers enabled: ASan + UBSan (dynamic linking)")
@@ -25,7 +30,10 @@ if(MAP2CHECK_ENABLE_SANITIZERS)
 else()
   # --- Static linking configuration ---
   set(Map2Check_MODE "STATIC")
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  # Prefer static archives, but fall back to shared objects: Ubuntu's
+  # libz3-dev package only ships libz3.so (no libz3.a), so a ".a"-only
+  # suffix list makes find_library() fail to locate Z3 even when installed.
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
   set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
 endif()
 

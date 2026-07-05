@@ -36,8 +36,8 @@ After that, you should type the following command:
 </p>
 
 ``` bash
-$ unzip map2check-rc-v7.3-svcomp20.zip
-$ cd map2check-rc-v7.3-svcomp20
+$ unzip map2check-vx.y.2026-ii.jj.140ba2d2.zip
+$ cd map2check-vx.y.2026-ii.jj.140ba2d2
 ```
 
 #### Running the tool
@@ -48,7 +48,7 @@ in the installation directory as follows:
 </p>
 
 ``` bash
-$ ./map2check --memtrack svcomp_960521-1_false-valid-free.c
+$ ./map2check --memtrack program.c
 ```
 
 In this case, --memtrack is the option to check for memory errors. For help and others tool options:
@@ -68,21 +68,53 @@ You can build Map2Check using our development Docker image ([Dockerfile.dev](/Do
 ``` bash
 $ git clone https://github.com/hbgit/Map2Check.git
 $ cd Map2Check
-$ git submodule update --init --recursive
 # Build the development Docker image
-$ docker build -t map2check-dev -f Dockerfile.dev .
+$ docker build -t map2check-dev --no-cache -f Dockerfile.dev .
 $ docker run -it --rm -v $(pwd):/workspace map2check-dev /bin/bash
 ```
 
-Inside the container (or on a host with LLVM 16 installed):
+Inside the container:
 
 ``` bash
 $ mkdir build && cd build
 $ cmake .. -G Ninja \
-    -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
-    -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON
+    -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm
 $ ninja && ninja install
+# binário em: release/bin/map2check (ou release/map2check)
 ```
+
+The `Dockerfile.dev` image already builds and installs KLEE 3.1 (to `/opt/klee`) and provides LibFuzzer via LLVM 16's compiler-rt, so **do not** pass `-DSKIP_KLEE=ON` or `-DSKIP_LIB_FUZZER=ON` — those flags skip the `cmake/FindKlee.cmake` / `cmake/FindLibFuzzer.cmake` modules entirely, which are what copy the KLEE binaries and `libFuzzer.a` into `release/`. Only pass them `ON` if you deliberately want a build without KLEE/LibFuzzer support (e.g. `-DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON` for a minimal/CI build).
+
+Minor test:
+``` bash
+$ cd ../release/
+$ ./map2check --memtrack svcomp_960521-1_false-valid-free.c
+# Expected Result:
+Adopting z3 solver... 
+Started Map2Check
+Compiling /workspace/release/../tests/regression_test/test_cases/sv-benchmarks/memsafety/960521-1-1.c
+
+...
+
+>>Memory list log
+
+  Line content   :   { free(a); free(b); } /* ditto */
+  Address        : 0x55ba60a90700
+  PointsTo       : 0x7f95f0003d54
+  Is Free        : TRUE
+  Is Dynamic     : FALSE
+  Var Name       : b
+  Line Number    : 29
+  Function Scope : main
+
+----------------------------------------------------
+Violated property:
+	file map2check_property line 29 function main
+	FALSE-FREE: Operand of free must have zero pointer offset
+
+VERIFICATION FAILED
+```
+
 
 Requires: **CMake ≥ 3.20**, **C++17**, **LLVM 16**, **Boost**.
 
@@ -98,19 +130,28 @@ $ cmake .. -G Ninja \
     -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
     -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON -DENABLE_TEST=ON
 $ ninja && ctest --output-on-failure
+# Expected results:
+Test project /workspace/build
+    Start 1: HelloGTest
+1/7 Test #1: HelloGTest .......................   Passed    0.00 sec
+    Start 2: AllocationLogTest
+2/7 Test #2: AllocationLogTest ................   Passed    0.00 sec
+    Start 3: HeapLogTest
+3/7 Test #3: HeapLogTest ......................   Passed    0.00 sec
+    Start 4: ContainerReallocTest
+4/7 Test #4: ContainerReallocTest .............   Passed    0.00 sec
+    Start 5: BTreeTest
+5/7 Test #5: BTreeTest ........................   Passed    0.06 sec
+    Start 6: ContainerBTreeTest
+6/7 Test #6: ContainerBTreeTest ...............   Passed    0.05 sec
+    Start 7: MemTrackTest
+7/7 Test #7: MemTrackTest .....................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 7
 ```
-
-**Regression tests** require the [Benchexec](https://github.com/sosy-lab/benchexec) docker image available in the [submodule](utils/benchexecrun):
-
-``` bash
-$ docker build -t hrocha/benchexecrun --no-cache -f utils/benchexecrun/Dockerfile utils/benchexecrun/
-# Running the regression testing
-$ ./make-regression-test.sh t
-```
-
 ___
 
-#### Instructions for SV-COMP'20
+#### Instructions for SV-COMP
 
 Use the [map2check-wrapper.py](utils/map2check-wrapper.py) script in the Map2Check binary directory to verify each single test-case.
 
@@ -137,7 +178,7 @@ ___
 Maintainers:
   - Herbert O. Rocha (since 2014), Federal University of Roraima, Brazil - https://hbgit.github.io/
   - Rafael Menezes   (since 2016), Federal University of Roraima, Brazil - https://rafaelsa94.github.io/
-  - Guilherme Bernardo   (since 2025), Federal University of Roraima, Brazil - https://github.com/GuilhermeBn198
+  - Guilherme Bernardo (since 2025), Federal University of Roraima, Brazil - https://github.com/GuilhermeBn198
 
 Questions and bug reports:  
   E-mail: map2check.tool@gmail.com
@@ -147,3 +188,5 @@ Questions and bug reports:
          // \\    > L I N U X - GPL <
         /(   )\
          ^^-^^
+bug found -> verified safe
+Map2Check . Linux . GPL

@@ -32,10 +32,21 @@ if(LIBFUZZER_ARCHIVE)
   set(LIBFUZZER_FOUND TRUE)
   message(STATUS "Found LibFuzzer: ${LIBFUZZER_ARCHIVE}")
 
-  # Install for release packaging
-  install(FILES ${LIBFUZZER_ARCHIVE}
-    DESTINATION lib
-    RENAME libFuzzer.a)
+  # map2check.cpp/caller.cpp invoke a *copy* of clang installed at
+  # ${MAP2CHECK_PATH}/bin/clang (see FindClang.cmake's install_exec_file).
+  # That copy resolves its resource-dir relative to its own location
+  # (<prefix>/lib/clang/<ver>/lib/linux), not the system LLVM install, so
+  # -fsanitize=fuzzer needs the compiler-rt archives mirrored there —
+  # a single renamed libFuzzer.a is never actually looked up by clang.
+  execute_process(COMMAND ${CLANG_CC} --print-resource-dir
+    OUTPUT_VARIABLE CLANG_RESOURCE_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+  get_filename_component(CLANG_RESOURCE_VERSION "${CLANG_RESOURCE_DIR}" NAME)
+
+  install(DIRECTORY ${CLANG_RUNTIME_DIR}/
+    DESTINATION lib/clang/${CLANG_RESOURCE_VERSION}/lib/linux
+    FILES_MATCHING PATTERN "*.a")
 else()
   set(LIBFUZZER_FOUND FALSE)
   message(WARNING "LibFuzzer archive not found in ${CLANG_RUNTIME_DIR}. "

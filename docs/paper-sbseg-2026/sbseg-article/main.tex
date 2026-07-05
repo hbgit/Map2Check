@@ -8,6 +8,8 @@
 \usepackage{listings}
 \usepackage{tabularx}
 \usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes, calc, backgrounds}
 % Macros para dados numéricos (ajustáveis em um único lugar)
 \newcommand{\TotalTasks}{594}
 \newcommand{\ScoreTestComp}{57}
@@ -133,7 +135,7 @@ Após 2020, a ferramenta entrou em um período de estagnação que durou até 20
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=.9\textwidth]{img/fig1-timeline}
+\input{img/fig1-timeline.tikz.tex}
 \caption{Evolução do Map2Check de 2016 a 2026, com os marcos de cada edição do TACAS e o período de estagnação.}
 \label{fig:timeline}
 \end{figure}
@@ -149,7 +151,7 @@ O pipeline do Map2Check 2026 opera em cinco estágios, ilustrados na Figura~\ref
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=.95\textwidth]{img/fig2-pipeline}
+\input{img/fig2-pipeline.tikz.tex}
 \caption{Pipeline de verificação do Map2Check 2026: compilação, instrumentação, ligação com runtime e análise por KLEE ou LibFuzzer.}
 \label{fig:pipeline}
 \end{figure}

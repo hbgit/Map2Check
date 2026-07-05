@@ -64,16 +64,23 @@ ___
 
 #### How to build Map2Check?
 
-You can build Map2Check using our [Dockerfile](/Dockerfile) by clone our repository:
+Map2Check 2.0 uses LLVM 16, KLEE 3.x, and C++17. The recommended build environment is the `Dockerfile.dev` image:
 
 ``` bash
 $ git clone https://github.com/hbgit/Map2Check.git
 $ cd Map2Check
 $ git submodule update --init --recursive
-# Build docker image to compile Map2Check
-$ docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
-$ docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh; ./make-unit-test.sh"
+# Build the development image (contains LLVM 16, KLEE, WABT, wasi-sdk)
+$ docker build -t map2check-dev -f Dockerfile.dev .
+# Build inside the container
+$ docker run --rm -v $(pwd):/workspace -w /workspace map2check-dev bash -c \
+    'mkdir -p build && cd build && \
+     cmake .. -G Ninja -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+              -DMAP2CHECK_DYNAMIC_LINK=ON && \
+     ninja'
 ```
+
+**Note:** `-DMAP2CHECK_DYNAMIC_LINK=ON` is required when KLEE/Z3 are only available as shared libraries (default in `Dockerfile.dev`). For static linking, ensure static versions of Z3, STP, and KLEE libraries are installed.
 
 More details at https://map2check.github.io/docker.html
 

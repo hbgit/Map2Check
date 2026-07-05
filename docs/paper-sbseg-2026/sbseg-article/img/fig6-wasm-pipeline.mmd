@@ -1,0 +1,57 @@
+## Figura 6 — Pipeline WASM Map2Check 2026
+
+```mermaid
+flowchart LR
+    subgraph Entrada
+        A["Binário WASM\n(.wasm)"]
+    end
+
+    subgraph Lifting
+        B["wasm2c\n(WABT 1.0.41)"]
+        C["Código C\n(.c/.h)"]
+        D["clang-16\n-c -emit-llvm"]
+    end
+
+    subgraph Wrapper
+        E["generateWasmWrapperStatic()\nmain() → w2c_*_start"]
+        F["llvm-link\n(wrapper + lifted IR)"]
+    end
+
+    subgraph Runtime
+        G["WasmRuntimeStubs.bc\n(calloc/free KLEE-friendly)"]
+    end
+
+    subgraph Instrumentação
+        H["opt-16\n--wasm-mode"]
+        I["MemoryTrackPass\n(dlmalloc intercept + bounds check)"]
+    end
+
+    subgraph Verificação
+        J["KLEE 3.x\n(Execução Simbólica)"]
+        K["Z3\n(Solver SMT)"]
+    end
+
+    subgraph Saída
+        L["Veredito\nFALSE / UNKNOWN"]
+        M["Witness\n(GraphML)"]
+    end
+
+    A --> B --> C --> D --> F
+    E --> F
+    G --> F
+    F --> H --> I --> J --> L
+    J --> K
+    J --> M
+```
+
+---
+
+**Nota:** Para inserir no artigo LaTeX, exportar como SVG/PNG.
+
+**Observação para redação:**
+- O pipeline é ativado via `map2check --wasm modulo.wasm`
+- `wasm2c` converte o binário WASM para código C com semântica preservada
+- `generateWasmWrapperStatic` cria uma função `main()` que instancia o módulo, chama `_start` e libera recursos
+- `WasmRuntimeStubs.bc` substitui `mmap`/`munmap` do WABT por `calloc`/`free` compatíveis com KLEE
+- O `MemoryTrackPass` em modo WASM intercepta `w2c_*_dlmalloc`/`_dlfree` e injeta bounds checks
+- O KLEE opera sobre o LLVM IR levantado e linkado, sem modificações

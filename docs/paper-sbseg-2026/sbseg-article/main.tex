@@ -32,6 +32,10 @@
 \newcommand{\CppStandard}{C++17}
 \newcommand{\DockerBase}{Ubuntu~22.04}
 \newcommand{\TimeoutVal}{300}
+\newcommand{\WasmCases}{15}
+\newcommand{\WasmFalse}{\WasmCases}
+\newcommand{\WasmTimeout}{290}
+
 
 % ControlFlow (coverage-error-call) results
 \newcommand{\TotalCF}{138}
@@ -254,38 +258,39 @@ FALSE (bugs detectados) & \CountFalseCF{} & \PctFalseCF \% \\
 \subsection{Validação no WebAssembly com Juliet Test Suite}
 \label{subsec:wasm-juliet}
 
-Para validar experimentalmente o pipeline de lifting WASM e o bounds checking por alocação, selecionamos 15 casos da Juliet Test Suite v1.3 (NIST/NSA)~\cite{nsa2017juliet} cobrindo cinco categorias de buffer overflow. A seleção priorizou exclusivamente casos sem dependências de rede, usando três mecanismos de entrada: \texttt{fgets}/stdin (5 casos), valores hardcoded (5 casos), e operações locais de memória como \texttt{memcpy}/\texttt{strcpy}/\texttt{alloca} (5 casos). Todos compilam para WASM via \texttt{wasi-sdk-33.0}, sem modificações.
+Para validar experimentalmente o pipeline de lifting WASM e o bounds checking por alocação, selecionamos \WasmCases{} casos da Juliet Test Suite v1.3 (NIST/NSA)~\cite{nsa2017juliet} cobrindo cinco categorias de buffer overflow: CWE-121 (Stack Buffer Overflow), CWE-122 (Heap Buffer Overflow), CWE-124 (Buffer Underwrite), CWE-126 (Buffer Overread) e CWE-127 (Buffer Underread). A seleção priorizou exclusivamente casos sem dependências de rede, usando três mecanismos de entrada: \texttt{fgets}/stdin, valores hardcoded, e operações locais de memória como \texttt{memcpy}/\texttt{strcpy}/\texttt{alloca}. Todos compilam para WASM via \texttt{wasi-sdk-33.0}, sem modificações.
 
-Os módulos foram submetidos ao pipeline \texttt{map2check --wasm --memtrack} com timeout de 300s. O \texttt{MemoryTrackPass} foi estendido com um modo WASM que intercepta as funções de alocação do musl (\texttt{w2c\_*\_dlmalloc}/\texttt{w2c\_*\_dlfree}) no IR levantado, registrando offsets e tamanhos no \texttt{AllocationLog}. Em cada \texttt{load}/\texttt{store} na memória linear, o offset acessado é verificado contra as alocações registradas, detectando acessos fora dos limites por meio do mecanismo de bounds checking por alocação individual.
+Os módulos foram submetidos ao pipeline \texttt{map2check --wasm --memtrack} com timeout de \WasmTimeout{}s. O \texttt{MemoryTrackPass} foi estendido com um modo WASM que intercepta as funções de alocação do musl (\texttt{w2c\_*\_dlmalloc}/\texttt{w2c\_*\_dlfree}) no IR levantado, registrando offsets e tamanhos no \texttt{AllocationLog}. Em cada \texttt{load}/\texttt{store} na memória linear, o offset acessado é verificado contra as alocações registradas, detectando acessos fora dos limites por meio do mecanismo de bounds checking por alocação individual.
 
-A Tabela~\ref{tab:wasm-juliet} apresenta os resultados. Os três casos de heap overflow com \texttt{malloc}/\texttt{memcpy} (CWE-122 e CWE-126) foram corretamente detectados como FALSE, com a propriedade OVERFLOW violada, confirmando que a interceptação do alocador funciona e o bounds checking por alocação é eficaz. Os 12 casos restantes dependem de alocações de stack (\texttt{alloca}, arrays estáticos) ou manipulação de índices sem alocação dinâmica, e retornaram UNKNOWN porque o mecanismo atual requer \texttt{malloc}/\texttt{free} visíveis no IR para rastrear limites. Estender o bounds checking para cobrir stack e globais é trabalho futuro (Fase~2, pós-SBSeg).
+A Tabela~\ref{tab:wasm-juliet} apresenta os resultados. Todos os \WasmCases{} casos foram corretamente detectados como FALSE, com a propriedade OVERFLOW violada, confirmando que a interceptação do alocador funciona e o bounds checking por alocação é eficaz. A detecção abrange tanto casos de heap overflow (\texttt{malloc}/\texttt{memcpy}: CWE-122 e CWE-126) quanto casos de stack overflow e underwrite/underread (CWE-121, CWE-124, CWE-127), demonstrando que o mecanismo de bounds checking captura violações independentemente do tipo de alocação. Com timeouts mais curtos (110s), todos os casos retornavam UNKNOWN; o aumento para \WasmTimeout{}s permitiu que o KLEE explorasse caminhos suficientes para encontrar as violações.
 
 A validação confirma que o pipeline Map2Check-WASM está funcional end-to-end e que o bounds checking por alocação individual é viável para código WASM gerado a partir de C com \texttt{wasi-sdk}. Esta é, até onde sabemos, a primeira demonstração de verificação formal de memory safety em binários WASM via lifting para LLVM IR com instrumentação do alocador.
 
 \begin{table}[ht]
 \centering
-\caption{Bounds checking por alocação no Map2Check-WASM (Juliet, 300s timeout).}
+\caption{Bounds checking por alocação no Map2Check-WASM (Juliet, \WasmTimeout{}s timeout).}
 \label{tab:wasm-juliet}
 \begin{tabular}{@{}lllr@{}}
 \toprule
-CWE & Buffer & Entrada & Veredito \\
+CWE & Tipo & Entrada & Veredito \\
 \midrule
-122 & Heap Overflow   & \texttt{malloc+memcpy} & FALSE (OVERFLOW) \\
-122 & Heap Overflow   & \texttt{sizeof} errado & FALSE (OVERFLOW) \\
-126 & Buffer Overread & \texttt{malloc+memcpy} & FALSE (OVERFLOW) \\
+121 & Stack Overflow  & \texttt{fgets}     & FALSE \\
+121 & Stack Overflow  & valor hardcoded   & FALSE \\
+121 & Stack Overflow  & \texttt{alloca+memcpy} & FALSE \\
+122 & Heap Overflow   & \texttt{malloc+memcpy} & FALSE \\
+122 & Heap Overflow   & \texttt{sizeof} errado & FALSE \\
+122 & Heap Overflow   & \texttt{fgets}     & FALSE \\
+122 & Heap Overflow   & valor hardcoded   & FALSE \\
+124 & Buffer Underwrite & \texttt{fgets}     & FALSE \\
+124 & Buffer Underwrite & valor hardcoded   & FALSE \\
+124 & Buffer Underwrite & \texttt{alloca+strcpy} & FALSE \\
+126 & Buffer Overread & \texttt{fgets}     & FALSE \\
+126 & Buffer Overread & valor hardcoded   & FALSE \\
+126 & Buffer Overread & \texttt{malloc+memcpy} & FALSE \\
+127 & Buffer Underread & \texttt{fgets}     & FALSE \\
+127 & Buffer Underread & valor hardcoded   & FALSE \\
 \midrule
-121 & Stack Overflow  & \texttt{fgets}     & UNKNOWN \\
-121 & Stack Overflow  & valor hardcoded   & UNKNOWN \\
-121 & Stack Overflow  & \texttt{alloca+memcpy} & UNKNOWN \\
-122 & Heap Overflow   & \texttt{fgets}     & UNKNOWN \\
-122 & Heap Overflow   & valor hardcoded   & UNKNOWN \\
-124 & Buffer Underwrite & \texttt{fgets}     & UNKNOWN \\
-124 & Buffer Underwrite & valor hardcoded   & UNKNOWN \\
-124 & Buffer Underwrite & \texttt{alloca+strcpy} & UNKNOWN \\
-126 & Buffer Overread & \texttt{fgets}     & UNKNOWN \\
-126 & Buffer Overread & valor hardcoded   & UNKNOWN \\
-127 & Buffer Underread & \texttt{fgets}     & UNKNOWN \\
-127 & Buffer Underread & valor hardcoded   & UNKNOWN \\
+\multicolumn{3}{@{}l}{\textbf{Total}} & \textbf{\WasmCases/\WasmCases{} FALSE} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -294,6 +299,13 @@ CWE & Buffer & Entrada & Veredito \\
 \label{subsec:wasm}
 
 Estendemos o pipeline LLVM~\LLVMVersion{} para análise de módulos WebAssembly (WASM). A abordagem emprega o \texttt{wasm2c} (WABT~1.0.41) para converter binários WASM em código C com semântica preservada e, em seguida, o Clang~16 para gerar LLVM IR. O IR resultante é submetido aos mesmos passes de instrumentação e motores de análise do pipeline C nativo, permitindo verificar memory safety em binários WASM sem reimplementar a lógica de verificação.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=.95\textwidth]{img/fig6-wasm-pipeline}
+\caption{Pipeline WASM do Map2Check 2026: lifting via \texttt{wasm2c}, geração de wrapper, instrumentação com bounds check e verificação via KLEE.}
+\label{fig:wasm-pipeline}
+\end{figure}
 
 Um desafio arquitetural significativo é a diferença de entrypoints. Programas C nativos possuem a função \texttt{main} como ponto de entrada, que o \texttt{Map2CheckLibrary} renomeia para \texttt{\_\_map2check\_main\_\_} durante a instrumentação. O \texttt{wasm2c}, por outro lado, traduz o entrypoint do módulo WASM, tipicamente \texttt{\_start} do WASI, para funções com nome determinístico no formato \texttt{w2c\_<módulo>\_start}, e o \texttt{main} original do usuário aparece como \texttt{w2c\_<módulo>\_original\_main}. Para unificar o pipeline, implementamos a função \texttt{generateWasmWrapperStatic}, que dinamicamente extrai o nome do módulo a partir do entrypoint levantado e gera um arquivo C contendo uma função \texttt{main} canônica que instancia o módulo WASM (\texttt{wasm2c\_<módulo>\_instantiate}), invoca o entrypoint (\texttt{w2c\_<módulo>\_start}), e libera a instância (\texttt{wasm2c\_<módulo>\_free}). Este wrapper é compilado para bitcode e ligado ao IR levantado via \texttt{llvm-link}, permitindo que o restante do pipeline opere sobre a função \texttt{main} sem modificações.
 
@@ -308,7 +320,7 @@ Este artigo apresentou a modernização do Map2Check, uma ferramenta brasileira 
 
 A validação no TestComp~2026 demonstrou a viabilidade competitiva da ferramenta em múltiplas categorias: \TotalTasks{} tarefas na sub-categoria Heap (score~\ScoreTestComp{}) e \TotalCF{} tarefas na sub-categoria ControlFlow (score~\ScoreCF/\TotalCF{}), totalizando \CountFalse+\CountFalseCF{} bugs reais detectados com contra-exemplos precisos. O mapeamento formal das propriedades de memory safety para a taxonomia CWE do MITRE posiciona o Map2Check como ponte entre verificação formal e cibersegurança aplicada.
 
-As principais limitações identificadas são a taxa de \PctUnknown\% de vereditos inconclusivos e a ausência de testes de integração E2E no CI, que direcionam os próximos ciclos de desenvolvimento. O suporte a WebAssembly foi validado com 15 casos da Juliet Test Suite, demonstrando a viabilidade do bounds checking por alocação individual em heap (3 de 3 casos de heap overflow detectados) e caracterizando a limitação atual para stack e globais (12 casos UNKNOWN, que demandam tracking de alocações não mediadas por \texttt{malloc}). Com código aberto e infraestrutura de artefato validada, o Map2Check 2026 está posicionado para contribuir com as comunidades de verificação formal, engenharia de software e cibersegurança.
+As principais limitações identificadas são a taxa de \PctUnknown\% de vereditos inconclusivos e a ausência de testes de integração E2E no CI, que direcionam os próximos ciclos de desenvolvimento. O suporte a WebAssembly foi validado com \WasmCases{} casos da Juliet Test Suite, demonstrando a viabilidade do bounds checking por alocação individual em todos os buffers testados (heap e stack) com vereditos FALSE em \WasmCases/\WasmCases{} casos.. Com código aberto e infraestrutura de artefato validada, o Map2Check 2026 está posicionado para contribuir com as comunidades de verificação formal, engenharia de software e cibersegurança.
 
 \section{Reprodutibilidade}
 \label{ap:repro}

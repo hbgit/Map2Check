@@ -232,6 +232,7 @@ jobs:
       - name: Build + install Map2Check in container
         run: |
           docker run --rm \
+            -u root \
             -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
             -e CC=/usr/bin/clang-16 \

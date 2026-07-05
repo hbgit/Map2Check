@@ -49,7 +49,7 @@ When you ask about a topic not covered below, I will read the relevant chapter f
 | 5 | ~~WASM MemoryTrackPass (1.7.4)~~ | ~~Alta~~ | ~~PoC E2E~~ | ✅ **Concluído** |
 | 6 | ~~WASM CLI --wasm (1.7.5)~~ | ~~Alta~~ | ~~1.7.4~~ | ✅ **Concluído** |
 | 7 | WASM Juliet benchmarks (1.7.6) | Média | 1.7.5 | ✅ Concluído — 15 casos, 15/15 FALSE (com timeout 290s) |
-| 8 | WASM seção artigo (1.7.7) | Média | 1.7.6 | 🟡 Em andamento — texto base no artigo, falta figura final |
+| 8 | WASM seção artigo (1.7.7) | Média | 1.7.6 | 🟡 Em andamento — texto atualizado (15/15 FALSE), figura TikZ pronta, renderização do .mmd pendente |
 | 9 | Gravação do vídeo técnico | **Média** | Seção 5 (Demonstração) | usuário |
 | 10 | Validação do build por terceiro (CTA) | **Baixa** | Checklist de artefato | usuário |
 | 11 | Ajustes do orientador no artigo | **Alta** | Submissão | usuário |
@@ -112,12 +112,12 @@ WASM Pipeline:
 
 | ID | Descrição | Seção | Status |
 |:---|:----------|:------|:------|
-| `fig1-timeline` | Timeline visual 2016→2026 com comparação de concorrentes | Sec 2 | Redesenhar (fonte maior, TikZ) |
-| `fig2-pipeline` | Diagrama do pipeline de verificação (5 estágios) | Sec 3 | Redesenhar (fonte maior, TikZ) |
+| `fig1-timeline` | Timeline visual 2016→2026 | Sec 2 | ✅ TikZ criado (fig1-timeline.tikz.tex) |
+| `fig2-pipeline` | Diagrama do pipeline de verificação (5 estágios) | Sec 3 | ✅ TikZ criado (fig2-pipeline.tikz.tex) |
 | ~~`fig3-passes`~~ | ~~Diagrama dos passes~~ | — | Removida (orientador) |
 | ~~`fig4-testcomp2026`~~ | ~~Gráfico de pizza TestComp~~ | — | Removida (orientador: nunca usar pizza) |
 | ~~`fig5-cicd`~~ | ~~Workflow CI/CD~~ | — | Removida (substituída por parágrafo + OpenSSF) |
-| `fig6-wasm-pipeline` | Pipeline WASM: .wasm → wasm2c → LLVM IR → Passes → KLEE | Sec 4 | 🟡 Criar (Mermaid ou captura) |
+| `fig6-wasm-pipeline` | Pipeline WASM: .wasm → wasm2c → LLVM IR → Passes → KLEE | Sec 4 | 🟡 .mmd criado, aguardando renderização para PNG |
 
 ---
 

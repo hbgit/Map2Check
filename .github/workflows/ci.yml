@@ -37,8 +37,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             clang-16 llvm-16 llvm-16-dev libclang-16-dev \
-            cmake ninja-build libboost-all-dev zlib1g-dev \
-            wabt
+            cmake ninja-build libboost-all-dev zlib1g-dev
+          # WABT 1.0.41 (apt tem 1.0.27, API incompatível com WasmRuntimeStubs.c)
+          wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+          sudo tar xzf /tmp/wabt.tar.gz -C /opt
+          sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
       - name: Configure CMake
         run: |
@@ -79,7 +82,11 @@ jobs:
           sudo apt-get install -y \
             clang-16 clang-tidy-16 llvm-16 llvm-16-dev libclang-16-dev \
             cmake ninja-build libboost-all-dev zlib1g-dev \
-            cppcheck wabt
+            cppcheck
+          # WABT 1.0.41 (apt tem 1.0.27, API incompatível com WasmRuntimeStubs.c)
+          wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+          sudo tar xzf /tmp/wabt.tar.gz -C /opt
+          sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
       - name: Generate compile_commands.json
         run: |
@@ -160,8 +167,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             clang-16 llvm-16 llvm-16-dev libclang-16-dev \
-            cmake ninja-build libboost-all-dev zlib1g-dev \
-            wabt
+            cmake ninja-build libboost-all-dev zlib1g-dev
+          # WABT 1.0.41 (apt tem 1.0.27, API incompatível com WasmRuntimeStubs.c)
+          wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+          sudo tar xzf /tmp/wabt.tar.gz -C /opt
+          sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
       - name: Configure CMake with Sanitizers
         run: |

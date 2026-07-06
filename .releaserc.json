@@ -1,0 +1,17 @@
+{
+  "branches": ["master"],
+  "tagFormat": "v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    ["@semantic-release/exec", {
+      "prepareCmd": "bash scripts/package-release.sh ${nextRelease.version}"
+    }],
+    ["@semantic-release/github", {
+      "draftRelease": true,
+      "assets": [
+        { "path": "map2check-v*-linux-x86_64.zip" }
+      ]
+    }]
+  ]
+}

@@ -189,4 +189,5 @@ Questions and bug reports:
         /(   )\
          ^^-^^
 bug found -> verified safe
+
 Map2Check . Linux . GPL

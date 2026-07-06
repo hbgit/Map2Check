@@ -17,11 +17,14 @@
 #include <stdlib.h>
 // CPP Libs
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
@@ -201,6 +204,12 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
                    << getLibSuffix();
   passesArg << ",map2check-library";
 
+  transformCommand << " -entry-function=" << this->entryFunction;
+  transformCommand << " -m2c-entry-function=" << this->entryFunction;
+  if (this->wasmMode) {
+    transformCommand << " -wasm-mode";
+  }
+
   transformCommand << " -passes='" << passesArg.str() << "'";
 
   std::string input_file = "< " + this->pathprogram;
@@ -288,6 +297,10 @@ void Caller::linkLLVM() {
     }
   }
 
+  if (this->wasmMode) {
+    linkCommand << " ${MAP2CHECK_PATH}/lib/WasmRuntimeStubs.bc";
+  }
+
   witnessCommand.str("");
   witnessCommand << linkCommand.str();
   witnessCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";
@@ -299,6 +312,63 @@ void Caller::linkLLVM() {
   linkCommand << "  > " + programHash + "-result.bc";
   Map2Check::Log::Debug(linkCommand.str());
   system(linkCommand.str().c_str());
+}
+
+std::string Caller::generateWasmWrapperStatic(const std::string& wasmOutHeaderPath,
+                                               const std::string& entryPointName) {
+  // Parse entry point name to extract module prefix
+  // e.g., w2c_0x24test__array0x2Ewasm_0x5Fstart → module is 0x24test__array0x2Ewasm
+  std::string moduleName;
+  std::string typeName = entryPointName;
+  if (entryPointName.size() > 4 && entryPointName.substr(0, 4) == "w2c_") {
+    size_t pos = entryPointName.rfind("_0x5Fstart");
+    if (pos != std::string::npos) {
+      moduleName = entryPointName.substr(4, pos - 4);
+      typeName = "w2c_" + moduleName;
+    }
+  }
+
+  // Use a temp file for the wrapper C source
+  char tmpPath[] = "/tmp/m2c_wasm_wrapper_XXXXXX";
+  int fd = mkstemp(tmpPath);
+  if (fd < 0) return "";
+  close(fd);
+  std::string wrapperPath = std::string(tmpPath) + ".c";
+  std::string wrapperBcPath = std::string(tmpPath) + ".bc";
+
+  std::ostringstream wrapper;
+  wrapper << "#include \"" << wasmOutHeaderPath << "\"\n"
+          << "#include <stdlib.h>\n"
+          << "int main() {\n"
+          << "    " << typeName << " instance;\n"
+          << "    wasm2c_" << moduleName << "_instantiate(&instance, NULL);\n"
+          << "    " << entryPointName << "(&instance);\n"
+          << "    wasm2c_" << moduleName << "_free(&instance);\n"
+          << "    return 0;\n"
+          << "}\n";
+
+  std::ofstream outFile(wrapperPath);
+  outFile << wrapper.str();
+  outFile.close();
+
+  std::string headerDir = wasmOutHeaderPath.substr(0, wasmOutHeaderPath.find_last_of("/"));
+  std::string wasmIncludePath;
+  struct stat st;
+  if (stat("/opt/wabt-1.0.41/include", &st) == 0) {
+    wasmIncludePath = "/opt/wabt-1.0.41/include";
+  } else if (stat("/opt/wabt/include", &st) == 0) {
+    wasmIncludePath = "/opt/wabt/include";
+  } else {
+    wasmIncludePath = "/usr/include";
+  }
+  std::ostringstream compileCmd;
+  compileCmd << Map2Check::clangBinary << " -c -emit-llvm"
+             << " -I" << wasmIncludePath
+             << " -I" << headerDir
+             << " " << wrapperPath << " -o " << wrapperBcPath;
+  system(compileCmd.str().c_str());
+
+  return wrapperBcPath;
 }
 
 void Caller::executeAnalysis(std::string solvername) {

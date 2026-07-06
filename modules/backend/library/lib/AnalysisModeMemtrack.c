@@ -381,3 +381,42 @@ void map2check_function(const char *name, void *ptr) {
   *row = new_heap_row(1, 1, ptr, 1, 1, name);
   append_element(&heap_log, row);
 }
+
+/* ================================================================
+ * WASM-specific: per-allocation bounds checking for lifted code
+ * ================================================================ */
+
+void map2check_wasm_malloc(uint64_t offset, uint64_t size) {
+  if (offset == 0 || offset == (uint64_t)-1) return;
+  MEMORY_ALLOCATIONS_ROW *row =
+      find_row_with_address(&allocation_log, (void *)(long)offset);
+  if (row != NULL) {
+    row->size = (unsigned)size;
+    row->is_free = FALSE;
+  } else {
+    row = (MEMORY_ALLOCATIONS_ROW *)malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
+    *row = new_memory_row((long)offset, FALSE);
+    row->size = (unsigned)size;
+    append_element(&allocation_log, row);
+  }
+}
+
+void map2check_wasm_free(uint64_t offset, int line) {
+  MEMORY_ALLOCATIONS_ROW *row =
+      find_row_with_address(&allocation_log, (void *)(long)offset);
+  if (row != NULL) {
+    row->is_free = TRUE;
+    row->size = 0;
+  } else {
+    write_property(FALSE_FREE, line, "");
+    map2check_error();
+  }
+}
+
+void map2check_wasm_check_access(uint64_t offset, uint64_t access_size) {
+  if (!is_valid_allocation_address(&allocation_log, (void *)(long)offset,
+                                    (int)access_size)) {
+    write_property(FALSE_OVERFLOW, 0, "");
+    map2check_error();
+  }
+}

@@ -1,0 +1,35 @@
+## Figura 5 — Workflow CI/CD e Qualidade de Artefato
+
+```mermaid
+flowchart LR
+    subgraph "CI/CD GitHub Actions"
+        A[Push / PR] --> B[Build]
+        B --> C["Unit Tests\n(7/7)"]
+        B --> D["Pass Plugin Load\n(9/9)"]
+        B --> E["Sanitizers\n(ASAN/UBSAN/TSAN)"]
+        B --> F["Static Analysis\n(clang-tidy / cppcheck)"]
+        C & D & E & F --> G["Docker Image\nGHCR"]
+    end
+
+    subgraph "Qualidade"
+        H[".clang-tidy\n(C++17)"]
+        I[".cppcheck-suppressions\n(C backend)"]
+        J["scripts/run-static-analysis.sh"]
+        K["OpenSSF Best Practices\n(em andamento)"]
+    end
+
+    G --> L["Reprodutibilidade\nCTA Score"]
+    H & I & J & K --> L
+```
+
+---
+
+**Nota:** Para inserir no artigo LaTeX, exportar como SVG/PNG.
+
+**Observação para redação:**
+- Destacar que esta infraestrutura pontua diretamente nos critérios CTA:
+  - **Disponibilidade:** repositório público + Docker image GHCR
+  - **Funcionalidade:** 7/7 unit tests + 9/9 passes
+  - **Reprodutibilidade:** `Dockerfile.dev` + scripts de benchmark
+  - **Sustentabilidade:** CI/CD, static analysis, sanitizers, documentação
+- Usar como figura na Seção 3.4

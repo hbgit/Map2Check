@@ -76,10 +76,12 @@ class Caller {
 
   /** @brief Function to call pass for current verification mode
    *  (for REACHABILITY mode)
-   *  @param mode Mode of the current execution
    *  @param target_function Function to be verified
    *  @param sv_comp boolean representing if should use sv-comp rules */
   int callPass(std::string target_function = "", bool sv_comp = false);
+
+  std::string entryFunction = "main";
+  bool wasmMode = false;
 
   /** Link functions called after executing the passes */
   void linkLLVM();
@@ -95,6 +97,10 @@ class Caller {
 
   /** Use btree mode */
   void useBTree() { this->dataStructure = DataStructure::BTree; }
+
+  /** Generate wasm wrapper bitcode for KLEE compatibility */
+  static std::string generateWasmWrapperStatic(const std::string& wasmOutHeaderPath,
+                                               const std::string& entryPointName);
 
   bool isTimeout() { return gotTimeout; }
   bool isVerified() { return witnessVerified; }

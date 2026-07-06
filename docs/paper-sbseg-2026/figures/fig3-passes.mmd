@@ -1,0 +1,54 @@
+## Figura 3 — Passes de Instrumentação (New Pass Manager)
+
+```mermaid
+flowchart TB
+    subgraph "Entrada: LLVM IR"
+        IR["Module LLVM\nFunções C instrumentadas"]
+    end
+
+    subgraph "Passes de Análise"
+        A[AssertPass]
+        B[TargetPass]
+        C[LoopPredAssumePass]
+        D[Map2CheckLibrary]
+        E[NonDetPass]
+        F[TrackBasicBlockPass]
+        G[OverflowPass]
+        H[GenerateAutomataTruePass]
+        I[MemoryTrackPass]
+    end
+
+    subgraph "Saída: LLVM IR Instrumentado"
+        OUT["Module LLVM\n+ Calls para Runtime\n+ Metadados de Witness"]
+    end
+
+    IR --> A & B & C & D & E & F & G & H & I --> OUT
+
+    style A fill:#e1f5e1
+    style B fill:#e1f5e1
+    style C fill:#e1f5e1
+    style D fill:#e1f5e1
+    style E fill:#fff5e1
+    style F fill:#fff5e1
+    style G fill:#ffe1e1
+    style H fill:#ffe1e1
+    style I fill:#ffe1e1
+
+    LEG1["🟢 Simples"]
+    LEG2["🟡 Médios"]
+    LEG3["🔴 Complexos"]
+```
+
+**Legenda:**
+- 🟢 **Simples** (~130–160 LOC): AssertPass, TargetPass, LoopPredAssumePass, Map2CheckLibrary
+- 🟡 **Médios** (~330–400 LOC): NonDetPass, TrackBasicBlockPass
+- 🔴 **Complexos** (~520–900 LOC): OverflowPass, GenerateAutomataTruePass, MemoryTrackPass
+
+---
+
+**Nota:** Para inserir no artigo LaTeX, exportar como SVG/PNG.
+
+**Observação para redação:**
+- Mencionar que todos os 9 passes declaram `static bool isRequired() { return true; }`
+- Sem isso, `opt -O0` pula os passes em funções com atributo `optnone`
+- Usar como figura na Seção 3.2

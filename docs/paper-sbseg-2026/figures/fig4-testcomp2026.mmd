@@ -1,0 +1,41 @@
+## Figura 4 — Resultados TestComp 2026: C.coverage-error-call.Heap
+
+```mermaid
+pie title Resultados Consolidados (594 tasks)
+    "TRUE (264)" : 264
+    "UNKNOWN (271)" : 271
+    "FALSE (56)" : 56
+    "TIMEOUT (2)" : 2
+    "FALSE_FREE (1)" : 1
+```
+
+---
+
+### Tabela complementar (para inserir no corpo do artigo)
+
+| Resultado | Count | % |
+|:----------|:------|:--|
+| TRUE | 264 | 44.4% |
+| UNKNOWN | 271 | 45.6% |
+| FALSE | 56 | 9.4% |
+| FALSE_FREE | 1 | 0.2% |
+| TIMEOUT | 2 | 0.3% |
+| **Total** | **594** | **100%** |
+| **Score** | **57** | — |
+
+### Por set
+
+| Set | Tasks | FALSE | TRUE | UNKNOWN | TIMEOUT |
+|:----|:------|:------|:-----|:--------|:--------|
+| Heap | 428 | 39 | 203 | 184 | 2 |
+| LinkedLists | 166 | 18 | 61 | 87 | 0 |
+
+---
+
+**Nota:** Para inserir no artigo LaTeX, exportar o pie chart como SVG/PNG.
+A tabela deve ser inserida diretamente como `table` em LaTeX.
+
+**Observação para redação:**
+- Destacar que 56 bugs reais foram encontrados (FALSE positives de erro, TRUE positives de detecção)
+- Score 57 é competitivo para uma primeira execução em LLVM 16
+- Usar como figura/tabela na Seção 4.2

@@ -34,7 +34,7 @@
 | Sinal | Diagnóstico provável |
 |:------|:---------------------|
 | Todos os passes carregam mas vereditos errados | `isRequired()` faltando → passes não executam de fato |
-| `Unknown command line argument` no KLEE | Flags da versão KLEE 2.0 usadas com KLEE 3.x |
+| `Unknown command line argument` no KLEE | Flags da versão KLEE 2.0 usadas com KLEE 3.1 |
 | UNKNOWN consistente em benchmarks com loops | Timeout insuficiente ou path explosion em laços |
 | FALSE em benchmark que deveria ser TRUE | Bug de regressão na instrumentação — rodar checkpoint |
 | Cobertura de branches estagnada após N iterações | Magic number bloqueando fuzzer — acionar KLEE |

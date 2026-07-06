@@ -83,7 +83,7 @@ FALSE: Target Reached
 
 | # | Bug | Sintoma | Causa Root | Commit |
 |:--|:----|:--------|:-----------|:-------|
-| 1 | KLEE 3.x CLI flags | Unknown command line argument | Flags removidas na v3.x | 284aef1ac |
+| 1 | KLEE 3.1 CLI flags | Unknown command line argument | Flags removidas na v3.x | 284aef1ac |
 | 2 | isRequired() ausente | Passes pulados silenciosamente | optnone + New PM behavior | 0deb84e01 |
 | 3 | Target function nao propagada | __VERIFIER_error em vez de reach_error | env var vs cl::opt mismatch | 0deb84e01 |
 

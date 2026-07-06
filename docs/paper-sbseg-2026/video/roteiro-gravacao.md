@@ -27,7 +27,7 @@ docker build -f Dockerfile.dev -t map2check-dev .
 docker run --rm map2check-dev clang-16 --version
 docker run --rm map2check-dev opt --version
 ```
-**Narracao:** O ambiente e inteiramente containerizado. A imagem Docker inclui LLVM 16, KLEE 3.x, Z3, Boost e todas as dependencias. O build e reprodutivel em qualquer maquina com Docker.
+**Narracao:** O ambiente e inteiramente containerizado. A imagem Docker inclui LLVM 16, KLEE 3.1, Z3, Boost e todas as dependencias. O build e reprodutivel em qualquer maquina com Docker.
 
 ---
 

@@ -25,7 +25,7 @@
 ## 3.3 Motores de analise
 
 [PARAGRAFO A REDIGIR]
-- KLEE 3.x (LLVM 16): execucao simbolica
+- KLEE 3.1 (LLVM 16): execucao simbolica
 - LibFuzzer (LLVM 16): fuzzing guiado por cobertura
 - Iterative deepening: combinacao dos dois motores
 

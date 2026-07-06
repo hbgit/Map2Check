@@ -4,7 +4,7 @@
 **Slide:** Título + autores + UFRN/UFRR
 - "Map2Check 2026 é uma ferramenta de verificação híbrida para C que combina execução simbólica e fuzzing"
 - "SBSeg 2026 — Salão de Ferramentas"
-- Stack: LLVM 16, KLEE 3.x, C++17, Docker
+- Stack: LLVM 16, KLEE 3.1, C++17, Docker
 
 ## Cena 2: Demonstração E2E — Buffer Overflow (0:45–2:00)
 **Terminal ao vivo:**

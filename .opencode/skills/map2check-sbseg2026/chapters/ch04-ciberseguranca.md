@@ -46,7 +46,7 @@ O Map2Check 2026 foi validado no TestComp 2026 (Heap: 594 tasks, score 57, 56 bu
 
 | Problema | Causa | Impacto |
 |:---------|:------|:--------|
-| KLEE 3.x flags | Flags removidas entre KLEE 2.0 → 3.x | `Unknown command line argument` — ferramenta não executava |
+| KLEE 3.1 flags | Flags removidas entre KLEE 2.0 → 3.1 | `Unknown command line argument` — ferramenta não executava |
 | Passes ignorados | `optnone` + New PM: passes não executam sem `isRequired()` | Instrumentação silenciosamente ausente — falsos TRUE |
 | Target function | `__VERIFIER_error` vs `reach_error` — env var vs `cl::opt` | KLEE procurava função errada — veredito incorreto |
 

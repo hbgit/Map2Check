@@ -1,14 +1,14 @@
 # Chapter 3: Arquitetura e Funcionalidades
 
 ## Core Idea
-O pipeline do Map2Check 2026 opera em 5 estágios: compilação C → LLVM IR (Clang-16), instrumentação por 9 passes (opt, New PM), linkagem com runtime (llvm-link), análise por KLEE 3.x/LibFuzzer, e veredito + witness GraphML. A infraestrutura CI/CD + Docker + OpenSSF Best Practices garante reprodutibilidade e sustentabilidade.
+O pipeline do Map2Check 2026 opera em 5 estágios: compilação C → LLVM IR (Clang-16), instrumentação por 9 passes (opt, New PM), linkagem com runtime (llvm-link), análise por KLEE 3.1/LibFuzzer, e veredito + witness GraphML. A infraestrutura CI/CD + Docker + OpenSSF Best Practices garante reprodutibilidade e sustentabilidade.
 
 ## Frameworks Introduzidos
 - **Pipeline de 5 Estágios**:
   1. Compilação: `clang-16 -O0` → LLVM IR
   2. Instrumentação: `opt` com 9 passes New PM → bitcode instrumentado com chamadas à runtime
   3. Linkagem: `llvm-link` → bitcode + runtime library
-  4. Análise: KLEE 3.x (execução simbólica) ou LibFuzzer (fuzzing)
+  4. Análise: KLEE 3.1 (execução simbólica) ou LibFuzzer (fuzzing)
   5. Veredito: TRUE/FALSE/UNKNOWN + witness GraphML com contra-exemplo
 
 - **New Pass Manager (PassInfoMixin)**: API moderna do LLVM — substitui Legacy PM (FunctionPass/ModulePass)
@@ -34,7 +34,7 @@ O pipeline do Map2Check 2026 opera em 5 estágios: compilação C → LLVM IR (C
 ## Mental Models
 - Use **compilação -O0** com New PM porque preserva debug info para contra-exemplos precisos
 - Pense em **witness GraphML como contrato de verificabilidade**: qualquer ferramenta pode validar o veredito reexecutando o witness
-- Use **Docker como contrato de reprodutibilidade**: `Dockerfile.dev` (Ubuntu 22.04 + LLVM 16 + KLEE 3.x) documenta cada dependência
+- Use **Docker como contrato de reprodutibilidade**: `Dockerfile.dev` (Ubuntu 22.04 + LLVM 16 + KLEE 3.1) documenta cada dependência
 - Trate **sanitizers como primeira linha de defesa** da própria ferramenta — detectam bugs que unit tests perdem
 
 ## Anti-patterns

@@ -90,7 +90,7 @@
 - [ ] Destacar: `isRequired()` como fix crítico (sem isso, `opt -O0` pula todos os passes)
 
 ### 3.3 Motores de análise
-- [ ] **KLEE 3.x** (LLVM 16): execução simbólica, geração de testes, contra-exemplos
+- [ ] **KLEE 3.1** (LLVM 16): execução simbólica, geração de testes, contra-exemplos
 - [ ] **LibFuzzer** (LLVM 16): fuzzing guiado por cobertura, rápido para bugs superficiais
 - [ ] **Iterative deepening:** combinação dos dois motores em fases
 
@@ -141,7 +141,7 @@
 - [ ] **Tabela dos 3 bugs:**
   | Bug | Sintoma | Causa | Fix |
   |:----|:--------|:------|:----|
-  | KLEE 3.x flags | `Unknown command line argument` | Flags removidas na v3.x | Atualizar `caller.cpp` |
+  | KLEE 3.1 flags | `Unknown command line argument` | Flags removidas na v3.x | Atualizar `caller.cpp` |
   | `isRequired()` | Passes pulados silenciosamente | `optnone` + New PM | `isRequired()=true` em 9 passes |
   | Target function | `__VERIFIER_error` em vez de `reach_error` | env var vs `cl::opt` | Passar `-function-name` na CLI |
 - [ ] Destacar: nenhum desses bugs era detectável pelos testes unitários existentes (7/7)

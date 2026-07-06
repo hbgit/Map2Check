@@ -34,7 +34,7 @@
 ## Docker Reproducibility Pattern
 **When to use**: garantir que resultados são reproduzíveis em qualquer máquina
 **How**:
-1. `Dockerfile.dev` baseado em Ubuntu 22.04 + LLVM 16 + KLEE 3.x
+1. `Dockerfile.dev` baseado em Ubuntu 22.04 + LLVM 16 + KLEE 3.1
 2. Instalar todas as dependências no Dockerfile (sem "funciona na minha máquina")
 3. Build automatizado no CI (GitHub Actions)
 4. Documentar comandos exatos de build e execução

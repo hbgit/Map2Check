@@ -66,7 +66,7 @@ When you ask about a topic not covered below, I will read the relevant chapter f
 ## 📊 Consolidated Data
 
 ```
-Stack:         LLVM 16.0 · KLEE 3.x · C++17 · Ubuntu 22.04 · Docker
+Stack:         LLVM 16.0 · KLEE 3.1 · C++17 · Ubuntu 22.04 · Docker
 Migração:      35 commits · 84 arquivos · +5.785 / -657 linhas
 Unit tests:    7/7 passing
 Pass plugins:  9/9 loading (opt-16)
@@ -142,7 +142,7 @@ O mapeamento torna resultados de verificação formal acionáveis para times de 
 **CI/CD + Docker + static analysis + sanitizers não são luxo, são fundamento.** Sem eles: bugs de regressão passam despercebidos, resultados não são reproduzíveis, a ferramenta não compete em SV-COMP/TestComp.
 
 ### Docker Reproducibility Contract
-**Se funciona na imagem `map2check-dev` (Ubuntu 22.04 + LLVM 16 + KLEE 3.x), funciona em qualquer lugar.** O Dockerfile.dev é o contrato de reprodutibilidade — documenta cada dependência e versão.
+**Se funciona na imagem `map2check-dev` (Ubuntu 22.04 + LLVM 16 + KLEE 3.1), funciona em qualquer lugar.** O Dockerfile.dev é o contrato de reprodutibilidade — documenta cada dependência e versão.
 
 ### TestComp 2026 como Validação Empírica
 **Resultados Heap (594 tasks):** TRUE 264 (44.4%), UNKNOWN 271 (45.6%), FALSE 56 bugs reais (9.4%), TIMEOUT 2 (0.3%). **Score 57.** UNKNOWN 45.6% é o principal gargalo e direciona o próximo ciclo de desenvolvimento.
@@ -205,7 +205,7 @@ O mapeamento torna resultados de verificação formal acionáveis para times de 
 - **FuSeBMC** → ch01
 - **isRequired fix** → ch03, ch04
 - **Iterative deepening** → ch03, patterns
-- **KLEE 3.x** → ch02, ch03, ch04
+- **KLEE 3.1** → ch02, ch03, ch04
 - **Legacy PM → New PM** → ch02, ch03, patterns
 - **LibFuzzer** → ch02, ch03
 - **LLVM 16** → ch03

@@ -64,7 +64,7 @@ ___
 
 #### How to build Map2Check?
 
-Map2Check 2.0 uses LLVM 16, KLEE 3.x, and C++17. The recommended build environment is the `Dockerfile.dev` image:
+Map2Check 2.0 uses LLVM 16, KLEE 3.1, and C++17. The recommended build environment is the `Dockerfile.dev` image:
 
 ``` bash
 $ git clone https://github.com/hbgit/Map2Check.git

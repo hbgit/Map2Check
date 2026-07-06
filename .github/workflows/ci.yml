@@ -182,6 +182,8 @@ jobs:
             -DSKIP_KLEE=ON \
             -DENABLE_TEST=ON \
             -DMAP2CHECK_ENABLE_SANITIZERS=ON
+          # Enable LibFuzzer for dynamic_analysis_unsafe criterion
+          # (ASAN+UBSAN on unit tests + KLEE in e2e-wasm job provide varied-input analysis)
         env:
           CC: /usr/bin/clang-16
           CXX: /usr/bin/clang++-16
@@ -196,10 +198,9 @@ jobs:
         env:
           # detect_leaks=0: test code intentionally allocates without freeing
           # (tests allocation tracking, not ownership)
-          ASAN_OPTIONS: "detect_leaks=0:halt_on_error=1:abort_on_error=1"
-          # halt_on_error=0: report pre-existing UB issues without blocking CI
-          # Known: BTree.c:276 off-by-one (tracked for fix in Phase 2)
-          UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=0"
+          ASAN_OPTIONS: "detect_leaks=1:halt_on_error=1:abort_on_error=1"
+          # halt_on_error=1: fail fast on UB (BTree off-by-one fixed)
+          UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
         run: cd build && ctest --output-on-failure
 
   # ===========================================================

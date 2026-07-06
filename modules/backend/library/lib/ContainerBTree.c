@@ -16,6 +16,8 @@
 
 MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
   MAP2CHECK_CONTAINER container;
+  memset(&container, 0, sizeof(container));
+  container.type = type;
   container.size = 0;
   int proccess_id = getpid();
   char *file_suffix;

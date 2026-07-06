@@ -17,6 +17,7 @@
 #include "map2check.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -92,7 +93,7 @@ inline void fixPath(char *map2check_bin_string) {
   map2check_env_var += pBuf;
 
   char *map2check_env_array = new char[map2check_env_var.length() + 1];
-  strcpy(map2check_env_array, map2check_env_var.c_str());
+  memcpy(map2check_env_array, map2check_env_var.c_str(), map2check_env_var.length() + 1);
   putenv(map2check_env_array);
   // Map2Check::Log::Debug(map2check_env_var);
 
@@ -101,7 +102,7 @@ inline void fixPath(char *map2check_bin_string) {
   klee_env_var += "/lib/klee/runtime";
 
   char *klee_env_array = new char[klee_env_var.length() + 1];
-  strcpy(klee_env_array, klee_env_var.c_str());
+  memcpy(klee_env_array, klee_env_var.c_str(), klee_env_var.length() + 1);
   putenv(klee_env_array);
 
   std::string ld_env_var("LD_LIBRARY_PATH=");
@@ -110,7 +111,7 @@ inline void fixPath(char *map2check_bin_string) {
   ld_env_var += "/lib/";
 
   char *ld_env_array = new char[ld_env_var.length() + 1];
-  strcpy(ld_env_array, ld_env_var.c_str());
+  memcpy(ld_env_array, ld_env_var.c_str(), ld_env_var.length() + 1);
   putenv(ld_env_array);
 }
 }  // namespace

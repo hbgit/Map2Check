@@ -7,6 +7,7 @@
  **/
 
 #include "BTree.h"
+#include <assert.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -262,6 +263,7 @@ Bool B_TREE_SPLIT_CHILD(B_TREE *btree, B_TREE_PAGE *X, int index,
 B_TREE_PAGE *B_TREE_PAGE_CREATE(B_TREE *btree) {
   btree->currentLoadedPages += 1;
   B_TREE_PAGE *btp = malloc(sizeof(B_TREE_PAGE));
+  assert(btp != NULL);
   if (btp == NULL) {
     return NULL;
   }
@@ -271,7 +273,7 @@ B_TREE_PAGE *B_TREE_PAGE_CREATE(B_TREE *btree) {
   btp->isLeaf = TRUE;
 
   int i = 0;
-  for (; i < B_TREE_MAP2CHECK_ORDER * 2 + 1; i++) {
+  for (; i < B_TREE_MAP2CHECK_ORDER * 2; i++) {
     // btp->rows[i] = NULL;
     btp->children[i] = NULL;
     // btp->references[i] = -1;
@@ -302,7 +304,7 @@ void DumpTreePageChildren(B_TREE_PAGE *page) {
   printf("Address %p\n", page);
   printf("Children[ ");
   int i = 0;
-  for (i = 0; i <= B_TREE_MAP2CHECK_ORDER * 2; ++i) {
+  for (i = 0; i < B_TREE_MAP2CHECK_ORDER * 2; ++i) {
     printf("%p ", page->children[i]);
   }
   printf("]\n\n");

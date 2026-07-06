@@ -61,8 +61,9 @@ TEST_F(AllocationLogTest, IfAddressIsReleasedThenAllocationLogIsValid) {
 }
 
 TEST_F(AllocationLogTest, IfAddressIsNotReleasedThenAllocationLogIsInvalid) {
-  // Map2check releases all found memleaks, so we need to alloc it
+  // Map2check releases all found memleaks via valid_allocation_log
   int *a = (int *)malloc(sizeof(int));
+  *a = 0;
   mark_allocation_log(&container, (long)a);
   long actual = valid_allocation_log(&container);
   EXPECT_NE(actual, 0);
@@ -78,6 +79,7 @@ TEST_F(AllocationLogTest, AddressIsInAllocationLog) {
   append_element(&container, row);
   long actual = is_valid_allocation_address(&container, ptr, 4);
   EXPECT_NE(actual, 0);
+  free(ptr);
 }
 
 TEST_F(AllocationLogTest, AddressIsNotInAllocationLog) {
@@ -90,4 +92,5 @@ TEST_F(AllocationLogTest, AddressIsNotInAllocationLog) {
   append_element(&container, row);
   long actual = is_valid_allocation_address(&container, ptr, size * 2);
   EXPECT_EQ(actual, 0);
+  free(ptr);
 }

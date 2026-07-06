@@ -7,6 +7,7 @@
  **/
 
 #include "../header/AllocationLog.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -51,6 +52,7 @@ check_address_allocation_log(MAP2CHECK_CONTAINER *allocation_log,
 
 MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free) {
   MEMORY_ALLOCATIONS_ROW row;
+  memset(&row, 0, sizeof(row));
   row.addr = address;
   row.is_free = is_free;
   return row;
@@ -63,6 +65,7 @@ MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free) {
 ** if we find that the address was released, then we go on
 ** if not we return FALSE. */
 long valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
+  assert(allocation_log != NULL);
   long MemTrackError = 0;
   int i = 0;
   // int size = allocation_log->size;

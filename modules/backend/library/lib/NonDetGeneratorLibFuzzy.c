@@ -100,7 +100,7 @@ int map2check_non_det_int() {
   uint64_t result = 0;
   int i = 0;
   for (; i < 8; i++)
-    result |= get_next_input_from_fuzzer() << (8 * i);
+    result |= (uint64_t)get_next_input_from_fuzzer() << (8 * i);
 
   return (int)result;
 }

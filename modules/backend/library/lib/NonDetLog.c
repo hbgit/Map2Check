@@ -61,6 +61,7 @@ NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,
                             unsigned scope, void *value,
                             const char *function_name, unsigned step) {
   NONDET_CALL result;
+  memset(&result, 0, sizeof(result));
   result.type = type;
   strncpy(result.function_name, function_name, FUNCTION_MAX_LENGTH_NAME);
   result.line = line;

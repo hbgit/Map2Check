@@ -30,7 +30,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install LLVM 16
+      - name: Install LLVM 16 + WABT
         run: |
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
           echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
@@ -38,6 +38,10 @@ jobs:
           sudo apt-get install -y \
             clang-16 llvm-16 llvm-16-dev libclang-16-dev \
             cmake ninja-build libboost-all-dev zlib1g-dev
+          # WABT 1.0.41 (apt tem 1.0.27, API incompatível com WasmRuntimeStubs.c)
+          wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+          sudo tar xzf /tmp/wabt.tar.gz -C /opt
+          sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
       - name: Configure CMake
         run: |
@@ -70,7 +74,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install LLVM 16 + cppcheck
+      - name: Install LLVM 16 + cppcheck + WABT
         run: |
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
           echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
@@ -79,6 +83,10 @@ jobs:
             clang-16 clang-tidy-16 llvm-16 llvm-16-dev libclang-16-dev \
             cmake ninja-build libboost-all-dev zlib1g-dev \
             cppcheck
+          # WABT 1.0.41 (apt tem 1.0.27, API incompatível com WasmRuntimeStubs.c)
+          wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+          sudo tar xzf /tmp/wabt.tar.gz -C /opt
+          sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
       - name: Generate compile_commands.json
         run: |
@@ -152,7 +160,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install LLVM 16
+      - name: Install LLVM 16 + WABT
         run: |
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
           echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
@@ -160,6 +168,10 @@ jobs:
           sudo apt-get install -y \
             clang-16 llvm-16 llvm-16-dev libclang-16-dev \
             cmake ninja-build libboost-all-dev zlib1g-dev
+          # WABT 1.0.41 (apt tem 1.0.27, API incompatível com WasmRuntimeStubs.c)
+          wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+          sudo tar xzf /tmp/wabt.tar.gz -C /opt
+          sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
       - name: Configure CMake with Sanitizers
         run: |
@@ -189,3 +201,90 @@ jobs:
           # Known: BTree.c:276 off-by-one (tracked for fix in Phase 2)
           UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=0"
         run: cd build && ctest --output-on-failure
+
+  # ===========================================================
+  # Job 4: WASM End-to-End Tests (Docker)
+  # ===========================================================
+  # Runs the full pipeline inside the published map2check-dev image,
+  # which already contains LLVM 16 + KLEE 3.1 + WABT + wasi-sdk.
+  # This catches regressions that unit tests miss (KLEE flags,
+  # isRequired, target function, wasm-rt linking, etc.).
+  e2e-wasm:
+    name: WASM E2E Tests (Docker)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    needs: [build-and-test]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo docker image prune -a -f || true
+
+      - name: Pull map2check-dev image
+        run: docker pull ghcr.io/hbgit/map2check-dev:latest
+
+      - name: Build + install Map2Check in container
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e CC=/usr/bin/clang-16 \
+            -e CXX=/usr/bin/clang++-16 \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              # Install WABT + wasi-sdk (published image lacks them)
+              if [ ! -f /opt/wabt-1.0.41/include/wasm-rt.h ]; then
+                wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+                tar xzf /tmp/wabt.tar.gz -C /opt && rm /tmp/wabt.tar.gz
+                ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
+              fi
+              if [ ! -d /opt/wasi-sdk-33.0-x86_64-linux ]; then
+                wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-33/wasi-sdk-33.0-x86_64-linux.tar.gz" -O /tmp/wasi-sdk.tar.gz
+                tar xzf /tmp/wasi-sdk.tar.gz -C /opt && rm /tmp/wasi-sdk.tar.gz
+              fi
+
+              # Build and install to a release-style layout
+              rm -rf build_e2e install_e2e
+              mkdir -p build_e2e && cd build_e2e
+              cmake .. -G Ninja \
+                -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DENABLE_TEST=ON \
+                -DMAP2CHECK_DYNAMIC_LINK=ON \
+                -DCMAKE_INSTALL_PREFIX=/workspace/install_e2e
+              ninja
+              ninja install
+
+              # Symlink KLEE runtime + compiler-rt files missing from install rules
+              mkdir -p /workspace/install_e2e/lib/klee
+              ln -sf /opt/klee/lib/klee/runtime /workspace/install_e2e/lib/klee/runtime
+              ln -sf /usr/lib/llvm-16/lib/clang /workspace/install_e2e/lib/clang
+            '
+
+      - name: Run WASM integration tests
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e MAP2CHECK_PATH=/workspace/install_e2e \
+            -e WASI_SDK_PATH=/opt/wasi-sdk-33.0-x86_64-linux \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              # Ensure WABT + wasi-sdk are available in this fresh container
+              if [ ! -f /opt/wabt-1.0.41/include/wasm-rt.h ]; then
+                wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+                tar xzf /tmp/wabt.tar.gz -C /opt && rm /tmp/wabt.tar.gz
+                ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
+              fi
+              if [ ! -d /opt/wasi-sdk-33.0-x86_64-linux ]; then
+                wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-33/wasi-sdk-33.0-x86_64-linux.tar.gz" -O /tmp/wasi-sdk.tar.gz
+                tar xzf /tmp/wasi-sdk.tar.gz -C /opt && rm /tmp/wasi-sdk.tar.gz
+              fi
+              bash tests/integration/test_wasm_pipeline.sh
+              bash tests/integration/test_wasm_entrypoint.sh
+            '

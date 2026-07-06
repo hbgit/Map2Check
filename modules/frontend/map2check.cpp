@@ -24,12 +24,14 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
 #include "witness/witness_include.hpp"
+#include "wasm_lifter.hpp"
 
 namespace po = boost::program_options;
 namespace fs = std::filesystem;
@@ -148,8 +150,10 @@ struct map2check_args {
   unsigned timeout = 0;
   std::string inputFile;
   std::string function;
+  std::string entryFunction = "main";
   std::string solvername;
   std::string expectedResult = "";
+  bool wasmMode = false;
   Map2Check::Map2CheckMode mode;
   bool generateWitness = false;
   bool debugMode = false;
@@ -181,20 +185,54 @@ int map2check_execution(map2check_args args) {
   // (1) Compile file and check for compiler warnings
   // Check if input file is supported
   std::string extension = fs::path(args.inputFile).extension().string();
-  // cout << extension << endl;
   if (extension.compare(".c") && extension.compare(".i") &&
-      extension.compare(".bc")) {
+      extension.compare(".bc") && extension.compare(".wasm")) {
     help_msg();
     return ERROR_IN_COMMAND_LINE;
   } else if (extension.compare(".bc") == 0) {
     is_llvmir_in = true;
   }
 
+  if (args.wasmMode) {
+    Map2Check::Log::Info("WASM mode: lifting " + args.inputFile);
+    Map2Check::WasmLifterConfig lifterCfg;
+    lifterCfg.wasm2cPath = "wasm2c";
+    lifterCfg.clangPath = "/usr/bin/clang-16";
+    lifterCfg.wasmRtIncludePath = "/opt/wabt-1.0.41/include";
+    // Fallback for CI: try /opt/wabt/include, then system /usr/include
+    struct stat st;
+    if (stat("/opt/wabt-1.0.41/include", &st) != 0) {
+      if (stat("/opt/wabt/include", &st) == 0) {
+        lifterCfg.wasmRtIncludePath = "/opt/wabt/include";
+      } else {
+        lifterCfg.wasmRtIncludePath = "/usr/include";
+      }
+    }
+    lifterCfg.keepIntermediate = true;
+    Map2Check::WasmLifter lifter(lifterCfg);
+    Map2Check::WasmLifterResult result = lifter.lift(args.inputFile);
+    args.inputFile = result.bitcodePath;
+    args.entryFunction = result.entryPointName;
+    // Generate wrapper that provides main() → calls wasm entry point properly
+    std::string wrapperBc = Map2Check::Caller::generateWasmWrapperStatic(
+        result.headerPath, result.entryPointName);
+    // Link wrapper with lifted bitcode
+    std::ostringstream linkCmd;
+    linkCmd << Map2Check::llvmLinkBinary << " "
+            << result.bitcodePath << " " << wrapperBc
+            << " -o " << result.bitcodePath;
+    system(linkCmd.str().c_str());
+    args.entryFunction = "main";
+    is_llvmir_in = true;
+  }
+
   std::unique_ptr<Map2Check::Caller> caller;
   caller = std::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
-                                                 generator);
+                                                  generator);
   caller->c_program_fullpath = args.inputFile;
   caller->setTimeout(args.timeout);
+  caller->entryFunction = args.entryFunction;
+  caller->wasmMode = args.wasmMode;
 
   if (!is_llvmir_in) {
     if (args.invCrabLlvm) {
@@ -318,7 +356,10 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("generate-witness", "\tgenerates witness file")
         ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
         ("btree", "\tuses btree structure to hold information (experimental, use this "
-        "if you are having memory problems)");
+        "if you are having memory problems)")
+        ("wasm", "\tverify a WebAssembly (.wasm) binary via wasm2c lifting")
+        ("entry-function", po::value<std::string>()->default_value("main"),
+                      R"(define the entry function name (default: main))");
 
     po::positional_options_description p;
     p.add("input-file", -1);
@@ -396,6 +437,11 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     }
     if (vm.count("add-invariants")) {
       args.invCrabLlvm = true;
+    }
+    if (vm.count("wasm")) {
+      args.wasmMode = true;
+      args.mode = Map2Check::Map2CheckMode::MEMTRACK_MODE;
+      args.entryFunction = vm["entry-function"].as<std::string>();
     }
 
     if (vm.count("print-counter")) {

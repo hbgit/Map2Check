@@ -53,8 +53,9 @@ void OverflowPass::listAllUintAssign(BasicBlock &B) {
     if (auto *cI = dyn_cast<CallInst>(&*i)) {
       Value *v = cI->getCalledOperand();
       Function *calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-      if (calleeFunction->getName() == "__VERIFIER_nondet_uint" ||
-          calleeFunction->getName() == "map2check_non_det_uint") {
+      if (calleeFunction &&
+          (calleeFunction->getName() == "__VERIFIER_nondet_uint" ||
+           calleeFunction->getName() == "map2check_non_det_uint")) {
         DebugInfo debugInfoCi(this->Ctx, cI);
         // errs() << debugInfoCi.getLineNumberInt() << "==================\n";
 
@@ -128,6 +129,7 @@ void OverflowPass::listAllUnsignedVar(Function &F) {
         if (Function *F = CI->getCalledFunction()) {
           if (F->getName().starts_with("llvm.")) {
             const DbgDeclareInst *DDI = dyn_cast<DbgDeclareInst>(I);
+            if (!DDI) continue;
 
             if (auto *N = dyn_cast<MDNode>(DDI->getVariable())) {
               // errs() << *N << "+++ \n";
@@ -171,7 +173,9 @@ std::string OverflowPass::getValueNameOperator(Value *Vop) {
   } else if (CallInst *callInst = dyn_cast<CallInst>(Vop)) {
     Value *v = callInst->getCalledOperand();
     Function *calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-    valueOp = calleeFunction->getName().str();
+    if (calleeFunction) {
+      valueOp = calleeFunction->getName().str();
+    }
 
   } else if (BinaryOperator *binOp = dyn_cast<BinaryOperator>(Vop)) {
     Value *fO1 = binOp->getOperand(0);

@@ -23,6 +23,26 @@ list(APPEND MAP2CHECK_C_LIB "TrackBBLog")
 list(APPEND MAP2CHECK_C_LIB "WitnessGeneration")
 list(APPEND MAP2CHECK_C_LIB "WitnessGenerationNone")
 
+# WasmRuntimeStubs: only needed for WASM mode, optional for CI builds
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c")
+  find_path(WASM_RT_INCLUDE wasm-rt.h
+    PATHS /opt/wabt-1.0.41/include /usr/include /usr/local/include)
+  if(WASM_RT_INCLUDE)
+    message(STATUS "WABT found at ${WASM_RT_INCLUDE} — compiling WasmRuntimeStubs")
+    add_custom_command(
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/WasmRuntimeStubs.bc"
+      COMMAND ${CMAKE_C_COMPILER} ${CMAKE_C_EMIT_LLVM_FLAGS}
+        -I${WASM_RT_INCLUDE}
+        ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
+      DEPENDS ${CMAKE_CURRENT_LIST_DIR}/WasmRuntimeStubs.c
+      COMMENT "Compiling WasmRuntimeStubs to bytecode")
+    add_custom_target(WasmRuntimeStubs ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/WasmRuntimeStubs.bc")
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/WasmRuntimeStubs.bc" DESTINATION lib)
+  else()
+    message(WARNING "wasm-rt.h not found — WasmRuntimeStubs skipped (WASM needs Docker)")
+  endif()
+endif()
+
 foreach(F ${MAP2CHECK_C_LIB})
   add_custom_command(
     OUTPUT "${F}.bc"

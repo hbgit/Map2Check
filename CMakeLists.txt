@@ -7,6 +7,7 @@ option(SKIP_KLEE "Don't use KLEE" OFF)
 option(REGRESSION "Prepare Regression Tests" OFF)
 option(ENABLE_TEST "Build all tests" OFF)
 option(MAP2CHECK_ENABLE_SANITIZERS "Enable AddressSanitizer + UndefinedBehaviorSanitizer for testing" OFF)
+option(MAP2CHECK_DYNAMIC_LINK "Link dynamically (required when KLEE/Z3 are only available as shared libraries)" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

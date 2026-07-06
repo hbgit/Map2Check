@@ -14,22 +14,37 @@
 
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
+#include <llvm/Support/CommandLine.h>
+
+static llvm::cl::opt<std::string> MemTrackEntryFunction(
+    "m2c-entry-function",
+    llvm::cl::desc("Name of the entry function for MemoryTrackPass"),
+    llvm::cl::init("main"));
+
+static llvm::cl::opt<bool> WasmMode(
+    "wasm-mode",
+    llvm::cl::desc("Enable WASM bounds checking on linear memory accesses"),
+    llvm::cl::init(false));
 
 // using namespace llvm;
 using llvm::AllocaInst;
+using llvm::APInt;
 using llvm::Argument;
 using llvm::BasicBlock;
 using llvm::CallInst;
 using llvm::CastInst;
+using llvm::ConstantInt;
 using llvm::DataLayout;
 using llvm::DebugLoc;
 using llvm::dyn_cast;
+using llvm::GetElementPtrInst;
 using llvm::GlobalVariable;
 using llvm::Instruction;
 using llvm::IRBuilder;
 using llvm::LoadInst;
 using llvm::Module;
 using llvm::StoreInst;
+using llvm::StructType;
 using llvm::Twine;
 using llvm::Type;
 using llvm::Value;
@@ -391,7 +406,63 @@ void MemoryTrackPass::instrumentInit() {
 }
 
 // TODO(hbgit): use hash table instead of nested "if's"
+bool MemoryTrackPass::isWasmAllocator(llvm::StringRef name) {
+  if (!name.startswith("w2c_")) return false;
+  if (name.contains("wasm_rt_")) return false;
+  return name.endswith("_dlmalloc") || name.endswith("_malloc");
+}
+
+bool MemoryTrackPass::isWasmDeallocator(llvm::StringRef name) {
+  if (!name.startswith("w2c_")) return false;
+  if (name.contains("wasm_rt_")) return false;
+  return name.endswith("_dlfree") || name.endswith("_free");
+}
+
+void MemoryTrackPass::instrumentWasmMalloc() {
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  ++j;
+  IRBuilder<> builder(BBIteratorToInst(j));
+
+  // Arg 1 = size (i32)
+  Value *size32 = callInst->getArgOperand(1);
+  Value *size64 = builder.CreateZExt(size32, Type::getInt64Ty(*this->Ctx));
+
+  // callInst (return value) = offset i32 → i64
+  Value *offset64 = builder.CreateZExt(callInst, Type::getInt64Ty(*this->Ctx));
+
+  Value *args[] = {offset64, size64};
+  builder.CreateCall(map2check_wasm_malloc, args);
+}
+
+void MemoryTrackPass::instrumentWasmFree() {
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  auto j = this->currentInstruction;
+  IRBuilder<> builder(BBIteratorToInst(j));
+
+  // Arg 1 = offset (i32) → i64
+  Value *offset32 = callInst->getArgOperand(1);
+  Value *offset64 = builder.CreateZExt(offset32, Type::getInt64Ty(*this->Ctx));
+
+  Value *args[] = {offset64, this->line_value};
+  builder.CreateCall(map2check_wasm_free, args);
+}
+
 void MemoryTrackPass::switchCallInstruction() {
+  llvm::StringRef calleeName = this->calleeFunction->getName();
+
+  // WASM mode: intercept wasm2c allocator functions
+  if (WasmModeActive) {
+    if (isWasmAllocator(calleeName)) {
+      this->instrumentWasmMalloc();
+      return;
+    }
+    if (isWasmDeallocator(calleeName)) {
+      this->instrumentWasmFree();
+      return;
+    }
+  }
+
   // TODO(hbgit): Resolve SVCOMP ISSUE
   if (this->calleeFunction->getName() == "free") {
     this->instrumentFree();
@@ -717,6 +788,20 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
       PointerType::get(*this->Ctx, 0), PointerType::get(*this->Ctx, 0),
       Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx),
       PointerType::get(*this->Ctx, 0));
+
+  if (WasmModeActive) {
+    this->map2check_wasm_malloc = F.getParent()->getOrInsertFunction(
+        "map2check_wasm_malloc", Type::getVoidTy(*this->Ctx),
+        Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+
+    this->map2check_wasm_free = F.getParent()->getOrInsertFunction(
+        "map2check_wasm_free", Type::getVoidTy(*this->Ctx),
+        Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+
+    this->map2check_wasm_check_access = F.getParent()->getOrInsertFunction(
+        "map2check_wasm_check_access", Type::getVoidTy(*this->Ctx),
+        Type::getInt64Ty(*this->Ctx), Type::getInt64Ty(*this->Ctx));
+  }
 }
 
 void MemoryTrackPass::instrumentFunctionArgumentAddress() {
@@ -771,44 +856,68 @@ PreservedAnalyses MemoryTrackPass::run(Function &F,
   this->prepareMap2CheckInstructions();
   // this->instrumentInit(); //overhead BUG
 
-  if (F.getName() == "main") {
-    // auto globalVars = currentModule->getGlobalList();
+  if (F.getName() == MemTrackEntryFunction) {
     this->functionsValues.push_back(this->currentFunction);
     this->mainFunctionInitialized = true;
     this->mainFunction = &F;
-    this->instrumentInit();  // Related to BUG checkout this
+    this->instrumentInit();
   }
-
-  // this->instrumentFunctionAddress();
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
     for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
       this->currentInstruction = i;
 
-      // i->dump();
-
       if (dyn_cast<CallInst>(&*i) != NULL) {
-        // callInst->dump();
         this->getDebugInfo();
         this->runOnCallInstruction();
-        // errs() << "runOnCallInstruction() \n";
       } else if (dyn_cast<StoreInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnStoreInstruction();
-        // errs() << "runOnStoreInstruction() \n";
+        if (WasmModeActive) {
+          auto* SI = cast<StoreInst>(&*i);
+          instrumentWasmBoundsCheck(&*i, SI->getPointerOperand(), SI->getValueOperand()->getType());
+        }
       } else if (dyn_cast<AllocaInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnAllocaInstruction();
-        // errs() << "runOnAllocaInstruction() \n";
       } else if (dyn_cast<LoadInst>(&*this->currentInstruction) != NULL) {
         this->getDebugInfo();
         this->runOnLoadInstruction();
-        // errs() << "runOnLoadInstruction() \n";
+        if (WasmModeActive) {
+          auto* LI = cast<LoadInst>(&*i);
+          instrumentWasmBoundsCheck(&*i, LI->getPointerOperand(), LI->getType());
+        }
       }
     }
   }
 
   return PreservedAnalyses::none();
+}
+
+void MemoryTrackPass::instrumentWasmBoundsCheck(llvm::Instruction* I,
+                                                  llvm::Value* ptr,
+                                                  llvm::Type* accessType) {
+  // Extract offset from GEP into w2c_memory.data
+  Value* stripped = ptr->stripPointerCasts();
+  auto* GEP = dyn_cast<GetElementPtrInst>(stripped);
+  if (!GEP) return;
+
+  if (GEP->getNumOperands() < 3) return;
+  Value* offset = GEP->getOperand(GEP->getNumOperands() - 1);
+  if (!offset) return;
+
+  Module* M = I->getModule();
+  if (!M) return;
+  const DataLayout DL(M);
+  uint64_t accessSize = DL.getTypeStoreSize(accessType);
+  auto* int64Ty = Type::getInt64Ty(I->getContext());
+
+  IRBuilder<> builder(I);
+  Value* offset64 = builder.CreateZExtOrTrunc(offset, int64Ty);
+  Value* sizeVal = ConstantInt::get(int64Ty, accessSize);
+
+  Value* args[] = {offset64, sizeVal};
+  builder.CreateCall(map2check_wasm_check_access, args);
 }
 
 // --- New Pass Manager plugin registration ---
@@ -820,7 +929,7 @@ llvmGetPassPluginInfo() {
                 [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
                    llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
                   if (Name == "memory-track") {
-                    FPM.addPass(MemoryTrackPass());
+                    FPM.addPass(MemoryTrackPass(false, WasmMode.getValue()));
                     return true;
                   }
                   return false;

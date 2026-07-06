@@ -307,6 +307,60 @@ graph TB
 
 ---
 
+### Fase 1.7: Lifting e Verificação de WASM (Adição ao MVP — SBSeg 2026)
+
+**Documento de detalhamento:** [`docs/migration/1.7-wasm-pipeline.md`](./1.7-wasm-pipeline.md)
+
+Esta fase é uma **extensão da Fase 1** (Fundação), não uma fase separada no roadmap de 12 meses. Ela adiciona ao Map2Check 2.0 a capacidade de receber **binários `.wasm`** e verificá-los via levantamento para LLVM IR (`wasm2c` + `clang-16`), reaproveitando os passes e o backend KLEE existentes.
+
+#### Passo 1.7.1 — Infraestrutura: WABT no Docker
+- [ ] Adicionar `wabt` (`wasm2c`, `wasm2wat`, `wasm-ld`) ao `Dockerfile.dev`
+- [ ] Adicionar `FindWABT.cmake` ao `cmake/`
+- [ ] Validar que `wasm2c --version` funciona no container
+- [ ] (Opcional) Instalar `wasi-sdk` ou Emscripten para compilar C → WASM
+
+#### Passo 1.7.2 — WasmLifter: módulo frontend
+- [ ] Criar `modules/frontend/wasm_lifter.cpp/.hpp`
+- [ ] Implementar método `lift(wasm_path)`: executa `wasm2c` → gera `.c` + `.h`, depois `clang-16 --target=wasm32-wasi -emit-llvm -c` → gera `.bc`
+- [ ] Tratar erros de execução (wasm2c falha, clang falha)
+- [ ] Teste unitário: lifting de `hello.wasm` gera LLVM IR válido
+
+#### Passo 1.7.3 — PoC end-to-end manual
+- [ ] Compilar `test_overflow.c` → `.wasm` (via wasi-sdk/emcc)
+- [ ] Lifter: `.wasm` → LLVM IR
+- [ ] Aplicar passes Map2Check existentes no IR levantado
+- [ ] Linkar com runtime e executar com KLEE
+- [ ] Validar que o overflow é detectado (FALSE + witness)
+- [ ] Documentar pipeline em `docs/migration/1.7-wasm-pipeline.md`
+
+#### Passo 1.7.4 — Adaptar MemoryTrackPass para semântica WASM
+- [ ] Adicionar flag `--wasm-mode` nos passes (ou detectar automaticamente via metadados do módulo)
+- [ ] Tratar ponteiros como offsets i32 dentro da linear memory
+- [ ] Injetar `assert(ptr < MEM_SIZE)` antes de `load`/`store` no IR levantado
+- [ ] Reconhecer estruturas `wasm_rt_memory_t` e `wasm_rt_call_stack` da runtime wasm2c
+- [ ] Teste de regressão: caso Juliet CWE-119 (Buffer Overflow) compilado para WASM
+
+#### Passo 1.7.5 — CLI `--wasm` e WasmBackend executor
+- [ ] Adicionar flag `--wasm` em `map2check.cpp`
+- [ ] Criar classe `WasmBackend` em `modules/frontend/wasm_backend.cpp/.hpp`
+- [ ] Orquestrar: lifter → passes → link com runtime → KLEE
+- [ ] Gerar witness GraphML a partir dos resultados KLEE no IR levantado
+- [ ] Teste: `map2check --wasm modulo.wasm --mode memtrack` retorna FALSE/TRUE
+
+#### Passo 1.7.6 — Benchmarks Juliet WASM
+- [ ] Compilar subset Juliet (CWE-119, CWE-416) para `.wasm` via script automatizado
+- [ ] Executar pipeline Map2Check-WASM em cada caso
+- [ ] Tabular: taxa de detecção, tempo de verificação, falsos positivos
+- [ ] Comparar com resultados do mesmo código C analisado diretamente (preservação semântica)
+
+#### Passo 1.7.7 — Documentação e integração ao artigo SBSeg
+- [ ] Escrever seção WASM do artigo (~1 página)
+- [ ] Figura do pipeline: `.wasm` → `wasm2c` → LLVM IR → Passes → KLEE
+- [ ] Tabela de resultados Juliet WASM
+- [ ] Posicionar Fases 3–4 (taint analysis, threat modeling IoT) como trabalhos futuros
+
+---
+
 ### Fase 2: Integração de Slicing (Meses 4-5)
 
 #### Passo 2.1 — Integrar a biblioteca DG
@@ -412,6 +466,9 @@ graph TB
 | IPC instável entre AFL++ e KLEE | Alto | Média | Prototipar IPC cedo (Fase 2); ter fallback para modo sequencial |
 | KLEE 3.2 com comportamento diferente do fork | Médio | Média | Manter fork como fallback; adaptar configurações gradualmente |
 | Timeout em benchmarks mesmo após slicing | Médio | Baixa | Ajustar critérios de slicing; implementar timeout adaptativo |
+| `wasm2c` gera código C incompreensível para passes Map2Check | Alto | Média | Validar com exemplos simples; ajustar passes para padrões `wasm_rt_*` |
+| KLEE não resolve corretamente a memória linear levantada | Alto | Média | Injetar asserts de bounds manualmente; usar `klee_make_symbolic` para offsets |
+| Juliet compilado para WASM perde semântica de `malloc`/`free` | Médio | Alta | Validar que `wasm2c` preserva chamadas de alocação; mapear para `wasm_rt_malloc` se necessário |
 
 ---
 
@@ -420,19 +477,23 @@ graph TB
 ```mermaid
 graph LR
     F1["Fase 1<br/>Fundação<br/>(LLVM 16 + New PM)"]
+    F1W["Fase 1.7<br/>WASM Lifting<br/>(wasm2c + LLVM IR)"]
     F2["Fase 2<br/>Slicing<br/>(DG Library)"]
     F3["Fase 3<br/>Hibridização<br/>(AFL++ + Coordenador)"]
     F4["Fase 4<br/>Validação<br/>(BenchExec + Testes)"]
     F5["Fase 5<br/>Publicação<br/>(Docker + Paper)"]
 
+    F1 --> F1W
     F1 --> F2
     F1 --> F3
+    F1W --> F2
     F2 --> F3
     F2 --> F4
     F3 --> F4
     F4 --> F5
 
     style F1 fill:#1b5e20,color:#fff
+    style F1W fill:#1565c0,color:#fff
     style F2 fill:#e65100,color:#fff
     style F3 fill:#6a1b9a,color:#fff
     style F4 fill:#1565c0,color:#fff

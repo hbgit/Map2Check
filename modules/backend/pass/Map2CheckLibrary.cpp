@@ -14,12 +14,18 @@
 
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
+#include <llvm/Support/CommandLine.h>
 
 using llvm::CallInst;
 using llvm::dyn_cast;
 using llvm::IRBuilder;
 using llvm::ReturnInst;
 using llvm::Twine;
+
+static llvm::cl::opt<std::string> EntryFunction(
+    "entry-function",
+    llvm::cl::desc("Name of the entry function (default: main)"),
+    llvm::cl::init("main"));
 
 PreservedAnalyses Map2CheckLibrary::run(Function& F,
                                         llvm::FunctionAnalysisManager& AM) {
@@ -29,11 +35,11 @@ PreservedAnalyses Map2CheckLibrary::run(Function& F,
 
   IRBuilder<> builder(reinterpret_cast<Instruction*>(&*instructionIterator));
   this->functionName = builder.CreateGlobalStringPtr(F.getName());
-  bool isMain = false;
-  if (F.getName() == "main") {
+  bool isEntry = false;
+  if (F.getName() == EntryFunction) {
     currentInstruction = instructionIterator;
     instrumentStartInstruction(&F.getContext());
-    isMain = true;
+    isEntry = true;
   }
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
@@ -43,12 +49,12 @@ PreservedAnalyses Map2CheckLibrary::run(Function& F,
         this->runOnCallInstruction(callInst, &F.getContext());
       }
       if (ReturnInst* inst = dyn_cast<ReturnInst>(&*i)) {
-        if (isMain) this->instrumentReleaseInstruction(&F.getContext());
+        if (isEntry) this->instrumentReleaseInstruction(&F.getContext());
       }
     }
   }
 
-  if (F.getName() == "main") {
+  if (F.getName() == EntryFunction) {
     Twine new_entry_name("__map2check_main__");
     F.setName(new_entry_name);
   }

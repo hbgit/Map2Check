@@ -1,0 +1,16 @@
+case,mode,time_s,result
+CWE121_Stack_Based_Buffer_Overflow__CWE129_fgets_01,--wasm --memtrack --smt-solver z3,179,FALSE
+CWE121_Stack_Based_Buffer_Overflow__CWE129_large_01,--wasm --memtrack --smt-solver z3,150,FALSE
+CWE121_Stack_Based_Buffer_Overflow__CWE193_char_alloca_memcpy_01,--wasm --memtrack --smt-solver z3,151,FALSE
+CWE122_Heap_Based_Buffer_Overflow__CWE131_memcpy_01,--wasm --memtrack --smt-solver z3,144,FALSE
+CWE122_Heap_Based_Buffer_Overflow__c_CWE129_fgets_01,--wasm --memtrack --smt-solver z3,165,FALSE
+CWE122_Heap_Based_Buffer_Overflow__c_CWE129_large_01,--wasm --memtrack --smt-solver z3,139,FALSE
+CWE122_Heap_Based_Buffer_Overflow__char_type_overrun_memcpy_01,--wasm --memtrack --smt-solver z3,140,FALSE
+CWE124_Buffer_Underwrite__CWE839_fgets_01,--wasm --memtrack --smt-solver z3,150,FALSE
+CWE124_Buffer_Underwrite__CWE839_negative_01,--wasm --memtrack --smt-solver z3,135,FALSE
+CWE124_Buffer_Underwrite__char_alloca_cpy_01,--wasm --memtrack --smt-solver z3,140,FALSE
+CWE126_Buffer_Overread__CWE129_fgets_01,--wasm --memtrack --smt-solver z3,148,FALSE
+CWE126_Buffer_Overread__CWE129_large_01,--wasm --memtrack --smt-solver z3,143,FALSE
+CWE126_Buffer_Overread__malloc_char_memcpy_01,--wasm --memtrack --smt-solver z3,171,FALSE
+CWE127_Buffer_Underread__CWE839_fgets_01,--wasm --memtrack --smt-solver z3,166,FALSE
+CWE127_Buffer_Underread__CWE839_negative_01,--wasm --memtrack --smt-solver z3,166,FALSE

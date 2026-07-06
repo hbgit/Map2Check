@@ -1,0 +1,628 @@
+@Book{knuth:84,
+  author = 	 {Donald E. Knuth},
+  title = 	 {The {\TeX} Book},
+  publisher = 	 {Addison-Wesley},
+  year = 	 {1984},
+  edition = 	 {15th}
+}
+
+@article{leveson1993investigation,
+  title={An investigation of the Therac-25 accidents},
+  author={Leveson, Nancy G and Turner, Clark S},
+  journal={Computer},
+  volume={26},
+  number={7},
+  pages={18--41},
+  year={1993},
+  publisher={IEEE}
+}
+
+@article{evaluationcriticalsoftware,
+author = {Parnas, David L. and van Schouwen, A. John and Kwan, Shu Po},
+title = {Evaluation of safety-critical software},
+year = {1990},
+issue_date = {June 1990},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {33},
+number = {6},
+issn = {0001-0782},
+url = {https://doi.org/10.1145/78973.78974},
+doi = {10.1145/78973.78974},
+abstract = {Methods and approaches for testing the reliability and trustworthiness of software remain among the most controversial issues facing this age of high technology. The authors present some of the crucial questions faced by software programmers and eventual users.},
+journal = {Commun. ACM},
+month = {jun},
+pages = {636–648},
+numpages = {13}
+}
+
+@INPROCEEDINGS{stresstest2009,
+  author={Mustafa, Khaled M. and Al-Qutaish, Rafa E. and Muhairat, Mohammad I.},
+  booktitle={2009 Second International Conference on Computer and Electrical Engineering}, 
+  title={Classification of Software Testing Tools Based on the Software Testing Methods}, 
+  year={2009},
+  volume={1},
+  number={},
+  pages={229-233},
+  keywords={Software testing;System testing;Software tools;Automatic testing;Application software;Open source software;Programming;Life testing;Software quality;Protocols;Software Testing Tools;Classification;Types of Software;CASE},
+  doi={10.1109/ICCEE.2009.9}}
+
+
+@INPROCEEDINGS{whitebox2010,
+  author={Omar, Faizah and Ibrahim, Suhaimi},
+  booktitle={2010 10th International Conference on Quality Software}, 
+  title={Designing Test Coverage for Grey Box Analysis}, 
+  year={2010},
+  volume={},
+  number={},
+  pages={353-356},
+  keywords={Software;test coverage;software testing;grey box;white box;black box;software traceability},
+  doi={10.1109/QSIC.2010.44}}
+
+
+@INPROCEEDINGS{blackwhitebox2011,
+  author={Khan, Mumtaz Ahmad and Sadiq, Mohd.},
+  booktitle={The 2011 International Conference and Workshop on Current Trends in Information Technology (CTIT 11)}, 
+  title={Analysis of black box software testing techniques: A case study}, 
+  year={2011},
+  volume={},
+  number={},
+  pages={1-5},
+  keywords={Software;Robustness;Software engineering;Software testing;Input variables;Programming;Software;Software Testing;Black Box Testing;Boundary Value Analysis;Robustness Technique},
+  doi={10.1109/CTIT.2011.6107931}}
+
+
+@INPROCEEDINGS{CprogramingLanguage2009,
+  author={Yu He},
+  booktitle={2009 4th International Conference on Computer Science & Education}, 
+  title={The course choice between C language and C++ language}, 
+  year={2009},
+  volume={},
+  number={},
+  pages={1588-1590},
+  keywords={Computer languages;Application software;Programming profession;Computer science;Object oriented programming;Educational institutions;High level languages;Software maintenance;Design methodology;Education;C language;C++ language;programming design methods;object-oriented;curriculum design},
+  doi={10.1109/ICCSE.2009.5228304}}
+
+
+
+@InProceedings{map2check2018,
+author="Menezes, Rafael
+and Rocha, Herbert
+and Cordeiro, Lucas
+and Barreto, Raimundo",
+editor="Beyer, Dirk
+and Huisman, Marieke",
+title="Map2Check Using LLVM and KLEE",
+booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+year="2018",
+publisher="Springer International Publishing",
+address="Cham",
+pages="437--441",
+abstract="Map2Check is a bug hunting tool that automatically checks safety properties in C programs. It tracks memory pointers and variable assignments to check user-specified assertions, overflow, and pointer safety. Here, we extend Map2Check to: (i) simplify the program using Clang/LLVM; (ii) perform a path-based symbolic execution using the KLEE tool; and (iii) transform and instrument the code using the LLVM dynamic information flow. The SVCOMP'18 results show that Map2Check can be effective in generating and checking test cases related to memory management of C programs.",
+isbn="978-3-319-89963-3"
+}
+
+@misc{fandrey2010clang,
+  author = {Dietmar Fandrey},
+  title = {Clang/LLVM Maturity Report},
+  howpublished = {\url{http://www.iwi.hs-karlsruhe.de}},
+  year = {2010},
+  note = {Accessed: 2024-06-16}
+}
+
+@inproceedings{klee2008,
+author = {Cadar, Cristian and Dunbar, Daniel and Engler, Dawson},
+title = {KLEE: unassisted and automatic generation of high-coverage tests for complex systems programs},
+year = {2008},
+publisher = {USENIX Association},
+address = {USA},
+abstract = {We present a new symbolic execution tool, KLEE, capable of automatically generating tests that achieve high coverage on a diverse set of complex and environmentally-intensive programs. We used KLEE to thoroughly check all 89 stand-alone programs in the GNU COREUTILS utility suite, which form the core user-level environment installed on millions of Unix systems, and arguably are the single most heavily tested set of open-source programs in existence. KLEE-generated tests achieve high line coverage -- on average over 90\% per tool (median: over 94\%) -- and significantly beat the coverage of the developers' own hand-written test suite. When we did the same for 75 equivalent tools in the BUSYBOX embedded system suite, results were even better, including 100\% coverage on 31 of them.We also used KLEE as a bug finding tool, applying it to 452 applications (over 430K total lines of code), where it found 56 serious bugs, including three in COREUTILS that had been missed for over 15 years. Finally, we used KLEE to crosscheck purportedly identical BUSYBOX and COREUTILS utilities, finding functional correctness errors and a myriad of inconsistencies.},
+booktitle = {Proceedings of the 8th USENIX Conference on Operating Systems Design and Implementation},
+pages = {209–224},
+numpages = {16},
+location = {San Diego, California},
+series = {OSDI'08}
+}
+
+
+@InProceedings{map2check2020,
+author="Rocha, Herbert
+and Menezes, Rafael
+and Cordeiro, Lucas C.
+and Barreto, Raimundo",
+editor="Biere, Armin
+and Parker, David",
+title="Map2Check: Using Symbolic Execution and Fuzzing",
+booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+year="2020",
+publisher="Springer International Publishing",
+address="Cham",
+pages="403--407",
+abstract="Map2Check is a software verification tool that combines fuzzing, symbolic execution, and inductive invariants. It automatically checks safety properties in C programs by adopting source code instrumentation to monitor data (e.g., memory pointers) from the program's executions using LLVM compiler infrastructure. For SV-COMP 2020, we extended Map2Check to exploit an iterative deepening approach using LibFuzzer and Klee to check for safety properties. We also use Crab-LLVM to infer program invariants based on reachability analysis. Experimental results show that Map2Check can handle a wide variety of safety properties in several intricate verification tasks from SV-COMP 2020.",
+isbn="978-3-030-45237-7"
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%% referencias da fundamentação teorica
+@techreport{dijkstra1970notes,
+  author       = {Dijkstra, Edsger W.},
+  title        = {Notes on Structured Programming (EWD249)},
+  institution  = {Mathematical Centre, Amsterdam},
+  year         = {1970},
+  url          = {http://www.cs.utexas.edu/users/EWD/},
+}
+
+
+@article{parnassoftwarecritico1990,
+author = {Parnas, David L. and van Schouwen, A. John and Kwan, Shu Po},
+title = {Evaluation of safety-critical software},
+year = {1990},
+issue_date = {June 1990},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {33},
+number = {6},
+issn = {0001-0782},
+url = {https://doi.org/10.1145/78973.78974},
+doi = {10.1145/78973.78974},
+abstract = {Methods and approaches for testing the reliability and trustworthiness of software remain among the most controversial issues facing this age of high technology. The authors present some of the crucial questions faced by software programmers and eventual users.},
+journal = {Communications ACM},
+month = {jun},
+pages = {636–648},
+numpages = {13}
+}
+
+@inproceedings{coverageSpaceProject2017,
+author = {Prause, Christian and Werner, Jürgen and Hornig, Kay and Bosecker, Sascha and Kuhrmann, Marco},
+year = {2017},
+month = {11},
+pages = {},
+title = {Is 100% Test Coverage a Reasonable Requirement? Lessons Learned from a Space Software Project},
+isbn = {978-3-319-69925-7},
+doi = {10.1007/978-3-319-69926-4_25}
+}
+
+@article{al2021jacoco,
+  title={Jacoco-coverage based statistical approach for ranking and selecting key classes in object-oriented software},
+  author={Al-Ahmad, Bilal and AL-TAHARWA, ISMAIL and ALKHAWALDEH, RAMI S and ALAZZAM, IYAD M and GHATASHEH, NAZEEH},
+  journal={Journal of Engineering Science and Technology},
+  volume={16},
+  number={08},
+  pages={2021},
+  year={2021}
+}
+
+@article{clarkemetodosformais1996,
+author = {Clarke, Edmund M. and Wing, Jeannette M.},
+title = {Formal methods: state of the art and future directions},
+year = {1996},
+issue_date = {Dec. 1996},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {28},
+number = {4},
+issn = {0360-0300},
+url = {https://doi.org/10.1145/242223.242257},
+doi = {10.1145/242223.242257},
+journal = {ACM Computing Surveys},
+month = {dec},
+pages = {626–643},
+numpages = {18}
+}
+
+@INPROCEEDINGS{testcovferramenta,
+  author={Beyer, Dirk and Lemberger, Thomas},
+  booktitle={2019 34th IEEE/ACM International Conference on Automated Software Engineering (ASE)}, 
+  title={TestCov: Robust Test-Suite Execution and Coverage Measurement}, 
+  year={2019},
+  volume={},
+  number={},
+  pages={1074-1077},
+  keywords={Containers;Generators;Tools;Standards;Metadata;Linux;Computer architecture;Test Execution, Coverage, Test-Suite Reduction},
+  doi={10.1109/ASE.2019.00105}}
+
+
+@article{soremekun2021programslicing,
+  title={Locating faults with program slicing: an empirical analysis},
+  author={Soremekun, Ezekiel and Kirschner, Lukas and Böhme, Marcel and Zeller, Andreas},
+  journal={Empirical Software Engineering},
+  volume={26},
+  issue={3},
+  pages={51},
+  year={2021},
+  month={April},
+  doi={10.1007/s10664-020-09931-7},
+  url={https://doi.org/10.1007/s10664-020-09931-7},
+  publisher={Springer}
+}
+
+@article{korel1988dynamicslice,
+title = {Dynamic slicing of computer programs},
+journal = {Journal of Systems and Software},
+volume = {13},
+number = {3},
+pages = {187-195},
+year = {1990},
+issn = {0164-1212},
+doi = {https://doi.org/10.1016/0164-1212(90)90094-3},
+url = {https://www.sciencedirect.com/science/article/pii/0164121290900943},
+author = {Bogdan Korel and Janusz Laski},
+abstract = {Program slicing is a useful tool in program debugging [25, 26]. Dynamic slicing introduced in this paper differs from the original static slicing in that it is defined on the basis of a computation. A dynamic program slice is an executable part of the original program that preserves part of the program's behavior for a specific input with respect to a subset of selected variables, rather than for all possible computations. As a result, the size of a slice can be significantly reduced. Moreover, the approach allows us to treat array elements and fields in dynamic records as individual variables. This leads to a further reduction of the slice size.}
+}
+
+@article{tip1994dynamicslice,
+  title={A survey of program slicing techniques},
+  author={Frank Tip},
+  journal={Journal of Programming Languages},
+  year={1994},
+  volume={3},
+  url={https://api.semanticscholar.org/CorpusID:9882901}
+}
+
+@article{li2018fuzzing,
+  title={Fuzzing: a survey},
+  author={Li, Jun and Zhao, Bodong and Zhang, Chao},
+  journal={Cybersecurity},
+  volume={1},
+  number={1},
+  pages={6},
+  year={2018},
+  month={June},
+  doi={10.1186/s42400-018-0002-y},
+  url={https://doi.org/10.1186/s42400-018-0002-y},
+  publisher={Springer}
+}
+
+
+@article{zhang2004dynamicslice,
+author = {Zhang, Xiangyu and Gupta, Rajiv},
+title = {Cost effective dynamic program slicing},
+year = {2004},
+issue_date = {May 2004},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {39},
+number = {6},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/996893.996855},
+doi = {10.1145/996893.996855},
+abstract = {Although dynamic program slicing was first introduced to aid in user level debugging, applications aimed at improving software quality, reliability, security, and performance have since been identified as candidates for using dynamic slicing. However, the dynamic dependence graph constructed to compute dynamic slices can easily cause slicing algorithms to run out of memory for realistic program runs. In this paper we present the design and evaluation of a cost effective dynamic program slicing algorithm. This algorithm is based upon a dynamic dependence graph representation that is highly compact and rapidly traversable. Thus, the graph can be held in memory and dynamic slices can be quickly computed. A compact representation is derived by recognizing that all dynamic dependences (data and control) need not be individually represented. We identify sets of dynamic dependence edges between a pair of statements that can share a single representative edge. We further show that the dependence graph can be transformed in a manner that increases sharing and sharing can be performed even in the presence of aliasing. Experiments show that transformed dynamic dependence graphs explicitly represent only 6\% of the dependence edges present in the full dynamic dependence graph. When the full graph sizes range from 0.84 to 1.95 Gigabytes in size, our compacted graphs range from 20 to 210 Megabytes in size. Average slicing times for our algorithm range from 1.74 to 36.25 seconds across several benchmarks from SPECInt2000/95.},
+journal = {SIGPLAN Not.},
+month = {jun},
+pages = {94–106},
+numpages = {13},
+keywords = {testing, dynamic dependence graph, debugging}
+}
+
+
+@inproceedings{justfuzzit2019,
+author = {Liew, Daniel and Cadar, Cristian and Donaldson, Alastair F. and Stinnett, J. Ryan},
+title = {Just fuzz it: solving floating-point constraints using coverage-guided fuzzing},
+year = {2019},
+isbn = {9781450355728},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3338906.3338921},
+doi = {10.1145/3338906.3338921},
+abstract = {We investigate the use of coverage-guided fuzzing as a means of proving satisfiability of SMT formulas over finite variable domains, with specific application to floating-point constraints. We show how an SMT formula can be encoded as a program containing a location that is reachable if and only if the program’s input corresponds to a satisfying assignment to the formula. A coverage-guided fuzzer can then be used to search for an input that reaches the location, yielding a satisfying assignment. We have implemented this idea in a tool, Just Fuzz-it Solver (JFS), and we present a large experimental evaluation showing that JFS is both competitive with and complementary to state-of-the-art SMT solvers with respect to solving floating-point constraints, and that the coverage-guided approach of JFS provides significant benefit over naive fuzzing in the floating-point domain. Applied in a portfolio manner, the JFS approach thus has the potential to complement traditional SMT solvers for program analysis tasks that involve reasoning about floating-point constraints.},
+booktitle = {Proceedings of the 2019 27th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering},
+pages = {521–532},
+numpages = {12},
+keywords = {feedback-directed fuzzing, Constraint solving},
+location = {Tallinn, Estonia},
+series = {ESEC/FSE 2019}
+}
+
+@article{godefuzzing2012,
+author = {Godefroid, Patrice and Levin, Michael Y. and Molnar, David},
+title = {SAGE: whitebox fuzzing for security testing},
+year = {2012},
+issue_date = {March 2012},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {55},
+number = {3},
+issn = {0001-0782},
+url = {https://doi.org/10.1145/2093548.2093564},
+doi = {10.1145/2093548.2093564},
+abstract = {SAGE has had a remarkable impact at Microsoft.},
+journal = {Commun. ACM},
+month = {mar},
+pages = {40–44},
+numpages = {5}
+}
+
+@misc{manes2019mutationfuzzy,
+      title={The Art, Science, and Engineering of Fuzzing: A Survey}, 
+      author={Valentin J. M. Manes and HyungSeok Han and Choongwoo Han and Sang Kil Cha and Manuel Egele and Edward J. Schwartz and Maverick Woo},
+      year={2019},
+      eprint={1812.00140},
+      archivePrefix={arXiv},
+      primaryClass={id='cs.CR' full_name='Cryptography and Security' is_active=True alt_name=None in_archive='cs' is_general=False description='Covers all areas of cryptography and security including authentication, public key cryptosytems, proof-carrying code, etc. Roughly includes material in ACM Subject Classes D.4.6 and E.3.'}
+}
+
+
+@inproceedings{godefroid2005execsimbol,
+author = {Godefroid, Patrice and Klarlund, Nils and Sen, Koushik},
+title = {DART: directed automated random testing},
+year = {2005},
+isbn = {1595930566},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1065010.1065036},
+doi = {10.1145/1065010.1065036},
+abstract = {We present a new tool, named DART, for automatically testing software that combines three main techniques: (1) automated extraction of the interface of a program with its external environment using static source-code parsing; (2) automatic generation of a test driver for this interface that performs random testing to simulate the most general environment the program can operate in; and (3) dynamic analysis of how the program behaves under random testing and automatic generation of new test inputs to direct systematically the execution along alternative program paths. Together, these three techniques constitute Directed Automated Random Testing, or DART for short. The main strength of DART is thus that testing can be performed completely automatically on any program that compiles -- there is no need to write any test driver or harness code. During testing, DART detects standard errors such as program crashes, assertion violations, and non-termination. Preliminary experiments to unit test several examples of C programs are very encouraging.},
+booktitle = {Proceedings of the 2005 ACM SIGPLAN Conference on Programming Language Design and Implementation},
+pages = {213–223},
+numpages = {11},
+keywords = {automated test generation, interfaces, program verification, random testing, software testing},
+location = {Chicago, IL, USA},
+series = {PLDI '05}
+}
+
+@inproceedings{cadar2006execsimbol,
+author = {Cadar, Cristian and Ganesh, Vijay and Pawlowski, Peter M. and Dill, David L. and Engler, Dawson R.},
+title = {EXE: automatically generating inputs of death},
+year = {2006},
+isbn = {1595935185},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1180405.1180445},
+doi = {10.1145/1180405.1180445},
+abstract = {This paper presents EXE, an effective bug-finding tool that automatically generates inputs that crash real code. Instead of running code on manually or randomly constructed input, EXE runs it on symbolic input initially allowed to be "anything." As checked code runs, EXE tracks the constraints on each symbolic (i.e., input-derived) memory location. If a statement uses a symbolic value, EXE does not run it, but instead adds it as an input-constraint; all other statements run as usual. If code conditionally checks a symbolic expression, EXE forks execution, constraining the expression to be true on the true branch and false on the other. Because EXE reasons about all possible values on a path, it has much more power than a traditional runtime tool: (1) it can force execution down any feasible program path and (2) at dangerous operations (e.g., a pointer dereference), it detects if the current path constraints allow any value that causes a bug.When a path terminates or hits a bug, EXE automatically generates a test case by solving the current path constraints to find concrete values using its own co-designed constraint solver, STP. Because EXE's constraints have no approximations, feeding this concrete input to an uninstrumented version of the checked code will cause it to follow the same path and hit the same bug (assuming deterministic code).EXE works well on real code, finding bugs along with inputs that trigger them in: the BSD and Linux packet filter implementations, the udhcpd DHCP server, the pcre regular expression library, and three Linux file systems.},
+booktitle = {Proceedings of the 13th ACM Conference on Computer and Communications Security},
+pages = {322–335},
+numpages = {14},
+keywords = {test case generation, symbolic execution, dynamic analysis, constraint solving, bug finding, attack generation},
+location = {Alexandria, Virginia, USA},
+series = {CCS '06}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%% referencias dos trabalhos correlatos
+
+%%%% referencias fusebmc
+
+@InProceedings{fusebmc2022,
+author="Alshmrany, Kaled M.
+and Aldughaim, Mohannad
+and Bhayat, Ahmed
+and Cordeiro, Lucas C.",
+editor="Johnsen, Einar Broch
+and Wimmer, Manuel",
+title="FuSeBMC v4: Smart Seed Generation for Hybrid Fuzzing",
+booktitle="Fundamental Approaches to Software Engineering",
+year="2022",
+publisher="Springer International Publishing",
+address="Cham",
+pages="336--340",
+abstract="FuSeBMC is a test generator for finding security vulnerabilities in C programs. In Test-Comp 2021, we described a previous version that incrementally injected labels to guide Bounded Model Checking (BMC) and Evolutionary Fuzzing engines to produce test cases for code coverage and bug finding. This paper introduces an improved version of FuSeBMC that utilizes both engines to produce smart seeds. First, the engines run with a short time limit on a lightly instrumented version of the program to produce the seeds. The BMC engine is particularly useful in producing seeds that can pass through complex mathematical guards. Then, FuSeBMC runs its engines with extended time limits using the smart seeds created in the previous round. FuSeBMC manages this process in two main ways. Firstly, it uses shared memory to record the labels covered by each test case. Secondly, it evaluates test cases, and those of high impact are turned into seeds for subsequent test fuzzing. In this year's competition, we participate in the Cover-Error, Cover-Branches, and Overall categories. The Test-Comp 2022 results show that we significantly increased our code coverage score from last year, outperforming all tools in all categories.",
+isbn="978-3-030-99429-7"
+}
+
+@InProceedings{beyertestcomp2022,
+author="Beyer, Dirk",
+editor="Johnsen, Einar Broch
+and Wimmer, Manuel",
+title="Advances in Automatic Software Testing: Test-Comp 2022",
+booktitle="Fundamental Approaches to Software Engineering",
+year="2022",
+publisher="Springer International Publishing",
+address="Cham",
+pages="321--335",
+abstract="Test-Comp 2022 is the 4th edition of the Competition on Software Testing. Research competitions are a means to provide annual comparative evaluations. Test-Comp focusses on fully automatic software test generators for C programs. The results of the competition shall be reproducible and provide an overview of the current state of the art in the area of automatic test-generation. The competition was based on 4 236 test-generation tasks for C programs. Each test-generation task consisted of a program and a test specification (error coverage, branch coverage). Test-Comp 2022 had 12 participating test generators from 5 countries.",
+isbn="978-3-030-99429-7"
+}
+
+
+%%%$ referencias klee
+
+@article{cadar2021klee,
+  title={KLEE symbolic execution engine in 2019},
+  author={Cadar, Cristian and Nowack, Martin},
+  journal={International Journal on Software Tools for Technology Transfer},
+  volume={23},
+  number={6},
+  pages={867-870},
+  year={2021},
+  month={December},
+  doi={10.1007/s10009-020-00570-3},
+  url={https://doi.org/10.1007/s10009-020-00570-3},
+  publisher={Springer}
+}
+
+@article{beyer2021first,
+  title={First international competition on software testing},
+  author={Beyer, Dirk},
+  journal={International Journal on Software Tools for Technology Transfer},
+  volume={23},
+  number={6},
+  pages={833-846},
+  year={2021},
+  month={December},
+  doi={10.1007/s10009-021-00613-3},
+  url={https://doi.org/10.1007/s10009-021-00613-3},
+  publisher={Springer}
+}
+
+%%%% referencias esbmc
+
+@article{gadelha2021esbmc,
+  title={ESBMC 6.1: automated test case generation using bounded model checking},
+  author={Gadelha, Mikhail R. and Menezes, Rafael S. and Cordeiro, Lucas C.},
+  journal={International Journal on Software Tools for Technology Transfer},
+  volume={23},
+  number={6},
+  pages={857-861},
+  year={2021},
+  month={December},
+  doi={10.1007/s10009-020-00571-2},
+  url={https://doi.org/10.1007/s10009-020-00571-2},
+  publisher={Springer}
+}
+
+@book{clangesbmc,
+author = {Lopes, Bruno Cardoso and Auler, Rafael},
+title = {Getting Started with LLVM Core Libraries},
+year = {2014},
+isbn = {1782166920},
+publisher = {Packt Publishing},
+abstract = {Get to grips with LLVM essentials and use the core libraries to build advanced tools About This BookLearn how to configure, build, and use LLVM and Clang based toolsExplore the depths of the LLVM front-end, IR, code generator, and libraries, and learn how a modern compiler is implemented in a practical way.Customize your project to benefit from Just in Time compilation (JIT), static analysis and source-to-source transformations.Who This Book Is ForThis book is intended for enthusiasts, computer science students, and compiler engineers interested in learning about the LLVM framework. You need a background in C++ and, although not mandatory, should know at least some compiler theory. Whether you are a newcomer or a compiler expert, this book provides a practical introduction to LLVM and avoids complex scenarios. If you are interested enough and excited about this technology, then this book is definitely for you. In Detail LLVM is a bleeding edge compiler technology framework. Easily extendable and designed as a multitude of libraries, LLVM provides a smooth experience for compiler newcomers and reduces the steep learning curve often associated with compiler development.To start, this book will show you how to configure, build, and install LLVM libraries, tools, and external projects. Next, you will be introduced to LLVM design and how it works in practice throughout each LLVM compiler stage: frontend, IR, backend, the JIT engine, cross-compilation capabilities, and the plugin interface. With multiple hands-on examples and source code snippets, Getting Started with LLVM Core Libraries ensures a solid and smooth first step into the LLVM compiler development environment.}
+}
+
+@InProceedings{boolectorpaper2009,
+author="Brummayer, Robert
+and Biere, Armin",
+editor="Kowalewski, Stefan
+and Philippou, Anna",
+title="Boolector: An Efficient SMT Solver for Bit-Vectors and Arrays",
+booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+year="2009",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="174--177",
+abstract="Satisfiability Modulo Theories (SMT) is the problem of deciding satisfiability of a logical formula, expressed in a combination of first-order theories. We present the architecture and selected features of Boolector, which is an efficient SMT solver for the quantifier-free theories of bit-vectors and arrays. It uses term rewriting, bit-blasting to handle bit-vectors, and lemmas on demand for arrays.",
+isbn="978-3-642-00768-2"
+}
+
+@InProceedings{z3esbmc2008,
+author="de Moura, Leonardo
+and Bj{\o}rner, Nikolaj",
+editor="Ramakrishnan, C. R.
+and Rehof, Jakob",
+title="Z3: An Efficient SMT Solver",
+booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+year="2008",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="337--340",
+abstract="Satisfiability Modulo Theories (SMT) problem is a decision problem for logical first order formulas with respect to combinations of background theories such as: arithmetic, bit-vectors, arrays, and uninterpreted functions. Z3 is a new and efficient SMT Solver freely available from Microsoft Research. It is used in various software verification and analysis applications.",
+isbn="978-3-540-78800-3"
+}
+
+@article{gotoesbmc2018,
+  author    = {Baldoni, Roberto and Coppa, Emilio and D'Elia, Daniele Cono and Demetrescu, Camil and Finocchi, Irene},
+  title     = {A Survey of Symbolic Execution Techniques},
+  journal   = {ACM Computing Surveys},
+  volume    = {51},
+  number = {3},
+  articleno = {50},
+  publisher = {ACM},
+  address = {New York, NY, USA},
+  year = {2018}
+}
+
+@InProceedings{yicesesbmc2014,
+author="Dutertre, Bruno",
+editor="Biere, Armin
+and Bloem, Roderick",
+title="Yices 2.2",
+booktitle="Computer Aided Verification",
+year="2014",
+publisher="Springer International Publishing",
+address="Cham",
+pages="737--744",
+abstract="Yices is an SMT solver developed by SRI International. The first version of Yices was released in 2006 and has been continuously updated since then. In 2007, we started a complete re-implementation of the solver to improve performance and increase modularity and flexibility. We describe the latest release of Yices, namely, Yices 2.2. We present the tool's architecture and discuss the algorithms it implements, and we describe recent developments such as support for the SMT-LIB 2.0 notation and various performance improvements.",
+isbn="978-3-319-08867-9"
+}
+
+@InProceedings{beyertestcomp2023,
+author="Beyer, Dirk",
+editor="Lambers, Leen
+and Uchitel, Sebasti{\'a}n",
+title="Software Testing: 5th Comparative Evaluation: Test-Comp 2023",
+booktitle="Fundamental Approaches to Software Engineering",
+year="2023",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="309--323",
+abstract="The 5th edition of the Competition on Software Testing (Test-Comp 2023) provides again an overview and comparative evaluation of automatic test-suite generators for C programs. The experiment was performed on a benchmark set of 4 106 test-generation tasks for C programs. Each test-generation task consisted of a program and a test specification (error coverage, branch coverage). There were 13 participating test-suite generators from 6 countries in Test-Comp 2023.",
+isbn="978-3-031-30826-0"
+}
+
+@InProceedings{beyersvcomp2013,
+author="Beyer, Dirk",
+editor="Piterman, Nir
+and Smolka, Scott A.",
+title="Second Competition on Software Verification",
+booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+year="2013",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="594--609",
+abstract="This report describes the 2nd International Competition on Software Verification (SV-COMP 2013), which is the second edition of this thorough evaluation of fully automatic verifiers for software programs. The reported results represent the 2012 state-of-the-art in automatic software verification, in terms of effectiveness and efficiency, and as available and participated. The benchmark set of verification tasks consists of 2 315 programs, written in C, and exposing features of integers, heap-data structures, bit-vector operations, and concurrency; the properties include reachability and memory safety. The competition is again organized as a satellite event of TACAS.",
+isbn="978-3-642-36742-7"
+}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% referencias metodo
+
+@InProceedings{lattner:2004,
+    author    = {Chris Lattner and Vikram Adve},
+    title     = "{LLVM: A Compilation Framework for Lifelong Program Analysis \& Transformation}",
+    booktitle = "{Proceedings of the 2004 International Symposium on Code Generation and Optimization (CGO'04)}",
+    address   = {Palo Alto, California},
+    month     = {Mar},
+    year      = {2004}
+  }
+
+@InProceedings{crabllvm2021,
+author="Gurfinkel, Arie
+and Navas, Jorge A.",
+editor="Bloem, Roderick
+and Dimitrova, Rayna
+and Fan, Chuchu
+and Sharygina, Natasha",
+title="Abstract Interpretation of LLVM with a Region-Based Memory Model",
+booktitle="Software Verification",
+year="2022",
+publisher="Springer International Publishing",
+address="Cham",
+pages="122--144",
+abstract="Static analysis of low-level programs (C or LLVM) requires modeling memory. To strike a good balance between precision and performance, most static analyzers rely on the C memory model in which a pointer is a numerical offset within a memory object. Finite partitioning of the address space is a common abstraction. For instance, the allocation-site abstraction creates partitions by merging all objects created at the same allocation site. Recency abstraction refines the allocation-site abstraction by distinguishing the most recent allocated memory object from the previous ones. Unfortunately, these abstractions are not often precise enough to infer invariants that are expressed over the contents of dynamically allocated data-structures such as linked lists. In those cases, more expensive abstractions such as shapes that consider connectivity patterns between memory locations are often needed.",
+isbn="978-3-030-95561-8"
+}
+
+
+
+@misc{cwe2025,
+  author       = {{MITRE}},
+  title        = {2025 CWE Top 25 Most Dangerous Software Weaknesses},
+  howpublished = {\url{https://cwe.mitre.org/top25/archive/2025/2025_cwe_top25.html}},
+  year         = {2025},
+  note         = {Accessed: 2026-07-02}
+}
+
+@inproceedings{fioraldi2020aflpp,
+  author    = {Fioraldi, Andrea and Maier, Dominik and Eißfeldt, Heiko and Heuse, Marc},
+  title     = {{AFL++}: Combining Incremental Steps of Fuzzing Research},
+  booktitle = {Proceedings of the 14th USENIX Workshop on Offensive Technologies (WOOT 20)},
+  year      = {2020},
+  publisher = {USENIX Association}
+}
+
+@inproceedings{chalupa2021symbiotic,
+  author    = {Chalupa, Marek and Vitovská, Martina and Jašek, Tomáš and Šimáček, Michal and Strejček, Jan},
+  title     = {Symbiotic 8: Parallel and Targeted Test Generation},
+  booktitle = {Proceedings of the 29th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering (ESEC/FSE '21)},
+  year      = {2021},
+  publisher = {ACM},
+  doi       = {10.1145/3468264.3473125}
+}
+
+@misc{openssf2024,
+  author       = {{Open Source Security Foundation}},
+  title        = {OpenSSF Best Practices Badge Program},
+  howpublished = {\url{https://www.bestpractices.dev/}},
+  year         = {2024},
+  note         = {Accessed: 2026-07-02}
+} 
+
+@techreport{nsa2017juliet,
+  author      = {{National Security Agency}},
+  title       = {Juliet Test Suite v1.3 for C/C++},
+  institution = {NSA Center for Assured Software},
+  year        = {2017},
+  url         = {https://samate.nist.gov/SARD/test-suites/112}
+}

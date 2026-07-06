@@ -13,6 +13,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/release"
+      CACHE PATH "Install prefix (default: <repo>/release)" FORCE)
+endif()
+
 # --- Sanitizer configuration (Phase 1.5 — OpenSSF Best Practices) ---
 if(MAP2CHECK_ENABLE_SANITIZERS)
   message(STATUS "Sanitizers enabled: ASan + UBSan (dynamic linking)")
@@ -24,17 +29,13 @@ if(MAP2CHECK_ENABLE_SANITIZERS)
   # ASan requires dynamic linking — skip static config
   set(Map2Check_MODE "SHARED")
 else()
-  if(MAP2CHECK_DYNAMIC_LINK)
-    # --- Dynamic linking configuration ---
-    # Use this when dependencies (Z3, STP, KLEE) are only available as .so
-    set(Map2Check_MODE "SHARED")
-    message(STATUS "Dynamic linking enabled (MAP2CHECK_DYNAMIC_LINK=ON)")
-  else()
-    # --- Static linking configuration ---
-    set(Map2Check_MODE "STATIC")
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
-  endif()
+  # --- Static linking configuration ---
+  set(Map2Check_MODE "STATIC")
+  # Prefer static archives, but fall back to shared objects: Ubuntu's
+  # libz3-dev package only ships libz3.so (no libz3.a), so a ".a"-only
+  # suffix list makes find_library() fail to locate Z3 even when installed.
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
+  set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
 endif()
 
 # --- Core dependencies ---

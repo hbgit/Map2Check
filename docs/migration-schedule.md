@@ -53,7 +53,7 @@
 | ✅ | 1.1.1 | Criar `Dockerfile.dev` baseado em Ubuntu 22.04 | 01/Jun | 17/Mai | 3 | Container compila `hello.c` com Clang 16 | — |
 | ✅ | 1.1.2 | Instalar LLVM 16 pre-built no container | 04/Jun | 17/Mai | 2 | `clang-16 --version` e `opt --version` OK | — |
 | ✅ | 1.1.3 | Instalar dependências (Boost ≥1.74, CMake ≥3.20, Ninja) | 08/Jun | 17/Mai | 1 | `cmake --version` ≥ 3.20 | — |
-| ☐ | 1.1.4 | Configurar GitHub Actions CI (build + unit tests) | 09/Jun | — | 3 | Push dispara CI, badge verde | — |
+| ✅ | 1.1.4 | Configurar GitHub Actions CI (build + unit tests) | 09/Jun | 02/Jul | 3 | Push dispara CI, badge verde | — |
 | ✅ | 1.1.5 | **Teste integrado**: build de um pass simples no novo container | 12/Jun | 17/Mai | 1 | AssertPass compila como shared lib | `docs/migration/1.1-dockerfile-llvm16.md` |
 
 > **Entregável:** Docker image funcional com LLVM 16 + CI operacional  
@@ -117,7 +117,7 @@
 | ✅ | 1.4.1 | Adaptar frontend (`caller.cpp`, `map2check.cpp`) para nova invocação de passes | 31/Ago | 30/Mai | 5 | CLI funcional, `map2check --version` OK | `docs/migration/1.4-frontend-cpp17.md` |
 | ✅ | 1.4.2 | Migrar código C++ para C++17 (`std::make_unique`, `std::filesystem`, etc.) | 07/Set | 30/Mai | 5 | Build limpo Clang 16, 3 warnings pré-existentes | `docs/migration/1.4-frontend-cpp17.md` |
 | ✅ | 1.4.3 | **Suite completa de testes** — unit + plugins + TestComp Heap completo | 14/Set | 12-13/Jun | 3 | 7/7 unit ✅ + 9/9 plugins ✅ + 594 tasks Heap (score 57, 98.8% accuracy) | `docs/migration/1.4.3-checkpoint-testcomp2026.md` |
-| ☐ | 1.4.4 | Documentação: changelog, README atualizado | 17/Set | 18/Set | 2 | README com instruções de build LLVM 16 | — |
+| 🟡 | 1.4.4 | Documentação: changelog, README atualizado | 05/Jul | — | 1 | README com instruções LLVM 16, Docker, MAP2CHECK_DYNAMIC_LINK | — |
 | ☐ | 1.4.5 | **Buffer/contingência** | 21/Set | 25/Set | 5 | — | — |
 
 > **Marco Fase 1:** Map2Check compilando e rodando 100% com LLVM 16 + New PM  
@@ -133,14 +133,13 @@
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ✅ | 1.5.1 | Criar workflow GitHub Actions CI (`ci.yml`) com build + unit tests | 16/Jun | 16/Jun | 1 | Push dispara CI, jobs verdes | — |
-| ☐ | 1.5.2 | Publicar imagem Docker `map2check-dev` no GHCR | 16/Jun | 17/Jun | 1 | `docker pull ghcr.io/hbgit/map2check-dev` OK | — |
+| ✅ | 1.5.2 | Publicar imagem Docker `map2check-dev` no GHCR | 16/Jun | 02/Jul | 1 | `docker pull ghcr.io/hbgit/map2check-dev` OK | — |
 | ✅ | 1.5.3 | Adicionar cppcheck + clang-tidy ao CI (análise estática) | 17/Jun | 18/Jun | 1 | Job `static-analysis` verde, 0 erros medium+ | — |
 | ✅ | 1.5.4 | Configurar CMake com `MAP2CHECK_ENABLE_SANITIZERS` (ASan + UBSan) | 18/Jun | 18/Jun | 0.5 | Build com sanitizers compila OK | — |
 | ✅ | 1.5.5 | Adicionar job de testes com ASan/UBSan ao CI (análise dinâmica) | 18/Jun | 19/Jun | 0.5 | 7/7 unit tests passam com ASan sem erros | — |
-| [-] | 1.5.6 | Triagem e correção de findings estáticos (medium+) | 19/Jun | 20/Jun | 2 | cppcheck + clang-tidy sem erros medium+ | — |
-| ☐ | 1.5.7 | Atualizar perfil bestpractices.dev (8 critérios da seção Analysis) | 23/Jun | 23/Jun | 0.5 | Badge score 100%, status "passing" ✅ | — |
-| [-] | 1.5.8 | Documentação: README atualizado + relatório da fase | 23/Jun | 24/Jun | 0.5 | README com badge CI + instruções LLVM 16 | `docs/migration/1.5-openssf-badge.md` |
+| [-] | 1.5.6 | Triagem e correção de findings estáticos (medium+) | 19/Jun | 05/Jul | 3 | 8/12 fixed (Phase 2.0), 4 remaining | — |
+| ☐ | 1.5.7 | Atualizar perfil bestpractices.dev (8 critérios da seção Analysis) | 23/Jun | — | 0.5 | Badge score 100%, status "passing" ✅ | — |
+| ✅ | 1.5.8 | Documentação: README atualizado + relatório da fase | 05/Jul | 05/Jul | 0.5 | README com badge CI + instruções LLVM 16 | `docs/migration/1.5-openssf-badge.md` |
 
 > **Marco Fase 1.5:** OpenSSF Best Practices Badge "Passing" (100%)  
 > **Data-alvo:** 24/Jun/2026
@@ -155,18 +154,18 @@
 
 | Done | ID | Tarefa | Severidade | Teste | Relatório |
 |:-----|:---|:-------|:-----------|:------|:----------|
-| ☐ | 2.0.1 | **BTree off-by-one:** Corrigir `BTree.c:276` — `children[34]` OOB (array size 34). Ajustar loop `i < ORDER*2+1` para `i < ORDER*2` ou aumentar array para `ORDER*2+1` | 🔴 UBSan Error | `BTreeTest` e `ContainerBTreeTest` passam com `halt_on_error=1` | — |
-| ☐ | 2.0.2 | **BTree debug print OOB:** Corrigir `BTree.c:306` — mesmo padrão no loop de print | 🔴 cppcheck Error | Sem crash em debug print | — |
-| ☐ | 2.0.3 | **Return dangling pointer:** Corrigir `NonDetGeneratorKlee.c:47` e `NonDetGeneratorLibFuzzy.c:124` — retornam ponteiro para VLA local | 🔴 cppcheck Error | Sem `-Wreturn-stack-address` | — |
-| ☐ | 2.0.4 | **Shift UB:** Corrigir `NonDetGeneratorLibFuzzy.c:103` — shift 32-bit por 56 bits | 🔴 cppcheck Error | Sem UBSan violation | — |
-| ☐ | 2.0.5 | **strcpy → strncpy/std::string:** Corrigir `map2check.cpp:93,102,111` — 3x `strcpy` inseguro (CWE-119, buffer overflow) | 🔴 clang-tidy Security | clang-tidy sem `clang-analyzer-security.insecureAPI.strcpy` | — |
-| ☐ | 2.0.6 | **Uninit vars:** Corrigir `AllocationLog.c:56`, `NonDetLog.c:70`, `ContainerBTree.c:23` — structs retornadas com campos não inicializados | 🟡 cppcheck Error | cppcheck C sem `uninitvar` | — |
+| ✅ | 2.0.1 | **BTree off-by-one:** Corrigir `BTree.c:276` — `children[34]` OOB (array size 34). Ajustar loop `i < ORDER*2+1` para `i < ORDER*2` ou aumentar array para `ORDER*2+1` | 🔴 UBSan Error | `BTreeTest` e `ContainerBTreeTest` passam com `halt_on_error=1` | — |
+| ✅ | 2.0.2 | **BTree debug print OOB:** Corrigir `BTree.c:306` — mesmo padrão no loop de print | 🔴 cppcheck Error | Sem crash em debug print | — |
+| [-] | 2.0.3 | **Return dangling pointer:** Corrigir `NonDetGeneratorKlee.c:47` — ✅ KLEE fixed. `NonDetGeneratorLibFuzzy.c:124` — ainda pendente (Fuzzy variant) | 🔴 cppcheck Error | Sem `-Wreturn-stack-address` | — |
+| ✅ | 2.0.4 | **Shift UB:** Corrigir `NonDetGeneratorLibFuzzy.c:103` — shift 32-bit por 56 bits | 🔴 cppcheck Error | Sem UBSan violation | — |
+| ✅ | 2.0.5 | **strcpy → memcpy:** Corrigir `map2check.cpp:93,102,111` — 3x `strcpy` inseguro (CWE-119, buffer overflow) | 🔴 clang-tidy Security | clang-tidy sem `clang-analyzer-security.insecureAPI.strcpy` | — |
+| ✅ | 2.0.6 | **Uninit vars:** Corrigir `AllocationLog.c:56`, `NonDetLog.c:70`, `ContainerBTree.c:23` — structs retornadas com campos não inicializados | 🟡 cppcheck Error | cppcheck C sem `uninitvar` | — |
 | ☐ | 2.0.7 | **Printf format:** Corrigir `ListLog.c:145-154`, `NonDetLog.c:32-35` — `%d` com `unsigned` (usar `%u`) | 🟡 cppcheck Warning | cppcheck C sem `invalidPrintfArgType` | — |
 | ☐ | 2.0.8 | **Frontend:** Corrigir `counter_example.hpp:197` missing return + enum `UNKNOWN`/`MEMSAFETY` não tratados em switches | 🟡 cppcheck Error | cppcheck C++ sem `missingReturn`, build sem `-Wswitch` | — |
 | ☐ | 2.0.9 | **Exceptions namespace:** Corrigir `exceptions.hpp/cpp` — `using` incorreto, falta `std::runtime_error` | 🟡 clang-tidy Error | clang-tidy sem erros de compilação | — |
-| ☐ | 2.0.10 | **Test leaks:** Adicionar `free()` nos testes `AllocationLogTest` (linhas 75, 87) | 🟢 ASan Leak | ASan com `detect_leaks=1` sem erros | — |
+| ✅ | 2.0.10 | **Test leaks:** Adicionar `free()` nos testes `AllocationLogTest` (linhas 75, 87) | 🟢 ASan Leak | ASan com `detect_leaks=1` sem erros | — |
 | ☐ | 2.0.11 | **Modernização C++:** Aplicar `override` em ~20 funções virtuais, `const&` em ~30 parâmetros, remover dead stores em `graph.cpp` | 🟢 clang-tidy Quality | clang-tidy sem warnings em user code | — |
-| ☐ | 2.0.12 | **CI strict mode:** Após correções, reabilitar cppcheck C como bloqueante e `halt_on_error=1` no UBSan | 🟢 CI Config | Todos os 3 jobs passam em modo estrito | — |
+| [-] | 2.0.12 | **CI strict mode:** Sanitizers `halt_on_error=1` e `detect_leaks=1` ativados ✅. cppcheck C como bloqueante ainda pendente | 🟢 CI Config | Todos os 3 jobs passam em modo estrito | — |
 
 > **Nota:** As tarefas 2.0.1–2.0.5 são bugs de segurança/UB que podem causar comportamento indefinido ou buffer overflow em runtime. Devem ser priorizadas antes de qualquer nova implementação.
 

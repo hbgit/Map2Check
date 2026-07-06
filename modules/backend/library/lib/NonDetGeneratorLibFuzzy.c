@@ -115,7 +115,8 @@ char *map2check_non_det_pchar() {
   unsigned length = map2check_non_det_unsigned();
   if (length == 0)
     return NULL;
-  char string[length];
+  char *string = malloc(length);
+  if (!string) return NULL;
   unsigned i = 0;
   for (i = 0; i < (length - 1); i++) {
     string[i] = map2check_non_det_char();

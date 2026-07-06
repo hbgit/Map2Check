@@ -49,7 +49,7 @@ When you ask about a topic not covered below, I will read the relevant chapter f
 | 5 | ~~WASM MemoryTrackPass (1.7.4)~~ | ~~Alta~~ | ~~PoC E2E~~ | ✅ **Concluído** |
 | 6 | ~~WASM CLI --wasm (1.7.5)~~ | ~~Alta~~ | ~~1.7.4~~ | ✅ **Concluído** |
 | 7 | WASM Juliet benchmarks (1.7.6) | Média | 1.7.5 | ✅ Concluído — 15 casos, 15/15 FALSE (com timeout 290s) |
-| 8 | WASM seção artigo (1.7.7) | Média | 1.7.6 | 🟡 Em andamento — texto atualizado (15/15 FALSE), figura TikZ pronta, renderização do .mmd pendente |
+| 8 | WASM seção artigo (1.7.7) | Média | 1.7.6 | ✅ Concluído — texto e tabela em main.tex, fig6.mmd criado, roteiro do vídeo pronto |
 | 9 | Gravação do vídeo técnico | **Média** | Seção 5 (Demonstração) | usuário |
 | 10 | Validação do build por terceiro (CTA) | **Baixa** | Checklist de artefato | usuário |
 | 11 | Ajustes do orientador no artigo | **Alta** | Submissão | usuário |

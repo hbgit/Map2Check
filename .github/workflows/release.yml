@@ -1,0 +1,94 @@
+############################################################
+# Map2Check Release — Draft Release automático no master
+#
+# Build completo (KLEE 3.1 + LibFuzzer) dentro da imagem
+# ghcr.io/hbgit/map2check-dev, empacota release/ em .zip e
+# publica Draft Release via semantic-release.
+############################################################
+name: Release
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write   # criar tag + draft release
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build & Draft Release
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout (full history + submodules)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # semantic-release precisa de todas as tags/commits
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo docker image prune -a -f || true
+
+      - name: Pull map2check-dev image
+        run: docker pull ghcr.io/hbgit/map2check-dev:latest
+
+      # Build completo (KLEE + LibFuzzer) — mesmo padrão do job e2e-wasm do ci.yml
+      - name: Build + ninja install (release/) in container
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e CC=/usr/bin/clang-16 \
+            -e CXX=/usr/bin/clang++-16 \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              # WABT + wasi-sdk (a imagem publicada não os traz)
+              if [ ! -f /opt/wabt-1.0.41/include/wasm-rt.h ]; then
+                wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+                tar xzf /tmp/wabt.tar.gz -C /opt && rm /tmp/wabt.tar.gz
+                ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
+              fi
+              if [ ! -d /opt/wasi-sdk-33.0-x86_64-linux ]; then
+                wget -q "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-33/wasi-sdk-33.0-x86_64-linux.tar.gz" -O /tmp/wasi-sdk.tar.gz
+                tar xzf /tmp/wasi-sdk.tar.gz -C /opt && rm /tmp/wasi-sdk.tar.gz
+              fi
+
+              rm -rf build release
+              mkdir -p build && cd build
+              cmake .. -G Ninja \
+                -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DCMAKE_INSTALL_PREFIX=/workspace/release
+              ninja
+              ninja install
+
+              # KLEE runtime + clang headers ausentes das regras de install
+              # (cp -rL, não symlink: precisa sobreviver dentro do zip)
+              mkdir -p /workspace/release/lib/klee
+              cp -rL /opt/klee/lib/klee/runtime /workspace/release/lib/klee/runtime
+              [ -e /workspace/release/lib/clang ] || \
+                cp -rL /usr/lib/llvm-16/lib/clang /workspace/release/lib/clang
+            '
+          sudo chown -R "$(id -u):$(id -g)" release
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install semantic-release
+        run: npm install --no-save semantic-release@24 @semantic-release/exec@6
+
+      # Lê os commits desde a última tag v*, calcula a versão, chama
+      # scripts/package-release.sh <versão> (via .releaserc.json), cria a
+      # tag e publica o Draft Release com o .zip anexado.
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release

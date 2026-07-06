@@ -14,6 +14,9 @@
 #include <string>
 #include <vector>
 
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
 using llvm::CallInst;
 using llvm::cast;
 using llvm::CastInst;
@@ -24,11 +27,11 @@ using llvm::dyn_cast;
 using llvm::IRBuilder;
 using llvm::isa;
 using llvm::LoadInst;
-using llvm::make_unique;
+using std::make_unique;
 using llvm::MDNode;
-using llvm::RegisterPass;
 using llvm::StoreInst;
 using llvm::Twine;
+using llvm::FunctionCallee;
 
 namespace {
 inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
@@ -48,7 +51,7 @@ void OverflowPass::listAllUintAssign(BasicBlock &B) {
     // i->dump();
 
     if (auto *cI = dyn_cast<CallInst>(&*i)) {
-      Value *v = cI->getCalledValue();
+      Value *v = cI->getCalledOperand();
       Function *calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
       if (calleeFunction->getName() == "__VERIFIER_nondet_uint" ||
           calleeFunction->getName() == "map2check_non_det_uint") {
@@ -123,7 +126,7 @@ void OverflowPass::listAllUnsignedVar(Function &F) {
       // llvm.dbg.declare()
       if (CallInst *CI = dyn_cast<CallInst>(I)) {
         if (Function *F = CI->getCalledFunction()) {
-          if (F->getName().startswith("llvm.")) {
+          if (F->getName().starts_with("llvm.")) {
             const DbgDeclareInst *DDI = dyn_cast<DbgDeclareInst>(I);
 
             if (auto *N = dyn_cast<MDNode>(DDI->getVariable())) {
@@ -135,7 +138,7 @@ void OverflowPass::listAllUnsignedVar(Function &F) {
                       DT->getName() == "unsigned") {
                     // errs() << DT->getName() << "+++\n";
                     // errs() << DV->getName() << "+++\n";
-                    this->listUnsignedVars.push_back(DV->getName());
+                    this->listUnsignedVars.push_back(DV->getName().str());
                     // errs() << DV->getLine() << "+++\n";
                     this->listLineNumUint.push_back(DV->getLine());
                   }
@@ -166,9 +169,9 @@ std::string OverflowPass::getValueNameOperator(Value *Vop) {
       valueOp = osstrtmp.str();
     }
   } else if (CallInst *callInst = dyn_cast<CallInst>(Vop)) {
-    Value *v = callInst->getCalledValue();
+    Value *v = callInst->getCalledOperand();
     Function *calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-    valueOp = calleeFunction->getName();
+    valueOp = calleeFunction->getName().str();
 
   } else if (BinaryOperator *binOp = dyn_cast<BinaryOperator>(Vop)) {
     Value *fO1 = binOp->getOperand(0);
@@ -182,7 +185,8 @@ std::string OverflowPass::getValueNameOperator(Value *Vop) {
   return valueOp;
 }
 
-bool OverflowPass::runOnFunction(Function &F) {
+PreservedAnalyses OverflowPass::run(Function &F,
+                                    llvm::FunctionAnalysisManager &AM) {
   this->operationsFunctions =
       make_unique<OperationsFunctions>(&F, &F.getContext());
   Function::iterator functionIterator = F.begin();
@@ -224,7 +228,7 @@ bool OverflowPass::runOnFunction(Function &F) {
         Value *firstOperand = storeInst->getValueOperand();
         Value *secondOperand = storeInst->getPointerOperand();
 
-        std::string operandName = firstOperand->getName();
+        std::string operandName = firstOperand->getName().str();
 
         std::vector<std::string>::const_iterator iT;
 
@@ -247,7 +251,7 @@ bool OverflowPass::runOnFunction(Function &F) {
         Twine bitcast("map2check_pointer_cast");
         DebugInfo debugInfo(&F.getContext(), binOp);
 
-        Constant *instrumentedFunction = NULL;
+        FunctionCallee instrumentedFunction;
 
         Value *firstOperand = binOp->getOperand(0);
         Value *secondOperand = binOp->getOperand(1);
@@ -405,7 +409,7 @@ bool OverflowPass::runOnFunction(Function &F) {
             break;
         }
 
-        if (instrumentedFunction != NULL) {
+        if (instrumentedFunction) {
           Value *firstOperand64Ty;
           if (firstOperand->getType() == Type::getInt32Ty(*Ctx)) {
             firstOperand64Ty = CastInst::CreateIntegerCast(
@@ -435,10 +439,22 @@ bool OverflowPass::runOnFunction(Function &F) {
       }
     }
   }
-  return true;
+  return PreservedAnalyses::none();
 }
 
-char OverflowPass::ID = 10;
-static RegisterPass<OverflowPass> X(
-    "check_overflow",
-    "Validate overflow on signed integer dynamic operations tracking");
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "OverflowPass", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "overflow-pass") {
+                    FPM.addPass(OverflowPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}

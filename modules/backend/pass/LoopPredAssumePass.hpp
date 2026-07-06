@@ -13,13 +13,14 @@
 
 #include <llvm/ADT/Statistic.h>
 #include <llvm/Analysis/LoopInfo.h>
-#include <llvm/Analysis/LoopPass.h>
+#include <llvm/Analysis/LoopAnalysisManager.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Instructions.h>
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Transforms/Scalar/LoopPassManager.h>
 
 #include <iostream>
 #include <sstream>
@@ -33,29 +34,30 @@
 #include "DebugInfo.hpp"
 #include "LibraryFunctions.hpp"
 
-// using namespace llvm;
 namespace Tools = Map2Check;
 
 using llvm::BasicBlock;
 using llvm::BranchInst;
 using llvm::CmpInst;
 using llvm::Constant;
+using llvm::FunctionCallee;
+using llvm::PointerType;
 using llvm::dyn_cast;
 using llvm::LLVMContext;
 using llvm::Loop;
-using llvm::LoopPass;
-using llvm::LPPassManager;
+using llvm::PreservedAnalyses;
 
-struct LoopPredAssumePass : public LoopPass {
-  static char ID;
-  LoopPredAssumePass() : LoopPass(ID) {}
+struct LoopPredAssumePass : public llvm::PassInfoMixin<LoopPredAssumePass> {
+  PreservedAnalyses run(Loop& L, llvm::LoopAnalysisManager& AM,
+                        llvm::LoopStandardAnalysisResults& AR,
+                        llvm::LPMUpdater& U);
+  static bool isRequired() { return true; }
 
-  virtual bool runOnLoop(Loop* L, LPPassManager& LPM);
   void getConditionInLoop(Loop* L);
 
  private:
   LLVMContext* Ctx;
-  Constant* map2check_assume = NULL;
+  FunctionCallee map2check_assume;
 };
 
 #endif  // MODULES_BACKEND_PASS_LOOPPREDASSUMEPASS_HPP_

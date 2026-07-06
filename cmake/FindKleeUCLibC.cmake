@@ -1,16 +1,24 @@
-cmake_minimum_required(VERSION 3.5)
-include(ExternalProject)
-find_package(Git REQUIRED)
+# FindKleeUCLibC.cmake — Locate klee-uclibc (pre-built in container)
+#
+# In the Dockerfile.dev environment, klee-uclibc is built at /opt/klee-uclibc:
+#   git clone https://github.com/klee/klee-uclibc.git /opt/klee-uclibc
+#   ./configure --make-llvm-lib --with-cc clang-16 --with-llvm-config llvm-config-16
+#   make
+#
+# Sets:
+#   KLEE_UCLIB_FOLDER  — klee-uclibc source/build directory
 
-set(KLEE_UCLIB_FOLDER ${PROJECT_BINARY_DIR}/dependencies/KleeUCLibC/src/KleeUCLibC)
+# Check KLEE_UCLIBC_PATH env var first, then default paths
+if(DEFINED ENV{KLEE_UCLIBC_PATH})
+  set(KLEE_UCLIB_FOLDER "$ENV{KLEE_UCLIBC_PATH}")
+elseif(EXISTS "/opt/klee-uclibc")
+  set(KLEE_UCLIB_FOLDER "/opt/klee-uclibc")
+else()
+  message(FATAL_ERROR "klee-uclibc not found! Set KLEE_UCLIBC_PATH or install to /opt/klee-uclibc")
+endif()
 
-ExternalProject_Add( KleeUCLibC
-  PREFIX dependencies/KleeUCLibC
-  GIT_TAG klee_0_9_29
-  GIT_REPOSITORY https://github.com/klee/klee-uclibc.git
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure --make-llvm-lib --with-llvm-config=${LLVM_CONFIG_BIN}
-  BUILD_IN_SOURCE 1
-  BUILD_COMMAND CXX=${CLANG_CXX} CC=${CLANG_CC} make -j2
-  INSTALL_COMMAND ""  
-)
-
+if(EXISTS "${KLEE_UCLIB_FOLDER}/lib/libc.a")
+  message(STATUS "Found klee-uclibc: ${KLEE_UCLIB_FOLDER}")
+else()
+  message(WARNING "klee-uclibc directory found at ${KLEE_UCLIB_FOLDER} but lib/libc.a is missing. Build may fail.")
+endif()

@@ -13,13 +13,15 @@
 #include <memory>
 #include <string>
 
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
 using llvm::CallInst;
 using llvm::dyn_cast;
 using llvm::IRBuilder;
 using llvm::isa;
 using llvm::PHINode;
-using llvm::RegisterPass;
-using llvm::TerminatorInst;
+// TerminatorInst removed in LLVM 10+ — use Instruction directly
 using llvm::UnreachableInst;
 
 namespace {
@@ -29,23 +31,20 @@ inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
 }
 }  // namespace
 
-bool TrackBasicBlockPass::runOnFunction(Function& F) {
+PreservedAnalyses TrackBasicBlockPass::run(Function& F,
+                                            llvm::FunctionAnalysisManager& AM) {
   this->Ctx = &F.getContext();
   this->currentFunction = &F;
   this->libraryFunctions = make_unique<LibraryFunctions>(&F, &F.getContext());
 
   int countBB = 1;
   for (auto& B : F) {
-    // this->instrumentEntryBB(B, this->Ctx);
-    // if(countBB == 1)
-    //{
     this->hasCallOnBasicBlock(B, this->Ctx);
-    //}
     this->runOnBasicBlock(B, this->Ctx);
     countBB++;
   }
 
-  return true;
+  return PreservedAnalyses::none();
 }
 /**
 void TrackBasicBlockPass::instrumentEntryBB(BasicBlock& B, LLVMContext* Ctx)
@@ -106,8 +105,8 @@ void TrackBasicBlockPass::hasCallOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
     // for(auto& I:B)
     //{
     if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(i))) {
-      if (!cI->getCalledValue()->getName().empty()) {
-        Value* v = cI->getCalledValue();
+      if (!cI->getCalledOperand()->getName().empty()) {
+        Value* v = cI->getCalledOperand();
         Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
         if (calleeFunction->getName() != "__VERIFIER_assume" &&
@@ -156,7 +155,7 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
   // DebugInfo debugInfoLa(this->Ctx, (Instruction*)this->st_lastBlockInst);
   // errs() << debugInfoLa.getLineNumberInt() << "\n";
 
-  if (auto* tI = dyn_cast<TerminatorInst>(&*this->st_lastBlockInst)) {
+  if (auto* tI = dyn_cast<Instruction>(&*this->st_lastBlockInst)) {
     if (std::string(tI->getOpcodeName()) == "br") {
       if (B.size() > 1) {
         --this->st_lastBlockInst;
@@ -256,8 +255,8 @@ bool TrackBasicBlockPass::checkInstBbIsAssume(BasicBlock::iterator& iT) {
   // errs() << iT->getOpcodeName() << " \n";
   this->isUnreachableInst = false;
   if (auto* cI = dyn_cast<CallInst>(BBIteratorToInst(iT))) {
-    if (!cI->getCalledValue()->getName().empty()) {
-      Value* v = cI->getCalledValue();
+    if (!cI->getCalledOperand()->getName().empty()) {
+      Value* v = cI->getCalledOperand();
       Function* calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
 
       if (calleeFunction->getName() == "__VERIFIER_assume" ||
@@ -312,6 +311,19 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT) {
   // errs() << "inst 3 \n";
 }
 
-char TrackBasicBlockPass::ID = 12;
-static RegisterPass<TrackBasicBlockPass> X(
-    "track_basic_block", "Track Basic Block in the symbolic execution");
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "TrackBasicBlockPass", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "track-basic-block") {
+                    FPM.addPass(TrackBasicBlockPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}

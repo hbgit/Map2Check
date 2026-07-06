@@ -1,53 +1,55 @@
-This is the changelog file for the Map2Check Tool.
+# Changelog
 
+All notable changes to Map2Check are documented in this file.
+The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-Release v7.3.1.2019-11.27.140ba2d2 (2019-11-19)
-===========================
+## [Unreleased]
 
-- using LibFuzzer to provide random data as input to C programs to quickly expose “shallow” bugs, i.e., those that do not require complex data input;
-- implementing a new runtime library and instrumentation approach to monitor for crashes, failing built-in assertions and pointer safety;
-- adopting Crab-LLVM to infer invariants;
-- exploiting a sequential approach with LibFuzzer and KLEE to check safety properties in a novel way;
-- adopting MetaSMT as a wrapper around various SMT solvers, for instance, Boolector and Yices, previously not supported by our tool; and
-- fixed a couple of bugs.
+### Changed
 
+- Migrated the toolchain from LLVM 6.0 to LLVM 16, moving all instrumentation passes (`modules/backend/pass/`) to the New Pass Manager and opaque pointers.
+- Migrated the codebase to C++17 (CMake `CMAKE_CXX_STANDARD` 11 → 17, required by LLVM 16 headers).
+- Upgraded KLEE to 3.1.
+- Bumped project version to 8.0.0 (`CMakeLists.txt`).
 
-Release v7.1 - SV-COMP'18 (2017-11-17)
-===========================
+### Added
 
-- minor changes to SVCOMP 2018
-- futher details https://link.springer.com/chapter/10.1007/978-3-319-89963-3_28
+- `Dockerfile.dev` development image (Ubuntu 22.04 + LLVM 16 + KLEE 3.1).
+- GitHub Actions CI pipeline (`ci.yml`): build + unit tests, static analysis (clang-tidy, cppcheck), and ASan/UBSan sanitizer jobs.
+- Docker image publishing workflow (`docker-publish.yml`).
+- Static analysis configuration (`.clang-tidy`, `.cppcheck-suppressions.txt`).
+- Migration documentation set under `docs/migration/`.
 
+## [7.3.1] - 2019-11-19 (140ba2d2)
 
-Release v7.1 (2017-11-17)
-===========================
+- Adopted LibFuzzer to feed C programs with random input, quickly exposing "shallow" bugs that don't require complex data.
+- Implemented a new runtime library and instrumentation approach to monitor crashes, failing built-in assertions, and pointer safety.
+- Adopted Crab-LLVM to infer invariants.
+- Combined LibFuzzer and KLEE sequentially to check safety properties in a novel way.
+- Adopted MetaSMT as a wrapper around additional SMT solvers (Boolector, Yices) previously unsupported by the tool.
+- Fixed several bugs.
 
-- we added witness true
-- we improved nondet functions
-- we added files to svcomp'18
-- fixed a couple of bugs
-- general improvements to track memory address
+## [7.1] - 2017-11-17
 
+- Added witness generation for `true` verdicts.
+- Improved handling of nondeterministic ("nondet") functions.
+- Added support files for SV-COMP'18 — see [further details](https://link.springer.com/chapter/10.1007/978-3-319-89963-3_28).
+- General improvements to memory address tracking.
+- Fixed several bugs.
 
-Release v7.0 (2017-09-17)
-===========================
+## [7.0] - 2017-09-17
 
-- we adopt Clang to parse C code
-- we use LLVM as intermediary representation to code instrumentation
-- we use KLEE for symbolic execution
-- added dockerfile to build Map2Check
-- fix bugs related to counter-example generation
-- general improvements to track memory address
+- Adopted Clang for parsing C code.
+- Adopted LLVM IR as the intermediate representation for code instrumentation.
+- Adopted KLEE for symbolic execution.
+- Added a Dockerfile to build Map2Check.
+- Fixed bugs related to counterexample generation.
+- General improvements to memory address tracking.
 
+## [6.0] - 2016-01-06
 
-Release v6 (2016-01-06)
-==========================
+- Minor tool improvements — see [further details](https://link.springer.com/chapter/10.1007/978-3-662-49674-9_64).
 
-- minor improvements to the tool.
-- futher details at https://link.springer.com/chapter/10.1007/978-3-662-49674-9_64
+## [5.0] - 2014-11-14
 
-
-Release v5 (2014-11-14)
-==========================
-
-- first Map2Check public release.
+- First public release of Map2Check.

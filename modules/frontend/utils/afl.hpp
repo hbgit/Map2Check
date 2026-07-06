@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 
-#include <boost/make_unique.hpp>
+#include <memory>
 
 namespace Map2Check {
 

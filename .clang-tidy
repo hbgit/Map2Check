@@ -1,0 +1,36 @@
+# ============================================================
+# clang-tidy configuration for Map2Check
+#
+# Focus on security-relevant checks for C/C++ code:
+# - clang-analyzer-*: deep static analysis (null deref, buffer overflow, etc.)
+# - bugprone-*: common bug patterns
+# - performance-*: performance anti-patterns
+# - modernize-*: C++17 modernization
+#
+# Phase 1.5 — OpenSSF Best Practices Badge
+# ============================================================
+
+Checks: >
+  -*,
+  clang-analyzer-*,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  -clang-analyzer-optin.cplusplus.UninitializedObject,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  performance-*,
+  -performance-avoid-endl,
+  modernize-use-override
+
+WarningsAsErrors: >
+  clang-analyzer-core.*,
+  clang-analyzer-security.*,
+  bugprone-use-after-move
+
+HeaderFilterRegex: 'modules/.*'
+
+CheckOptions:
+  - key: bugprone-assert-side-effect.AssertMacros
+    value: 'assert,BOOST_ASSERT'
+  - key: bugprone-dangling-handle.HandleClasses
+    value: 'std::string_view;std::experimental::string_view'

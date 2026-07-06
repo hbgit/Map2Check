@@ -17,7 +17,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>
@@ -31,12 +31,11 @@
 #include "DebugInfo.hpp"
 #include "NonDetFunctions.hpp"
 
-// using namespace llvm;
 using llvm::BasicBlock;
 using llvm::CallInst;
 using llvm::Function;
-using llvm::FunctionPass;
 using llvm::LLVMContext;
+using llvm::PreservedAnalyses;
 using llvm::Value;
 
 enum class NonDetType {
@@ -66,10 +65,9 @@ namespace InstrumentNonDetS {
   void instrumentNonDet##type(CallInst *callInst, LLVMContext *Ctx);
 }  // namespace InstrumentNonDetS
 
-struct NonDetPass : public FunctionPass {
-  static char ID;
-  NonDetPass() : FunctionPass(ID) {}
-  virtual bool runOnFunction(Function &F);
+struct NonDetPass : public llvm::PassInfoMixin<NonDetPass> {
+  PreservedAnalyses run(Function &F, llvm::FunctionAnalysisManager &AM);
+  static bool isRequired() { return true; }
 
  protected:
   void instrumentInstruction();

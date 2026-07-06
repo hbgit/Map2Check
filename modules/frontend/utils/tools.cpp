@@ -8,18 +8,40 @@
  * SPDX-License-Identifier: (GPL-2.0 AND BSL-1.0)
  **/
 
+#include <filesystem>
 #include <string>
 #include <vector>
-
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/filesystem.hpp>
 
 #include "log.hpp"
 #include "tools.hpp"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 namespace Tools = Map2Check;
+
+namespace {
+// Replaces boost::split — splits string by any character in delimiters
+inline std::vector<std::string> splitString(const std::string& s, const std::string& delimiters) {
+  std::vector<std::string> tokens;
+  std::string::size_type start = 0;
+  auto pos = s.find_first_of(delimiters, start);
+  while (pos != std::string::npos) {
+    tokens.push_back(s.substr(start, pos - start));
+    start = pos + 1;
+    pos = s.find_first_of(delimiters, start);
+  }
+  tokens.push_back(s.substr(start));
+  return tokens;
+}
+
+// Replaces boost::replace_all
+inline void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+  std::string::size_type pos = 0;
+  while ((pos = str.find(from, pos)) != std::string::npos) {
+    str.replace(pos, from.length(), to);
+    pos += to.length();
+  }
+}
+}  // namespace
 
 using std::ifstream;
 using std::regex;
@@ -54,8 +76,8 @@ std::string Tools::SourceCodeHelper::substituteWithResult(int line,
   // Map2Check::Log::Debug("Replacing '" + old_token + "' with '" + result +
   // "'");
   string toReplace = this->getLine(line);
-  boost::replace_all(toReplace, old_token, result);
-  boost::replace_all(toReplace, "  ", "");
+  replaceAll(toReplace, old_token, result);
+  replaceAll(toReplace, "  ", "");
   return toReplace;
 }
 
@@ -268,8 +290,7 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
   string line;
   while (getline(in, line)) {
     // TODO(hbgit): Check if CSV has valid arguments
-    std::vector<std::string> tokens;
-    boost::split(tokens, line, boost::is_any_of(";"));
+    auto tokens = splitString(line, ";");
 
     if (tokens.size() == 7) {
       Log::Debug("started klee log");
@@ -332,8 +353,7 @@ std::vector<Tools::ListLogRow> Tools::ListLogHelper::getListLogFromCSV(
 
   string line;
   while (getline(in, line)) {
-    std::vector<std::string> tokens;
-    boost::split(tokens, line, boost::is_any_of(";"));
+    auto tokens = splitString(line, ";");
     // TODO(hbgit): Check if CSV has valid arguments
     if (tokens.size() == 10) {
       Tools::ListLogRow row;
@@ -382,8 +402,7 @@ Tools::StateTrueLogHelper::getListLogFromCSV(string path) {
 
   string line;
   while (getline(in, line)) {
-    std::vector<std::string> tokens;
-    boost::split(tokens, line, boost::is_any_of("@"));
+    auto tokens = splitString(line, "@");
 
     if (tokens.size() == 10) {
       Tools::StateTrueLogRow row;
@@ -433,8 +452,7 @@ std::vector<Tools::TrackBBLogRow> Tools::TrackBBLogHelper::getListLogFromCSV(
 
   string line;
   while (getline(in, line)) {
-    std::vector<std::string> tokens;
-    boost::split(tokens, line, boost::is_any_of(";"));
+    auto tokens = splitString(line, ";");
 
     if (tokens.size() == 2) {
       Tools::TrackBBLogRow row;

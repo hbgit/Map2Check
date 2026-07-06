@@ -16,7 +16,7 @@
 #include "gen_crypto_hash.hpp"
 
 #include <boost/format.hpp>
-#include <boost/uuid/sha1.hpp>
+#include <boost/uuid/detail/sha1.hpp>
 
 #include "log.hpp"
 

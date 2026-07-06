@@ -1,0 +1,8 @@
+unmatchedSuppression
+missingIncludeSystem
+*:modules/backend/library/lib/json11/*
+unknownMacro
+unusedFunction:modules/backend/pass/*
+unusedFunction:modules/backend/library/*
+uninitMemberVar
+missingReturn:modules/frontend/counter_example/*

@@ -17,7 +17,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>
@@ -37,20 +37,20 @@ namespace Tools = Map2Check;
 
 using llvm::BasicBlock;
 using llvm::Function;
-using llvm::FunctionPass;
 using llvm::LLVMContext;
-using llvm::make_unique;
+using llvm::PreservedAnalyses;
+using std::make_unique;
 using llvm::Value;
 
-struct TrackBasicBlockPass : public FunctionPass {
-  static char ID;
-  TrackBasicBlockPass() : FunctionPass(ID) {}
-  explicit TrackBasicBlockPass(std::string c_program_path) : FunctionPass(ID) {
-    this->c_program_path = c_program_path;
+struct TrackBasicBlockPass : public llvm::PassInfoMixin<TrackBasicBlockPass> {
+  TrackBasicBlockPass() = default;
+  explicit TrackBasicBlockPass(std::string c_program_path)
+      : c_program_path(std::move(c_program_path)) {
     this->sourceCodeHelper = make_unique<Tools::SourceCodeHelper>(
-        Tools::SourceCodeHelper(c_program_path));
+        Tools::SourceCodeHelper(this->c_program_path));
   }
-  virtual bool runOnFunction(Function& F);
+  PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
+  static bool isRequired() { return true; }
 
  protected:
   void runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx);

@@ -12,11 +12,13 @@
 
 #include <memory>
 
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+
 using llvm::CastInst;
 using llvm::dyn_cast;
 using llvm::IRBuilder;
-using llvm::make_unique;
-using llvm::RegisterPass;
+using std::make_unique;
 using llvm::Twine;
 
 namespace {
@@ -26,7 +28,8 @@ inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
 }
 }  // namespace
 
-bool NonDetPass::runOnFunction(Function &F) {
+PreservedAnalyses NonDetPass::run(Function &F,
+                                  llvm::FunctionAnalysisManager &AM) {
   this->nonDetFunctions = make_unique<NonDetFunctions>(&F, &F.getContext());
   bool initializedFunctionName = false;
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
@@ -42,7 +45,7 @@ bool NonDetPass::runOnFunction(Function &F) {
       }
     }
   }
-  return true;
+  return PreservedAnalyses::none();
 }
 
 namespace {
@@ -59,7 +62,7 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   Function *calleeFunction = callInst->getCalledFunction();
 
   if (calleeFunction == NULL) {
-    Value *v = callInst->getCalledValue();
+    Value *v = callInst->getCalledOperand();
     calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
     if (calleeFunction == NULL) {
       return;
@@ -149,7 +152,7 @@ namespace {
     DebugInfo debugInfo(Ctx, callInst);                                     \
     Value *args[] = {debugInfo.getLineNumberValue(),                        \
                      debugInfo.getScopeNumberValue(), cast, function_llvm}; \
-    Constant *NonDetFunction =                                              \
+    FunctionCallee NonDetFunction =                                              \
         this->nonDetFunctions->getNonDet##type##Function();                 \
     builder.CreateCall(NonDetFunction, args);                               \
   }
@@ -169,7 +172,7 @@ namespace {
     Value *args[] = {debugInfo.getLineNumberValue(),                         \
                      debugInfo.getScopeNumberValue(), castInteger,           \
                      function_llvm};                                         \
-    Constant *NonDetFunction =                                               \
+    FunctionCallee NonDetFunction =                                               \
         this->nonDetFunctions->getNonDet##type##Function();                  \
     builder.CreateCall(NonDetFunction, args);                                \
   }
@@ -185,7 +188,7 @@ namespace {
     Value *args[] = {debugInfo.getLineNumberValue(),            \
                      debugInfo.getScopeNumberValue(), callInst, \
                      function_llvm};                            \
-    Constant *NonDetFunction =                                  \
+    FunctionCallee NonDetFunction =                                  \
         this->nonDetFunctions->getNonDet##type##Function();     \
     builder.CreateCall(NonDetFunction, args);                   \
   }
@@ -207,8 +210,20 @@ NONDET_IMPL_HELPER_CAST(Loff_t)
 NONDET_IMPL_HELPER_CAST(Sector_t)
 NONDET_IMPL_HELPER_POINTER(Pchar)
 NONDET_IMPL_HELPER_POINTER(Pointer)
-// NONDET_IMPL_HELPER_POINTER(Double)
 
-char NonDetPass::ID = 1;
-static RegisterPass<NonDetPass> X(
-    "non_det", "Adds nondet calls for non deterministic methods (from SVCOMP)");
+// --- New Pass Manager plugin registration ---
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "NonDetPass", LLVM_VERSION_STRING,
+          [](llvm::PassBuilder& PB) {
+            PB.registerPipelineParsingCallback(
+                [](llvm::StringRef Name, llvm::FunctionPassManager& FPM,
+                   llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "nondet-pass") {
+                    FPM.addPass(NonDetPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}

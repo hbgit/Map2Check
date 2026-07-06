@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.18//EN" "https://www.sosy-lab.org/benchexec/benchmark-1.18.dtd">
+<benchmark tool="map2check" displayName="Map2Check-v8" timelimit="5 min" memlimit="8 GB" cpuCores="4">
+
+  <resultfiles>**/test-suite</resultfiles>
+
+  <!-- C.Cover-Error (reach_error) -->
+  <rundefinition name="TestComp26_coverage-error-call">
+    <propertyfile>coverage-error-call.prp</propertyfile>
+  </rundefinition>
+
+  <tasks name="CoverError-Loops">
+    <includesfile>./sv-benchmarks/c/Loops.set</includesfile>
+  </tasks>
+  <tasks name="CoverError-Arrays">
+    <includesfile>./sv-benchmarks/c/Arrays.set</includesfile>
+  </tasks>
+  <tasks name="CoverError-ControlFlow">
+    <includesfile>./sv-benchmarks/c/ControlFlow.set</includesfile>
+  </tasks>
+
+  <!-- C.Cover-Branches (DECISIONEDGE) — baseline -->
+  <rundefinition name="TestComp26_coverage-branches">
+    <propertyfile>coverage-branches.prp</propertyfile>
+  </rundefinition>
+
+  <tasks name="CoverBranches-Loops">
+    <includesfile>./sv-benchmarks/c/Loops.set</includesfile>
+  </tasks>
+  <tasks name="CoverBranches-Arrays">
+    <includesfile>./sv-benchmarks/c/Arrays.set</includesfile>
+  </tasks>
+  <tasks name="CoverBranches-ControlFlow">
+    <includesfile>./sv-benchmarks/c/ControlFlow.set</includesfile>
+  </tasks>
+</benchmark>

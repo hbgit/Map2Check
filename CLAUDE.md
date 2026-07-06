@@ -4,25 +4,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is Map2Check
 
-Map2Check is a bug-hunting tool that automatically generates and checks safety properties in C programs. It tracks memory pointers and variable assignments to check user-specified assertions, overflow, and pointer safety. It uses LLVM 6.0, LibFuzzer, and KLEE for test case generation, and Crab-LLVM for computing inductive invariants.
+Map2Check is a bug-hunting tool that automatically generates and checks safety properties in C programs. It tracks memory pointers and variable assignments to check user-specified assertions, overflow, and pointer safety. It uses LLVM 16, LibFuzzer, and KLEE 3.1 for test case generation.
 
 ## Build System
 
-The project uses **CMake + Ninja** inside Docker. The intended build environment is the Docker image defined in [Dockerfile](Dockerfile).
+The project uses **CMake 3.20+ + Ninja** and **C++17**. The intended build environment is the Docker image defined in [Dockerfile.dev](Dockerfile.dev) (Ubuntu 22.04 + LLVM 16 + KLEE 3.1).
 
-### Build the release (inside Docker)
+> The root [Dockerfile](Dockerfile) and the `make-release.sh` / `make-unit-test.sh` scripts are leftovers from the LLVM 6.0 era (hardcoded to `/llvm/release/llvm600`) and do not work with the current toolchain — use the steps below instead.
+
+### Build Map2Check (inside Docker)
 
 ```sh
-docker build -t hrocha/mapdevel --no-cache -f Dockerfile .
-docker run --rm -v $(pwd):/home/map2check/devel_tool/mygitclone:Z --user $(id -u):$(id -g) hrocha/mapdevel /bin/bash -c "cd /home/map2check/devel_tool/mygitclone; ./make-release.sh; ./make-unit-test.sh"
+git clone https://github.com/hbgit/Map2Check.git
+cd Map2Check
+docker build -t map2check-dev --no-cache -f Dockerfile.dev .
+docker run -it --rm -v $(pwd):/workspace map2check-dev /bin/bash
 ```
 
-### Manual CMake build (if LLVM 6.0 is locally available)
+Inside the container:
 
 ```sh
-export LLVM_DIR=/llvm/release/llvm600/lib/cmake/llvm
-export CXX=/llvm/release/llvm600/bin/clang++
-export CC=/llvm/release/llvm600/bin/clang
+mkdir build && cd build
+cmake .. -G Ninja -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm
+ninja && ninja install
+# binary at release/bin/map2check
+```
+
+`Dockerfile.dev` already builds and installs KLEE 3.1 (to `/opt/klee`) and provides LibFuzzer via LLVM 16's compiler-rt — do **not** pass `-DSKIP_KLEE=ON` or `-DSKIP_LIB_FUZZER=ON` unless you deliberately want a build without KLEE/LibFuzzer support.
+
+### Manual CMake build (if LLVM 16 is locally available, e.g. via apt.llvm.org)
+
+```sh
+export LLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm
+export CXX=/usr/bin/clang++-16
+export CC=/usr/bin/clang-16
 mkdir build && cd build
 cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON
 ninja && ninja install
@@ -36,6 +51,9 @@ ninja && ninja install
 | `SKIP_KLEE` | OFF | Skip building KLEE/Z3/STP/MiniSat |
 | `ENABLE_TEST` | OFF | Build GTest unit tests |
 | `REGRESSION` | OFF | Download regression test benchmarks |
+| `MAP2CHECK_ENABLE_SANITIZERS` | OFF | Enable ASan + UBSan (forces dynamic linking) |
+
+Enabling sanitizers switches from static to shared linking and enables `-fsanitize=address,undefined -fno-omit-frame-pointer -g`.
 
 ### Run unit tests
 
@@ -54,6 +72,10 @@ Requires the `hrocha/benchexecrun` Docker image (from [utils/benchexecrun](utils
 ./make-regression-test.sh m   # full map2check set
 ./make-regression-test.sh s <xml_path>  # SV-COMP set
 ```
+
+### CI
+
+GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs on every push/PR against LLVM 16: build + unit tests, static analysis (`clang-tidy`, `cppcheck`), and ASan/UBSan sanitizer tests. [docker-publish.yml](.github/workflows/docker-publish.yml) publishes the `Dockerfile.dev` image on push to `develop`.
 
 ## Code Style
 
@@ -81,9 +103,11 @@ Entry point: `map2check.cpp` → `main()`. Parses CLI options (via Boost.Program
 
 To add a new analysis: extend `callPass()` in [caller.cpp](modules/frontend/caller.cpp) and add a CLI option in [map2check.cpp](modules/frontend/map2check.cpp).
 
+`caller.hpp` uses `<filesystem>` (C++17 std) — do not reintroduce `boost/filesystem`.
+
 ### 2. Pass-Backend ([modules/backend/pass/](modules/backend/pass/))
 
-Contains all LLVM passes that instrument the program under analysis:
+Contains all LLVM passes (New Pass Manager, opaque pointers) that instrument the program under analysis:
 
 - `MemoryTrackPass` — instruments memory allocation/deallocation
 - `AssertPass` — instruments `__VERIFIER_assert` calls

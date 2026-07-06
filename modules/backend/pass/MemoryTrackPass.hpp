@@ -17,7 +17,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/IR/Module.h>
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <iostream>
@@ -29,17 +29,17 @@
 // using namespace llvm;
 using llvm::BasicBlock;
 using llvm::Constant;
+using llvm::FunctionCallee;
+using llvm::PointerType;
 using llvm::ConstantInt;
 using llvm::Function;
-using llvm::FunctionPass;
 using llvm::LLVMContext;
+using llvm::PreservedAnalyses;
 
-struct MemoryTrackPass : public FunctionPass {
-  static char ID;
-  explicit MemoryTrackPass(bool SVCOMP = false) : FunctionPass(ID) {
-    this->SVCOMP = SVCOMP;
-  }
-  virtual bool runOnFunction(Function& F);
+struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
+  explicit MemoryTrackPass(bool SVCOMP = false) : SVCOMP(SVCOMP) {}
+  PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
+  static bool isRequired() { return true; }
 
  private:
   void instrumentPointer();
@@ -76,17 +76,17 @@ struct MemoryTrackPass : public FunctionPass {
   Function* calleeFunction;
   BasicBlock::iterator currentInstruction;
   BasicBlock::iterator lastInstructionMain;
-  Constant* map2check_pointer;
-  Constant* map2check_malloc;
-  Constant* map2check_calloc;
-  Constant* map2check_free;
-  Constant* map2check_alloca;
-  Constant* map2check_non_static_alloca;
-  Constant* map2check_posix;
-  Constant* map2check_load;
-  Constant* map2check_check_deref;
-  Constant* map2check_function;
-  Constant* map2check_free_resolved_address;
+  FunctionCallee map2check_pointer;
+  FunctionCallee map2check_malloc;
+  FunctionCallee map2check_calloc;
+  FunctionCallee map2check_free;
+  FunctionCallee map2check_alloca;
+  FunctionCallee map2check_non_static_alloca;
+  FunctionCallee map2check_posix;
+  FunctionCallee map2check_load;
+  FunctionCallee map2check_check_deref;
+  FunctionCallee map2check_function;
+  FunctionCallee map2check_free_resolved_address;
   ConstantInt* scope_value;
   ConstantInt* line_value;
   LLVMContext* Ctx;

@@ -10,6 +10,7 @@
 #include "BTree.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define B_TREE_FILE_NAME_SIZE 64
 

@@ -5,7 +5,7 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     ["@semantic-release/exec", {
-      "prepareCmd": "bash scripts/package-release.sh ${nextRelease.version}"
+      "prepareCmd": "bash scripts/prepare-release.sh ${nextRelease.version}"
     }],
     ["@semantic-release/github", {
       "draftRelease": true,

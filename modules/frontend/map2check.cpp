@@ -35,7 +35,7 @@
 
 namespace po = boost::program_options;
 namespace fs = std::filesystem;
-#define Map2CheckVersion "v8.0.0-Songbirds : Mon Jul  6 01:31:01 Etc 2026"
+#include "map2check_version.hpp"
 
 // TODO(hbgit): should get preprocessor flags from CMake
 

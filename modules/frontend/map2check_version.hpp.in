@@ -1,0 +1,12 @@
+/**
+ * Template processed by CMake configure_file() — do not include this file
+ * directly; include the generated map2check_version.hpp instead.
+ * MAP2CHECK_VERSION defaults to the project() version and is overridden by
+ * the release pipeline with -DMAP2CHECK_VERSION=<semantic version>.
+ **/
+#ifndef MAP2CHECK_VERSION_HPP
+#define MAP2CHECK_VERSION_HPP
+
+#define Map2CheckVersion "v@MAP2CHECK_VERSION@-Songbirds:@MAP2CHECK_BUILD_DATE@"
+
+#endif  // MAP2CHECK_VERSION_HPP

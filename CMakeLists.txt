@@ -61,7 +61,9 @@ endif()
 include_directories(${PROJECT_SOURCE_DIR})
 
 if(ENABLE_TEST)
-  enable_testing()
+  # include(CTest) em vez de enable_testing(): gera DartConfiguration.tcl,
+  # necessário para `ctest -T memcheck` (job Valgrind no CI).
+  include(CTest)
   include(cmake/FindGTest.cmake)
   message(STATUS "Adding tests")
   add_subdirectory(tests)

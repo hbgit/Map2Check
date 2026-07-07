@@ -1,0 +1,86 @@
+# =============================================================================
+# Map2Check — Valgrind (memcheck) suppressions
+#
+# Regras:
+#  * Cada supressão DEVE ter nome descritivo e comentário justificando-a.
+#  * Supressões de código do Map2Check exigem link para issue rastreando o fix.
+#  * Gere candidatas com: valgrind --gen-suppressions=all ./<teste>
+# =============================================================================
+
+# --- glibc: pool interno do dlopen/ld.so nunca é liberado (falso positivo) ---
+{
+   glibc-dlopen-reachable
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   obj:*/ld-linux*.so*
+}
+{
+   glibc-dlopen-calloc-reachable
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:_dl_open
+}
+
+# --- libstdc++: pool de emergência para exceções (alocado uma vez, by design) ---
+{
+   libstdcpp-eh-pool
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:__cxa_get_globals
+}
+
+# --- GoogleTest: singletons/registro de testes vivos até o exit (reachable) ---
+{
+   gtest-unittest-singleton
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*testing*UnitTest*GetInstance*
+}
+
+# --- LLVM/Clang backend: caches estáticos (ManagedStatic, cl::opt registry) ---
+# Só relevante se binários que linkam LLVM entrarem na suíte ctest.
+{
+   llvm-managed-static
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*llvm*ManagedStatic*
+}
+{
+   llvm-cl-opt-registry
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:*llvm*cl*Option*
+}
+
+# --- Solvers (Z3/STP/MiniSat): pools internos não liberados no shutdown ---
+# Só relevante em builds sem SKIP_KLEE.
+{
+   z3-internal-pools
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:*libz3*
+}
+
+# --- Map2Check: leaks INTENCIONAIS dos testes de rastreamento de alocação ---
+# Os testes unitários alocam sem liberar de propósito (testam o tracking de
+# alocações, não ownership) — mesmo motivo do detect_leaks=0 no job ASan.
+# Preencher com os stacks exatos gerados por --gen-suppressions=all na
+# primeira execução do job no CI. Exemplo do formato:
+# {
+#    map2check-test-intentional-allocationlog
+#    Memcheck:Leak
+#    match-leak-kinds: definite
+#    fun:malloc
+#    ...
+#    fun:*AllocationLogTest*
+# }

@@ -288,3 +288,82 @@ jobs:
               bash tests/integration/test_wasm_pipeline.sh
               bash tests/integration/test_wasm_entrypoint.sh
             '
+
+  # ===========================================================
+  # Job 5: Dynamic Analysis — Valgrind memcheck (OpenSSF)
+  # ===========================================================
+  # Build ISOLADO e SEM sanitizers: a shadow memory do ASan/UBSan
+  # conflita com a VM do Valgrind. Debug + DWARF-4 para stacks
+  # legíveis (Valgrind 3.18 não lê bem o DWARF-5 do clang-16).
+  valgrind-memcheck:
+    name: Valgrind Memcheck (ctest)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install LLVM 16 + Valgrind + WABT
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang-16 llvm-16 llvm-16-dev libclang-16-dev \
+            cmake ninja-build libboost-all-dev zlib1g-dev \
+            valgrind
+          # WABT 1.0.41 (apt tem 1.0.27, API incompatível com WasmRuntimeStubs.c)
+          wget -q "https://github.com/WebAssembly/wabt/releases/download/1.0.41/wabt-1.0.41-linux-x64.tar.gz" -O /tmp/wabt.tar.gz
+          sudo tar xzf /tmp/wabt.tar.gz -C /opt
+          sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
+
+      - name: Configure CMake (Debug, sem sanitizers)
+        run: |
+          mkdir -p build && cd build
+          cmake .. -G Ninja \
+            -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+            -DSKIP_LIB_FUZZER=ON \
+            -DSKIP_KLEE=ON \
+            -DENABLE_TEST=ON \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_FLAGS="-gdwarf-4" \
+            -DCMAKE_CXX_FLAGS="-gdwarf-4" \
+            -DMEMORYCHECK_COMMAND=/usr/bin/valgrind \
+            -DMEMORYCHECK_SUPPRESSIONS_FILE="${{ github.workspace }}/valgrind.supp" \
+            -DMEMORYCHECK_COMMAND_OPTIONS="--tool=memcheck --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=definite --track-origins=yes --num-callers=40 --error-exitcode=1 --gen-suppressions=all"
+        env:
+          CC: /usr/bin/clang-16
+          CXX: /usr/bin/clang++-16
+
+      - name: Build
+        run: cd build && ninja
+
+      - name: Run ctest under Valgrind (memcheck)
+        run: cd build && ctest -T memcheck --output-on-failure
+
+      - name: Enforce zero memcheck defects
+        # Rede de segurança além do --error-exitcode=1: falha se qualquer
+        # log do memcheck registrar erros ou "definitely lost".
+        run: |
+          cd build
+          shopt -s nullglob
+          defects=0
+          for log in Testing/Temporary/MemoryChecker.*.log; do
+            if grep -qE "ERROR SUMMARY: [1-9][0-9]* errors|definitely lost: [1-9]" "$log"; then
+              echo "::error::Valgrind encontrou defeitos em $log"
+              cat "$log"
+              defects=1
+            fi
+          done
+          exit $defects
+
+      - name: Upload memcheck logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: valgrind-memcheck-logs
+          path: build/Testing/Temporary/MemoryChecker.*.log
+          if-no-files-found: ignore

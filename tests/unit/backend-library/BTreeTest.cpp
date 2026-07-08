@@ -9,7 +9,7 @@ class BTreeTest : public ::testing::Test {
     system("rm -rf btree_test.bin");
     bt = B_TREE_CREATE("btree_test.bin");
   }
-  //   void TearDown() override { B_TREE_FREE(&bt); }
+  void TearDown() override { B_TREE_FREE(&bt); }
   B_TREE bt;
 };
 
@@ -18,13 +18,15 @@ TEST_F(BTreeTest, ConstructorShouldBeSettedRight) {
 }
 
 TEST_F(BTreeTest, AddItem) {
-  B_TREE_ROW row;
+  // Zero-initialized: the whole row (value union + padding) is persisted
+  // to disk by B_TREE_INSERT, so every byte must be defined.
+  B_TREE_ROW row = {};
   row.index = 0;
   B_TREE_INSERT(&bt, &row);
 }
 
 TEST_F(BTreeTest, AddItemShouldSetValue) {
-  B_TREE_ROW row;
+  B_TREE_ROW row = {};
   row.index = 0;
   B_TREE_INSERT(&bt, &row);
 
@@ -35,8 +37,8 @@ TEST_F(BTreeTest, AddItemShouldSetValue) {
 }
 
 TEST_F(BTreeTest, AddMultipleItems) {
-  unsigned length = 10000;
-  B_TREE_ROW row[length];
+  const unsigned length = 10000;
+  B_TREE_ROW row[length] = {};
   for (int i = 0; i < length; i++) {
     row[i].index = i + 1;
     ;

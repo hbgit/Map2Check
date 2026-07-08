@@ -155,18 +155,20 @@
 
 | Done | ID | Tarefa | Severidade | Teste | Relatório |
 |:-----|:---|:-------|:-----------|:------|:----------|
-| ☐ | 2.0.1 | **BTree off-by-one:** Corrigir `BTree.c:276` — `children[34]` OOB (array size 34). Ajustar loop `i < ORDER*2+1` para `i < ORDER*2` ou aumentar array para `ORDER*2+1` | 🔴 UBSan Error | `BTreeTest` e `ContainerBTreeTest` passam com `halt_on_error=1` | — |
-| ☐ | 2.0.2 | **BTree debug print OOB:** Corrigir `BTree.c:306` — mesmo padrão no loop de print | 🔴 cppcheck Error | Sem crash em debug print | — |
-| ☐ | 2.0.3 | **Return dangling pointer:** Corrigir `NonDetGeneratorKlee.c:47` e `NonDetGeneratorLibFuzzy.c:124` — retornam ponteiro para VLA local | 🔴 cppcheck Error | Sem `-Wreturn-stack-address` | — |
-| ☐ | 2.0.4 | **Shift UB:** Corrigir `NonDetGeneratorLibFuzzy.c:103` — shift 32-bit por 56 bits | 🔴 cppcheck Error | Sem UBSan violation | — |
-| ☐ | 2.0.5 | **strcpy → strncpy/std::string:** Corrigir `map2check.cpp:93,102,111` — 3x `strcpy` inseguro (CWE-119, buffer overflow) | 🔴 clang-tidy Security | clang-tidy sem `clang-analyzer-security.insecureAPI.strcpy` | — |
-| ☐ | 2.0.6 | **Uninit vars:** Corrigir `AllocationLog.c:56`, `NonDetLog.c:70`, `ContainerBTree.c:23` — structs retornadas com campos não inicializados | 🟡 cppcheck Error | cppcheck C sem `uninitvar` | — |
-| ☐ | 2.0.7 | **Printf format:** Corrigir `ListLog.c:145-154`, `NonDetLog.c:32-35` — `%d` com `unsigned` (usar `%u`) | 🟡 cppcheck Warning | cppcheck C sem `invalidPrintfArgType` | — |
+| ☑ | 2.0.1 | **BTree off-by-one:** Corrigir `BTree.c:276` — `children[34]` OOB (array size 34). Ajustar loop `i < ORDER*2+1` para `i < ORDER*2` ou aumentar array para `ORDER*2+1` | 🔴 UBSan Error | `BTreeTest` e `ContainerBTreeTest` passam com `halt_on_error=1` | `588ba5f8` (2026-07-07) |
+| ☑ | 2.0.2 | **BTree debug print OOB:** Corrigir `BTree.c:306` — mesmo padrão no loop de print | 🔴 cppcheck Error | Sem crash em debug print | `e5442766` (2026-07-08) |
+| ☑ | 2.0.3 | **Return dangling pointer:** Corrigir `NonDetGeneratorKlee.c:47` e `NonDetGeneratorLibFuzzy.c:124` — retornam ponteiro para VLA local | 🔴 cppcheck Error | Sem `-Wreturn-stack-address` | `f0d6a28a` (2026-07-08) |
+| ☑ | 2.0.4 | **Shift UB:** Corrigir `NonDetGeneratorLibFuzzy.c:103` — shift 32-bit por 56 bits | 🔴 cppcheck Error | Sem UBSan violation | `f0d6a28a` (2026-07-08) |
+| ☑ | 2.0.5 | **strcpy → setenv:** Corrigir `map2check.cpp:93,102,111` — 3x `strcpy` inseguro (CWE-119, buffer overflow) | 🔴 clang-tidy Security | clang-tidy sem `clang-analyzer-security.insecureAPI.strcpy` | `f0d6a28a` (2026-07-08) |
+| ☑ | 2.0.6 | **Uninit vars:** Corrigir `AllocationLog.c:56`, `NonDetLog.c:70`, `ContainerBTree.c:23` — structs retornadas com campos não inicializados | 🟡 cppcheck Error | cppcheck C sem `uninitvar` | `ca2692c5`, `f0d6a28a` |
+| ☑ | 2.0.7 | **Printf format:** Corrigir `ListLog.c:145-154`, `NonDetLog.c:32-35` — `%d` com `unsigned` (usar `%u`) | 🟡 cppcheck Warning | cppcheck C sem `invalidPrintfArgType` | `f0d6a28a`, `e5442766` |
 | ☐ | 2.0.8 | **Frontend:** Corrigir `counter_example.hpp:197` missing return + enum `UNKNOWN`/`MEMSAFETY` não tratados em switches | 🟡 cppcheck Error | cppcheck C++ sem `missingReturn`, build sem `-Wswitch` | — |
 | ☐ | 2.0.9 | **Exceptions namespace:** Corrigir `exceptions.hpp/cpp` — `using` incorreto, falta `std::runtime_error` | 🟡 clang-tidy Error | clang-tidy sem erros de compilação | — |
-| ☐ | 2.0.10 | **Test leaks:** Adicionar `free()` nos testes `AllocationLogTest` (linhas 75, 87) | 🟢 ASan Leak | ASan com `detect_leaks=1` sem erros | — |
+| ☑ | 2.0.10 | **Test leaks:** Adicionar `free()` nos testes `AllocationLogTest` (linhas 75, 87) | 🟢 ASan Leak | ASan com `detect_leaks=1` sem erros | `dd7f3268`, `e9287b95` |
 | ☐ | 2.0.11 | **Modernização C++:** Aplicar `override` em ~20 funções virtuais, `const&` em ~30 parâmetros, remover dead stores em `graph.cpp` | 🟢 clang-tidy Quality | clang-tidy sem warnings em user code | — |
-| ☐ | 2.0.12 | **CI strict mode:** Após correções, reabilitar cppcheck C como bloqueante e `halt_on_error=1` no UBSan | 🟢 CI Config | Todos os 3 jobs passam em modo estrito | — |
+| ☑ | 2.0.12 | **CI strict mode:** Após correções, reabilitar cppcheck C como bloqueante e `halt_on_error=1` no UBSan | 🟢 CI Config | Todos os 3 jobs passam em modo estrito | `0a0e6c08` + cppcheck C bloqueante |
+
+> **Bônus (não previstos na tabela, corrigidos na branch `feat-valgrind`):** todos os defeitos apontados pelo novo job `valgrind-memcheck` (Valgrind/ctest) — 8 em `BTreeTest`, leak+double-free em `AllocationLog`, uninit em `ContainerBTree` — e os `nullPointerRedundantCheck` em `AnalysisModeMemtrack.c`/`AnalysisModeMemcleanup.c` (checagens de NULL com corpo vazio). Ver commits `588ba5f8`…`e5442766`.
 
 > **Nota:** As tarefas 2.0.1–2.0.5 são bugs de segurança/UB que podem causar comportamento indefinido ou buffer overflow em runtime. Devem ser priorizadas antes de qualquer nova implementação.
 

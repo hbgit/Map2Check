@@ -189,6 +189,7 @@ void update_reference_list_log(long address, enum MemoryAddressStatus status,
   for (; i < currentSize; i++) {
     LIST_LOG_ROW *iRow = (LIST_LOG_ROW *)get_element_at(i, list_log);
     if (!iRow) {
+      continue;
     }
     long currentAddress = iRow->memory_address_points_to;
     long currentVarAddress = iRow->memory_address;
@@ -200,6 +201,7 @@ void update_reference_list_log(long address, enum MemoryAddressStatus status,
       for (; i <= j; j--) {
         LIST_LOG_ROW *jRow = (LIST_LOG_ROW *)get_element_at(j, list_log);
         if (!jRow) {
+          continue;
         }
         long otherAddress = jRow->memory_address_points_to;
         long otherVarAddress = jRow->memory_address;

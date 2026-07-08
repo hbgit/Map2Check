@@ -9,6 +9,7 @@
 #include "../header/Map2CheckFunctions.h"
 #include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
+#include <stdlib.h>
 
 extern int __map2check_main__();
 
@@ -33,12 +34,15 @@ extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
     return non_det;                                                            \
   }
 
-// TODO: this should be dynamic
 char *map2check_non_det_pchar() {
   unsigned length = map2check_non_det_unsigned();
   if (length == 0)
     return NULL;
-  char string[length];
+  /* heap allocation: returning a local VLA would leave the caller with a
+   * dangling pointer (cppcheck returnDanglingLifetime) */
+  char *string = malloc(length);
+  if (string == NULL)
+    return NULL;
   unsigned i = 0;
   for (i = 0; i < (length - 1); i++) {
     string[i] = map2check_non_det_char();

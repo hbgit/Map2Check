@@ -142,16 +142,16 @@ void list_log_to_file(MAP2CHECK_CONTAINER *list) {
   int i = 0;
   for (; i < list->size; i++) {
     LIST_LOG_ROW *row = (LIST_LOG_ROW *)get_element_at(i, *list);
-    fprintf(output, "%d;", row->id);
+    fprintf(output, "%u;", row->id);
     fprintf(output, "%p;", (void *)row->memory_address);
     fprintf(output, "%p;", (void *)row->memory_address_points_to);
-    fprintf(output, "%d;", row->scope);
+    fprintf(output, "%u;", row->scope);
     fprintf(output, "%d;", row->is_free);
     fprintf(output, "%d;", row->is_dynamic);
     fprintf(output, "%s;", row->var_name);
-    fprintf(output, "%d;", row->line_number);
+    fprintf(output, "%u;", row->line_number);
     fprintf(output, "%s;", row->function_name);
-    fprintf(output, "%d\n", row->step_on_execution);
+    fprintf(output, "%u\n", row->step_on_execution);
   }
   fclose(output);
 }

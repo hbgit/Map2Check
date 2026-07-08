@@ -131,6 +131,9 @@ B_TREE B_TREE_CREATE(const char *filename) {
   B_TREE bt;
   strncpy(bt.filename, filename, FUNCTION_MAX_LENGTH_NAME);
   bt.currentLoadedPages = 0;
+  /* define root before &bt escapes into B_TREE_PAGE_CREATE
+   * (cppcheck ctuuninitvar) */
+  bt.root = NULL;
   bt.root = B_TREE_PAGE_CREATE(&bt);
   bt.root->isLeaf = TRUE;
   return bt;
@@ -302,7 +305,7 @@ void DumpTreePageChildren(B_TREE_PAGE *page) {
   printf("Address %p\n", page);
   printf("Children[ ");
   int i = 0;
-  for (i = 0; i <= B_TREE_MAP2CHECK_ORDER * 2; ++i) {
+  for (i = 0; i < B_TREE_MAP2CHECK_ORDER * 2; ++i) {
     printf("%p ", page->children[i]);
   }
   printf("]\n\n");

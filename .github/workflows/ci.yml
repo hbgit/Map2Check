@@ -194,12 +194,11 @@ jobs:
 
       - name: Run Tests with ASan + UBSan
         env:
-          # detect_leaks=0: test code intentionally allocates without freeing
-          # (tests allocation tracking, not ownership)
-          ASAN_OPTIONS: "detect_leaks=0:halt_on_error=1:abort_on_error=1"
-          # halt_on_error=0: report pre-existing UB issues without blocking CI
-          # Known: BTree.c:276 off-by-one (tracked for fix in Phase 2)
-          UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=0"
+          # Strict mode (OpenSSF dynamic_analysis_fixed): any leak or UB
+          # fails the job. The findings that once justified relaxing these
+          # flags (BTree.c off-by-one, test leaks) are fixed.
+          ASAN_OPTIONS: "detect_leaks=1:halt_on_error=1:abort_on_error=1"
+          UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
         run: cd build && ctest --output-on-failure
 
   # ===========================================================

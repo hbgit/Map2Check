@@ -88,30 +88,19 @@ inline void fixPath(char *map2check_bin_string) {
   } else {
   }
 
-  std::string map2check_env_var("MAP2CHECK_PATH=");
-  map2check_env_var += pBuf;
+  // setenv copies its arguments, avoiding the strcpy/putenv pattern
+  // (CWE-119) and the manually leaked buffers it required
+  setenv("MAP2CHECK_PATH", pBuf, 1);
+  // Map2Check::Log::Debug(pBuf);
 
-  char *map2check_env_array = new char[map2check_env_var.length() + 1];
-  strcpy(map2check_env_array, map2check_env_var.c_str());
-  putenv(map2check_env_array);
-  // Map2Check::Log::Debug(map2check_env_var);
-
-  std::string klee_env_var("KLEE_RUNTIME_LIBRARY_PATH=");
-  klee_env_var += pBuf;
+  std::string klee_env_var(pBuf);
   klee_env_var += "/lib/klee/runtime";
+  setenv("KLEE_RUNTIME_LIBRARY_PATH", klee_env_var.c_str(), 1);
 
-  char *klee_env_array = new char[klee_env_var.length() + 1];
-  strcpy(klee_env_array, klee_env_var.c_str());
-  putenv(klee_env_array);
-
-  std::string ld_env_var("LD_LIBRARY_PATH=");
-  ld_env_var += "$LD_LIBRARY_PATH:";
+  std::string ld_env_var("$LD_LIBRARY_PATH:");
   ld_env_var += pBuf;
   ld_env_var += "/lib/";
-
-  char *ld_env_array = new char[ld_env_var.length() + 1];
-  strcpy(ld_env_array, ld_env_var.c_str());
-  putenv(ld_env_array);
+  setenv("LD_LIBRARY_PATH", ld_env_var.c_str(), 1);
 }
 }  // namespace
 

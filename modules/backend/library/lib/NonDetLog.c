@@ -29,10 +29,10 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
       return FALSE;
     }
     fprintf(output, "%d;", i);
-    fprintf(output, "%d;", call->line);
-    fprintf(output, "%d;", call->scope);
+    fprintf(output, "%u;", call->line);
+    fprintf(output, "%u;", call->scope);
     fprintf(output, "%s;", call->function_name);
-    fprintf(output, "%d;", call->step_on_execution);
+    fprintf(output, "%u;", call->step_on_execution);
 
     // The value generated from nondet function
     if (((int)call->type) == UNSIGNED) {
@@ -61,6 +61,9 @@ NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,
                             unsigned scope, void *value,
                             const char *function_name, unsigned step) {
   NONDET_CALL result;
+  /* zero-initialize: id and padding are persisted when the row is written
+   * to disk by the BTree container */
+  memset(&result, 0, sizeof(result));
   result.type = type;
   strncpy(result.function_name, function_name, FUNCTION_MAX_LENGTH_NAME);
   result.line = line;

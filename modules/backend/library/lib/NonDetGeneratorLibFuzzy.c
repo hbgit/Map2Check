@@ -100,7 +100,9 @@ int map2check_non_det_int() {
   uint64_t result = 0;
   int i = 0;
   for (; i < 8; i++)
-    result |= get_next_input_from_fuzzer() << (8 * i);
+    /* cast before the shift: uint8_t promotes to int, and shifting an int
+     * by up to 56 bits is undefined behavior */
+    result |= (uint64_t)get_next_input_from_fuzzer() << (8 * i);
 
   return (int)result;
 }
@@ -115,7 +117,11 @@ char *map2check_non_det_pchar() {
   unsigned length = map2check_non_det_unsigned();
   if (length == 0)
     return NULL;
-  char string[length];
+  /* heap allocation: returning a local VLA would leave the caller with a
+   * dangling pointer (cppcheck returnDanglingLifetime) */
+  char *string = malloc(length);
+  if (string == NULL)
+    return NULL;
   unsigned i = 0;
   for (i = 0; i < (length - 1); i++) {
     string[i] = map2check_non_det_char();

@@ -9,6 +9,7 @@
 #include "../header/AllocationLog.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 Bool mark_allocation_log(MAP2CHECK_CONTAINER *allocation_log, long address) {
   if (allocation_log->type != ALLOCATION_LOG_CONTAINER) {
@@ -50,7 +51,10 @@ check_address_allocation_log(MAP2CHECK_CONTAINER *allocation_log,
 }
 
 MEMORY_ALLOCATIONS_ROW new_memory_row(long address, Bool is_free) {
+  /* zero-initialize: id, size and padding would otherwise be persisted
+   * uninitialized when the row is written to disk by the BTree container */
   MEMORY_ALLOCATIONS_ROW row;
+  memset(&row, 0, sizeof(row));
   row.addr = address;
   row.is_free = is_free;
   return row;

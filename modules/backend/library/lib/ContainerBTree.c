@@ -10,6 +10,7 @@
 #include "BTree.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #define B_TREE_FILE_NAME_SIZE 64
@@ -17,6 +18,8 @@
 MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
   MAP2CHECK_CONTAINER container;
   container.size = 0;
+  /* type must be set before the switch below reads it */
+  container.type = type;
   int proccess_id = getpid();
   char *file_suffix;
   B_TREE *btree = malloc(sizeof(B_TREE));
@@ -44,7 +47,6 @@ MAP2CHECK_CONTAINER new_container(enum Container_Type type) {
   snprintf(name, B_TREE_FILE_NAME_SIZE, "%d-%s", proccess_id, file_suffix);
   *btree = B_TREE_CREATE(name);
   container.values = btree;
-  container.type = type;
   return container;
 }
 
@@ -81,7 +83,10 @@ Bool free_container(MAP2CHECK_CONTAINER *container) {
 }
 
 Bool append_element(MAP2CHECK_CONTAINER *container, void *row) {
+  /* zero the whole row (union tail + padding): B_TREE_INSERT persists
+   * every byte of it to disk */
   B_TREE_ROW btRow;
+  memset(&btRow, 0, sizeof(btRow));
   btRow.index = container->size;
   container->size += 1;
 

@@ -85,10 +85,10 @@ long valid_allocation_log(MAP2CHECK_CONTAINER *allocation_log) {
 
       if (!foundReleased) {
         free((void *)addr);
-        MEMORY_ALLOCATIONS_ROW *row =
-            (MEMORY_ALLOCATIONS_ROW *)malloc(sizeof(MEMORY_ALLOCATIONS_ROW));
-        *row = new_memory_row(addr, TRUE);
-        append_element(allocation_log, row);
+        /* append_element copies the row, so a stack row is enough
+         * (same pattern as mark_deallocation_log) */
+        MEMORY_ALLOCATIONS_ROW row = new_memory_row(addr, TRUE);
+        append_element(allocation_log, &row);
         MemTrackError = addr;
       }
     }

@@ -26,6 +26,19 @@
 }
 
 # --- libstdc++: pool de emergência para exceções (alocado uma vez, by design) ---
+# 72.704 bytes "still reachable" alocados pelo inicializador estático de
+# eh_alloc.cc; nunca liberados de propósito (usados para lançar bad_alloc
+# em OOM). O ctest -T memcheck conta como "Potential Memory Leak" sem esta
+# supressão. Stack verificado no ambiente do CI (Ubuntu 22.04, clang-16,
+# -static-libstdc++, Valgrind 3.18).
+{
+   libstdcpp-eh-pool-static-init
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_GLOBAL__sub_I_eh_alloc.cc
+}
+# Variante para libstdc++ linkada dinamicamente (mesmo pool, outro stack).
 {
    libstdcpp-eh-pool
    Memcheck:Leak

@@ -130,6 +130,7 @@ B_TREE_ROW *B_TREE_SEARCH(B_TREE *btree, unsigned key) {
 B_TREE B_TREE_CREATE(const char *filename) {
   B_TREE bt;
   strncpy(bt.filename, filename, FUNCTION_MAX_LENGTH_NAME);
+  bt.currentLoadedPages = 0;
   bt.root = B_TREE_PAGE_CREATE(&bt);
   bt.root->isLeaf = TRUE;
   return bt;
@@ -261,7 +262,9 @@ Bool B_TREE_SPLIT_CHILD(B_TREE *btree, B_TREE_PAGE *X, int index,
 
 B_TREE_PAGE *B_TREE_PAGE_CREATE(B_TREE *btree) {
   btree->currentLoadedPages += 1;
-  B_TREE_PAGE *btp = malloc(sizeof(B_TREE_PAGE));
+  /* calloc: the whole page (rows, references, padding) is written to disk
+   * by DISK_WRITE, so every byte must be initialized */
+  B_TREE_PAGE *btp = calloc(1, sizeof(B_TREE_PAGE));
   if (btp == NULL) {
     return NULL;
   }
@@ -271,12 +274,9 @@ B_TREE_PAGE *B_TREE_PAGE_CREATE(B_TREE *btree) {
   btp->isLeaf = TRUE;
 
   int i = 0;
-  for (; i < B_TREE_MAP2CHECK_ORDER * 2 + 1; i++) {
-    // btp->rows[i] = NULL;
+  for (; i < B_TREE_MAP2CHECK_ORDER * 2; i++) {
     btp->children[i] = NULL;
-    // btp->references[i] = -1;
   }
-  // btp->references[i] = -1;
 
   if (!DISK_WRITE(btree, btp)) {
     return NULL;

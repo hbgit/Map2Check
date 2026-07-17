@@ -122,7 +122,7 @@ for t in data['tests']:
   start=$(date +%s%N)
   output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --timeout 60 "$bc_file" 2>&1) || true
   end=$(date +%s%N)
-  elapsed=$(echo "scale=1; ($end - $start) / 1000000000" | bc)
+  elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
   used_invariants="no"
   if echo "$output" | grep -qi "TIMEOUT\|timed out"; then
@@ -151,7 +151,7 @@ for t in data['tests']:
     start=$(date +%s%N)
     output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --add-invariants --timeout 60 "$bc_file" 2>&1) || true
     end=$(date +%s%N)
-    elapsed=$(echo "scale=1; ($end - $start) / 1000000000" | bc)
+    elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
     if echo "$output" | grep -qi "TIMEOUT\|timed out"; then
       verdict="TIMEOUT"

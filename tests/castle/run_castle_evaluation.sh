@@ -111,6 +111,8 @@ for t in data['tests']:
         break
 " 2>/dev/null)
 
+  [ -n "$entry" ] || { echo "  SKIP: $name not found in JSON"; continue; }
+
   vulnerable=$(echo "$entry" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['vulnerable'])")
   cwe=$(echo "$entry" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['cwe'])")
 
@@ -172,6 +174,8 @@ for t in data['tests']:
     fi
   fi
 
+  reported_line=$(echo "$output" | grep -oP '(?:line )\d+' | grep -oP '\d+' | head -1)
+
   # --- Classify ---
   if is_out_of_scope "$cwe"; then
     classification="N/A"
@@ -183,8 +187,29 @@ for t in data['tests']:
     classification="UNKNOWN"
     UNK=$((UNK+1))
   elif [ "$verdict" != "TRUE" ] && [ "$vulnerable" = "True" ]; then
-    classification="TP"
-    TP=$((TP+1))
+    has_line_match="false"
+    if [ -n "$reported_line" ]; then
+      expected_lines=$(echo "$entry" | python3 -c "import sys,json; print(','.join(str(l) for l in json.loads(sys.stdin.read())['lines']))" 2>/dev/null || echo "")
+      if [ -n "$expected_lines" ]; then
+        for exp_line in $(echo "$expected_lines" | tr ',' ' '); do
+          if [ "$reported_line" -eq "$exp_line" ] 2>/dev/null; then
+            has_line_match="true"
+            break
+          fi
+        done
+      else
+        has_line_match="true"
+      fi
+    else
+      has_line_match="true"
+    fi
+    if [ "$has_line_match" = "true" ]; then
+      classification="TP"
+      TP=$((TP+1))
+    else
+      classification="FP"
+      FP=$((FP+1))
+    fi
   elif [ "$verdict" != "TRUE" ] && [ "$vulnerable" = "False" ]; then
     classification="FP"
     FP=$((FP+1))
@@ -207,7 +232,6 @@ done
 echo ""
 echo "Phase 3: Generating summary..."
 TOTAL_SCOPE=$((TP+TN+FP+FN))
-DETECTABLE=$((TOTAL_SCOPE - NA))
 
 cat > "$RESULTS_DIR/castle_summary.txt" << EOF
 CASTLE C250 × Map2Check Evaluation Results
@@ -217,7 +241,7 @@ Map2Check binary: $MAP2CHECK
 
 Totals:
   Total tests:           250
-  Detected (in-scope):   $DETECTABLE
+  In-scope results:      $TOTAL_SCOPE
   Out of scope (N/A):    $NA
   Timeouts:              $TO
   Unknown:               $UNK
@@ -228,8 +252,22 @@ Detection Metrics (in-scope):
   True Negatives:        $TN
   False Negatives:       $FN
 
-  Precision:             $(python3 -c "print(f'{$TP/($TP+$FP)*100:.1f}%')" 2>/dev/null || echo "N/A")
-  Recall:                $(python3 -c "print(f'{$TP/($TP+$FN)*100:.1f}%')" 2>/dev/null || echo "N/A")
+EOF
+
+  if [ $((TP + FP)) -gt 0 ]; then
+    prec=$(python3 -c "print(f'{$TP/($TP+$FP)*100:.1f}%')")
+    echo "  Precision:             $prec" >> "$RESULTS_DIR/castle_summary.txt"
+  else
+    echo "  Precision:             N/A (no positives)" >> "$RESULTS_DIR/castle_summary.txt"
+  fi
+  if [ $((TP + FN)) -gt 0 ]; then
+    rec=$(python3 -c "print(f'{$TP/($TP+$FN)*100:.1f}%')")
+    echo "  Recall:                $rec" >> "$RESULTS_DIR/castle_summary.txt"
+  else
+    echo "  Recall:                N/A (no condition positives)" >> "$RESULTS_DIR/castle_summary.txt"
+  fi
+
+  cat >> "$RESULTS_DIR/castle_summary.txt" << EOF
 
 Results written to:
   CSV:  $RESULTS_DIR/castle_results.csv

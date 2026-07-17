@@ -48,7 +48,9 @@ Releases starting from **v8.0.0-Songbirds** include WebAssembly verification sup
 
 <p align="justify">
 Map2Check can be invoked through a standard command-line interface. Map2Check should be called
-in the installation directory as follows:  
+in the installation directory as follows:
+
+Example programs are available in the [examples/](examples/) directory.  
 </p>
 
 ``` bash

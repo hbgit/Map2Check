@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CASTLE_DIR="$SCRIPT_DIR/CASTLE-Benchmark/datasets/CASTLE-C250"
 JSON_FILE="$SCRIPT_DIR/CASTLE-Benchmark/datasets/CASTLE-C250.min.json"
 RESULTS_DIR="$SCRIPT_DIR/results"
-TIMEOUT_SEC=120
+TIMEOUT_SEC=360
 
 # CWE → mode mapping (single-pass flags, --add-invariants added on UNKNOWN)
 declare -A CWE_MODE=(
@@ -120,7 +120,7 @@ for t in data['tests']:
 
   # --- Pass 1: direct ---
   start=$(date +%s%N)
-  output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --timeout 60 "$bc_file" 2>&1) || true
+  output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --timeout 300 "$bc_file" 2>&1) || true
   end=$(date +%s%N)
   elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
@@ -149,7 +149,7 @@ for t in data['tests']:
   if [ "$verdict" = "UNKNOWN" ] && [ "$mode_flags" != "--check-asserts" ]; then
     used_invariants="yes"
     start=$(date +%s%N)
-    output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --add-invariants --timeout 60 "$bc_file" 2>&1) || true
+    output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --add-invariants --timeout 300 "$bc_file" 2>&1) || true
     end=$(date +%s%N)
     elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 

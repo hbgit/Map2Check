@@ -96,11 +96,18 @@ id,cwe,name,vulnerable,mode,verdict,invariants,expected,result,time_sec
 
 | Test | CWE | Expected |
 |------|-----|----------|
-| CASTLE-476-1 | NULL deref via malloc | `VERIFICATION FAILED` |
+| CASTLE-476-5 | NULL deref (always-null return) | `VERIFICATION FAILED` |
 | CASTLE-415-2 | Double free | `VERIFICATION FAILED` |
 | CASTLE-476-8 | Safe NULL check | `VERIFICATION SUCCEEDED` |
 | CASTLE-416-1 | Use-after-free | `VERIFICATION FAILED` |
-| CASTLE-787-3 | Out-of-bounds write | `VERIFICATION FAILED` |
+| CASTLE-787-6 | Out-of-bounds array write | `VERIFICATION FAILED` |
+
+> Note: the original `CASTLE-476-1` (NULL deref via `malloc` failure) and
+> `CASTLE-787-3` (`strcpy` stack overflow) were replaced because `--memtrack`
+> cannot reach them: KLEE does not model `malloc` returning NULL, and the pass
+> does not instrument libc `strcpy` internals. The replacements exercise the
+> same CWEs (476 NULL deref, 787 out-of-bounds write) via code paths that the
+> instrumentation actually covers.
 
 ### CI Job: `castle-regression`
 

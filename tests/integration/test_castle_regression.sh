@@ -56,11 +56,11 @@ run_castle_test() {
   fi
 }
 
-run_castle_test "CASTLE-476-1.c"  "476" "true"
+run_castle_test "CASTLE-476-5.c"  "476" "true"
 run_castle_test "CASTLE-415-2.c"  "415" "true"
 run_castle_test "CASTLE-476-8.c"  "476" "false"
 run_castle_test "CASTLE-416-1.c"  "416" "true"
-run_castle_test "CASTLE-787-3.c"  "787" "true"
+run_castle_test "CASTLE-787-6.c"  "787" "true"
 
 echo ""
 echo "============================================================"

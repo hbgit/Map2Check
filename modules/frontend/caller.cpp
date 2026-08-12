@@ -154,12 +154,14 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   std::ostringstream passesArg;
   passesArg << "nondet-pass";
 
+  bool loadsMemoryTrackPass = false;
   switch (map2checkMode) {
     case Map2CheckMode::MEMTRACK_MODE: {
       Map2Check::Log::Info("Adding memtrack pass");
       std::string memPlugin = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
       transformCommand << " -load-pass-plugin=" << memPlugin << getLibSuffix();
       passesArg << ",memory-track";
+      loadsMemoryTrackPass = true;
       break;
     }
     case Map2CheckMode::MEMCLEANUP_MODE: {
@@ -167,6 +169,7 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
       std::string memPlugin = "${MAP2CHECK_PATH}/lib/libMemoryTrackPass";
       transformCommand << " -load-pass-plugin=" << memPlugin << getLibSuffix();
       passesArg << ",memory-track";
+      loadsMemoryTrackPass = true;
       break;
     }
     case Map2CheckMode::OVERFLOW_MODE: {
@@ -205,7 +208,9 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   passesArg << ",map2check-library";
 
   transformCommand << " -entry-function=" << this->entryFunction;
-  transformCommand << " -m2c-entry-function=" << this->entryFunction;
+  if (loadsMemoryTrackPass) {
+    transformCommand << " -m2c-entry-function=" << this->entryFunction;
+  }
   if (this->wasmMode) {
     transformCommand << " -wasm-mode";
   }

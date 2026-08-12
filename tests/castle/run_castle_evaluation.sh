@@ -85,7 +85,15 @@ echo "  Compiled: $COMPILED, Failed: $COMPILE_FAILED"
 # --- Phase 2: Verify + Score ---
 echo ""
 echo "Phase 2: Running Map2Check on each benchmark..."
-echo "id,cwe,name,vulnerable,mode,verdict,invariants,expected,result,time_sec" > "$RESULTS_DIR/castle_results.csv"
+if [ ! -f "$RESULTS_DIR/castle_results.csv" ]; then
+  echo "id,cwe,name,vulnerable,mode,verdict,invariants,expected,result,time_sec" > "$RESULTS_DIR/castle_results.csv"
+fi
+
+# Resume: skip ids already present in the CSV
+declare -A DONE
+while IFS=, read -r _cid _cwe _cname _vuln _mode _verdict _inv _exp _res _t; do
+  [ -n "$_cid" ] && DONE["$_cid"]=1
+done < <(tail -n +2 "$RESULTS_DIR/castle_results.csv" 2>/dev/null)
 
 RUN=0
 TP=0; TN=0; FP=0; FN=0; UNK=0; TO=0; NA=0
@@ -94,6 +102,8 @@ for c_file in "$CASTLE_DIR"/*.c; do
   name=$(basename "$c_file")
   id="${name%.c}"
   id_short=$(echo "$id" | sed 's/CASTLE-//')
+
+  [ -n "${DONE[$id_short]:-}" ] && continue
 
   bc_file="$RESULTS_DIR/bc/${id}.bc"
   [ -f "$bc_file" ] || continue

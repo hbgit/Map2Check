@@ -19,6 +19,12 @@ WASM verification works by <b>lifting</b> `.wasm` binaries to LLVM IR (via [WABT
 
 Extra documentation is available at https://map2check.github.io
 
+#### Explanatory video
+
+A video explaining Map2Check is available on YouTube:
+
+[![Map2Check explanatory video](https://img.youtube.com/vi/E_Pqi6-AXhg/maxresdefault.jpg)](https://www.youtube.com/watch?v=E_Pqi6-AXhg)
+
 ___
 
 #### Requirements for using the tool

@@ -76,8 +76,10 @@ classify_verdict() {
     echo "FALSE"
   elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
     echo "TRUE"
-  elif echo "$output" | grep -qiE "TIMEOUT|timed out"; then
+  elif echo "$output" | grep -q "Forcing timeout"; then
     echo "TIMEOUT"
+  elif echo "$output" | grep -qiE "failed to run command|No such file or directory|undefined reference|Unknown command line argument"; then
+    echo "ERROR"
   else
     echo "UNKNOWN"
   fi
@@ -131,6 +133,8 @@ for cwe in "${SCOPE_CWES[@]}"; do
           [ "$vuln" = "True" ] && cls="FN" || cls="TN"
         elif [ "$verdict" = "TIMEOUT" ]; then
           cls="TIMEOUT"
+        elif [ "$verdict" = "ERROR" ]; then
+          cls="ERROR"
         else
           cls="UNKNOWN"
         fi

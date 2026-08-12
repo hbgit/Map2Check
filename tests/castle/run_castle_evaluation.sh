@@ -57,6 +57,36 @@ is_out_of_scope() {
   return 1
 }
 
+# Classify map2check's raw output into a verdict.
+# Note: a REAL timeout is signalled by map2check's "Forcing timeout" message
+# (engine killed by the inner `timeout`). The coreutils `timeout` error
+# "timeout: failed to run command ... No such file or directory" is an
+# INFRASTRUCTURE failure (fuzzer/opt broken), not a timeout — classify as ERROR.
+detect_verdict() {
+  local output="$1"
+  if echo "$output" | grep -q "FALSE-DEREF"; then
+    echo "FALSE-DEREF"
+  elif echo "$output" | grep -q "FALSE-FREE"; then
+    echo "FALSE-FREE"
+  elif echo "$output" | grep -q "FALSE-MEMTRACK"; then
+    echo "FALSE-MEMTRACK"
+  elif echo "$output" | grep -q "FALSE-OVERFLOW"; then
+    echo "FALSE-OVERFLOW"
+  elif echo "$output" | grep -q "FALSE-MEMCLEANUP"; then
+    echo "FALSE-MEMCLEANUP"
+  elif echo "$output" | grep -q "VERIFICATION FAILED"; then
+    echo "FALSE"
+  elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
+    echo "TRUE"
+  elif echo "$output" | grep -q "Forcing timeout"; then
+    echo "TIMEOUT"
+  elif echo "$output" | grep -qiE "failed to run command|No such file or directory|undefined reference|Unknown command line argument"; then
+    echo "ERROR"
+  else
+    echo "UNKNOWN"
+  fi
+}
+
 mkdir -p "$RESULTS_DIR"
 
 echo "CASTLE C250 × Map2Check Evaluation"
@@ -96,7 +126,7 @@ while IFS=, read -r _cid _cwe _cname _vuln _mode _verdict _inv _exp _res _t; do
 done < <(tail -n +2 "$RESULTS_DIR/castle_results.csv" 2>/dev/null)
 
 RUN=0
-TP=0; TN=0; FP=0; FN=0; UNK=0; TO=0; NA=0
+TP=0; TN=0; FP=0; FN=0; UNK=0; TO=0; NA=0; ERR=0
 
 for c_file in "$CASTLE_DIR"/*.c; do
   name=$(basename "$c_file")
@@ -135,25 +165,7 @@ for t in data['tests']:
   elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
   used_invariants="no"
-  if echo "$output" | grep -qi "TIMEOUT\|timed out"; then
-    verdict="TIMEOUT"
-  elif echo "$output" | grep -q "FALSE-DEREF"; then
-    verdict="FALSE-DEREF"
-  elif echo "$output" | grep -q "FALSE-FREE"; then
-    verdict="FALSE-FREE"
-  elif echo "$output" | grep -q "FALSE-MEMTRACK"; then
-    verdict="FALSE-MEMTRACK"
-  elif echo "$output" | grep -q "FALSE-OVERFLOW"; then
-    verdict="FALSE-OVERFLOW"
-  elif echo "$output" | grep -q "FALSE-MEMCLEANUP"; then
-    verdict="FALSE-MEMCLEANUP"
-  elif echo "$output" | grep -q "VERIFICATION FAILED"; then
-    verdict="FALSE"
-  elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
-    verdict="TRUE"
-  else
-    verdict="UNKNOWN"
-  fi
+  verdict=$(detect_verdict "$output")
 
   # --- Pass 2: --add-invariants fallback ---
   if [ "$verdict" = "UNKNOWN" ] && [ "$mode_flags" != "--check-asserts" ]; then
@@ -163,25 +175,7 @@ for t in data['tests']:
     end=$(date +%s%N)
     elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
-    if echo "$output" | grep -qi "TIMEOUT\|timed out"; then
-      verdict="TIMEOUT"
-    elif echo "$output" | grep -q "FALSE-DEREF"; then
-      verdict="FALSE-DEREF"
-    elif echo "$output" | grep -q "FALSE-FREE"; then
-      verdict="FALSE-FREE"
-    elif echo "$output" | grep -q "FALSE-MEMTRACK"; then
-      verdict="FALSE-MEMTRACK"
-    elif echo "$output" | grep -q "FALSE-OVERFLOW"; then
-      verdict="FALSE-OVERFLOW"
-    elif echo "$output" | grep -q "FALSE-MEMCLEANUP"; then
-      verdict="FALSE-MEMCLEANUP"
-    elif echo "$output" | grep -q "VERIFICATION FAILED"; then
-      verdict="FALSE"
-    elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
-      verdict="TRUE"
-    else
-      verdict="UNKNOWN"
-    fi
+    verdict=$(detect_verdict "$output")
   fi
 
   reported_line=$(echo "$output" | grep -oP '(?:line )\d+' | grep -oP '\d+' | head -1)
@@ -193,6 +187,9 @@ for t in data['tests']:
   elif [ "$verdict" = "TIMEOUT" ]; then
     classification="TIMEOUT"
     TO=$((TO+1))
+  elif [ "$verdict" = "ERROR" ]; then
+    classification="ERROR"
+    ERR=$((ERR+1))
   elif [ "$verdict" = "UNKNOWN" ]; then
     classification="UNKNOWN"
     UNK=$((UNK+1))
@@ -254,6 +251,7 @@ Totals:
   In-scope results:      $TOTAL_SCOPE
   Out of scope (N/A):    $NA
   Timeouts:              $TO
+  Errors (infra):        $ERR
   Unknown:               $UNK
 
 Detection Metrics (in-scope):

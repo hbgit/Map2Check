@@ -75,3 +75,10 @@ target_wrapper.*
 # QtCreator CMake
 CMakeLists.txt.user*
 test-comp2026/simulation/release/*
+
+# CASTLE/Juliet evaluation artifacts
+build_castle_ci/
+install_castle_ci/
+tests/castle/results/
+test-comp2026/simulation/resultados_de_testes/juliet_scope_c/
+test-comp2026/simulation/resultados_de_testes/castle/

@@ -225,8 +225,20 @@ int map2check_execution(map2check_args args) {
 
   if (!is_llvmir_in) {
     if (args.invCrabLlvm) {
-      // cout << "crab  \n";
-      caller->compileToCrabLlvm();
+      // Crab-LLVM is a legacy SeaHorn dependency that was never migrated to
+      // LLVM 16 (FindCrabLlvm.cmake is not wired into the modern build), so
+      // ${MAP2CHECK_PATH}/bin/crabllvm may be absent. Fall back to plain
+      // compilation instead of breaking the pipeline on a missing binary.
+      const char *m2cPath = getenv("MAP2CHECK_PATH");
+      std::string crabPy = (m2cPath ? std::string(m2cPath) : std::string("")) +
+                           "/bin/crabllvm/bin/crabllvm.py";
+      if (fs::exists(crabPy)) {
+        caller->compileToCrabLlvm();
+      } else {
+        Map2Check::Log::Warning(
+            "crabllvm is not built — ignoring --add-invariants");
+        caller->compileCFile(is_llvmir_in);
+      }
     } else {
       caller->compileCFile(is_llvmir_in);
     }

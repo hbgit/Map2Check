@@ -19,6 +19,12 @@ WASM verification works by <b>lifting</b> `.wasm` binaries to LLVM IR (via [WABT
 
 Extra documentation is available at https://map2check.github.io
 
+#### Explanatory video
+
+A video explaining Map2Check is available on YouTube:
+
+[![Map2Check explanatory video](https://img.youtube.com/vi/E_Pqi6-AXhg/maxresdefault.jpg)](https://www.youtube.com/watch?v=E_Pqi6-AXhg)
+
 ___
 
 #### Requirements for using the tool
@@ -48,7 +54,9 @@ Releases starting from **v8.0.0-Songbirds** include WebAssembly verification sup
 
 <p align="justify">
 Map2Check can be invoked through a standard command-line interface. Map2Check should be called
-in the installation directory as follows:  
+in the installation directory as follows:
+
+Example programs are available in the [examples/](examples/) directory.  
 </p>
 
 ``` bash

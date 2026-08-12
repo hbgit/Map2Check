@@ -291,7 +291,66 @@ jobs:
             '
 
   # ===========================================================
-  # Job 5: Dynamic Analysis — Valgrind memcheck (OpenSSF)
+  # Job 5: CASTLE Benchmark Regression Tests
+  # ===========================================================
+  # Verifies Map2Check against 5 CASTLE micro-benchmarks
+  # (CWE-415, 416, 476, 787) — memory safety regression suite.
+  castle-regression:
+    name: CASTLE Regression
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    needs: [build-and-test]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo docker image prune -a -f || true
+
+      - name: Pull map2check-dev image
+        run: docker pull ghcr.io/hbgit/map2check-dev:latest
+
+      - name: Build + install Map2Check in container
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e CC=/usr/bin/clang-16 \
+            -e CXX=/usr/bin/clang++-16 \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              rm -rf build_castle_ci install_castle_ci
+              mkdir -p build_castle_ci && cd build_castle_ci
+              cmake .. -G Ninja \
+                -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DENABLE_TEST=ON \
+                -DMAP2CHECK_DYNAMIC_LINK=ON \
+                -DCMAKE_INSTALL_PREFIX=/workspace/install_castle_ci
+              ninja
+              ninja install
+              mkdir -p /workspace/install_castle_ci/lib/klee
+              ln -sf /opt/klee/lib/klee/runtime /workspace/install_castle_ci/lib/klee/runtime
+              ln -sf /usr/lib/llvm-16/lib/clang /workspace/install_castle_ci/lib/clang
+            '
+
+      - name: Run CASTLE regression tests
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e MAP2CHECK_PATH=/workspace/install_castle_ci \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              bash tests/integration/test_castle_regression.sh
+            '
+
+  # ===========================================================
+  # Job 6: Dynamic Analysis — Valgrind memcheck (OpenSSF)
   # ===========================================================
   # Build ISOLADO e SEM sanitizers: a shadow memory do ASan/UBSan
   # conflita com a VM do Valgrind. Debug + DWARF-4 para stacks

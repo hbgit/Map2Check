@@ -1,0 +1,3 @@
+[submodule "CASTLE-Benchmark"]
+	path = tests/castle/CASTLE-Benchmark
+	url = https://github.com/CASTLE-Benchmark/CASTLE-Benchmark

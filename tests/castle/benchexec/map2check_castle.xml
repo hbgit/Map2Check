@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 1.4//EN"
+  "http://www.sosy-lab.org/benchexec/benchmark-1.4.dtd">
+<benchmark tool="map2check" timelimit="120 s">
+
+  <rundefinition name="sv-comp19_map2check"></rundefinition>
+
+  <tasks name="CASTLE-memsafety">
+    <includesfile>/home/bench/benchexec_files/tests/castle/benchexec/sets/castle-memsafety.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/tests/castle/benchexec/properties/valid-memsafety.prp</propertyfile>
+  </tasks>
+
+  <tasks name="CASTLE-overflow">
+    <includesfile>/home/bench/benchexec_files/tests/castle/benchexec/sets/castle-overflow.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/tests/castle/benchexec/properties/no-overflow.prp</propertyfile>
+  </tasks>
+
+  <tasks name="CASTLE-memcleanup">
+    <includesfile>/home/bench/benchexec_files/tests/castle/benchexec/sets/castle-memcleanup.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/tests/castle/benchexec/properties/valid-memcleanup.prp</propertyfile>
+  </tasks>
+
+  <tasks name="CASTLE-reachability">
+    <includesfile>/home/bench/benchexec_files/tests/castle/benchexec/sets/castle-reachability.set</includesfile>
+    <propertyfile>/home/bench/benchexec_files/tests/castle/benchexec/properties/unreach-call.prp</propertyfile>
+  </tasks>
+
+</benchmark>

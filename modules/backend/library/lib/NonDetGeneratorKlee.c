@@ -11,9 +11,9 @@
 #include "../header/NonDetLog.h"
 #include <stdlib.h>
 
-extern int __map2check_main__();
+extern int __map2check_main__(int argc, char **argv);
 
-int main() { return __map2check_main__(); }
+int main(int argc, char **argv) { return __map2check_main__(argc, argv); }
 
 void nondet_init() { nondet_log_init(); }
 void nondet_destroy() { nondet_log_destroy(); }

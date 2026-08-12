@@ -10,9 +10,8 @@
 #   good = -DINCLUDEMAIN -DOMITBAD   -> safe       (expect TRUE)
 #
 # Two harness adaptations are required (see docs/superpowers/specs/*-castle-juliet-baseline.md):
-#   1. `int main(int argc, char *argv[])` is normalised to `int main(void)` because
-#      NonDetGeneratorKlee.c calls __map2check_main__() with no arguments (bug in the
-#      KLEE wrapper — "calling function with too few arguments" -> UNKNOWN).
+#   1. The KLEE/LibFuzzer wrapper forwards argc/argv to __map2check_main__ (fixed in
+#      NonDetGeneratorKlee.c / NonDetGeneratorLibFuzzy.c — main(argc,argv) is now supported).
 #   2. testcasesupport/io.c I/O (printf/time/rand) is replaced by juliet_stubs.c so
 #      KLEE can exhaust safe programs (otherwise "partially completed paths" -> UNKNOWN).
 #
@@ -106,10 +105,8 @@ for cwe in "${SCOPE_CWES[@]}"; do
       [ -n "${DONE[$key]:-}" ] && { SKIP=$((SKIP+1)); continue; }
 
       bc="$BC_DIR/${rel//\//__}.$vtag.bc"
-      # normalise main signature (KLEE wrapper calls main with no args)
-      sed 's/int main(int argc, char \* argv\[\])/int main(void)/' "$f" \
-        | "$CLANG" -x c -c -emit-llvm -g -O0 -DINCLUDEMAIN -D"$def" \
-            -I "$SUPPORT_DIR" -o "$bc" - 2>/dev/null || {
+      "$CLANG" -c -emit-llvm -g -O0 -DINCLUDEMAIN -D"$def" \
+          -I "$SUPPORT_DIR" "$f" -o "$bc" 2>/dev/null || {
         echo "$cwe,$rel,$vtag,$vuln,$mode,COMPILE-FAIL,0,COMPILE-FAIL" >> "$CSV"
         CF=$((CF+1)); continue
       }

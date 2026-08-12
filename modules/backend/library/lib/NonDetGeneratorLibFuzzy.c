@@ -19,12 +19,13 @@
    2 - Fuzzer is used as a circular list
  */
 
-extern int __map2check_main__();
+extern int __map2check_main__(int argc, char **argv);
 
 #include "../header/Map2CheckFunctions.h"
 
 void *fuzzer_execution_function(void *args) {
-  __map2check_main__();
+  (void)args;
+  __map2check_main__(0, NULL);
   return NULL;
 }
 

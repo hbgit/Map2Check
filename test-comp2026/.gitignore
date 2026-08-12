@@ -1,6 +1,5 @@
 # Ignore cloned repositories (too large for git)
 sv-benchmarks/
-juliet/
 testcov/
 bench-defs/
 

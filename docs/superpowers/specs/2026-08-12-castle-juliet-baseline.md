@@ -51,14 +51,15 @@ Estes determinam o formato do harness. São também **candidatos de melhoria** p
 `{hash}-preprocessed.c`, `klee-out-*`/`klee-last`, e `../witness.graphml`
 (só com `--generate-witness`). → Todo run em CWD isolado (`mktemp -d`).
 
-### 3.2 `main(int argc, char *argv[])` quebra o wrapper KLEE  ← BUG REAL
-`NonDetGeneratorKlee.c` declara `int main() { return __map2check_main__(); }`
-— chama o `main` renomeado **sem argumentos**. Programas com `main(argc, argv)`
-(Juliet inteiro, TestComp) disparam `KLEE: ERROR: calling function with too few
+### 3.2 `main(int argc, char *argv[])` quebrava o wrapper KLEE  ← BUG CORRIGIDO
+`NonDetGeneratorKlee.c` declarava `int main() { return __map2check_main__(); }`
+— chamava o `main` renomeado **sem argumentos**. Programas com `main(argc, argv)`
+(Juliet inteiro, TestComp) disparavam `KLEE: ERROR: calling function with too few
 arguments` → `completed paths = 0` → `VERIFICATION UNKNOWN` para todo programa
-**seguro**. Workaround no harness: normalizar `int main(int argc, char * argv[])`
-→ `int main(void)` via `sed`. **Fix definitivo (backlog):** wrapper chamar
-`__map2check_main__(argc, argv)` com assinatura correta.
+**seguro**. **Corrigido nesta branch** (`NonDetGeneratorKlee.c` +
+`NonDetGeneratorLibFuzzy.c` passam `(argc, argv)`; `--add-invariants` sem efeito).
+Cobertura: `tests/integration/test_main_argv.sh` (bad ⇒ FALSE, safe ⇒ TRUE),
+executado no job `castle-regression` do CI. Sem workaround no harness (removido o `sed`).
 
 ### 3.3 I/O do `testcasesupport/io.c` impede exaustão do KLEE  ← LIMITAÇÃO
 `printLine`/`printIntLine` (via `printf`), `srand(time(NULL))` e `rand() % 2`
@@ -77,6 +78,13 @@ tratar `-DINCLUDEMAIN -DOMITBAD/-DOMITGOOD` e os variantes de arquivo.
 e `--check-asserts`/`--target-function` precisam de validação por CWE. Isso afeta a
 interpretação por modo.
 
+### 3.7 `--add-invariants`/crabllvm não buildado  ← tratado
+Crab-LLVM (`cmake/FindCrabLlvm.cmake`, `seahorn/crab-llvm`) nunca foi ligado ao
+CMakeLists moderno (dependência SeaHorn legada, incompatível com LLVM 16). O flag
+`--add-invariants` chamava `bin/crabllvm/bin/crabllvm.py` inexistente e quebrava o
+pipeline. **Tratado:** `map2check.cpp` agora detecta a ausência do binário e faz
+fallback para compilação normal (warning), em vez de falhar.
+
 ### 3.6 (já conhecido, de sessões anteriores) FNs/FPs de memtrack
 - FN: NULL-deref via falha de `malloc` (KLEE não modela `malloc`→NULL).
 - FN: `strcpy`/`memcpy` da libc não instrumentados (só `llvm.memcpy`).
@@ -91,8 +99,10 @@ interpretação por modo.
 | Arquivo | Status | Papel |
 |---|---|---|
 | `tests/castle/run_castle_evaluation.sh` | ✅ existente (committed) | 250 CASTLE, 2-pass, score vs JSON |
-| `test-comp2026/simulation/run_juliet_evaluation.sh` | ✅ **novo** (esta sessão) | Juliet escopo C, sequencial, resumível, CWD-isolado, normaliza `main`, linka stubs |
+| `test-comp2026/simulation/run_juliet_evaluation.sh` | ✅ **novo** (esta sessão) | Juliet escopo C, sequencial, resumível, CWD-isolado, linka stubs |
 | `test-comp2026/simulation/juliet_stubs.c` | ✅ **novo** (esta sessão) | stubs de I/O + `globalReturnsTrueOrFalse` simbólico |
+| `tests/integration/test_main_argv.sh` | ✅ **novo** (esta sessão) | regressão do fix `main(argc,argv)` |
+| `test-comp2026/juliet` (submodule) | ✅ **novo** (esta sessão) | `arichardson/juliet-test-suite-c` pin `f88433e34` |
 | `docs/baseline-castle-juliet-2026.md` | ⏳ a criar | relatório final + backlog |
 | `analyze_results.py` | ⏳ a criar | consome CSVs → tabelas por CWE/modo + TP/FP/TN/FN |
 
@@ -126,7 +136,7 @@ Build/install (gitignored): `build_castle_ci/`, `install_castle_ci/`
 
 ## 7. Backlog preliminar de melhorias (incremental, sem trocar engine)
 
-1. **Wrapper KLEE `main(argc,argv)`** (§3.2) — `NonDetGeneratorKlee.c` chamar com args corretos.
+1. ~~Wrapper KLEE `main(argc,argv)`~~ ✅ **corrigido** (`NonDetGeneratorKlee.c`/`NonDetGeneratorLibFuzzy.c`).
 2. **Instrumentar funções de string libc** (`strcpy`/`memcpy`/`strcat`/`sprintf`) no `MemoryTrackPass`.
 3. **Modelar `malloc`→NULL** (branch simbólico de falha) para CWE-476 via malloc.
 4. **Corrigir FP swap-trick** (`415-7`/`416-7`) no tracking de aliasing de ponteiros.

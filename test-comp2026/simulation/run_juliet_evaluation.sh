@@ -60,7 +60,8 @@ read -r -a SCOPE_CWES <<< "${JULIET_CWES:-${DEFAULT_SCOPE_CWES[*]}}"
 CSV="$RESULTS_DIR/juliet_scope_c_results.csv"
 LOG="$RESULTS_DIR/run.log"
 BC_DIR="$RESULTS_DIR/bc"
-mkdir -p "$RESULTS_DIR" "$BC_DIR"
+RAW_DIR="$RESULTS_DIR/raw"
+mkdir -p "$RESULTS_DIR" "$BC_DIR" "$RAW_DIR"
 
 # --- resume map ---
 declare -A DONE
@@ -78,19 +79,20 @@ STUBS_BC="$BC_DIR/juliet_stubs.bc"
 
 log() { echo "[$(date -u +%H:%M:%S)] $*" | tee -a "$LOG"; }
 
+# Verdict classification is shared with the CASTLE runner and covered by
+# tests/integration/test_verdict_classifier.sh — see that file for why
+# "Forcing timeout" is not a timeout signal. Juliet only needs the coarse
+# FALSE/TRUE distinction, so the fine-grained FALSE-* verdicts collapse here.
+# shellcheck source=../../tests/lib/verdict_classifier.sh
+. "$SCRIPT_DIR/../../tests/lib/verdict_classifier.sh"
+
 classify_verdict() {
-  local output="$1"
-  if echo "$output" | grep -qE "FALSE-DEREF|FALSE-FREE|FALSE-MEMTRACK|FALSE-OVERFLOW|FALSE-DIVBYZERO|FALSE-MEMCLEANUP|VERIFICATION FAILED"; then
-    echo "FALSE"
-  elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
-    echo "TRUE"
-  elif echo "$output" | grep -q "Forcing timeout"; then
-    echo "TIMEOUT"
-  elif echo "$output" | grep -qiE "failed to run command|No such file or directory|undefined reference|Unknown command line argument"; then
-    echo "ERROR"
-  else
-    echo "UNKNOWN"
-  fi
+  local verdict
+  verdict=$(classify_map2check_verdict "$1" "${2:-0}" "${3:-0}" "${4:-0}")
+  case "$verdict" in
+    FALSE-*) echo "FALSE" ;;
+    *)       echo "$verdict" ;;
+  esac
 }
 
 PROCESSED=0
@@ -133,10 +135,14 @@ for cwe in "${SCOPE_CWES[@]}"; do
       (
         cd "$work"
         start=$(date +%s%N)
-        output=$(timeout "$OUTER_TIMEOUT" "$MAP2CHECK" $mode --timeout "$INNER_TIMEOUT" "$combined" 2>&1) || true
+        rc=0
+        output=$(timeout "$OUTER_TIMEOUT" "$MAP2CHECK" $mode --timeout "$INNER_TIMEOUT" "$combined" 2>&1) || rc=$?
         end=$(date +%s%N)
         elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
-        verdict=$(classify_verdict "$output")
+        verdict=$(classify_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
+        # Keep the raw output: the verdict alone cannot be re-derived, so a
+        # classifier bug would otherwise mean re-running the whole suite.
+        printf '%s\n' "$output" > "$RAW_DIR/${rel//\//__}.$vtag.txt"
         if [ "$verdict" = "FALSE" ]; then
           [ "$vuln" = "True" ] && cls="TP" || cls="FP"
         elif [ "$verdict" = "TRUE" ]; then

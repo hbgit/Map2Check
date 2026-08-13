@@ -57,39 +57,17 @@ is_out_of_scope() {
   return 1
 }
 
-# Classify map2check's raw output into a verdict.
-# Note: a REAL timeout is signalled by map2check's "Forcing timeout" message
-# (engine killed by the inner `timeout`). The coreutils `timeout` error
-# "timeout: failed to run command ... No such file or directory" is an
-# INFRASTRUCTURE failure (fuzzer/opt broken), not a timeout — classify as ERROR.
-detect_verdict() {
-  local output="$1"
-  if echo "$output" | grep -q "FALSE-DEREF"; then
-    echo "FALSE-DEREF"
-  elif echo "$output" | grep -q "FALSE-FREE"; then
-    echo "FALSE-FREE"
-  elif echo "$output" | grep -q "FALSE-MEMTRACK"; then
-    echo "FALSE-MEMTRACK"
-  elif echo "$output" | grep -q "FALSE-OVERFLOW"; then
-    echo "FALSE-OVERFLOW"
-  elif echo "$output" | grep -q "FALSE-DIVBYZERO"; then
-    echo "FALSE-DIVBYZERO"
-  elif echo "$output" | grep -q "FALSE-MEMCLEANUP"; then
-    echo "FALSE-MEMCLEANUP"
-  elif echo "$output" | grep -q "VERIFICATION FAILED"; then
-    echo "FALSE"
-  elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
-    echo "TRUE"
-  elif echo "$output" | grep -q "Forcing timeout"; then
-    echo "TIMEOUT"
-  elif echo "$output" | grep -qiE "failed to run command|No such file or directory|undefined reference|Unknown command line argument"; then
-    echo "ERROR"
-  else
-    echo "UNKNOWN"
-  fi
-}
+# Verdict classification is shared with the Juliet runner and covered by
+# tests/integration/test_verdict_classifier.sh — see that file for why
+# "Forcing timeout" is not a timeout signal.
+# shellcheck source=../lib/verdict_classifier.sh
+. "$SCRIPT_DIR/../lib/verdict_classifier.sh"
+
+INNER_TIMEOUT=300   # map2check's own budget, passed as --timeout below
 
 mkdir -p "$RESULTS_DIR"
+RAW_DIR="$RESULTS_DIR/raw"
+mkdir -p "$RAW_DIR"
 
 echo "CASTLE C250 × Map2Check Evaluation"
 echo "=================================="
@@ -162,23 +140,29 @@ for t in data['tests']:
 
   # --- Pass 1: direct ---
   start=$(date +%s%N)
-  output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --timeout 300 "$bc_file" 2>&1) || true
+  rc=0
+  output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --timeout "$INNER_TIMEOUT" "$bc_file" 2>&1) || rc=$?
   end=$(date +%s%N)
   elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
   used_invariants="no"
-  verdict=$(detect_verdict "$output")
+  verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
 
   # --- Pass 2: --add-invariants fallback ---
   if [ "$verdict" = "UNKNOWN" ] && [ "$mode_flags" != "--check-asserts" ]; then
     used_invariants="yes"
     start=$(date +%s%N)
-    output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --add-invariants --timeout 300 "$bc_file" 2>&1) || true
+    rc=0
+    output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --add-invariants --timeout "$INNER_TIMEOUT" "$bc_file" 2>&1) || rc=$?
     end=$(date +%s%N)
     elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
-    verdict=$(detect_verdict "$output")
+    verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
   fi
+
+  # Keep the raw output: the verdict alone cannot be re-derived, so a
+  # classifier bug would otherwise mean re-running the whole benchmark.
+  printf '%s\n' "$output" > "$RAW_DIR/${name%.c}.txt"
 
   # The violation line is only reported in the "Violated property" block as
   # "file map2check_property line N". A bare `grep 'line \d+' | head -1` would

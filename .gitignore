@@ -82,7 +82,6 @@ install_castle_ci/
 build_dev/
 install_dev/
 tests/castle/results/
-tests/castle/results_v2/
-test-comp2026/simulation/resultados_de_testes/juliet_scope_c/
-test-comp2026/simulation/resultados_de_testes/juliet_scope_c_v2/
+tests/castle/results_v*/
+test-comp2026/simulation/resultados_de_testes/juliet_*/
 test-comp2026/simulation/resultados_de_testes/castle/

@@ -35,7 +35,8 @@ STUBS="$SCRIPT_DIR/juliet_stubs.c"
 RESULTS_DIR="${RESULTS_DIR:-$SCRIPT_DIR/resultados_de_testes/juliet_scope_c}"
 OUTER_TIMEOUT="${OUTER_TIMEOUT:-300}"
 INNER_TIMEOUT="${INNER_TIMEOUT:-60}"
-LIMIT="${LIMIT:-0}"   # 0 = unlimited
+LIMIT="${LIMIT:-0}"                       # 0 = unlimited, counted across all CWEs
+LIMIT_PER_CWE="${LIMIT_PER_CWE:-0}"       # 0 = unlimited, counted within each CWE
 
 declare -A CWE_MODE=(
   [121]="--memtrack"
@@ -45,9 +46,16 @@ declare -A CWE_MODE=(
   [476]="--memtrack"
   [761]="--memtrack"
   [190]="--check-overflow"
+  [191]="--check-overflow"
+  [369]="--check-overflow"
   [401]="--memcleanup-property"
 )
-SCOPE_CWES=(121 122 415 416 476 761 190 401)
+# CWE-191 (underflow) is the same no-overflow property as 190, and CWE-369
+# (divide by zero) is reported as FALSE-DIVBYZERO; both are covered by
+# --check-overflow. Override with e.g. JULIET_CWES="190 191 369" to run a
+# targeted slice.
+DEFAULT_SCOPE_CWES=(121 122 415 416 476 761 190 191 369 401)
+read -r -a SCOPE_CWES <<< "${JULIET_CWES:-${DEFAULT_SCOPE_CWES[*]}}"
 
 CSV="$RESULTS_DIR/juliet_scope_c_results.csv"
 LOG="$RESULTS_DIR/run.log"
@@ -90,9 +98,11 @@ SKIP=0
 CF=0
 
 for cwe in "${SCOPE_CWES[@]}"; do
-  mode="${CWE_MODE[$cwe]}"
+  mode="${CWE_MODE[$cwe]:-}"
+  [ -n "$mode" ] || { log "CWE-$cwe: no mode mapping, skipping"; continue; }
   cwe_dir=$(ls -d "$TESTCASES_DIR"/CWE${cwe}_* 2>/dev/null | head -1)
   [ -n "$cwe_dir" ] || { log "CWE-$cwe: no testcase dir, skipping"; continue; }
+  PROCESSED_CWE=0
 
   while IFS= read -r -d '' f; do
     base=$(basename "$f")
@@ -145,11 +155,18 @@ for cwe in "${SCOPE_CWES[@]}"; do
     done
 
     PROCESSED=$((PROCESSED+1))
+    PROCESSED_CWE=$((PROCESSED_CWE+1))
+    if [ "$LIMIT_PER_CWE" -gt 0 ] && [ "$PROCESSED_CWE" -ge "$LIMIT_PER_CWE" ]; then
+      log "LIMIT_PER_CWE reached ($LIMIT_PER_CWE files) for CWE-$cwe; next CWE."
+      break
+    fi
     if [ "$LIMIT" -gt 0 ] && [ "$PROCESSED" -ge "$LIMIT" ]; then
       log "LIMIT reached ($LIMIT files); stopping."
       break 2
     fi
-  done < <(find "$cwe_dir" -type f -name "*.c" -print0)
+    # Sorted so a truncated run is a reproducible prefix rather than whatever
+    # order the filesystem happened to hand back.
+  done < <(find "$cwe_dir" -type f -name "*.c" -print0 | sort -z)
 done
 
 log "DONE: files_processed=$PROCESSED skipped=$SKIP compile_fail=$CF (authoritative tallies: analyze $CSV)"

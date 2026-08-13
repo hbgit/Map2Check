@@ -30,12 +30,54 @@ cat > "$TMPDIR/ov_safe.c" <<'EOF'
 int main(void) { int x = 1; int y = x + 1; return y; }
 EOF
 
+# 64-bit arithmetic. OverflowPass used to declare the binop checkers with i64
+# operands while the runtime took int, so the check read garbage; the first fix
+# aligned both at i32, which made every long/long long operation skip
+# instrumentation entirely. SV-COMP defines no-overflow over the result type of
+# the operation, so both widths must be reported -- and widening i32 operands to
+# 64 bits must not mask the i32 cases above (ov_bug guards that direction).
+cat > "$TMPDIR/ov_bug_ll.c" <<'EOF'
+#include <limits.h>
+int main(void) { long long x = LLONG_MAX; long long y = x + 1; return (int)y; }
+EOF
+
+cat > "$TMPDIR/ov_safe_ll.c" <<'EOF'
+#include <limits.h>
+int main(void) { long long x = INT_MAX; long long y = x + 1; return (int)(y >> 1); }
+EOF
+
+cat > "$TMPDIR/ov_bug_ll_mul.c" <<'EOF'
+#include <limits.h>
+int main(void) { long long x = 4294967296LL; long long y = x * x; return (int)y; }
+EOF
+
 cat > "$TMPDIR/div_bug.c" <<'EOF'
 int main(void) { int a = 10; int b = 0; return a / b; }
 EOF
 
 cat > "$TMPDIR/div_safe.c" <<'EOF'
 int main(void) { int a = 10; int b = 2; return a / b; }
+EOF
+
+# INT_MIN / -1 overflows: the quotient is one past INT_MAX. The old runtime
+# check used || where it needed &&, so it also fired on safe divisions.
+cat > "$TMPDIR/div_min_bug.c" <<'EOF'
+#include <limits.h>
+int main(void) { int a = INT_MIN; int b = -1; return a / b; }
+EOF
+
+cat > "$TMPDIR/div_min_safe.c" <<'EOF'
+#include <limits.h>
+int main(void) { int a = INT_MIN; int b = 1; return a / b; }
+EOF
+
+# SRem was an empty case in the pass, so "x % 0" went entirely unchecked.
+cat > "$TMPDIR/mod_bug.c" <<'EOF'
+int main(void) { int a = 10; int b = 0; return a % b; }
+EOF
+
+cat > "$TMPDIR/mod_safe.c" <<'EOF'
+int main(void) { int a = 10; int b = 3; return a % b; }
 EOF
 
 cat > "$TMPDIR/as_bug.c" <<'EOF'
@@ -104,8 +146,15 @@ echo "Map2Check Non-Memtrack Modes Regression"
 echo "============================================================"
 run "$TMPDIR/ov_bug.c" "--check-overflow" FALSE overflow_bug
 run "$TMPDIR/ov_safe.c" "--check-overflow" TRUE overflow_safe
+run "$TMPDIR/ov_bug_ll.c" "--check-overflow" FALSE overflow_bug_longlong
+run "$TMPDIR/ov_safe_ll.c" "--check-overflow" TRUE overflow_safe_longlong
+run "$TMPDIR/ov_bug_ll_mul.c" "--check-overflow" FALSE overflow_bug_longlong_mul
 run "$TMPDIR/div_bug.c" "--check-overflow" FALSE div_bug
 run "$TMPDIR/div_safe.c" "--check-overflow" TRUE div_safe
+run "$TMPDIR/div_min_bug.c" "--check-overflow" FALSE div_min_overflow_bug
+run "$TMPDIR/div_min_safe.c" "--check-overflow" TRUE div_min_safe
+run "$TMPDIR/mod_bug.c" "--check-overflow" FALSE mod_by_zero_bug
+run "$TMPDIR/mod_safe.c" "--check-overflow" TRUE mod_safe
 run "$TMPDIR/as_bug.c" "--check-asserts" FALSE assert_bug
 run "$TMPDIR/as_safe.c" "--check-asserts" TRUE assert_safe
 run "$TMPDIR/as_libc_bug.c" "--check-asserts" FALSE assert_libc_bug

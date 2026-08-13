@@ -20,10 +20,12 @@
 using llvm::CallInst;
 using llvm::cast;
 using llvm::CastInst;
+using llvm::ConstantInt;
 using llvm::DbgDeclareInst;
 using llvm::DIBasicType;
 using llvm::DILocalVariable;
 using llvm::dyn_cast;
+using llvm::IntegerType;
 using llvm::IRBuilder;
 using llvm::isa;
 using llvm::LoadInst;
@@ -385,7 +387,7 @@ PreservedAnalyses OverflowPass::run(Function &F,
 
             break;
           case (Instruction::SRem):
-
+            instrumentedFunction = this->operationsFunctions->getOverflowSRem();
             break;
           case (Instruction::FRem):
 
@@ -413,28 +415,31 @@ PreservedAnalyses OverflowPass::run(Function &F,
             break;
         }
 
-        if (instrumentedFunction) {
-          Value *firstOperand64Ty;
-          if (firstOperand->getType() == Type::getInt32Ty(*Ctx)) {
-            firstOperand64Ty = CastInst::CreateIntegerCast(
-                firstOperand, Type::getInt32Ty(*Ctx), false, "cast",
-                BBIteratorToInst(i));
-          } else {
-            firstOperand64Ty = firstOperand;
-          }
+        // SV-COMP defines no-overflow over "the resulting type of an
+        // operation", so the check has to know that type's width: an i32 add
+        // that wraps must be reported even though the same values never wrap
+        // once widened. We therefore sign-extend both operands to the common
+        // i64 ABI (lossless) and pass the operation's own width alongside, and
+        // let the runtime range-check against it. Instrumenting only i32 would
+        // silently miss every long/long long case (Juliet CWE190/CWE191).
+        auto *opType = dyn_cast<IntegerType>(binOp->getType());
+        if (instrumentedFunction && opType && opType->getBitWidth() <= 64 &&
+            firstOperand->getType() == opType &&
+            secondOperand->getType() == opType) {
+          auto *I64 = Type::getInt64Ty(*Ctx);
+          Value *firstOperand64Ty =
+              builder.CreateSExtOrBitCast(firstOperand, I64, "m2c.sext");
+          Value *secondOperand64Ty =
+              builder.CreateSExtOrBitCast(secondOperand, I64, "m2c.sext");
+          Value *width = ConstantInt::get(Type::getInt32Ty(*Ctx),
+                                          opType->getBitWidth());
 
-          Value *secondOperand64Ty;
-          if (secondOperand->getType() == Type::getInt32Ty(*Ctx)) {
-            secondOperand64Ty = CastInst::CreateIntegerCast(
-                secondOperand, Type::getInt32Ty(*Ctx), false, "cast",
-                BBIteratorToInst(i));
-          } else {
-            secondOperand64Ty = secondOperand;
-          }
-
-          Value *args[] = {firstOperand64Ty, secondOperand64Ty,
+          Value *args[] = {firstOperand64Ty,
+                           secondOperand64Ty,
+                           width,
                            debugInfo.getLineNumberValue(),
-                           debugInfo.getScopeNumberValue(), functionName};
+                           debugInfo.getScopeNumberValue(),
+                           functionName};
           builder.CreateCall(instrumentedFunction, args);
 
         } else {

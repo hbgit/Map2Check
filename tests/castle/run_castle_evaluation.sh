@@ -9,7 +9,7 @@ CLANG="${CLANG:-/usr/bin/clang-16}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CASTLE_DIR="$SCRIPT_DIR/CASTLE-Benchmark/datasets/CASTLE-C250"
 JSON_FILE="$SCRIPT_DIR/CASTLE-Benchmark/datasets/CASTLE-C250.min.json"
-RESULTS_DIR="$SCRIPT_DIR/results"
+RESULTS_DIR="${RESULTS_DIR:-$SCRIPT_DIR/results}"
 TIMEOUT_SEC=360
 
 # CWE → mode mapping (single-pass flags, --add-invariants added on UNKNOWN)

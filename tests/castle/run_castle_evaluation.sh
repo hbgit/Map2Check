@@ -25,15 +25,12 @@ declare -A CWE_MODE=(
   [843]="--memtrack"
   # Overflow
   [190]="--check-overflow"
+  [369]="--check-overflow"
   # Memcleanup
   [401]="--memcleanup-property"
   # Assert
-  [134]="--check-asserts"
   [617]="--check-asserts"
   # Reachability (other)
-  [253]="--target-function --target-function-name main"
-  [362]="--target-function --target-function-name main"
-  [369]="--target-function --target-function-name main"
   [628]="--target-function --target-function-name main"
   [674]="--target-function --target-function-name main"
   [770]="--target-function --target-function-name main"
@@ -42,12 +39,15 @@ declare -A CWE_MODE=(
   [22]="--target-function --target-function-name main"
   [78]="--target-function --target-function-name main"
   [89]="--target-function --target-function-name main"
+  [134]="--target-function --target-function-name main"
+  [253]="--target-function --target-function-name main"
   [327]="--target-function --target-function-name main"
+  [362]="--target-function --target-function-name main"
   [522]="--target-function --target-function-name main"
   [798]="--target-function --target-function-name main"
 )
 
-OUT_OF_SCOPE_CWES=(22 78 89 327 522 798)
+OUT_OF_SCOPE_CWES=(22 78 89 134 253 327 362 522 798)
 
 is_out_of_scope() {
   local cwe="$1"
@@ -178,7 +178,10 @@ for t in data['tests']:
     verdict=$(detect_verdict "$output")
   fi
 
-  reported_line=$(echo "$output" | grep -oP '(?:line )\d+' | grep -oP '\d+' | head -1)
+  # The violation line is only reported in the "Violated property" block as
+  # "file map2check_property line N". A bare `grep 'line \d+' | head -1` would
+  # instead match LibFuzzer's "inline 8-bit counters" (-> "line 8").
+  reported_line=$(echo "$output" | grep -oP 'map2check_property line \K\d+' | head -1)
 
   # --- Classify ---
   if is_out_of_scope "$cwe"; then

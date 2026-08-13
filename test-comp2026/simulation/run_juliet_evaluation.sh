@@ -72,7 +72,7 @@ log() { echo "[$(date -u +%H:%M:%S)] $*" | tee -a "$LOG"; }
 
 classify_verdict() {
   local output="$1"
-  if echo "$output" | grep -qE "FALSE-DEREF|FALSE-FREE|FALSE-MEMTRACK|FALSE-OVERFLOW|FALSE-MEMCLEANUP|VERIFICATION FAILED"; then
+  if echo "$output" | grep -qE "FALSE-DEREF|FALSE-FREE|FALSE-MEMTRACK|FALSE-OVERFLOW|FALSE-DIVBYZERO|FALSE-MEMCLEANUP|VERIFICATION FAILED"; then
     echo "FALSE"
   elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
     echo "TRUE"

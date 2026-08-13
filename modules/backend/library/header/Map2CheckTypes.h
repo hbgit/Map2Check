@@ -74,7 +74,8 @@ enum ViolatedProperty {
   TARGET_REACHED = 5,
   FALSE_OVERFLOW = 6,
   ASSERT = 7,
-  FALSE_MEMCLEANUP = 8
+  FALSE_MEMCLEANUP = 8,
+  FALSE_DIVBYZERO = 9
 };
 
 typedef

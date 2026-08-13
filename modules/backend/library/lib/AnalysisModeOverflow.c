@@ -83,8 +83,9 @@ void overflowError(unsigned line, const char *function_name) {
 
 void unknown_not_supported() { write_property_unknown(); }
 
-void divisionByZeroError() {
-  // TODO: implement method
+void divisionByZeroError(unsigned line, const char *function_name) {
+  write_property(FALSE_DIVBYZERO, line, function_name);
+  map2check_error();
 }
 
 void map2check_binop_add(int param1, int param2, unsigned line, unsigned scope,
@@ -223,7 +224,7 @@ void map2check_binop_mul_uint(unsigned param1, unsigned param2, unsigned line,
 void map2check_binop_sdiv(int param1, int param2, unsigned line, unsigned scope,
                           char *function_name) {
   if (param2 == 0) {
-    divisionByZeroError();
+    divisionByZeroError(line, function_name);
   }
 
   if ((param1 == INT_MIN) || (param2 == INT_MIN)) {

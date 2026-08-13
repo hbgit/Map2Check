@@ -72,6 +72,8 @@ detect_verdict() {
     echo "FALSE-MEMTRACK"
   elif echo "$output" | grep -q "FALSE-OVERFLOW"; then
     echo "FALSE-OVERFLOW"
+  elif echo "$output" | grep -q "FALSE-DIVBYZERO"; then
+    echo "FALSE-DIVBYZERO"
   elif echo "$output" | grep -q "FALSE-MEMCLEANUP"; then
     echo "FALSE-MEMCLEANUP"
   elif echo "$output" | grep -q "VERIFICATION FAILED"; then

@@ -93,6 +93,10 @@ std::string CounterExample::getViolatedProperty() {
   if (this->property == Tools::PropertyViolated::FALSE_OVERFLOW) {
     return "OVERFLOW";
   }
+
+  if (this->property == Tools::PropertyViolated::FALSE_DIVBYZERO) {
+    return "FALSE-DIVBYZERO";
+  }
   // FIXME: Throw exception
   return "";
 }

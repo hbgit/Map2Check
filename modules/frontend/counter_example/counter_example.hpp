@@ -149,6 +149,14 @@ class CounterExampleProperty : public CounterExampleRow {
         cnvt << "\tOVERFLOW\n\n";
         cnvt << "VERIFICATION FAILED";
         break;
+      case (Tools::PropertyViolated::FALSE_DIVBYZERO):
+        cnvt << "Violated property:\n";
+        cnvt << "\tfile " << this->fileName << " ";
+        cnvt << "line " << this->lineNumber << " ";
+        cnvt << "function " << this->functionName << "\n";
+        cnvt << "\tFALSE-DIVBYZERO\n\n";
+        cnvt << "VERIFICATION FAILED";
+        break;
       case (Tools::PropertyViolated::FALSE_MEMTRACK):
         // TODO(hbgit): Add message for target reached
         cnvt << "Violated property:\n";

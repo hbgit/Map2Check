@@ -228,6 +228,9 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         } else if (line == "OVERFLOW") {
           Map2Check::Log::Debug("OVERFLOW found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
+        } else if (line == "FALSE-DIVBYZERO") {
+          Map2Check::Log::Debug("FALSE-DIVBYZERO found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_DIVBYZERO;
         } else if (line == "UNKNOWN") {
           Map2Check::Log::Debug("UNKNOWN found");
           this->propertyViolated = Tools::PropertyViolated::UNKNOWN;

@@ -62,6 +62,7 @@ constexpr char const* llvmLinkBinary = "${MAP2CHECK_PATH}/bin/llvm-link";
 /** Represents what kind of property was violated */
 enum class PropertyViolated {
   FALSE_OVERFLOW,
+  FALSE_DIVBYZERO,
   TARGET_REACHED,
   FALSE_FREE,
   FALSE_DEREF,

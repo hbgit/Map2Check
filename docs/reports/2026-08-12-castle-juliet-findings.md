@@ -66,9 +66,29 @@
 ### 1.7 Mapeamento CWE→modo (CASTLE)
 - `134` (format string), `253` (checagem de retorno), `362` (race) → **N/A**
   (nenhum modo detecta).
-- `369` (div por zero) → `--check-overflow` (correto; ainda FN até
-  `divisionByZeroError()` ser implementado).
+- `369` (div por zero) → `--check-overflow` (agora funcional via §1.8).
 - `617` → `--check-asserts` (agora funcional via §1.4).
+
+### 1.8 Divisão por zero — propriedade dedicada `FALSE-DIVBYZERO`
+- **Bug:** `divisionByZeroError()` era TODO no-op; div-por-zero não era
+  detectado.
+- **Fix:** implementar a checagem + propriedade dedicada (segue a convenção de
+  KLEE/CBMC/SV-COMP — CWE-369 usa `unreach-call`, não `no-overflow`).
+- **Arquivos:** `AnalysisModeOverflow.c`, `Map2CheckTypes.h`, `PropertyGenerator.c`,
+  `tools.hpp/.cpp`, `counter_example.cpp/.hpp`, parsers dos evals, `test_modes.sh`.
+- **Validação:** `div_bug`⇒`FALSE-DIVBYZERO`, `CASTLE-369-1`⇒`FALSE`.
+- **Commit:** `c09378d6b`
+
+### 1.9 Assinatura i64/i32 dos binops do OverflowPass (bug latente)
+- **Bug:** `OperationsFunctions.hpp` declarava `map2check_binop_{add,sub,mul,sdiv}`
+  com parâmetros `i64`, mas a runtime (`AnalysisModeOverflow.c`) define `int`
+  (i32). A checagem runtime de overflow estava **silenciosamente quebrada** — o
+  overflow só era detectado via warning `-Winteger-overflow` do clang.
+- **Bug 2:** o check era inserido **depois** da operação; para div-por-zero o
+  `sdiv` dispara SIGFPE antes do check.
+- **Fix:** declarar `i32` (sem cast i64) + inserir o check **antes** da operação.
+- **Validação:** `ov_nondet` (overflow runtime) ⇒ `OVERFLOW`/`FAILED`.
+- **Commit:** `2cd1042ac`
 
 ---
 
@@ -77,8 +97,9 @@
 | # | Achado | Local | Situação |
 |---|---|---|---|
 | A | Truncamento 32-bit no allocation log | `AllocationLog.c` | ✅ corrigido (§1.3) |
+| A2 | Assinatura i64/i32 + ponto de inserção dos binops (overflow runtime quebrado) | `OperationsFunctions.hpp`, `OverflowPass.cpp` | ✅ corrigido (§1.9) |
 | B | `--target-function --target-function-name main` é **degenerado**: TargetPass instrumenta chamadas *para* `main` (que ninguém faz) e `AnalysisModeNone` sempre retorna "correct" | `TargetPass.cpp`, `AnalysisModeNone.c` | aberto (afeta 253/362/369/628/674/770/835) |
-| C | `divisionByZeroError()` é TODO no-op | `AnalysisModeOverflow.c:86` | aberto (369) |
+| C | `divisionByZeroError()` era TODO no-op | `AnalysisModeOverflow.c:86` | ✅ corrigido (§1.8) |
 | D | Overhead "fuzzer-first": default roda LibFuzzer (60s) antes do KLEE | `map2check.cpp:498-508` | aberto (G5 — lean reachability via `--nondet-generator symex`) |
 | E | 33/250 CASTLE não compilam por headers externos (`mysql.h`, `openssl/*.h`) | imagem Docker | aberto (maioria CWE-89/798, fora de escopo) |
 
@@ -103,7 +124,7 @@
 
 ## 5. Backlog (próximos passos, sem trocar engine)
 
-1. Implementar `divisionByZeroError()` (CWE-369).
+1. ~~Implementar `divisionByZeroError()` (CWE-369)~~ ✅ (§1.8).
 2. Corrigir/desativar o modo reachability degenerado (TargetPass target=main).
 3. Lean reachability (KLEE-only por default em reachability).
 4. Instrumentar funções de string libc (`strcpy`/`memcpy`) no MemoryTrackPass.

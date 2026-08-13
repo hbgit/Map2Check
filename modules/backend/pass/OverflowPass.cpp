@@ -250,8 +250,6 @@ PreservedAnalyses OverflowPass::run(Function &F,
       }
 
       if (BinaryOperator *binOp = dyn_cast<BinaryOperator>(&*i)) {
-        BasicBlock::iterator currentInstruction = i;
-
         Twine bitcast("map2check_pointer_cast");
         DebugInfo debugInfo(&F.getContext(), binOp);
 
@@ -259,8 +257,10 @@ PreservedAnalyses OverflowPass::run(Function &F,
 
         Value *firstOperand = binOp->getOperand(0);
         Value *secondOperand = binOp->getOperand(1);
-        currentInstruction++;
-        IRBuilder<> builder(BBIteratorToInst(currentInstruction));
+        // Insert the runtime check BEFORE the arithmetic operation: for
+        // division by zero the operation itself traps (SIGFPE), so a check
+        // inserted after it would never run.
+        IRBuilder<> builder(BBIteratorToInst(i));
 
         // errs() << debugInfo.getLineNumberInt() << "=============\n";
         // get only variable names
@@ -417,7 +417,7 @@ PreservedAnalyses OverflowPass::run(Function &F,
           Value *firstOperand64Ty;
           if (firstOperand->getType() == Type::getInt32Ty(*Ctx)) {
             firstOperand64Ty = CastInst::CreateIntegerCast(
-                firstOperand, Type::getInt64Ty(*Ctx), false, "cast",
+                firstOperand, Type::getInt32Ty(*Ctx), false, "cast",
                 BBIteratorToInst(i));
           } else {
             firstOperand64Ty = firstOperand;
@@ -426,7 +426,7 @@ PreservedAnalyses OverflowPass::run(Function &F,
           Value *secondOperand64Ty;
           if (secondOperand->getType() == Type::getInt32Ty(*Ctx)) {
             secondOperand64Ty = CastInst::CreateIntegerCast(
-                secondOperand, Type::getInt64Ty(*Ctx), false, "cast",
+                secondOperand, Type::getInt32Ty(*Ctx), false, "cast",
                 BBIteratorToInst(i));
           } else {
             secondOperand64Ty = secondOperand;

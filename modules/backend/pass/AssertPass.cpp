@@ -55,6 +55,21 @@ void AssertPass::instrumentAssert(CallInst* assertInst, LLVMContext* Ctx) {
   builder.CreateCall(this->map2check_assert, args);
 }
 
+void AssertPass::instrumentAssertFail(CallInst* assertInst, LLVMContext* Ctx) {
+  IRBuilder<> builder(assertInst);
+  // A call to __assert_fail is only reached when the assertion already failed,
+  // so emit a constant-false condition. glibc signature:
+  //   __assert_fail(const char *assertion, const char *file,
+  //                 unsigned int line, const char *function)
+  Value* condition = ConstantInt::get(Type::getInt32Ty(*Ctx), 0);
+  Value* line = assertInst->getArgOperand(2);
+  Value* function_llvm = assertInst->getArgOperand(3);
+
+  Value* args[] = {condition, line, function_llvm};
+
+  builder.CreateCall(this->map2check_assert, args);
+}
+
 void AssertPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
   Function* calleeFunction = callInst->getCalledFunction();
 
@@ -68,6 +83,8 @@ void AssertPass::runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx) {
   }
   if (calleeFunction->getName() == "__VERIFIER_assert") {
     this->instrumentAssert(callInst, Ctx);
+  } else if (calleeFunction->getName() == "__assert_fail") {
+    this->instrumentAssertFail(callInst, Ctx);
   }
 }
 

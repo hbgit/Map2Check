@@ -47,6 +47,7 @@ struct AssertPass : public llvm::PassInfoMixin<AssertPass> {
 
  protected:
   void instrumentAssert(CallInst* assertInst, LLVMContext* Ctx);
+  void instrumentAssertFail(CallInst* assertInst, LLVMContext* Ctx);
   void runOnCallInstruction(CallInst* callInst, LLVMContext* Ctx);
   Value* getFunctionNameValue() { return this->functionName; }
 

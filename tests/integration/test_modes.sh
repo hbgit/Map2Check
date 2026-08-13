@@ -40,6 +40,11 @@ extern void __VERIFIER_assert(int);
 int main(void) { int x = 1; __VERIFIER_assert(x > 0); return 0; }
 EOF
 
+cat > "$TMPDIR/as_libc_bug.c" <<'EOF'
+#include <assert.h>
+int main(void) { int x = 0; assert(x > 0); return 0; }
+EOF
+
 cat > "$TMPDIR/tg_bug.c" <<'EOF'
 extern void __VERIFIER_error(void);
 int main(void) { __VERIFIER_error(); return 0; }
@@ -93,6 +98,7 @@ run "$TMPDIR/ov_bug.c" "--check-overflow" FALSE overflow_bug
 run "$TMPDIR/ov_safe.c" "--check-overflow" TRUE overflow_safe
 run "$TMPDIR/as_bug.c" "--check-asserts" FALSE assert_bug
 run "$TMPDIR/as_safe.c" "--check-asserts" TRUE assert_safe
+run "$TMPDIR/as_libc_bug.c" "--check-asserts" FALSE assert_libc_bug
 run "$TMPDIR/tg_bug.c" "--target-function --target-function-name __VERIFIER_error" FALSE target_bug
 run "$TMPDIR/tg_safe.c" "--target-function --target-function-name __VERIFIER_error" TRUE target_safe
 echo "============================================================"

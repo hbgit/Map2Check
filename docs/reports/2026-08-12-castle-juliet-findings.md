@@ -111,6 +111,31 @@
 | E | 33/250 CASTLE não compilam por headers externos (`mysql.h`, `openssl/*.h`) | imagem Docker | aberto (maioria CWE-89/798, fora de escopo) |
 | F | `--add-invariants` aceito e ignorado **sem rastro** na entrada `.bc`: o aviso do §1.5 estava dentro de `if (!is_llvmir_in)` | `map2check.cpp:227-245` | ✅ corrigido — agora sai com código 3 |
 | G | `main()` descarta o retorno de `map2check_execution()` nas três chamadas, então o código de saída nunca reflete o resultado da análise — inclusive o `return 1` de `--expected-result` | `map2check.cpp:521,524,528` | aberto |
+| H | **Use-after-scope no log de nondet:** `NONDET_CALL.value` guardava o endereço do parâmetro `value` do wrapper `map2check_nondet_*`. Esse quadro de pilha já morreu quando o log é gravado na saída | `Map2CheckTypes.h`, `NonDetLog.c` | ✅ corrigido — valor agora inline (união) |
+| I | `map2check_nondet_double` registrava o tipo como `UNSIGNED`, então todo double logado saía como `%u` sobre 4 bytes da mantissa | `NonDetLog.c:130` | ✅ corrigido |
+| J | Todo estado bifurcado do KLEE grava o mesmo `klee_log.csv` na saída; o último a terminar vence, e não é o violador (que aborta cedo) | `WitnessGeneration.c`, `Map2CheckFunctions.c` | ✅ corrigido — flush só na violação |
+
+### O log de nondet estava vazio em toda execução simbólica
+
+Os achados **H**, **I** e **J** foram descobertos juntos, ao tentar emitir a test
+suite do Test-Comp, e explicam por que o `klee_log.csv` saía com **zero bytes**
+em todo run com `--nondet-generator symex`:
+
+1. O KLEE detectava o erro de ponteiro do achado **H** dentro do próprio
+   `nondet_log_to_file()` e matava o estado — `completed paths = 0`,
+   `test000001.ptr.err`. Nativamente o mesmo código costumava "funcionar",
+   porque a pilha morta ainda continha o valor: é UB que passa despercebido
+   fora de um executor simbólico.
+2. Corrigido **H**, o vetor passou a sair com o primeiro valor certo e o
+   segundo errado — porque um estado que tomou outro ramo sobrescrevia o
+   arquivo depois (achado **J**).
+3. Corrigidos os dois, o vetor recuperado é exatamente o da execução violadora.
+
+Consequência para o baseline v5: nenhum veredito muda — a detecção nunca
+dependeu do log —, mas **nenhum contraexemplo de execução simbólica jamais
+carregou valores de entrada**, e a coluna de valores nondet dos witnesses
+gerados sob KLEE não tinha conteúdo. Isso é pré-requisito para pontuar no
+Test-Comp, onde o vetor de entrada *é* o artefato avaliado.
 
 ### Correção do registro: o pass 2 do CASTLE nunca aplicou invariantes
 

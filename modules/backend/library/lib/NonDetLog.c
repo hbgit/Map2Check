@@ -34,18 +34,16 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
     fprintf(output, "%s;", call->function_name);
     fprintf(output, "%u;", call->step_on_execution);
 
-    // The value generated from nondet function
+    // The value generated from nondet function. Read inline: it is stored in
+    // the row, not behind a pointer into a stack frame that no longer exists.
     if (((int)call->type) == UNSIGNED) {
-      unsigned *tmp_uvalue = call->value;
-      fprintf(output, "%u;", *tmp_uvalue);
+      fprintf(output, "%u;", call->value.as_unsigned);
     }
     if (((int)call->type) == DOUBLE) {
-      double *tmp_dvalue = call->value;
-      fprintf(output, "%lf;", *tmp_dvalue);
+      fprintf(output, "%lf;", call->value.as_double);
     }
     else {
-      int *tmp_ivalue = call->value;
-      fprintf(output, "%d;", *tmp_ivalue);
+      fprintf(output, "%d;", call->value.as_int);
     }
 
     // Type of the nondet function
@@ -67,7 +65,17 @@ NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,
   result.type = type;
   strncpy(result.function_name, function_name, FUNCTION_MAX_LENGTH_NAME);
   result.line = line;
-  result.value = value;
+  /* Copy the value in NOW, while the caller's storage is still alive. Keeping
+   * the pointer instead is what made every symbolic run lose its nondet log:
+   * `value` points at a parameter of the map2check_nondet_* wrapper, and that
+   * frame is gone long before the log is flushed at exit. */
+  if (value != NULL) {
+    if (type == DOUBLE) {
+      result.value.as_double = *(double *)value;
+    } else {
+      result.value.as_int = *(int *)value;
+    }
+  }
   result.scope = scope;
   result.step_on_execution = step;
   return result;
@@ -128,10 +136,11 @@ void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
 
 void map2check_nondet_double(unsigned line, unsigned scope, double value,
                                const char *function_name) {
-  // TODO: save unsigned into ptr void
-  void *tmp_void_double = &value;
+  /* DOUBLE, not UNSIGNED. Tagging a double as unsigned made the writer read
+   * the first four bytes of the mantissa and print them with %u, so every
+   * logged floating-point input was nonsense. */
   NONDET_CALL nondetCall =
-      new_nondet_call(UNSIGNED, line, scope, tmp_void_double, function_name,
+      new_nondet_call(DOUBLE, line, scope, &value, function_name,
                       map2check_get_current_step());
   helper_map2check_nondet_append_element(nondetCall);
 }

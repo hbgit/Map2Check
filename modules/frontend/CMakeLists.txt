@@ -2,6 +2,7 @@
 add_subdirectory(utils)
 add_subdirectory(counter_example)
 add_subdirectory(witness)
+add_subdirectory(test_suite)
 # Version string embedded in the binary (--version / help banner).
 # The release pipeline overrides it with -DMAP2CHECK_VERSION=<semver>;
 # regular builds fall back to the project() version.
@@ -28,7 +29,9 @@ add_executable(map2check map2check.cpp
   $<TARGET_OBJECTS:Edge>
   $<TARGET_OBJECTS:Graph>
   $<TARGET_OBJECTS:Node>
-  $<TARGET_OBJECTS:Witness>)
+  $<TARGET_OBJECTS:Witness>
+  $<TARGET_OBJECTS:TestSuite>
+  $<TARGET_OBJECTS:Sha256>)
 
 target_include_directories(map2check PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 

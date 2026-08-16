@@ -17,6 +17,7 @@
 #include "map2check.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -28,8 +29,10 @@
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
+#include "test_suite/test_suite.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
+#include "utils/sha256.hpp"
 #include "witness/witness_include.hpp"
 #include "wasm_lifter.hpp"
 
@@ -68,6 +71,68 @@ bool invariantGeneratorAvailable() {
   // disagree about where Clam is.
   return fs::exists(Map2Check::clamBinary());
 #endif
+}
+
+/** The <specification> field of the test-suite metadata.
+ *
+ * BenchExec always hands the tool a property file, and copying it verbatim is
+ * what keeps the metadata correct when the competition revises a property
+ * string -- guessing it here would silently drift. The fallbacks exist only so
+ * a manual run without --property-file still produces a valid suite. */
+std::string resolveSpecification(const std::string &propertyFile,
+                                 Map2Check::Map2CheckMode mode) {
+  if (!propertyFile.empty()) {
+    std::ifstream in(propertyFile);
+    if (in.is_open()) {
+      std::ostringstream buffer;
+      buffer << in.rdbuf();
+      std::string text = buffer.str();
+      // Property files end with a newline that does not belong in an element.
+      while (!text.empty() && (text.back() == '\n' || text.back() == '\r')) {
+        text.pop_back();
+      }
+      if (!text.empty()) return text;
+    }
+    Map2Check::Log::Warning("could not read property file: " + propertyFile);
+  }
+  if (mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+    return "COVER( init(main()), FQL(COVER EDGES(@CALL(reach_error))) )";
+  }
+  return "COVER( init(main()), FQL(COVER EDGES(@DECISIONEDGE)) )";
+}
+
+/** Serializes the violating execution's nondet log as a Test-Comp test suite.
+ *
+ * Must run before Caller::cleanGarbage(): klee_log.csv lives in the scratch
+ * directory that cleanGarbage() deletes, and the suite must not. */
+void emitTestSuite(const std::string &outputDir, const std::string &programFile,
+                   const std::string &entryFunction,
+                   const std::string &architecture,
+                   const std::string &specification, bool coversError) {
+  std::vector<std::string> inputs =
+      Map2Check::readNonDetLog(Map2Check::kleeLogCSV);
+
+  Map2Check::TestSuiteMetadata metadata;
+  metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
+  metadata.specification = specification;
+  metadata.programFile = programFile;
+  metadata.programHash = Map2Check::sha256File(programFile);
+  metadata.entryFunction = entryFunction;
+  metadata.architecture = architecture;
+  metadata.creationTime = Map2Check::isoUtcNow();
+
+  Map2Check::TestSuiteWriter writer(outputDir);
+  if (!writer.writeMetadata(metadata)) {
+    Map2Check::Log::Warning("could not write test-suite metadata to " +
+                            outputDir);
+    return;
+  }
+  if (!writer.writeTestCase(inputs, coversError)) {
+    Map2Check::Log::Warning("could not write test case to " + outputDir);
+    return;
+  }
+  Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                       std::to_string(inputs.size()) + " inputs)");
 }
 
 inline void help_msg() {
@@ -170,6 +235,10 @@ struct map2check_args {
   bool printCounterExample = false;
   bool btree = false;
   bool invCrabLlvm = false;
+  bool generateTestSuite = false;
+  std::string testSuiteDir = "test-suite";
+  std::string propertyFile;
+  std::string architecture = "64bit";
   Map2Check::NonDetGenerator generator;
   std::string spectTrue = "safetyMemory";
 };
@@ -319,6 +388,18 @@ int map2check_execution(map2check_args args) {
     if (args.generateTestCase) counterExample->generateTestCase();
     if (args.generateWitness)
       generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+    if (args.generateTestSuite) {
+      // Relative paths resolve against the directory map2check was invoked
+      // from, not the scratch directory the pipeline chdir'd into -- the suite
+      // has to outlive cleanGarbage().
+      std::string outputDir = args.testSuiteDir;
+      if (!fs::path(outputDir).is_absolute()) {
+        outputDir = caller->getOriginalPath() + "/" + outputDir;
+      }
+      emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
+                    args.architecture,
+                    resolveSpecification(args.propertyFile, args.mode), true);
+    }
   }
 
   // (6) Clean map2check execution (folders and temp files)
@@ -374,6 +455,14 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("check-asserts", "\tanalyze program and verify assert failures")
         ("add-invariants", "\tadding program invariants adopting Crab-LLVM")
         ("generate-witness", "\tgenerates witness file")
+        ("generate-test-suite",
+         "\temits a Test-Comp test suite reproducing the violation found")
+        ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
+         "\tdirectory to write the test suite into")
+        ("property-file", po::value<std::string>(),
+         "\tproperty file whose contents go verbatim into <specification>")
+        ("architecture", po::value<std::string>()->default_value("64bit"),
+         "\tmachine model recorded in the test-suite metadata")
         ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
         ("btree", "\tuses btree structure to hold information (experimental, use this "
         "if you are having memory problems)")
@@ -469,6 +558,18 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     }
     if (vm.count("generate-witness")) {
       args.generateWitness = true;
+    }
+    if (vm.count("generate-test-suite")) {
+      args.generateTestSuite = true;
+    }
+    if (vm.count("test-suite-dir")) {
+      args.testSuiteDir = vm["test-suite-dir"].as<std::string>();
+    }
+    if (vm.count("property-file")) {
+      args.propertyFile = vm["property-file"].as<std::string>();
+    }
+    if (vm.count("architecture")) {
+      args.architecture = vm["architecture"].as<std::string>();
     }
     if (vm.count("generate-testcase")) {
       args.generateTestCase = true;

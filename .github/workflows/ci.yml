@@ -11,15 +11,20 @@
 name: CI
 
 on:
+  # Push cobre só as branches de integração. O filtro antigo listava 'feat-*'
+  # com hífen, que nunca casou com a convenção real (feat/castle-juliet-baseline,
+  # feat/testcomp-conformance) -- então nenhum push de branch era verificado, e
+  # todo run verde até aqui veio do gatilho pull_request.
+  #
+  # Branches de feature ficam cobertas pelo pull_request abaixo, e não por push,
+  # para não disparar dois runs idênticos a cada push numa branch com PR aberta.
   push:
-    # 'feat-*' (hífen) nunca casou com a convenção real de nomes, que usa barra
-    # -- feat/castle-juliet-baseline, feat/testcomp-conformance. Na prática o CI
-    # só rodava via pull_request, e nenhum push de branch era verificado.
-    branches: [develop, main, master, 'feat/**', 'fix/**']
+    branches: [develop, main, master]
+  # Inclui feat/** como ALVO para que PRs empilhadas sejam verificadas. Sem isso
+  # uma PR cuja base é outra branch de feature não dispara nada -- a #56 abriu
+  # com um único check -- e os gates de regressão que ela própria adiciona nunca
+  # rodariam nela.
   pull_request:
-    # Inclui as branches feat/** como ALVO para que PRs empilhadas sejam
-    # verificadas. Sem isso uma PR cuja base é outra branch de feature não
-    # dispara nada, e os gates de regressão que ela adiciona nunca rodam nela.
     branches: [develop, main, master, 'feat/**']
 
 jobs:

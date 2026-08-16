@@ -44,6 +44,28 @@ renames, and the soundness hazard that decides the default.
   detection is what turns it from a regression guard into a progress detector.
 - C++ follows Google style; run `./check_code_style.py -p`.
 
+## Comparability with the v5 baseline
+
+v5 is frozen as the "before" of a before/after comparison, so every harness change
+made here is a potential confounder and has to be declared rather than discovered
+later. Two deltas land in this plan:
+
+1. **`used_invariants` changes meaning.** In v5 it recorded `yes` for runs that used
+   no invariants at all. From v6 on, `yes` means invariants were actually applied and
+   `unavailable` means the generator was missing. The v5 column is not comparable to
+   the v6 column; only `no` means the same thing in both.
+2. **Pass 2 stops being a duplicate run.** In v5 it re-analysed identical bitcode with
+   identical flags. From v6 on it either applies invariants or does not run. Wall-clock
+   per UNKNOWN row therefore drops even if no verdict changes, so run times are not
+   comparable across the boundary either.
+
+**Attribution rule for the v6 run.** Invariants must be *off* for the headline v6
+CASTLE/Juliet run. Otherwise any improvement is jointly caused by the width-aware
+overflow fix, the timeout fix, the sampling fix and the invariants, and none of them
+can be credited. The invariants question is answered separately and against the same
+build, by the differential in Task 7 — which is why that task compares with/without on
+one binary rather than comparing v6 against v5.
+
 ---
 
 ## PHASE A — stop the silence
@@ -94,7 +116,8 @@ on a competition cluster a warning on stderr disappears into the BenchExec log.
 
 set -u
 
-MAP2CHECK="${MAP2CHECK_PATH:-/workspace/install_e2e}/bin/map2check"
+MAP2CHECK_DIR="${MAP2CHECK_PATH:-/workspace/install_e2e}"
+MAP2CHECK="$MAP2CHECK_DIR/map2check"
 
 PASSED=0
 FAILED=0
@@ -119,7 +142,6 @@ int main(void) {
 EOF
 
 # The .bc path is the one that was silent, so it is the one under test.
-"${MAP2CHECK_PATH:-/workspace/install_e2e}/bin/../bin/map2check" --version >/dev/null 2>&1
 clang-16 -c -emit-llvm -g -o "$WORK/loop.bc" "$WORK/loop.c" 2>/dev/null
 
 echo "============================================================"
@@ -860,7 +882,8 @@ set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CORPUS="${CORPUS:-$SCRIPT_DIR/../castle/CASTLE-Benchmark}"
-MAP2CHECK="${MAP2CHECK_PATH:-/workspace/install_clam_ci}/bin/map2check"
+MAP2CHECK_DIR="${MAP2CHECK_PATH:-/workspace/install_clam_ci}"
+MAP2CHECK="$MAP2CHECK_DIR/map2check"
 BUDGET="${BUDGET:-60}"
 
 . "$SCRIPT_DIR/../lib/verdict_classifier.sh"

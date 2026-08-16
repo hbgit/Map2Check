@@ -908,7 +908,8 @@ the violation branch in `map2check.cpp` — after `executeAnalysis`, before
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MAP2CHECK="${MAP2CHECK_PATH:-/workspace/install_e2e}/bin/map2check"
+MAP2CHECK_DIR="${MAP2CHECK_PATH:-/workspace/install_e2e}"
+MAP2CHECK="$MAP2CHECK_DIR/map2check"
 
 PASSED=0
 FAILED=0
@@ -1281,7 +1282,8 @@ set -u
 
 PROGRAM="$1"
 PROPERTY="$2"
-MAP2CHECK="${MAP2CHECK_PATH:-/workspace/install_e2e}/bin/map2check"
+MAP2CHECK_DIR="${MAP2CHECK_PATH:-/workspace/install_e2e}"
+MAP2CHECK="$MAP2CHECK_DIR/map2check"
 TESTCOV="${TESTCOV:-testcov}"
 BUDGET="${BUDGET:-300}"
 

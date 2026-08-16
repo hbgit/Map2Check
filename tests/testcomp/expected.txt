@@ -17,16 +17,20 @@ no_input.c       COVERED
 char_input.c     COVERED
 unreachable.c    NOT_COVERED
 
-# loop_reads.c -- NOT_COVERED, and not because of the emitter.
+# loop_reads.c -- NOT_COVERED, and the reason is now known (finding K).
 #
-# Map2Check itself returns VERIFICATION UNKNOWN on this program, so no
-# violation is found and no suite is produced; the emitter is never reached.
-# Measured at 60s, 120s and 240s budgets with --nondet-generator symex, all
-# three UNKNOWN, so it is not a budget artefact at this scale.
+# Map2Check DOES find the violation here. Running with --debug shows
+# "TARGET-REACHED found" -- the property file is written -- and then KLEE is
+# killed by the timeout while still exploring other states, at which point
+# map2check.cpp forces the verdict to UNKNOWN and throws the violation away:
 #
-# That is a surprising limit worth its own investigation: four unconstrained
-# symbolic reads summing to a constant is one linear constraint, which KLEE
-# should discharge immediately. It is recorded here rather than deleted,
-# because deleting it would erase the only pointer to the problem. The day it
-# is fixed this line has to become COVERED, and the gate will insist on it.
+#   if (caller->isTimeout()) { propertyViolated = UNKNOWN; }
+#
+# So no suite is emitted and the suite cannot cover anything. The emitter is
+# never reached, and the emitter is not at fault.
+#
+# This line becomes COVERED once the verdict logic consults the property before
+# forcing UNKNOWN on timeout. The gate will insist on the update, which is the
+# point of keeping the case here instead of deleting it.
+# See docs/reports/2026-08-12-castle-juliet-findings.md, finding K.
 loop_reads.c     NOT_COVERED

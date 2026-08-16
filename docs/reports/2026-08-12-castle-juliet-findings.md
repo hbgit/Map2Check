@@ -116,10 +116,10 @@
 | J | Todo estado bifurcado do KLEE grava o mesmo `klee_log.csv` na saída; o último a terminar vence, e não é o violador (que aborta cedo) | `WitnessGeneration.c`, `Map2CheckFunctions.c` | ✅ corrigido — flush só na violação |
 | K | `VERIFICATION UNKNOWN` num programa trivial: quatro leituras nondet somadas comparadas a uma constante (`tests/testcomp/programs/loop_reads.c`). Medido em 60s, 120s e 240s — não é orçamento | a apurar | aberto |
 
-### Achado K: soma de quatro leituras num laço fica UNKNOWN
+### Achado K, investigado: o timeout descarta violações já encontradas
 
-Ao montar o corpus de conformidade do Test-Comp, o programa mais simples que
-usa um laço não é decidido:
+**Sintoma.** Ao montar o corpus de conformidade do Test-Comp, o programa mais
+simples que usa um laço não era decidido:
 
 ```c
 int sum = 0;
@@ -127,20 +127,69 @@ for (int i = 0; i < 4; i++) sum += __VERIFIER_nondet_int();
 if (sum == 10) reach_error();
 ```
 
-Isso é **uma** restrição linear sobre quatro símbolos irrestritos — o tipo de
-consulta que o KLEE descarta imediatamente. Ainda assim o veredito é UNKNOWN
-com `--nondet-generator symex`, em três orçamentos diferentes, enquanto
-`two_guards.c` (duas leituras, guardas aninhadas com igualdade) é resolvido em
-segundos.
+Uma restrição linear sobre quatro símbolos irrestritos, e mesmo assim UNKNOWN.
 
-O caso está registrado no manifesto do gate como `NOT_COVERED` em vez de
-removido do corpus: apagá-lo eliminaria o único ponteiro para o problema, e o
-gate é bidirecional — no dia em que for corrigido, a linha terá de virar
-`COVERED` e o CI vai exigir isso.
+**Causa raiz.** Rodando com `--debug`, a sequência no log é:
 
-Vale investigar antes de qualquer trabalho de eficácia (H2 do plano), porque se
-laços curtos com acumulador ficam indecididos, boa parte dos 45,6% de UNKNOWN
-do anexo pode ter uma causa mais mundana que explosão de caminhos.
+```
+72: TARGET-REACHED found        <- o KLEE encontrou a violação e gravou map2check_property
+75: Note: Forcing timeout
+77: VERIFICATION UNKNOWN
+```
+
+O KLEE **encontra** o alvo. A evidência é gravada em disco. Em seguida ele é
+morto pelo `timeout` (saída 31744 = 124 << 8) porque continua explorando outros
+estados, e `map2check.cpp` faz:
+
+```cpp
+if (caller->isTimeout()) {
+  Map2Check::Log::Warning("Note: Forcing timeout");
+  propertyViolated = UNKNOWN;      // descarta a violação já registrada
+}
+```
+
+A checagem de timeout tem precedência sobre a propriedade violada, então um
+resultado FALSE legítimo — com contraexemplo em disco — é reportado como
+UNKNOWN. **O orçamento acabou depois de a ferramenta ter feito o trabalho.**
+
+**Correção proposta.** Consultar a propriedade antes de forçar UNKNOWN: se
+`map2check_property` registra uma violação, o veredito é FALSE independentemente
+de o orçamento ter expirado em seguida. O timeout só significa "não sei" quando
+nada foi encontrado.
+
+Não aplicada ainda porque muda a contagem UNKNOWN→FALSE em todo o baseline, e
+isso interage com a regra de atribuição declarada para a corrida v6.
+
+**Por que isso importa muito além do gate.** O plano de desenvolvimento atribui
+os 45,6%/50,7% de UNKNOWN a explosão de caminhos e conclui que o acionável é
+orquestração e poda (H2.2–H2.4, 4–8 pw). Este achado mostra um mecanismo
+concreto e barato de inflar UNKNOWN que não tem nada a ver com explosão de
+caminhos. **Quantos dos UNKNOWN do v5 são violações encontradas e descartadas é
+uma pergunta mensurável**, e a resposta deveria preceder qualquer investimento
+em slicing.
+
+**Medições auxiliares.** Bisecção com seis variantes (2 vs 4 leituras, com e sem
+laço, soma vs igualdade) isolou que o laço é irrelevante — `loop2_sum` e
+`straight2_sum` dão exatamente os mesmos 21 caminhos parcialmente completados.
+O que escala é o número de leituras nondet:
+
+| variante | caminhos parciais | instruções |
+|---|---|---|
+| 2 leituras, igualdade | 1 | 147 K |
+| 2 leituras, soma | 21 | 461 K |
+| 4 leituras, soma | 114 | 680 K |
+| 4 leituras em laço, igualdade | 861 | 7,5 M |
+
+Nenhum arquivo `.err` foi gerado, então esses caminhos parciais não são erros.
+O custo por leitura nondet crescer assim é um segundo fio a puxar.
+
+**Erro de método a registrar.** Duas conclusões intermediárias minhas nesta
+investigação estavam erradas e foram corrigidas pelos dados: (i) afirmei que não
+era artefato de orçamento com base em runs de 60/120/240s feitos enquanto
+vários containers KLEE competiam pela CPU; (ii) afirmei que a flag `--debug`
+invertia o veredito, quando na verdade meu `grep ... | head -1` casava a linha
+`TARGET-REACHED found` do log de debug antes da linha de veredito. A segunda
+foi o que acabou revelando a causa raiz.
 
 ### O log de nondet estava vazio em toda execução simbólica
 

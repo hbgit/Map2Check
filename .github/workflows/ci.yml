@@ -355,6 +355,72 @@ jobs:
             '
 
   # ===========================================================
+  # Job: Invariants — o contrato do --add-invariants
+  # ===========================================================
+  # Roda o MESMO teste em qualquer estado em que a imagem esteja. Enquanto a
+  # imagem publicada não trouxer o Clam, ele afirma que a flag falha alto
+  # (issue #54). Quando a imagem passar a trazê-lo, o mesmo teste afirma que a
+  # flag tem sucesso E injeta verifier.assume. A linha CAPABILITY no log diz
+  # qual contrato foi verificado, então a volta da capacidade fica visível em
+  # vez de inferida.
+  #
+  # Nenhum check vermelho é estacionado de propósito: um check que se espera
+  # vermelho passa a ser ignorado, e aí ninguém percebe o dia em que fica verde.
+  invariants-clam:
+    name: Invariants (Clam)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    needs: [build-and-test]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo docker image prune -a -f || true
+
+      - name: Pull map2check-dev image
+        run: docker pull ghcr.io/hbgit/map2check-dev:latest
+
+      - name: Build with -DENABLE_CLAM=ON
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e CC=/usr/bin/clang-16 \
+            -e CXX=/usr/bin/clang++-16 \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              rm -rf build_clam_ci install_clam_ci
+              mkdir -p build_clam_ci && cd build_clam_ci
+              cmake .. -G Ninja \
+                -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DENABLE_CLAM=ON \
+                -DMAP2CHECK_DYNAMIC_LINK=ON \
+                -DCMAKE_INSTALL_PREFIX=/workspace/install_clam_ci
+              ninja
+              ninja install
+              mkdir -p /workspace/install_clam_ci/lib/klee
+              ln -sf /opt/klee/lib/klee/runtime /workspace/install_clam_ci/lib/klee/runtime
+              ln -sf /usr/lib/llvm-16/lib/clang /workspace/install_clam_ci/lib/clang
+            '
+
+      - name: Assert the --add-invariants contract
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e MAP2CHECK_PATH=/workspace/install_clam_ci \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              bash tests/integration/test_add_invariants.sh
+            '
+
+  # ===========================================================
   # Job 6: Dynamic Analysis — Valgrind memcheck (OpenSSF)
   # ===========================================================
   # Build ISOLADO e SEM sanitizers: a shadow memory do ASan/UBSan

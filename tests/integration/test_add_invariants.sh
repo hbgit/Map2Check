@@ -59,10 +59,13 @@ echo "============================================================"
 echo "--add-invariants contract"
 echo "============================================================"
 
+# --debug keeps the scratch directory, which is the only place the intermediate
+# bitcode exists: cleanGarbage() deletes it on a normal run, so without this
+# there is nothing left to inspect for injected invariants.
 run_flag() {
   local input="$1" rc=0
   ( cd "$WORK" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 180 \
-      "$MAP2CHECK" --target-function --target-function-name reach_error \
+      "$MAP2CHECK" --debug --target-function --target-function-name reach_error \
       --add-invariants --nondet-generator symex --timeout 60 "$input" ) \
     > "$WORK/out.txt" 2>&1 || rc=$?
   echo "$rc"
@@ -133,18 +136,25 @@ case "$CAPABILITY" in
     # Succeeding is not enough. Without this assertion the flag could go back
     # to being a no-op, only now wearing a success exit code -- which is worse
     # than the bug this test was written for, because it looks correct.
+    # The scratch directory (<sha1>.map2check/) holds every intermediate: the
+    # Clam-compiled bitcode carrying verifier.assume, and the instrumented one
+    # where NonDetPass has rewritten it to map2check_crab_assume. Either symbol
+    # proves the invariants reached the pipeline.
     found=""
-    for bc in "$WORK"/*.bc "$WORK"/*/*.bc; do
-      [ -f "$bc" ] || continue
-      if llvm-dis-16 -o - "$bc" 2>/dev/null | grep -q 'verifier.assume\|map2check_crab_assume'; then
+    while IFS= read -r bc; do
+      if llvm-dis-16 -o - "$bc" 2>/dev/null \
+           | grep -q 'verifier\.assume\|map2check_crab_assume'; then
         found="$bc"
         break
       fi
-    done
+    done < <(find "$WORK" -name '*.bc' -type f 2>/dev/null | sort)
+
     if [ -n "$found" ]; then
       ok "the produced bitcode carries invariant assumes ($(basename "$found"))"
     else
-      fail "invariant injection" "exit 0 but no verifier.assume in any bitcode"
+      n_bc=$(find "$WORK" -name '*.bc' -type f 2>/dev/null | wc -l)
+      fail "invariant injection" \
+           "exit 0 but no assume symbol in any of the $n_bc bitcode files"
     fi
     ;;
 

@@ -31,8 +31,21 @@ renames, and the soundness hazard that decides the default.
   `-o`, `-m`, `-g` are unchanged.
 - **`verifier.assume` is preserved** in Clam (`lib/Clam/Optimizer/Optimizer.cc:667`).
   `modules/backend/pass/NonDetPass.cpp:95` must not change.
-- **Extra system packages:** `libmpfr-dev`, `libflint-dev`. `libgmp-dev` and
-  `libboost-all-dev` are already in `Dockerfile.dev`.
+- **Extra system packages:** `libmpfr-dev`, `libzstd-dev`, `libcurl4-openssl-dev`.
+  `libgmp-dev` and `libboost-all-dev` are already in `Dockerfile.dev`. `libzstd-dev`
+  is not optional and is easy to miss: LLVM 16 from apt.llvm.org exports
+  `zstd::libzstd_shared` in its CMake export set, so `find_package(LLVM)` inside Clam
+  fails outright without it. `libflint-dev` is **not** needed — it belongs to the
+  PPLite domain, which this build does not enable.
+- **Domains:** none of `CRAB_USE_LDD` / `CRAB_USE_APRON` / `CRAB_USE_ELINA` /
+  `CRAB_USE_PPLITE`. The old `build_crabllvm.py` turned LDD and Apron on, but the
+  invocation used `--crab-track=num` with the default interval domain and never
+  touched them. Leaving them off removes four third-party libraries from the build.
+- **Build order is `crab` then `extra`**, per Clam's README. The old script did
+  `extra` first; the current sequence is:
+  `cmake ..` → `--target crab && cmake ..` → `--target extra && cmake ..` →
+  build → `--target install`. The intermediate `cmake ..` re-reads the cache so the
+  main build can see the dependencies the previous target just installed.
 - **Off by default.** An unsound invariant produces a wrong TRUE, not an error: under
   KLEE `klee_assume` prunes a reachable state, and under LibFuzzer `nondet_assume`
   calls `pthread_exit` and the execution dies silently. Promotion to default requires
@@ -498,9 +511,13 @@ so the WABT and WASI verification steps stay at the end:
 # Built here rather than as a CMake ExternalProject: it is a subprocess tool,
 # not a linked library, and building it per configure would add tens of minutes
 # to every clean build for a capability that is off by default.
+# libzstd-dev is required, not optional: LLVM 16 from apt.llvm.org exports
+# zstd::libzstd_shared, so Clam's find_package(LLVM) fails without it.
+# libflint-dev is NOT needed -- that is the PPLite domain, which is off here.
 RUN apt-get update && apt-get install -y \
     libmpfr-dev \
-    libflint-dev \
+    libzstd-dev \
+    libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth 1 -b dev16 https://github.com/seahorn/clam.git /tmp/clam && \
@@ -509,8 +526,8 @@ RUN git clone --depth 1 -b dev16 https://github.com/seahorn/clam.git /tmp/clam &
              -DCLAM_LLVM_VERSION=16 \
              -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
              -DCMAKE_INSTALL_PREFIX=/opt/clam && \
-    cmake --build . --target extra && cmake .. && \
     cmake --build . --target crab && cmake .. && \
+    cmake --build . --target extra && cmake .. && \
     cmake --build . -j$(nproc) && \
     cmake --build . --target install && \
     rm -rf /tmp/clam
@@ -518,9 +535,11 @@ RUN git clone --depth 1 -b dev16 https://github.com/seahorn/clam.git /tmp/clam &
 ENV CLAM_DIR=/opt/clam
 ```
 
-The three-step `extra` / `crab` / full build mirrors the sequence the old
-`build_crabllvm.py` used and that Clam's README still documents: the dependency targets
-must be built and the cache re-read before the main build can see them.
+The `crab` / `extra` / build / install sequence is Clam's documented one. Each target
+downloads and installs a dependency (Crab itself, then sea-dsa and llvm-seahorn), and
+the `cmake ..` between them re-reads the cache so the next step can see what the
+previous one produced. No optional domain is enabled: `--crab-track=num` uses the
+default interval domain, so LDD, Apron, Elina and PPLite would all be dead weight.
 
 - [ ] **Step 2: Build the image and verify Clam runs**
 

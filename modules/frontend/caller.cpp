@@ -571,8 +571,8 @@ void Caller::compileCFile(bool is_llvm_bc) {
   // TODO(hbgit): (3) Check for overflow errors on compilation
 }
 
-void Caller::compileToCrabLlvm() {
-  Map2Check::Log::Info("Compiling using crab-llvm in " + this->pathprogram);
+void Caller::compileWithClam() {
+  Map2Check::Log::Info("Compiling with Clam (invariants) in " + this->pathprogram);
 
   // (1) Remove unsupported functions and clean the C code
   // TODO(hbgit): improve regex to the next line
@@ -620,25 +620,22 @@ void Caller::compileToCrabLlvm() {
   std::copy(tmp_gpcc.c_str(), tmp_gpcc.c_str() + tmp_gpcc.length() + 1, c_gpcc);
   putenv(c_gpcc);
 
-  // Export libCrab.so from CrabLLVM
-  std::ostringstream getPathLibCrabCommand;
-  getPathLibCrabCommand.str("");
+  // Clam's shared libraries live under its own installation root, not under
+  // the Map2Check prefix: it is an independent tool with its own LLVM-versioned
+  // build. The old path pointed at ${MAP2CHECK_PATH}/bin/crabllvm/lib, which
+  // has not existed since the LLVM 6 era.
+  const char* clamDirEnv = getenv("CLAM_DIR");
+  std::string clamRoot =
+      clamDirEnv != nullptr ? std::string(clamDirEnv)
+                            : std::string(Map2Check::clamDefaultRoot);
 
-  std::ostringstream tmp_ld_p;
-  tmp_ld_p << getenv("LD_LIBRARY_PATH");
+  const char* ldPathEnv = getenv("LD_LIBRARY_PATH");
+  std::ostringstream getPathLibClamCommand;
+  getPathLibClamCommand << "LD_LIBRARY_PATH="
+                        << (ldPathEnv != nullptr ? ldPathEnv : "") << ":"
+                        << clamRoot << "/lib";
 
-
-  getPathLibCrabCommand << "LD_LIBRARY_PATH="
-                        << tmp_ld_p.str().c_str()
-                        << ":"
-                        << getMapPath.str().c_str()
-                        << "/bin/crabllvm/lib";
-
-  // std::ostringstream tmp_ld;
-  // tmp_ld << getenv("LD_LIBRARY_PATH");
-  // std::cout << tmp_ld.str().c_str();
-
-  std::string tmp_gplibcc = getPathLibCrabCommand.str().c_str();
+  std::string tmp_gplibcc = getPathLibClamCommand.str();
   char* c_gplibcc = new char[tmp_gplibcc.length() + 1];
   std::copy(tmp_gplibcc.c_str(), tmp_gplibcc.c_str() + tmp_gplibcc.length() + 1,
             c_gplibcc);
@@ -647,14 +644,39 @@ void Caller::compileToCrabLlvm() {
   std::string compiledFile = programHash + "-compiled.bc";
   std::ostringstream command;
   command.str("");
-  command << Map2Check::crabBinary << " -o " << compiledFile
-          << " -m 64 -g --crab-disable-warnings --disable-lower-gv "
-             "--llvm-pp-loops --crab-promote-assume --crab-inter "
-             "--crab-track=num --crab-add-invariants=block-entry "
+
+  // This flag list is measured, not translated. Clam renamed one option
+  //   crab-llvm: --crab-add-invariants=block-entry
+  //   Clam:      --crab-opt=add-invariants --crab-opt-invariants-loc=block-entry
+  // but two others in the legacy call actively defeat the purpose, and were
+  // dropped after counting verifier.assume calls in the emitted bitcode on a
+  // loop program (5 injected by the baseline flags below):
+  //
+  //   --llvm-pp-loops        5 -> 0. Its loop preprocessing runs after the
+  //                          invariants would be placed, and nothing survives.
+  //   --crab-promote-assume  5 -> 1. It rewrites verifier.assume into the
+  //                          llvm.assume intrinsic (lib/Transforms/PromoteAssume.cc),
+  //                          which is precisely the symbol NonDetPass.cpp:95
+  //                          matches on -- promoting makes the invariants
+  //                          invisible to Map2Check.
+  //
+  // So the legacy invocation would have injected nothing even if crab-llvm had
+  // still built: the capability was dead twice over. --crab-inter and -m 64 -g
+  // were verified harmless (still 5). --crab-disable-warnings and
+  // --disable-lower-gv no longer exist in Clam's option set.
+  //
+  // The emitted verifier.assume is rewritten by NonDetPass into
+  // map2check_crab_assume, which the runtime forwards to klee_assume -- so
+  // nothing downstream needs to change.
+  // See docs/reports/2026-08-16-crabllvm-review.md.
+  command << Map2Check::clamBinary() << " -o " << compiledFile << " -m 64 -g"
+          << " --crab-inter"
+          << " --crab-track=num"
+          << " --crab-opt=add-invariants"
+          << " --crab-opt-invariants-loc=block-entry"
           << " " << programHash << "-preprocessed.c ";
 
-  //<< " -m 64 --crab-dom=oct --crab-track=num --crab-add-invariants=all "
-
+  Map2Check::Log::Debug(command.str());
   system(command.str().c_str());
 
   this->pathprogram = compiledFile;

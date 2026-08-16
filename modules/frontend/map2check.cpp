@@ -64,11 +64,9 @@ bool invariantGeneratorAvailable() {
 #ifndef MAP2CHECK_ENABLE_CLAM
   return false;
 #else
-  const char *clamDir = getenv("CLAM_DIR");
-  std::string driver =
-      (clamDir ? std::string(clamDir) : std::string("/opt/clam")) +
-      "/bin/clam.py";
-  return fs::exists(driver);
+  // Same resolver the invocation uses, so the check and the command can never
+  // disagree about where Clam is.
+  return fs::exists(Map2Check::clamBinary());
 #endif
 }
 
@@ -252,7 +250,7 @@ int map2check_execution(map2check_args args) {
   // CASTLE harness and the BenchExec wrappers all invoke the tool -- which is
   // why it was ignored without a trace (issue #54).
   if (!is_llvmir_in && args.invCrabLlvm) {
-    caller->compileToCrabLlvm();
+    caller->compileWithClam();
   } else {
     caller->compileCFile(is_llvmir_in);
   }
@@ -324,8 +322,18 @@ int map2check_execution(map2check_args args) {
   }
 
   // (6) Clean map2check execution (folders and temp files)
-  Map2Check::Log::Debug("Removing temp files");
-  caller->cleanGarbage();
+  // Kept under --debug: every intermediate artefact of a run lives in that
+  // scratch directory -- the compiled bitcode, the instrumented bitcode, the
+  // nondet log -- and deleting it unconditionally makes the pipeline
+  // impossible to inspect after the fact. Debug runs are already opting into
+  // verbosity and disk use.
+  if (args.debugMode) {
+    Map2Check::Log::Info("Debug mode: keeping temp files in " +
+                         caller->getScratchDir());
+  } else {
+    Map2Check::Log::Debug("Removing temp files");
+    caller->cleanGarbage();
+  }
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {

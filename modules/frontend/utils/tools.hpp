@@ -12,6 +12,7 @@
 #define MODULES_FRONTEND_UTILS_TOOLS_HPP_
 
 #include <algorithm>  // copy
+#include <cstdlib>    // getenv
 #include <fstream>    // fstream
 #include <iostream>   // cout, endl
 #include <iterator>   // ostream_operator
@@ -33,9 +34,24 @@ namespace Map2Check {
 constexpr char const* ktestBinary = "${MAP2CHECK_PATH}/bin/ktest-tool";
 /** Path to clang binary (from llvm) */
 constexpr char const* clangBinary = "${MAP2CHECK_PATH}/bin/clang";
-/** Path to crab-llvm path binary (from crab-llvm) */
-constexpr char const* crabBinary =
-    "${MAP2CHECK_PATH}/bin/crabllvm/bin/crabllvm.py";
+/** Default Clam installation root, used when CLAM_DIR is not set. */
+constexpr char const* clamDefaultRoot = "/opt/clam";
+
+/** Absolute path to the Clam driver, the abstract-interpretation invariant
+ * generator. Clam is the current name of crab-llvm: the project was renamed,
+ * not abandoned. It installs outside the Map2Check prefix because it is an
+ * independent tool with its own LLVM-versioned build, so it keys off CLAM_DIR
+ * rather than MAP2CHECK_PATH.
+ *
+ * Resolved in C++ rather than left as a "${CLAM_DIR}" string for the shell to
+ * expand, so that the availability check and the command that gets run cannot
+ * disagree about where Clam is -- with shell expansion an unset CLAM_DIR
+ * silently becomes "/bin/clam.py" while the check looks at the default root. */
+inline std::string clamBinary() {
+  const char* dir = getenv("CLAM_DIR");
+  return (dir != nullptr ? std::string(dir) : std::string(clamDefaultRoot)) +
+         "/bin/clam.py";
+}
 /** Path to clang include folder (usually
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
 constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";

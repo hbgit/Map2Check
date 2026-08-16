@@ -4,7 +4,7 @@
 # Scope C: CWEs 121, 122, 415, 416, 476, 761 (--memtrack), 190 (--check-overflow),
 #          401 (--memcleanup-property).
 #
-# Juliet here is the RAW NIST tree under test-comp2026/juliet/testcases/ (not the
+# Juliet here is the RAW NIST tree under tests/juliet/juliet-test-suite-c/testcases/ (not the
 # sv-benchmarks tasks). Each .c file is compiled TWICE to separate the variants:
 #   bad  = -DINCLUDEMAIN -DOMITGOOD  -> vulnerable (expect FALSE)
 #   good = -DINCLUDEMAIN -DOMITBAD   -> safe       (expect TRUE)
@@ -18,7 +18,8 @@
 # Resumable: rows already present in the CSV are skipped (key = <name>|<bad|good>).
 # Each run executes in an isolated CWD (map2check writes CWD-relative artifacts).
 #
-# Env: MAP2CHECK_PATH (dir with map2check binary), JULIET_DIR (default ../juliet),
+# Env: MAP2CHECK_PATH (dir with map2check binary), JULIET_DIR (default the
+#      juliet-test-suite-c submodule beside this script),
 #      RESULTS_DIR, OUTER_TIMEOUT, INNER_TIMEOUT, LIMIT (max files, for smoke tests),
 #      PER_FAMILY (files sampled per test family — see "SAMPLING" below).
 #
@@ -82,11 +83,11 @@ MAP2CHECK="$MAP2CHECK_DIR/map2check"
 CLANG="${CLANG:-/usr/bin/clang-16}"
 LLVM_LINK="${LLVM_LINK:-/usr/bin/llvm-link-16}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-JULIET_DIR="${JULIET_DIR:-$SCRIPT_DIR/../juliet}"
+JULIET_DIR="${JULIET_DIR:-$SCRIPT_DIR/juliet-test-suite-c}"
 SUPPORT_DIR="$JULIET_DIR/testcasesupport"
 TESTCASES_DIR="$JULIET_DIR/testcases"
 STUBS="$SCRIPT_DIR/juliet_stubs.c"
-RESULTS_DIR="${RESULTS_DIR:-$SCRIPT_DIR/resultados_de_testes/juliet_scope_c}"
+RESULTS_DIR="${RESULTS_DIR:-$SCRIPT_DIR/results}"
 OUTER_TIMEOUT="${OUTER_TIMEOUT:-300}"
 INNER_TIMEOUT="${INNER_TIMEOUT:-60}"
 LIMIT="${LIMIT:-0}"                       # 0 = unlimited, counted across all CWEs
@@ -149,10 +150,10 @@ log() { echo "[$(date -u +%H:%M:%S)] $*" | tee -a "$LOG"; }
 # tests/integration/test_verdict_classifier.sh — see that file for why
 # "Forcing timeout" is not a timeout signal. Juliet only needs the coarse
 # FALSE/TRUE distinction, so the fine-grained FALSE-* verdicts collapse here.
-# shellcheck source=../../tests/lib/verdict_classifier.sh
-. "$SCRIPT_DIR/../../tests/lib/verdict_classifier.sh"
-# shellcheck source=../../tests/lib/isolated_run.sh
-. "$SCRIPT_DIR/../../tests/lib/isolated_run.sh"
+# shellcheck source=../lib/verdict_classifier.sh
+. "$SCRIPT_DIR/../lib/verdict_classifier.sh"
+# shellcheck source=../lib/isolated_run.sh
+. "$SCRIPT_DIR/../lib/isolated_run.sh"
 
 classify_verdict() {
   local verdict

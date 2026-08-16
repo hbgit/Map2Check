@@ -16,7 +16,7 @@
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-RUNNER="$SCRIPT_DIR/../../test-comp2026/simulation/run_juliet_evaluation.sh"
+RUNNER="$SCRIPT_DIR/../juliet/run_juliet_evaluation.sh"
 
 PASSED=0
 FAILED=0
@@ -177,8 +177,8 @@ else
 fi
 
 # Nothing above may have written into the repository.
-if [ -e "$SCRIPT_DIR/../../test-comp2026/simulation/resultados_de_testes/juliet_scope_c" ]; then
-  fail "no side effects" "the runner created resultados_de_testes/juliet_scope_c in the working tree"
+if [ -e "$SCRIPT_DIR/../juliet/results" ]; then
+  fail "no side effects" "the runner created tests/juliet/results in the working tree"
 else
   ok "no results directories created in the working tree"
 fi

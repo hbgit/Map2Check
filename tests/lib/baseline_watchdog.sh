@@ -25,7 +25,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # report 0 rows forever on the next run -- silently, while the disk guard kept
 # working. A wrong monitoring number is worse than none, so the tag is explicit.
 : "${BASELINE_TAG:=v5}"
-JULIET_GLOB="$REPO/test-comp2026/simulation/resultados_de_testes/juliet_${BASELINE_TAG}_*/juliet_scope_c_results.csv"
+JULIET_GLOB="$REPO/tests/juliet/results_${BASELINE_TAG}_*/juliet_scope_c_results.csv"
 CASTLE_CSV="$REPO/tests/castle/results_${BASELINE_TAG}/castle_results.csv"
 
 say() { printf '%s %s\n' "$(date -u +%H:%M:%S)" "$*" >> "$LOG"; }
@@ -39,7 +39,7 @@ while :; do
   # `docker system df` reports the same total over the API, no privileges needed.
   docker_gb=$(docker system df --format '{{.Size}}' 2>/dev/null \
                 | awk '/GB/{s+=$1} /MB/{s+=$1/1024} END {printf "%d", s+0}')
-  res_mb=$(du -sBM "$REPO/tests/castle" "$REPO/test-comp2026/simulation/resultados_de_testes" 2>/dev/null \
+  res_mb=$(du -sBM "$REPO/tests/castle" "$REPO/tests/juliet" 2>/dev/null \
              | awk '{s+=$1} END {print s+0}')
 
   # Container log sizes (the unbounded-by-default risk) and liveness.

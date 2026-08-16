@@ -43,6 +43,14 @@ constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";
 constexpr char const* listLogCSV = "list_log.csv";
 /** Path to klee binary */
 constexpr char const* kleeBinary = "${MAP2CHECK_PATH}/bin/klee";
+/** Seconds granted between SIGTERM and SIGKILL when a backend overruns its
+ * slice (`timeout -k`). Both KLEE and LibFuzzer catch SIGTERM to shut down
+ * gracefully, and both can miss it while wedged -- KLEE inside the solver,
+ * LibFuzzer across its -jobs workers. Without the escalation `timeout` waits
+ * forever on a child that will not die and the whole run hangs past its
+ * budget. Long enough for a real graceful exit, short enough not to distort
+ * the budget. */
+constexpr int killGracePeriod = 10;
 /** Path to generated klee log file (check MemoryUtils implementation) */
 constexpr char const* kleeLogCSV = "klee_log.csv";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */

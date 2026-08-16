@@ -387,7 +387,13 @@ void Caller::executeAnalysis(std::string solvername) {
       Map2Check::Log::Info("Executing Klee with map2check");
       std::ostringstream kleeCommand;
       kleeCommand.str("");
-      kleeCommand << "timeout " << (0.8 * this->timeout) << " ";
+      // -k: KLEE installs a SIGTERM handler that tries to shut down gracefully,
+      // but that handler never runs while the solver is wedged. Plain `timeout`
+      // then waits forever for a child that will not die, and map2check hangs
+      // past its own budget. The grace period escalates to SIGKILL so the
+      // budget is actually enforced.
+      kleeCommand << "timeout -k " << Map2Check::killGracePeriod << " "
+                  << (0.8 * this->timeout) << " ";
       kleeCommand << Map2Check::kleeBinary;
 
 
@@ -438,7 +444,10 @@ void Caller::executeAnalysis(std::string solvername) {
       Map2Check::Log::Info("Executing LibFuzzer with map2check");
       std::ostringstream command;
       command.str("");
-      command << "timeout " << (0.2 * this->timeout) << " ";
+      // -k for the same reason as the KLEE branch above; -jobs=8 also means
+      // LibFuzzer forks workers that must not outlive the budget.
+      command << "timeout -k " << Map2Check::killGracePeriod << " "
+              << (0.2 * this->timeout) << " ";
       command << "./" + programHash +
                      "-fuzzed.out -jobs=8 -use_value_profile=1 "
               << " > fuzzer.output";

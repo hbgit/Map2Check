@@ -97,6 +97,8 @@ build_clam_ci/
 install_clam_ci/
 build_clam/
 install_clam/
+build_ut/
+install_ut/
 
 # Local agent tooling and scratch material: ai-memory skill installs, editor
 # agent configs, CLAUDE.md backups and the local Test-Comp planning document.

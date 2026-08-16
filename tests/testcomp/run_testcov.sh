@@ -25,8 +25,14 @@ WORK=$(mktemp -d)
 # Keeping the working directory on request is what makes a red CI job
 # debuggable; cleaning by default keeps local runs from littering /tmp with one
 # directory per program per invocation.
+#
+# The notice goes to STDERR and must stay there. In --verdict-only mode stdout
+# carries exactly one word, which the caller captures with $(...); printing this
+# on stdout appended a second line to the verdict and made every comparison
+# fail with "expected COVERED, observed COVERED". It passed locally and failed
+# in CI purely because only the CI step sets KEEP_WORK.
 if [ -n "${KEEP_WORK:-}" ]; then
-  trap 'echo "  (work kept at $WORK)"' EXIT
+  trap 'echo "  (work kept at $WORK)" >&2' EXIT
 else
   trap 'rm -rf "$WORK"' EXIT
 fi
@@ -83,6 +89,25 @@ fi
     --no-isolation -64 --goal "$prop" "$name" ) > "$WORK/testcov.log" 2>&1
 
 verdict=$(testcov_verdict "$WORK/testcov.log")
+
+# An ERROR verdict means TestCov printed neither Result: line -- it did not run,
+# or it ran and blew up. In --verdict-only mode the caller reads stdout and would
+# otherwise see the single word "ERROR" with no way to find out why, which is
+# exactly how this gate first failed in CI: undebuggable from the job log.
+# Diagnostics go to stderr so they reach the log without corrupting the verdict
+# the caller parses from stdout.
+if [ "$verdict" = "ERROR" ]; then
+  {
+    echo "--- $name: TestCov produced no Result: line ---"
+    echo "--- last 25 lines of testcov.log ---"
+    tail -25 "$WORK/testcov.log"
+    echo "--- last 5 lines of map2check.log ---"
+    tail -5 "$WORK/map2check.log"
+    echo "--- suite contents ---"
+    ls -la "$WORK/test-suite" 2>/dev/null
+    echo "--- end $name ---"
+  } >&2
+fi
 
 if [ -n "$VERDICT_ONLY" ]; then
   echo "$verdict"

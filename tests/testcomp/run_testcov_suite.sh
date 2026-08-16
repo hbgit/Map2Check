@@ -43,6 +43,21 @@ while read -r program expected _rest; do
 
   observed=$(bash "$SCRIPT_DIR/run_testcov.sh" "$path" "$PROPERTY" --verdict-only)
 
+  # Guard the contract explicitly. --verdict-only promises exactly one word on
+  # stdout; anything else means the runner leaked a diagnostic there. Left
+  # unchecked that produces "expected COVERED, observed COVERED" -- a comparison
+  # that fails while printing two identical-looking values, which is about the
+  # most confusing way a gate can break. Naming the problem beats tolerating it.
+  case "$observed" in
+    COVERED | NOT_COVERED | ERROR) ;;
+    *)
+      printf '  FAIL %-18s runner emitted an unparseable verdict: %q\n' \
+             "$program" "$observed"
+      FAILED=$((FAILED + 1))
+      continue
+      ;;
+  esac
+
   if [ "$observed" = "$expected" ]; then
     printf '  PASS %-18s %s\n' "$program" "$observed"
     PASSED=$((PASSED + 1))

@@ -85,3 +85,4 @@ tests/castle/results/
 tests/castle/results_v*/
 test-comp2026/simulation/resultados_de_testes/juliet_*/
 test-comp2026/simulation/resultados_de_testes/castle/
+tests/baseline-logs/

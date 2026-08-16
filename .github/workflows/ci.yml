@@ -12,9 +12,15 @@ name: CI
 
 on:
   push:
-    branches: [develop, main, master, 'feat-*']
+    # 'feat-*' (hífen) nunca casou com a convenção real de nomes, que usa barra
+    # -- feat/castle-juliet-baseline, feat/testcomp-conformance. Na prática o CI
+    # só rodava via pull_request, e nenhum push de branch era verificado.
+    branches: [develop, main, master, 'feat/**', 'fix/**']
   pull_request:
-    branches: [develop, main, master]
+    # Inclui as branches feat/** como ALVO para que PRs empilhadas sejam
+    # verificadas. Sem isso uma PR cuja base é outra branch de feature não
+    # dispara nada, e os gates de regressão que ela adiciona nunca rodam nela.
+    branches: [develop, main, master, 'feat/**']
 
 jobs:
   # ===========================================================

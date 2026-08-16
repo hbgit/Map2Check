@@ -1,0 +1,32 @@
+# Expected TestCov verdict per program. Format: <program> <verdict>
+#
+# Legal verdicts: COVERED, NOT_COVERED, ERROR.
+#
+# This file makes the gate bidirectional. A program that stops being COVERED is
+# a regression. A program that STARTS being COVERED when this file says
+# otherwise is also a failure -- it means the tool improved and nobody recorded
+# it, and an unrecorded improvement is indistinguishable from a broken harness.
+# Change a line here deliberately, in the commit that causes the change.
+#
+# Every verdict below was measured, not assumed, at BUDGET=120 against the
+# build of 2026-08-16.
+
+single_int.c     COVERED
+two_guards.c     COVERED
+no_input.c       COVERED
+char_input.c     COVERED
+unreachable.c    NOT_COVERED
+
+# loop_reads.c -- NOT_COVERED, and not because of the emitter.
+#
+# Map2Check itself returns VERIFICATION UNKNOWN on this program, so no
+# violation is found and no suite is produced; the emitter is never reached.
+# Measured at 60s, 120s and 240s budgets with --nondet-generator symex, all
+# three UNKNOWN, so it is not a budget artefact at this scale.
+#
+# That is a surprising limit worth its own investigation: four unconstrained
+# symbolic reads summing to a constant is one linear constraint, which KLEE
+# should discharge immediately. It is recorded here rather than deleted,
+# because deleting it would erase the only pointer to the problem. The day it
+# is fixed this line has to become COVERED, and the gate will insist on it.
+loop_reads.c     NOT_COVERED

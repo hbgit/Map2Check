@@ -155,9 +155,9 @@ covered"` block with a function whose matching is justified by the notes:
 # gate fails loudly instead of turning vacuous.
 testcov_verdict() {
   local log="$1"
-  if grep -qiE '<PATTERN OBSERVED FOR COVERED>' "$log"; then
+  if grep -qE '^Result: TRUE[[:space:]]*$' "$log"; then
     echo COVERED
-  elif grep -qiE '<PATTERN OBSERVED FOR NOT COVERED>' "$log"; then
+  elif grep -qE '^Result: UNKNOWN[[:space:]]*$' "$log"; then
     echo NOT_COVERED
   else
     echo ERROR
@@ -165,8 +165,9 @@ testcov_verdict() {
 }
 ```
 
-Substitute the two placeholders with the patterns from Step 2 before committing.
-Leaving them as written is a plan failure, not an implementation detail.
+**Resolved 2026-08-16.** The patterns above are the observed ones. The decisive
+finding is that TestCov exits **0 in both cases** -- a gate keyed off `$?` would pass
+unconditionally. Full transcripts in `tests/testcomp/NOTES-testcov-output.md`.
 
 - [ ] **Step 4: Verify both verdicts are distinguishable**
 

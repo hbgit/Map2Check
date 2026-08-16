@@ -114,6 +114,33 @@
 | H | **Use-after-scope no log de nondet:** `NONDET_CALL.value` guardava o endereço do parâmetro `value` do wrapper `map2check_nondet_*`. Esse quadro de pilha já morreu quando o log é gravado na saída | `Map2CheckTypes.h`, `NonDetLog.c` | ✅ corrigido — valor agora inline (união) |
 | I | `map2check_nondet_double` registrava o tipo como `UNSIGNED`, então todo double logado saía como `%u` sobre 4 bytes da mantissa | `NonDetLog.c:130` | ✅ corrigido |
 | J | Todo estado bifurcado do KLEE grava o mesmo `klee_log.csv` na saída; o último a terminar vence, e não é o violador (que aborta cedo) | `WitnessGeneration.c`, `Map2CheckFunctions.c` | ✅ corrigido — flush só na violação |
+| K | `VERIFICATION UNKNOWN` num programa trivial: quatro leituras nondet somadas comparadas a uma constante (`tests/testcomp/programs/loop_reads.c`). Medido em 60s, 120s e 240s — não é orçamento | a apurar | aberto |
+
+### Achado K: soma de quatro leituras num laço fica UNKNOWN
+
+Ao montar o corpus de conformidade do Test-Comp, o programa mais simples que
+usa um laço não é decidido:
+
+```c
+int sum = 0;
+for (int i = 0; i < 4; i++) sum += __VERIFIER_nondet_int();
+if (sum == 10) reach_error();
+```
+
+Isso é **uma** restrição linear sobre quatro símbolos irrestritos — o tipo de
+consulta que o KLEE descarta imediatamente. Ainda assim o veredito é UNKNOWN
+com `--nondet-generator symex`, em três orçamentos diferentes, enquanto
+`two_guards.c` (duas leituras, guardas aninhadas com igualdade) é resolvido em
+segundos.
+
+O caso está registrado no manifesto do gate como `NOT_COVERED` em vez de
+removido do corpus: apagá-lo eliminaria o único ponteiro para o problema, e o
+gate é bidirecional — no dia em que for corrigido, a linha terá de virar
+`COVERED` e o CI vai exigir isso.
+
+Vale investigar antes de qualquer trabalho de eficácia (H2 do plano), porque se
+laços curtos com acumulador ficam indecididos, boa parte dos 45,6% de UNKNOWN
+do anexo pode ter uma causa mais mundana que explosão de caminhos.
 
 ### O log de nondet estava vazio em toda execução simbólica
 

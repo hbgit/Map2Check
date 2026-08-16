@@ -62,6 +62,8 @@ is_out_of_scope() {
 # "Forcing timeout" is not a timeout signal.
 # shellcheck source=../lib/verdict_classifier.sh
 . "$SCRIPT_DIR/../lib/verdict_classifier.sh"
+# shellcheck source=../lib/isolated_run.sh
+. "$SCRIPT_DIR/../lib/isolated_run.sh"
 
 INNER_TIMEOUT=300   # map2check's own budget, passed as --timeout below
 
@@ -138,12 +140,26 @@ for t in data['tests']:
 
   mode_flags="${CWE_MODE[$cwe]:---target-function --target-function-name main}"
 
+  # run_isolated gives each invocation a private CWD and captures to a file.
+  #
+  # The private CWD matters here beyond the usual hygiene: map2check names its
+  # scratch "<sha1-of-input-bitcode>.map2check/" relative to the CWD
+  # (caller.cpp:63), i.e. by input CONTENT rather than by run. Pass 1 and the
+  # --add-invariants pass below analyse the SAME .bc and so resolve to the SAME
+  # directory name, and a directory orphaned by an aborted run is reused the
+  # next time that input is analysed, carrying stale artefacts in. It also keeps
+  # the repo working tree free of scratch, which this runner used to litter
+  # because its CWD was the repo root.
+  raw="$RAW_DIR/${name%.c}.txt"
+
   # --- Pass 1: direct ---
   start=$(date +%s%N)
   rc=0
-  output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --timeout "$INNER_TIMEOUT" "$bc_file" 2>&1) || rc=$?
+  run_isolated "$raw" "$TIMEOUT_SEC" \
+    "$MAP2CHECK" $mode_flags --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
   end=$(date +%s%N)
   elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
+  output=$(cat "$raw")
 
   used_invariants="no"
   verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
@@ -153,16 +169,18 @@ for t in data['tests']:
     used_invariants="yes"
     start=$(date +%s%N)
     rc=0
-    output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --add-invariants --timeout "$INNER_TIMEOUT" "$bc_file" 2>&1) || rc=$?
+    run_isolated "$raw" "$TIMEOUT_SEC" \
+      "$MAP2CHECK" $mode_flags --add-invariants --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
     end=$(date +%s%N)
+    output=$(cat "$raw")
     elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
     verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
   fi
 
-  # Keep the raw output: the verdict alone cannot be re-derived, so a
-  # classifier bug would otherwise mean re-running the whole benchmark.
-  printf '%s\n' "$output" > "$RAW_DIR/${name%.c}.txt"
+  # run_isolated already wrote "$raw"; pass 2, when it runs, overwrites it so
+  # the file always matches the verdict finally recorded. Keeping it means a
+  # future classifier bug is repaired by reclassifying rather than re-running.
 
   # The violation line is only reported in the "Violated property" block as
   # "file map2check_property line N". A bare `grep 'line \d+' | head -1` would

@@ -57,3 +57,28 @@ If a program does not reach its expected verdict, do not delete the line and do 
 quietly relax it. Change it to the observed verdict and write down why in the commit
 message. An honest `NOT_COVERED` with a reason is data; a deleted test is a blind
 spot.
+
+## Proof that the gate can fail
+
+A gate nobody has seen fail is a gate nobody should trust. Reversing the order of
+`<input>` elements in the emitter — a change that leaves every suite structurally
+perfect and semantically worthless — was run against this corpus on 2026-08-16:
+
+```
+  PASS single_int.c       COVERED
+  FAIL two_guards.c       expected COVERED, observed NOT_COVERED
+  PASS no_input.c         COVERED
+  PASS char_input.c       COVERED
+  PASS unreachable.c      NOT_COVERED
+  PASS loop_reads.c       NOT_COVERED
+Results: 5 passed, 1 failed          (exit 1)
+```
+
+The gate goes red, as it must. But note **which** program caught it: only
+`two_guards.c`. The others are structurally insensitive to ordering — one input each,
+or none — and `loop_reads.c`, which has four and would also have caught it, is
+currently undecided by the tool (finding K).
+
+So the ordering guarantee rests on a single program today. Two consequences worth
+keeping in mind: do not remove `two_guards.c` without adding another multi-input
+program first, and fixing finding K would restore a second, independent witness.

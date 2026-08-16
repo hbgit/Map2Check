@@ -43,11 +43,33 @@ namespace {
 
 const size_t SUCCESS = 0;
 const size_t ERROR_IN_COMMAND_LINE = 1;
+/** A syntactically valid option asked for a capability this build does not
+ * have. Distinct from ERROR_IN_COMMAND_LINE so callers can tell "you typed it
+ * wrong" from "this binary cannot do that", and act differently. */
+const size_t ERROR_UNAVAILABLE_CAPABILITY = 3;
 // A helper function to simplify the main part.
 template <class T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
   copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
   return os;
+}
+
+/** Whether an invariant generator is installed alongside this build.
+ *
+ * Clam (formerly crab-llvm) is an external tool invoked as a subprocess, so
+ * this is a filesystem question rather than a compile-time one: a binary built
+ * with -DENABLE_CLAM=ON still has to find the installed driver at run time.
+ * Both conditions are checked, because neither implies the other. */
+bool invariantGeneratorAvailable() {
+#ifndef MAP2CHECK_ENABLE_CLAM
+  return false;
+#else
+  const char *clamDir = getenv("CLAM_DIR");
+  std::string driver =
+      (clamDir ? std::string(clamDir) : std::string("/opt/clam")) +
+      "/bin/clam.py";
+  return fs::exists(driver);
+#endif
 }
 
 inline void help_msg() {
@@ -223,25 +245,14 @@ int map2check_execution(map2check_args args) {
   caller->entryFunction = args.entryFunction;
   caller->wasmMode = args.wasmMode;
 
-  if (!is_llvmir_in) {
-    if (args.invCrabLlvm) {
-      // Crab-LLVM is a legacy SeaHorn dependency that was never migrated to
-      // LLVM 16 (FindCrabLlvm.cmake is not wired into the modern build), so
-      // ${MAP2CHECK_PATH}/bin/crabllvm may be absent. Fall back to plain
-      // compilation instead of breaking the pipeline on a missing binary.
-      const char *m2cPath = getenv("MAP2CHECK_PATH");
-      std::string crabPy = (m2cPath ? std::string(m2cPath) : std::string("")) +
-                           "/bin/crabllvm/bin/crabllvm.py";
-      if (fs::exists(crabPy)) {
-        caller->compileToCrabLlvm();
-      } else {
-        Map2Check::Log::Warning(
-            "crabllvm is not built — ignoring --add-invariants");
-        caller->compileCFile(is_llvmir_in);
-      }
-    } else {
-      caller->compileCFile(is_llvmir_in);
-    }
+  // Availability was settled in main(), which refuses the run outright when
+  // the generator is missing. Reaching here with invCrabLlvm set means the
+  // generator is installed. The old code branched on !is_llvmir_in and so
+  // never even looked at the flag for bitcode input -- how the baselines, the
+  // CASTLE harness and the BenchExec wrappers all invoke the tool -- which is
+  // why it was ignored without a trace (issue #54).
+  if (!is_llvmir_in && args.invCrabLlvm) {
+    caller->compileToCrabLlvm();
   } else {
     caller->compileCFile(is_llvmir_in);
   }
@@ -485,6 +496,25 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     } else {
       args.generator = Map2Check::NonDetGenerator::None;
     }
+    // Validated here, next to the other option checks, rather than inside
+    // map2check_execution: main() is the only place whose return value becomes
+    // the process exit code, and asking for a capability the build does not
+    // have is an argument problem, not an analysis outcome. Doing it once here
+    // also avoids repeating it per generator on the hybrid path below.
+    //
+    // The exit code matters more than the message. A warning on stderr is what
+    // this used to be, and on a BenchExec cluster it disappears into the run
+    // log -- which is how --add-invariants stayed dead and unnoticed through
+    // an entire baseline (issue #54).
+    if (args.invCrabLlvm && !invariantGeneratorAvailable()) {
+      Map2Check::Log::Error(
+          "--add-invariants was requested but no invariant generator is "
+          "installed. Crab-LLVM was renamed to Clam and this build does not "
+          "ship it; rebuild with -DENABLE_CLAM=ON, or drop the flag. Refusing "
+          "to continue rather than silently analysing without invariants.");
+      return ERROR_UNAVAILABLE_CAPABILITY;
+    }
+
     if (vm.count("input-file")) {
       std::string pathfile;
       pathfile = accumulate(

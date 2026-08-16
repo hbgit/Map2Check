@@ -940,7 +940,7 @@ echo "============================================================"
 
 ( cd "$WORK" && timeout -k 10 300 "$MAP2CHECK" --target-function \
     --target-function-name reach_error --generate-test-suite \
-    --nondet-generator klee --timeout 120 target.c > run.log 2>&1 )
+    --nondet-generator symex --timeout 120 target.c > run.log 2>&1 )
 
 SUITE="$WORK/test-suite"
 
@@ -1298,7 +1298,7 @@ prop=$(basename "$PROPERTY")
 ( cd "$WORK" && timeout -k 10 "$BUDGET" "$MAP2CHECK" \
     --target-function --target-function-name reach_error \
     --generate-test-suite --property-file "$prop" --architecture 64bit \
-    --nondet-generator klee --timeout "$((BUDGET / 2))" "$name" ) \
+    --nondet-generator symex --timeout "$((BUDGET / 2))" "$name" ) \
   > "$WORK/map2check.log" 2>&1
 
 if [ ! -d "$WORK/test-suite" ]; then

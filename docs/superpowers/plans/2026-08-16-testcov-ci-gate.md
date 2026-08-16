@@ -675,7 +675,7 @@ driver, which runs identically outside CI.
 - *The corpus is small and synthetic.* Six programs, none from SV-Benchmarks. This is a
   conformance gate on a 20-minute budget, not a benchmark. Coverage rate on real tasks
   is the baseline harness's job.
-- *LibFuzzer is not exercised.* The driver pins `--nondet-generator klee` for
+- *LibFuzzer is not exercised.* The driver pins `--nondet-generator symex` for
   determinism. The emitter is generator-agnostic by construction, but a fuzzer-driven
   gate would be flaky, and a flaky required check gets ignored, which is worse than an
   absent one.

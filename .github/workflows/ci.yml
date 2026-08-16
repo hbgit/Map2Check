@@ -351,6 +351,7 @@ jobs:
               bash tests/integration/test_castle_regression.sh
               bash tests/integration/test_main_argv.sh
               bash tests/integration/test_modes.sh
+              bash tests/integration/test_add_invariants.sh
             '
 
   # ===========================================================

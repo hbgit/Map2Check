@@ -69,6 +69,17 @@ if is_memsafety:
 elif is_memcleanup:
   command_line += " --timeout "+timemapsplit+" --memcleanup-property --smt-solver yices2 --generate-witness "
 elif is_reachability:
+  # --add-invariants needs Clam (the renamed crab-llvm), which this build does
+  # not ship. map2check now exits 3 rather than ignoring the flag, so this
+  # branch fails until Clam lands -- deliberately. Do not drop the flag to
+  # silence it: the request is what makes the gap visible, and hiding it is how
+  # the flag stayed dead through an entire baseline (issue #54).
+  #
+  # command_line_bkp below is the pre-existing no-invariants fallback, and it is
+  # intentionally NOT wired to exit 3: it fires only on the Crab-specific
+  # 'failed external call' signal further down. Wiring it here would restore the
+  # silence this change exists to remove.
+  # See docs/reports/2026-08-16-crabllvm-review.md.
   command_line_bkp = command_line + " --timeout "+timemapsplit+" --smt-solver yices2 --target-function --generate-witness "
   command_line += " --timeout "+timemapsplit+" --smt-solver yices2 --add-invariants --target-function --generate-witness "
 elif is_overflow:

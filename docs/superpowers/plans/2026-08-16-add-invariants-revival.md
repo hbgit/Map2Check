@@ -152,7 +152,7 @@ run_flag() {
   local input="$1" rc=0
   ( cd "$WORK" && timeout -k 10 180 "$MAP2CHECK" --target-function \
       --target-function-name reach_error --add-invariants \
-      --nondet-generator klee --timeout 60 "$input" ) > "$WORK/out.txt" 2>&1 || rc=$?
+      --nondet-generator symex --timeout 60 "$input" ) > "$WORK/out.txt" 2>&1 || rc=$?
   echo "$rc"
 }
 
@@ -189,7 +189,7 @@ case "$CAPABILITY" in
     # Without the flag, nothing changes.
     rc_plain=0
     ( cd "$WORK" && timeout -k 10 180 "$MAP2CHECK" --target-function \
-        --target-function-name reach_error --nondet-generator klee \
+        --target-function-name reach_error --nondet-generator symex \
         --timeout 60 loop.bc ) > "$WORK/plain.txt" 2>&1 || rc_plain=$?
     [ "$rc_plain" -ne 3 ] \
       && ok "runs without --add-invariants are unaffected" \

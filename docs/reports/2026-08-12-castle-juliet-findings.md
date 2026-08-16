@@ -52,6 +52,13 @@
 - **Fix:** `map2check.cpp` detecta a ausência e degrada graciosamente (warning).
 - **Issue aberta:** ver §3. **Commit:** `914d7bab8`
 
+> **Revisto em 2026-08-16 — o fallback não cobria o caminho que usamos.** O aviso
+> ficava dentro de `if (!is_llvmir_in)`. Com entrada `.c` ele aparecia; com `.bc`
+> — como todo o baseline v5, o arreio do CASTLE e os wrappers do BenchExec
+> invocam a ferramenta — o bloco inteiro era pulado e **nem o aviso saía**. A
+> flag era aceita, ignorada e não deixava rastro. Ver §2.x abaixo e
+> [a revisão da dependência](2026-08-16-crabllvm-review.md).
+
 ### 1.6 Parser de veredito / linha dos scripts de avaliação
 - **Bug A (veredito):** `grep -qi "TIMEOUT|timed out"` casava com o erro do
   utilitário `timeout` ("failed to run command ... No such file or directory"),
@@ -102,6 +109,27 @@
 | C | `divisionByZeroError()` era TODO no-op | `AnalysisModeOverflow.c:86` | ✅ corrigido (§1.8) |
 | D | Overhead "fuzzer-first": default roda LibFuzzer (60s) antes do KLEE | `map2check.cpp:498-508` | aberto (G5 — lean reachability via `--nondet-generator symex`) |
 | E | 33/250 CASTLE não compilam por headers externos (`mysql.h`, `openssl/*.h`) | imagem Docker | aberto (maioria CWE-89/798, fora de escopo) |
+| F | `--add-invariants` aceito e ignorado **sem rastro** na entrada `.bc`: o aviso do §1.5 estava dentro de `if (!is_llvmir_in)` | `map2check.cpp:227-245` | ✅ corrigido — agora sai com código 3 |
+| G | `main()` descarta o retorno de `map2check_execution()` nas três chamadas, então o código de saída nunca reflete o resultado da análise — inclusive o `return 1` de `--expected-result` | `map2check.cpp:521,524,528` | aberto |
+
+### Correção do registro: o pass 2 do CASTLE nunca aplicou invariantes
+
+O arreio re-executava todo UNKNOWN com `--add-invariants`. Como o achado **F**
+mostra, essa flag era ignorada sem rastro na entrada `.bc` — e a entrada é `.bc`.
+O pass 2 era, portanto, uma re-execução **byte-idêntica** do pass 1. Duas
+consequências para os dados do v5:
+
+- A coluna `used_invariants=yes` não significa o que diz. **Nenhuma execução do
+  baseline v5 usou invariantes.**
+- Cada caso UNKNOWN custou dois orçamentos de timeout em vez de um, o que infla
+  o tempo de parede das linhas afetadas sem mudar veredito algum.
+
+Nenhum veredito da tabela publicada muda: uma segunda execução idêntica só
+converteria um UNKNOWN por acaso, e o veredito registrado era o da última
+execução de qualquer forma. O que muda é a interpretação da coluna e dos tempos.
+A partir do v6 o arreio reconhece o código de saída 3 e registra
+`used_invariants=unavailable`, preservando o veredito do pass 1 —
+ver [a revisão da dependência](2026-08-16-crabllvm-review.md).
 
 ---
 

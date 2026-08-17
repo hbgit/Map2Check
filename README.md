@@ -153,7 +153,7 @@ Violated property:
 VERIFICATION FAILED
 ```
 
-A safe program (e.g. writing to `p[9]` instead of `p[10]`) is not flagged. The pipeline was validated on a subset of the **Juliet Test Suite** compiled to WASM (CWE-121/122/124/126/127): all 15 seeded bugs were detected as `FALSE` with a 290 s timeout — see [test-comp2026/simulation/resultados_de_testes/juliet_wasm/wasm_results.csv](test-comp2026/simulation/resultados_de_testes/juliet_wasm/wasm_results.csv). The integration test scripts [tests/integration/test_wasm_pipeline.sh](tests/integration/test_wasm_pipeline.sh) and [tests/integration/test_wasm_entrypoint.sh](tests/integration/test_wasm_entrypoint.sh) reproduce this workflow automatically.
+A safe program (e.g. writing to `p[9]` instead of `p[10]`) is not flagged. The pipeline was validated on a subset of the **Juliet Test Suite** compiled to WASM (CWE-121/122/124/126/127): all 15 seeded bugs were detected as `FALSE` with a 290 s timeout — see [docs/reports/wasm-juliet-validation.csv](docs/reports/wasm-juliet-validation.csv). The integration test scripts [tests/integration/test_wasm_pipeline.sh](tests/integration/test_wasm_pipeline.sh) and [tests/integration/test_wasm_entrypoint.sh](tests/integration/test_wasm_entrypoint.sh) reproduce this workflow automatically.
 
 ___
 

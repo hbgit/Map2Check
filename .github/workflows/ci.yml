@@ -338,7 +338,7 @@ jobs:
               ln -sf /usr/lib/llvm-16/lib/clang /workspace/install_castle_ci/lib/clang
             '
 
-      - name: Run CASTLE regression tests
+      - name: Run regression tests
         run: |
           docker run --rm \
             -u root \
@@ -346,7 +346,11 @@ jobs:
             -w /workspace \
             -e MAP2CHECK_PATH=/workspace/install_castle_ci \
             ghcr.io/hbgit/map2check-dev:latest bash -c '
+              bash tests/integration/test_verdict_classifier.sh
+              bash tests/integration/test_juliet_sampling.sh
               bash tests/integration/test_castle_regression.sh
+              bash tests/integration/test_main_argv.sh
+              bash tests/integration/test_modes.sh
             '
 
   # ===========================================================

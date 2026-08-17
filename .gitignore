@@ -74,4 +74,20 @@ target_wrapper.*
 
 # QtCreator CMake
 CMakeLists.txt.user*
-test-comp2026/simulation/release/*
+
+# Local Test-Comp workspace: benchmark preparation, paper material and run
+# artifacts. Kept out of the repository deliberately. The Juliet evaluation
+# harness that used to live under test-comp2026/simulation/ now sits in
+# tests/juliet/, next to tests/castle/, so the two benchmark harnesses share
+# one layout and neither depends on this directory.
+test-comp2026/
+
+# CASTLE/Juliet evaluation artifacts
+build_castle_ci/
+install_castle_ci/
+build_dev/
+install_dev/
+tests/castle/results/
+tests/castle/results_v*/
+tests/juliet/results*/
+tests/baseline-logs/

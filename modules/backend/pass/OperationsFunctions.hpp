@@ -41,6 +41,7 @@ class OperationsFunctions {
   FunctionCallee OverflowMul;
   FunctionCallee OverflowMulUint;
   FunctionCallee OverflowSDiv;
+  FunctionCallee OverflowSRem;
   FunctionCallee OverflowError;
 
  public:
@@ -51,50 +52,51 @@ class OperationsFunctions {
   FunctionCallee getOverflowMul() { return this->OverflowMul; }
   FunctionCallee getOverflowMulUint() { return this->OverflowMulUint; }
   FunctionCallee getOverflowSDiv() { return this->OverflowSDiv; }
+  FunctionCallee getOverflowSRem() { return this->OverflowSRem; }
   FunctionCallee getOverflowError() { return this->OverflowError; }
 
+  // Signed binop checkers share one ABI:
+  //   (i64 lhs, i64 rhs, i32 width, i32 line, i32 scope, ptr functionName)
+  //
+  // The operands are sign-extended to i64 by the pass (lossless), and `width`
+  // carries the bit width of the *result type of the operation*. That is the
+  // quantity SV-COMP's no-overflow property is defined over, so the runtime
+  // must range-check against it rather than against a fixed width. Keeping a
+  // single 64-bit ABI (instead of one symbol per width) mirrors how UBSan's
+  // __ubsan_handle_*_overflow handlers take the type as a parameter.
   OperationsFunctions(Function *F, LLVMContext *Ctx) {
     // LLVM 16: opaque pointers — use PointerType::get(*Ctx, 0) instead of PointerType::get(, 0)
     auto *PtrTy = PointerType::get(*Ctx, 0);
+    auto *I64 = Type::getInt64Ty(*Ctx);
+    auto *I32 = Type::getInt32Ty(*Ctx);
+    auto *VoidTy = Type::getVoidTy(*Ctx);
 
     this->OverflowAdd = F->getParent()->getOrInsertFunction(
-        "map2check_binop_add", Type::getVoidTy(*Ctx), Type::getInt64Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        PtrTy);
+        "map2check_binop_add", VoidTy, I64, I64, I32, I32, I32, PtrTy);
 
     this->OverflowAddUint = F->getParent()->getOrInsertFunction(
-        "map2check_binop_add_uint", Type::getVoidTy(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), PtrTy);
+        "map2check_binop_add_uint", VoidTy, I64, I64, I32, I32, I32, PtrTy);
 
     this->OverflowSub = F->getParent()->getOrInsertFunction(
-        "map2check_binop_sub", Type::getVoidTy(*Ctx), Type::getInt64Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        PtrTy);
+        "map2check_binop_sub", VoidTy, I64, I64, I32, I32, I32, PtrTy);
 
     this->OverflowSubUint = F->getParent()->getOrInsertFunction(
-        "map2check_binop_sub_uint", Type::getVoidTy(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), PtrTy);
+        "map2check_binop_sub_uint", VoidTy, I64, I64, I32, I32, I32, PtrTy);
 
     this->OverflowMul = F->getParent()->getOrInsertFunction(
-        "map2check_binop_mul", Type::getVoidTy(*Ctx), Type::getInt64Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        PtrTy);
+        "map2check_binop_mul", VoidTy, I64, I64, I32, I32, I32, PtrTy);
 
     this->OverflowMulUint = F->getParent()->getOrInsertFunction(
-        "map2check_binop_mul_uint", Type::getVoidTy(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), PtrTy);
+        "map2check_binop_mul_uint", VoidTy, I64, I64, I32, I32, I32, PtrTy);
 
     this->OverflowSDiv = F->getParent()->getOrInsertFunction(
-        "map2check_binop_sdiv", Type::getVoidTy(*Ctx), Type::getInt64Ty(*Ctx),
-        Type::getInt64Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx),
-        PtrTy);
+        "map2check_binop_sdiv", VoidTy, I64, I64, I32, I32, I32, PtrTy);
 
-    this->OverflowError = F->getParent()->getOrInsertFunction(
-        "overflowError", Type::getVoidTy(*Ctx), Type::getInt32Ty(*Ctx),
-        PtrTy);
+    this->OverflowSRem = F->getParent()->getOrInsertFunction(
+        "map2check_binop_srem", VoidTy, I64, I64, I32, I32, I32, PtrTy);
+
+    this->OverflowError =
+        F->getParent()->getOrInsertFunction("overflowError", VoidTy, I32, PtrTy);
   }
 };
 

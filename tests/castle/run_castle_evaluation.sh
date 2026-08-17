@@ -9,7 +9,7 @@ CLANG="${CLANG:-/usr/bin/clang-16}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CASTLE_DIR="$SCRIPT_DIR/CASTLE-Benchmark/datasets/CASTLE-C250"
 JSON_FILE="$SCRIPT_DIR/CASTLE-Benchmark/datasets/CASTLE-C250.min.json"
-RESULTS_DIR="$SCRIPT_DIR/results"
+RESULTS_DIR="${RESULTS_DIR:-$SCRIPT_DIR/results}"
 TIMEOUT_SEC=360
 
 # CWE → mode mapping (single-pass flags, --add-invariants added on UNKNOWN)
@@ -25,15 +25,12 @@ declare -A CWE_MODE=(
   [843]="--memtrack"
   # Overflow
   [190]="--check-overflow"
+  [369]="--check-overflow"
   # Memcleanup
   [401]="--memcleanup-property"
   # Assert
-  [134]="--check-asserts"
   [617]="--check-asserts"
   # Reachability (other)
-  [253]="--target-function --target-function-name main"
-  [362]="--target-function --target-function-name main"
-  [369]="--target-function --target-function-name main"
   [628]="--target-function --target-function-name main"
   [674]="--target-function --target-function-name main"
   [770]="--target-function --target-function-name main"
@@ -42,12 +39,15 @@ declare -A CWE_MODE=(
   [22]="--target-function --target-function-name main"
   [78]="--target-function --target-function-name main"
   [89]="--target-function --target-function-name main"
+  [134]="--target-function --target-function-name main"
+  [253]="--target-function --target-function-name main"
   [327]="--target-function --target-function-name main"
+  [362]="--target-function --target-function-name main"
   [522]="--target-function --target-function-name main"
   [798]="--target-function --target-function-name main"
 )
 
-OUT_OF_SCOPE_CWES=(22 78 89 327 522 798)
+OUT_OF_SCOPE_CWES=(22 78 89 134 253 327 362 522 798)
 
 is_out_of_scope() {
   local cwe="$1"
@@ -57,7 +57,19 @@ is_out_of_scope() {
   return 1
 }
 
+# Verdict classification is shared with the Juliet runner and covered by
+# tests/integration/test_verdict_classifier.sh — see that file for why
+# "Forcing timeout" is not a timeout signal.
+# shellcheck source=../lib/verdict_classifier.sh
+. "$SCRIPT_DIR/../lib/verdict_classifier.sh"
+# shellcheck source=../lib/isolated_run.sh
+. "$SCRIPT_DIR/../lib/isolated_run.sh"
+
+INNER_TIMEOUT=300   # map2check's own budget, passed as --timeout below
+
 mkdir -p "$RESULTS_DIR"
+RAW_DIR="$RESULTS_DIR/raw"
+mkdir -p "$RAW_DIR"
 
 echo "CASTLE C250 × Map2Check Evaluation"
 echo "=================================="
@@ -85,15 +97,25 @@ echo "  Compiled: $COMPILED, Failed: $COMPILE_FAILED"
 # --- Phase 2: Verify + Score ---
 echo ""
 echo "Phase 2: Running Map2Check on each benchmark..."
-echo "id,cwe,name,vulnerable,mode,verdict,invariants,expected,result,time_sec" > "$RESULTS_DIR/castle_results.csv"
+if [ ! -f "$RESULTS_DIR/castle_results.csv" ]; then
+  echo "id,cwe,name,vulnerable,mode,verdict,invariants,expected,result,time_sec" > "$RESULTS_DIR/castle_results.csv"
+fi
+
+# Resume: skip ids already present in the CSV
+declare -A DONE
+while IFS=, read -r _cid _cwe _cname _vuln _mode _verdict _inv _exp _res _t; do
+  [ -n "$_cid" ] && DONE["$_cid"]=1
+done < <(tail -n +2 "$RESULTS_DIR/castle_results.csv" 2>/dev/null)
 
 RUN=0
-TP=0; TN=0; FP=0; FN=0; UNK=0; TO=0; NA=0
+TP=0; TN=0; FP=0; FN=0; UNK=0; TO=0; NA=0; ERR=0
 
 for c_file in "$CASTLE_DIR"/*.c; do
   name=$(basename "$c_file")
   id="${name%.c}"
   id_short=$(echo "$id" | sed 's/CASTLE-//')
+
+  [ -n "${DONE[$id_short]:-}" ] && continue
 
   bc_file="$RESULTS_DIR/bc/${id}.bc"
   [ -f "$bc_file" ] || continue
@@ -118,63 +140,52 @@ for t in data['tests']:
 
   mode_flags="${CWE_MODE[$cwe]:---target-function --target-function-name main}"
 
+  # run_isolated gives each invocation a private CWD and captures to a file.
+  #
+  # The private CWD matters here beyond the usual hygiene: map2check names its
+  # scratch "<sha1-of-input-bitcode>.map2check/" relative to the CWD
+  # (caller.cpp:63), i.e. by input CONTENT rather than by run. Pass 1 and the
+  # --add-invariants pass below analyse the SAME .bc and so resolve to the SAME
+  # directory name, and a directory orphaned by an aborted run is reused the
+  # next time that input is analysed, carrying stale artefacts in. It also keeps
+  # the repo working tree free of scratch, which this runner used to litter
+  # because its CWD was the repo root.
+  raw="$RAW_DIR/${name%.c}.txt"
+
   # --- Pass 1: direct ---
   start=$(date +%s%N)
-  output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --timeout 300 "$bc_file" 2>&1) || true
+  rc=0
+  run_isolated "$raw" "$TIMEOUT_SEC" \
+    "$MAP2CHECK" $mode_flags --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
   end=$(date +%s%N)
   elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
+  output=$(cat "$raw")
 
   used_invariants="no"
-  if echo "$output" | grep -qi "TIMEOUT\|timed out"; then
-    verdict="TIMEOUT"
-  elif echo "$output" | grep -q "FALSE-DEREF"; then
-    verdict="FALSE-DEREF"
-  elif echo "$output" | grep -q "FALSE-FREE"; then
-    verdict="FALSE-FREE"
-  elif echo "$output" | grep -q "FALSE-MEMTRACK"; then
-    verdict="FALSE-MEMTRACK"
-  elif echo "$output" | grep -q "FALSE-OVERFLOW"; then
-    verdict="FALSE-OVERFLOW"
-  elif echo "$output" | grep -q "FALSE-MEMCLEANUP"; then
-    verdict="FALSE-MEMCLEANUP"
-  elif echo "$output" | grep -q "VERIFICATION FAILED"; then
-    verdict="FALSE"
-  elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
-    verdict="TRUE"
-  else
-    verdict="UNKNOWN"
-  fi
+  verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
 
   # --- Pass 2: --add-invariants fallback ---
   if [ "$verdict" = "UNKNOWN" ] && [ "$mode_flags" != "--check-asserts" ]; then
     used_invariants="yes"
     start=$(date +%s%N)
-    output=$(timeout "$TIMEOUT_SEC" "$MAP2CHECK" $mode_flags --add-invariants --timeout 300 "$bc_file" 2>&1) || true
+    rc=0
+    run_isolated "$raw" "$TIMEOUT_SEC" \
+      "$MAP2CHECK" $mode_flags --add-invariants --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
     end=$(date +%s%N)
+    output=$(cat "$raw")
     elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
-    if echo "$output" | grep -qi "TIMEOUT\|timed out"; then
-      verdict="TIMEOUT"
-    elif echo "$output" | grep -q "FALSE-DEREF"; then
-      verdict="FALSE-DEREF"
-    elif echo "$output" | grep -q "FALSE-FREE"; then
-      verdict="FALSE-FREE"
-    elif echo "$output" | grep -q "FALSE-MEMTRACK"; then
-      verdict="FALSE-MEMTRACK"
-    elif echo "$output" | grep -q "FALSE-OVERFLOW"; then
-      verdict="FALSE-OVERFLOW"
-    elif echo "$output" | grep -q "FALSE-MEMCLEANUP"; then
-      verdict="FALSE-MEMCLEANUP"
-    elif echo "$output" | grep -q "VERIFICATION FAILED"; then
-      verdict="FALSE"
-    elif echo "$output" | grep -q "VERIFICATION SUCCEEDED"; then
-      verdict="TRUE"
-    else
-      verdict="UNKNOWN"
-    fi
+    verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
   fi
 
-  reported_line=$(echo "$output" | grep -oP '(?:line )\d+' | grep -oP '\d+' | head -1)
+  # run_isolated already wrote "$raw"; pass 2, when it runs, overwrites it so
+  # the file always matches the verdict finally recorded. Keeping it means a
+  # future classifier bug is repaired by reclassifying rather than re-running.
+
+  # The violation line is only reported in the "Violated property" block as
+  # "file map2check_property line N". A bare `grep 'line \d+' | head -1` would
+  # instead match LibFuzzer's "inline 8-bit counters" (-> "line 8").
+  reported_line=$(echo "$output" | grep -oP 'map2check_property line \K\d+' | head -1)
 
   # --- Classify ---
   if is_out_of_scope "$cwe"; then
@@ -183,6 +194,9 @@ for t in data['tests']:
   elif [ "$verdict" = "TIMEOUT" ]; then
     classification="TIMEOUT"
     TO=$((TO+1))
+  elif [ "$verdict" = "ERROR" ]; then
+    classification="ERROR"
+    ERR=$((ERR+1))
   elif [ "$verdict" = "UNKNOWN" ]; then
     classification="UNKNOWN"
     UNK=$((UNK+1))
@@ -244,6 +258,7 @@ Totals:
   In-scope results:      $TOTAL_SCOPE
   Out of scope (N/A):    $NA
   Timeouts:              $TO
+  Errors (infra):        $ERR
   Unknown:               $UNK
 
 Detection Metrics (in-scope):

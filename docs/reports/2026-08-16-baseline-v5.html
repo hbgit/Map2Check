@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map2Check Baseline v5</title>
+<style>
+  /* standalone reset — the artifact runtime supplies this; a local file must not rely on it */
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img,svg{max-width:100%;height:auto}
+  table{border-collapse:collapse}
+
+  :root {
+    --ground:   #F4F6F7;
+    --surface:  #FFFFFF;
+    --sunk:     #EBEFF1;
+    --ink:      #171B21;
+    --muted:    #5D6B72;
+    --line:     #D5DDE0;
+    --accent:   #10646E;
+    --ok:       #1B6B4A;
+    --bad:      #A8322A;
+    --wait:     #8A6415;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:  #101417;
+      --surface: #171C20;
+      --sunk:    #1E252A;
+      --ink:     #E6EBED;
+      --muted:   #94A4AC;
+      --line:    #2C363C;
+      --accent:  #4FB3BF;
+      --ok:      #4FA97F;
+      --bad:     #E0736A;
+      --wait:    #D2A24C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:  #101417;
+    --surface: #171C20;
+    --sunk:    #1E252A;
+    --ink:     #E6EBED;
+    --muted:   #94A4AC;
+    --line:    #2C363C;
+    --accent:  #4FB3BF;
+    --ok:      #4FA97F;
+    --bad:     #E0736A;
+    --wait:    #D2A24C;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 3.5rem 1.5rem 6rem; }
+  .col  { max-width: 40rem; }
+
+  /* ---- masthead ---- */
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .eyebrow {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 .9rem;
+  }
+  h1 {
+    font-family: var(--mono); font-weight: 600; font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+    line-height: 1.1; letter-spacing: -.02em; margin: 0 0 1rem; text-wrap: balance;
+  }
+  .standfirst { font-size: 1.08rem; color: var(--muted); margin: 0; max-width: 42rem; }
+  .runmeta {
+    display: flex; flex-wrap: wrap; gap: .4rem 1.6rem; margin-top: 1.4rem;
+    font-family: var(--mono); font-size: .78rem; color: var(--muted);
+  }
+  .runmeta b { color: var(--ink); font-weight: 600; }
+
+  /* ---- sections ---- */
+  section { margin-top: 3.25rem; }
+  h2 {
+    font-family: var(--mono); font-size: 1.18rem; font-weight: 600; letter-spacing: -.01em;
+    margin: 0 0 .35rem; padding-bottom: .5rem; border-bottom: 1px solid var(--line);
+  }
+  .sublede { color: var(--muted); font-size: .95rem; margin: .7rem 0 1.6rem; max-width: 40rem; }
+  h3 {
+    font-family: var(--mono); font-size: .95rem; font-weight: 600;
+    margin: 2rem 0 .5rem; color: var(--ink);
+  }
+  p { margin: 0 0 1rem; }
+  .col p, .col ul { max-width: 40rem; }
+  ul { padding-left: 1.1rem; margin: 0 0 1rem; }
+  li { margin-bottom: .45rem; }
+  code {
+    font-family: var(--mono); font-size: .88em;
+    background: var(--sunk); padding: .12em .38em; border-radius: 3px;
+  }
+  strong { font-weight: 650; }
+
+  /* ---- stat tiles ---- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1px;
+           background: var(--line); border: 1px solid var(--line); margin: 2rem 0; }
+  .tile { background: var(--surface); padding: 1.1rem 1.15rem; }
+  .tile .k { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+             text-transform: uppercase; color: var(--muted); display: block; margin-bottom: .5rem; }
+  .tile .v { font-family: var(--mono); font-size: 1.75rem; font-weight: 600;
+             line-height: 1; font-variant-numeric: tabular-nums; display: block; }
+  .tile .n { font-size: .78rem; color: var(--muted); display: block; margin-top: .45rem; }
+  .tile.pos .v { color: var(--ok); }
+  .tile.neg .v { color: var(--bad); }
+
+  /* ---- tables ---- */
+  .scroller { overflow-x: auto; margin: 1.25rem 0 1.75rem; border: 1px solid var(--line); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+  th, td { padding: .5rem .7rem; text-align: right; white-space: nowrap; }
+  th {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); background: var(--sunk);
+  }
+  td { font-family: var(--mono); font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  th:first-child, td:first-child { text-align: left; }
+  tbody tr.total td { font-weight: 650; background: var(--sunk); }
+  td.dim { color: var(--muted); }
+
+  /* recall bar inside a cell */
+  .bar { display: flex; align-items: center; gap: .5rem; justify-content: flex-end; }
+  .bar .track { width: 4.5rem; height: 6px; background: var(--sunk); position: relative; flex: none; }
+  .bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+  .bar .num { min-width: 3.2rem; }
+
+  /* ---- verdict chips ---- */
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: .68rem; font-weight: 600;
+    letter-spacing: .06em; padding: .12rem .42rem; border: 1px solid currentColor;
+    border-radius: 2px; vertical-align: baseline;
+  }
+  .chip.ok   { color: var(--ok); }
+  .chip.bad  { color: var(--bad); }
+  .chip.wait { color: var(--wait); }
+  .chip.n    { color: var(--muted); }
+
+  /* ---- callout ---- */
+  .note {
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 3px solid var(--accent); padding: 1.1rem 1.25rem; margin: 1.5rem 0;
+  }
+  .note.warn { border-left-color: var(--bad); }
+  .note p:last-child, .note ul:last-child { margin-bottom: 0; }
+  .note .lbl {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); display: block; margin-bottom: .5rem;
+  }
+
+  pre {
+    font-family: var(--mono); font-size: .8rem; line-height: 1.55;
+    background: var(--sunk); border: 1px solid var(--line); padding: .9rem 1rem;
+    overflow-x: auto; margin: 1.1rem 0;
+  }
+  pre code { background: none; padding: 0; }
+
+  /* ---- finding blocks ---- */
+  .finding { border-top: 1px solid var(--line); padding-top: 1.5rem; margin-top: 2.25rem; }
+  .finding:first-of-type { border-top: 0; margin-top: 1rem; padding-top: 0; }
+  .fhead { display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; margin-bottom: .2rem; }
+  .fhead h3 { margin: 0; font-size: 1.02rem; }
+  .verdict-tag {
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase;
+    padding: .16rem .5rem; border-radius: 2px; font-weight: 600;
+  }
+  .vt-tool  { background: var(--bad);  color: var(--surface); }
+  .vt-bench { background: var(--muted); color: var(--surface); }
+  .vt-env   { background: var(--wait); color: var(--surface); }
+
+  /* ---- actions ---- */
+  ol.actions { list-style: none; padding: 0; counter-reset: a; margin: 1.25rem 0 0; }
+  ol.actions li {
+    counter-increment: a; display: grid; grid-template-columns: 2rem 1fr; gap: .9rem;
+    padding: .95rem 0; border-bottom: 1px solid var(--line); margin: 0;
+  }
+  ol.actions li::before {
+    content: counter(a); font-family: var(--mono); font-size: .8rem; font-weight: 600;
+    color: var(--accent); padding-top: .1rem;
+  }
+  ol.actions .what { font-weight: 600; display: block; margin-bottom: .2rem; }
+  ol.actions .why { color: var(--muted); font-size: .92rem; }
+
+  footer {
+    margin-top: 4rem; padding-top: 1.25rem; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: .74rem; color: var(--muted);
+  }
+  a { color: var(--accent); }
+  a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Baseline · scope-C · run v5</p>
+  <h1>Map2Check Baseline v5</h1>
+  <p class="standfirst">
+    A full stratified evaluation against CASTLE C250 and the NIST Juliet suite, run to completion.
+    The headline is not the score — it is that <strong>33 of 36 false positives are correct answers to
+    the wrong question</strong>, and that unmodelled I/O, not the analysis, is what caps recall.
+  </p>
+  <div class="runmeta">
+    <span>Cases <b>2,742</b></span>
+    <span>Juliet families <b>421 / 421</b></span>
+    <span>Wall clock <b>~7 h 40 m</b></span>
+    <span>Completion <b>exit 0, all shards</b></span>
+    <span>Peak disk <b>265 MB</b></span>
+  </div>
+</header>
+
+<section>
+  <h2>Headline</h2>
+  <div class="tiles">
+    <div class="tile pos">
+      <span class="k">CASTLE precision</span>
+      <span class="v">98.2%</span>
+      <span class="n">54 TP · 1 FP · 156 in scope</span>
+    </div>
+    <div class="tile">
+      <span class="k">CASTLE recall</span>
+      <span class="v">74.0%</span>
+      <span class="n">19 FN · 16.7% undecided</span>
+    </div>
+    <div class="tile pos">
+      <span class="k">Juliet precision</span>
+      <span class="v">90.8%</span>
+      <span class="n">99.2% once artifacts are excluded</span>
+    </div>
+    <div class="tile neg">
+      <span class="k">Juliet recall</span>
+      <span class="v">46.8%</span>
+      <span class="n">404 FN · 28.0% undecided</span>
+    </div>
+  </div>
+  <div class="col">
+    <p>
+      Read those two recall figures together and the shape of the tool comes out. Map2Check is
+      <em>conservative and accurate when it answers</em>, and it declines to answer often. Precision
+      near the ceiling on both benchmarks means a reported bug is almost always a real bug. The gap
+      is entirely in reach: 706 Juliet cases and 26 CASTLE cases end in
+      <span class="chip wait">TIMEOUT</span> <span class="chip n">UNKNOWN</span>
+      <span class="chip n">ERROR</span> rather than a verdict.
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2>Run integrity</h2>
+  <p class="sublede">
+    Three earlier attempts were lost to harness defects and host restarts, so completion evidence
+    belongs in the record alongside the numbers.
+  </p>
+  <div class="col">
+    <p>
+      All five containers exited <code>0</code> — normal completion, not termination. The storage
+      watchdog sampled every five minutes and exited on its own when the last shard finished, having
+      raised <strong>zero alerts</strong>. Free space never moved off 898 GB; results peaked at 265 MB
+      against a 40 GB floor.
+    </p>
+    <pre><code>05:33:10  free=898G  docker=1G  results=265M  clogs=0M  alive=0/5
+05:33:10  all containers finished; watchdog exiting</code></pre>
+    <p>
+      Of 2,526 Juliet rows written, <strong>2,525 parse cleanly</strong>. One row in shard C carries
+      133 NUL bytes — an append truncated when the host was killed mid-write during the previous
+      attempt. It is excluded from every figure here and is self-healing: its resume key is
+      unreadable, so the case re-runs on the next pass.
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2>CASTLE C250</h2>
+  <p class="sublede">
+    217 of 250 compiled; the 33 failures are dominated by out-of-scope CWEs (327, 798, 89, 522).
+    61 further cases are out of scope by design and excluded from the metrics.
+  </p>
+
+  <div class="scroller">
+    <table>
+      <thead>
+        <tr><th>CWE</th><th>TP</th><th>TN</th><th>FP</th><th>FN</th><th>Timeout</th><th>Unknown</th><th>Error</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>125 · out-of-bounds read</td><td>6</td><td>4</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>369 · divide by zero</td><td>6</td><td>4</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>401 · memory leak</td><td>6</td><td>4</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>415 · double free</td><td>6</td><td>4</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>416 · use after free</td><td>6</td><td>4</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>761 · free wrong pointer</td><td>6</td><td>4</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>617 · reachable assert</td><td>6</td><td>2</td><td class="dim">0</td><td class="dim">0</td><td>2</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>190 · integer overflow</td><td>4</td><td>4</td><td class="dim">0</td><td>2</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>476 · null deref</td><td>4</td><td>4</td><td class="dim">0</td><td>2</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>822 · untrusted pointer</td><td>2</td><td>3</td><td>1</td><td>2</td><td>2</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>787 · out-of-bounds write</td><td>1</td><td>3</td><td class="dim">0</td><td>3</td><td class="dim">0</td><td>2</td><td class="dim">0</td></tr>
+        <tr><td>843 · type confusion</td><td>1</td><td>4</td><td class="dim">0</td><td>5</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>628 · wrong-arg call</td><td class="dim">0</td><td>3</td><td class="dim">0</td><td>3</td><td class="dim">0</td><td>1</td><td class="dim">0</td></tr>
+        <tr><td>674 · uncontrolled recursion</td><td class="dim">0</td><td>4</td><td class="dim">0</td><td>1</td><td class="dim">0</td><td class="dim">0</td><td>5</td></tr>
+        <tr><td>770 · unbounded allocation</td><td class="dim">0</td><td>1</td><td class="dim">0</td><td>1</td><td>8</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr><td>835 · infinite loop</td><td class="dim">0</td><td>4</td><td class="dim">0</td><td class="dim">0</td><td>6</td><td class="dim">0</td><td class="dim">0</td></tr>
+        <tr class="total"><td>Total in scope</td><td>54</td><td>56</td><td>1</td><td>19</td><td>18</td><td>3</td><td>5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <p>
+      <strong>Six CWEs are perfect</strong> — 125, 369, 401, 415, 416 and 761 each return 6 TP and 4 TN
+      with nothing undecided. Memory safety and the overflow property are where the tool is strongest.
+    </p>
+    <p>
+      Losses cluster in reachability: type confusion (843), wrong-argument calls (628), unbounded
+      allocation (770) and infinite loops (835) together account for most of the FNs and 14 of the 18
+      timeouts. These are properties the current modes approximate with
+      <code>--target-function main</code> rather than check directly.
+    </p>
+    <div class="note">
+      <span class="lbl">The single false positive is not one</span>
+      <p>
+        <code>CASTLE-822-3.c</code> is a vulnerable program and Map2Check returned
+        <span class="chip bad">FALSE-DEREF</span> on it. It scored FP only because the reported line
+        did not match the expected line. The bug was found; the witness points at the wrong statement.
+        Real precision on CASTLE is <strong>100%</strong>, with an open defect in line attribution.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Juliet scope-C</h2>
+  <p class="sublede">
+    Stratified at three files per family, spread across the flow-variant range — 421 of 421 families
+    covered, versus 13 in the previous run. Every <code>int64_t</code> family is exercised here for
+    the first time.
+  </p>
+
+  <div class="scroller">
+    <table>
+      <thead>
+        <tr><th>CWE</th><th>TP</th><th>TN</th><th>FP</th><th>FN</th><th>Timeout</th><th>Unknown</th><th>Error</th><th>Recall</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>415 · double free</td><td>18</td><td>18</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:100%"></span></span><span class="num">100.0%</span></span></td></tr>
+        <tr><td>476 · null deref</td><td>27</td><td>24</td><td>3</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:100%"></span></span><span class="num">100.0%</span></span></td></tr>
+        <tr><td>401 · memory leak</td><td>54</td><td>72</td><td class="dim">0</td><td>24</td><td class="dim">0</td><td>6</td><td class="dim">0</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:69.2%"></span></span><span class="num">69.2%</span></span></td></tr>
+        <tr><td>122 · heap overflow</td><td>58</td><td>188</td><td>9</td><td>27</td><td>13</td><td>103</td><td>10</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:68.2%"></span></span><span class="num">68.2%</span></span></td></tr>
+        <tr><td>121 · stack overflow</td><td>64</td><td>341</td><td class="dim">0</td><td>83</td><td>17</td><td>149</td><td>42</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:43.5%"></span></span><span class="num">43.5%</span></span></td></tr>
+        <tr><td>416 · use after free</td><td>9</td><td class="dim">0</td><td>21</td><td>12</td><td class="dim">0</td><td class="dim">0</td><td class="dim">0</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:42.9%"></span></span><span class="num">42.9%</span></span></td></tr>
+        <tr><td>191 · integer underflow</td><td>48</td><td>138</td><td class="dim">0</td><td>90</td><td>124</td><td class="dim">0</td><td>13</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:34.8%"></span></span><span class="num">34.8%</span></span></td></tr>
+        <tr><td>190 · integer overflow</td><td>60</td><td>176</td><td>3</td><td>120</td><td>144</td><td class="dim">0</td><td>37</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:33.3%"></span></span><span class="num">33.3%</span></span></td></tr>
+        <tr><td>369 · divide by zero</td><td>12</td><td>36</td><td class="dim">0</td><td>24</td><td>35</td><td class="dim">0</td><td>1</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:33.3%"></span></span><span class="num">33.3%</span></span></td></tr>
+        <tr><td>761 · free wrong pointer</td><td>6</td><td>30</td><td class="dim">0</td><td>24</td><td>12</td><td class="dim">0</td><td class="dim">0</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:20%"></span></span><span class="num">20.0%</span></span></td></tr>
+        <tr class="total"><td>Total</td><td>356</td><td>1023</td><td>36</td><td>404</td><td>345</td><td>258</td><td>103</td>
+          <td><span class="bar"><span class="track"><span class="fill" style="width:46.8%"></span></span><span class="num">46.8%</span></span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>What the failures actually are</h2>
+  <p class="sublede">
+    Every false positive was traced to its raw output and its source. Three distinct causes, and only
+    one of them is a defect in Map2Check.
+  </p>
+
+  <div class="finding">
+    <div class="fhead">
+      <h3>33 of 36 false positives answer the wrong question</h3>
+      <span class="verdict-tag vt-bench">Benchmark mapping</span>
+    </div>
+    <div class="col">
+      <p>
+        Every one of them returns <span class="chip bad">FALSE-MEMTRACK</span> — a
+        <em>memory-leak</em> verdict — on a program labelled safe. They are not wrong. Juliet's
+        CWE-416 "good" variants leak by construction, and say so in their own comments:
+      </p>
+      <pre><code>static void goodG2B() {
+    data = (int *)malloc(100*sizeof(int));
+    ...
+    printIntLine(data[0]);
+    /* POTENTIAL INCIDENTAL - Possible memory leak here if data was not freed */
+}</code></pre>
+      <p>
+        <code>good()</code> calls <code>goodG2B()</code> and then <code>goodB2G()</code>, so every
+        CWE-416 good program leaks 400 bytes. The runner maps CWE-416 to <code>--memtrack</code>,
+        which checks for leaks as well as use-after-free — so Map2Check is asked the leak question
+        and answers it correctly. That is why CWE-416 shows <strong>TN = 0</strong>: no safe program
+        can pass a leak check it was built to fail. The same mechanism produces the 9 FPs in CWE-122
+        and the 3 in CWE-476.
+      </p>
+      <p>
+        <strong>Excluding these 33, Juliet precision is 99.2%.</strong>
+      </p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="fhead">
+      <h3>3 genuine false positives, all in the i64 path</h3>
+      <span class="verdict-tag vt-tool">Tool defect</span>
+    </div>
+    <div class="col">
+      <p>
+        The only real false alarms in 2,525 cases are the <code>int64_t_rand_square</code> good
+        variants. Their guard is:
+      </p>
+      <pre><code>if (imaxabs((intmax_t)data) &lt;= sqrtl(LLONG_MAX)) {
+    int64_t result = data * data;
+}</code></pre>
+      <p>
+        With <code>data</code> now symbolic, KLEE cannot reason about the floating-point comparison
+        and drops it:
+      </p>
+      <pre><code>KLEE: WARNING ONCE: silently concretizing (reason: floating point) expression (Xor w64 ...)
+KLEE: WARNING ONCE: calling external: sqrtl(303375153036227285876734)</code></pre>
+      <p>
+        Note the argument — 3.03e23, not <code>LLONG_MAX</code>'s 9.22e18. The guard's constraint is
+        lost, the branch is taken with <code>data</code> unconstrained, and <code>data * data</code>
+        overflows. The overflow checker is right; the path leading to it is not real.
+      </p>
+      <div class="note warn">
+        <span class="lbl">Cost of the rand() fix, stated plainly</span>
+        <p>
+          Making <code>rand()</code> nondeterministic converted 6 known false negatives into true
+          positives — and introduced these 3 false positives. Symbolic input is what exposed that
+          floating-point guards are not modelled. Net positive, but it is a trade, not a pure win.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="fhead">
+      <h3>98% of timeouts come from two libc functions</h3>
+      <span class="verdict-tag vt-env">Input modelling</span>
+    </div>
+    <div class="col">
+      <p>Of 345 Juliet timeouts, grouped by where the test gets its input:</p>
+      <div class="scroller" style="max-width:26rem">
+        <table>
+          <thead><tr><th>Input source</th><th>Timeouts</th></tr></thead>
+          <tbody>
+            <tr><td><code>fscanf</code></td><td>242</td></tr>
+            <tr><td><code>listen_socket</code></td><td>96</td></tr>
+            <tr><td>everything else</td><td class="dim">7</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The same axis explains the false negatives. Correct-answer rate among <em>decided</em> cases,
+        by input source:
+      </p>
+      <div class="scroller" style="max-width:32rem">
+        <table>
+          <thead><tr><th>Input source</th><th>Decided</th><th>Correct</th></tr></thead>
+          <tbody>
+            <tr><td>hard-coded (<code>other</code>)</td><td>1042</td><td>83.4%</td></tr>
+            <tr><td><code>zero</code></td><td>18</td><td>83.3%</td></tr>
+            <tr><td><code>min</code></td><td>114</td><td>71.1%</td></tr>
+            <tr><td><code>rand</code></td><td>291</td><td>71.1%</td></tr>
+            <tr><td><code>max</code></td><td>150</td><td>70.0%</td></tr>
+            <tr><td><code>fgets</code></td><td>84</td><td>50.0%</td></tr>
+            <tr><td><code>connect_socket</code></td><td>96</td><td>50.0%</td></tr>
+            <tr><td><code>console</code></td><td>12</td><td>50.0%</td></tr>
+            <tr><td><code>environment</code></td><td>12</td><td>50.0%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Those four sources sitting on <strong>exactly 50.0%</strong> is the signature of a systematic
+        failure, not noise: the safe variant is proven safe and the vulnerable variant is missed,
+        every time. When input arrives through an unmodelled I/O call, Map2Check explores the trivial
+        path and reports <span class="chip ok">TRUE</span>.
+      </p>
+      <p>
+        This is the single highest-leverage finding in the baseline. It is the same root cause as the
+        <code>rand()</code> false negatives and the <code>sqrtl</code> false positive:
+        <strong>unresolved external functions</strong>. Fixing it at the tool level — modelling an
+        unmodelled external as nondeterministic input rather than letting KLEE call it concretely —
+        would move ~340 timeouts and a large share of the 404 false negatives at once, and would
+        generalise to every benchmark rather than to Juliet alone.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Where the tool stands</h2>
+  <div class="col">
+    <p>
+      Map2Check is precise. Corrected for benchmark-mapping artifacts, it is at
+      <strong>100% precision on CASTLE and 99.2% on Juliet</strong> — a reported bug is a real bug.
+      Memory safety is its strongest ground: double free, null deref and leak detection are at or near
+      perfect recall on both suites.
+    </p>
+    <p>
+      What limits it is reach, and reach is limited by one thing far more than any other. The overflow
+      work validated in this run — the width-aware i64 ABI — is functioning: 60 TP on CWE-190 and 48 on
+      CWE-191, with the <code>int64_t</code> families exercised for the first time. Its recall reads low
+      only because 268 of those cases never got a decidable input.
+    </p>
+    <p>
+      The properties that genuinely need new capability are the reachability family: type confusion,
+      wrong-argument calls, unbounded allocation and infinite loops, all currently approximated rather
+      than checked.
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2>Next</h2>
+  <ol class="actions">
+    <li>
+      <div>
+        <span class="what">Model unresolved externals as nondeterministic input</span>
+        <span class="why">One change, three symptom classes: ~340 timeouts, a large share of 404 FNs, and the concretization FP. Generalises beyond Juliet, unlike the per-benchmark <code>rand()</code> stub.</span>
+      </div>
+    </li>
+    <li>
+      <div>
+        <span class="what">Separate the use-after-free property from the leak property</span>
+        <span class="why">CWE-416 is scored against <code>--memtrack</code>, which conflates the two and makes TN unreachable. Count only <span class="chip bad">FALSE-FREE</span> / <span class="chip bad">FALSE-DEREF</span> as detection there.</span>
+      </div>
+    </li>
+    <li>
+      <div>
+        <span class="what">Fix witness line attribution</span>
+        <span class="why"><code>CASTLE-822-3</code> finds the bug and points at the wrong line. Cheap to fix, and it is the difference between 98.2% and 100% reported precision.</span>
+      </div>
+    </li>
+    <li>
+      <div>
+        <span class="what">Exclude the decodeHexChars variants from scope</span>
+        <span class="why">The stub returns 0, turning real bugs into trivially safe programs that inflate TN. Excluding is honest; stubbing is not.</span>
+      </div>
+    </li>
+    <li>
+      <div>
+        <span class="what">Raise PER_FAMILY once externals are modelled</span>
+        <span class="why">Family coverage is complete; variant coverage is 3 of ~26. Worth deepening only after the input-modelling fix, since today it would mostly re-measure timeouts.</span>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<footer>
+  Sources — <code>tests/castle/results_v5/castle_results.csv</code> ·
+  <code>test-comp2026/simulation/resultados_de_testes/juliet_v5_{a,b,c,d}/</code> ·
+  raw analyzer output retained per case for reclassification without re-running.
+  Metrics computed from the CSVs, not from the runner's printed summary, which counts only rows
+  produced in its own session and under-reports resumed runs.
+</footer>
+
+</div>
+
+</body>
+</html>

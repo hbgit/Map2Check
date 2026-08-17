@@ -1,3 +1,6 @@
 [submodule "CASTLE-Benchmark"]
 	path = tests/castle/CASTLE-Benchmark
 	url = https://github.com/CASTLE-Benchmark/CASTLE-Benchmark
+[submodule "juliet-test-suite-c"]
+	path = tests/juliet/juliet-test-suite-c
+	url = https://github.com/arichardson/juliet-test-suite-c.git

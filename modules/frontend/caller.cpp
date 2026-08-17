@@ -62,9 +62,16 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   hash.generate_sha1_hash_for_file();
   this->programHash = hash.getOutputSha1HashFile() + ".map2check";
 
+  // The scratch directory is named after the SHA-1 of the input bitcode, so it
+  // is content-derived and not run-derived: analysing the same input twice
+  // resolves to the same name. A plain mkdir over an existing directory fails
+  // silently and leaves whatever a previous, possibly aborted, run left behind
+  // -- including map2check_property. Now that a recorded violation survives a
+  // budget expiry, a stale property file would be read as a real result and
+  // fabricate a FALSE. Start from an empty directory.
   std::ostringstream createTempDir;
   createTempDir.str("");
-  createTempDir << "mkdir " << programHash;
+  createTempDir << "rm -rf " << programHash << " && mkdir " << programHash;
   system(createTempDir.str().c_str());
 
   std::ostringstream moveProgram;

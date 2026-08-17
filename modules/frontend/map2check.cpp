@@ -344,8 +344,41 @@ int map2check_execution(map2check_args args) {
 
   Map2Check::PropertyViolated propertyViolated;
 
-  // HACK: Fix this!!!
-  if (caller->isTimeout()) {
+  // What the analysis actually recorded on disk, in map2check_property.
+  Map2Check::PropertyViolated recorded = counterExample->getProperty();
+  bool recordedAViolation =
+      (recorded != Map2Check::PropertyViolated::NONE) &&
+      (recorded != Map2Check::PropertyViolated::UNKNOWN);
+
+  // A violation that was found and written down survives the budget expiring.
+  //
+  // KLEE keeps exploring other states after recording an error, so it is
+  // routinely killed by `timeout` on a run that already succeeded. The timeout
+  // check used to come first and overwrite the verdict, discarding a FALSE
+  // whose counterexample was sitting in map2check_property. The budget running
+  // out AFTER the tool did its job is not "unable to decide" -- it is a
+  // decision plus a slow shutdown. See finding K in
+  // docs/reports/2026-08-12-castle-juliet-findings.md.
+  //
+  // Scope is deliberately narrow, and the narrowing has to be spelled out in
+  // the CONDITION and not merely in a comment: the timeout branch runs before
+  // the LibFuzzer arm, so without this guard a LibFuzzer run whose crash could
+  // not be replayed would have its property file trusted anyway -- the exact
+  // evidence that should not be trusted. That is not hypothetical: under the
+  // hybrid default every case runs LibFuzzer first with 0.2x the budget, and
+  // "Forcing timeout" appears in 2031 of the 2526 raw logs of the v5 Juliet
+  // baseline.
+  bool evidenceIsTrustworthy =
+      recordedAViolation &&
+      (generator != Map2Check::NonDetGenerator::LibFuzzer ||
+       caller->isVerified());
+
+  if (evidenceIsTrustworthy && caller->isTimeout()) {
+    Map2Check::Log::Warning(
+        "Note: budget expired after a violation was already found -- keeping "
+        "the violation");
+    propertyViolated = recorded;
+  } else if (caller->isTimeout()) {
     Map2Check::Log::Warning("Note: Forcing timeout");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else if (!caller->isVerified() &&
@@ -353,7 +386,7 @@ int map2check_execution(map2check_args args) {
     Map2Check::Log::Warning("Note: Could not replicate error");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else {
-    propertyViolated = counterExample->getProperty();
+    propertyViolated = recorded;
   }
 
   if (propertyViolated ==

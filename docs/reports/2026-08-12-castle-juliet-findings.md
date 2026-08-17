@@ -114,7 +114,8 @@
 | H | **Use-after-scope no log de nondet:** `NONDET_CALL.value` guardava o endereço do parâmetro `value` do wrapper `map2check_nondet_*`. Esse quadro de pilha já morreu quando o log é gravado na saída | `Map2CheckTypes.h`, `NonDetLog.c` | ✅ corrigido — valor agora inline (união) |
 | I | `map2check_nondet_double` registrava o tipo como `UNSIGNED`, então todo double logado saía como `%u` sobre 4 bytes da mantissa | `NonDetLog.c:130` | ✅ corrigido |
 | J | Todo estado bifurcado do KLEE grava o mesmo `klee_log.csv` na saída; o último a terminar vence, e não é o violador (que aborta cedo) | `WitnessGeneration.c`, `Map2CheckFunctions.c` | ✅ corrigido — flush só na violação |
-| K | `VERIFICATION UNKNOWN` num programa trivial: quatro leituras nondet somadas comparadas a uma constante (`tests/testcomp/programs/loop_reads.c`). Medido em 60s, 120s e 240s — não é orçamento | a apurar | aberto |
+| K | **Investigado e corrigido.** O timeout descartava violações já encontradas e gravadas: `isTimeout()` tinha precedência sobre a propriedade violada. Disparava em 80% das execuções do Juliet v5 | `map2check.cpp` | ✅ corrigido — resgate restrito a evidência confiável |
+| K2 | Custo por leitura nondet cresce muito: 1 → 21 → 114 → 861 caminhos parciais para 2 → 4 leituras, sem nenhum `.err` | KLEE + instrumentação | aberto |
 
 ### Achado K, investigado: o timeout descarta violações já encontradas
 
@@ -183,6 +184,42 @@ O que escala é o número de leituras nondet:
 Nenhum arquivo `.err` foi gerado, então esses caminhos parciais não são erros.
 O custo por leitura nondet crescer assim é um segundo fio a puxar.
 
+**Quanto isso vale, medido nos logs do próprio v5.** Os 2526 logs crus do
+baseline permitem contar em quantas execuções o override chegou a disparar, sem
+re-executar nada:
+
+| corpus | logs | `Forcing timeout` disparou | UNKNOWN final |
+|---|---|---|---|
+| Juliet | 2526 | **2031 (80%)** | 703 |
+| CASTLE | 217 | **123 (57%)** | — |
+
+Não é caso de canto. A distância entre 2031 disparos e 703 UNKNOWN finais é o
+caminho híbrido: cada caso roda `map2check` duas vezes, e o passe do LibFuzzer,
+com 0,2× do orçamento, quase sempre estoura.
+
+**O que os logs NÃO permitem medir** é a conversão efetiva: eles registram que o
+override disparou, mas não se havia violação gravada em `map2check_property`,
+que não é preservado. A contagem UNKNOWN→FALSE fica indeterminada até a corrida
+v6 com os dois binários.
+
+**Um bug encontrado na própria correção, por causa desse número.** A primeira
+versão afirmava em comentário que o ramo do LibFuzzer não receberia o resgate,
+mas o ramo do timeout vem antes na cadeia e valia para os dois motores: um
+crash do LibFuzzer não reproduzido (`isVerified()` falso) teria seu arquivo de
+propriedade aceito. Com 2031 disparos, a maioria no passe do fuzzer, o alcance
+seria grande. A restrição passou para a condição:
+
+```cpp
+bool evidenceIsTrustworthy =
+    recordedAViolation &&
+    (generator != NonDetGenerator::LibFuzzer || caller->isVerified());
+```
+
+**Por que o CASTLE não serve para medir isto.** 32 dos seus 38 casos indecididos
+usam `--target-function --target-function-name main`, o modo degenerado do
+achado B, onde nenhuma violação chega a ser registrada. O achado B mascara o K
+naquele corpus: consertar B é pré-requisito para o ganho do K ser mensurável lá.
+
 **Erro de método a registrar.** Duas conclusões intermediárias minhas nesta
 investigação estavam erradas e foram corrigidas pelos dados: (i) afirmei que não
 era artefato de orçamento com base em runs de 60/120/240s feitos enquanto
@@ -190,6 +227,16 @@ vários containers KLEE competiam pela CPU; (ii) afirmei que a flag `--debug`
 invertia o veredito, quando na verdade meu `grep ... | head -1` casava a linha
 `TARGET-REACHED found` do log de debug antes da linha de veredito. A segunda
 foi o que acabou revelando a causa raiz.
+
+Uma terceira, durante a medição: levantei a hipótese de que os TIMEOUT do Juliet
+fossem na verdade segfaults, com base em um caso que retornou `rc=139`. Dez
+casos da mesma família depois, **0/10 crasharam** -- incluindo o mesmo arquivo,
+sob outra configuração. Hipótese retirada.
+
+E uma quarta, sobre o instrumento: quatro bugs distintos no arreio de medição
+(contenção de CPU entre containers, `grep | head -1` casando linha de debug,
+consumo de stdin dentro do laço de leitura, e orçamento externo insuficiente
+para o caminho híbrido). Nenhum estava na ferramenta; todos estavam na medição.
 
 ### O log de nondet estava vazio em toda execução simbólica
 

@@ -52,6 +52,14 @@ ninja && ninja install
 | `ENABLE_TEST` | OFF | Build GTest unit tests |
 | `REGRESSION` | OFF | Download regression test benchmarks |
 | `MAP2CHECK_ENABLE_SANITIZERS` | OFF | Enable ASan + UBSan (forces dynamic linking) |
+| `ENABLE_CLAM` | OFF | Enable `--add-invariants` via Clam (needs Clam in the image) |
+
+`Dockerfile.dev` builds **Clam `dev16`** (the renamed crab-llvm) into `/opt/clam`. It
+supplies the abstract-interpretation invariants behind `--add-invariants`, which is
+refused with exit code 3 unless the build was configured with `-DENABLE_CLAM=ON` *and*
+the driver is present at `$CLAM_DIR/bin/clam.py`. It is opt-in because an unsound
+invariant produces a wrong TRUE rather than an error — see
+[the dependency review](docs/reports/2026-08-16-crabllvm-review.md).
 
 Enabling sanitizers switches from static to shared linking and enables `-fsanitize=address,undefined -fno-omit-frame-pointer -g`.
 

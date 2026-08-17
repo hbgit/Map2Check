@@ -135,10 +135,24 @@ typedef
   unsigned step_on_execution;
   /** Current scope number (llvm ir uses numbered scopes) */
   unsigned scope;
-  // TODO(rafa.sa.xp@gmail.com) Should update to work with a union
-  /** Pointer where the generated value is stored */
-  //long value;
-  void *value;
+  /** The generated value, stored INLINE.
+   *
+   * This was a `void *value` holding the address of the caller's `value`
+   * parameter -- a stack slot already dead by the time the log is flushed at
+   * exit. Reading it was a use-after-scope: natively it usually printed
+   * something plausible, and under KLEE it terminated the state with a pointer
+   * error, which is why klee_log.csv came out EMPTY on every symbolic run and
+   * no counterexample ever carried nondet values.
+   *
+   * A pointer cannot be made to work here even by pointing into the row: the
+   * containers memcpy rows into a reallocated array, so any self-referential
+   * pointer is stale after the first append. The value has to live inline.
+   * (The TODO asking for exactly this union has been here since 2020.) */
+  union {
+    int as_int;
+    unsigned as_unsigned;
+    double as_double;
+  } value;
   /** Name of the function where operation took place */
   char function_name[FUNCTION_MAX_LENGTH_NAME];
 } NONDET_CALL;

@@ -1,0 +1,36 @@
+# Expected TestCov verdict per program. Format: <program> <verdict>
+#
+# Legal verdicts: COVERED, NOT_COVERED, ERROR.
+#
+# This file makes the gate bidirectional. A program that stops being COVERED is
+# a regression. A program that STARTS being COVERED when this file says
+# otherwise is also a failure -- it means the tool improved and nobody recorded
+# it, and an unrecorded improvement is indistinguishable from a broken harness.
+# Change a line here deliberately, in the commit that causes the change.
+#
+# Every verdict below was measured, not assumed, at BUDGET=120 against the
+# build of 2026-08-16.
+
+single_int.c     COVERED
+two_guards.c     COVERED
+no_input.c       COVERED
+char_input.c     COVERED
+unreachable.c    NOT_COVERED
+
+# loop_reads.c -- NOT_COVERED, and the reason is now known (finding K).
+#
+# Map2Check DOES find the violation here. Running with --debug shows
+# "TARGET-REACHED found" -- the property file is written -- and then KLEE is
+# killed by the timeout while still exploring other states, at which point
+# map2check.cpp forces the verdict to UNKNOWN and throws the violation away:
+#
+#   if (caller->isTimeout()) { propertyViolated = UNKNOWN; }
+#
+# So no suite is emitted and the suite cannot cover anything. The emitter is
+# never reached, and the emitter is not at fault.
+#
+# This line becomes COVERED once the verdict logic consults the property before
+# forcing UNKNOWN on timeout. The gate will insist on the update, which is the
+# point of keeping the case here instead of deleting it.
+# See docs/reports/2026-08-12-castle-juliet-findings.md, finding K.
+loop_reads.c     NOT_COVERED

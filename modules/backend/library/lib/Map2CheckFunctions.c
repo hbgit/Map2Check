@@ -91,7 +91,7 @@ void map2check_exit() {
     gotError = !analysis_is_program_correct();
   }
 
-  generate_aux_files(&trackbb_log);
+  generate_aux_files(&trackbb_log, gotError);
   /* gotError = TRUE; */
   map2check_destroy();
   if (gotError == TRUE) {

@@ -132,6 +132,64 @@ ENV LD_LIBRARY_PATH="/opt/klee/lib"
 # No extra install needed — available via clang-16 -fsanitize=fuzzer
 
 # ============================================================
+# 7b. Clam (formerly crab-llvm) — abstract-interpretation invariants
+# ============================================================
+# Clam rewrites the bitcode, inserting verifier.assume(inv) calls that
+# NonDetPass rewrites to map2check_crab_assume and the runtime forwards to
+# klee_assume. Branch dev16 targets LLVM 16, which is this image's LLVM.
+#
+# Built here rather than as a CMake ExternalProject: it is a subprocess tool,
+# not a linked library, and building it per configure would add tens of minutes
+# to every clean Map2Check build for a capability that is off by default
+# (-DENABLE_CLAM=ON). See docs/reports/2026-08-16-crabllvm-review.md.
+#
+# libzstd-dev is required, not optional: LLVM 16 from apt.llvm.org exports
+# zstd::libzstd_shared, so Clam's find_package(LLVM) fails outright without it.
+# libflint-dev is NOT needed -- that belongs to the PPLite domain, and no
+# optional domain is enabled here: --crab-track=num uses the default interval
+# domain, so LDD, Apron, Elina and PPLite would all be dead weight.
+RUN apt-get update && apt-get install -y \
+    libmpfr-dev \
+    libzstd-dev \
+    libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# CLAM_INCLUDE_TESTS=OFF: Clam's own lit suite needs `lit` from pip and adds
+# build time for tests of a dependency, not of Map2Check.
+#
+# The crab / extra / build / install sequence is Clam's documented one. Each
+# target downloads and installs a dependency (Crab, then sea-dsa and
+# llvm-seahorn); the cmake re-run between them re-reads the cache so the next
+# step can see what the previous one produced.
+RUN git clone --depth 1 -b dev16 https://github.com/seahorn/clam.git /tmp/clam && \
+    cd /tmp/clam && mkdir build && cd build && \
+    CLAM_CFG="-DCMAKE_BUILD_TYPE=Release -DCLAM_LLVM_VERSION=16 \
+              -DCLAM_INCLUDE_TESTS=OFF \
+              -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+              -DCMAKE_INSTALL_PREFIX=/opt/clam" && \
+    cmake .. $CLAM_CFG && \
+    cmake --build . --target crab && cmake .. $CLAM_CFG && \
+    cmake --build . --target extra && cmake .. $CLAM_CFG && \
+    cmake --build . -j$(nproc) && \
+    cmake --build . --target install && \
+    rm -rf /tmp/clam
+
+ENV CLAM_DIR=/opt/clam
+
+# Fail the image build if Clam cannot inject invariants. The flag combination
+# below is measured, not assumed: --llvm-pp-loops and --crab-promote-assume
+# were both in the legacy crab-llvm invocation and both defeat injection (the
+# first drops it to zero, the second rewrites verifier.assume into the
+# llvm.assume intrinsic that NonDetPass does not match). A silent zero here is
+# what kept --add-invariants dead for years.
+RUN printf 'int main(){int i=0,s=0;while(i<10){s+=i;i++;}return s;}\n' > /tmp/clamcheck.c && \
+    /opt/clam/bin/clam.py -o /tmp/clamcheck.bc -m 64 -g --crab-inter \
+      --crab-track=num --crab-opt=add-invariants \
+      --crab-opt-invariants-loc=block-entry /tmp/clamcheck.c && \
+    test "$(llvm-dis-16 -o - /tmp/clamcheck.bc | grep -c 'verifier\.assume')" -gt 0 && \
+    echo "Clam injects invariants: OK" && rm -f /tmp/clamcheck.c /tmp/clamcheck.bc
+
+# ============================================================
 # 8. WABT (WebAssembly Binary Toolkit) — wasm2c, wasm2wat, wasm-ld
 # ============================================================
 # Using latest stable release (1.0.41) instead of apt (1.0.27)

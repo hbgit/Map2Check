@@ -8,6 +8,7 @@ option(REGRESSION "Prepare Regression Tests" OFF)
 option(ENABLE_TEST "Build all tests" OFF)
 option(MAP2CHECK_ENABLE_SANITIZERS "Enable AddressSanitizer + UndefinedBehaviorSanitizer for testing" OFF)
 option(MAP2CHECK_DYNAMIC_LINK "Link dynamically (required when KLEE/Z3 are only available as shared libraries)" OFF)
+option(ENABLE_CLAM "Enable --add-invariants via Clam (requires Clam dev16 installed, see docs/reports/2026-08-16-crabllvm-review.md)" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -36,6 +37,23 @@ else()
   # suffix list makes find_library() fail to locate Z3 even when installed.
   set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
   set(CMAKE_EXE_LINKER_FLAGS "-Bstatic -static-libgcc -static-libstdc++")
+endif()
+
+# --- Abstract-interpretation invariants (Clam, formerly crab-llvm) ---
+# Off by default, and deliberately so: an unsound invariant does not raise an
+# error, it produces a wrong TRUE. Under KLEE klee_assume() prunes a reachable
+# state; under LibFuzzer nondet_assume() calls pthread_exit() and the execution
+# disappears. Promoting this to a default needs the differential evidence
+# described in docs/reports/2026-08-16-crabllvm-review.md.
+#
+# Clam is a subprocess tool, not a linked library, so this only records intent.
+# The binary still checks at run time that the driver is actually installed --
+# neither condition implies the other.
+if(ENABLE_CLAM)
+  add_compile_definitions(MAP2CHECK_ENABLE_CLAM)
+  message(STATUS "Clam invariants: ENABLED (--add-invariants available)")
+else()
+  message(STATUS "Clam invariants: disabled (-DENABLE_CLAM=ON to enable)")
 endif()
 
 # --- Core dependencies ---

@@ -91,3 +91,21 @@ tests/castle/results/
 tests/castle/results_v*/
 tests/juliet/results*/
 tests/baseline-logs/
+
+# Clam invariants build (Phase B)
+build_clam_ci/
+install_clam_ci/
+build_clam/
+install_clam/
+build_ut/
+install_ut/
+build_testcov_ci/
+install_testcov_ci/
+
+# Local agent tooling and scratch material: ai-memory skill installs, editor
+# agent configs, CLAUDE.md backups and the local Test-Comp planning document.
+# Same reasoning as test-comp2026/ above -- preparation material, not product.
+.agents/
+.claude/
+.opencode/
+CLAUDE.md.bak-*

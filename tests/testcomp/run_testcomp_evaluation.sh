@@ -131,20 +131,27 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
     # TestCov exits 0 whether or not the suite covers, so the verdict is the
     # Result line, never $?.
     #
-    # The label is property-aware, because the same Result line means different
-    # things. For cover-error, TRUE means the suite reproduced the bug and
-    # UNKNOWN means it did not -- pass and fail. For cover-branches there is no
-    # pass/fail: the competition scores the coverage FRACTION, and TestCov
-    # prints DONE only at 100% and UNKNOWN for anything less. Calling a 90%
-    # branch suite NOT_COVERED would read as a failure when it is most of a
-    # good result, so partial coverage is labelled PARTIAL and the percentage
-    # in the next column is the number that matters.
+    # The label is property-aware, because the same Result line does not mean
+    # the same thing in both categories.
+    #
+    # cover-error is pass/fail: TRUE means the suite reproduced the bug,
+    # UNKNOWN means it did not.
+    #
+    # cover-branches has no pass/fail. The competition scores the coverage
+    # FRACTION, and the Result line says nothing about it: measured, DONE
+    # appears at 100% and at 77.78%, while UNKNOWN appears when TestCov had to
+    # abort a test's execution. So DONE means "validated cleanly" and UNKNOWN
+    # means "validated, with a test that would not run" -- and in BOTH cases
+    # the coverage column beside it is the number that matters. Labelling them
+    # FULL and PARTIAL, as a first version did, reads as a coverage claim the
+    # Result line is not making.
     if grep -qE '^Result: TRUE' "$work/testcov.log"; then
       testcov="COVERED"
     elif grep -qE '^Result: DONE' "$work/testcov.log"; then
-      testcov=$([ "$PROPERTY" = "cover-branches" ] && echo FULL || echo DONE)
+      testcov=$([ "$PROPERTY" = "cover-branches" ] && echo VALIDATED || echo DONE)
     elif grep -qE '^Result: UNKNOWN' "$work/testcov.log"; then
-      testcov=$([ "$PROPERTY" = "cover-branches" ] && echo PARTIAL || echo NOT_COVERED)
+      testcov=$([ "$PROPERTY" = "cover-branches" ] && echo VALIDATED_ABORTS \
+                                                    || echo NOT_COVERED)
     else
       testcov="TESTCOV_ERROR"
     fi

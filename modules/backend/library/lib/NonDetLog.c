@@ -36,13 +36,17 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
 
     // The value generated from nondet function. Read inline: it is stored in
     // the row, not behind a pointer into a stack frame that no longer exists.
+    /* else-if, not two independent ifs. The UNSIGNED arm used to be an `if`
+     * with no `else`, so an unsigned row fell through into the `%d` arm as
+     * well and printed its value TWICE: `0;3;17;main;0;5;5;5`, eight fields
+     * where the format has seven. The value column still parsed by accident,
+     * being first, but the type column moved to index 7 and anything reading
+     * it got a copy of the value instead. */
     if (((int)call->type) == UNSIGNED) {
       fprintf(output, "%u;", call->value.as_unsigned);
-    }
-    if (((int)call->type) == DOUBLE) {
+    } else if (((int)call->type) == DOUBLE) {
       fprintf(output, "%lf;", call->value.as_double);
-    }
-    else {
+    } else {
       fprintf(output, "%d;", call->value.as_int);
     }
 

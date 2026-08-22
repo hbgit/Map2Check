@@ -29,6 +29,7 @@
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
+#include "test_suite/ktest_reader.hpp"
 #include "test_suite/test_suite.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
@@ -105,10 +106,20 @@ std::string resolveSpecification(const std::string &propertyFile,
  *
  * Must run before Caller::cleanGarbage(): klee_log.csv lives in the scratch
  * directory that cleanGarbage() deletes, and the suite must not. */
+/** Upper bound on a Cover-Branches suite.
+ *
+ * KLEE can terminate tens of thousands of paths, and every test case costs the
+ * validator a compile-and-run. The competition scores coverage, not volume, so
+ * past a few hundred vectors the marginal branch is rare and the validation
+ * cost is not. The bound is here rather than in the runtime because this is
+ * the side that knows what the suite is for. */
+constexpr size_t kMaxBranchTestCases = 500;
+
 void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                    const std::string &entryFunction,
                    const std::string &architecture,
-                   const std::string &specification, bool foundViolation) {
+                   const std::string &specification, bool foundViolation,
+                   bool coverBranches) {
   Map2Check::TestSuiteMetadata metadata;
   metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
   metadata.specification = specification;
@@ -124,6 +135,32 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                             outputDir);
     return;
   }
+  // Cover-Branches: one test case per path KLEE explored, taken from its own
+  // .ktest output. Nothing is asked of the instrumented program -- measured,
+  // when it was: making it write a log per state turned a 1-second run that
+  // answered FALSE into a 100-second run that exhausted its budget and
+  // answered TRUE, because each write is an external call KLEE executes
+  // concretely. Reading afterwards costs the finished search nothing.
+  //
+  // coversError is false throughout: these vectors are paths, not violations.
+  // The violating one, when there is one, is still in klee_log.csv and still
+  // goes out under Cover-Error.
+  if (coverBranches) {
+    std::vector<std::vector<std::string>> vectors =
+        Map2Check::readKtestVectors(Map2Check::kleeOutputDir,
+                                    kMaxBranchTestCases);
+    for (const std::vector<std::string> &inputs : vectors) {
+      if (!writer.writeTestCase(inputs, false)) {
+        Map2Check::Log::Warning("could not write test case to " + outputDir);
+        return;
+      }
+    }
+    Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                         std::to_string(vectors.size()) +
+                         " test cases from KLEE paths)");
+    return;
+  }
+
   // No violation means no test case, but the suite still has to exist. A
   // missing test-suite/ directory reads to the competition harness as a tool
   // that crashed; a suite carrying metadata and zero test cases says the tool
@@ -245,6 +282,7 @@ struct map2check_args {
   bool btree = false;
   bool invCrabLlvm = false;
   bool generateTestSuite = false;
+  bool coverBranches = false;
   std::string testSuiteDir = "test-suite";
   std::string propertyFile;
   std::string architecture = "64bit";
@@ -448,7 +486,7 @@ int map2check_execution(map2check_args args) {
     emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
                   args.architecture,
                   resolveSpecification(args.propertyFile, args.mode),
-                  foundViolation);
+                  foundViolation, args.coverBranches);
   }
 
   // (6) Clean map2check execution (folders and temp files)
@@ -508,6 +546,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
          "\temits a Test-Comp test suite reproducing the violation found")
         ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
          "\tdirectory to write the test suite into")
+        ("cover-branches",
+         "\temit one test case per path KLEE explored, from its .ktest output, "
+         "instead of the single violating vector (Test-Comp Cover-Branches)")
         ("property-file", po::value<std::string>(),
          "\tproperty file whose contents go verbatim into <specification>")
         ("architecture", po::value<std::string>()->default_value("64bit"),
@@ -613,6 +654,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     }
     if (vm.count("test-suite-dir")) {
       args.testSuiteDir = vm["test-suite-dir"].as<std::string>();
+    }
+    if (vm.count("cover-branches")) {
+      args.coverBranches = true;
     }
     if (vm.count("property-file")) {
       args.propertyFile = vm["property-file"].as<std::string>();

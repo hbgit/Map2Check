@@ -69,6 +69,11 @@ constexpr char const* kleeBinary = "${MAP2CHECK_PATH}/bin/klee";
 constexpr int killGracePeriod = 10;
 /** Path to generated klee log file (check MemoryUtils implementation) */
 constexpr char const* kleeLogCSV = "klee_log.csv";
+/** KLEE's own output directory, relative to the scratch directory the run
+ * executes in. It is a symlink KLEE maintains to the latest klee-out-N, and it
+ * holds one testNNNNNN.ktest per explored path -- the input vectors a
+ * Cover-Branches suite is built from. */
+constexpr char const* kleeOutputDir = "klee-last";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
 constexpr char const* stateTrueLogCSV = "automata_list_log.st";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */

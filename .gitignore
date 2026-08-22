@@ -109,3 +109,9 @@ install_testcov_ci/
 .claude/
 .opencode/
 CLAUDE.md.bak-*
+
+# Test-Comp benchmark corpus (sv-benchmarks, ~13 GB). Cloned on demand for the
+# stratified runs; never committed. The pre-existing "sv-benchmarks/*" rule
+# above ignores the CONTENTS of such a directory but not the directory entry
+# itself, which is why this line names the path we actually clone into.
+tests/testcomp/bench/

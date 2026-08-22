@@ -14,6 +14,11 @@ Contract with the competition harness:
   * the suite is written whether or not a violation was found -- an absent
     directory reads as a crashed tool, an empty suite as an honest zero
   * exit 0 means "I ran"; it does not claim the suite covers anything
+
+Both Test-Comp goals are supported, from two different sources:
+
+  cover-error     klee_log.csv, the violating input vector
+  cover-branches  klee-last/*.ktest, one input vector per path KLEE explored
 """
 
 import argparse
@@ -78,15 +83,14 @@ def main(argv):
     prop = read_property(args.propertyfile)
 
     if COVER_ERROR in prop:
+        # One test case: the violating vector, from klee_log.csv.
         goal_flags = ["--target-function", "--target-function-name", "reach_error"]
     elif COVER_BRANCHES in prop:
-        # Not a silent zero. Branch coverage needs one test case per input
-        # vector, and the runtime currently writes a single nondet log per run
-        # (H1.3 in docs/TESTCOMP-CHECKLIST.md). Emitting a one-case suite here
-        # would look like participation while scoring nothing and hiding why.
-        print("Unsupported Property: cover-branches needs per-input test cases "
-              "(see H1.3 in docs/TESTCOMP-CHECKLIST.md)")
-        return 1
+        # One test case per path KLEE explored, from its own .ktest output.
+        # No target function: the goal is to cover branches, and asking the
+        # tool to hunt for reach_error would make it stop at the first error
+        # instead of exploring.
+        goal_flags = ["--cover-branches"]
     else:
         print("Unsupported Property")
         return 1

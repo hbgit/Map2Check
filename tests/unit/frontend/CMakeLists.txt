@@ -9,3 +9,9 @@ add_executable(TestSuiteTest
     $<TARGET_OBJECTS:TestSuite>
 )
 map2check_test(TestSuiteTest)
+
+add_executable(KtestReaderTest
+    KtestReaderTest.cpp
+    $<TARGET_OBJECTS:TestSuite>
+)
+map2check_test(KtestReaderTest)

@@ -504,6 +504,12 @@ jobs:
               # infrastructure. Nothing else here exercises it, and a wrong one
               # only shows up days after submission as every task erroring out.
               python3 tests/integration/test_benchexec_toolinfo.py
+              # Cover-Branches: the other competition category, and the one
+              # whose suite has more than one test case. Validated by TestCov,
+              # not by inspecting the XML -- only the validator can say whether
+              # the branches are actually exercised.
+              MAP2CHECK_PATH=/workspace/install_testcov_ci \
+                bash tests/integration/test_cover_branches.sh
               bash tests/testcomp/run_testcov_suite.sh
             '
 

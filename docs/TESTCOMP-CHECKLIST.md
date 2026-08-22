@@ -4,7 +4,7 @@ Estado das frentes do [plano de desenvolvimento](../.opencode/Plano%20de%20desen
 (local, fora do repositório). Este arquivo é o índice vivo: cada item aponta para a
 evidência que sustenta o estado declarado.
 
-**Última atualização:** 2026-08-22
+**Última atualização:** 2026-08-22 (noite)
 
 ## Legenda
 
@@ -23,7 +23,7 @@ evidência que sustenta o estado declarado.
 |---|---|---|
 | **H1.1** Emissor de test suite XML | ✅ | `modules/frontend/test_suite/`. `--generate-test-suite` emite `metadata.xml` + `testcase-N.xml` no formato de intercâmbio. 13 testes unitários + 12 asserções de integração. **Custo real muito abaixo das 2 pw estimadas**: o runtime já registrava os valores em ordem de consumo, faltava só serializar |
 | **H1.2** Conversor ktest→XML | ✅ | **Colapsou dentro do H1.1.** O log é escrito pelo binário instrumentado em tempo de execução, então já carrega os valores concretos do KLEE. Não precisou de conversor separado |
-| **H1.3** Conversor corpus-LibFuzzer→XML | 🟡 | O emissor é agnóstico de engine por construção (`NonDetGeneratorLibFuzzy.c:47` descarrega o mesmo log). **Falta:** log por input, para suítes com múltiplos test cases. **É o gargalo declarado**: bloqueia H2.5 e é o motivo pelo qual o tool-info recusa `cover-branches` |
+| **H1.3** Vetores de entrada por caminho | ✅ | **Resolvido por outro caminho que o planejado.** O KLEE já grava um `.ktest` por caminho explorado, com os objetos simbólicos em ordem de consumo; `ktest_reader.cpp` os lê. A alternativa (o runtime gravar um log por estado) foi **medida e descartada**: levou um run de 1s/`FALSE` para 100s/`SUCCEEDED` errado, porque cada escrita é chamada externa que o KLEE executa concretamente. 16 testes unitários fixam o parse contra bytes montados à mão |
 | **H1.4** Empacotamento BenchExec / fm-tools | ✅ | `utils/moduleBenchExec/map2check_testcomp.py` (`BaseTool2`) + `utils/map2check-testcomp-wrapper.py`, ambos no zip de release. 15 asserções contra o benchexec real em `tests/integration/test_benchexec_toolinfo.py`. **Falta:** registrar em `fm-tools` (fora deste repositório). O `map2check.py` SV-COMP segue em `BaseTool` 1.x — obsoleto mas ainda presente no benchexec 3.35, então não está morto |
 | **H1.5** E2E no CI com TestCov | ✅ | Job `Test-Comp Validation (TestCov)`, 6/6 contra manifesto medido. Ver `tests/testcomp/` |
 
@@ -35,7 +35,7 @@ evidência que sustenta o estado declarado.
 | **H2.2** Orquestração com time-slicing | ⬜ | Default híbrido atual (LibFuzzer 0.2× → KLEE 0.8×) preservado |
 | **H2.3** Seed exchange fuzzer↔KLEE | ⬜ | — |
 | **H2.4** Slicing pré-simbólico | ⬜ | Ver nota de prioridade abaixo |
-| **H2.5** Modo Cover-Branches | ⬜ | Bloqueado por H1.3 (log por input). O módulo tool-info **recusa** a propriedade em vez de aceitá-la e pontuar zero |
+| **H2.5** Modo Cover-Branches | ✅ | `--cover-branches` emite um test case por caminho do KLEE, `coversError` falso (são caminhos, não violações), teto de 500. Wrapper e tool-info **aceitam** a propriedade. Validado ponta a ponta: 7 test cases num programa de 6 ramos, **TestCov 100,0%**. Gate no CI (`test_cover_branches.sh`) mede cobertura pelo validador, não inspecionando XML |
 
 ### Nota de prioridade sobre H2
 
@@ -72,6 +72,7 @@ medir o efeito de K nesse corpus.
 | Invariantes: gate diferencial p/ promover a default | ⬜ | Task 7 do [plano de revival](superpowers/plans/2026-08-16-add-invariants-revival.md). Depende de rodar sobre corpus real |
 | **Baseline CASTLE + Juliet (v5)** | ✅ | PR #55. CASTLE 98,2% precisão, Juliet 90,8% (99,2% descontando artefatos de mapeamento) |
 | Corrida v6 (depois/antes) | 🟡 | **CASTLE fechado** (217/250): precisão 98,2%, recall 74,0%; excluindo o modo degenerado do achado B, recall 79,4%. Juliet: 3 de 4 fatias fechadas, `c` em andamento. **Regra de atribuição: invariantes DESLIGADOS na corrida principal**, senão overflow + timeout + amostragem + invariantes ficam conjuntamente não creditáveis |
+| **Corpus Test-Comp estratificado** | 🟡 | `fetch-benchmarks.sh` + `build_corpus.py` + `run_testcomp_evaluation.sh`. 372 tarefas cover-error e 480 cover-branches, cota por subcategoria e passo determinístico. Corrida de 2026-08-22 em andamento; ver [as notas de leitura](../tests/testcomp/RUN-2026-08-22-NOTES.md) — **o orçamento é 60s contra os 900s da competição, não são scores** |
 | **Alcançabilidade (CWE-843/628/770/835)** | ⬜ | Adiado por decisão. Sob a lente SV-COMP as quatro colapsam em uma: só 835 mapeia para categoria pontuável (Termination), e os wrappers declaram não suportar |
 
 ---
@@ -110,7 +111,7 @@ Todos com evidência em [findings](reports/2026-08-12-castle-juliet-findings.md)
 | O quê | Contagem |
 |---|---|
 | `ctest` (unitários) | 8 |
-| Integração | 97 asserções em 9 scripts |
+| Integração | ~110 asserções em 11 scripts |
 | Conformidade Test-Comp | 6 programas |
 | Jobs de CI | 10, todos verdes na PR #59 (o 10º builda a imagem no próprio PR) |
 

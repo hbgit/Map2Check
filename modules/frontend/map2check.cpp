@@ -17,6 +17,7 @@
 #include "map2check.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -28,8 +29,10 @@
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
+#include "test_suite/test_suite.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
+#include "utils/sha256.hpp"
 #include "witness/witness_include.hpp"
 #include "wasm_lifter.hpp"
 
@@ -43,11 +46,93 @@ namespace {
 
 const size_t SUCCESS = 0;
 const size_t ERROR_IN_COMMAND_LINE = 1;
+/** A syntactically valid option asked for a capability this build does not
+ * have. Distinct from ERROR_IN_COMMAND_LINE so callers can tell "you typed it
+ * wrong" from "this binary cannot do that", and act differently. */
+const size_t ERROR_UNAVAILABLE_CAPABILITY = 3;
 // A helper function to simplify the main part.
 template <class T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
   copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
   return os;
+}
+
+/** Whether an invariant generator is installed alongside this build.
+ *
+ * Clam (formerly crab-llvm) is an external tool invoked as a subprocess, so
+ * this is a filesystem question rather than a compile-time one: a binary built
+ * with -DENABLE_CLAM=ON still has to find the installed driver at run time.
+ * Both conditions are checked, because neither implies the other. */
+bool invariantGeneratorAvailable() {
+#ifndef MAP2CHECK_ENABLE_CLAM
+  return false;
+#else
+  // Same resolver the invocation uses, so the check and the command can never
+  // disagree about where Clam is.
+  return fs::exists(Map2Check::clamBinary());
+#endif
+}
+
+/** The <specification> field of the test-suite metadata.
+ *
+ * BenchExec always hands the tool a property file, and copying it verbatim is
+ * what keeps the metadata correct when the competition revises a property
+ * string -- guessing it here would silently drift. The fallbacks exist only so
+ * a manual run without --property-file still produces a valid suite. */
+std::string resolveSpecification(const std::string &propertyFile,
+                                 Map2Check::Map2CheckMode mode) {
+  if (!propertyFile.empty()) {
+    std::ifstream in(propertyFile);
+    if (in.is_open()) {
+      std::ostringstream buffer;
+      buffer << in.rdbuf();
+      std::string text = buffer.str();
+      // Property files end with a newline that does not belong in an element.
+      while (!text.empty() && (text.back() == '\n' || text.back() == '\r')) {
+        text.pop_back();
+      }
+      if (!text.empty()) return text;
+    }
+    Map2Check::Log::Warning("could not read property file: " + propertyFile);
+  }
+  if (mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+    return "COVER( init(main()), FQL(COVER EDGES(@CALL(reach_error))) )";
+  }
+  return "COVER( init(main()), FQL(COVER EDGES(@DECISIONEDGE)) )";
+}
+
+/** Serializes the violating execution's nondet log as a Test-Comp test suite.
+ *
+ * Must run before Caller::cleanGarbage(): klee_log.csv lives in the scratch
+ * directory that cleanGarbage() deletes, and the suite must not. */
+void emitTestSuite(const std::string &outputDir, const std::string &programFile,
+                   const std::string &entryFunction,
+                   const std::string &architecture,
+                   const std::string &specification, bool coversError) {
+  std::vector<std::string> inputs =
+      Map2Check::readNonDetLog(Map2Check::kleeLogCSV);
+
+  Map2Check::TestSuiteMetadata metadata;
+  metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
+  metadata.specification = specification;
+  metadata.programFile = programFile;
+  metadata.programHash = Map2Check::sha256File(programFile);
+  metadata.entryFunction = entryFunction;
+  metadata.architecture = architecture;
+  metadata.creationTime = Map2Check::isoUtcNow();
+
+  Map2Check::TestSuiteWriter writer(outputDir);
+  if (!writer.writeMetadata(metadata)) {
+    Map2Check::Log::Warning("could not write test-suite metadata to " +
+                            outputDir);
+    return;
+  }
+  if (!writer.writeTestCase(inputs, coversError)) {
+    Map2Check::Log::Warning("could not write test case to " + outputDir);
+    return;
+  }
+  Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                       std::to_string(inputs.size()) + " inputs)");
 }
 
 inline void help_msg() {
@@ -150,6 +235,10 @@ struct map2check_args {
   bool printCounterExample = false;
   bool btree = false;
   bool invCrabLlvm = false;
+  bool generateTestSuite = false;
+  std::string testSuiteDir = "test-suite";
+  std::string propertyFile;
+  std::string architecture = "64bit";
   Map2Check::NonDetGenerator generator;
   std::string spectTrue = "safetyMemory";
 };
@@ -223,25 +312,14 @@ int map2check_execution(map2check_args args) {
   caller->entryFunction = args.entryFunction;
   caller->wasmMode = args.wasmMode;
 
-  if (!is_llvmir_in) {
-    if (args.invCrabLlvm) {
-      // Crab-LLVM is a legacy SeaHorn dependency that was never migrated to
-      // LLVM 16 (FindCrabLlvm.cmake is not wired into the modern build), so
-      // ${MAP2CHECK_PATH}/bin/crabllvm may be absent. Fall back to plain
-      // compilation instead of breaking the pipeline on a missing binary.
-      const char *m2cPath = getenv("MAP2CHECK_PATH");
-      std::string crabPy = (m2cPath ? std::string(m2cPath) : std::string("")) +
-                           "/bin/crabllvm/bin/crabllvm.py";
-      if (fs::exists(crabPy)) {
-        caller->compileToCrabLlvm();
-      } else {
-        Map2Check::Log::Warning(
-            "crabllvm is not built — ignoring --add-invariants");
-        caller->compileCFile(is_llvmir_in);
-      }
-    } else {
-      caller->compileCFile(is_llvmir_in);
-    }
+  // Availability was settled in main(), which refuses the run outright when
+  // the generator is missing. Reaching here with invCrabLlvm set means the
+  // generator is installed. The old code branched on !is_llvmir_in and so
+  // never even looked at the flag for bitcode input -- how the baselines, the
+  // CASTLE harness and the BenchExec wrappers all invoke the tool -- which is
+  // why it was ignored without a trace (issue #54).
+  if (!is_llvmir_in && args.invCrabLlvm) {
+    caller->compileWithClam();
   } else {
     caller->compileCFile(is_llvmir_in);
   }
@@ -266,8 +344,41 @@ int map2check_execution(map2check_args args) {
 
   Map2Check::PropertyViolated propertyViolated;
 
-  // HACK: Fix this!!!
-  if (caller->isTimeout()) {
+  // What the analysis actually recorded on disk, in map2check_property.
+  Map2Check::PropertyViolated recorded = counterExample->getProperty();
+  bool recordedAViolation =
+      (recorded != Map2Check::PropertyViolated::NONE) &&
+      (recorded != Map2Check::PropertyViolated::UNKNOWN);
+
+  // A violation that was found and written down survives the budget expiring.
+  //
+  // KLEE keeps exploring other states after recording an error, so it is
+  // routinely killed by `timeout` on a run that already succeeded. The timeout
+  // check used to come first and overwrite the verdict, discarding a FALSE
+  // whose counterexample was sitting in map2check_property. The budget running
+  // out AFTER the tool did its job is not "unable to decide" -- it is a
+  // decision plus a slow shutdown. See finding K in
+  // docs/reports/2026-08-12-castle-juliet-findings.md.
+  //
+  // Scope is deliberately narrow, and the narrowing has to be spelled out in
+  // the CONDITION and not merely in a comment: the timeout branch runs before
+  // the LibFuzzer arm, so without this guard a LibFuzzer run whose crash could
+  // not be replayed would have its property file trusted anyway -- the exact
+  // evidence that should not be trusted. That is not hypothetical: under the
+  // hybrid default every case runs LibFuzzer first with 0.2x the budget, and
+  // "Forcing timeout" appears in 2031 of the 2526 raw logs of the v5 Juliet
+  // baseline.
+  bool evidenceIsTrustworthy =
+      recordedAViolation &&
+      (generator != Map2Check::NonDetGenerator::LibFuzzer ||
+       caller->isVerified());
+
+  if (evidenceIsTrustworthy && caller->isTimeout()) {
+    Map2Check::Log::Warning(
+        "Note: budget expired after a violation was already found -- keeping "
+        "the violation");
+    propertyViolated = recorded;
+  } else if (caller->isTimeout()) {
     Map2Check::Log::Warning("Note: Forcing timeout");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else if (!caller->isVerified() &&
@@ -275,7 +386,7 @@ int map2check_execution(map2check_args args) {
     Map2Check::Log::Warning("Note: Could not replicate error");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else {
-    propertyViolated = counterExample->getProperty();
+    propertyViolated = recorded;
   }
 
   if (propertyViolated ==
@@ -310,11 +421,33 @@ int map2check_execution(map2check_args args) {
     if (args.generateTestCase) counterExample->generateTestCase();
     if (args.generateWitness)
       generate_witness(args.inputFile, propertyViolated, args.spectTrue);
+    if (args.generateTestSuite) {
+      // Relative paths resolve against the directory map2check was invoked
+      // from, not the scratch directory the pipeline chdir'd into -- the suite
+      // has to outlive cleanGarbage().
+      std::string outputDir = args.testSuiteDir;
+      if (!fs::path(outputDir).is_absolute()) {
+        outputDir = caller->getOriginalPath() + "/" + outputDir;
+      }
+      emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
+                    args.architecture,
+                    resolveSpecification(args.propertyFile, args.mode), true);
+    }
   }
 
   // (6) Clean map2check execution (folders and temp files)
-  Map2Check::Log::Debug("Removing temp files");
-  caller->cleanGarbage();
+  // Kept under --debug: every intermediate artefact of a run lives in that
+  // scratch directory -- the compiled bitcode, the instrumented bitcode, the
+  // nondet log -- and deleting it unconditionally makes the pipeline
+  // impossible to inspect after the fact. Debug runs are already opting into
+  // verbosity and disk use.
+  if (args.debugMode) {
+    Map2Check::Log::Info("Debug mode: keeping temp files in " +
+                         caller->getScratchDir());
+  } else {
+    Map2Check::Log::Debug("Removing temp files");
+    caller->cleanGarbage();
+  }
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
@@ -355,6 +488,14 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("check-asserts", "\tanalyze program and verify assert failures")
         ("add-invariants", "\tadding program invariants adopting Crab-LLVM")
         ("generate-witness", "\tgenerates witness file")
+        ("generate-test-suite",
+         "\temits a Test-Comp test suite reproducing the violation found")
+        ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
+         "\tdirectory to write the test suite into")
+        ("property-file", po::value<std::string>(),
+         "\tproperty file whose contents go verbatim into <specification>")
+        ("architecture", po::value<std::string>()->default_value("64bit"),
+         "\tmachine model recorded in the test-suite metadata")
         ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
         ("btree", "\tuses btree structure to hold information (experimental, use this "
         "if you are having memory problems)")
@@ -451,6 +592,18 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     if (vm.count("generate-witness")) {
       args.generateWitness = true;
     }
+    if (vm.count("generate-test-suite")) {
+      args.generateTestSuite = true;
+    }
+    if (vm.count("test-suite-dir")) {
+      args.testSuiteDir = vm["test-suite-dir"].as<std::string>();
+    }
+    if (vm.count("property-file")) {
+      args.propertyFile = vm["property-file"].as<std::string>();
+    }
+    if (vm.count("architecture")) {
+      args.architecture = vm["architecture"].as<std::string>();
+    }
     if (vm.count("generate-testcase")) {
       args.generateTestCase = true;
     }
@@ -485,6 +638,25 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     } else {
       args.generator = Map2Check::NonDetGenerator::None;
     }
+    // Validated here, next to the other option checks, rather than inside
+    // map2check_execution: main() is the only place whose return value becomes
+    // the process exit code, and asking for a capability the build does not
+    // have is an argument problem, not an analysis outcome. Doing it once here
+    // also avoids repeating it per generator on the hybrid path below.
+    //
+    // The exit code matters more than the message. A warning on stderr is what
+    // this used to be, and on a BenchExec cluster it disappears into the run
+    // log -- which is how --add-invariants stayed dead and unnoticed through
+    // an entire baseline (issue #54).
+    if (args.invCrabLlvm && !invariantGeneratorAvailable()) {
+      Map2Check::Log::Error(
+          "--add-invariants was requested but no invariant generator is "
+          "installed. Crab-LLVM was renamed to Clam and this build does not "
+          "ship it; rebuild with -DENABLE_CLAM=ON, or drop the flag. Refusing "
+          "to continue rather than silently analysing without invariants.");
+      return ERROR_UNAVAILABLE_CAPABILITY;
+    }
+
     if (vm.count("input-file")) {
       std::string pathfile;
       pathfile = accumulate(

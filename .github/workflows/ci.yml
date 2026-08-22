@@ -11,10 +11,21 @@
 name: CI
 
 on:
+  # Push cobre só as branches de integração. O filtro antigo listava 'feat-*'
+  # com hífen, que nunca casou com a convenção real (feat/castle-juliet-baseline,
+  # feat/testcomp-conformance) -- então nenhum push de branch era verificado, e
+  # todo run verde até aqui veio do gatilho pull_request.
+  #
+  # Branches de feature ficam cobertas pelo pull_request abaixo, e não por push,
+  # para não disparar dois runs idênticos a cada push numa branch com PR aberta.
   push:
-    branches: [develop, main, master, 'feat-*']
-  pull_request:
     branches: [develop, main, master]
+  # Inclui feat/** como ALVO para que PRs empilhadas sejam verificadas. Sem isso
+  # uma PR cuja base é outra branch de feature não dispara nada -- a #56 abriu
+  # com um único check -- e os gates de regressão que ela própria adiciona nunca
+  # rodariam nela.
+  pull_request:
+    branches: [develop, main, master, 'feat/**']
 
 jobs:
   # ===========================================================
@@ -351,6 +362,143 @@ jobs:
               bash tests/integration/test_castle_regression.sh
               bash tests/integration/test_main_argv.sh
               bash tests/integration/test_modes.sh
+              bash tests/integration/test_add_invariants.sh
+              bash tests/integration/test_test_suite_emission.sh
+            '
+
+  # ===========================================================
+  # Job: Invariants — o contrato do --add-invariants
+  # ===========================================================
+  # Roda o MESMO teste em qualquer estado em que a imagem esteja. Enquanto a
+  # imagem publicada não trouxer o Clam, ele afirma que a flag falha alto
+  # (issue #54). Quando a imagem passar a trazê-lo, o mesmo teste afirma que a
+  # flag tem sucesso E injeta verifier.assume. A linha CAPABILITY no log diz
+  # qual contrato foi verificado, então a volta da capacidade fica visível em
+  # vez de inferida.
+  #
+  # Nenhum check vermelho é estacionado de propósito: um check que se espera
+  # vermelho passa a ser ignorado, e aí ninguém percebe o dia em que fica verde.
+  invariants-clam:
+    name: Invariants (Clam)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    needs: [build-and-test]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo docker image prune -a -f || true
+
+      - name: Pull map2check-dev image
+        run: docker pull ghcr.io/hbgit/map2check-dev:latest
+
+      - name: Build with -DENABLE_CLAM=ON
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e CC=/usr/bin/clang-16 \
+            -e CXX=/usr/bin/clang++-16 \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              rm -rf build_clam_ci install_clam_ci
+              mkdir -p build_clam_ci && cd build_clam_ci
+              cmake .. -G Ninja \
+                -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DENABLE_CLAM=ON \
+                -DMAP2CHECK_DYNAMIC_LINK=ON \
+                -DCMAKE_INSTALL_PREFIX=/workspace/install_clam_ci
+              ninja
+              ninja install
+              mkdir -p /workspace/install_clam_ci/lib/klee
+              ln -sf /opt/klee/lib/klee/runtime /workspace/install_clam_ci/lib/klee/runtime
+              ln -sf /usr/lib/llvm-16/lib/clang /workspace/install_clam_ci/lib/clang
+            '
+
+      - name: Assert the --add-invariants contract
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e MAP2CHECK_PATH=/workspace/install_clam_ci \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              bash tests/integration/test_add_invariants.sh
+            '
+
+  # ===========================================================
+  # Job: Test-Comp conformance — o validador oficial
+  # ===========================================================
+  # Afirma que uma suíte emitida REPRODUZ o bug, que é o que a competição
+  # pontua. A validade estrutural do XML é afirmada à parte, pelo
+  # test_test_suite_emission.sh no job do CASTLE — uma suíte pode ser
+  # perfeitamente bem formada e valer zero ponto.
+  #
+  # Note que o TestCov sai com código 0 tanto quando cobre quanto quando não
+  # cobre; o veredito está na linha "Result:". Ver
+  # tests/testcomp/NOTES-testcov-output.md.
+  testcov-gate:
+    name: Test-Comp Validation (TestCov)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    needs: [build-and-test]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo docker image prune -a -f || true
+
+      - name: Pull map2check-dev image
+        run: docker pull ghcr.io/hbgit/map2check-dev:latest
+
+      - name: Build + install Map2Check in container
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e CC=/usr/bin/clang-16 \
+            -e CXX=/usr/bin/clang++-16 \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              rm -rf build_testcov_ci install_testcov_ci
+              mkdir -p build_testcov_ci && cd build_testcov_ci
+              cmake .. -G Ninja \
+                -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DMAP2CHECK_DYNAMIC_LINK=ON \
+                -DCMAKE_INSTALL_PREFIX=/workspace/install_testcov_ci
+              ninja
+              ninja install
+              mkdir -p /workspace/install_testcov_ci/lib/klee
+              ln -sf /opt/klee/lib/klee/runtime /workspace/install_testcov_ci/lib/klee/runtime
+              ln -sf /usr/lib/llvm-16/lib/clang /workspace/install_testcov_ci/lib/clang
+            '
+
+      - name: Run TestCov over the conformance corpus
+        run: |
+          docker run --rm \
+            -u root \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e MAP2CHECK_PATH=/workspace/install_testcov_ci \
+            -e KEEP_WORK=1 \
+            ghcr.io/hbgit/map2check-dev:latest bash -c '
+              # zip for the suite archive, gcc/lcov for coverage measurement.
+              apt-get update -qq
+              apt-get install -y -qq python3-pip zip gcc lcov
+              pip3 install --quiet testcov
+              bash tests/testcomp/run_testcov_suite.sh
             '
 
   # ===========================================================

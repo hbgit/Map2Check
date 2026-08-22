@@ -165,17 +165,36 @@ for t in data['tests']:
   verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
 
   # --- Pass 2: --add-invariants fallback ---
+  # The flag is still requested unconditionally, on purpose: this pass exists to
+  # retry UNKNOWN cases with abstract-interpretation invariants, and map2check is
+  # supposed to be able to supply them. What is handled here is the documented
+  # exit code for "the generator is not installed" (3), and only because pass 2
+  # REPLACES pass 1's verdict -- without this, a run made while Clam is missing
+  # would write ERROR over a perfectly good UNKNOWN and quietly corrupt the CSV
+  # instead of failing visibly.
+  #
+  # Reading v5 data: through that baseline the flag was accepted and ignored on
+  # the .bc path, so this pass was a byte-identical re-run of pass 1. It burned a
+  # second full budget per UNKNOWN row and recorded used_invariants=yes for runs
+  # that used none. See docs/reports/2026-08-16-crabllvm-review.md.
   if [ "$verdict" = "UNKNOWN" ] && [ "$mode_flags" != "--check-asserts" ]; then
-    used_invariants="yes"
     start=$(date +%s%N)
     rc=0
     run_isolated "$raw" "$TIMEOUT_SEC" \
       "$MAP2CHECK" $mode_flags --add-invariants --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
     end=$(date +%s%N)
-    output=$(cat "$raw")
-    elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
 
-    verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
+    if [ "$rc" -eq 3 ]; then
+      # Capability absent. Keep pass 1's verdict, elapsed time and raw output;
+      # say so in the CSV rather than pretending invariants were tried.
+      used_invariants="unavailable"
+      printf '%s' "$output" > "$raw"
+    else
+      used_invariants="yes"
+      output=$(cat "$raw")
+      elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
+      verdict=$(classify_map2check_verdict "$output" "$rc" "$elapsed" "$INNER_TIMEOUT")
+    fi
   fi
 
   # run_isolated already wrote "$raw"; pass 2, when it runs, overwrites it so

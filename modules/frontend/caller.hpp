@@ -72,7 +72,10 @@ class Caller {
    * operations calls */
   void compileCFile(bool is_llvm_bc);
 
-  void compileToCrabLlvm();
+  /** Compiles the input through Clam so the emitted bitcode carries
+   * verifier.assume(invariant) calls. Requires Clam dev16 installed; callers
+   * must have checked availability first (main() refuses the run otherwise). */
+  void compileWithClam();
 
   /** @brief Function to call pass for current verification mode
    *  (for REACHABILITY mode)
@@ -104,6 +107,16 @@ class Caller {
 
   bool isTimeout() { return gotTimeout; }
   bool isVerified() { return witnessVerified; }
+
+  /** Directory map2check was invoked from. The pipeline chdirs into a scratch
+   * directory that cleanGarbage() deletes, so anything meant to outlive the
+   * run must be written here. */
+  std::string getOriginalPath() { return currentPath; }
+
+  /** Absolute path of this run's scratch directory, where every intermediate
+   * artefact lives. Named after the SHA-1 of the input bitcode, so two runs on
+   * the same input share it. */
+  std::string getScratchDir() { return currentPath + "/" + programHash; }
 };
 
 }  // namespace Map2Check

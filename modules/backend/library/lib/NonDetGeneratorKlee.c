@@ -27,10 +27,21 @@ void nondet_assume(int expr) { klee_assume(expr); }
 
 extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
 
+/* "non_det_" #type, not "non_det_#type". The stringify operator only applies
+ * to a macro parameter written OUTSIDE a string literal; inside one, # and t
+ * are just two characters. Every symbolic object was therefore named the
+ * literal text "non_det_#type" -- the same for an int, a double and a char.
+ *
+ * Nothing read that name, which is how it survived: the nondet log carries its
+ * own type column. It matters now because KLEE writes one .ktest per explored
+ * path, holding exactly the input vectors a Cover-Branches suite needs, and a
+ * .ktest records each object's name and size but not its type. With the name
+ * fixed the type travels with the object; without it, four bytes could be an
+ * int, a float or half of a long, and nothing tells them apart. */
 #define MAP2CHECK_NON_DET_GENERATOR(type)                                      \
   type map2check_non_det_##type() {                                            \
     type non_det;                                                              \
-    klee_make_symbolic(&non_det, sizeof(non_det), "non_det_#type");            \
+    klee_make_symbolic(&non_det, sizeof(non_det), "non_det_" #type);           \
     return non_det;                                                            \
   }
 

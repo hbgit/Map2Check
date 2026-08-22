@@ -499,6 +499,10 @@ jobs:
               apt-get update -qq
               apt-get install -y -qq python3-pip zip gcc lcov
               pip3 install --quiet testcov
+              # The tool-info module is what BenchExec loads on competition
+              # infrastructure. Nothing else here exercises it, and a wrong one
+              # only shows up days after submission as every task erroring out.
+              python3 tests/integration/test_benchexec_toolinfo.py
               bash tests/testcomp/run_testcov_suite.sh
             '
 

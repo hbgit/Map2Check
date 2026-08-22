@@ -108,10 +108,7 @@ std::string resolveSpecification(const std::string &propertyFile,
 void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                    const std::string &entryFunction,
                    const std::string &architecture,
-                   const std::string &specification, bool coversError) {
-  std::vector<std::string> inputs =
-      Map2Check::readNonDetLog(Map2Check::kleeLogCSV);
-
+                   const std::string &specification, bool foundViolation) {
   Map2Check::TestSuiteMetadata metadata;
   metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
   metadata.specification = specification;
@@ -127,7 +124,19 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                             outputDir);
     return;
   }
-  if (!writer.writeTestCase(inputs, coversError)) {
+  // No violation means no test case, but the suite still has to exist. A
+  // missing test-suite/ directory reads to the competition harness as a tool
+  // that crashed; a suite carrying metadata and zero test cases says the tool
+  // ran and found nothing, which is a legitimate and scoreable outcome.
+  if (!foundViolation) {
+    Map2Check::Log::Info("Test suite written to " + outputDir +
+                         " (no violation found -- 0 test cases)");
+    return;
+  }
+
+  std::vector<std::string> inputs =
+      Map2Check::readNonDetLog(Map2Check::kleeLogCSV);
+  if (!writer.writeTestCase(inputs, true)) {
     Map2Check::Log::Warning("could not write test case to " + outputDir);
     return;
   }
@@ -421,18 +430,25 @@ int map2check_execution(map2check_args args) {
     if (args.generateTestCase) counterExample->generateTestCase();
     if (args.generateWitness)
       generate_witness(args.inputFile, propertyViolated, args.spectTrue);
-    if (args.generateTestSuite) {
-      // Relative paths resolve against the directory map2check was invoked
-      // from, not the scratch directory the pipeline chdir'd into -- the suite
-      // has to outlive cleanGarbage().
-      std::string outputDir = args.testSuiteDir;
-      if (!fs::path(outputDir).is_absolute()) {
-        outputDir = caller->getOriginalPath() + "/" + outputDir;
-      }
-      emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
-                    args.architecture,
-                    resolveSpecification(args.propertyFile, args.mode), true);
+  }
+
+  // Emitted for every outcome, not only for a violation. Test-Comp scores the
+  // suite, and a run that decides nothing still has to hand one over: the
+  // competition harness reads an absent test-suite/ as a crashed tool rather
+  // than as an empty result. The `foundViolation` flag decides whether the
+  // suite carries a test case, not whether the suite exists.
+  if (args.generateTestSuite) {
+    // Relative paths resolve against the directory map2check was invoked
+    // from, not the scratch directory the pipeline chdir'd into -- the suite
+    // has to outlive cleanGarbage().
+    std::string outputDir = args.testSuiteDir;
+    if (!fs::path(outputDir).is_absolute()) {
+      outputDir = caller->getOriginalPath() + "/" + outputDir;
     }
+    emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
+                  args.architecture,
+                  resolveSpecification(args.propertyFile, args.mode),
+                  foundViolation);
   }
 
   // (6) Clean map2check execution (folders and temp files)

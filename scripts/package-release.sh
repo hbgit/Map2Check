@@ -13,8 +13,14 @@ cd "$REPO_ROOT"
   exit 1
 }
 
-# Composição do artefato: wrapper SV-COMP + licença + documentação
+# Composição do artefato: wrappers SV-COMP e Test-Comp + licença + documentação.
+#
+# O wrapper do Test-Comp entra aqui porque o módulo tool-info
+# (utils/moduleBenchExec/map2check_testcomp.py) o declara em REQUIRED_PATHS: o
+# BenchExec copia exatamente esses caminhos para o nó de execução, então um
+# arquivo ausente do zip vira um erro na infraestrutura da competição, não aqui.
 cp utils/map2check-wrapper.py release/
+cp utils/map2check-testcomp-wrapper.py release/
 cp LICENSE README.md release/
 
 ZIP="map2check-v${VERSION}-linux-x86_64.zip"

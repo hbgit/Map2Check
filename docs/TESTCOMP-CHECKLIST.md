@@ -23,8 +23,8 @@ evidência que sustenta o estado declarado.
 |---|---|---|
 | **H1.1** Emissor de test suite XML | ✅ | `modules/frontend/test_suite/`. `--generate-test-suite` emite `metadata.xml` + `testcase-N.xml` no formato de intercâmbio. 13 testes unitários + 12 asserções de integração. **Custo real muito abaixo das 2 pw estimadas**: o runtime já registrava os valores em ordem de consumo, faltava só serializar |
 | **H1.2** Conversor ktest→XML | ✅ | **Colapsou dentro do H1.1.** O log é escrito pelo binário instrumentado em tempo de execução, então já carrega os valores concretos do KLEE. Não precisou de conversor separado |
-| **H1.3** Conversor corpus-LibFuzzer→XML | 🟡 | O emissor é agnóstico de engine por construção (`NonDetGeneratorLibFuzzy.c:47` descarrega o mesmo log). **Falta:** log por input, para suítes com múltiplos test cases |
-| **H1.4** Empacotamento BenchExec / fm-tools | ⬜ | `utils/moduleBenchExec/map2check.py` existe mas usa a API `BaseTool` (1.x, obsoleta; hoje é `BaseTool2`) e é voltado a verificação SV-COMP, não a geração de testes |
+| **H1.3** Conversor corpus-LibFuzzer→XML | 🟡 | O emissor é agnóstico de engine por construção (`NonDetGeneratorLibFuzzy.c:47` descarrega o mesmo log). **Falta:** log por input, para suítes com múltiplos test cases. **É o gargalo declarado**: bloqueia H2.5 e é o motivo pelo qual o tool-info recusa `cover-branches` |
+| **H1.4** Empacotamento BenchExec / fm-tools | ✅ | `utils/moduleBenchExec/map2check_testcomp.py` (`BaseTool2`) + `utils/map2check-testcomp-wrapper.py`, ambos no zip de release. 15 asserções contra o benchexec real em `tests/integration/test_benchexec_toolinfo.py`. **Falta:** registrar em `fm-tools` (fora deste repositório). O `map2check.py` SV-COMP segue em `BaseTool` 1.x — obsoleto mas ainda presente no benchexec 3.35, então não está morto |
 | **H1.5** E2E no CI com TestCov | ✅ | Job `Test-Comp Validation (TestCov)`, 6/6 contra manifesto medido. Ver `tests/testcomp/` |
 
 ## H2 — Eficácia
@@ -35,7 +35,7 @@ evidência que sustenta o estado declarado.
 | **H2.2** Orquestração com time-slicing | ⬜ | Default híbrido atual (LibFuzzer 0.2× → KLEE 0.8×) preservado |
 | **H2.3** Seed exchange fuzzer↔KLEE | ⬜ | — |
 | **H2.4** Slicing pré-simbólico | ⬜ | Ver nota de prioridade abaixo |
-| **H2.5** Modo Cover-Branches | ⬜ | Bloqueado por H1.3 (log por input) |
+| **H2.5** Modo Cover-Branches | ⬜ | Bloqueado por H1.3 (log por input). O módulo tool-info **recusa** a propriedade em vez de aceitá-la e pontuar zero |
 
 ### Nota de prioridade sobre H2
 
@@ -110,7 +110,7 @@ Todos com evidência em [findings](reports/2026-08-12-castle-juliet-findings.md)
 | O quê | Contagem |
 |---|---|
 | `ctest` (unitários) | 8 |
-| Integração | 82 asserções em 8 scripts |
+| Integração | 97 asserções em 9 scripts |
 | Conformidade Test-Comp | 6 programas |
 | Jobs de CI | 10, todos verdes na PR #59 (o 10º builda a imagem no próprio PR) |
 

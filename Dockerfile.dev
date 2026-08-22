@@ -166,22 +166,51 @@ RUN apt-get update && apt-get install -y \
 # outright, and the image build dies at 34%. Upstream's own docker/clam.Dockerfile
 # passes these same two flags; clang is the toolchain Clam is built against.
 #
-# The crab / extra / build / install sequence is Clam's documented one. Each
-# target downloads and installs a dependency (Crab, then sea-dsa and
-# llvm-seahorn); the cmake re-run between them re-reads the cache so the next
-# step can see what the previous one produced.
-RUN git clone --depth 1 -b dev16 https://github.com/seahorn/clam.git /tmp/clam && \
-    cd /tmp/clam && mkdir build && cd build && \
-    CLAM_CFG="-DCMAKE_BUILD_TYPE=Release -DCLAM_LLVM_VERSION=16 \
-              -DCLAM_INCLUDE_TESTS=OFF \
-              -DCMAKE_C_COMPILER=/usr/bin/clang-16 \
-              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-16 \
-              -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
-              -DCMAKE_INSTALL_PREFIX=/opt/clam" && \
-    cmake .. $CLAM_CFG && \
-    cmake --build . --target crab && cmake .. $CLAM_CFG && \
-    cmake --build . --target extra && cmake .. $CLAM_CFG && \
-    cmake --build . -j$(nproc) && \
+# Every one of these four repositories is tracked upstream on a MOVING branch:
+# clam, sea-dsa and llvm-seahorn on dev16, Crab on dev. Left unpinned, the
+# contents of this image change without any change on our side -- crab@dev
+# moved on 2026-08-21, while this section was being written. Pinning makes the
+# image reproducible and turns an upstream break into a deliberate bump with a
+# diff, instead of a red build nobody caused.
+#
+# To bump one: replace the SHA, and let the pull_request job in
+# .github/workflows/docker-publish.yml prove the new combination still
+# compiles and still injects invariants before it reaches develop.
+ARG CLAM_SHA=302bf49a8847697f8f16e2c2548ccbc14c226640          # dev16 @ 2026-08-07
+ARG SEADSA_SHA=661855a334c8fda45f45ae74d4e21bbd4e838835        # dev16 @ 2026-08-12
+ARG LLVM_SEAHORN_SHA=8e7e6c62c9f23718973ef9f60d30a593d044287c  # dev16 @ 2026-07-04
+ARG CRAB_SHA=5c740fcc9afcc951844d35e20592af81d8d94604          # dev   @ 2026-08-21
+
+# The dependencies are placed by hand instead of via Clam's `crab` and `extra`
+# targets. Those targets are plain `git clone -b dev<N>` custom commands
+# (cmake/{crab,seadsa,llvm-seahorn}-git.cmake) with nowhere to pass a SHA, so
+# pinning means not using them. Clam's CMakeLists already prefers a dependency
+# that is present in-tree over cloning one, which is what makes this work --
+# and because everything is in place before the first configure, the
+# configure/clone/reconfigure dance the targets required collapses to a single
+# `cmake ..`.
+#
+# `git init` + `fetch --depth 1 <sha>` rather than `clone -b <branch>`: it is
+# the only shallow form that takes a commit, so pinning costs no extra history.
+RUN set -eux; \
+    pin() { \
+      git init -q "$2" && \
+      git -C "$2" remote add origin "$1" && \
+      git -C "$2" fetch -q --depth 1 origin "$3" && \
+      git -C "$2" checkout -q FETCH_HEAD; \
+    }; \
+    pin https://github.com/seahorn/clam.git         /tmp/clam              "$CLAM_SHA"; \
+    pin https://github.com/seahorn/sea-dsa.git      /tmp/clam/sea-dsa      "$SEADSA_SHA"; \
+    pin https://github.com/seahorn/llvm-seahorn.git /tmp/clam/llvm-seahorn "$LLVM_SEAHORN_SHA"; \
+    pin https://github.com/seahorn/crab.git         /tmp/clam/crab         "$CRAB_SHA"; \
+    mkdir /tmp/clam/build && cd /tmp/clam/build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCLAM_LLVM_VERSION=16 \
+             -DCLAM_INCLUDE_TESTS=OFF \
+             -DCMAKE_C_COMPILER=/usr/bin/clang-16 \
+             -DCMAKE_CXX_COMPILER=/usr/bin/clang++-16 \
+             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+             -DCMAKE_INSTALL_PREFIX=/opt/clam && \
+    cmake --build . -j"$(nproc)" && \
     cmake --build . --target install && \
     rm -rf /tmp/clam
 

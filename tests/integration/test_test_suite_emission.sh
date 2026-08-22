@@ -123,6 +123,59 @@ else
   fail "input vector" "expected [42, 7], got [${inputs[*]}]"
 fi
 
+# --- the nondet log's own shape -----------------------------------------------
+# The suite is only as good as the CSV it is serialized from, and that CSV is
+# written by the C runtime, where nothing else checks it. An UNSIGNED row used
+# to come out with EIGHT fields instead of seven: the UNSIGNED arm of the writer
+# was an `if` with no `else`, so the value was printed once as %u and again as
+# %d. It parsed by accident -- the value column is first, so it still landed at
+# index 5 -- while the type column silently moved to index 7.
+#
+# Checked on __VERIFIER_nondet_unsigned specifically: __VERIFIER_nondet_uint is
+# tagged UINT, a different enumerator, and takes the arm that was always right.
+#
+# Runs in its own subdirectory, because --debug keeps the scratch directory and
+# the cleanup assertion below looks for exactly that at depth 1 of $WORK.
+UWORK="$WORK/unsigned_run"
+mkdir -p "$UWORK"
+cat > "$UWORK/unsigned.c" <<'EOF'
+extern unsigned __VERIFIER_nondet_unsigned(void);
+extern void reach_error(void);
+int main(void) {
+  unsigned u = __VERIFIER_nondet_unsigned();
+  if (u == 5u) { reach_error(); }
+  return 0;
+}
+EOF
+
+(
+  cd "$UWORK" || exit 1
+  MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+      --target-function --target-function-name reach_error \
+      --nondet-generator symex --debug --timeout 120 unsigned.c
+) > "$UWORK/unsigned.log" 2>&1
+
+csv=$(find "$UWORK" -name klee_log.csv -print -quit)
+if [ -z "$csv" ]; then
+  fail "unsigned nondet log" "no klee_log.csv produced"
+else
+  malformed=$(awk -F';' 'NF != 7 {print NF" fields: "$0}' "$csv" | head -1)
+  if [ -z "$malformed" ]; then
+    ok "every nondet log row has exactly 7 fields"
+  else
+    fail "nondet log row shape" "$malformed"
+  fi
+
+  # The type column is the one the duplicated value displaced. UNSIGNED is 5 in
+  # enum NONDET_TYPE, and it has to be readable as the LAST field.
+  last=$(awk -F';' 'NR==1{print $7}' "$csv")
+  if [ "$last" = "5" ]; then
+    ok "the type column survives as the last field (UNSIGNED=5)"
+  else
+    fail "type column" "last field is '$last', expected 5"
+  fi
+fi
+
 # The suite must survive cleanGarbage(), which removes the scratch directory.
 if [ -z "$(find "$WORK" -maxdepth 1 -name '*.map2check' -print -quit)" ]; then
   ok "scratch directory cleaned and the suite survived"

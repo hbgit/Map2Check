@@ -2,8 +2,17 @@
 # Publish map2check-dev Docker image to GitHub Container Registry
 #
 # Triggers:
-#   - Push to develop (Dockerfile.dev changes)
-#   - Manual dispatch (workflow_dispatch)
+#   - Push to develop (Dockerfile.dev changes)  -> build AND push
+#   - Pull request touching Dockerfile.dev      -> build only, no push
+#   - Manual dispatch (workflow_dispatch)       -> build AND push
+#
+# The pull_request trigger is not decoration. Until it existed, Dockerfile.dev
+# was only ever built after a merge, so a recipe that cannot build reached
+# develop and broke the image: the Clam section built with the default cc
+# (GCC 11) instead of clang-16, and GCC rejects a construct in sea-dsa that
+# clang only warns about. Nothing pre-merge could have caught that, because
+# nothing pre-merge compiled the file. It is paths-filtered, so PRs that do not
+# touch the Dockerfile pay nothing.
 #
 # Phase 1.5 — OpenSSF Best Practices Badge
 ############################################################
@@ -12,6 +21,10 @@ name: Publish Docker Image
 on:
   push:
     branches: [develop]
+    paths:
+      - 'Dockerfile.dev'
+  pull_request:
+    branches: [develop, main, master]
     paths:
       - 'Dockerfile.dev'
   workflow_dispatch:
@@ -32,7 +45,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Skipped on pull_request: the run does not push, and a PR from a fork
+      # has no packages:write token to log in with anyway.
       - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -48,11 +64,13 @@ jobs:
             type=raw,value=latest
             type=sha,prefix=
 
+      # push is false on pull_request: the point there is to prove the recipe
+      # builds, not to publish an image from an unmerged branch over :latest.
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile.dev
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

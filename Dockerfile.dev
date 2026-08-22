@@ -157,6 +157,15 @@ RUN apt-get update && apt-get install -y \
 # CLAM_INCLUDE_TESTS=OFF: Clam's own lit suite needs `lit` from pip and adds
 # build time for tests of a dependency, not of Map2Check.
 #
+# The compilers are named explicitly rather than left to the ENV CC/CXX set in
+# section 11: those are declared 88 lines BELOW this RUN, and a Docker ENV only
+# applies to later instructions, so Clam would silently build with the default
+# cc/c++ (GCC 11). That is not a cosmetic difference -- sea-dsa defines
+# seadsa::mkTLIGetter with a redundant namespace qualification inside its own
+# namespace, which clang accepts as -Wextra-qualification but GCC rejects
+# outright, and the image build dies at 34%. Upstream's own docker/clam.Dockerfile
+# passes these same two flags; clang is the toolchain Clam is built against.
+#
 # The crab / extra / build / install sequence is Clam's documented one. Each
 # target downloads and installs a dependency (Crab, then sea-dsa and
 # llvm-seahorn); the cmake re-run between them re-reads the cache so the next
@@ -165,6 +174,8 @@ RUN git clone --depth 1 -b dev16 https://github.com/seahorn/clam.git /tmp/clam &
     cd /tmp/clam && mkdir build && cd build && \
     CLAM_CFG="-DCMAKE_BUILD_TYPE=Release -DCLAM_LLVM_VERSION=16 \
               -DCLAM_INCLUDE_TESTS=OFF \
+              -DCMAKE_C_COMPILER=/usr/bin/clang-16 \
+              -DCMAKE_CXX_COMPILER=/usr/bin/clang++-16 \
               -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
               -DCMAKE_INSTALL_PREFIX=/opt/clam" && \
     cmake .. $CLAM_CFG && \

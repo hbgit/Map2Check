@@ -8,10 +8,23 @@ and ECA alone are 2.6k), and a result computed over it says more about the
 benchmark's shape than about the tool. Fixing a quota per subcategory makes
 "Map2Check does badly on Recursive" a statement the numbers can support.
 
-Selection inside a subcategory is deterministic: tasks are sorted by path and
-taken at an even stride. No RNG, no seed to record, and re-running the script
-on the same checkout produces the same manifest -- which is what makes two runs
-comparable at all.
+Selection inside a subcategory is deterministic and NESTED: the candidates are
+sorted by path, then ordered by recursive bisection, and the first N are taken.
+No RNG, no seed to record, and two properties fall out that a plain stride does
+not give:
+
+  * every prefix is evenly spread over the family, so a run cut short by its
+    deadline still sampled the whole range rather than one alphabetical corner;
+  * a larger quota is a SUPERSET of a smaller one. That matters as soon as the
+    corpus grows: with an even stride, raising the quota from 40 to 150
+    preserved only 12 of 40 tasks in Arrays and 10 of 40 in Loops, Floats and
+    ECA -- 70% overall, but the big families almost entirely resampled, so the
+    measurements already taken could not be reused.
+
+The manifest itself is written round-robin across subcategories, not grouped by
+them. A run that stops at its deadline stops after a balanced prefix; grouped
+by category it would have finished Arrays and never reached XCSP, which throws
+away the stratification the sampling exists to provide.
 
 Usage:
   build_corpus.py --property cover-error   --per-category 40 --out manifest.tsv
@@ -112,19 +125,44 @@ def task_info(yml_path, wanted_property):
     return program, data_model, expected
 
 
-def stride_sample(items, quota):
-    """Even stride, not the first N.
+def spread_order(items):
+    """Deterministic permutation whose every prefix is evenly spread.
 
-    Task names inside a family are ordered, and the first N of a sorted list is
-    usually N variations of one program. A stride spreads the sample across the
-    family's whole range at no cost in reproducibility.
+    Breadth-first recursive bisection: the middle element first, then the
+    middles of the two halves, then of the four quarters, and so on. Two
+    properties follow, and both are why this replaced an even stride.
+
+    Any prefix covers the whole range. Taking the first N of a sorted list
+    would give N variations of one program, since task names inside a family
+    are ordered; taking a bisection prefix gives N spread across it.
+
+    Prefixes nest. Because the order does not depend on N, the first 40 of this
+    sequence are the first 40 of any longer one -- so raising the quota ADDS
+    tasks instead of substituting them, and measurements already taken at the
+    smaller quota stay valid. An even stride does not have that property: at
+    the real pool sizes here, going from 40 to 150 kept 12 of 40 tasks in
+    Arrays and 10 of 40 in Loops, Floats and ECA.
     """
-    if quota >= len(items):
-        return items
+    from collections import deque
+
+    order = []
+    queue = deque([(0, len(items) - 1)])
+    while queue:
+        low, high = queue.popleft()
+        if low > high:
+            continue
+        middle = (low + high) // 2
+        order.append(items[middle])
+        queue.append((low, middle - 1))
+        queue.append((middle + 1, high))
+    return order
+
+
+def nested_sample(items, quota):
+    """The first `quota` of the spread order."""
     if quota <= 0:
         return []
-    step = len(items) / float(quota)
-    return [items[int(i * step)] for i in range(quota)]
+    return spread_order(items)[:quota]
 
 
 def main():
@@ -139,7 +177,7 @@ def main():
         sys.exit("sv-benchmarks not found at %s -- run fetch-benchmarks.sh"
                  % BENCH)
 
-    rows = []
+    per_category = {}
     summary = []
     for category in CATEGORIES:
         applicable = []
@@ -147,11 +185,24 @@ def main():
             info = task_info(yml, args.property)
             if info is not None:
                 applicable.append((yml,) + info)
-        chosen = stride_sample(applicable, args.per_category)
+        chosen = nested_sample(applicable, args.per_category)
         summary.append((category, len(applicable), len(chosen)))
-        for yml, program, data_model, expected in chosen:
-            rows.append((category, os.path.relpath(program, BENCH), data_model,
-                         expected or "unknown"))
+        per_category[category] = [
+            (category, os.path.relpath(program, BENCH), data_model,
+             expected or "unknown")
+            for yml, program, data_model, expected in chosen
+        ]
+
+    # Round-robin, not grouped. A run that stops at its deadline should stop
+    # after a balanced prefix of every subcategory; written grouped, it would
+    # finish Arrays and never reach XCSP.
+    rows = []
+    depth = max((len(v) for v in per_category.values()), default=0)
+    for index in range(depth):
+        for category in CATEGORIES:
+            bucket = per_category.get(category, [])
+            if index < len(bucket):
+                rows.append(bucket[index])
 
     with open(args.out, "w") as handle:
         handle.write("# category\tprogram\tdata_model\texpected_unreach\n")

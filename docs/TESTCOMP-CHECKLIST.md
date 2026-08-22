@@ -4,7 +4,7 @@ Estado das frentes do [plano de desenvolvimento](../.opencode/Plano%20de%20desen
 (local, fora do repositório). Este arquivo é o índice vivo: cada item aponta para a
 evidência que sustenta o estado declarado.
 
-**Última atualização:** 2026-08-16
+**Última atualização:** 2026-08-22
 
 ## Legenda
 
@@ -47,14 +47,20 @@ disso mudam o quadro, e **nenhuma das duas é explosão de caminhos**:
    não resolvidas**, e 575 se perdem. Quatro fontes de entrada ficam em exatamente
    **50,0%** de acerto entre os decididos — assinatura de provar a variante segura e
    errar a vulnerável.
-2. O **achado K, já investigado**: o timeout descarta violações que a ferramenta
-   já encontrou e gravou em disco. `isTimeout()` tem precedência sobre a
-   propriedade violada, então um FALSE legítimo vira UNKNOWN só porque o
+2. O **achado K, corrigido**: o timeout descartava violações que a ferramenta
+   já tinha encontrado e gravado em disco. `isTimeout()` tinha precedência sobre
+   a propriedade violada, então um FALSE legítimo virava UNKNOWN só porque o
    orçamento acabou *depois* do trabalho estar feito.
 
-**Recomendação de sequência:** medir quantos UNKNOWN do v5 são violações
-descartadas pelo achado K antes de comprometer qualquer pessoa-semana em
-slicing. É uma pergunta respondível com os dados que já temos.
+**O que a medição do v6 respondeu.** No CASTLE, a correção do K mudou **zero**
+vereditos — e o motivo não é que K fosse pequeno, é que o **achado B o mascara**:
+dos 22 casos indecididos no v5 que rerodaram, 20 usam o modo degenerado, onde
+nenhuma violação chega a ser registrada e portanto K não tem o que resgatar.
+Medir K exige um corpus onde os modos sejam reais — o Juliet, ainda em execução.
+
+**Recomendação de sequência:** corrigir o achado B antes de comprometer qualquer
+pessoa-semana em slicing. Ele bloqueia 45% das execuções do CASTLE *e* impede
+medir o efeito de K nesse corpus.
 
 ---
 
@@ -62,10 +68,10 @@ slicing. É uma pergunta respondível com os dados que já temos.
 
 | Frente | Estado | Evidência |
 |---|---|---|
-| **Invariantes (`--add-invariants`)** | ✅ Fase A + B | Clam `dev16`, `-DENABLE_CLAM=ON`, **desligado por default**. Ver [a revisão da dependência](reports/2026-08-16-crabllvm-review.md) |
+| **Invariantes (`--add-invariants`)** | ✅ **vivo e provado em CI** | Clam `dev16` pinado, `-DENABLE_CLAM=ON`, **desligado por default**. O job `Invariants (Clam)` passou de `ABSENT` para `PRESENT (exit 0)` quando a imagem republicou; a sonda do Dockerfile confirma `Clam injects invariants: OK`. Issue #54 fechada. Ver [a revisão da dependência](reports/2026-08-16-crabllvm-review.md) |
 | Invariantes: gate diferencial p/ promover a default | ⬜ | Task 7 do [plano de revival](superpowers/plans/2026-08-16-add-invariants-revival.md). Depende de rodar sobre corpus real |
 | **Baseline CASTLE + Juliet (v5)** | ✅ | PR #55. CASTLE 98,2% precisão, Juliet 90,8% (99,2% descontando artefatos de mapeamento) |
-| Corrida v6 (depois/antes) | ⬜ | **Regra de atribuição: invariantes DESLIGADOS na corrida principal**, senão overflow + timeout + amostragem + invariantes ficam conjuntamente não creditáveis |
+| Corrida v6 (depois/antes) | 🟡 | **CASTLE fechado** (217/250): precisão 98,2%, recall 74,0%; excluindo o modo degenerado do achado B, recall 79,4%. Juliet: 3 de 4 fatias fechadas, `c` em andamento. **Regra de atribuição: invariantes DESLIGADOS na corrida principal**, senão overflow + timeout + amostragem + invariantes ficam conjuntamente não creditáveis |
 | **Alcançabilidade (CWE-843/628/770/835)** | ⬜ | Adiado por decisão. Sob a lente SV-COMP as quatro colapsam em uma: só 835 mapeia para categoria pontuável (Termination), e os wrappers declaram não suportar |
 
 ---
@@ -82,16 +88,19 @@ Todos com evidência em [findings](reports/2026-08-12-castle-juliet-findings.md)
 | — | `--add-invariants` aceito e ignorado sem rastro na entrada `.bc` (issue #54) | ✅ sai com código 3 |
 | — | Invocação legada do Crab: `--llvm-pp-loops` e `--crab-promote-assume` anulavam a injeção | ✅ removidas, medido |
 | — | Pass 2 do CASTLE era re-execução byte-idêntica do pass 1 em todo o v5 | ✅ reconhece código 3 |
+| **K** | `isTimeout()` descartava violações já encontradas e gravadas: `TARGET-REACHED found` → `Forcing timeout` → `VERIFICATION UNKNOWN`. Disparava em 80% das execuções do Juliet v5 | ✅ resgate restrito a evidência confiável (`c4ef3a355`) |
+| — | Imagem: Clam compilava com GCC 11 em vez de clang-16 (o `ENV CC` está 88 linhas abaixo do `RUN`), e GCC rejeita o que o clang só avisa. **A receita nunca compilou** | ✅ compiladores nomeados no `CLAM_CFG` (#58) |
+| — | `Dockerfile.dev` só era compilado **depois** do merge, então um Dockerfile inválido chegava à `develop` sem nada poder barrá-lo | ✅ o workflow de publish roda em PRs que tocam o arquivo, com `push: false` (#58) |
+| — | Clam e suas três dependências vinham de branches móveis; `crab@dev` mudou em 21/08 | ✅ pinados por SHA como `ARG` (#59) |
 
 ## Defeitos abertos
 
 | # | Defeito | Prioridade |
 |---|---|---|
-| **K** | **Investigado.** `isTimeout()` descarta violações já encontradas e gravadas: `TARGET-REACHED found` → `Forcing timeout` → `VERIFICATION UNKNOWN`. Correção proposta, não aplicada (muda a contagem UNKNOWN→FALSE de todo o baseline) | **Alta** — mecanismo barato de inflar UNKNOWN, sem relação com explosão de caminhos |
 | **K2** | Custo por leitura nondet cresce muito: 1 → 21 → 114 → 861 caminhos parciais para 2 → 4 leituras. Nenhum `.err`, então não são erros | Média — segundo fio a puxar |
 | **G** | `main()` descarta o retorno de `map2check_execution()`; código de saída nunca reflete a análise | Média |
-| **B** | Modo reachability degenerado com `target-function-name main` | Média |
-| — | Garantia de ordenação do corpus depende de um único programa (`two_guards.c`) | Baixa — some quando K for corrigido |
+| **B** | **Medido no v6.** Modo reachability degenerado com `target-function-name main`: 98 de 217 execuções, **zero vereditos FALSE**, 59 programas vulneráveis, 0 detectados. 12 TN e 5 FN pontuados sobre um oráculo que só sabe responder "correto" | **Alta** — 🟡 o caso trivial agora se anuncia (`TargetPass`); falta corrigir o mapeamento CWE→modo do harness, o que **muda a pontuação do baseline** e por isso espera o v6 fechar |
+| — | Garantia de ordenação do corpus depende de um único programa (`two_guards.c`) | Baixa — K já foi corrigido; falta reconferir se ainda vale |
 | — | `CLAUDE.md` linka um `.clang-format` que não existe | Baixa |
 
 ---
@@ -101,9 +110,9 @@ Todos com evidência em [findings](reports/2026-08-12-castle-juliet-findings.md)
 | O quê | Contagem |
 |---|---|
 | `ctest` (unitários) | 8 |
-| Integração | 78 asserções em 7 scripts |
+| Integração | 82 asserções em 8 scripts |
 | Conformidade Test-Comp | 6 programas |
-| Jobs de CI | 9, todos verdes na PR #56 |
+| Jobs de CI | 10, todos verdes na PR #59 (o 10º builda a imagem no próprio PR) |
 
 Gates que provei que **conseguem falhar** (um gate nunca visto vermelho não protege
 ninguém): o do TestCov, invertendo a ordem dos `<input>` no emissor; e o de

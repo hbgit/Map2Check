@@ -13,9 +13,66 @@
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 
+namespace {
+
+/// Counts the call sites TargetPass will match, across the whole module.
+unsigned countTargetCallSites(const llvm::Module& M, llvm::StringRef Name) {
+  unsigned sites = 0;
+  for (const Function& Fn : M) {
+    for (const BasicBlock& BB : Fn) {
+      for (const llvm::Instruction& I : BB) {
+        const CallInst* callInst = dyn_cast<CallInst>(&I);
+        if (callInst == nullptr) continue;
+        const Function* callee = callInst->getCalledFunction();
+        if (callee == nullptr) {
+          callee = dyn_cast<Function>(
+              callInst->getCalledOperand()->stripPointerCasts());
+        }
+        if (callee != nullptr && callee->getName() == Name) ++sites;
+      }
+    }
+  }
+  return sites;
+}
+
+}  // namespace
+
 PreservedAnalyses TargetPass::run(Function& F,
                                   llvm::FunctionAnalysisManager& AM) {
   llvm::errs() << "Running TargetPass with: " << this->targetFunctionName;
+
+  // Reported once per module, not once per function. This is a function pass,
+  // so there is no module-entry hook to hang it on; opt runs once per
+  // invocation, which makes a local static the honest way to say "first
+  // function we see".
+  //
+  // A target that is never called is NOT an error. If a program genuinely
+  // never calls reach_error, then "the error is unreachable" is the correct
+  // answer and TRUE is right. What is wrong is that such a TRUE looks exactly
+  // like a TRUE earned by exploring the program, and nothing in the output
+  // tells them apart.
+  //
+  // That indistinguishability is the whole of finding B. The CASTLE harness
+  // mapped seven CWEs onto `--target-function-name main`; TargetPass looks for
+  // calls TO main, a program does not call its own entry point, so zero sites
+  // were instrumented. Measured on the v6 baseline: 98 of 217 runs went through
+  // that mode and produced TRUE, TIMEOUT or ERROR -- not one FALSE among them,
+  // on 59 programs known to be vulnerable. Twelve of those runs were scored as
+  // true negatives, credit for answers an oracle that can only say "correct"
+  // could not have failed to give.
+  static bool announcedTargetCoverage = false;
+  if (!announcedTargetCoverage) {
+    announcedTargetCoverage = true;
+    if (countTargetCallSites(*F.getParent(), this->targetFunctionName) == 0) {
+      llvm::errs() << "\n[map2check] WARNING: target function '"
+                   << this->targetFunctionName
+                   << "' is never called in this module. TargetPass"
+                      " instruments call sites, so nothing was instrumented"
+                      " and the reachability property holds trivially: a TRUE"
+                      " verdict here means the target is absent, not that the"
+                      " program is safe.\n";
+    }
+  }
 
   this->targetFunctionMap2Check = F.getParent()->getOrInsertFunction(
       "map2check_target_function", Type::getVoidTy(F.getContext()),

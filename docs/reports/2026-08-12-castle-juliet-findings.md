@@ -105,7 +105,7 @@
 |---|---|---|---|
 | A | Truncamento 32-bit no allocation log | `AllocationLog.c` | ✅ corrigido (§1.3) |
 | A2 | Assinatura i64/i32 + ponto de inserção dos binops (overflow runtime quebrado) | `OperationsFunctions.hpp`, `OverflowPass.cpp` | ✅ corrigido (§1.9) |
-| B | `--target-function --target-function-name main` é **degenerado**: TargetPass instrumenta chamadas *para* `main` (que ninguém faz) e `AnalysisModeNone` sempre retorna "correct" | `TargetPass.cpp`, `AnalysisModeNone.c` | aberto (afeta 253/362/369/628/674/770/835) |
+| B | `--target-function --target-function-name main` é **degenerado**: TargetPass instrumenta chamadas *para* `main` (que ninguém faz) e `AnalysisModeNone` sempre retorna "correct" | `TargetPass.cpp`, `AnalysisModeNone.c` | **medido no v6** (§2.1) — 🟡 o caso trivial agora se anuncia; o mapeamento do harness continua aberto |
 | C | `divisionByZeroError()` era TODO no-op | `AnalysisModeOverflow.c:86` | ✅ corrigido (§1.8) |
 | D | Overhead "fuzzer-first": default roda LibFuzzer (60s) antes do KLEE | `map2check.cpp:498-508` | aberto (G5 — lean reachability via `--nondet-generator symex`) |
 | E | 33/250 CASTLE não compilam por headers externos (`mysql.h`, `openssl/*.h`) | imagem Docker | aberto (maioria CWE-89/798, fora de escopo) |
@@ -116,6 +116,65 @@
 | J | Todo estado bifurcado do KLEE grava o mesmo `klee_log.csv` na saída; o último a terminar vence, e não é o violador (que aborta cedo) | `WitnessGeneration.c`, `Map2CheckFunctions.c` | ✅ corrigido — flush só na violação |
 | K | **Investigado e corrigido.** O timeout descartava violações já encontradas e gravadas: `isTimeout()` tinha precedência sobre a propriedade violada. Disparava em 80% das execuções do Juliet v5 | `map2check.cpp` | ✅ corrigido — resgate restrito a evidência confiável |
 | K2 | Custo por leitura nondet cresce muito: 1 → 21 → 114 → 861 caminhos parciais para 2 → 4 leituras, sem nenhum `.err` | KLEE + instrumentação | aberto |
+
+### Achado B, medido: um oráculo que só sabe dizer "correto"
+
+O achado B foi registrado em agosto como uma suspeita estrutural: `TargetPass`
+instrumenta *call sites* cujo callee tem o nome pedido, e um programa não chama
+o próprio `main`, logo nada é instrumentado. O baseline v6 do CASTLE permite
+sair da suspeita e medir.
+
+**98 das 217 execuções (45%) rodaram nesse modo.** O que elas produziram:
+
+| veredito | n |
+|---|---|
+| TRUE | 57 |
+| TIMEOUT | 22 |
+| UNKNOWN | 10 |
+| ERROR | 9 |
+| **FALSE-\*** | **0** |
+
+Nenhum FALSE. Não é escassez: nos outros modos, as mesmas 217 execuções
+produzem 49 vereditos FALSE-\* (`FALSE-DEREF` 21, `FALSE-FREE` 12, `FALSE` 10,
+`FALSE-DIVBYZERO` 6, `FALSE-MEMCLEANUP` 6). O modo degenerado é o único que
+nunca acusa nada.
+
+**59 dos 98 programas eram sabidamente vulneráveis. Zero foram detectados.**
+
+O efeito na pontuação tem dois lados, e o segundo é o mais incômodo:
+
+| | efeito |
+|---|---|
+| 5 FN | perdas garantidas — o oráculo não podia acertar |
+| **12 TN** | **crédito por acertos que um oráculo que só diz "correto" não tinha como errar** |
+
+Descontando o modo inteiro, o CASTLE v6 sai de **recall 74,0% para 79,4%**
+(precisão fica em 98,2%: nenhum TP ou FP vem desse modo — ele não produz
+nenhum dos dois). Ou seja, B **não** infla precisão; ele **deprime recall** e
+**infla TN**.
+
+Os outros 61 casos do modo são CWEs que o harness já declara fora de escopo e
+pontua N/A, então não distorcem métrica alguma. Vale corrigir o registro: uma
+leitura anterior atribuiu os 61 N/A ao achado B — eles são N/A por decisão de
+escopo, não por causa dele. O custo real de B são os 17 casos pontuados.
+
+#### O que foi feito e o que falta
+
+Zero call sites **não é um erro**. Se um programa realmente nunca chama
+`reach_error`, então "o erro é inalcançável" é a resposta certa e TRUE é
+legítimo. O defeito é que esse TRUE é **indistinguível**, na saída, de um TRUE
+conquistado explorando o programa.
+
+Então a correção do lado da ferramenta é de visibilidade, não de veredito:
+`TargetPass` agora varre o módulo uma vez e, se o alvo não é chamado em lugar
+nenhum, avisa dizendo o que o veredito vale ali. Coberto por
+`tests/integration/test_target_coverage.sh` (4 asserções), que exige as duas
+direções — o alvo real fica em silêncio, o alvo ausente se anuncia.
+
+O que **falta** é o lado do harness: o mapeamento CWE→modo usa
+`--target-function-name main` como default de escape para 13 CWEs. Corrigi-lo
+muda a pontuação do baseline, então espera o v6 fechar — trocar o critério no
+meio da corrida é exatamente o que torna duas medições incomparáveis.
 
 ### Achado K, investigado: o timeout descarta violações já encontradas
 

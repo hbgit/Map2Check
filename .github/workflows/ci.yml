@@ -365,6 +365,7 @@ jobs:
               bash tests/integration/test_add_invariants.sh
               bash tests/integration/test_test_suite_emission.sh
               bash tests/integration/test_target_coverage.sh
+              bash tests/integration/test_ktest_object_names.sh
             '
 
   # ===========================================================

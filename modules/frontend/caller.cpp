@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "test_suite/ktest_reader.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
 #include "utils/tools.hpp"
@@ -97,6 +98,55 @@ std::string Caller::postOptimizationFlags() {
   flags.str("");
   flags << "-O2 ";
   return flags.str();
+}
+
+unsigned Caller::exportKleeVectorsAsSeeds() {
+  std::error_code error;
+  std::filesystem::create_directories(Caller::seedDirectory, error);
+
+  std::vector<std::vector<std::string>> ignored;
+  unsigned written = 0;
+  unsigned index = 0;
+  for (const auto &entry : std::filesystem::directory_iterator(
+           Map2Check::kleeOutputDir, error)) {
+    if (entry.path().extension() != ".ktest") continue;
+    std::vector<Map2Check::KtestObject> objects =
+        Map2Check::readKtestFile(entry.path().string());
+    if (objects.empty()) continue;
+
+    std::vector<uint8_t> bytes = Map2Check::ktestToFuzzerBytes(objects);
+    if (bytes.empty()) continue;
+
+    // Named by index rather than by content hash: LibFuzzer renames what it
+    // keeps to its own hash anyway, so a second one here buys nothing.
+    std::ostringstream name;
+    name << Caller::seedDirectory << "/klee-" << index++;
+    std::ofstream out(name.str(), std::ios::binary);
+    if (!out.is_open()) continue;
+    out.write(reinterpret_cast<const char *>(bytes.data()),
+              static_cast<std::streamsize>(bytes.size()));
+    if (out.good()) ++written;
+  }
+  if (written > 0) {
+    Map2Check::Log::Info("Seeded the fuzzer corpus with " +
+                         std::to_string(written) + " vectors from KLEE");
+  }
+  return written;
+}
+
+std::string Caller::exportFuzzerVectorAsKtest() {
+  std::vector<Map2Check::KtestObject> objects =
+      Map2Check::readNonDetLogAsObjects(Map2Check::kleeLogCSV);
+  if (objects.empty()) return "";
+
+  std::error_code error;
+  std::filesystem::create_directories(Caller::seedDirectory, error);
+  const std::string path =
+      std::string(Caller::seedDirectory) + "/from-fuzzer.ktest";
+  if (!Map2Check::writeKtestFile(path, objects)) return "";
+  Map2Check::Log::Info("Seeding KLEE with the fuzzer's vector (" +
+                       std::to_string(objects.size()) + " inputs)");
+  return path;
 }
 
 void Caller::cleanGarbage() {
@@ -445,6 +495,17 @@ void Caller::executeAnalysis(std::string solvername) {
       // .ktest files on one run and zero on the next, the difference being
       // whether an error happened to be hit early. A suite that depends on
       // that is not a suite.
+      // A starting point from whatever ran before, when there is one. KLEE
+      // replays the seed and then explores around it, instead of rediscovering
+      // from nothing a path the fuzzer already walked -- which under a fixed
+      // budget is not merely faster, it is depth the run would not otherwise
+      // have reached.
+      std::string seedFlag;
+      if (this->seedExchange) {
+        const std::string seed = exportFuzzerVectorAsKtest();
+        if (!seed.empty()) seedFlag = " --seed-file=" + seed;
+      }
+
       // Depth-first for Cover-Branches, and the reason is about what survives
       // the deadline rather than about search quality.
       //
@@ -480,7 +541,7 @@ void Caller::executeAnalysis(std::string solvername) {
         //  --allow-external-sym-calls
         //  -use-cache
         kleeCommand << " --external-calls=all"
-                    << stopPolicy << searchPolicy
+                    << stopPolicy << searchPolicy << seedFlag
                     << " --optimize"
                     << " --use-cex-cache"
                     << " --solver-backend=" + solvername + " "
@@ -493,7 +554,7 @@ void Caller::executeAnalysis(std::string solvername) {
         Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
 
         kleeCommand << " --external-calls=all"
-                    << stopPolicy << searchPolicy
+                    << stopPolicy << searchPolicy << seedFlag
                     << " --optimize"
                     << " --use-cex-cache"
                     << " --solver-backend=metasmt "
@@ -505,6 +566,13 @@ void Caller::executeAnalysis(std::string solvername) {
 
       Map2Check::Log::Debug(kleeCommand.str());
       int result = system(kleeCommand.str().c_str());
+      if (this->seedExchange) {
+        // Written after KLEE rather than before the next phase, because the
+        // .ktest files are in the scratch directory that cleanGarbage() will
+        // remove -- and because a later alternation, or a resumed run, should
+        // find them already there.
+        exportKleeVectorsAsSeeds();
+      }
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
@@ -519,9 +587,20 @@ void Caller::executeAnalysis(std::string solvername) {
       // LibFuzzer forks workers that must not outlive the budget.
       command << "timeout -k " << Map2Check::killGracePeriod << " "
               << (0.2 * this->timeout) << " ";
+      // A corpus DIRECTORY, not just a run. Without one LibFuzzer keeps its
+      // corpus in memory and throws it away when the process ends: everything
+      // it discovered in its slice of the budget was discarded, every run.
+      // With one, the interesting inputs persist -- which is what makes them
+      // available to the other engine, and to a later alternation.
+      std::string corpus;
+      if (this->seedExchange) {
+        std::error_code error;
+        std::filesystem::create_directories(Caller::seedDirectory, error);
+        corpus = std::string(" ") + Caller::seedDirectory;
+      }
       command << "./" + programHash +
-                     "-fuzzed.out -jobs=8 -use_value_profile=1 "
-              << " > fuzzer.output";
+                     "-fuzzed.out -jobs=8 -use_value_profile=1"
+              << corpus << " > fuzzer.output";
 
       int result = system(command.str().c_str());
       Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));

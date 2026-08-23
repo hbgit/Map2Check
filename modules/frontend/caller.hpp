@@ -105,6 +105,38 @@ class Caller {
   /** Remove generated files for verification */
   void cleanGarbage();
 
+  /** Turns on the exchange of input vectors between the two engines.
+   *
+   * Off by default so the hybrid keeps behaving exactly as it was measured
+   * (symex 27%, fuzzer 32%, hybrid 45% over the same 372 tasks); promoting it
+   * is a separate decision that has to be earned by its own measurement. */
+  bool seedExchange = false;
+
+  /** Directory the two engines use to hand each other input vectors.
+   *
+   * A directory of files rather than a value passed from one phase to the
+   * next, and the shape is the point: it survives between phases, between
+   * runs, and between alternations -- which is what time-slicing will need.
+   * LibFuzzer treats it as its corpus and grows it; the KLEE phase drops its
+   * own path vectors in.
+   *
+   * Relative, because both engines run with the scratch directory as their
+   * working directory. */
+  static constexpr const char* seedDirectory = "seeds";
+
+  /** Writes KLEE's per-path vectors into the seed corpus.
+   *
+   * Sound only because the engines agree on widths now: concatenating a
+   * .ktest's objects yields exactly the byte buffer that would drive the
+   * fuzzer down the same path. Returns how many seeds were written. */
+  unsigned exportKleeVectorsAsSeeds();
+
+  /** Writes what the fuzzer consumed as a .ktest KLEE can start from.
+   *
+   * The nondet log is the only record of a fuzzer run carrying both value and
+   * type, which is what a .ktest needs. Returns the path, or empty. */
+  std::string exportFuzzerVectorAsKtest();
+
   /** Instrument and execute nondeterministic generator */
   void applyNonDetGenerator();
 

@@ -385,6 +385,7 @@ struct map2check_args {
   bool invCrabLlvm = false;
   bool generateTestSuite = false;
   bool coverBranches = false;
+  bool seedExchange = false;
   std::string testSuiteDir = "test-suite";
   std::string propertyFile;
   std::string architecture = "64bit";
@@ -457,6 +458,7 @@ int map2check_execution(map2check_args args) {
   caller = std::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                   generator);
   caller->c_program_fullpath = args.inputFile;
+  caller->seedExchange = args.seedExchange;
   caller->setTimeout(args.timeout);
   caller->entryFunction = args.entryFunction;
   caller->wasmMode = args.wasmMode;
@@ -658,6 +660,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
          "\temits a Test-Comp test suite reproducing the violation found")
         ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
          "\tdirectory to write the test suite into")
+        ("seed-exchange",
+         "\tlet the two engines hand each other input vectors through a shared "
+         "seed corpus (hybrid runs; off by default)")
         ("cover-branches",
          "\temit one test case per path KLEE explored, from its .ktest output, "
          "instead of the single violating vector (Test-Comp Cover-Branches)")
@@ -767,6 +772,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     if (vm.count("test-suite-dir")) {
       args.testSuiteDir = vm["test-suite-dir"].as<std::string>();
     }
+    if (vm.count("seed-exchange")) {
+      args.seedExchange = true;
+    }
     if (vm.count("cover-branches")) {
       args.coverBranches = true;
       // The mode has to change too, not just the emitter. Without this the run
@@ -855,6 +863,26 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         }
         if (!foundViolation) {
           args.generator = Map2Check::NonDetGenerator::Klee;
+          result = map2check_execution(args);
+          if (result != SUCCESS) {
+            return result;
+          }
+        }
+        // A third phase, and it is what closes the exchange loop.
+        //
+        // The order is fuzzer then KLEE, so KLEE's vectors -- written into the
+        // seed corpus at the end of its phase -- have no consumer inside the
+        // same run. Without this the exchange only ever paid off on a LATER
+        // run. Handing them straight back to the fuzzer is what turns two
+        // engines running in sequence into two engines that cooperate: KLEE
+        // solves the guard the fuzzer could not reach by mutation, and the
+        // fuzzer mutates outward from there far faster than KLEE can fork.
+        //
+        // Behind the flag: the hybrid was measured at 45% covered over 372
+        // tasks in its current shape, and that number should keep meaning what
+        // it means until this one is measured beside it.
+        if (args.seedExchange && !foundViolation) {
+          args.generator = Map2Check::NonDetGenerator::LibFuzzer;
           result = map2check_execution(args);
           if (result != SUCCESS) {
             return result;

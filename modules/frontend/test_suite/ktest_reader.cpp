@@ -12,6 +12,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -40,6 +41,78 @@ bool readBigEndian32(std::ifstream& in, uint32_t* out) {
          (static_cast<uint32_t>(raw[1]) << 16) |
          (static_cast<uint32_t>(raw[2]) << 8) | static_cast<uint32_t>(raw[3]);
   return true;
+}
+
+void putBigEndian32(std::ofstream& out, uint32_t value) {
+  const unsigned char raw[4] = {
+      static_cast<unsigned char>((value >> 24) & 0xff),
+      static_cast<unsigned char>((value >> 16) & 0xff),
+      static_cast<unsigned char>((value >> 8) & 0xff),
+      static_cast<unsigned char>(value & 0xff)};
+  out.write(reinterpret_cast<const char*>(raw), 4);
+}
+
+/** The name and width KLEE uses for a NONDET_TYPE enumerator.
+ *
+ * Both halves have to agree with the runtime or a seed means nothing: the name
+ * is what klee_make_symbolic was called with (NonDetGeneratorKlee.c), and the
+ * width is what the fuzzer consumes per read (NonDetGeneratorLibFuzzy.c).
+ * Enumerator values come from enum NONDET_TYPE in Map2CheckTypes.h. */
+struct NonDetTypeInfo {
+  const char* name;
+  size_t width;
+  bool isFloating;
+  bool isUnsigned;
+};
+
+NonDetTypeInfo nonDetTypeInfo(int type) {
+  switch (type) {
+    case 0:  return {"non_det_int", sizeof(int), false, false};
+    case 1:  return {"non_det_char", sizeof(char), false, false};
+    case 2:  return {"non_det_pointer", sizeof(void*), false, true};
+    case 3:  return {"non_det_ushort", sizeof(unsigned short), false, true};
+    case 4:  return {"non_det_long", sizeof(int64_t), false, false};
+    case 5:  return {"non_det_unsigned", sizeof(unsigned), false, true};
+    case 6:  return {"non_det_ulong", sizeof(uint64_t), false, true};
+    case 7:  return {"non_det_bool", sizeof(int), false, false};
+    case 8:  return {"non_det_uchar", sizeof(unsigned char), false, true};
+    case 10: return {"non_det_size_t", sizeof(size_t), false, true};
+    case 13: return {"non_det_uint", sizeof(unsigned), false, true};
+    case 14: return {"non_det_short", sizeof(short), false, false};
+    case 15: return {"non_det_double", sizeof(double), true, false};
+    default: return {nullptr, 0, false, false};
+  }
+}
+
+/** Encodes a logged decimal value into the object's little-endian bytes. */
+void encodeValue(const std::string& text, const NonDetTypeInfo& info,
+                 std::vector<uint8_t>* out) {
+  if (info.isFloating) {
+    double value = 0.0;
+    try {
+      value = std::stod(text);
+    } catch (const std::exception&) {
+      value = 0.0;
+    }
+    std::memcpy(out->data(), &value,
+                std::min(out->size(), sizeof(double)));
+    return;
+  }
+  uint64_t raw = 0;
+  try {
+    // Parsed as signed first so a logged "-1" round-trips; the bit pattern is
+    // the same either way, and the width below is what actually matters.
+    raw = static_cast<uint64_t>(std::stoll(text));
+  } catch (const std::exception&) {
+    try {
+      raw = std::stoull(text);
+    } catch (const std::exception&) {
+      raw = 0;
+    }
+  }
+  for (size_t i = 0; i < out->size() && i < 8; ++i) {
+    (*out)[i] = static_cast<uint8_t>((raw >> (8 * i)) & 0xff);
+  }
 }
 
 bool skipBlock(std::ifstream& in) {
@@ -245,6 +318,75 @@ std::vector<std::vector<std::string>> readKtestVectors(
     vectors.push_back(std::move(inputs));
   }
   return vectors;
+}
+
+std::vector<uint8_t> ktestToFuzzerBytes(
+    const std::vector<KtestObject>& objects) {
+  std::vector<uint8_t> bytes;
+  for (const KtestObject& object : objects) {
+    bytes.insert(bytes.end(), object.bytes.begin(), object.bytes.end());
+  }
+  return bytes;
+}
+
+bool writeKtestFile(const std::string& path,
+                    const std::vector<KtestObject>& objects) {
+  std::ofstream out(path, std::ios::binary);
+  if (!out.is_open()) return false;
+
+  out.write(kMagicKtest, kMagicSize);
+  putBigEndian32(out, 3);  // version
+  putBigEndian32(out, 1);  // one argument, mirroring what KLEE records
+  const std::string argument = "map2check";
+  putBigEndian32(out, static_cast<uint32_t>(argument.size()));
+  out.write(argument.data(), static_cast<std::streamsize>(argument.size()));
+  putBigEndian32(out, 0);  // symArgvs
+  putBigEndian32(out, 0);  // symArgvLen
+  putBigEndian32(out, static_cast<uint32_t>(objects.size()));
+  for (const KtestObject& object : objects) {
+    putBigEndian32(out, static_cast<uint32_t>(object.name.size()));
+    out.write(object.name.data(),
+              static_cast<std::streamsize>(object.name.size()));
+    putBigEndian32(out, static_cast<uint32_t>(object.bytes.size()));
+    if (!object.bytes.empty()) {
+      out.write(reinterpret_cast<const char*>(object.bytes.data()),
+                static_cast<std::streamsize>(object.bytes.size()));
+    }
+  }
+  return out.good();
+}
+
+std::vector<KtestObject> readNonDetLogAsObjects(const std::string& csvPath) {
+  std::vector<KtestObject> objects;
+  std::ifstream in(csvPath);
+  if (!in.is_open()) return objects;
+
+  std::string line;
+  while (std::getline(in, line)) {
+    if (line.empty()) continue;
+    std::vector<std::string> fields;
+    std::string field;
+    std::istringstream row(line);
+    while (std::getline(row, field, ';')) fields.push_back(field);
+    if (fields.size() < 7) continue;
+
+    const std::string& value = fields[5];
+    int type = 0;
+    try {
+      type = std::stoi(fields[6]);
+    } catch (const std::exception&) {
+      continue;
+    }
+    const NonDetTypeInfo info = nonDetTypeInfo(type);
+    if (info.name == nullptr) continue;
+
+    KtestObject object;
+    object.name = info.name;
+    object.bytes.assign(info.width, 0);
+    encodeValue(value, info, &object.bytes);
+    objects.push_back(std::move(object));
+  }
+  return objects;
 }
 
 }  // namespace Map2Check

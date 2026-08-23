@@ -370,6 +370,69 @@ else
        "did not reach short < 0 -- half of the type is unreachable"
 fi
 
+# --- 11. the engines must be able to hand each other input vectors ----------
+# Two engines that cover almost disjoint sets -- measured over 372 tasks, 65
+# reachable only by the fuzzer and 47 only by KLEE -- and until now they shared
+# nothing. LibFuzzer did not even keep its own corpus: with no corpus directory
+# it holds everything in memory and drops it when the process ends.
+#
+# Asserted here is the MECHANISM, not a coverage gain. Whether cooperating
+# finds more is a question for the corpus, not for a unit-sized program; what
+# a test can pin is that the channel exists, is off by default, and carries
+# vectors in the direction it claims to.
+mkdir -p "$WORK/seed"
+cat > "$WORK/seed/seed.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "seed.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (a > 100 && a < 200) {
+    if (b == a + 7) { reach_error(); }
+  }
+  return 0;
+}
+EOF
+
+# Off by default: the hybrid's measured behaviour must not change until the
+# exchange has earned its place beside it.
+( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 250 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error \
+    --debug --timeout 60 seed.c ) > "$WORK/seed/off.log" 2>&1
+scratch_off=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
+n_off=$(ls "$scratch_off/seeds" 2>/dev/null | wc -l)
+if [ "$n_off" -eq 0 ]; then
+  ok "no seed corpus without --seed-exchange"
+else
+  fail "default behaviour" "$n_off seeds written without asking"
+fi
+rm -rf "$WORK/seed"/*.map2check
+
+( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --debug --timeout 60 seed.c ) > "$WORK/seed/on.log" 2>&1
+scratch_on=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
+n_on=$(ls "$scratch_on/seeds" 2>/dev/null | wc -l)
+
+# LibFuzzer renames what it keeps to its own content hash, so any file at all
+# means the corpus survived the process -- which it never used to.
+if [ "$n_on" -gt 0 ]; then
+  ok "the fuzzer corpus persists with --seed-exchange ($n_on files)"
+else
+  fail "seed corpus" "nothing kept -- the corpus is still in-memory only"
+fi
+
+# KLEE -> fuzzer: its per-path vectors become seed files. Sound only because
+# both engines now consume sizeof(type) per read, so concatenating a .ktest's
+# objects is exactly the buffer that drives the fuzzer down the same path.
+if grep -q "Seeded the fuzzer corpus with" "$WORK/seed/on.log"; then
+  ok "KLEE's path vectors are exported into the seed corpus"
+else
+  fail "KLEE -> fuzzer" "no vectors exported"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

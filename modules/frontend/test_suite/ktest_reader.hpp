@@ -82,6 +82,31 @@ std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir);
 std::vector<std::vector<std::string>> readKtestVectors(
     const std::string& kleeOutDir, size_t limit);
 
+/** Serialises objects into the byte stream a fuzzer would consume.
+ *
+ * Sound only because both engines now agree on widths: NonDetGeneratorKlee.c
+ * passes sizeof(type) to klee_make_symbolic, and NonDetGeneratorLibFuzzy.c
+ * takes sizeof(type) bytes per read. Concatenating a .ktest's objects in order
+ * therefore produces exactly the buffer that would drive the fuzzer down the
+ * same path. Before the width fix this was impossible -- the fuzzer read one
+ * byte per value whatever the type, so most vectors had nowhere to go. */
+std::vector<uint8_t> ktestToFuzzerBytes(const std::vector<KtestObject>& objects);
+
+/** Writes objects as a .ktest, for handing KLEE a starting point.
+ *
+ * The counterpart of readKtestFile, used to turn what one engine learned into
+ * something the other can start from. False if the file could not be written. */
+bool writeKtestFile(const std::string& path,
+                    const std::vector<KtestObject>& objects);
+
+/** Reads the runtime's nondet log as typed objects.
+ *
+ * The log is the only place a fuzzer run records what it actually consumed --
+ * value AND type, in consumption order -- so it is the bridge from a fuzzer
+ * result back into KLEE's format. Field 6 carries the NONDET_TYPE enumerator;
+ * see modules/backend/library/header/Map2CheckTypes.h. */
+std::vector<KtestObject> readNonDetLogAsObjects(const std::string& csvPath);
+
 }  // namespace Map2Check
 
 #endif  // MODULES_FRONTEND_TEST_SUITE_KTEST_READER_HPP_

@@ -186,6 +186,15 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
       passesArg << ",overflow-pass";
       break;
     }
+    case Map2CheckMode::COVER_BRANCHES_MODE: {
+      // Nothing beyond nondet-pass. The inputs have to be recorded, so that
+      // pass stays; there is no property to instrument for, so nothing else
+      // does. This is also the leanest pipeline the tool has, which is the
+      // point: fewer instrumented calls means KLEE explores more paths in the
+      // same budget, and paths are what a branch suite is made of.
+      Map2Check::Log::Info("Running cover-branches mode (no property check)");
+      break;
+    }
     case Map2CheckMode::REACHABILITY_MODE: {
       Map2Check::Log::Info("Running reachability mode");
       Map2Check::Log::Debug("Target function: " + target_function);
@@ -289,6 +298,11 @@ void Caller::linkLLVM() {
     case Map2CheckMode::REACHABILITY_MODE: {
       // Since the map2check api provides the function, we do not need to do any
       // analysis
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
+      break;
+    }
+    case Map2CheckMode::COVER_BRANCHES_MODE: {
+      // No property, so no analysis -- the run exists to explore and record.
       linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
       break;
     }
@@ -403,6 +417,56 @@ void Caller::executeAnalysis(std::string solvername) {
                   << (0.8 * this->timeout) << " ";
       kleeCommand << Map2Check::kleeBinary;
 
+      // KLEE's own deadline, set BELOW the external one so it is KLEE that
+      // stops, not the kill.
+      //
+      // Without it every path explored up to the budget is thrown away.
+      // Measured: a program with twelve nondeterministic reads explored 3982
+      // paths and produced ZERO .ktest files, because `timeout` killed KLEE
+      // before it wrote any -- and those files are where a Cover-Branches
+      // suite comes from, and where a Cover-Error suite now recovers its
+      // input vector. Reaching the budget is the NORMAL case in a competition
+      // run, so this was not an edge: it was the common path discarding all
+      // of its work.
+      //
+      // The external timeout above stays as the backstop for the case its
+      // comment describes, a solver wedged so deep that KLEE's own deadline
+      // never gets a turn.
+      kleeCommand << " --max-time=" << (0.7 * this->timeout) << "s";
+
+
+      // Halting on the first error is right when there is a property to
+      // decide -- the answer is known, and more exploration is waste. It is
+      // wrong for Cover-Branches, where there is no property and the paths ARE
+      // the product: stopping at the first error throws away every path not
+      // yet explored, and with it the test cases they would have produced.
+      //
+      // Measured before this: the same twelve-branch program produced 1020
+      // .ktest files on one run and zero on the next, the difference being
+      // whether an error happened to be hit early. A suite that depends on
+      // that is not a suite.
+      // Depth-first for Cover-Branches, and the reason is about what survives
+      // the deadline rather than about search quality.
+      //
+      // KLEE's default search keeps thousands of states alive at once. Each
+      // writes its .ktest only when it terminates, and the ones still live
+      // when the budget expires are dumped at halt -- where writing them
+      // fails wholesale: "unable to write output test case, losing it", 3982
+      // times in one measured run, for a total of zero test cases from 3982
+      // explored paths. Depth-first finishes states one after another, so
+      // each one's test is on disk long before the deadline matters.
+      //
+      // For the property modes the default search stays: there the goal is to
+      // find one violating path quickly, not to harvest many.
+      std::string searchPolicy =
+          (map2checkMode == Map2CheckMode::COVER_BRANCHES_MODE)
+              ? " --search=dfs"
+              : "";
+
+      std::string stopPolicy =
+          (map2checkMode == Map2CheckMode::COVER_BRANCHES_MODE)
+              ? ""
+              : " --exit-on-error-type=Abort";
 
       std::vector<std::string> kleebackendsolver = {"z3", "stp"};
       std::vector<std::string> kleemetasolver = {"btor", "yices2"};
@@ -416,7 +480,7 @@ void Caller::executeAnalysis(std::string solvername) {
         //  --allow-external-sym-calls
         //  -use-cache
         kleeCommand << " --external-calls=all"
-                    << " --exit-on-error-type=Abort"
+                    << stopPolicy << searchPolicy
                     << " --optimize"
                     << " --use-cex-cache"
                     << " --solver-backend=" + solvername + " "
@@ -429,7 +493,7 @@ void Caller::executeAnalysis(std::string solvername) {
         Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
 
         kleeCommand << " --external-calls=all"
-                    << " --exit-on-error-type=Abort"
+                    << stopPolicy << searchPolicy
                     << " --optimize"
                     << " --use-cex-cache"
                     << " --solver-backend=metasmt "

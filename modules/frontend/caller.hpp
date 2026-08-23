@@ -23,7 +23,17 @@ enum class Map2CheckMode {
   REACHABILITY_MODE, /**< Check if a target function can be executed */
   OVERFLOW_MODE,     /**< Check for signed integer overflows */
   ASSERT_MODE,       /**< Check for asserts (__VERIFIER_assert) */
-  MEMCLEANUP_MODE    /**< Check for memcleanup errors */
+  MEMCLEANUP_MODE,   /**< Check for memcleanup errors */
+  /** Explore paths and record their inputs; check no property.
+   *
+   * Test-Comp Cover-Branches asks for a suite that exercises branches, not for
+   * a verdict, so every property check is overhead here -- and worse than
+   * overhead. With no mode flag this used to fall through to MEMTRACK_MODE and
+   * run the memory-tracking pass: on the Test-Comp corpus that meant 110 of
+   * 110 ProductLines tasks producing an empty suite in two seconds, because
+   * that pass emits a broken module on them. The same tasks work under
+   * Cover-Error, which never loads it. */
+  COVER_BRANCHES_MODE
 };
 
 /** NonDet generators */

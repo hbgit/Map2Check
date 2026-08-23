@@ -59,6 +59,20 @@ std::vector<KtestObject> readKtestFile(const std::string& path);
  * to drop a test case. */
 std::string decodeKtestObject(const KtestObject& object);
 
+/** The input vector of the path KLEE flagged as an error, if there is one.
+ *
+ * For Cover-Error, where the suite needs the ONE vector that reaches the bug.
+ * The runtime's own klee_log.csv is supposed to hold it, and usually does not:
+ * the state that reaches the target aborts, an aborted state runs no exit
+ * handler, and the flush never happens. Measured on the Test-Comp corpus --
+ * 290 of 376 runs that reported FAILED emitted a test case with zero <input>
+ * elements, and TestCov scored every one of them as covering nothing.
+ *
+ * KLEE marks the offending path by writing testNNNNNN.<kind>.err beside its
+ * .ktest, so the vector is identifiable without any cooperation from the
+ * runtime. Returns an empty vector when no path errored. */
+std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir);
+
 /** Every input vector KLEE recorded under `kleeOutDir`, one per .ktest.
  *
  * Ordered by file name, which is KLEE's own path numbering: stable across

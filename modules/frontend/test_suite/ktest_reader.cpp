@@ -168,6 +168,45 @@ std::string decodeKtestObject(const KtestObject& object) {
   return std::to_string(signExtend(raw, object.bytes.size()));
 }
 
+std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir) {
+  std::error_code error;
+  if (!std::filesystem::is_directory(kleeOutDir, error)) return {};
+
+  // KLEE names the report for a failing path testNNNNNN.<kind>.err beside
+  // testNNNNNN.ktest -- .abort.err for an abort, .ptr.err for a bad
+  // dereference, and so on. The stem up to the first dot is the path number,
+  // which is the whole link between the two files.
+  std::vector<std::string> candidates;
+  for (const auto& entry :
+       std::filesystem::directory_iterator(kleeOutDir, error)) {
+    const std::string name = entry.path().filename().string();
+    if (name.size() < 5 || name.compare(name.size() - 4, 4, ".err") != 0) {
+      continue;
+    }
+    const size_t dot = name.find('.');
+    if (dot == std::string::npos) continue;
+    candidates.push_back(name.substr(0, dot));
+  }
+  // Sorted so that a run with several failing paths always yields the same
+  // one. Arbitrary, but arbitrary-and-stable beats arbitrary-and-not: a suite
+  // that changes between identical runs cannot be diffed.
+  std::sort(candidates.begin(), candidates.end());
+
+  for (const std::string& stem : candidates) {
+    std::vector<KtestObject> objects =
+        readKtestFile((std::filesystem::path(kleeOutDir) / (stem + ".ktest"))
+                          .string());
+    if (objects.empty()) continue;
+    std::vector<std::string> inputs;
+    inputs.reserve(objects.size());
+    for (const KtestObject& object : objects) {
+      inputs.push_back(decodeKtestObject(object));
+    }
+    return inputs;
+  }
+  return {};
+}
+
 std::vector<std::vector<std::string>> readKtestVectors(
     const std::string& kleeOutDir, size_t limit) {
   std::vector<std::vector<std::string>> vectors;

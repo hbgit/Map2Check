@@ -79,11 +79,26 @@ bool invariantGeneratorAvailable() {
  * BenchExec always hands the tool a property file, and copying it verbatim is
  * what keeps the metadata correct when the competition revises a property
  * string -- guessing it here would silently drift. The fallbacks exist only so
- * a manual run without --property-file still produces a valid suite. */
+ * a manual run without --property-file still produces a valid suite.
+ *
+ * `invocationDir` is not optional decoration. This runs AFTER the pipeline has
+ * chdir'd into the scratch directory, so a relative --property-file -- which is
+ * what BenchExec and every harness here pass -- resolved against the wrong
+ * directory and silently fell through to the guess below. Measured on the
+ * Test-Comp corpus: "could not read property file: prop.prp" on every task.
+ *
+ * It went unnoticed because the guess HAPPENS to match the real property text
+ * for both categories today, so no output differed and no test could see it.
+ * The drift the comment above warns about was therefore already in place. */
 std::string resolveSpecification(const std::string &propertyFile,
+                                 const std::string &invocationDir,
                                  Map2Check::Map2CheckMode mode) {
   if (!propertyFile.empty()) {
-    std::ifstream in(propertyFile);
+    std::string path = propertyFile;
+    if (!fs::path(path).is_absolute() && !invocationDir.empty()) {
+      path = invocationDir + "/" + path;
+    }
+    std::ifstream in(path);
     if (in.is_open()) {
       std::ostringstream buffer;
       buffer << in.rdbuf();
@@ -94,7 +109,7 @@ std::string resolveSpecification(const std::string &propertyFile,
       }
       if (!text.empty()) return text;
     }
-    Map2Check::Log::Warning("could not read property file: " + propertyFile);
+    Map2Check::Log::Warning("could not read property file: " + path);
   }
   if (mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
     return "COVER( init(main()), FQL(COVER EDGES(@CALL(reach_error))) )";
@@ -110,10 +125,17 @@ std::string resolveSpecification(const std::string &propertyFile,
  *
  * KLEE can terminate tens of thousands of paths, and every test case costs the
  * validator a compile-and-run. The competition scores coverage, not volume, so
- * past a few hundred vectors the marginal branch is rare and the validation
- * cost is not. The bound is here rather than in the runtime because this is
- * the side that knows what the suite is for. */
-constexpr size_t kMaxBranchTestCases = 500;
+ * past a few dozen vectors the marginal branch is rare and the validation cost
+ * is not. The bound is here rather than in the runtime because this is the
+ * side that knows what the suite is for.
+ *
+ * Lowered from 500 after measuring what 500 does: of 116 tasks whose
+ * validation failed outright on the Test-Comp corpus, 115 had at least 100
+ * test cases and the median was exactly 500 -- suites so large that TestCov
+ * could not finish validating them, so the extra vectors scored nothing and
+ * cost everything. Generating them was work spent to make the result
+ * unmeasurable. */
+constexpr size_t kMaxBranchTestCases = 50;
 
 void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                    const std::string &entryFunction,
@@ -173,6 +195,27 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
 
   std::vector<std::string> inputs =
       Map2Check::readNonDetLog(Map2Check::kleeLogCSV);
+
+  // Fall back to KLEE's record of the failing path when the runtime's log is
+  // empty, which is the common case rather than the exception. The state that
+  // reaches the target aborts; an aborted state runs no exit handler; the
+  // flush that writes klee_log.csv never happens. Measured on the Test-Comp
+  // corpus: 290 of 376 runs that reported FAILED emitted a test case with zero
+  // <input> elements, and TestCov scored every one of them as covering
+  // nothing -- the tool had found the bug and could not prove it.
+  //
+  // The log stays the first choice where it exists: it records values in the
+  // order the program consumed them, straight from the instrumented run, while
+  // the .ktest is KLEE's view of the same path.
+  if (inputs.empty()) {
+    inputs = Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
+    if (!inputs.empty()) {
+      Map2Check::Log::Info(
+          "nondet log was empty; recovered the violating input vector from "
+          "KLEE's test output (" + std::to_string(inputs.size()) + " inputs)");
+    }
+  }
+
   if (!writer.writeTestCase(inputs, true)) {
     Map2Check::Log::Warning("could not write test case to " + outputDir);
     return;
@@ -485,7 +528,8 @@ int map2check_execution(map2check_args args) {
     }
     emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
                   args.architecture,
-                  resolveSpecification(args.propertyFile, args.mode),
+                  resolveSpecification(args.propertyFile,
+                                       caller->getOriginalPath(), args.mode),
                   foundViolation, args.coverBranches);
   }
 
@@ -657,6 +701,14 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     }
     if (vm.count("cover-branches")) {
       args.coverBranches = true;
+      // The mode has to change too, not just the emitter. Without this the run
+      // falls through to the MEMTRACK default and instruments memory tracking
+      // for a task that checks no property -- which on the Test-Comp corpus
+      // produced a broken module and an empty suite on all 110 ProductLines
+      // tasks. Set here rather than beside the other mode flags because
+      // --cover-branches is a goal, and the other flags are properties; this
+      // is the one goal that implies the absence of a property.
+      args.mode = Map2Check::Map2CheckMode::COVER_BRANCHES_MODE;
     }
     if (vm.count("property-file")) {
       args.propertyFile = vm["property-file"].as<std::string>();

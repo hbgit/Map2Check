@@ -98,6 +98,35 @@ void MemoryTrackPass::instrumentPointer() {
   builder.CreateCall(this->map2check_pointer, args);
 }
 
+/** Widens or narrows a size operand to the type the runtime call declares.
+ *
+ * The allocation size is taken straight from the program's own call, and its
+ * type is whatever that program declared. The runtime helpers are registered
+ * with an i64 size, so any program allocating with a narrower integer produced
+ * a call whose argument type did not match its signature -- and LLVM rejects
+ * the module outright:
+ *
+ *   Call parameter type does not match function signature!
+ *   LLVM ERROR: Broken module found, compilation aborted!
+ *
+ * Not a corner case. On the Test-Comp corpus this killed all 110 ProductLines
+ * tasks, two seconds into a sixty-second budget, plus a share of ECA -- the
+ * CIL-processed sources there allocate with i32. It went unseen because the
+ * Juliet and CASTLE programs allocate with i64, so every benchmark this tool
+ * is regularly run against happened to match. */
+static Value *coerceToParamType(IRBuilder<> &builder, Value *value,
+                                FunctionCallee callee, unsigned argIndex) {
+  Type *wanted = callee.getFunctionType()->getParamType(argIndex);
+  if (value->getType() == wanted) return value;
+  if (value->getType()->isIntegerTy() && wanted->isIntegerTy()) {
+    // Signed: an allocation size is non-negative in practice, but a program is
+    // free to compute one in a signed type, and truncating a sign-extended
+    // value back is what preserves it either way.
+    return builder.CreateSExtOrTrunc(value, wanted);
+  }
+  return value;
+}
+
 void MemoryTrackPass::instrumentPosixMemAllign() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
 
@@ -116,7 +145,8 @@ void MemoryTrackPass::instrumentPosixMemAllign() {
   Value *varPointerCast = CastInst::CreatePointerCast(
       pointer, PointerType::get(*this->Ctx, 0), bitcast, BBIteratorToInst(j));
 
-  Value *args[] = {varPointerCast, size};
+  Value *args[] = {varPointerCast,
+                   coerceToParamType(builder, size, map2check_posix, 1)};
   builder.CreateCall(map2check_posix, args);
 }
 
@@ -132,7 +162,8 @@ void MemoryTrackPass::instrumentMalloc() {
   Twine bitcast("bitcast");
   // if (size == NULL) {
   // }
-  Value *args[] = {callInst, size};
+  Value *args[] = {callInst,
+                   coerceToParamType(builder, size, map2check_malloc, 1)};
   builder.CreateCall(map2check_malloc, args);
 }
 
@@ -155,7 +186,8 @@ void MemoryTrackPass::instrumentRealloc() {
   // Adds map2check_malloc with allocated address and size
   IRBuilder<> builder(BBIteratorToInst(j));
   auto size = callInst->getArgOperand(1);
-  Value *args[] = {callInst, size};
+  Value *args[] = {callInst,
+                   coerceToParamType(builder, size, map2check_malloc, 1)};
   builder.CreateCall(map2check_malloc, args);
 }
 

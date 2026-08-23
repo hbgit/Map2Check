@@ -4,7 +4,7 @@ Estado das frentes do [plano de desenvolvimento](../.opencode/Plano%20de%20desen
 (local, fora do repositório). Este arquivo é o índice vivo: cada item aponta para a
 evidência que sustenta o estado declarado.
 
-**Última atualização:** 2026-08-22 (noite)
+**Última atualização:** 2026-08-23 (v8)
 
 ## Legenda
 
@@ -93,6 +93,12 @@ Todos com evidência em [findings](reports/2026-08-12-castle-juliet-findings.md)
 | — | Imagem: Clam compilava com GCC 11 em vez de clang-16 (o `ENV CC` está 88 linhas abaixo do `RUN`), e GCC rejeita o que o clang só avisa. **A receita nunca compilou** | ✅ compiladores nomeados no `CLAM_CFG` (#58) |
 | — | `Dockerfile.dev` só era compilado **depois** do merge, então um Dockerfile inválido chegava à `develop` sem nada poder barrá-lo | ✅ o workflow de publish roda em PRs que tocam o arquivo, com `push: false` (#58) |
 | — | Clam e suas três dependências vinham de branches móveis; `crab@dev` mudou em 21/08 | ✅ pinados por SHA como `ARG` (#59) |
+| **L** | **Suíte de Cover-Error saía sem nenhum `<input>`.** O estado que alcança o alvo aborta, e estado abortado não roda handler de saída, então o `klee_log.csv` nunca era escrito. **290 de 376 execuções que reportaram FAILED** emitiram um test case vazio: a ferramenta achava o bug e não conseguia prová-lo | ✅ fallback para o `.ktest` do caminho que o KLEE marcou com `.err` |
+| **M** | **`--property-file` relativo nunca era lido.** `resolveSpecification` roda depois do `chdir` para o scratch. Invisível porque o palpite do fallback coincide com a propriedade real das duas categorias — nenhuma saída diferia | ✅ resolvido contra `getOriginalPath()` |
+| **N** | **`--cover-branches` caía no default `MEMTRACK_MODE`** e instrumentava rastreamento de memória para uma tarefa sem propriedade | ✅ `COVER_BRANCHES_MODE`, pipeline só com `nondet-pass` |
+| **O** | **`MemoryTrackPass` emitia chamada com tipo incompatível.** Declara `map2check_malloc(ptr, i64)` e repassava o operando sem converter; programa que aloca com `i32` gerava módulo quebrado. **110 de 110 tarefas ProductLines** morriam em 2s de um orçamento de 60s. Sobreviveu porque Juliet e CASTLE alocam com `i64` | ✅ coerção nos 3 sítios |
+| **P** | **Teto de 500 test cases inviabilizava a validação.** Dos 116 casos cuja validação falhou, 115 tinham ≥100 casos e a mediana era exatamente 500 | ✅ teto em 50 |
+| **Q** | **O KLEE perdia toda a exploração ao esgotar o orçamento.** Só um `timeout` externo o limitava; um programa com 12 leituras nondet explorou 3982 caminhos e gerou **zero** `.ktest` — `unable to write output test case, losing it`, 3982 vezes. Atingir o orçamento é o caso NORMAL numa corrida de competição | ✅ `--max-time` próprio + busca `dfs` no cover-branches, para os estados terminarem em sequência e gravarem à medida que terminam |
 
 ## Defeitos abertos
 
@@ -111,7 +117,7 @@ Todos com evidência em [findings](reports/2026-08-12-castle-juliet-findings.md)
 | O quê | Contagem |
 |---|---|
 | `ctest` (unitários) | 8 |
-| Integração | ~110 asserções em 11 scripts |
+| Integração | ~117 asserções em 12 scripts |
 | Conformidade Test-Comp | 6 programas |
 | Jobs de CI | 10, todos verdes na PR #59 (o 10º builda a imagem no próprio PR) |
 

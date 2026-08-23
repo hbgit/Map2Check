@@ -51,6 +51,15 @@ const size_t ERROR_IN_COMMAND_LINE = 1;
  * have. Distinct from ERROR_IN_COMMAND_LINE so callers can tell "you typed it
  * wrong" from "this binary cannot do that", and act differently. */
 const size_t ERROR_UNAVAILABLE_CAPABILITY = 3;
+/** --expected-result recorded a verdict different from the one asked for.
+ *
+ * This used to be signalled with abort(), i.e. SIGABRT (exit 134). A signal
+ * tells BenchExec "the tool crashed", which is the opposite of the truth: the
+ * tool ran to a definitive verdict and that verdict disagreed with the
+ * harness's expectation. A distinct exit code lets the harness distinguish
+ * "wrong answer" from "broken run". Kept at 4 so it never collides with the
+ * command-line (1) and capability (3) codes, and never looks like success. */
+const size_t ERROR_EXPECTED_RESULT = 4;
 // A helper function to simplify the main part.
 template <class T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
@@ -550,7 +559,7 @@ int map2check_execution(map2check_args args) {
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
       Map2Check::Log::Fatal("Expected result failed");
-      abort();
+      return ERROR_EXPECTED_RESULT;
     }
   }
 
@@ -781,14 +790,23 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       args.inputFile = absolute_path.string();
       if(args.generator == Map2Check::NonDetGenerator::None) {
         args.generator = Map2Check::NonDetGenerator::LibFuzzer;
-        map2check_execution(args);
+        int result = map2check_execution(args);
+        if (result != SUCCESS) {
+          return result;
+        }
         if (!foundViolation) {
           args.generator = Map2Check::NonDetGenerator::Klee;
-          map2check_execution(args);
+          result = map2check_execution(args);
+          if (result != SUCCESS) {
+            return result;
+          }
         }
       }
       else {
-        map2check_execution(args);
+        int result = map2check_execution(args);
+        if (result != SUCCESS) {
+          return result;
+        }
       }
     }
   } catch (std::exception &e) {

@@ -367,6 +367,7 @@ jobs:
               bash tests/integration/test_target_coverage.sh
               bash tests/integration/test_ktest_object_names.sh
               bash tests/integration/test_testcomp_regressions.sh
+              bash tests/integration/test_exit_codes.sh
             '
 
   # ===========================================================

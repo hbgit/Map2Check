@@ -433,6 +433,43 @@ else
   fail "KLEE -> fuzzer" "no vectors exported"
 fi
 
+# --- 12. slicing must degrade loudly, never silently -------------------------
+# Finding K2 measured a nondeterministic read at 1 -> 21 -> 114 -> 861 partial
+# paths for 2 -> 4 reads, and most of that forking happens in code that cannot
+# influence the target. Slicing removes it before KLEE ever sees it.
+#
+# What is asserted here is the behaviour when things are NOT ideal, because
+# that is where this class of feature fails: --add-invariants spent years
+# accepted and ignored (issue #54), and a slicer that quietly does nothing
+# would be the same defect wearing a different name.
+mkdir -p "$WORK/slice"
+cp "$WORK/one/reach.c" "$WORK/slice/"
+
+( cd "$WORK/slice" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --slice \
+    --nondet-generator symex --timeout 45 reach.c ) > "$WORK/slice/run.log" 2>&1
+
+# Either the slicer is installed and slices, or it is absent and the run says
+# so. What must never happen is silence.
+if grep -q "Sliced with respect to" "$WORK/slice/run.log"; then
+  ok "the program was sliced with respect to the target"
+elif grep -q "sbt-slicer is not installed" "$WORK/slice/run.log"; then
+  ok "an absent slicer is reported, and the run continues unsliced"
+else
+  fail "slicing" "--slice produced neither a slice nor an explanation"
+fi
+
+# There is no criterion to slice towards when the goal is a memory property or
+# branch coverage, so asking must be refused rather than quietly ignored.
+( cd "$WORK/slice" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --slice --nondet-generator symex --timeout 45 reach.c ) \
+  > "$WORK/slice/mode.log" 2>&1
+if grep -q "applies to reachability only" "$WORK/slice/mode.log"; then
+  ok "--slice is refused where there is no criterion to slice towards"
+else
+  fail "slice mode guard" "--slice was accepted in a mode that has no criterion"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

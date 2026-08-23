@@ -19,7 +19,7 @@
 #   PROPERTY      cover-error | cover-branches (required)
 #   RESULTS_DIR   where the CSV and raw logs go (required)
 #   SHARD/SHARDS  process every SHARDS-th task starting at SHARD (default 0/1)
-#   GENERATOR     symex | fuzzer | hybrid (default symex)
+#   GENERATOR     symex | fuzzer | hybrid | hybrid-seed (default hybrid)
 #   BUDGET        seconds given to map2check per task (default 60)
 #   TESTCOV_S     seconds given to TestCov per task (default 90)
 #   DEADLINE_S    stop starting new tasks after this many seconds (default 18000)
@@ -45,9 +45,10 @@ DEADLINE_S="${DEADLINE_S:-18000}"
 # Which engine produces the inputs. Parameterised so the three arms can be
 # compared on the SAME task list:
 #
-#   symex   KLEE only -- every Test-Comp measurement so far used this
-#   fuzzer  LibFuzzer only
-#   hybrid  the tool's actual default: LibFuzzer at 0.2x the budget, then KLEE
+#   symex        KLEE only -- every Test-Comp measurement before 2026-08-23
+#   fuzzer       LibFuzzer only
+#   hybrid       the tool's actual default: LibFuzzer at 0.2x, then KLEE
+#   hybrid-seed  the same, with the two engines exchanging input vectors
 #
 # The default is hybrid, which is also the tool's own default when no
 # --nondet-generator is given. Every Test-Comp measurement before 2026-08-23
@@ -61,6 +62,7 @@ GENERATOR="${GENERATOR:-hybrid}"
 case "$GENERATOR" in
   symex|fuzzer) GENERATOR_FLAG="--nondet-generator $GENERATOR" ;;
   hybrid)       GENERATOR_FLAG="" ;;   # absent flag IS the hybrid path
+  hybrid-seed)  GENERATOR_FLAG="--seed-exchange" ;;
   *) echo "unknown GENERATOR: $GENERATOR" >&2; exit 2 ;;
 esac
 

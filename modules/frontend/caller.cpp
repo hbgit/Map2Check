@@ -149,6 +149,54 @@ std::string Caller::exportFuzzerVectorAsKtest() {
   return path;
 }
 
+bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
+  const std::string slicer = Map2Check::slicerBinary();
+  if (!std::filesystem::exists(slicer)) {
+    // Announced, not silently skipped. A slicer that is asked for and absent
+    // must not leave the run quietly analysing the whole program: that is how
+    // --add-invariants stayed dead through a full baseline (issue #54).
+    Map2Check::Log::Warning(
+        "slicing was requested but sbt-slicer is not installed at " + slicer +
+        " -- analysing the unsliced program");
+    return false;
+  }
+
+  const std::string input = programHash + "-output.bc";
+  const std::string output = programHash + "-sliced.bc";
+  if (!std::filesystem::exists(input)) return false;
+
+  std::ostringstream command;
+  // -c is the slicing criterion: keep what the target call depends on. The
+  // criterion is the whole reason this only serves Cover-Error -- there is no
+  // criterion to give it when every branch is the goal.
+  command << slicer << " -c " << targetFunction << " -o " << output << " "
+          << input << " > slicer.output 2>&1";
+  Map2Check::Log::Debug(command.str());
+  const int result = system(command.str().c_str());
+
+  std::error_code error;
+  const bool produced = std::filesystem::exists(output, error) &&
+                        std::filesystem::file_size(output, error) > 0;
+  if (result != 0 || !produced) {
+    Map2Check::Log::Warning(
+        "sbt-slicer produced no usable output -- analysing the unsliced "
+        "program");
+    return false;
+  }
+
+  // Reported, because a slice is not a neutral speed-up: it narrows the
+  // question being answered, and the size difference is the only visible sign
+  // of how much was dropped.
+  const auto before = std::filesystem::file_size(input, error);
+  const auto after = std::filesystem::file_size(output, error);
+  Map2Check::Log::Info("Sliced with respect to " + targetFunction + ": " +
+                       std::to_string(before) + " -> " +
+                       std::to_string(after) + " bytes of bitcode");
+
+  std::filesystem::rename(output, input, error);
+  return !error;
+}
+
 void Caller::cleanGarbage() {
   std::filesystem::current_path(currentPath);
   std::ostringstream removeCommand;

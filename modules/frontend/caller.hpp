@@ -105,6 +105,21 @@ class Caller {
   /** Remove generated files for verification */
   void cleanGarbage();
 
+  /** Slice the program with respect to the target before analysing it.
+   *
+   * Off by default. Slicing changes WHAT IS ANALYSED, not merely how fast: a
+   * slice taken with respect to one error site can legitimately remove
+   * another, so a run with this on answers a narrower question than a run
+   * without it. That is right for a competition task with one property and
+   * wrong for a baseline scoring precision per CWE, which is why it is a
+   * decision the caller makes rather than a default. */
+  bool sliceProgram = false;
+
+  /** Runs sbt-slicer over the instrumented bitcode. Returns false if the
+   * slicer is unavailable or produced nothing usable, leaving the original
+   * bitcode in place. */
+  bool sliceWithRespectToTarget(const std::string& targetFunction);
+
   /** Turns on the exchange of input vectors between the two engines.
    *
    * Off by default so the hybrid keeps behaving exactly as it was measured

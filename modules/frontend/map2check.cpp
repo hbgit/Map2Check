@@ -386,6 +386,7 @@ struct map2check_args {
   bool generateTestSuite = false;
   bool coverBranches = false;
   bool seedExchange = false;
+  bool sliceProgram = false;
   std::string testSuiteDir = "test-suite";
   std::string propertyFile;
   std::string architecture = "64bit";
@@ -459,6 +460,7 @@ int map2check_execution(map2check_args args) {
                                                   generator);
   caller->c_program_fullpath = args.inputFile;
   caller->seedExchange = args.seedExchange;
+  caller->sliceProgram = args.sliceProgram;
   caller->setTimeout(args.timeout);
   caller->entryFunction = args.entryFunction;
   caller->wasmMode = args.wasmMode;
@@ -481,6 +483,24 @@ int map2check_execution(map2check_args args) {
 
   // (2) Instrument functions for current mode
   caller->callPass(args.function);
+
+  // After instrumentation, before linking: the slicer needs the target call to
+  // still be visible as a criterion, and there is no point slicing code that
+  // the runtime will add afterwards.
+  //
+  // Reachability only. Slicing needs a criterion to slice towards, and
+  // Cover-Branches has none -- every branch is the goal. Asking for it in any
+  // other mode is refused rather than quietly ignored.
+  if (args.sliceProgram) {
+    if (args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+      caller->sliceWithRespectToTarget(args.function);
+    } else {
+      Map2Check::Log::Warning(
+          "--slice applies to reachability only: there is no criterion to "
+          "slice towards when the goal is coverage or a memory property. "
+          "Analysing the whole program.");
+    }
+  }
   caller->linkLLVM();
 
   // (3) Apply nondeterministic mode and execute analysis
@@ -660,6 +680,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
          "\temits a Test-Comp test suite reproducing the violation found")
         ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
          "\tdirectory to write the test suite into")
+        ("slice",
+         "\tslice the program with respect to the target before analysing it "
+         "(reachability only; needs sbt-slicer)")
         ("seed-exchange",
          "\tlet the two engines hand each other input vectors through a shared "
          "seed corpus (hybrid runs; off by default)")
@@ -771,6 +794,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     }
     if (vm.count("test-suite-dir")) {
       args.testSuiteDir = vm["test-suite-dir"].as<std::string>();
+    }
+    if (vm.count("slice")) {
+      args.sliceProgram = true;
     }
     if (vm.count("seed-exchange")) {
       args.seedExchange = true;

@@ -150,7 +150,7 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                    const std::string &entryFunction,
                    const std::string &architecture,
                    const std::string &specification, bool foundViolation,
-                   bool coverBranches) {
+                   bool coverBranches, Map2Check::Map2CheckMode mode) {
   Map2Check::TestSuiteMetadata metadata;
   metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
   metadata.specification = specification;
@@ -192,6 +192,35 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
     return;
   }
 
+  // Last chance to find a vector before declaring the suite empty.
+  //
+  // A run can reach the target and still not record it: the state that reaches
+  // it aborts, an aborted KLEE state runs no exit handler, and
+  // map2check_property is written by that handler. So foundViolation being
+  // false does not mean nothing was found -- it means nothing was WRITTEN
+  // DOWN. Measured: twelve tasks whose suites covered the error came back with
+  // no verdict at all.
+  //
+  // Safe to consult now, and only now, because NonDetPass rewrites the
+  // abort-based assumptions into path pruning: an abort.err can no longer be
+  // an assumption failure, so its presence in reachability mode is evidence
+  // the target really was hit.
+  if (!foundViolation && mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+    std::vector<std::string> recovered =
+        Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
+    if (!recovered.empty()) {
+      Map2Check::Log::Warning(
+          "the runtime recorded no violation, but KLEE reported an aborting "
+          "path -- emitting its input vector (" +
+          std::to_string(recovered.size()) + " inputs)");
+      if (writer.writeTestCase(recovered, true)) {
+        Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                             std::to_string(recovered.size()) + " inputs)");
+        return;
+      }
+    }
+  }
+
   // No violation means no test case, but the suite still has to exist. A
   // missing test-suite/ directory reads to the competition harness as a tool
   // that crashed; a suite carrying metadata and zero test cases says the tool
@@ -217,18 +246,27 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
   // order the program consumed them, straight from the instrumented run, while
   // the .ktest is KLEE's view of the same path.
   //
-  // Gated on the runtime having actually recorded the target as reached, and
-  // that gate is the whole difference between recovering a vector and
-  // inventing one. KLEE writes a .err for ANY abort, and the sv-benchmarks
-  // idiom for an assumption is
+  // Deliberately NOT gated on the runtime having recorded the violation, and
+  // that took two measurements to get right.
   //
-  //     void assume_abort_if_not(int c) { if (!c) abort(); }
+  // The danger this fallback had was picking up an assumption failure: the
+  // sv-benchmarks idiom is `void assume_abort_if_not(int c){ if(!c) abort(); }`
+  // and an aborting assumption leaves an abort.err indistinguishable from a
+  // real one. A suite built from it carried 25 inputs and covered 0.0%.
   //
-  // so a path that merely violates an assumption -- a path the competition
-  // considers out of scope -- leaves an abort.err behind exactly like a real
-  // violation does. Taking it produced suites that looked convincing and
-  // covered nothing: one measured case emitted 25 inputs and scored 0.0%.
-  if (inputs.empty() && foundViolation) {
+  // The first attempt at a defence was to require foundViolation. It cost
+  // more than it saved: measured pairwise against the previous run, twelve
+  // tasks that HAD been covered stopped being covered, every one of them a
+  // case where the target really was reached and the runtime simply never
+  // recorded it -- the state that reaches the target aborts, and an aborted
+  // state runs no exit handler, so map2check_property stays empty exactly
+  // when it matters most.
+  //
+  // The real defence is upstream: NonDetPass now rewrites the abort-based
+  // assumptions into path pruning, so an abort.err can no longer come from
+  // one. With the source of false aborts removed, requiring foundViolation
+  // only blocks legitimate recoveries.
+  if (inputs.empty()) {
     inputs = Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
     if (!inputs.empty()) {
       Map2Check::Log::Info(
@@ -551,7 +589,7 @@ int map2check_execution(map2check_args args) {
                   args.architecture,
                   resolveSpecification(args.propertyFile,
                                        caller->getOriginalPath(), args.mode),
-                  foundViolation, args.coverBranches);
+                  foundViolation, args.coverBranches, args.mode);
   }
 
   // (6) Clean map2check execution (folders and temp files)

@@ -19,6 +19,7 @@
 #   PROPERTY      cover-error | cover-branches (required)
 #   RESULTS_DIR   where the CSV and raw logs go (required)
 #   SHARD/SHARDS  process every SHARDS-th task starting at SHARD (default 0/1)
+#   GENERATOR     symex | fuzzer | hybrid (default symex)
 #   BUDGET        seconds given to map2check per task (default 60)
 #   TESTCOV_S     seconds given to TestCov per task (default 90)
 #   DEADLINE_S    stop starting new tasks after this many seconds (default 18000)
@@ -40,6 +41,28 @@ SHARDS="${SHARDS:-1}"
 BUDGET="${BUDGET:-60}"
 TESTCOV_S="${TESTCOV_S:-90}"
 DEADLINE_S="${DEADLINE_S:-18000}"
+
+# Which engine produces the inputs. Parameterised so the three arms can be
+# compared on the SAME task list:
+#
+#   symex   KLEE only -- every Test-Comp measurement so far used this
+#   fuzzer  LibFuzzer only
+#   hybrid  the tool's actual default: LibFuzzer at 0.2x the budget, then KLEE
+#
+# The default is hybrid, which is also the tool's own default when no
+# --nondet-generator is given. Every Test-Comp measurement before 2026-08-23
+# forced symex and so measured a mode nobody actually runs.
+#
+# Measured on the same 372-task corpus: symex 23% covered, fuzzer 35%, hybrid
+# 47% -- and the hybrid captured the whole UNION of what the two engines reach
+# alone. Directories written before the switch carry `symex` in this comment's
+# place; they are not comparable to hybrid runs and should not be pooled.
+GENERATOR="${GENERATOR:-hybrid}"
+case "$GENERATOR" in
+  symex|fuzzer) GENERATOR_FLAG="--nondet-generator $GENERATOR" ;;
+  hybrid)       GENERATOR_FLAG="" ;;   # absent flag IS the hybrid path
+  *) echo "unknown GENERATOR: $GENERATOR" >&2; exit 2 ;;
+esac
 
 MAP2CHECK_DIR="${MAP2CHECK_PATH:?set MAP2CHECK_PATH}"
 MAP2CHECK="$MAP2CHECK_DIR/map2check"
@@ -108,7 +131,7 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
   (
     cd "$work" || exit 1
     MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 $((BUDGET + 30)) "$MAP2CHECK" \
-        --nondet-generator symex --generate-test-suite $GOAL_FLAGS \
+        $GENERATOR_FLAG --generate-test-suite $GOAL_FLAGS \
         --property-file prop.prp --architecture "$arch" \
         --timeout "$BUDGET" "$name"
   ) > "$work/map2check.log" 2>&1 </dev/null

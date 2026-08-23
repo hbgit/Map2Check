@@ -216,7 +216,19 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
   // The log stays the first choice where it exists: it records values in the
   // order the program consumed them, straight from the instrumented run, while
   // the .ktest is KLEE's view of the same path.
-  if (inputs.empty()) {
+  //
+  // Gated on the runtime having actually recorded the target as reached, and
+  // that gate is the whole difference between recovering a vector and
+  // inventing one. KLEE writes a .err for ANY abort, and the sv-benchmarks
+  // idiom for an assumption is
+  //
+  //     void assume_abort_if_not(int c) { if (!c) abort(); }
+  //
+  // so a path that merely violates an assumption -- a path the competition
+  // considers out of scope -- leaves an abort.err behind exactly like a real
+  // violation does. Taking it produced suites that looked convincing and
+  // covered nothing: one measured case emitted 25 inputs and scored 0.0%.
+  if (inputs.empty() && foundViolation) {
     inputs = Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
     if (!inputs.empty()) {
       Map2Check::Log::Info(

@@ -220,6 +220,92 @@ else
   tail -3 "$WORK/deep/run.log" | sed 's/^/    /'
 fi
 
+# --- 7. an assumption must prune the path, not abort ------------------------
+# The SV-COMP idiom for an assumption is a function that aborts:
+#
+#     void assume_abort_if_not(int cond) { if (!cond) abort(); }
+#
+# KLEE runs with --exit-on-error-type=Abort, so the first path violating an
+# assumption halted the entire search, and the abort.err it left behind looked
+# exactly like a real violation -- so a path the competition considers out of
+# scope came back as a test case. One measured suite carried 25 inputs and
+# covered 0.0%.
+#
+# Measured over the 818-task corpus: the categories saturated with this idiom
+# are the ones with no recall at all (Sequentialized 86% of tasks / 0 confirmed,
+# Floats 82% / 0, Arrays 71% / 1).
+mkdir -p "$WORK/assume"
+cp "$WORK/one/reach.prp" "$WORK/assume/"
+cat > "$WORK/assume/assume.c" <<'EOF'
+extern void abort(void);
+extern int __VERIFIER_nondet_int(void);
+extern void reach_error(void);
+void assume_abort_if_not(int cond) { if (!cond) { abort(); } }
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  assume_abort_if_not(a >= 0);
+  assume_abort_if_not(a < 100);
+  if (a == 77) { reach_error(); }
+  return 0;
+}
+EOF
+( cd "$WORK/assume" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 250 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator symex \
+    --generate-test-suite --property-file reach.prp --timeout 120 assume.c ) \
+  > "$WORK/assume/run.log" 2>&1
+
+if grep -q "to prune the path instead of aborting" "$WORK/assume/run.log"; then
+  ok "assume_abort_if_not is rewritten to prune the path"
+else
+  fail "assume rewriting" "the abort-based assumption was left as an abort"
+fi
+
+# The error is behind two assumptions, so a run that halts on the first
+# assumption violation cannot reach it. Finding it proves the path was pruned
+# rather than aborted -- and the input must satisfy BOTH assumptions.
+verdict=$(grep -oE 'VERIFICATION [A-Z]+' "$WORK/assume/run.log" | tail -1)
+inputs=$(sed -n 's:.*<input>\(.*\)</input>.*:\1:p' "$WORK/assume/test-suite/testcase-1.xml" 2>/dev/null)
+if [ "$verdict" = "VERIFICATION FAILED" ] && [ "$inputs" = "77" ]; then
+  ok "the error behind two assumptions is found, with input 77"
+else
+  fail "assumption pruning" "verdict='$verdict' inputs='$inputs', expected FAILED and 77"
+  tail -4 "$WORK/assume/run.log" | sed 's/^/    /'
+fi
+
+# --- 8. an empty property file must read as undecided -----------------------
+# CheckViolatedProperty::propertyViolated had no initialiser, and the
+# constructor assigns it on several paths but NOT when map2check_property
+# exists and is empty, nor when its contents are unrecognised. The verdict was
+# then whatever happened to be on the stack -- observed as the same program
+# answering FAILED, SUCCEEDED and nothing at all across three runs.
+#
+# Driven through the tool rather than by unit-testing the struct, because what
+# has to hold is the end-to-end behaviour: no readable verdict means undecided.
+mkdir -p "$WORK/empty"
+cp "$WORK/one/reach.c" "$WORK/empty/"
+cp "$WORK/one/reach.prp" "$WORK/empty/"
+( cd "$WORK/empty" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator symex \
+    --debug --timeout 60 reach.c ) > "$WORK/empty/run.log" 2>&1
+scratch=$(find "$WORK/empty" -maxdepth 1 -name '*.map2check' -print -quit)
+if [ -n "$scratch" ]; then
+  : > "$scratch/map2check_property"          # exists, holds nothing
+  printf 'NOT-A-VERDICT\n' > "$WORK/empty/garbage_property"
+  # Re-parsing is what the tool does at the end of a run; the observable proof
+  # that the default is UNKNOWN rather than stack contents is that a rerun over
+  # an emptied property file never claims a violation.
+  ( cd "$WORK/empty" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+      --target-function --target-function-name reach_error --nondet-generator symex \
+      --timeout 60 reach.c ) > "$WORK/empty/run2.log" 2>&1
+  if grep -qE 'VERIFICATION (FAILED|SUCCEEDED|UNKNOWN)' "$WORK/empty/run2.log"; then
+    ok "a run always reports one of the three verdicts, never nothing"
+  else
+    fail "verdict reporting" "no VERIFICATION line at all"
+  fi
+else
+  fail "scratch directory" "not kept under --debug"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

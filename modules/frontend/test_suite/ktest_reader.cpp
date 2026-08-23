@@ -176,16 +176,23 @@ std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir) {
   // testNNNNNN.ktest -- .abort.err for an abort, .ptr.err for a bad
   // dereference, and so on. The stem up to the first dot is the path number,
   // which is the whole link between the two files.
+  //
+  // Only .abort.err. KLEE writes .ptr.err, .free.err, .div.err and others for
+  // failures that are not this tool's target, and taking any of them would
+  // return the vector of an unrelated path. Even .abort.err is not proof on
+  // its own -- the sv-benchmarks assumption idiom aborts too -- which is why
+  // the caller gates this on the runtime having recorded a violation.
   std::vector<std::string> candidates;
+  const std::string kAbortSuffix = ".abort.err";
   for (const auto& entry :
        std::filesystem::directory_iterator(kleeOutDir, error)) {
     const std::string name = entry.path().filename().string();
-    if (name.size() < 5 || name.compare(name.size() - 4, 4, ".err") != 0) {
+    if (name.size() <= kAbortSuffix.size()) continue;
+    if (name.compare(name.size() - kAbortSuffix.size(), kAbortSuffix.size(),
+                     kAbortSuffix) != 0) {
       continue;
     }
-    const size_t dot = name.find('.');
-    if (dot == std::string::npos) continue;
-    candidates.push_back(name.substr(0, dot));
+    candidates.push_back(name.substr(0, name.size() - kAbortSuffix.size()));
   }
   // Sorted so that a run with several failing paths always yields the same
   // one. Arbitrary, but arbitrary-and-stable beats arbitrary-and-not: a suite

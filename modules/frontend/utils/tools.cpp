@@ -241,7 +241,15 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
           Map2Check::Log::Debug("ASSERT found");
           this->propertyViolated = Tools::PropertyViolated::ASSERT;
         } else {
-          // throw Tools::CheckViolatedPropertyException("Invalid Property");
+          // Unrecognised, including the empty-file case where this loop never
+          // runs at all. Left silent for years while the field was
+          // uninitialised, so the verdict came from the stack. Saying so is
+          // cheap and the difference between a bug that is found and one that
+          // is not.
+          Map2Check::Log::Debug(
+              "map2check_property holds no verdict this parser recognises "
+              "(\"" + line + "\") -- treating the run as undecided");
+          this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
         }
         break;
       case 1:

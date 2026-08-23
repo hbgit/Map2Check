@@ -104,10 +104,25 @@ enum class PropertyViolated {
 
 /** Class used to check violated property */
 struct CheckViolatedProperty {
-  /** Current violated property */
-  PropertyViolated propertyViolated;
+  /** Current violated property.
+   *
+   * Defaulted, and the default matters more than it looks. The constructor
+   * assigns this on several paths but NOT when map2check_property exists and
+   * is empty, nor when it holds a line the parser does not recognise -- the
+   * `else` that would have caught that is commented out. Both cases used to
+   * leave the field holding whatever was on the stack, and that value decided
+   * the tool's verdict.
+   *
+   * It is reachable: a KLEE state that aborts early creates the file without
+   * writing a verdict into it. Observed as the same program answering FAILED,
+   * SUCCEEDED and nothing across three runs, and as the ERROR/UNKNOWN churn
+   * that shows up in every baseline comparison.
+   *
+   * UNKNOWN is the honest default: no readable verdict means the tool did not
+   * decide, which is exactly what the missing-file path already reports. */
+  PropertyViolated propertyViolated = PropertyViolated::UNKNOWN;
   /** Line where property was violated */
-  unsigned line;
+  unsigned line = 0;
   /** Name of the function where the property was violated */
   string function_name;
   string path_name;

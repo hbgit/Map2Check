@@ -558,10 +558,19 @@ int map2check_execution(map2check_args args) {
     }
 
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
-    if (generator == Map2Check::NonDetGenerator::Klee) {
-      Map2Check::Log::Info("Unable to prove or falsify the program.");
-      Map2Check::Log::Info("VERIFICATION UNKNOWN");
-      if (args.debugMode) counterExample->generateTestCase();
+    // Printed for every generator, not just KLEE. Guarded on Klee, an
+    // undecided LibFuzzer run ended with NO verdict line at all, and a caller
+    // that parses stdout for one -- every harness here, and the BenchExec
+    // tool-info -- reads that silence as the tool having crashed. It is the
+    // same defect as the discarded exit code (finding G), one layer up: the
+    // analysis reached a conclusion and did not say so.
+    //
+    // Visible in the numbers: the fuzzer arm of the engine comparison recorded
+    // ERROR for whole categories that had simply come back undecided.
+    Map2Check::Log::Info("Unable to prove or falsify the program.");
+    Map2Check::Log::Info("VERIFICATION UNKNOWN");
+    if (args.debugMode && generator == Map2Check::NonDetGenerator::Klee) {
+      counterExample->generateTestCase();
     }
   } else {
     Map2Check::Log::Info("Started counter example generation");

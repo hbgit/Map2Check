@@ -76,8 +76,34 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   return 0;
 }
 
+/* Fills `out` with `size` bytes from the fuzzer's buffer, in target order.
+ *
+ * The generators below used to take ONE byte and cast it, whatever the type.
+ * A `long` could therefore only ever be 0..255; so could a `short`, a
+ * `size_t`, a pointer -- and a `double` could only be an integral value
+ * between 0.0 and 255.0. Nothing negative was reachable at all, because an
+ * unsigned byte cast to a signed type stays non-negative.
+ *
+ * Beyond the obvious loss of reach, this is what made seeding impossible: the
+ * byte layout IS the exchange format between the two engines, and a KLEE
+ * vector holding short x = 4242 cannot be written into a slot one byte wide.
+ * Consuming sizeof(type) puts the fuzzer on the same layout KLEE already uses
+ * -- NonDetGeneratorKlee.c passes sizeof(non_det) to klee_make_symbolic -- so
+ * a vector means the same thing to both. */
+static void get_bytes_from_fuzzer(void *out, size_t size) {
+  unsigned char *destination = (unsigned char *)out;
+  size_t i = 0;
+  for (; i < size; i++) {
+    destination[i] = get_next_input_from_fuzzer();
+  }
+}
+
 #define MAP2CHECK_NON_DET_GENERATOR(type)                                      \
-  type map2check_non_det_##type() { return (type)get_next_input_from_fuzzer(); }
+  type map2check_non_det_##type() {                                            \
+    type value;                                                                \
+    get_bytes_from_fuzzer(&value, sizeof(value));                              \
+    return value;                                                              \
+  }
 
 MAP2CHECK_NON_DET_GENERATOR(char)
 MAP2CHECK_NON_DET_GENERATOR(pointer)
@@ -96,28 +122,27 @@ MAP2CHECK_NON_DET_GENERATOR(sector_t)
 MAP2CHECK_NON_DET_GENERATOR(double)
 // MAP2CHECK_NON_DET_GENERATOR(uint)
 
-// Considering an int on a x64, then a 64 bit integer is 8 times a 8 bit integer
-int map2check_non_det_int() {
-  uint64_t result = 0;
-  int i = 0;
-  for (; i < 8; i++)
-    /* cast before the shift: uint8_t promotes to int, and shifting an int
-     * by up to 56 bits is undefined behavior */
-    result |= (uint64_t)get_next_input_from_fuzzer() << (8 * i);
+/* Was reading EIGHT bytes and truncating to int, so half of every integer's
+ * worth of fuzzer entropy was consumed and thrown away -- and, worse for
+ * seeding, the layout did not match what KLEE writes for the same read. */
+MAP2CHECK_NON_DET_GENERATOR(int)
 
-  return (int)result;
-}
+MAP2CHECK_NON_DET_GENERATOR(uint)
+MAP2CHECK_NON_DET_GENERATOR(unsigned)
 
-uint map2check_non_det_uint() { return (uint)map2check_non_det_int(); }
-
-unsigned map2check_non_det_unsigned() {
-  return (unsigned)map2check_non_det_int();
-}
+/* Upper bound on a fuzzer-chosen string length.
+ *
+ * The length comes from a full-width unsigned, so before this the malloc below
+ * could be asked for four billion bytes on a whim. Any string long enough to
+ * matter for a benchmark fits well inside this. */
+#define MAP2CHECK_MAX_FUZZED_STRING 4096
 
 char *map2check_non_det_pchar() {
   unsigned length = map2check_non_det_unsigned();
   if (length == 0)
     return NULL;
+  if (length > MAP2CHECK_MAX_FUZZED_STRING)
+    length = MAP2CHECK_MAX_FUZZED_STRING;
   /* heap allocation: returning a local VLA would leave the caller with a
    * dangling pointer (cppcheck returnDanglingLifetime) */
   char *string = malloc(length);

@@ -306,6 +306,70 @@ else
   fail "scratch directory" "not kept under --debug"
 fi
 
+# --- 9. every generator must report a verdict --------------------------------
+# The UNKNOWN branch was guarded on the generator being KLEE, so an undecided
+# LibFuzzer run printed no verdict line at all. Every harness here parses
+# stdout for one, and so does the BenchExec tool-info; silence reads as a
+# crash. Whole categories came back as ERROR in the engine comparison for this
+# reason alone.
+mkdir -p "$WORK/verdict"
+cat > "$WORK/verdict/hard.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "hard.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  /* Two exact 32-bit matches at once: a fuzzer will not stumble onto this
+   * inside the budget, so the run ends undecided -- which is the point. */
+  if (a == 1234567 && b == 7654321) { reach_error(); }
+  return 0;
+}
+EOF
+for gen in fuzzer symex; do
+  ( cd "$WORK/verdict" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 120 "$MAP2CHECK" \
+      --target-function --target-function-name reach_error \
+      --nondet-generator "$gen" --timeout 45 hard.c ) > "$WORK/verdict/$gen.log" 2>&1
+  if grep -qE 'VERIFICATION (FAILED|SUCCEEDED|UNKNOWN)' "$WORK/verdict/$gen.log"; then
+    ok "the $gen generator reports a verdict"
+  else
+    fail "$gen verdict" "no VERIFICATION line -- a caller reads this as a crash"
+  fi
+done
+
+# --- 10. the fuzzer must reach the whole width of a type ---------------------
+# Each generator took ONE byte and cast it, so a short could only be 0..255 and
+# nothing negative was reachable at all -- an unsigned byte cast to a signed
+# type stays non-negative. Half of every signed type was unreachable.
+#
+# It also blocked seeding: the byte layout IS the exchange format between the
+# engines, and a KLEE vector holding short x = 4242 cannot be written into a
+# slot one byte wide. sizeof(type) is what KLEE already passes to
+# klee_make_symbolic, so this puts both engines on one layout.
+mkdir -p "$WORK/width"
+cat > "$WORK/width/neg.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "neg.c", 3, "reach_error"); }
+extern short __VERIFIER_nondet_short(void);
+int main(void) {
+  short s = __VERIFIER_nondet_short();
+  if (s < 0) { reach_error(); }
+  return 0;
+}
+EOF
+( cd "$WORK/width" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 150 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error \
+    --nondet-generator fuzzer --timeout 60 neg.c ) > "$WORK/width/run.log" 2>&1
+
+if grep -q 'VERIFICATION FAILED' "$WORK/width/run.log"; then
+  ok "the fuzzer reaches a negative short"
+else
+  fail "fuzzer value range" \
+       "did not reach short < 0 -- half of the type is unreachable"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

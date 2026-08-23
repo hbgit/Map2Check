@@ -20,6 +20,7 @@
 #   RESULTS_DIR   where the CSV and raw logs go (required)
 #   SHARD/SHARDS  process every SHARDS-th task starting at SHARD (default 0/1)
 #   GENERATOR     symex | fuzzer | hybrid | hybrid-seed (default hybrid)
+#   EXTRA_FLAGS   passed verbatim to map2check (e.g. "--slice")
 #   BUDGET        seconds given to map2check per task (default 60)
 #   TESTCOV_S     seconds given to TestCov per task (default 90)
 #   DEADLINE_S    stop starting new tasks after this many seconds (default 18000)
@@ -59,6 +60,12 @@ DEADLINE_S="${DEADLINE_S:-18000}"
 # alone. Directories written before the switch carry `symex` in this comment's
 # place; they are not comparable to hybrid runs and should not be pooled.
 GENERATOR="${GENERATOR:-hybrid}"
+
+# Extra flags handed straight to map2check, for measuring an opt-in capability
+# against a run without it. Kept separate from GENERATOR because these are not
+# engine choices: --slice and --seed-exchange both sit on top of whichever
+# engine is running.
+EXTRA_FLAGS="${EXTRA_FLAGS:-}"
 case "$GENERATOR" in
   symex|fuzzer) GENERATOR_FLAG="--nondet-generator $GENERATOR" ;;
   hybrid)       GENERATOR_FLAG="" ;;   # absent flag IS the hybrid path
@@ -133,7 +140,7 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
   (
     cd "$work" || exit 1
     MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 $((BUDGET + 30)) "$MAP2CHECK" \
-        $GENERATOR_FLAG --generate-test-suite $GOAL_FLAGS \
+        $GENERATOR_FLAG $EXTRA_FLAGS --generate-test-suite $GOAL_FLAGS \
         --property-file prop.prp --architecture "$arch" \
         --timeout "$BUDGET" "$name"
   ) > "$work/map2check.log" 2>&1 </dev/null

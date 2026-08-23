@@ -13,6 +13,15 @@ RESULTS_DIR="${RESULTS_DIR:-$SCRIPT_DIR/results}"
 TIMEOUT_SEC=360
 
 # CWE → mode mapping (single-pass flags, --add-invariants added on UNKNOWN)
+#
+# Only CWEs Map2Check actually supports carry a mode here. Everything else is
+# declared in OUT_OF_SCOPE_CWES and skipped, because the old fallback for those
+# was `--target-function --target-function-name main`, which is degenerate
+# (finding B): TargetPass instruments call sites whose callee is the named
+# function, a program never calls its own main, so nothing was instrumented and
+# every vulnerable case was reported TRUE. A TRUE from an oracle that can only
+# say "correct" earned 12 fake true negatives and 5 guaranteed false negatives
+# on the v6 baseline.
 declare -A CWE_MODE=(
   # Memory safety (memtrack)
   [125]="--memtrack"
@@ -30,24 +39,14 @@ declare -A CWE_MODE=(
   [401]="--memcleanup-property"
   # Assert
   [617]="--check-asserts"
-  # Reachability (other)
-  [628]="--target-function --target-function-name main"
-  [674]="--target-function --target-function-name main"
-  [770]="--target-function --target-function-name main"
-  [835]="--target-function --target-function-name main"
-  # Out of scope (still run for completeness, flagged N/A)
-  [22]="--target-function --target-function-name main"
-  [78]="--target-function --target-function-name main"
-  [89]="--target-function --target-function-name main"
-  [134]="--target-function --target-function-name main"
-  [253]="--target-function --target-function-name main"
-  [327]="--target-function --target-function-name main"
-  [362]="--target-function --target-function-name main"
-  [522]="--target-function --target-function-name main"
-  [798]="--target-function --target-function-name main"
 )
 
-OUT_OF_SCOPE_CWES=(22 78 89 134 253 327 362 522 798)
+# Unsupported CWEs. 628/674/770/835 are termination/resource properties (loop,
+# recursion, unbounded workers) that Map2Check does not model; the rest are
+# injection/crypto categories outside SV-COMP's scorable set for this tool.
+# These are NOT run -- running them under the degenerate reachability mode only
+# produced misleading TRUEs and burned a full budget per case for nothing.
+OUT_OF_SCOPE_CWES=(22 78 89 134 253 327 362 522 628 674 770 798 835)
 
 is_out_of_scope() {
   local cwe="$1"
@@ -138,7 +137,23 @@ for t in data['tests']:
   vulnerable=$(echo "$entry" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['vulnerable'])")
   cwe=$(echo "$entry" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['cwe'])")
 
-  mode_flags="${CWE_MODE[$cwe]:---target-function --target-function-name main}"
+  # Unsupported CWEs are skipped outright, not run under a degenerate mode.
+  # Recorded as N/A so the row exists for completeness and for the resume map,
+  # but no budget is spent and no verdict is invented.
+  if is_out_of_scope "$cwe"; then
+    echo "$id_short,$cwe,$name,$vulnerable,N/A,,,,N/A,0.0" >> "$RESULTS_DIR/castle_results.csv"
+    NA=$((NA+1))
+    echo "  [$RUN/250] $name (CWE-$cwe): N/A (out of scope)"
+    continue
+  fi
+
+  mode_flags="${CWE_MODE[$cwe]:-}"
+  if [ -z "$mode_flags" ]; then
+    echo "  ERROR: no mode mapping for CWE-$cwe ($name) -- fix CWE_MODE or OUT_OF_SCOPE_CWES" >&2
+    echo "$id_short,$cwe,$name,$vulnerable,UNMAPPED,,,,ERROR,0.0" >> "$RESULTS_DIR/castle_results.csv"
+    ERR=$((ERR+1))
+    continue
+  fi
 
   # run_isolated gives each invocation a private CWD and captures to a file.
   #
@@ -207,10 +222,9 @@ for t in data['tests']:
   reported_line=$(echo "$output" | grep -oP 'map2check_property line \K\d+' | head -1)
 
   # --- Classify ---
-  if is_out_of_scope "$cwe"; then
-    classification="N/A"
-    NA=$((NA+1))
-  elif [ "$verdict" = "TIMEOUT" ]; then
+  # Out-of-scope CWEs were skipped above (continue), so every case reaching
+  # here is in scope and gets a verdict-driven classification.
+  if [ "$verdict" = "TIMEOUT" ]; then
     classification="TIMEOUT"
     TO=$((TO+1))
   elif [ "$verdict" = "ERROR" ]; then

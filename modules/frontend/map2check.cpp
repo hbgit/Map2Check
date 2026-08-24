@@ -29,6 +29,7 @@
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
+#include "test_suite/ktest_reader.hpp"
 #include "test_suite/test_suite.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
@@ -50,6 +51,15 @@ const size_t ERROR_IN_COMMAND_LINE = 1;
  * have. Distinct from ERROR_IN_COMMAND_LINE so callers can tell "you typed it
  * wrong" from "this binary cannot do that", and act differently. */
 const size_t ERROR_UNAVAILABLE_CAPABILITY = 3;
+/** --expected-result recorded a verdict different from the one asked for.
+ *
+ * This used to be signalled with abort(), i.e. SIGABRT (exit 134). A signal
+ * tells BenchExec "the tool crashed", which is the opposite of the truth: the
+ * tool ran to a definitive verdict and that verdict disagreed with the
+ * harness's expectation. A distinct exit code lets the harness distinguish
+ * "wrong answer" from "broken run". Kept at 4 so it never collides with the
+ * command-line (1) and capability (3) codes, and never looks like success. */
+const size_t ERROR_EXPECTED_RESULT = 4;
 // A helper function to simplify the main part.
 template <class T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
@@ -78,11 +88,26 @@ bool invariantGeneratorAvailable() {
  * BenchExec always hands the tool a property file, and copying it verbatim is
  * what keeps the metadata correct when the competition revises a property
  * string -- guessing it here would silently drift. The fallbacks exist only so
- * a manual run without --property-file still produces a valid suite. */
+ * a manual run without --property-file still produces a valid suite.
+ *
+ * `invocationDir` is not optional decoration. This runs AFTER the pipeline has
+ * chdir'd into the scratch directory, so a relative --property-file -- which is
+ * what BenchExec and every harness here pass -- resolved against the wrong
+ * directory and silently fell through to the guess below. Measured on the
+ * Test-Comp corpus: "could not read property file: prop.prp" on every task.
+ *
+ * It went unnoticed because the guess HAPPENS to match the real property text
+ * for both categories today, so no output differed and no test could see it.
+ * The drift the comment above warns about was therefore already in place. */
 std::string resolveSpecification(const std::string &propertyFile,
+                                 const std::string &invocationDir,
                                  Map2Check::Map2CheckMode mode) {
   if (!propertyFile.empty()) {
-    std::ifstream in(propertyFile);
+    std::string path = propertyFile;
+    if (!fs::path(path).is_absolute() && !invocationDir.empty()) {
+      path = invocationDir + "/" + path;
+    }
+    std::ifstream in(path);
     if (in.is_open()) {
       std::ostringstream buffer;
       buffer << in.rdbuf();
@@ -93,7 +118,7 @@ std::string resolveSpecification(const std::string &propertyFile,
       }
       if (!text.empty()) return text;
     }
-    Map2Check::Log::Warning("could not read property file: " + propertyFile);
+    Map2Check::Log::Warning("could not read property file: " + path);
   }
   if (mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
     return "COVER( init(main()), FQL(COVER EDGES(@CALL(reach_error))) )";
@@ -105,10 +130,27 @@ std::string resolveSpecification(const std::string &propertyFile,
  *
  * Must run before Caller::cleanGarbage(): klee_log.csv lives in the scratch
  * directory that cleanGarbage() deletes, and the suite must not. */
+/** Upper bound on a Cover-Branches suite.
+ *
+ * KLEE can terminate tens of thousands of paths, and every test case costs the
+ * validator a compile-and-run. The competition scores coverage, not volume, so
+ * past a few dozen vectors the marginal branch is rare and the validation cost
+ * is not. The bound is here rather than in the runtime because this is the
+ * side that knows what the suite is for.
+ *
+ * Lowered from 500 after measuring what 500 does: of 116 tasks whose
+ * validation failed outright on the Test-Comp corpus, 115 had at least 100
+ * test cases and the median was exactly 500 -- suites so large that TestCov
+ * could not finish validating them, so the extra vectors scored nothing and
+ * cost everything. Generating them was work spent to make the result
+ * unmeasurable. */
+constexpr size_t kMaxBranchTestCases = 50;
+
 void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                    const std::string &entryFunction,
                    const std::string &architecture,
-                   const std::string &specification, bool foundViolation) {
+                   const std::string &specification, bool foundViolation,
+                   bool coverBranches, Map2Check::Map2CheckMode mode) {
   Map2Check::TestSuiteMetadata metadata;
   metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
   metadata.specification = specification;
@@ -124,6 +166,61 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                             outputDir);
     return;
   }
+  // Cover-Branches: one test case per path KLEE explored, taken from its own
+  // .ktest output. Nothing is asked of the instrumented program -- measured,
+  // when it was: making it write a log per state turned a 1-second run that
+  // answered FALSE into a 100-second run that exhausted its budget and
+  // answered TRUE, because each write is an external call KLEE executes
+  // concretely. Reading afterwards costs the finished search nothing.
+  //
+  // coversError is false throughout: these vectors are paths, not violations.
+  // The violating one, when there is one, is still in klee_log.csv and still
+  // goes out under Cover-Error.
+  if (coverBranches) {
+    std::vector<std::vector<std::string>> vectors =
+        Map2Check::readKtestVectors(Map2Check::kleeOutputDir,
+                                    kMaxBranchTestCases);
+    for (const std::vector<std::string> &inputs : vectors) {
+      if (!writer.writeTestCase(inputs, false)) {
+        Map2Check::Log::Warning("could not write test case to " + outputDir);
+        return;
+      }
+    }
+    Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                         std::to_string(vectors.size()) +
+                         " test cases from KLEE paths)");
+    return;
+  }
+
+  // Last chance to find a vector before declaring the suite empty.
+  //
+  // A run can reach the target and still not record it: the state that reaches
+  // it aborts, an aborted KLEE state runs no exit handler, and
+  // map2check_property is written by that handler. So foundViolation being
+  // false does not mean nothing was found -- it means nothing was WRITTEN
+  // DOWN. Measured: twelve tasks whose suites covered the error came back with
+  // no verdict at all.
+  //
+  // Safe to consult now, and only now, because NonDetPass rewrites the
+  // abort-based assumptions into path pruning: an abort.err can no longer be
+  // an assumption failure, so its presence in reachability mode is evidence
+  // the target really was hit.
+  if (!foundViolation && mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+    std::vector<std::string> recovered =
+        Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
+    if (!recovered.empty()) {
+      Map2Check::Log::Warning(
+          "the runtime recorded no violation, but KLEE reported an aborting "
+          "path -- emitting its input vector (" +
+          std::to_string(recovered.size()) + " inputs)");
+      if (writer.writeTestCase(recovered, true)) {
+        Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                             std::to_string(recovered.size()) + " inputs)");
+        return;
+      }
+    }
+  }
+
   // No violation means no test case, but the suite still has to exist. A
   // missing test-suite/ directory reads to the competition harness as a tool
   // that crashed; a suite carrying metadata and zero test cases says the tool
@@ -136,6 +233,48 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
 
   std::vector<std::string> inputs =
       Map2Check::readNonDetLog(Map2Check::kleeLogCSV);
+
+  // Fall back to KLEE's record of the failing path when the runtime's log is
+  // empty, which is the common case rather than the exception. The state that
+  // reaches the target aborts; an aborted state runs no exit handler; the
+  // flush that writes klee_log.csv never happens. Measured on the Test-Comp
+  // corpus: 290 of 376 runs that reported FAILED emitted a test case with zero
+  // <input> elements, and TestCov scored every one of them as covering
+  // nothing -- the tool had found the bug and could not prove it.
+  //
+  // The log stays the first choice where it exists: it records values in the
+  // order the program consumed them, straight from the instrumented run, while
+  // the .ktest is KLEE's view of the same path.
+  //
+  // Deliberately NOT gated on the runtime having recorded the violation, and
+  // that took two measurements to get right.
+  //
+  // The danger this fallback had was picking up an assumption failure: the
+  // sv-benchmarks idiom is `void assume_abort_if_not(int c){ if(!c) abort(); }`
+  // and an aborting assumption leaves an abort.err indistinguishable from a
+  // real one. A suite built from it carried 25 inputs and covered 0.0%.
+  //
+  // The first attempt at a defence was to require foundViolation. It cost
+  // more than it saved: measured pairwise against the previous run, twelve
+  // tasks that HAD been covered stopped being covered, every one of them a
+  // case where the target really was reached and the runtime simply never
+  // recorded it -- the state that reaches the target aborts, and an aborted
+  // state runs no exit handler, so map2check_property stays empty exactly
+  // when it matters most.
+  //
+  // The real defence is upstream: NonDetPass now rewrites the abort-based
+  // assumptions into path pruning, so an abort.err can no longer come from
+  // one. With the source of false aborts removed, requiring foundViolation
+  // only blocks legitimate recoveries.
+  if (inputs.empty()) {
+    inputs = Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
+    if (!inputs.empty()) {
+      Map2Check::Log::Info(
+          "nondet log was empty; recovered the violating input vector from "
+          "KLEE's test output (" + std::to_string(inputs.size()) + " inputs)");
+    }
+  }
+
   if (!writer.writeTestCase(inputs, true)) {
     Map2Check::Log::Warning("could not write test case to " + outputDir);
     return;
@@ -245,6 +384,9 @@ struct map2check_args {
   bool btree = false;
   bool invCrabLlvm = false;
   bool generateTestSuite = false;
+  bool coverBranches = false;
+  bool seedExchange = false;
+  bool sliceProgram = false;
   std::string testSuiteDir = "test-suite";
   std::string propertyFile;
   std::string architecture = "64bit";
@@ -317,6 +459,8 @@ int map2check_execution(map2check_args args) {
   caller = std::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                   generator);
   caller->c_program_fullpath = args.inputFile;
+  caller->seedExchange = args.seedExchange;
+  caller->sliceProgram = args.sliceProgram;
   caller->setTimeout(args.timeout);
   caller->entryFunction = args.entryFunction;
   caller->wasmMode = args.wasmMode;
@@ -339,6 +483,24 @@ int map2check_execution(map2check_args args) {
 
   // (2) Instrument functions for current mode
   caller->callPass(args.function);
+
+  // After instrumentation, before linking: the slicer needs the target call to
+  // still be visible as a criterion, and there is no point slicing code that
+  // the runtime will add afterwards.
+  //
+  // Reachability only. Slicing needs a criterion to slice towards, and
+  // Cover-Branches has none -- every branch is the goal. Asking for it in any
+  // other mode is refused rather than quietly ignored.
+  if (args.sliceProgram) {
+    if (args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+      caller->sliceWithRespectToTarget(args.function);
+    } else {
+      Map2Check::Log::Warning(
+          "--slice applies to reachability only: there is no criterion to "
+          "slice towards when the goal is coverage or a memory property. "
+          "Analysing the whole program.");
+    }
+  }
   caller->linkLLVM();
 
   // (3) Apply nondeterministic mode and execute analysis
@@ -418,10 +580,19 @@ int map2check_execution(map2check_args args) {
     }
 
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
-    if (generator == Map2Check::NonDetGenerator::Klee) {
-      Map2Check::Log::Info("Unable to prove or falsify the program.");
-      Map2Check::Log::Info("VERIFICATION UNKNOWN");
-      if (args.debugMode) counterExample->generateTestCase();
+    // Printed for every generator, not just KLEE. Guarded on Klee, an
+    // undecided LibFuzzer run ended with NO verdict line at all, and a caller
+    // that parses stdout for one -- every harness here, and the BenchExec
+    // tool-info -- reads that silence as the tool having crashed. It is the
+    // same defect as the discarded exit code (finding G), one layer up: the
+    // analysis reached a conclusion and did not say so.
+    //
+    // Visible in the numbers: the fuzzer arm of the engine comparison recorded
+    // ERROR for whole categories that had simply come back undecided.
+    Map2Check::Log::Info("Unable to prove or falsify the program.");
+    Map2Check::Log::Info("VERIFICATION UNKNOWN");
+    if (args.debugMode && generator == Map2Check::NonDetGenerator::Klee) {
+      counterExample->generateTestCase();
     }
   } else {
     Map2Check::Log::Info("Started counter example generation");
@@ -447,8 +618,9 @@ int map2check_execution(map2check_args args) {
     }
     emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
                   args.architecture,
-                  resolveSpecification(args.propertyFile, args.mode),
-                  foundViolation);
+                  resolveSpecification(args.propertyFile,
+                                       caller->getOriginalPath(), args.mode),
+                  foundViolation, args.coverBranches, args.mode);
   }
 
   // (6) Clean map2check execution (folders and temp files)
@@ -468,7 +640,7 @@ int map2check_execution(map2check_args args) {
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
       Map2Check::Log::Fatal("Expected result failed");
-      abort();
+      return ERROR_EXPECTED_RESULT;
     }
   }
 
@@ -508,6 +680,15 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
          "\temits a Test-Comp test suite reproducing the violation found")
         ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
          "\tdirectory to write the test suite into")
+        ("slice",
+         "\tslice the program with respect to the target before analysing it "
+         "(reachability only; needs sbt-slicer)")
+        ("seed-exchange",
+         "\tlet the two engines hand each other input vectors through a shared "
+         "seed corpus (hybrid runs; off by default)")
+        ("cover-branches",
+         "\temit one test case per path KLEE explored, from its .ktest output, "
+         "instead of the single violating vector (Test-Comp Cover-Branches)")
         ("property-file", po::value<std::string>(),
          "\tproperty file whose contents go verbatim into <specification>")
         ("architecture", po::value<std::string>()->default_value("64bit"),
@@ -614,6 +795,23 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     if (vm.count("test-suite-dir")) {
       args.testSuiteDir = vm["test-suite-dir"].as<std::string>();
     }
+    if (vm.count("slice")) {
+      args.sliceProgram = true;
+    }
+    if (vm.count("seed-exchange")) {
+      args.seedExchange = true;
+    }
+    if (vm.count("cover-branches")) {
+      args.coverBranches = true;
+      // The mode has to change too, not just the emitter. Without this the run
+      // falls through to the MEMTRACK default and instruments memory tracking
+      // for a task that checks no property -- which on the Test-Comp corpus
+      // produced a broken module and an empty suite on all 110 ProductLines
+      // tasks. Set here rather than beside the other mode flags because
+      // --cover-branches is a goal, and the other flags are properties; this
+      // is the one goal that implies the absence of a property.
+      args.mode = Map2Check::Map2CheckMode::COVER_BRANCHES_MODE;
+    }
     if (vm.count("property-file")) {
       args.propertyFile = vm["property-file"].as<std::string>();
     }
@@ -685,14 +883,43 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       args.inputFile = absolute_path.string();
       if(args.generator == Map2Check::NonDetGenerator::None) {
         args.generator = Map2Check::NonDetGenerator::LibFuzzer;
-        map2check_execution(args);
+        int result = map2check_execution(args);
+        if (result != SUCCESS) {
+          return result;
+        }
         if (!foundViolation) {
           args.generator = Map2Check::NonDetGenerator::Klee;
-          map2check_execution(args);
+          result = map2check_execution(args);
+          if (result != SUCCESS) {
+            return result;
+          }
+        }
+        // A third phase, and it is what closes the exchange loop.
+        //
+        // The order is fuzzer then KLEE, so KLEE's vectors -- written into the
+        // seed corpus at the end of its phase -- have no consumer inside the
+        // same run. Without this the exchange only ever paid off on a LATER
+        // run. Handing them straight back to the fuzzer is what turns two
+        // engines running in sequence into two engines that cooperate: KLEE
+        // solves the guard the fuzzer could not reach by mutation, and the
+        // fuzzer mutates outward from there far faster than KLEE can fork.
+        //
+        // Behind the flag: the hybrid was measured at 45% covered over 372
+        // tasks in its current shape, and that number should keep meaning what
+        // it means until this one is measured beside it.
+        if (args.seedExchange && !foundViolation) {
+          args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+          result = map2check_execution(args);
+          if (result != SUCCESS) {
+            return result;
+          }
         }
       }
       else {
-        map2check_execution(args);
+        int result = map2check_execution(args);
+        if (result != SUCCESS) {
+          return result;
+        }
       }
     }
   } catch (std::exception &e) {

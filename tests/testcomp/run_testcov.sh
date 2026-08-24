@@ -8,6 +8,10 @@
 #
 # TestCov takes a zip while the competition consumes a directory, so the zip is
 # built here rather than by the tool.
+#
+# No --nondet-generator: the absent flag IS the hybrid path, LibFuzzer then
+# KLEE, which is what the tool does when a competition harness invokes it. This
+# used to force symex, so the gate exercised a mode the competition never sees.
 
 set -u
 
@@ -64,7 +68,7 @@ cp "$PROPERTY" "$WORK/"
 ( cd "$WORK" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 "$BUDGET" \
     "$MAP2CHECK" --target-function --target-function-name reach_error \
     --generate-test-suite --property-file "$prop" --architecture 64bit \
-    --nondet-generator symex --timeout "$((BUDGET / 2))" "$name" ) \
+    --timeout "$((BUDGET / 2))" "$name" ) \
   > "$WORK/map2check.log" 2>&1
 
 if [ ! -d "$WORK/test-suite" ]; then

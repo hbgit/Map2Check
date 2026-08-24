@@ -28,8 +28,74 @@ inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
 }
 }  // namespace
 
+namespace {
+
+/** Names the benchmarks use for "prune this path", implemented as an abort.
+ *
+ * `__VERIFIER_assume` is usually only declared, and the call-site rewriting
+ * below handles that. These are DEFINED in the program -- the SV-COMP sources
+ * carry their own body:
+ *
+ *     void assume_abort_if_not(int cond) { if (!cond) abort(); }
+ *
+ * so renaming them would collide with the runtime's own definition. The body
+ * is replaced instead, which reaches every call site at once. */
+const char *const kAssumeByAbort[] = {"assume_abort_if_not",
+                                      "assume_abort_if_not_",
+                                      "__VERIFIER_assume"};
+
+/** Rewrites such a function to a real assume. Returns true if it rewrote.
+ *
+ * Aborting on a failed assumption is not merely slow, it is wrong twice over.
+ * KLEE runs here with --exit-on-error-type=Abort, so the FIRST path that
+ * violates an assumption halts the whole search -- discarding every path not
+ * yet explored. And the abort leaves an abort.err behind that looks exactly
+ * like a real violation, which is how a path the competition considers out of
+ * scope came back as a test case: one measured suite carried 25 inputs and
+ * covered 0.0%.
+ *
+ * Measured over the 818-task Cover-Error corpus, the categories saturated with
+ * this idiom are the ones with no recall at all -- Sequentialized 86% of tasks
+ * and 0 confirmed, Floats 82% and 0, Arrays 71% and 1. */
+bool rewriteAssumeToPrune(Function &F) {
+  if (F.isDeclaration()) return false;
+  bool named = false;
+  for (const char *candidate : kAssumeByAbort) {
+    if (F.getName() == candidate) {
+      named = true;
+      break;
+    }
+  }
+  if (!named) return false;
+  if (F.arg_size() != 1 || !F.getArg(0)->getType()->isIntegerTy()) return false;
+  if (!F.getReturnType()->isVoidTy()) return false;
+
+  LLVMContext &ctx = F.getContext();
+  llvm::Type *int32 = llvm::Type::getInt32Ty(ctx);
+  llvm::Value *condition = F.getArg(0);
+
+  F.deleteBody();
+  BasicBlock *entry = BasicBlock::Create(ctx, "entry", &F);
+  IRBuilder<> builder(entry);
+  llvm::FunctionCallee assume = F.getParent()->getOrInsertFunction(
+      "map2check_assume", llvm::Type::getVoidTy(ctx), int32);
+  builder.CreateCall(assume, {builder.CreateSExtOrTrunc(condition, int32)});
+  builder.CreateRetVoid();
+  llvm::errs() << "[map2check] rewrote " << F.getName()
+               << " to prune the path instead of aborting\n";
+  return true;
+}
+
+}  // namespace
+
 PreservedAnalyses NonDetPass::run(Function &F,
                                   llvm::FunctionAnalysisManager &AM) {
+  // Before anything else: this replaces the whole body, so instrumenting the
+  // old one first would be work thrown away.
+  if (rewriteAssumeToPrune(F)) {
+    return PreservedAnalyses::none();
+  }
+
   this->nonDetFunctions = make_unique<NonDetFunctions>(&F, &F.getContext());
   bool initializedFunctionName = false;
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {

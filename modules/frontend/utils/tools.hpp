@@ -59,6 +59,19 @@ constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";
 constexpr char const* listLogCSV = "list_log.csv";
 /** Path to klee binary */
 constexpr char const* kleeBinary = "${MAP2CHECK_PATH}/bin/klee";
+/** Default root of the sbt-slicer install (Dockerfile.dev section 7c). */
+constexpr char const* slicerDefaultRoot = "/opt/sbt-slicer";
+/** Path to the sbt-slicer binary, overridable with SBT_SLICER.
+ *
+ * Resolved like the invariant generator: an environment override first, a
+ * documented default second, and the caller checks the file exists before
+ * relying on it -- a missing slicer must refuse the run, not silently analyse
+ * the unsliced program (issue #54's failure mode). */
+inline std::string slicerBinary() {
+  const char* override_path = getenv("SBT_SLICER");
+  if (override_path != nullptr) return std::string(override_path);
+  return std::string(slicerDefaultRoot) + "/bin/sbt-slicer";
+}
 /** Seconds granted between SIGTERM and SIGKILL when a backend overruns its
  * slice (`timeout -k`). Both KLEE and LibFuzzer catch SIGTERM to shut down
  * gracefully, and both can miss it while wedged -- KLEE inside the solver,
@@ -69,6 +82,11 @@ constexpr char const* kleeBinary = "${MAP2CHECK_PATH}/bin/klee";
 constexpr int killGracePeriod = 10;
 /** Path to generated klee log file (check MemoryUtils implementation) */
 constexpr char const* kleeLogCSV = "klee_log.csv";
+/** KLEE's own output directory, relative to the scratch directory the run
+ * executes in. It is a symlink KLEE maintains to the latest klee-out-N, and it
+ * holds one testNNNNNN.ktest per explored path -- the input vectors a
+ * Cover-Branches suite is built from. */
+constexpr char const* kleeOutputDir = "klee-last";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
 constexpr char const* stateTrueLogCSV = "automata_list_log.st";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
@@ -99,10 +117,25 @@ enum class PropertyViolated {
 
 /** Class used to check violated property */
 struct CheckViolatedProperty {
-  /** Current violated property */
-  PropertyViolated propertyViolated;
+  /** Current violated property.
+   *
+   * Defaulted, and the default matters more than it looks. The constructor
+   * assigns this on several paths but NOT when map2check_property exists and
+   * is empty, nor when it holds a line the parser does not recognise -- the
+   * `else` that would have caught that is commented out. Both cases used to
+   * leave the field holding whatever was on the stack, and that value decided
+   * the tool's verdict.
+   *
+   * It is reachable: a KLEE state that aborts early creates the file without
+   * writing a verdict into it. Observed as the same program answering FAILED,
+   * SUCCEEDED and nothing across three runs, and as the ERROR/UNKNOWN churn
+   * that shows up in every baseline comparison.
+   *
+   * UNKNOWN is the honest default: no readable verdict means the tool did not
+   * decide, which is exactly what the missing-file path already reports. */
+  PropertyViolated propertyViolated = PropertyViolated::UNKNOWN;
   /** Line where property was violated */
-  unsigned line;
+  unsigned line = 0;
   /** Name of the function where the property was violated */
   string function_name;
   string path_name;

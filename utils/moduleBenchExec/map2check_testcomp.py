@@ -21,7 +21,13 @@ COVER_BRANCHES = "COVER EDGES(@DECISIONEDGE)"
 
 
 class Tool(benchexec.tools.template.BaseTool2):
-    """Tool adaptor for Map2Check (https://github.com/hbgit/Map2Check)."""
+    """Tool adaptor for Map2Check (https://github.com/hbgit/Map2Check).
+
+    Both Test-Comp goals are supported. The wrapper picks the source of test
+    vectors from the property: cover-error takes the single violating vector
+    from the runtime's nondet log, cover-branches takes one vector per path
+    from KLEE's own .ktest output.
+    """
 
     REQUIRED_PATHS = [
         "map2check",
@@ -55,16 +61,7 @@ class Tool(benchexec.tools.template.BaseTool2):
         with open(task.property_file, "r") as handle:
             spec = handle.read()
 
-        if COVER_BRANCHES in spec:
-            # Declared, not faked. Branch coverage needs one test case per input
-            # vector and the runtime writes one nondet log per run (H1.3 in
-            # docs/TESTCOMP-CHECKLIST.md). Raising here makes BenchExec skip the
-            # task instead of recording a run that could only ever score zero.
-            raise benchexec.tools.template.UnsupportedFeatureException(
-                "cover-branches is not supported yet: it needs per-input test "
-                "cases (H1.3)"
-            )
-        if COVER_ERROR not in spec:
+        if COVER_ERROR not in spec and COVER_BRANCHES not in spec:
             raise benchexec.tools.template.UnsupportedFeatureException(
                 "unsupported property: " + spec.strip()
             )

@@ -230,6 +230,97 @@ RUN printf 'int main(){int i=0,s=0;while(i<10){s+=i;i++;}return s;}\n' > /tmp/cl
     echo "Clam injects invariants: OK" && rm -f /tmp/clamcheck.c /tmp/clamcheck.bc
 
 # ============================================================
+# 7c. DG + sbt-slicer — program slicing with respect to an error site
+# ============================================================
+# Phase 2 of docs/map2check_migration_plan.md, and the same pipeline Symbiotic
+# uses: build a System Dependence Graph, keep only what the error site depends
+# on, hand the smaller program to KLEE.
+#
+# What it is for, in numbers from this repository: finding K2 measured the cost
+# of a nondeterministic read at 1 -> 21 -> 114 -> 861 partial paths for 2 -> 4
+# reads. Most of that forking happens in code that cannot influence the target,
+# and slicing removes it before KLEE ever sees it.
+#
+# Two limits worth knowing before relying on it. Slicing needs a criterion, so
+# it serves Cover-Error and does nothing for Cover-Branches, where every branch
+# matters and there is no error site to slice towards. And a slice taken with
+# respect to one error can remove another -- fine for a tool answering one
+# property, a hazard for a baseline that scores precision per CWE.
+#
+# Built with clang-16 for the reason section 7b spells out: the ENV CC below is
+# declared later in this file and would not apply here, and these are LLVM
+# projects that expect the LLVM toolchain.
+#
+# DG is taken from llvm-latest, NOT master, and the difference is the same one
+# crab-llvm taught: the maintained version was somewhere else. master calls
+# llvm::Function::getBasicBlockList(), which LLVM 16 made private, so it simply
+# does not compile here. llvm-latest's newest commit is literally "Fix build
+# for LLVM < 18".
+#
+# Pinned to SHAs. Neither project has had a versioned release since 2020, so
+# without a pin the image changes when upstream does -- what crab@dev
+# demonstrated by moving the day before it was needed.
+ARG DG_SHA=b34da890694f5210e475f34018239fc9d126d1ee         # llvm-latest @ 2023-11-29
+ARG SBT_SLICER_SHA=e350116b39be215277803fe2f5e5ac4a161c16b8 # master @ 2025-03-27
+
+RUN set -eux; \
+    pin() { \
+      git init -q "$2" && \
+      git -C "$2" remote add origin "$1" && \
+      git -C "$2" fetch -q --depth 1 origin "$3" && \
+      git -C "$2" checkout -q FETCH_HEAD; \
+    }; \
+    # Both projects pin C++14 with a plain set(), which overrides anything
+    # passed on the command line, and LLVM 16's headers use std::is_unsigned_v
+    # -- C++17. Patching the two lines is the smallest change that builds; the
+    # alternative is carrying a fork.
+    bump() { \
+      sed -i 's/set(CMAKE_CXX_STANDARD 14)/set(CMAKE_CXX_STANDARD 17)/; \
+              s/-std=c++14/-std=c++17/' "$1/CMakeLists.txt"; \
+    }; \
+    pin https://github.com/mchalupa/dg.git /tmp/dg "$DG_SHA"; \
+    bump /tmp/dg; \
+    # IN-SOURCE, deliberately. sbt-slicer's CMakeLists documents DG_PATH as
+    # "a path to an in-source build of dg" and derives both the include path
+    # and the library path from it; an out-of-tree build satisfies neither
+    # (the headers stay in the source tree, the libraries land in the build
+    # tree) and sbt-slicer fails to find dg/tools/llvm-slicer-opts.h.
+    cd /tmp/dg && \
+    cmake . -DCMAKE_BUILD_TYPE=Release \
+             -DCMAKE_C_COMPILER=/usr/bin/clang-16 \
+             -DCMAKE_CXX_COMPILER=/usr/bin/clang++-16 \
+             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+             -DCMAKE_INSTALL_PREFIX=/opt/dg && \
+    make -j"$(nproc)" && make install && \
+    pin https://github.com/staticafi/sbt-slicer.git /tmp/sbt-slicer \
+        "$SBT_SLICER_SHA"; \
+    bump /tmp/sbt-slicer; \
+    mkdir /tmp/sbt-slicer/build && cd /tmp/sbt-slicer/build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release \
+             -DCMAKE_C_COMPILER=/usr/bin/clang-16 \
+             -DCMAKE_CXX_COMPILER=/usr/bin/clang++-16 \
+             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+             -DDG_PATH=/tmp/dg \
+             -DCMAKE_INSTALL_PREFIX=/opt/sbt-slicer && \
+    make -j"$(nproc)" && make install && \
+    rm -rf /tmp/dg /tmp/sbt-slicer
+
+ENV SBT_SLICER=/opt/sbt-slicer/bin/sbt-slicer
+# dg installs shared libraries, and sbt-slicer links against them without an
+# rpath: without this the binary exists, builds, and dies on every invocation
+# with "libdganalysis.so: cannot open shared object file".
+ENV LD_LIBRARY_PATH="/opt/dg/lib:${LD_LIBRARY_PATH}"
+
+# Fail the image build if the slicer cannot actually slice. A binary that
+# exists and refuses every input is the failure mode section 7b was written
+# about: --add-invariants stayed dead for years behind exactly that.
+RUN printf 'extern int __VERIFIER_nondet_int(void);\nvoid reach_error(void);\nint main(){int a=__VERIFIER_nondet_int();int junk=__VERIFIER_nondet_int();int s=0;for(int i=0;i<50;i++){s+=junk*i;}if(a==7){reach_error();}return s;}\n' > /tmp/slicecheck.c && \
+    clang-16 -c -emit-llvm -g -O0 -o /tmp/slicecheck.bc /tmp/slicecheck.c && \
+    /opt/sbt-slicer/bin/sbt-slicer -c reach_error -o /tmp/sliced.bc /tmp/slicecheck.bc && \
+    test -s /tmp/sliced.bc && \
+    echo "sbt-slicer slices: OK" && rm -f /tmp/slicecheck.c /tmp/slicecheck.bc /tmp/sliced.bc
+
+# ============================================================
 # 8. WABT (WebAssembly Binary Toolkit) — wasm2c, wasm2wat, wasm-ld
 # ============================================================
 # Using latest stable release (1.0.41) instead of apt (1.0.27)

@@ -119,9 +119,18 @@ def main():
     # --- unsupported inputs must be refused, not quietly mishandled ----------
     # A tool-info that accepts cover-branches would produce runs that score
     # zero while looking like participation. Refusing makes BenchExec skip.
-    raises("cover-branches is refused rather than faked",
-           lambda: tool.cmdline("x", [], template.BaseTool2.Task.with_files(
-               [program], property_file=cover_branches), limits))
+    # cover-branches used to be refused, because there was no source of
+    # per-path vectors. KLEE's .ktest output is now that source, so the module
+    # must accept it -- and a regression to the refusal would silently drop a
+    # whole competition category.
+    cmd_branches = tool.cmdline("/opt/m2c/map2check-testcomp-wrapper.py", [],
+                                template.BaseTool2.Task.with_files(
+                                    [program], property_file=cover_branches),
+                                limits)
+    check("cover-branches is accepted", cmd_branches[-1] == program)
+    check("cover-branches passes its own property file",
+          cmd_branches[cmd_branches.index("-p") + 1] == cover_branches)
+
     raises("an SV-COMP CHECK property is refused by the Test-Comp module",
            lambda: tool.cmdline("x", [], template.BaseTool2.Task.with_files(
                [program], property_file=unreachability), limits))

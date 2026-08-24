@@ -23,7 +23,17 @@ enum class Map2CheckMode {
   REACHABILITY_MODE, /**< Check if a target function can be executed */
   OVERFLOW_MODE,     /**< Check for signed integer overflows */
   ASSERT_MODE,       /**< Check for asserts (__VERIFIER_assert) */
-  MEMCLEANUP_MODE    /**< Check for memcleanup errors */
+  MEMCLEANUP_MODE,   /**< Check for memcleanup errors */
+  /** Explore paths and record their inputs; check no property.
+   *
+   * Test-Comp Cover-Branches asks for a suite that exercises branches, not for
+   * a verdict, so every property check is overhead here -- and worse than
+   * overhead. With no mode flag this used to fall through to MEMTRACK_MODE and
+   * run the memory-tracking pass: on the Test-Comp corpus that meant 110 of
+   * 110 ProductLines tasks producing an empty suite in two seconds, because
+   * that pass emits a broken module on them. The same tasks work under
+   * Cover-Error, which never loads it. */
+  COVER_BRANCHES_MODE
 };
 
 /** NonDet generators */
@@ -94,6 +104,53 @@ class Caller {
 
   /** Remove generated files for verification */
   void cleanGarbage();
+
+  /** Slice the program with respect to the target before analysing it.
+   *
+   * Off by default. Slicing changes WHAT IS ANALYSED, not merely how fast: a
+   * slice taken with respect to one error site can legitimately remove
+   * another, so a run with this on answers a narrower question than a run
+   * without it. That is right for a competition task with one property and
+   * wrong for a baseline scoring precision per CWE, which is why it is a
+   * decision the caller makes rather than a default. */
+  bool sliceProgram = false;
+
+  /** Runs sbt-slicer over the instrumented bitcode. Returns false if the
+   * slicer is unavailable or produced nothing usable, leaving the original
+   * bitcode in place. */
+  bool sliceWithRespectToTarget(const std::string& targetFunction);
+
+  /** Turns on the exchange of input vectors between the two engines.
+   *
+   * Off by default so the hybrid keeps behaving exactly as it was measured
+   * (symex 27%, fuzzer 32%, hybrid 45% over the same 372 tasks); promoting it
+   * is a separate decision that has to be earned by its own measurement. */
+  bool seedExchange = false;
+
+  /** Directory the two engines use to hand each other input vectors.
+   *
+   * A directory of files rather than a value passed from one phase to the
+   * next, and the shape is the point: it survives between phases, between
+   * runs, and between alternations -- which is what time-slicing will need.
+   * LibFuzzer treats it as its corpus and grows it; the KLEE phase drops its
+   * own path vectors in.
+   *
+   * Relative, because both engines run with the scratch directory as their
+   * working directory. */
+  static constexpr const char* seedDirectory = "seeds";
+
+  /** Writes KLEE's per-path vectors into the seed corpus.
+   *
+   * Sound only because the engines agree on widths now: concatenating a
+   * .ktest's objects yields exactly the byte buffer that would drive the
+   * fuzzer down the same path. Returns how many seeds were written. */
+  unsigned exportKleeVectorsAsSeeds();
+
+  /** Writes what the fuzzer consumed as a .ktest KLEE can start from.
+   *
+   * The nondet log is the only record of a fuzzer run carrying both value and
+   * type, which is what a .ktest needs. Returns the path, or empty. */
+  std::string exportFuzzerVectorAsKtest();
 
   /** Instrument and execute nondeterministic generator */
   void applyNonDetGenerator();

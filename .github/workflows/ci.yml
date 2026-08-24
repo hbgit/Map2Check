@@ -366,6 +366,9 @@ jobs:
               bash tests/integration/test_test_suite_emission.sh
               bash tests/integration/test_target_coverage.sh
               bash tests/integration/test_ktest_object_names.sh
+              bash tests/integration/test_testcomp_regressions.sh
+              bash tests/integration/test_exit_codes.sh
+              bash tests/integration/test_cwe_mode_mapping.sh
             '
 
   # ===========================================================
@@ -504,6 +507,12 @@ jobs:
               # infrastructure. Nothing else here exercises it, and a wrong one
               # only shows up days after submission as every task erroring out.
               python3 tests/integration/test_benchexec_toolinfo.py
+              # Cover-Branches: the other competition category, and the one
+              # whose suite has more than one test case. Validated by TestCov,
+              # not by inspecting the XML -- only the validator can say whether
+              # the branches are actually exercised.
+              MAP2CHECK_PATH=/workspace/install_testcov_ci \
+                bash tests/integration/test_cover_branches.sh
               bash tests/testcomp/run_testcov_suite.sh
             '
 

@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "test_suite/ktest_reader.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
 #include "utils/tools.hpp"
@@ -97,6 +98,103 @@ std::string Caller::postOptimizationFlags() {
   flags.str("");
   flags << "-O2 ";
   return flags.str();
+}
+
+unsigned Caller::exportKleeVectorsAsSeeds() {
+  std::error_code error;
+  std::filesystem::create_directories(Caller::seedDirectory, error);
+
+  std::vector<std::vector<std::string>> ignored;
+  unsigned written = 0;
+  unsigned index = 0;
+  for (const auto &entry : std::filesystem::directory_iterator(
+           Map2Check::kleeOutputDir, error)) {
+    if (entry.path().extension() != ".ktest") continue;
+    std::vector<Map2Check::KtestObject> objects =
+        Map2Check::readKtestFile(entry.path().string());
+    if (objects.empty()) continue;
+
+    std::vector<uint8_t> bytes = Map2Check::ktestToFuzzerBytes(objects);
+    if (bytes.empty()) continue;
+
+    // Named by index rather than by content hash: LibFuzzer renames what it
+    // keeps to its own hash anyway, so a second one here buys nothing.
+    std::ostringstream name;
+    name << Caller::seedDirectory << "/klee-" << index++;
+    std::ofstream out(name.str(), std::ios::binary);
+    if (!out.is_open()) continue;
+    out.write(reinterpret_cast<const char *>(bytes.data()),
+              static_cast<std::streamsize>(bytes.size()));
+    if (out.good()) ++written;
+  }
+  if (written > 0) {
+    Map2Check::Log::Info("Seeded the fuzzer corpus with " +
+                         std::to_string(written) + " vectors from KLEE");
+  }
+  return written;
+}
+
+std::string Caller::exportFuzzerVectorAsKtest() {
+  std::vector<Map2Check::KtestObject> objects =
+      Map2Check::readNonDetLogAsObjects(Map2Check::kleeLogCSV);
+  if (objects.empty()) return "";
+
+  std::error_code error;
+  std::filesystem::create_directories(Caller::seedDirectory, error);
+  const std::string path =
+      std::string(Caller::seedDirectory) + "/from-fuzzer.ktest";
+  if (!Map2Check::writeKtestFile(path, objects)) return "";
+  Map2Check::Log::Info("Seeding KLEE with the fuzzer's vector (" +
+                       std::to_string(objects.size()) + " inputs)");
+  return path;
+}
+
+bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
+  const std::string slicer = Map2Check::slicerBinary();
+  if (!std::filesystem::exists(slicer)) {
+    // Announced, not silently skipped. A slicer that is asked for and absent
+    // must not leave the run quietly analysing the whole program: that is how
+    // --add-invariants stayed dead through a full baseline (issue #54).
+    Map2Check::Log::Warning(
+        "slicing was requested but sbt-slicer is not installed at " + slicer +
+        " -- analysing the unsliced program");
+    return false;
+  }
+
+  const std::string input = programHash + "-output.bc";
+  const std::string output = programHash + "-sliced.bc";
+  if (!std::filesystem::exists(input)) return false;
+
+  std::ostringstream command;
+  // -c is the slicing criterion: keep what the target call depends on. The
+  // criterion is the whole reason this only serves Cover-Error -- there is no
+  // criterion to give it when every branch is the goal.
+  command << slicer << " -c " << targetFunction << " -o " << output << " "
+          << input << " > slicer.output 2>&1";
+  Map2Check::Log::Debug(command.str());
+  const int result = system(command.str().c_str());
+
+  std::error_code error;
+  const bool produced = std::filesystem::exists(output, error) &&
+                        std::filesystem::file_size(output, error) > 0;
+  if (result != 0 || !produced) {
+    Map2Check::Log::Warning(
+        "sbt-slicer produced no usable output -- analysing the unsliced "
+        "program");
+    return false;
+  }
+
+  // Reported, because a slice is not a neutral speed-up: it narrows the
+  // question being answered, and the size difference is the only visible sign
+  // of how much was dropped.
+  const auto before = std::filesystem::file_size(input, error);
+  const auto after = std::filesystem::file_size(output, error);
+  Map2Check::Log::Info("Sliced with respect to " + targetFunction + ": " +
+                       std::to_string(before) + " -> " +
+                       std::to_string(after) + " bytes of bitcode");
+
+  std::filesystem::rename(output, input, error);
+  return !error;
 }
 
 void Caller::cleanGarbage() {
@@ -184,6 +282,15 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
       transformCommand << " -load-pass-plugin=" << overflowPlugin
                        << getLibSuffix();
       passesArg << ",overflow-pass";
+      break;
+    }
+    case Map2CheckMode::COVER_BRANCHES_MODE: {
+      // Nothing beyond nondet-pass. The inputs have to be recorded, so that
+      // pass stays; there is no property to instrument for, so nothing else
+      // does. This is also the leanest pipeline the tool has, which is the
+      // point: fewer instrumented calls means KLEE explores more paths in the
+      // same budget, and paths are what a branch suite is made of.
+      Map2Check::Log::Info("Running cover-branches mode (no property check)");
       break;
     }
     case Map2CheckMode::REACHABILITY_MODE: {
@@ -289,6 +396,11 @@ void Caller::linkLLVM() {
     case Map2CheckMode::REACHABILITY_MODE: {
       // Since the map2check api provides the function, we do not need to do any
       // analysis
+      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
+      break;
+    }
+    case Map2CheckMode::COVER_BRANCHES_MODE: {
+      // No property, so no analysis -- the run exists to explore and record.
       linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
       break;
     }
@@ -403,6 +515,67 @@ void Caller::executeAnalysis(std::string solvername) {
                   << (0.8 * this->timeout) << " ";
       kleeCommand << Map2Check::kleeBinary;
 
+      // KLEE's own deadline, set BELOW the external one so it is KLEE that
+      // stops, not the kill.
+      //
+      // Without it every path explored up to the budget is thrown away.
+      // Measured: a program with twelve nondeterministic reads explored 3982
+      // paths and produced ZERO .ktest files, because `timeout` killed KLEE
+      // before it wrote any -- and those files are where a Cover-Branches
+      // suite comes from, and where a Cover-Error suite now recovers its
+      // input vector. Reaching the budget is the NORMAL case in a competition
+      // run, so this was not an edge: it was the common path discarding all
+      // of its work.
+      //
+      // The external timeout above stays as the backstop for the case its
+      // comment describes, a solver wedged so deep that KLEE's own deadline
+      // never gets a turn.
+      kleeCommand << " --max-time=" << (0.7 * this->timeout) << "s";
+
+
+      // Halting on the first error is right when there is a property to
+      // decide -- the answer is known, and more exploration is waste. It is
+      // wrong for Cover-Branches, where there is no property and the paths ARE
+      // the product: stopping at the first error throws away every path not
+      // yet explored, and with it the test cases they would have produced.
+      //
+      // Measured before this: the same twelve-branch program produced 1020
+      // .ktest files on one run and zero on the next, the difference being
+      // whether an error happened to be hit early. A suite that depends on
+      // that is not a suite.
+      // A starting point from whatever ran before, when there is one. KLEE
+      // replays the seed and then explores around it, instead of rediscovering
+      // from nothing a path the fuzzer already walked -- which under a fixed
+      // budget is not merely faster, it is depth the run would not otherwise
+      // have reached.
+      std::string seedFlag;
+      if (this->seedExchange) {
+        const std::string seed = exportFuzzerVectorAsKtest();
+        if (!seed.empty()) seedFlag = " --seed-file=" + seed;
+      }
+
+      // Depth-first for Cover-Branches, and the reason is about what survives
+      // the deadline rather than about search quality.
+      //
+      // KLEE's default search keeps thousands of states alive at once. Each
+      // writes its .ktest only when it terminates, and the ones still live
+      // when the budget expires are dumped at halt -- where writing them
+      // fails wholesale: "unable to write output test case, losing it", 3982
+      // times in one measured run, for a total of zero test cases from 3982
+      // explored paths. Depth-first finishes states one after another, so
+      // each one's test is on disk long before the deadline matters.
+      //
+      // For the property modes the default search stays: there the goal is to
+      // find one violating path quickly, not to harvest many.
+      std::string searchPolicy =
+          (map2checkMode == Map2CheckMode::COVER_BRANCHES_MODE)
+              ? " --search=dfs"
+              : "";
+
+      std::string stopPolicy =
+          (map2checkMode == Map2CheckMode::COVER_BRANCHES_MODE)
+              ? ""
+              : " --exit-on-error-type=Abort";
 
       std::vector<std::string> kleebackendsolver = {"z3", "stp"};
       std::vector<std::string> kleemetasolver = {"btor", "yices2"};
@@ -416,7 +589,7 @@ void Caller::executeAnalysis(std::string solvername) {
         //  --allow-external-sym-calls
         //  -use-cache
         kleeCommand << " --external-calls=all"
-                    << " --exit-on-error-type=Abort"
+                    << stopPolicy << searchPolicy << seedFlag
                     << " --optimize"
                     << " --use-cex-cache"
                     << " --solver-backend=" + solvername + " "
@@ -429,7 +602,7 @@ void Caller::executeAnalysis(std::string solvername) {
         Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
 
         kleeCommand << " --external-calls=all"
-                    << " --exit-on-error-type=Abort"
+                    << stopPolicy << searchPolicy << seedFlag
                     << " --optimize"
                     << " --use-cex-cache"
                     << " --solver-backend=metasmt "
@@ -441,6 +614,13 @@ void Caller::executeAnalysis(std::string solvername) {
 
       Map2Check::Log::Debug(kleeCommand.str());
       int result = system(kleeCommand.str().c_str());
+      if (this->seedExchange) {
+        // Written after KLEE rather than before the next phase, because the
+        // .ktest files are in the scratch directory that cleanGarbage() will
+        // remove -- and because a later alternation, or a resumed run, should
+        // find them already there.
+        exportKleeVectorsAsSeeds();
+      }
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
@@ -455,9 +635,20 @@ void Caller::executeAnalysis(std::string solvername) {
       // LibFuzzer forks workers that must not outlive the budget.
       command << "timeout -k " << Map2Check::killGracePeriod << " "
               << (0.2 * this->timeout) << " ";
+      // A corpus DIRECTORY, not just a run. Without one LibFuzzer keeps its
+      // corpus in memory and throws it away when the process ends: everything
+      // it discovered in its slice of the budget was discarded, every run.
+      // With one, the interesting inputs persist -- which is what makes them
+      // available to the other engine, and to a later alternation.
+      std::string corpus;
+      if (this->seedExchange) {
+        std::error_code error;
+        std::filesystem::create_directories(Caller::seedDirectory, error);
+        corpus = std::string(" ") + Caller::seedDirectory;
+      }
       command << "./" + programHash +
-                     "-fuzzed.out -jobs=8 -use_value_profile=1 "
-              << " > fuzzer.output";
+                     "-fuzzed.out -jobs=8 -use_value_profile=1"
+              << corpus << " > fuzzer.output";
 
       int result = system(command.str().c_str());
       Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));

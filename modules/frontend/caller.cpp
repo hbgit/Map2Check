@@ -161,7 +161,10 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
     return false;
   }
 
-  const std::string input = programHash + "-output.bc";
+  // The COMPILED bitcode, not the instrumented one: this runs before callPass
+  // so that the instrumentation is applied to the slice rather than removed by
+  // it. Entry is still plain main at this point, for the same reason.
+  const std::string input = programHash + "-compiled.bc";
   const std::string output = programHash + "-sliced.bc";
   if (!std::filesystem::exists(input)) return false;
 
@@ -169,7 +172,13 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   // -c is the slicing criterion: keep what the target call depends on. The
   // criterion is the whole reason this only serves Cover-Error -- there is no
   // criterion to give it when every branch is the goal.
-  command << slicer << " -c " << targetFunction << " -o " << output << " "
+  //
+  // --entry is required. Run after callPass this had to be
+  // __map2check_main__, because the instrumentation renames the entry and the
+  // slicer would report "The entry function not found: main" and slice
+  // nothing. Run before it, as it now is, the program still has its own main.
+  command << slicer << " -c " << targetFunction
+          << " --entry=main -o " << output << " "
           << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());
   const int result = system(command.str().c_str());
@@ -192,6 +201,51 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   Map2Check::Log::Info("Sliced with respect to " + targetFunction + ": " +
                        std::to_string(before) + " -> " +
                        std::to_string(after) + " bytes of bitcode");
+
+  // sbt-slicer removes the body of the criterion function itself. reach_error
+  // is where the slice ENDS -- nothing it does can influence whether it is
+  // reached -- so the slicer keeps the call site and drops the definition.
+  //
+  // KLEE tolerates the resulting declaration. The native LibFuzzer link does
+  // not: it fails with "undefined reference to reach_error", no *-fuzzed.out
+  // is produced, and the fuzzer stage then does nothing at all. The failure
+  // was entirely silent -- the run simply came back UNKNOWN.
+  //
+  // Measured on rangesum05.i: --nondet-generator fuzzer answers FAILED, and
+  // the same invocation with --slice answers UNKNOWN with zero crash inputs
+  // and no fuzzed binary on disk. This is what cost the sliced arm the bulk
+  // of its 133 lost detections in the v11 factorial.
+  //
+  // A WEAK definition restores the link without displacing a real one: where
+  // the slice did keep the body, the strong definition still wins.
+  const std::string stubSource = programHash + "-target-stub.c";
+  const std::string stubBitcode = programHash + "-target-stub.bc";
+  const std::string linked = programHash + "-sliced-linked.bc";
+  {
+    std::ofstream stub(stubSource);
+    if (stub.is_open()) {
+      stub << "void __attribute__((weak)) " << targetFunction << "(void) {}\n";
+    }
+  }
+  std::ostringstream compileStub;
+  compileStub << Map2Check::clangBinary << " -Wno-everything -c -emit-llvm -g"
+              << " " << Caller::preOptimizationFlags() << " -o " << stubBitcode
+              << " " << stubSource << " >> slicer.output 2>&1";
+  std::ostringstream linkStub;
+  linkStub << Map2Check::llvmLinkBinary << " " << output << " " << stubBitcode
+           << " -o " << linked << " >> slicer.output 2>&1";
+  if (system(compileStub.str().c_str()) == 0 &&
+      system(linkStub.str().c_str()) == 0 &&
+      std::filesystem::exists(linked, error) &&
+      std::filesystem::file_size(linked, error) > 0) {
+    std::filesystem::rename(linked, output, error);
+  } else {
+    // Not fatal: without the stub the fuzzer stage is lost, but KLEE still
+    // runs on the slice. Say so rather than returning a half-configured run.
+    Map2Check::Log::Warning(
+        "could not restore a definition of " + targetFunction +
+        " after slicing -- the LibFuzzer stage will not link");
+  }
 
   std::filesystem::rename(output, input, error);
   return !error;

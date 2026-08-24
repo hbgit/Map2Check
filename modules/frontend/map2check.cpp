@@ -587,6 +587,44 @@ int map2check_execution(map2check_args args) {
     propertyViolated = recorded;
   }
 
+  // A violation nobody can demonstrate is not a violation worth reporting.
+  //
+  // KLEE can burn its whole budget, halt on the timer, and still leave
+  // TARGET-REACHED in map2check_property: some state wrote the file through an
+  // external call and was then terminated by --dump-states-on-halt without
+  // ever running to the abort. The verdict logic above trusts that file, so
+  // the run answers FAILED while emitting a suite with zero <input> elements.
+  //
+  // Measured on reducercommutativity/rangesum05.i with --nondet-generator
+  // symex: 1446 paths explored, HaltTimer, zero .err files, klee_log.csv
+  // empty, verdict FAILED, suite empty, TestCov UNKNOWN. This is where the
+  // FAILED-but-NOT_COVERED cases come from -- 21% of the control arm's FAILED
+  // verdicts in the v11 factorial.
+  //
+  // Downgrading costs nothing that was ever scored. Test-Comp scores the
+  // SUITE, not the verdict, and a suite with no inputs covers nothing whether
+  // the tool called it FAILED or UNKNOWN. What it buys is a precision number
+  // that means something.
+  //
+  // Gated on generating a suite at all, and on the two sources emitTestSuite
+  // itself consults -- so the check can never disagree with what gets written.
+  if (args.generateTestSuite && !args.coverBranches &&
+      args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE &&
+      generator == Map2Check::NonDetGenerator::Klee &&
+      propertyViolated != Map2Check::PropertyViolated::NONE &&
+      propertyViolated != Map2Check::PropertyViolated::UNKNOWN) {
+    const bool haveVector =
+        !Map2Check::readNonDetLog(Map2Check::kleeLogCSV).empty() ||
+        !Map2Check::readViolatingKtest(Map2Check::kleeOutputDir).empty();
+    if (!haveVector) {
+      Map2Check::Log::Warning(
+          "the property file records a violation but no input vector could be "
+          "recovered -- reporting UNKNOWN rather than a FAILED nothing can "
+          "reproduce");
+      propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
+    }
+  }
+
   if (propertyViolated ==
       Map2Check::PropertyViolated::NONE) {  // This means that result was TRUE
     if (generator == Map2Check::NonDetGenerator::Klee) {

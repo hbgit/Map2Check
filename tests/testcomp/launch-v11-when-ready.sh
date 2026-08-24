@@ -61,9 +61,18 @@ say "image ready"
 COMMON="--restart=on-failure:100 --memory=4g -u 0 -v $REPO:/workspace -w /workspace"
 COMMON="$COMMON -e MAP2CHECK_PATH=/workspace/install_v9"
 
-# Two arms, so each feature is separable rather than entangled:
-#   slice        vs v10  -> what slicing buys
-#   slice+seed   vs slice -> what the exchange adds on top
+# A 2x2 factorial, control included, and both parts of that matter.
+#
+# Two arms would have measured the exchange only in the PRESENCE of slicing.
+# If it helps alone and hurts combined -- or the reverse -- that design cannot
+# see it. Four cells separate each feature AND their interaction.
+#
+# The control cell runs here rather than reusing v10, even though v10 measures
+# the same thing on the same corpus. v10 ran with ten containers on a host at
+# twice its core count; v11 will run with twelve. Comparing across that carries
+# the contention difference into the result, which is the confound this whole
+# chaining exists to avoid. An internal control costs one more arm and removes
+# the question.
 launch() {
   local arm="$1" flags="$2" prop="$3" shard="$4" shards="$5"
   docker rm -f "m2c-v11-${arm}-${prop}-s${shard}" >/dev/null 2>&1
@@ -78,8 +87,10 @@ launch() {
 
 # cover-error only. Slicing needs a criterion to slice towards, and
 # Cover-Branches has none -- every branch is the goal.
-for i in 0 1 2 3; do launch slice      "--slice" cover-error "$i" 4; done
-for i in 0 1 2 3; do launch slice-seed "--slice --seed-exchange" cover-error "$i" 4; done
+for i in 0 1 2; do launch control    ""                         cover-error "$i" 3; done
+for i in 0 1 2; do launch slice      "--slice"                  cover-error "$i" 3; done
+for i in 0 1 2; do launch seed       "--seed-exchange"          cover-error "$i" 3; done
+for i in 0 1 2; do launch slice-seed "--slice --seed-exchange"  cover-error "$i" 3; done
 
 sleep 5
 say "v11 launched: $(docker ps -q --filter 'name=m2c-v11-' | wc -l) containers"

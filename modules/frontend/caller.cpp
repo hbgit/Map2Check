@@ -204,7 +204,21 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   // __map2check_main__, because the instrumentation renames the entry and the
   // slicer would report "The entry function not found: main" and slice
   // nothing. Run before it, as it now is, the program still has its own main.
-  command << slicer << " -c " << targetFunction
+  // Bounded, for the reason every other external step here is bounded: the
+  // slicer builds a system dependence graph over the whole module, and on the
+  // large programs that is not fast. Measured on the v12 corpus: the sliced
+  // arm recorded 26 ERROR verdicts against the control's 9, every one of them
+  // at 87 to 89 seconds, and three were tasks the control had ANSWERED --
+  // slicing did not fail on them, it just took the run past its deadline.
+  //
+  // A slice that does not finish is not a loss: the code below already falls
+  // back to analysing the whole program, which is exactly what the control
+  // does. Overrunning the budget loses the verdict instead.
+  const double sliceBudget =
+      std::max(5.0, std::min(0.2 * this->timeout,
+                             static_cast<double>(remainingSeconds()) - 5.0));
+  command << "timeout -k " << Map2Check::killGracePeriod << " " << sliceBudget
+          << " " << slicer << " -c " << targetFunction
           << " --entry=main -o " << output << " "
           << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());

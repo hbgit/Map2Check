@@ -78,6 +78,22 @@ class Caller {
 
   std::string c_program_fullpath;  //!< Path for the original c program */
   void setTimeout(unsigned timeout) { this->timeout = timeout; }
+
+  /** Seconds of the run's budget that have not been spent yet.
+   *
+   * The engines used to size themselves from the NOMINAL budget: LibFuzzer
+   * took 0.2x and KLEE 0.8x, which adds to exactly the whole of it and leaves
+   * nothing for the two compile-instrument-link passes between them. Under the
+   * hybrid default the Caller is rebuilt per phase, so that overhead is paid
+   * twice. Measured on the v12 Test-Comp corpus: every ERROR verdict -- 20 of
+   * them, concentrated in ECA and Recursive -- landed at 87 to 89 seconds
+   * against a 60 second budget and a 90 second outer timeout. The tool was not
+   * failing; it was being killed mid-sentence and printing no verdict at all,
+   * which every harness here reads as a crash.
+   *
+   * Sizing each phase against what is LEFT keeps the sum inside the budget
+   * however many phases there turn out to be. */
+  unsigned remainingSeconds() const;
   /** @brief Function to compile original C file removing external memory
    * operations calls */
   void compileCFile(bool is_llvm_bc);

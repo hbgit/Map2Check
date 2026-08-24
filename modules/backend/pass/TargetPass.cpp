@@ -39,7 +39,17 @@ unsigned countTargetCallSites(const llvm::Module& M, llvm::StringRef Name) {
 
 PreservedAnalyses TargetPass::run(Function& F,
                                   llvm::FunctionAnalysisManager& AM) {
-  llvm::errs() << "Running TargetPass with: " << this->targetFunctionName;
+  // Was an unconditional per-FUNCTION write to errs(), which is unbuffered:
+  // one syscall for every function in the module, every time the pass runs,
+  // and under the hybrid the pass runs once per engine. On the large ECA and
+  // Recursive programs it also buried the actual output -- the log of a run
+  // that produced no verdict was tens of thousands of copies of this line.
+  // Kept behind the environment switch the other passes use, so it is still
+  // reachable when debugging the pass itself.
+  if (getenv("MAP2CHECK_DEBUG_PASSES") != nullptr) {
+    llvm::errs() << "Running TargetPass with: " << this->targetFunctionName
+                 << "\n";
+  }
 
   // Reported once per module, not once per function. This is a function pass,
   // so there is no module-entry hook to hang it on; opt runs once per

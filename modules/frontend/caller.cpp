@@ -17,6 +17,7 @@
 #include <stdlib.h>
 // CPP Libs
 #include <algorithm>
+#include <chrono>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -84,6 +85,32 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   std::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Current path: " +
                         std::filesystem::current_path().string());
+}
+
+namespace {
+/** Wall-clock start of the PROCESS, not of this Caller.
+ *
+ * The hybrid rebuilds the Caller once per engine, so a per-object start time
+ * would reset the clock at every phase and defeat the whole point. Function
+ * static: initialised on the first call, which happens before any engine runs.
+ */
+std::chrono::steady_clock::time_point processStart() {
+  static const std::chrono::steady_clock::time_point start =
+      std::chrono::steady_clock::now();
+  return start;
+}
+}  // namespace
+
+unsigned Caller::remainingSeconds() const {
+  const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                           std::chrono::steady_clock::now() - processStart())
+                           .count();
+  if (elapsed < 0) return this->timeout;
+  const long long left = static_cast<long long>(this->timeout) - elapsed;
+  // Never zero. A phase given no time at all is a phase that cannot even
+  // report that it had none, and the caller has no way to tell that apart
+  // from a crash.
+  return left < 1 ? 1u : static_cast<unsigned>(left);
 }
 
 std::string Caller::preOptimizationFlags() {
@@ -276,8 +303,28 @@ void Caller::applyNonDetGenerator() {
       std::ostringstream command;
       command.str("");
 
+      // Bounded, because it was not, and that is where the budget went.
+      //
+      // Both invocations run clang at -O2 over the whole instrumented module.
+      // On the large ECA and Recursive programs that takes longer than the
+      // entire budget, and nothing was stopping it: the run was still linking
+      // its fuzzer binary when the harness's outer timeout killed it, so it
+      // produced no verdict and scored ERROR. Measured on the v12 corpus:
+      // 20 such tasks, every one at 87 to 89 seconds against a 60 second
+      // budget, all of them dying at this exact step.
+      //
+      // Losing the fuzzer binary is a real cost, but a bounded one: KLEE still
+      // gets its phase and the run still reaches a verdict. Spending the whole
+      // budget here costs the verdict itself.
+      const double compileBudget =
+          std::max(5.0, std::min(0.25 * this->timeout,
+                                 static_cast<double>(remainingSeconds()) - 5.0));
+      const std::string bound = "timeout -k " +
+                                std::to_string(Map2Check::killGracePeriod) +
+                                " " + std::to_string(compileBudget) + " ";
+
       command
-          << Map2Check::clangBinary
+          << bound << Map2Check::clangBinary
           << "  -g -fsanitize=fuzzer -fsanitize-coverage=inline-8bit-counters "
           << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
@@ -287,11 +334,22 @@ void Caller::applyNonDetGenerator() {
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << Map2Check::clangBinary << "  -g -fsanitize=fuzzer "
+      commandWitness << bound << Map2Check::clangBinary
+                     << "  -g -fsanitize=fuzzer "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
 
       system(commandWitness.str().c_str());
+
+      // Announced rather than discovered later as a silent no-op -- the same
+      // failure mode the sliced arm spent a whole campaign in.
+      std::error_code fuzzErr;
+      if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
+        Map2Check::Log::Warning(
+            "the LibFuzzer binary did not build within " +
+            std::to_string(static_cast<int>(compileBudget)) +
+            "s -- skipping the fuzzer phase and leaving the budget to KLEE");
+      }
       break;
     }
   }
@@ -565,8 +623,16 @@ void Caller::executeAnalysis(std::string solvername) {
       // then waits forever for a child that will not die, and map2check hangs
       // past its own budget. The grace period escalates to SIGKILL so the
       // budget is actually enforced.
+      // Reserve a few seconds for what happens AFTER the engine: reading the
+      // property file, recovering the input vector, writing the suite. KLEE
+      // holding the budget to its last second is what turned a decided run
+      // into an ERROR.
+      constexpr double kPostEngineReserve = 5.0;
+      const double kleeBudget = std::max(
+          1.0, std::min(0.8 * this->timeout,
+                        this->remainingSeconds() - kPostEngineReserve));
       kleeCommand << "timeout -k " << Map2Check::killGracePeriod << " "
-                  << (0.8 * this->timeout) << " ";
+                  << kleeBudget << " ";
       kleeCommand << Map2Check::kleeBinary;
 
       // KLEE's own deadline, set BELOW the external one so it is KLEE that
@@ -584,7 +650,7 @@ void Caller::executeAnalysis(std::string solvername) {
       // The external timeout above stays as the backstop for the case its
       // comment describes, a solver wedged so deep that KLEE's own deadline
       // never gets a turn.
-      kleeCommand << " --max-time=" << (0.7 * this->timeout) << "s";
+      kleeCommand << " --max-time=" << (0.875 * kleeBudget) << "s";
 
 
       // Halting on the first error is right when there is a property to
@@ -687,8 +753,13 @@ void Caller::executeAnalysis(std::string solvername) {
       command.str("");
       // -k for the same reason as the KLEE branch above; -jobs=8 also means
       // LibFuzzer forks workers that must not outlive the budget.
+      // Against what is LEFT, not against the nominal budget -- see
+      // Caller::remainingSeconds.
+      const double fuzzerBudget =
+          std::min(0.2 * this->timeout,
+                   static_cast<double>(this->remainingSeconds()));
       command << "timeout -k " << Map2Check::killGracePeriod << " "
-              << (0.2 * this->timeout) << " ";
+              << fuzzerBudget << " ";
       // A corpus DIRECTORY, not just a run. Without one LibFuzzer keeps its
       // corpus in memory and throws it away when the process ends: everything
       // it discovered in its slice of the budget was discarded, every run.

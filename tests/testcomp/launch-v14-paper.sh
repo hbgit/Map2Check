@@ -39,15 +39,15 @@ say "v12 done"
 COMMON="--restart=on-failure:100 --memory=4g -u 0 -v $REPO:/workspace -w /workspace"
 COMMON="$COMMON -e MAP2CHECK_PATH=/workspace/install_v14"
 
-launch() { # arm flags property manifest shard
-  local arm="$1" flags="$2" prop="$3" man="$4" shard="$5"
+launch() { # arm flags property manifest shard shards
+  local arm="$1" flags="$2" prop="$3" man="$4" shard="$5" shards="${6:-3}"
   docker rm -f "m2c-v14-${arm}-s${shard}" >/dev/null 2>&1
   docker run -d --name "m2c-v14-${arm}-s${shard}" $COMMON --cpus=2 \
     -e MANIFEST="/workspace/tests/testcomp/corpus/${man}" \
     -e PROPERTY="$prop" -e GENERATOR=hybrid -e EXTRA_FLAGS="$flags" \
     -e RESULTS_DIR="/workspace/tests/testcomp/results_v14_${arm}_s${shard}" \
-    -e SHARD="$shard" -e SHARDS=3 \
-    -e BUDGET=300 -e TESTCOV_S=300 -e DEADLINE_S=172800 \
+    -e SHARD="$shard" -e SHARDS="$shards" \
+    -e BUDGET=300 -e TESTCOV_S=300 -e DEADLINE_S=259200 \
     "$IMAGE" bash tests/testcomp/run_testcomp_evaluation.sh >/dev/null
 }
 
@@ -60,7 +60,17 @@ say "phase 1 launched: cover-error control+slice, 1087 tasks"
 while [ "$(docker ps -q --filter 'name=m2c-v14-ce-' | wc -l)" -gt 0 ]; do sleep "$POLL"; done
 say "phase 1 done"
 
-# Phase 2: cover-branches, control only. Six shards rather than three: nothing
-# else is running now, and this is the long half.
-for i in 0 1 2; do launch cb-control "" cover-branches cover-branches-q400.tsv "$i"; done
-say "phase 2 launched: cover-branches control, 2765 tasks"
+# Phase 2: cover-branches, control only, SIX shards -- phase 1 has released
+# its cores and this is the half that has to fit.
+#
+# It is also the expensive half per task, and for a structural reason: a
+# Cover-Branches run has no early exit. Cover-Error stops at the first
+# violating path, so its median task takes 18s of a 300s budget; branch
+# harvesting runs KLEE to the deadline every time, and then TestCov validates
+# a suite of up to 50 vectors. Budget the pair at up to 600s per task, not 300.
+#
+# 2765 tasks over six shards at up to 600s is ~77h worst case and far less in
+# the mean, inside the 72h deadline with the tail truncating rather than the
+# body. The manifest is round-robin, so what truncates stays stratified.
+for i in 0 1 2 3 4 5; do launch cb-control "" cover-branches cover-branches-q400.tsv "$i" 6; done
+say "phase 2 launched: cover-branches control, 2765 tasks over 6 shards"

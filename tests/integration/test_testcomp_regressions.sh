@@ -260,6 +260,38 @@ else
   fail "assume rewriting" "the abort-based assumption was left as an abort"
 fi
 
+# The SAME idiom under a shorter name, and the name was the whole difference.
+# The XCSP family writes `void assume(int c){ if(!c) abort(); }`, which the
+# first version of the list did not match -- so all 59 XCSP tasks answered
+# "program correct" in two seconds, every one of them on a program with a
+# reachable bug. A defect found by spelling.
+mkdir -p "$WORK/assume2"
+cp "$WORK/one/reach.prp" "$WORK/assume2/"
+cat > "$WORK/assume2/plain.c" <<'EOF'
+extern void abort(void);
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "plain.c", 3, "reach_error"); }
+void assume(int cond) { if (!cond) { abort(); } }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  assume(a >= 0);
+  assume(a < 50);
+  reach_error();
+  return 0;
+}
+EOF
+( cd "$WORK/assume2" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 250 "$MAP2CHECK"     --target-function --target-function-name reach_error     --timeout 90 plain.c ) > "$WORK/assume2/run.log" 2>&1
+
+# reach_error sits AFTER the assumptions, exactly as the XCSP programs place
+# it, so a run that still aborts on the first one cannot get there.
+if grep -q 'VERIFICATION FAILED' "$WORK/assume2/run.log"; then
+  ok "a bug behind a plain assume() is found, not called correct"
+else
+  fail "plain assume"        "got $(grep -oE 'VERIFICATION [A-Z]+' "$WORK/assume2/run.log" | tail -1) -- the program has a reachable bug"
+fi
+
 # The error is behind two assumptions, so a run that halts on the first
 # assumption violation cannot reach it. Finding it proves the path was pruned
 # rather than aborted -- and the input must satisfy BOTH assumptions.

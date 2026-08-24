@@ -8,12 +8,12 @@ REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 IMAGE="${IMAGE:-map2check-testcov:latest}"
 while [ "$(docker ps -q --filter 'name=m2c-v12-juliet' --filter 'name=m2c-v12-castle' | wc -l)" -gt 0 ]; do sleep 300; done
 COMMON="--restart=on-failure:100 --memory=4g -u 0 -v $REPO:/workspace -w /workspace --cpus=1"
-COMMON="$COMMON -e MAP2CHECK_PATH=/workspace/install_v13"
-docker rm -f m2c-v13-juliet-smoke m2c-v13-castle-smoke >/dev/null 2>&1
-docker run -d --name m2c-v13-juliet-smoke $COMMON -e PER_FAMILY=1 \
-  -e RESULTS_DIR="/workspace/tests/juliet/results_v13_smoke" \
+COMMON="$COMMON -e MAP2CHECK_PATH=/workspace/install_v14"
+docker rm -f m2c-v14-juliet-smoke m2c-v14-castle-smoke >/dev/null 2>&1
+docker run -d --name m2c-v14-juliet-smoke $COMMON -e PER_FAMILY=1 \
+  -e RESULTS_DIR="/workspace/tests/juliet/results_v14_smoke" \
   "$IMAGE" bash tests/juliet/run_juliet_evaluation.sh >/dev/null
-docker run -d --name m2c-v13-castle-smoke $COMMON \
-  -e RESULTS_DIR="/workspace/tests/castle/results_v13_smoke" \
+docker run -d --name m2c-v14-castle-smoke $COMMON \
+  -e RESULTS_DIR="/workspace/tests/castle/results_v14_smoke" \
   "$IMAGE" bash tests/castle/run_castle_evaluation.sh >/dev/null
-echo "v13 smoke launched"
+echo "v14 smoke launched"

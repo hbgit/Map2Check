@@ -1,5 +1,5 @@
 #!/bin/bash
-# launch-v14-paper.sh -- the run the paper reports.
+# launch-v15-paper.sh -- the run the paper reports.
 #
 # Shape, and the reasoning for each part:
 #
@@ -29,23 +29,23 @@ set -u
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 IMAGE="${IMAGE:-map2check-testcov:latest}"
 POLL="${POLL:-300}"
-LOG="$REPO/tests/baseline-logs/v14-paper.log"
+LOG="$REPO/tests/baseline-logs/v15-paper.log"
 say() { echo "[$(date +%H:%M)] $*" | tee -a "$LOG"; }
 
-say "waiting for v12 to finish"
-while [ "$(docker ps -q --filter 'name=m2c-v12-' | wc -l)" -gt 0 ]; do sleep "$POLL"; done
-say "v12 done"
+say "waiting for the validation sweep to finish"
+while [ "$(docker ps -q --filter 'name=m2c-validate' | wc -l)" -gt 0 ]; do sleep 30; done
+say "validation done"
 
 COMMON="--restart=on-failure:100 --memory=4g -u 0 -v $REPO:/workspace -w /workspace"
-COMMON="$COMMON -e MAP2CHECK_PATH=/workspace/install_v14"
+COMMON="$COMMON -e MAP2CHECK_PATH=/workspace/install_v15"
 
 launch() { # arm flags property manifest shard shards
   local arm="$1" flags="$2" prop="$3" man="$4" shard="$5" shards="${6:-3}"
-  docker rm -f "m2c-v14-${arm}-s${shard}" >/dev/null 2>&1
-  docker run -d --name "m2c-v14-${arm}-s${shard}" $COMMON --cpus=2 \
+  docker rm -f "m2c-v15-${arm}-s${shard}" >/dev/null 2>&1
+  docker run -d --name "m2c-v15-${arm}-s${shard}" $COMMON --cpus=2 \
     -e MANIFEST="/workspace/tests/testcomp/corpus/${man}" \
     -e PROPERTY="$prop" -e GENERATOR=hybrid -e EXTRA_FLAGS="$flags" \
-    -e RESULTS_DIR="/workspace/tests/testcomp/results_v14_${arm}_s${shard}" \
+    -e RESULTS_DIR="/workspace/tests/testcomp/results_v15_${arm}_s${shard}" \
     -e SHARD="$shard" -e SHARDS="$shards" \
     -e BUDGET=300 -e TESTCOV_S=300 -e DEADLINE_S=259200 \
     "$IMAGE" bash tests/testcomp/run_testcomp_evaluation.sh >/dev/null
@@ -57,7 +57,7 @@ for i in 0 1 2; do launch ce-control ""        cover-error cover-error-q400.tsv 
 for i in 0 1 2; do launch ce-slice   "--slice" cover-error cover-error-q400.tsv "$i"; done
 say "phase 1 launched: cover-error control+slice, 1087 tasks"
 
-while [ "$(docker ps -q --filter 'name=m2c-v14-ce-' | wc -l)" -gt 0 ]; do sleep "$POLL"; done
+while [ "$(docker ps -q --filter 'name=m2c-v15-ce-' | wc -l)" -gt 0 ]; do sleep "$POLL"; done
 say "phase 1 done"
 
 # Phase 2: cover-branches, control only, SIX shards -- phase 1 has released

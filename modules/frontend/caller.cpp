@@ -217,7 +217,7 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   const double sliceBudget =
       std::max(5.0, std::min(0.2 * this->timeout,
                              static_cast<double>(remainingSeconds()) - 5.0));
-  command << "timeout -k " << Map2Check::killGracePeriod << " " << sliceBudget
+  command << "timeout -k " << Map2Check::killGracePeriod << " " << static_cast<unsigned>(sliceBudget)
           << " " << slicer << " -c " << targetFunction
           << " --entry=main -o " << output << " "
           << input << " > slicer.output 2>&1";
@@ -335,7 +335,7 @@ void Caller::applyNonDetGenerator() {
                                  static_cast<double>(remainingSeconds()) - 5.0));
       const std::string bound = "timeout -k " +
                                 std::to_string(Map2Check::killGracePeriod) +
-                                " " + std::to_string(compileBudget) + " ";
+                                " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";
 
       command
           << bound << Map2Check::clangBinary
@@ -646,7 +646,7 @@ void Caller::executeAnalysis(std::string solvername) {
           1.0, std::min(0.8 * this->timeout,
                         this->remainingSeconds() - kPostEngineReserve));
       kleeCommand << "timeout -k " << Map2Check::killGracePeriod << " "
-                  << kleeBudget << " ";
+                  << static_cast<unsigned>(kleeBudget) << " ";
       kleeCommand << Map2Check::kleeBinary;
 
       // KLEE's own deadline, set BELOW the external one so it is KLEE that
@@ -664,7 +664,22 @@ void Caller::executeAnalysis(std::string solvername) {
       // The external timeout above stays as the backstop for the case its
       // comment describes, a solver wedged so deep that KLEE's own deadline
       // never gets a turn.
-      kleeCommand << " --max-time=" << (0.875 * kleeBudget) << "s";
+      // INTEGER seconds. KLEE parses --max-time with a duration parser that
+      // rejects a fractional value outright:
+      //
+      //     KLEE: ERROR: Illegal number format: 36.75s
+      //
+      // and exits 256 without running a single instruction. The old expression
+      // 0.7*timeout happened to be whole for every budget in use, so this
+      // never showed; 0.875*kleeBudget is whole only when kleeBudget is a
+      // multiple of 8, and kleeBudget now derives from the time REMAINING,
+      // which is whatever the clock says.
+      //
+      // The cost of getting this wrong is total and silent: no KLEE phase at
+      // all, so nothing can be proved safe. It collapsed 464 Juliet TN
+      // verdicts to 1.
+      kleeCommand << " --max-time=" << static_cast<unsigned>(0.875 * kleeBudget)
+                  << "s";
 
 
       // Halting on the first error is right when there is a property to
@@ -773,7 +788,7 @@ void Caller::executeAnalysis(std::string solvername) {
           std::min(0.2 * this->timeout,
                    static_cast<double>(this->remainingSeconds()));
       command << "timeout -k " << Map2Check::killGracePeriod << " "
-              << fuzzerBudget << " ";
+              << static_cast<unsigned>(fuzzerBudget) << " ";
       // A corpus DIRECTORY, not just a run. Without one LibFuzzer keeps its
       // corpus in memory and throws it away when the process ends: everything
       // it discovered in its slice of the budget was discarded, every run.

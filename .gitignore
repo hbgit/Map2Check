@@ -115,3 +115,17 @@ CLAUDE.md.bak-*
 # above ignores the CONTENTS of such a directory but not the directory entry
 # itself, which is why this line names the path we actually clone into.
 tests/testcomp/bench/
+
+# Diretórios de build e instalação por campanha.
+# Cada install_* tem ~42 MB de binários (map2check, klee, clang) e cada build_*
+# ~17 MB de objetos. Eles existem para permitir bissecção entre versões do
+# binário sem recompilar -- foi assim que o defeito do --max-time fracionário
+# foi localizado -- mas são artefatos locais, não conteúdo do repositório.
+build_*/
+install_*/
+release/
+
+# Resultados de campanha do Test-Comp. Ficam no disco de quem rodou, não no
+# repositório -- mesma escolha já aplicada a tests/juliet/results*/ e
+# tests/castle/results_v*/. Os números que importam estão no relatório em docs/.
+tests/testcomp/results_v15_*/

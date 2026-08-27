@@ -127,5 +127,6 @@ release/
 
 # Resultados de campanha do Test-Comp. Ficam no disco de quem rodou, não no
 # repositório -- mesma escolha já aplicada a tests/juliet/results*/ e
-# tests/castle/results_v*/. Os números que importam estão no relatório em docs/.
-tests/testcomp/results_v15_*/
+# tests/castle/results_v*/. Os três corpora passam a ser tratados igual.
+# Os números que importam estão no relatório em docs/.
+tests/testcomp/results_*/

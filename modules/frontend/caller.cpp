@@ -215,8 +215,8 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   // back to analysing the whole program, which is exactly what the control
   // does. Overrunning the budget loses the verdict instead.
   const double sliceBudget =
-      std::max(5.0, std::min(0.2 * this->timeout,
-                             static_cast<double>(remainingSeconds()) - 5.0));
+      std::min(0.2 * this->timeout,
+               static_cast<double>(remainingSeconds()));
   command << "timeout -k " << Map2Check::killGracePeriod << " " << static_cast<unsigned>(sliceBudget)
           << " " << slicer << " -c " << targetFunction
           << " --entry=main -o " << output << " "
@@ -331,8 +331,8 @@ void Caller::applyNonDetGenerator() {
       // gets its phase and the run still reaches a verdict. Spending the whole
       // budget here costs the verdict itself.
       const double compileBudget =
-          std::max(5.0, std::min(0.25 * this->timeout,
-                                 static_cast<double>(remainingSeconds()) - 5.0));
+          std::min(0.25 * this->timeout,
+                   static_cast<double>(remainingSeconds()));
       const std::string bound = "timeout -k " +
                                 std::to_string(Map2Check::killGracePeriod) +
                                 " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";
@@ -678,7 +678,8 @@ void Caller::executeAnalysis(std::string solvername) {
       // The cost of getting this wrong is total and silent: no KLEE phase at
       // all, so nothing can be proved safe. It collapsed 464 Juliet TN
       // verdicts to 1.
-      kleeCommand << " --max-time=" << static_cast<unsigned>(0.875 * kleeBudget)
+      kleeCommand << " --max-time="
+                  << std::max(1u, static_cast<unsigned>(0.875 * kleeBudget))
                   << "s";
 
 
@@ -777,6 +778,12 @@ void Caller::executeAnalysis(std::string solvername) {
       break;
     }
     case (NonDetGenerator::LibFuzzer): {
+      std::error_code fuzzErr;
+      if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
+        Map2Check::Log::Warning(
+            "the LibFuzzer binary is unavailable -- skipping the fuzzer phase");
+        break;
+      }
       Map2Check::Log::Info("Executing LibFuzzer with map2check");
       std::ostringstream command;
       command.str("");

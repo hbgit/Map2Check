@@ -10,6 +10,8 @@
 
 #include "TargetPass.hpp"
 
+#include <cstdlib>
+
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 

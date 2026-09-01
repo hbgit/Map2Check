@@ -214,9 +214,10 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   // A slice that does not finish is not a loss: the code below already falls
   // back to analysing the whole program, which is exactly what the control
   // does. Overrunning the budget loses the verdict instead.
-  const double sliceBudget =
+  const double sliceBudget = std::max(
+      1.0,
       std::min(0.2 * this->timeout,
-               static_cast<double>(remainingSeconds()));
+               std::max(1.0, static_cast<double>(remainingSeconds()) - 5.0)));
   command << "timeout -k " << Map2Check::killGracePeriod << " " << static_cast<unsigned>(sliceBudget)
           << " " << slicer << " -c " << targetFunction
           << " --entry=main -o " << output << " "
@@ -330,9 +331,10 @@ void Caller::applyNonDetGenerator() {
       // Losing the fuzzer binary is a real cost, but a bounded one: KLEE still
       // gets its phase and the run still reaches a verdict. Spending the whole
       // budget here costs the verdict itself.
-      const double compileBudget =
-          std::min(0.25 * this->timeout,
-                   static_cast<double>(remainingSeconds()));
+      const double compileBudget = std::max(
+          1.0, std::min(0.25 * this->timeout,
+                        std::max(1.0, static_cast<double>(remainingSeconds()) -
+                                          5.0)));
       const std::string bound = "timeout -k " +
                                 std::to_string(Map2Check::killGracePeriod) +
                                 " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";

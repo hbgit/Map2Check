@@ -781,7 +781,15 @@ void Caller::executeAnalysis(std::string solvername) {
     }
     case (NonDetGenerator::LibFuzzer): {
       std::error_code fuzzErr;
-      if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
+      const bool hasFuzzer =
+          std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr);
+      if (fuzzErr) {
+        Map2Check::Log::Warning(
+            "could not check whether the LibFuzzer binary is available: " +
+            fuzzErr.message());
+        break;
+      }
+      if (!hasFuzzer) {
         Map2Check::Log::Warning(
             "the LibFuzzer binary is unavailable -- skipping the fuzzer phase");
         break;

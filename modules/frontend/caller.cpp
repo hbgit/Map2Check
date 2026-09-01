@@ -17,6 +17,7 @@
 #include <stdlib.h>
 // CPP Libs
 #include <algorithm>
+#include <chrono>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -84,6 +85,32 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   std::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Current path: " +
                         std::filesystem::current_path().string());
+}
+
+namespace {
+/** Wall-clock start of the PROCESS, not of this Caller.
+ *
+ * The hybrid rebuilds the Caller once per engine, so a per-object start time
+ * would reset the clock at every phase and defeat the whole point. Function
+ * static: initialised on the first call, which happens before any engine runs.
+ */
+std::chrono::steady_clock::time_point processStart() {
+  static const std::chrono::steady_clock::time_point start =
+      std::chrono::steady_clock::now();
+  return start;
+}
+}  // namespace
+
+unsigned Caller::remainingSeconds() const {
+  const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                           std::chrono::steady_clock::now() - processStart())
+                           .count();
+  if (elapsed < 0) return this->timeout;
+  const long long left = static_cast<long long>(this->timeout) - elapsed;
+  // Never zero. A phase given no time at all is a phase that cannot even
+  // report that it had none, and the caller has no way to tell that apart
+  // from a crash.
+  return left < 1 ? 1u : static_cast<unsigned>(left);
 }
 
 std::string Caller::preOptimizationFlags() {
@@ -161,7 +188,10 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
     return false;
   }
 
-  const std::string input = programHash + "-output.bc";
+  // The COMPILED bitcode, not the instrumented one: this runs before callPass
+  // so that the instrumentation is applied to the slice rather than removed by
+  // it. Entry is still plain main at this point, for the same reason.
+  const std::string input = programHash + "-compiled.bc";
   const std::string output = programHash + "-sliced.bc";
   if (!std::filesystem::exists(input)) return false;
 
@@ -169,7 +199,28 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   // -c is the slicing criterion: keep what the target call depends on. The
   // criterion is the whole reason this only serves Cover-Error -- there is no
   // criterion to give it when every branch is the goal.
-  command << slicer << " -c " << targetFunction << " -o " << output << " "
+  //
+  // --entry is required. Run after callPass this had to be
+  // __map2check_main__, because the instrumentation renames the entry and the
+  // slicer would report "The entry function not found: main" and slice
+  // nothing. Run before it, as it now is, the program still has its own main.
+  // Bounded, for the reason every other external step here is bounded: the
+  // slicer builds a system dependence graph over the whole module, and on the
+  // large programs that is not fast. Measured on the v12 corpus: the sliced
+  // arm recorded 26 ERROR verdicts against the control's 9, every one of them
+  // at 87 to 89 seconds, and three were tasks the control had ANSWERED --
+  // slicing did not fail on them, it just took the run past its deadline.
+  //
+  // A slice that does not finish is not a loss: the code below already falls
+  // back to analysing the whole program, which is exactly what the control
+  // does. Overrunning the budget loses the verdict instead.
+  const double sliceBudget = std::max(
+      1.0,
+      std::min(0.2 * this->timeout,
+               std::max(1.0, static_cast<double>(remainingSeconds()) - 5.0)));
+  command << "timeout -k " << Map2Check::killGracePeriod << " " << static_cast<unsigned>(sliceBudget)
+          << " " << slicer << " -c " << targetFunction
+          << " --entry=main -o " << output << " "
           << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());
   const int result = system(command.str().c_str());
@@ -192,6 +243,51 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   Map2Check::Log::Info("Sliced with respect to " + targetFunction + ": " +
                        std::to_string(before) + " -> " +
                        std::to_string(after) + " bytes of bitcode");
+
+  // sbt-slicer removes the body of the criterion function itself. reach_error
+  // is where the slice ENDS -- nothing it does can influence whether it is
+  // reached -- so the slicer keeps the call site and drops the definition.
+  //
+  // KLEE tolerates the resulting declaration. The native LibFuzzer link does
+  // not: it fails with "undefined reference to reach_error", no *-fuzzed.out
+  // is produced, and the fuzzer stage then does nothing at all. The failure
+  // was entirely silent -- the run simply came back UNKNOWN.
+  //
+  // Measured on rangesum05.i: --nondet-generator fuzzer answers FAILED, and
+  // the same invocation with --slice answers UNKNOWN with zero crash inputs
+  // and no fuzzed binary on disk. This is what cost the sliced arm the bulk
+  // of its 133 lost detections in the v11 factorial.
+  //
+  // A WEAK definition restores the link without displacing a real one: where
+  // the slice did keep the body, the strong definition still wins.
+  const std::string stubSource = programHash + "-target-stub.c";
+  const std::string stubBitcode = programHash + "-target-stub.bc";
+  const std::string linked = programHash + "-sliced-linked.bc";
+  {
+    std::ofstream stub(stubSource);
+    if (stub.is_open()) {
+      stub << "void __attribute__((weak)) " << targetFunction << "(void) {}\n";
+    }
+  }
+  std::ostringstream compileStub;
+  compileStub << Map2Check::clangBinary << " -Wno-everything -c -emit-llvm -g"
+              << " " << Caller::preOptimizationFlags() << " -o " << stubBitcode
+              << " " << stubSource << " >> slicer.output 2>&1";
+  std::ostringstream linkStub;
+  linkStub << Map2Check::llvmLinkBinary << " " << output << " " << stubBitcode
+           << " -o " << linked << " >> slicer.output 2>&1";
+  if (system(compileStub.str().c_str()) == 0 &&
+      system(linkStub.str().c_str()) == 0 &&
+      std::filesystem::exists(linked, error) &&
+      std::filesystem::file_size(linked, error) > 0) {
+    std::filesystem::rename(linked, output, error);
+  } else {
+    // Not fatal: without the stub the fuzzer stage is lost, but KLEE still
+    // runs on the slice. Say so rather than returning a half-configured run.
+    Map2Check::Log::Warning(
+        "could not restore a definition of " + targetFunction +
+        " after slicing -- the LibFuzzer stage will not link");
+  }
 
   std::filesystem::rename(output, input, error);
   return !error;
@@ -222,8 +318,29 @@ void Caller::applyNonDetGenerator() {
       std::ostringstream command;
       command.str("");
 
+      // Bounded, because it was not, and that is where the budget went.
+      //
+      // Both invocations run clang at -O2 over the whole instrumented module.
+      // On the large ECA and Recursive programs that takes longer than the
+      // entire budget, and nothing was stopping it: the run was still linking
+      // its fuzzer binary when the harness's outer timeout killed it, so it
+      // produced no verdict and scored ERROR. Measured on the v12 corpus:
+      // 20 such tasks, every one at 87 to 89 seconds against a 60 second
+      // budget, all of them dying at this exact step.
+      //
+      // Losing the fuzzer binary is a real cost, but a bounded one: KLEE still
+      // gets its phase and the run still reaches a verdict. Spending the whole
+      // budget here costs the verdict itself.
+      const double compileBudget = std::max(
+          1.0, std::min(0.25 * this->timeout,
+                        std::max(1.0, static_cast<double>(remainingSeconds()) -
+                                          5.0)));
+      const std::string bound = "timeout -k " +
+                                std::to_string(Map2Check::killGracePeriod) +
+                                " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";
+
       command
-          << Map2Check::clangBinary
+          << bound << Map2Check::clangBinary
           << "  -g -fsanitize=fuzzer -fsanitize-coverage=inline-8bit-counters "
           << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
@@ -233,11 +350,22 @@ void Caller::applyNonDetGenerator() {
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << Map2Check::clangBinary << "  -g -fsanitize=fuzzer "
+      commandWitness << bound << Map2Check::clangBinary
+                     << "  -g -fsanitize=fuzzer "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
 
       system(commandWitness.str().c_str());
+
+      // Announced rather than discovered later as a silent no-op -- the same
+      // failure mode the sliced arm spent a whole campaign in.
+      std::error_code fuzzErr;
+      if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
+        Map2Check::Log::Warning(
+            "the LibFuzzer binary did not build within " +
+            std::to_string(static_cast<int>(compileBudget)) +
+            "s -- skipping the fuzzer phase and leaving the budget to KLEE");
+      }
       break;
     }
   }
@@ -511,8 +639,16 @@ void Caller::executeAnalysis(std::string solvername) {
       // then waits forever for a child that will not die, and map2check hangs
       // past its own budget. The grace period escalates to SIGKILL so the
       // budget is actually enforced.
+      // Reserve a few seconds for what happens AFTER the engine: reading the
+      // property file, recovering the input vector, writing the suite. KLEE
+      // holding the budget to its last second is what turned a decided run
+      // into an ERROR.
+      constexpr double kPostEngineReserve = 5.0;
+      const double kleeBudget = std::max(
+          1.0, std::min(0.8 * this->timeout,
+                        this->remainingSeconds() - kPostEngineReserve));
       kleeCommand << "timeout -k " << Map2Check::killGracePeriod << " "
-                  << (0.8 * this->timeout) << " ";
+                  << static_cast<unsigned>(kleeBudget) << " ";
       kleeCommand << Map2Check::kleeBinary;
 
       // KLEE's own deadline, set BELOW the external one so it is KLEE that
@@ -530,7 +666,23 @@ void Caller::executeAnalysis(std::string solvername) {
       // The external timeout above stays as the backstop for the case its
       // comment describes, a solver wedged so deep that KLEE's own deadline
       // never gets a turn.
-      kleeCommand << " --max-time=" << (0.7 * this->timeout) << "s";
+      // INTEGER seconds. KLEE parses --max-time with a duration parser that
+      // rejects a fractional value outright:
+      //
+      //     KLEE: ERROR: Illegal number format: 36.75s
+      //
+      // and exits 256 without running a single instruction. The old expression
+      // 0.7*timeout happened to be whole for every budget in use, so this
+      // never showed; 0.875*kleeBudget is whole only when kleeBudget is a
+      // multiple of 8, and kleeBudget now derives from the time REMAINING,
+      // which is whatever the clock says.
+      //
+      // The cost of getting this wrong is total and silent: no KLEE phase at
+      // all, so nothing can be proved safe. It collapsed 464 Juliet TN
+      // verdicts to 1.
+      kleeCommand << " --max-time="
+                  << std::max(1u, static_cast<unsigned>(0.875 * kleeBudget))
+                  << "s";
 
 
       // Halting on the first error is right when there is a property to
@@ -628,13 +780,32 @@ void Caller::executeAnalysis(std::string solvername) {
       break;
     }
     case (NonDetGenerator::LibFuzzer): {
+      std::error_code fuzzErr;
+      const bool hasFuzzer =
+          std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr);
+      if (fuzzErr) {
+        Map2Check::Log::Warning(
+            "could not check whether the LibFuzzer binary is available: " +
+            fuzzErr.message());
+        break;
+      }
+      if (!hasFuzzer) {
+        Map2Check::Log::Warning(
+            "the LibFuzzer binary is unavailable -- skipping the fuzzer phase");
+        break;
+      }
       Map2Check::Log::Info("Executing LibFuzzer with map2check");
       std::ostringstream command;
       command.str("");
       // -k for the same reason as the KLEE branch above; -jobs=8 also means
       // LibFuzzer forks workers that must not outlive the budget.
+      // Against what is LEFT, not against the nominal budget -- see
+      // Caller::remainingSeconds.
+      const double fuzzerBudget =
+          std::min(0.2 * this->timeout,
+                   static_cast<double>(this->remainingSeconds()));
       command << "timeout -k " << Map2Check::killGracePeriod << " "
-              << (0.2 * this->timeout) << " ";
+              << static_cast<unsigned>(fuzzerBudget) << " ";
       // A corpus DIRECTORY, not just a run. Without one LibFuzzer keeps its
       // corpus in memory and throws it away when the process ends: everything
       // it discovered in its slice of the budget was discarded, every run.

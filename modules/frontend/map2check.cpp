@@ -330,7 +330,26 @@ inline void fixPath(char *map2check_bin_string) {
   klee_env_var += "/lib/klee/runtime";
   setenv("KLEE_RUNTIME_LIBRARY_PATH", klee_env_var.c_str(), 1);
 
-  std::string ld_env_var("$LD_LIBRARY_PATH:");
+  // The previous value has to be read, not spelled. This was
+  //
+  //     std::string ld_env_var("$LD_LIBRARY_PATH:");
+  //
+  // and setenv does no shell expansion, so the environment ended up with the
+  // literal seven-plus characters "$LD_LIBRARY_PATH" as its first component --
+  // a path that does not exist. Everything the image had put there was gone
+  // for every child process map2check spawns.
+  //
+  // It went unnoticed because the install prefix appended below carries the
+  // libraries the tool itself needs, so nothing map2check owns ever missed
+  // them. It surfaced the moment an external tool was added: sbt-slicer links
+  // dg's shared libraries from /opt/dg/lib, which the image puts on the path,
+  // and every invocation died with "libdganalysis.so: cannot open shared
+  // object file".
+  std::string ld_env_var;
+  const char *previous_ld_path = getenv("LD_LIBRARY_PATH");
+  if (previous_ld_path != nullptr && previous_ld_path[0] != '\0') {
+    ld_env_var = std::string(previous_ld_path) + ":";
+  }
   ld_env_var += pBuf;
   ld_env_var += "/lib/";
   setenv("LD_LIBRARY_PATH", ld_env_var.c_str(), 1);
@@ -482,15 +501,21 @@ int map2check_execution(map2check_args args) {
   }
 
   // (2) Instrument functions for current mode
-  caller->callPass(args.function);
-
-  // After instrumentation, before linking: the slicer needs the target call to
-  // still be visible as a criterion, and there is no point slicing code that
-  // the runtime will add afterwards.
+  // BEFORE instrumentation, and the order was learned the hard way.
   //
-  // Reachability only. Slicing needs a criterion to slice towards, and
-  // Cover-Branches has none -- every branch is the goal. Asking for it in any
-  // other mode is refused rather than quietly ignored.
+  // Slicing after callPass fatally removes the instrumentation: the slicer
+  // keeps what the target depends on, and the runtime calls that RECORD the
+  // violation do not influence whether the target is reachable, so they are
+  // exactly what gets dropped. Measured -- two tasks went from FAILED to
+  // UNKNOWN while the bitcode shrank by 70% and 38%: the analysis still
+  // reached the bug and no longer had the machinery to say so.
+  //
+  // Slicing the user's program first and instrumenting the slice keeps both
+  // properties: the search space is smaller and the instrumentation is added
+  // to what survives.
+  //
+  // Reachability only. Slicing needs a criterion, and Cover-Branches has none
+  // -- every branch is the goal. Asking elsewhere is refused, not ignored.
   if (args.sliceProgram) {
     if (args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
       caller->sliceWithRespectToTarget(args.function);
@@ -501,6 +526,8 @@ int map2check_execution(map2check_args args) {
           "Analysing the whole program.");
     }
   }
+
+  caller->callPass(args.function);
   caller->linkLLVM();
 
   // (3) Apply nondeterministic mode and execute analysis
@@ -558,6 +585,44 @@ int map2check_execution(map2check_args args) {
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else {
     propertyViolated = recorded;
+  }
+
+  // A violation nobody can demonstrate is not a violation worth reporting.
+  //
+  // KLEE can burn its whole budget, halt on the timer, and still leave
+  // TARGET-REACHED in map2check_property: some state wrote the file through an
+  // external call and was then terminated by --dump-states-on-halt without
+  // ever running to the abort. The verdict logic above trusts that file, so
+  // the run answers FAILED while emitting a suite with zero <input> elements.
+  //
+  // Measured on reducercommutativity/rangesum05.i with --nondet-generator
+  // symex: 1446 paths explored, HaltTimer, zero .err files, klee_log.csv
+  // empty, verdict FAILED, suite empty, TestCov UNKNOWN. This is where the
+  // FAILED-but-NOT_COVERED cases come from -- 21% of the control arm's FAILED
+  // verdicts in the v11 factorial.
+  //
+  // Downgrading costs nothing that was ever scored. Test-Comp scores the
+  // SUITE, not the verdict, and a suite with no inputs covers nothing whether
+  // the tool called it FAILED or UNKNOWN. What it buys is a precision number
+  // that means something.
+  //
+  // Gated on generating a suite at all, and on the two sources emitTestSuite
+  // itself consults -- so the check can never disagree with what gets written.
+  if (args.generateTestSuite && !args.coverBranches &&
+      args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE &&
+      generator == Map2Check::NonDetGenerator::Klee &&
+      propertyViolated != Map2Check::PropertyViolated::NONE &&
+      propertyViolated != Map2Check::PropertyViolated::UNKNOWN) {
+    const bool haveVector =
+        !Map2Check::readNonDetLog(Map2Check::kleeLogCSV).empty() ||
+        !Map2Check::readViolatingKtest(Map2Check::kleeOutputDir).empty();
+    if (!haveVector) {
+      Map2Check::Log::Warning(
+          "the property file records a violation but no input vector could be "
+          "recovered -- reporting UNKNOWN rather than a FAILED nothing can "
+          "reproduce");
+      propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
+    }
   }
 
   if (propertyViolated ==

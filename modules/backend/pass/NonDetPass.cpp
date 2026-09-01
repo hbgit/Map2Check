@@ -42,7 +42,17 @@ namespace {
  * is replaced instead, which reaches every call site at once. */
 const char *const kAssumeByAbort[] = {"assume_abort_if_not",
                                       "assume_abort_if_not_",
-                                      "__VERIFIER_assume"};
+                                      "__VERIFIER_assume",
+                                      // The XCSP family spells it this way,
+                                      // and spelling was the whole difference:
+                                      // 59 of 59 XCSP tasks answered
+                                      // "program correct" in two seconds
+                                      // because the first failing assumption
+                                      // aborted the run, and every one of
+                                      // those programs has a reachable bug.
+                                      // Same defect as the name above, missed
+                                      // for being one word shorter.
+                                      "assume"};
 
 /** Rewrites such a function to a real assume. Returns true if it rewrote.
  *
@@ -67,6 +77,10 @@ bool rewriteAssumeToPrune(Function &F) {
     }
   }
   if (!named) return false;
+  // The signature check carries more weight now that a name as generic as
+  // "assume" is on the list: void(int) is the assumption idiom's shape, and a
+  // function called assume with any other shape is something else and is left
+  // alone.
   if (F.arg_size() != 1 || !F.getArg(0)->getType()->isIntegerTy()) return false;
   if (!F.getReturnType()->isVoidTy()) return false;
 

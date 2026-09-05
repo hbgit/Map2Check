@@ -130,3 +130,6 @@ release/
 # tests/castle/results_v*/. Os três corpora passam a ser tratados igual.
 # Os números que importam estão no relatório em docs/.
 tests/testcomp/results_*/
+
+# PDFs compilados a partir dos .tex versionados
+docs/*.pdf

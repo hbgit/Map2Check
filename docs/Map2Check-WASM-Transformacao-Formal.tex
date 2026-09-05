@@ -1,0 +1,717 @@
+% !TeX program = pdflatex
+%
+% A transformacao WebAssembly -> LLVM-IR no Map2Check
+% Compilar no Overleaf com pdfLaTeX. Sem dependencias fora do TeX Live padrao.
+%
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% Caminhos longos em \texttt nao quebram; isto evita que estourem a margem
+% sem precisar de \sloppy global.
+\setlength{\emergencystretch}{3.5em}
+
+\usepackage[margin=2.8cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{tt}   % \path{} para caminhos longos
+\def\UrlBreaks{\do\/\do\.\do\-\do\_\do\{\do\}}
+
+%---------------------------------------------------------------- ambientes
+\theoremstyle{definition}
+\newtheorem{hipotese}{Hipótese}
+\newtheorem{proposicao}{Proposição}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+
+%---------------------------------------------------------------- macros
+\newcommand{\sem}[1]{[\![#1]\!]}          % colchetes semanticos, sem stmaryrd
+\newcommand{\Safe}{\mathrm{Safe}}
+\newcommand{\Reach}{\mathit{Reach}}
+\newcommand{\wasm}{\mathrm{wasm}}
+\newcommand{\lin}{\mathrm{lin}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+% Regra de inferencia, sem dependencia externa: premissas sobre a barra,
+% conclusao embaixo, nome da regra a direita.
+\newcommand{\rulelabel}[1]{\textnormal{\textsc{\footnotesize #1}}}
+
+%---------------------------------------------------------------- listings
+\definecolor{cmtgray}{gray}{0.42}
+\lstset{
+  basicstyle=\ttfamily\small,
+  commentstyle=\color{cmtgray}\itshape,
+  keywordstyle=\bfseries,
+  showstringspaces=false,
+  columns=fullflexible,
+  breaklines=true,
+  frame=leftline,
+  framesep=8pt,
+  xleftmargin=10pt,
+  captionpos=b
+}
+
+%---------------------------------------------------------------- titulo
+\title{\textbf{A transformação WebAssembly $\rightarrow$ LLVM-IR no Map2Check}\\[0.4em]
+       \large Formalização da cadeia de \emph{lifting}, e o que ela\\
+       demonstravelmente preserva e perde}
+\author{Projeto Map2Check}
+\date{4 de setembro de 2026}
+
+\begin{document}
+\sloppy   % prefere espacamento folgado a texto invadindo a margem
+\maketitle
+
+\begin{abstract}
+\noindent
+Formalizamos a cadeia de transformações que leva um binário \code{.wasm} até o
+programa instrumentado que o Map2Check analisa, decompondo-a em cinco funções e
+enunciando explicitamente as duas hipóteses de correção sobre as quais ela
+repousa. Dois resultados decorrem da formalização. A cadeia é \emph{sound} para
+as dez classes de \emph{trap} do WebAssembly, o que já vale na implementação
+atual e não vinha sendo reivindicado. E a cadeia é incompleta para segurança de
+memória intra-\emph{sandbox} --- precisamente a classe de vulnerabilidade
+declarada como alvo do projeto --- por uma razão estrutural: a memória linear
+chega ao verificador como uma única alocação, de modo que a sobrescrita de um
+objeto vizinho satisfaz tanto a verificação de limites do tradutor quanto o
+predicado de segurança do próprio Map2Check. Damos o contraexemplo por
+construção e derivamos, do enunciado, o requisito exato que uma modelagem de
+memória linear teria de satisfazer.
+\end{abstract}
+
+\tableofcontents
+\bigskip
+
+%================================================================
+\section{Objetivo e escopo}
+
+Este documento descreve, passo a passo e com formalismo, a cadeia de
+transformações que leva um binário \code{.wasm} até o programa instrumentado que
+o Map2Check analisa.
+
+O objetivo não é apenas documentar a implementação. É tornar \textbf{enunciável}
+o que a cadeia preserva e o que ela perde --- porque essa distinção decide quais
+resultados experimentais são atribuíveis ao Map2Check e quais não são. Duas
+proposições saem dessa formalização, e ambas mudam o que se pode alegar sobre a
+frente WASM.
+
+A semântica de referência do WebAssembly é a de Haas et al., \emph{Bringing the
+Web up to Speed with WebAssembly} (PLDI 2017), e a especificação normativa dela
+derivada. O tradutor é o \code{wasm2c} do WABT 1.0.41. Todas as afirmações sobre
+o código gerado foram verificadas na saída real do WABT na imagem
+\path{ghcr.io/hbgit/map2check-dev}, não inferidas da documentação.
+
+Referências de implementação: \path{modules/frontend/wasm_lifter.{hpp,cpp}},
+\path{modules/frontend/caller.cpp} (função \code{generateWasmWrapperStatic}) e
+\path{modules/frontend/map2check.cpp} (bloco \code{args.wasmMode}).
+
+%================================================================
+\section{Sumário dos resultados}
+
+Para o leitor que precisa apenas da conclusão, antes do desenvolvimento.
+
+\paragraph{Proposição 1 --- a cadeia é \emph{sound} para as dez classes de
+\emph{trap} do WASM.}
+O \code{wasm2c} compila a condição lateral da regra de redução de acesso à
+memória em uma verificação dinâmica explícita, e essa verificação chama
+\code{wasm\_rt\_trap}, que aborta. Abort é exatamente o sinal que o modo de
+alcançabilidade do Map2Check já consome. Portanto acesso fora da memória linear,
+divisão por zero, \emph{overflow} de conversão, \code{unreachable} e
+\code{call\_indirect} inválido \textbf{são detectáveis hoje}, sem nenhum trabalho
+adicional. Este resultado existe e não estava sendo alegado.
+
+\paragraph{Proposição 2 --- a cadeia é incompleta para segurança de memória
+intra-\emph{sandbox}.}
+Esta é justamente a classe de vulnerabilidade declarada como alvo principal do
+projeto. A memória linear chega ao verificador como \textbf{uma única alocação},
+de modo que a sobrescrita de um objeto vizinho \emph{dentro} dela satisfaz tanto
+a verificação de limites do WABT quanto o predicado de segurança do próprio
+Map2Check. A demonstração é por construção e o contraexemplo tem quatro linhas de
+C. A causa é estrutural, não um defeito de implementação.
+
+\paragraph{Consequência imediata.}
+A validação existente em \path{docs/reports/wasm-juliet-validation.csv} não separa
+os dois mecanismos possíveis de detecção, e a Proposição~2 mostra que um deles é
+impossível no caso intra-memória. Enquanto essa separação não for feita, os dados
+são consistentes com a hipótese de que \textbf{o WABT encontrou os defeitos e o
+Map2Check apenas reportou o abort resultante}.
+
+%================================================================
+\section{Notação}
+
+Seja $\mathbb{B} = \{0,\dots,255\}$ o conjunto dos bytes. Escrevemos $[a,b)$ para
+o intervalo inteiro semiaberto. Para uma função parcial $f$, $\operatorname{dom}(f)$
+é seu domínio.
+
+O tamanho de página do WebAssembly é a constante
+\[
+  P = 65\,536 .
+\]
+
+Os tipos de valor são
+$\mathit{valtype} = \{\mathtt{i32}, \mathtt{i64}, \mathtt{f32}, \mathtt{f64}\}$,
+e $\mathit{Val}$ denota o conjunto dos valores correspondentes.
+
+%================================================================
+\section{Passo 0 --- o objeto de entrada}
+
+Um módulo WebAssembly é a tupla
+\[
+  M = (\mathit{types},\ \mathit{funcs},\ \mathit{tables},\ \mathit{mems},\
+       \mathit{globals},\ \mathit{elem},\ \mathit{data},\ \mathit{start},\
+       \mathit{imports},\ \mathit{exports}).
+\]
+
+Três componentes importam para o que segue.
+
+\begin{itemize}[leftmargin=1.4em]
+  \item $\mathit{mems}$, que na versão 1.0 do WebAssembly tem
+        \textbf{cardinalidade no máximo 1}. Esta é a hipótese estrutural que
+        sustenta todo o resto do documento: existe uma única memória linear por
+        módulo.
+  \item $\mathit{exports} : \mathit{Name} \rightharpoonup \mathit{ExternIdx}$,
+        que dá as funções visíveis de fora do módulo.
+  \item $\mathit{imports}$, que dá as funções fornecidas pelo \emph{host}. Em
+        contexto de IoT, é por aqui que passam acesso a sensores, rede e banco de
+        dados.
+\end{itemize}
+
+O \textbf{estado de execução} é o par $(s,F)$, com \emph{store}
+\[
+  s = (\mathit{funcs},\ \mathit{tables},\ \mathit{mems},\ \mathit{globals})
+\]
+e \emph{frame} $F$ contendo os locais e a instância corrente. Uma configuração é
+$s; F; e^{*}$, onde $e^{*}$ é a pilha de instruções, e a semântica é dada por uma
+relação de redução em passos pequenos
+\[
+  s; F; e^{*} \hookrightarrow s'; F'; e'^{*} .
+\]
+O termo distinguido $\mathtt{trap}$ é absorvente: nenhuma regra o reduz.
+
+\subsection{A memória linear}
+
+Uma instância de memória é
+\[
+  \mu = (d,\ \ell), \qquad d : [0,\ell) \to \mathbb{B}, \qquad \ell = n \cdot P
+\]
+para algum $n \in \mathbb{N}$.
+
+Isto é: \textbf{um vetor plano de bytes, contíguo, endereçado por inteiros de 32
+bits}, sem qualquer estrutura interna. Não há noção de objeto, de alocação, nem
+de fronteira entre variáveis. Este fato é o centro de tudo que segue, e convém
+insistir nele: a memória linear não é um espaço de endereçamento com objetos
+dentro; \emph{é um único objeto}.
+
+A regra de leitura, na forma que nos interessa, é
+
+\begin{equation*}
+  \frac{\;\; ea = i + \mathit{offset} \qquad ea + N/8 \le \ell \;\;}
+       {\;\; s;\ F;\ (\mathtt{i32.const}\ i)\ (t.\mathtt{load}\ N\ \mathit{offset})
+          \ \hookrightarrow\ s;\ F;\ (t.\mathtt{const}\ c) \;\;}
+  \tag*{\rulelabel{load}}
+\end{equation*}
+
+\noindent
+e, quando a condição lateral falha,
+
+\begin{equation*}
+  \frac{\;\; ea + N/8 > \ell \;\;}
+       {\;\; s;\ F;\ (\mathtt{i32.const}\ i)\ (t.\mathtt{load}\ N\ \mathit{offset})
+          \ \hookrightarrow\ s;\ F;\ \mathtt{trap} \;\;}
+  \tag*{\rulelabel{load-trap}}
+\end{equation*}
+
+Convém guardar a forma da condição lateral, $ea + N/8 \le \ell$. Ela reaparece
+literalmente, como código C, na seção seguinte.
+
+%================================================================
+\section{Passo 1 --- $\tau$: o tradutor \code{wasm2c}}
+
+Definimos
+\[
+  \tau : \mathit{Wasm} \longrightarrow \mathit{C}
+\]
+como a função implementada pelo \code{wasm2c} do WABT 1.0.41, invocada em
+\code{WasmLifter::runWasm2c} por
+
+\begin{lstlisting}
+wasm2c <entrada>.wasm -o <saida>.c
+\end{lstlisting}
+
+\noindent
+produzindo o par de arquivos \code{.c} e \code{.h}.
+
+\subsection{Representação do estado}
+
+$\tau$ realiza o \emph{store} $s$ como uma \textbf{estrutura de instância} $I$. A
+memória linear $\mu = (d,\ell)$ torna-se o registro \code{wasm\_rt\_memory\_t},
+cujos campos relevantes são
+\[
+  \code{data} \mapsto d, \qquad \code{size} \mapsto \ell,
+\]
+com \code{data} obtido de uma \textbf{única} chamada de alocação, em
+\code{wasm\_rt\_allocate\_memory}. Registre-se o quantificador: \emph{uma}
+alocação, para \emph{toda} a memória do módulo. É desse fato que a Proposição~2
+decorre.
+
+Cada função $f$ do módulo torna-se uma função C
+\[
+  \tau(f) : \code{w2c\_}\langle \mathit{mod} \rangle \code{*}
+            \times \overline{\mathit{Val}} \longrightarrow \mathit{Val},
+\]
+nomeada segundo o esquema \code{w2c\_<módulo>\_<função>}. O primeiro parâmetro é
+o ponteiro de instância: é assim que o estado global do WASM se torna estado
+explícito de primeira classe no C.
+
+\subsection{A condição lateral torna-se código}
+
+Eis o ponto técnico central. $\tau$ \textbf{compila a condição lateral da regra de
+redução em uma verificação dinâmica explícita}. No C gerado, verificado na saída
+real do WABT 1.0.41:
+
+\begin{lstlisting}[language=C]
+#define MEM_ADDR(mem, addr, n)  &((mem)->data[addr])
+
+#define RANGE_CHECK(mem, offset, len)              \
+  do {                                             \
+    uint64_t res;                                  \
+    if (UNLIKELY(add_overflow(offset, len, &res))) \
+      TRAP(OOB);                                   \
+    if (UNLIKELY(res > (mem)->size))               \
+      TRAP(OOB);                                   \
+  } while (0);
+
+#define TRAP(x) (wasm_rt_trap(WASM_RT_TRAP_##x), 0)
+\end{lstlisting}
+
+Comparando com a regra \textsc{load}: \code{res > mem->size} é exatamente a
+negação de $ea + N/8 \le \ell$, e \code{TRAP(OOB)} é exatamente $\mathtt{trap}$.
+A tradução é literal.
+
+Definindo então o predicado
+\[
+  \Safe_{\wasm}(\mu,\ ea,\ N) \;\equiv\; ea + N/8 \le \ell,
+\]
+o programa C avalia $\Safe_{\wasm}$ em tempo de execução antes de cada acesso,
+desviando para \code{wasm\_rt\_trap} quando ele é falso.
+
+O conjunto de \emph{traps} que o WABT distingue é
+\[
+  \mathcal{T} =
+  \left\{
+  \begin{array}{l}
+    \mathtt{OOB},\quad \mathtt{INT\_OVERFLOW},\quad \mathtt{DIV\_BY\_ZERO},\quad
+    \mathtt{INVALID\_CONVERSION},\\[2pt]
+    \mathtt{UNREACHABLE},\quad \mathtt{CALL\_INDIRECT},\quad \mathtt{NULL\_REF},\\[2pt]
+    \mathtt{UNCAUGHT\_EXCEPTION},\quad \mathtt{UNALIGNED},\quad \mathtt{EXHAUSTION}
+  \end{array}
+  \right\} .
+\]
+
+\subsection{Correção de \texorpdfstring{$\tau$}{tau}}
+
+Seja $\approx$ a relação entre configurações WASM e estados C induzida pela
+representação acima: igualdade byte a byte da memória, igualdade de valor para
+globais e locais.
+
+\begin{hipotese}[correção do \code{wasm2c}]
+Para todo módulo $M$ bem tipado e toda execução, $\tau$ é uma simulação forte
+módulo passos administrativos: se $s;F;e^{*} \approx \sigma$ e
+$s;F;e^{*} \hookrightarrow s';F';e'^{*}$, então existe $\sigma'$ com
+$\sigma \to^{+} \sigma'$ e $s';F';e'^{*} \approx \sigma'$; e
+$e^{*} = \mathtt{trap}$ se e somente se $\sigma$ chama \code{wasm\_rt\_trap}.
+\end{hipotese}
+
+Isto é hipótese, \textbf{não teorema nosso}. Assumimos a correção do WABT como
+assumimos a do Clang. Vale explicitá-la por duas razões: toda a \emph{soundness}
+da cadeia repousa sobre ela, e ela é falsificável --- uma divergência do
+\code{wasm2c} apareceria como discordância entre executar o \code{.wasm} num
+\emph{runtime} conforme e executar o C gerado.
+
+%================================================================
+\section{Passo 2 --- $\kappa$: Clang para LLVM-IR}
+
+\[
+  \kappa : \mathit{C} \longrightarrow \mathit{LLVM}
+\]
+implementada em \code{WasmLifter::runClang} e \code{WasmLifter::runClangEmitLLVM}:
+
+\begin{lstlisting}
+clang-16 -c -emit-llvm -I<wasm-rt> -I<dir do .h>  <arq>.c -o <arq>.bc
+clang-16 -S -emit-llvm -I<wasm-rt> -I<dir do .h>  <arq>.c -o <arq>.ll
+\end{lstlisting}
+
+A emissão do \code{.ll} textual não é redundante: ele é a entrada de $\epsilon$,
+o passo seguinte.
+
+\begin{hipotese}[correção do Clang]
+$\kappa$ preserva a semântica de programas C \textbf{livres de comportamento
+indefinido}.
+\end{hipotese}
+
+A ressalva importa mais aqui do que no uso normal do Map2Check. O C emitido pelo
+\code{wasm2c} é gerado, não escrito, e emprega construções deliberadamente
+próximas do limite da norma: aritmética de ponteiro sobre \code{data},
+\code{setjmp}/\code{sigsetjmp} para o mecanismo de \emph{trap}, e o qualificador
+\code{\_\_seg\_gs} quando o modo \emph{segue} está habilitado. Não auditamos essa
+fronteira.
+
+%================================================================
+\section{Passo 3 --- $\epsilon$: extração do ponto de entrada}
+
+\[
+  \epsilon : \mathit{LLVM}_{\text{texto}} \longrightarrow
+             \mathit{Name} \times \mathcal{P}(\mathit{Name})
+\]
+implementada em \code{WasmLifter::extractMetadata}. Ela percorre o \code{.ll}
+linha a linha com a expressão regular
+
+\begin{lstlisting}
+define.*@w2c_([A-Za-z0-9_]+)\(
+\end{lstlisting}
+
+\noindent
+e devolve o par $(\eta, E)$: o ponto de entrada $\eta$, reconhecido pelo sufixo
+\code{\_0x5Fstart}, e o conjunto $E$ das demais funções exportadas.
+
+Trata-se de \textbf{análise sintática sobre texto, não sobre o módulo LLVM}. Suas
+condições de falha merecem enunciado, porque não são hipotéticas:
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item Se nenhuma função casa com \code{\_0x5Fstart} --- o caso de um módulo
+        \emph{reactor}, sem \code{\_start}, que é a forma usual de um
+        \emph{handler} WASM de IoT --- o código adota o valor padrão
+        \code{w2c\_\_start} e emite um aviso. Esse símbolo pode não existir.
+  \item Por construção, $E$ e $\eta$ são disjuntos. Logo um módulo cujo único
+        ponto de interesse são funções exportadas --- de novo, o caso IoT --- tem
+        $\eta$ mal definido.
+\end{enumerate}
+
+Ou seja: $\epsilon$ é total, mas \textbf{não é correta} para a classe de módulos
+que a proposta de pesquisa declara como alvo.
+
+%================================================================
+\section{Passo 4 --- $\omega$: o \emph{harness}}
+
+O programa liftado não possui \code{main}. $\tau$ traduziu funções de módulo, e
+nenhuma delas é ponto de entrada de um processo. Define-se então
+\[
+  \omega : \mathit{Name} \longrightarrow \mathit{LLVM}
+\]
+implementada em \code{Caller::generateWasmWrapperStatic}, que sintetiza
+literalmente:
+
+\begin{lstlisting}[language=C]
+int main() {
+    w2c_<mod> instance;
+    wasm2c_<mod>_instantiate(&instance, NULL);
+    <entrada>(&instance);
+    wasm2c_<mod>_free(&instance);
+    return 0;
+}
+\end{lstlisting}
+
+O resultado é religado ao módulo liftado por
+\[
+  \Lambda_0 = \code{llvm-link}\bigl(\kappa(\tau(M)),\ \omega(\eta)\bigr).
+\]
+
+\subsection{O que $\omega$ quantifica: nada}
+
+Formalmente, o módulo denota uma \textbf{família} de execuções, indexada pelos
+argumentos das funções exportadas e pelo comportamento das importações:
+\[
+  \sem{M} : \overline{\mathit{Val}} \times \mathit{Host} \longrightarrow
+            \mathit{Outcome}.
+\]
+
+O \emph{harness} atual não instancia essa família: ele a evita. A chamada
+$\eta(\&I)$ é nulária --- o único argumento aceito é o ponteiro de instância,
+porque $\eta$ é o \code{\_start}, cuja assinatura no WASM é
+$[\,] \rightarrow [\,]$. Nenhuma valoração $\nu$ é escolhida porque não há onde
+colocá-la.
+
+A consequência é precisa. Escrevendo $\Reach(p)$ para o conjunto de estados
+alcançáveis de um programa $p$:
+\[
+  \Reach(\Lambda_0)
+  \;=\; \bigcup_{h \in \mathit{Host}} \Reach\bigl(\sem{M}(\bot,\ h)\bigr)
+  \;\subseteq\; \bigcup_{\nu,\ h} \Reach\bigl(\sem{M}(\nu,\ h)\bigr),
+\]
+e a inclusão é \textbf{estrita} sempre que o módulo possui alguma função exportada
+com aridade positiva. O símbolo $\bot$ não denota um valor: denota a ausência da
+chamada.
+
+Duas leituras decorrem disso, e ambas importam.
+
+\paragraph{Para um módulo com \code{\_start}.}
+Um programa compilado para WASI, que é o formato dos casos do Juliet na validação
+existente. A entrada chega por \code{argv} ou por \code{stdin} \emph{dentro} do
+\code{\_start}, e o \code{NonDetPass} pode amarrá-la ali. A cadeia funciona. Este
+é o caso efetivamente medido até hoje.
+
+\paragraph{Para um módulo \emph{reactor}.}
+O \emph{handler} de IoT que a proposta declara como alvo, sem \code{\_start},
+cujo comportamento inteiro reside nas funções exportadas em $E$. O \emph{wrapper}
+não chama nada de interesse. Combinado com a falha de $\epsilon$ descrita na seção
+anterior, o resultado é que \textbf{o alvo declarado da proposta não é alcançável
+pela implementação atual}. E não por um motivo profundo: falta gerar uma chamada
+por função exportada, com \code{\_\_VERIFIER\_nondet\_<t>()} em cada parâmetro.
+
+O tratamento das importações $h$ permanece como buraco restante. Sem um modelo de
+\emph{host}, as funções importadas são símbolos externos, e o que a análise assume
+sobre elas é o comportamento padrão de quem estiver executando, não uma escolha
+nossa. A fase de análise de \emph{taint} prevista na proposta --- rastrear dado
+controlado até uma função importada --- vive inteiramente nesse buraco.
+
+%================================================================
+\section{Passo 5 --- $\pi$: a instrumentação do Map2Check}
+
+Deste ponto em diante o pipeline é o comum: o bitcode religado é tratado como
+qualquer entrada em LLVM-IR.
+
+$\pi$ é a transformação de programa realizada pelos passes LLVM. Ela é um par
+$(\pi_{\text{code}},\ \Sigma)$: instrumentação e \textbf{estado sombra}. No modo
+\code{--memtrack}, $\Sigma$ mantém o conjunto das alocações vivas
+\[
+  \Sigma \subseteq
+  \bigl\{ (\mathit{base},\ \mathit{size},\ \mathit{alive}) \bigr\},
+\]
+e $\pi_{\text{code}}$ insere, antes de cada acesso ao par $(p,n)$, a verificação
+\[
+  \Safe_{\mathrm{C}}(\Sigma,\ p,\ n) \;\equiv\;
+  \exists\, (b,z,\mathit{alive}) \in \Sigma :\;
+  \mathit{alive} \ \wedge\ b \le p \ \wedge\ p + n \le b + z .
+\]
+
+Compare este predicado com $\Safe_{\wasm}$. \textbf{As duas verificações não falam
+da mesma coisa}, e as duas seções seguintes são inteiramente sobre a distância
+entre elas.
+
+A cadeia completa é
+\[
+  \boxed{\;
+  \Lambda \;=\; \pi \;\circ\; \operatorname{link}\bigl(\omega \circ \epsilon,\ \cdot\bigr)
+          \;\circ\; \kappa \;\circ\; \tau
+  \;}
+\]
+seguida do motor de geração de entradas --- KLEE ou LibFuzzer --- sobre
+$\Lambda(M)$.
+
+%================================================================
+\section{Proposição 1: o que a cadeia preserva}
+
+\begin{proposicao}[\emph{soundness} para alcançabilidade de \emph{trap}]
+\label{prop:sound}
+Sob as Hipóteses 1 e 2, se a execução de $\Lambda(M)$ alcança
+\code{wasm\_rt\_trap}, então a execução correspondente de $M$ reduz a
+$\mathtt{trap}$.
+\end{proposicao}
+
+\begin{proof}[Demonstração (esboço)]
+Pela Hipótese 2, a execução de $\Lambda_0$ corresponde à do C gerado. Pela
+Hipótese 1, alcançar \code{wasm\_rt\_trap} no C corresponde a alcançar
+$\mathtt{trap}$ no WASM. A transformação $\pi$ apenas acrescenta código operando
+sobre um estado sombra disjunto do estado do programa, logo preserva
+alcançabilidade.
+\end{proof}
+
+O resultado é real e é útil. \textbf{As dez classes de \emph{trap} de
+$\mathcal{T}$ são detectáveis pela cadeia atual, sem trabalho adicional}: acesso
+fora da memória linear, divisão por zero, \emph{overflow} de conversão, conversão
+inválida a partir de NaN, \code{unreachable}, \code{call\_indirect} inválido,
+referência nula, acesso atômico desalinhado e esgotamento de pilha. O que
+\code{wasm\_rt\_trap} faz é abortar, e abort é precisamente o sinal que o modo de
+alcançabilidade do Map2Check já consome.
+
+%================================================================
+\section{Proposição 2: o que a cadeia não preserva}
+
+\begin{proposicao}[incompletude para segurança de memória]
+\label{prop:incompleta}
+Existem um módulo $M$ e uma execução tais que $M$ \textbf{sobrescreve um objeto
+que não é o alvo pretendido} --- uma violação genuína de CWE-787 --- e, ainda
+assim, $\Lambda(M)$ não viola $\Safe_{\mathrm{C}}$ em nenhum acesso, nem alcança
+\code{wasm\_rt\_trap}.
+\end{proposicao}
+
+\begin{proof}[Demonstração (por construção)]
+Tome o módulo compilado a partir de
+
+\begin{lstlisting}[language=C]
+int  buf[4];
+char token[16];
+int f(int i) { buf[i] = 7; return buf[0]; }
+\end{lstlisting}
+
+\noindent
+com $i = 4$, e com $\mathit{token}$ posicionado imediatamente após $\mathit{buf}$
+na memória linear. Sejam $a_{\mathit{buf}}$ e $a_{\mathit{token}}$ os respectivos
+deslocamentos.
+
+\medskip
+\noindent\textbf{No WASM.}
+O acesso tem endereço efetivo $ea = a_{\mathit{buf}} + 16 = a_{\mathit{token}}$.
+Como $ea + 4 \le \ell$ --- a memória linear tem ao menos uma página, logo
+$\ell \ge 65\,536$, e os objetos estão no início dela --- a condição lateral da
+regra \textsc{load} \emph{é satisfeita}. A redução não produz $\mathtt{trap}$:
+produz uma escrita bem definida. O \emph{token} foi sobrescrito e a execução
+prossegue normalmente.
+
+\medskip
+\noindent\textbf{No C gerado.}
+\code{RANGE\_CHECK} testa \code{res > mem->size}, isto é $ea + 4 > \ell$, que é
+falso. Nenhum \emph{trap}.
+
+\medskip
+\noindent\textbf{Sob a instrumentação.}
+Como visto, \code{data} é uma \emph{única} alocação cobrindo $[0,\ell)$. Logo
+$\Sigma$ contém o registro $(\code{data},\ \ell,\ \mathrm{true})$ e, para
+$p = \code{data} + ea$ e $n = 4$, valem $\code{data} \le p$ e
+$p + 4 \le \code{data} + \ell$. Portanto $\Safe_{\mathrm{C}}(\Sigma, p, 4)$ é
+verdadeiro e nenhuma violação é reportada.
+\end{proof}
+
+O ponto não é uma limitação do modo \code{memtrack}. É que \textbf{$\tau$ apaga a
+informação necessária}: a partição da memória em objetos existe no fonte C
+original, sobrevive até o compilador para WASM, e é descartada na emissão do
+módulo, porque o WebAssembly não tem onde guardá-la. O que chega ao Map2Check é um
+vetor de bytes com uma única fronteira --- a externa.
+
+Note ainda o \textbf{quantificador invertido}: quanto \emph{maior} a memória
+linear, \emph{menos} detectável a violação, porque mais distante fica a única
+fronteira que restou. Um módulo com uma única página tem $\ell = 65\,536$; um
+\emph{overflow} de dezesseis bytes está a sessenta e cinco mil bytes de se tornar
+visível.
+
+%================================================================
+\section{Consequência para a validação existente}
+
+O resultado acima muda como se deve ler
+\path{docs/reports/wasm-juliet-validation.csv}. Todos os casos ali registrados
+retornam \code{FALSE}, isto é, defeito encontrado. Mas as Proposições
+\ref{prop:sound} e \ref{prop:incompleta}, tomadas juntas, dizem que há
+\textbf{dois mecanismos possíveis} para esse veredito:
+
+\begin{enumerate}[label=(\alph*),leftmargin=1.8em]
+  \item o \emph{overflow} foi grande o bastante para sair de $[0,\ell)$, o
+        \code{RANGE\_CHECK} do WABT disparou, e o que foi detectado foi a
+        verificação do WABT; ou
+  \item a instrumentação do Map2Check detectou algo por conta própria.
+\end{enumerate}
+
+A planilha \textbf{não distingue os dois casos}, e a Proposição
+\ref{prop:incompleta} estabelece que (b) é impossível para violação
+intra-memória. Enquanto essa separação não for feita, a validação WASM não
+sustenta a alegação de que \emph{o Map2Check} encontrou os defeitos: ela é
+igualmente consistente com a hipótese de que o WABT os encontrou e o Map2Check
+apenas reportou o abort resultante.
+
+Separar é barato: basta instrumentar \code{wasm\_rt\_trap} e registrar qual dos
+dois caminhos produziu o abort. É a primeira medição que a frente WASM deveria
+fazer, e ela precede qualquer alegação nova.
+
+%================================================================
+\section{O que a modelagem de memória linear tem de acrescentar}
+
+A proposta de pesquisa prevê uma fase de ``modelagem da memória linear''. Nos
+termos deste documento, o que falta é exatamente um objeto: um \textbf{mapa de
+objetos}
+\[
+  O : [0,\ell) \rightharpoonup \mathit{ObjID},
+\]
+com o predicado refinado
+\[
+  \Safe_{\lin}(O,\ ea,\ N) \;\equiv\;
+  \Safe_{\wasm}(\mu,\ ea,\ N)
+  \ \wedge\
+  \exists\, o \in \mathit{ObjID} :\
+  \forall k \in [\,ea,\ ea + N/8\,) :\ O(k) = o .
+\]
+
+Em palavras: além de estar dentro da memória, o acesso inteiro precisa cair
+\textbf{dentro de um único objeto}. Com $\Safe_{\lin}$ no lugar de
+$\Safe_{\mathrm{C}}$, o contraexemplo da Proposição \ref{prop:incompleta} passa a
+ser detectado, pois $O(a_{\mathit{buf}} + 16) = \mathit{token} \ne \mathit{buf}$.
+
+Isso torna preciso o requisito sobre o \emph{lifter}. O mapa $O$ \textbf{não é
+recuperável do \code{.wasm}}, porque foi apagado antes. As três fontes possíveis
+são:
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Seções de nome e informação DWARF} do módulo, quando presentes ---
+        o Clang com \code{-g} para o alvo \code{wasm32} as emite. Recupera objetos
+        estáticos e o \emph{layout} de quadro de pilha.
+  \item \textbf{Reconstrução do alocador}: reconhecer as funções \code{malloc} e
+        \code{free} do módulo, quando ele carrega uma libc, e delas derivar $O$
+        dinamicamente.
+  \item \textbf{Anotação no momento do \emph{lifting}}, que é o que a proposta
+        chama de ``\emph{lifter} ciente de segurança'': um $\tau'$ que emita,
+        junto do C, os metadados de fronteira.
+\end{enumerate}
+
+As três são trabalho de $\tau$, ou de um passo novo entre $\tau$ e $\kappa$.
+\textbf{Nenhuma delas é trabalho do backend de verificação.} Isso confirma a
+afirmação de viabilidade da proposta --- não é preciso reescrever o motor --- e ao
+mesmo tempo localiza o custo real onde ele está.
+
+%================================================================
+\section{Resumo da cadeia}
+
+\begin{table}[h]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{@{}c l l X X@{}}
+\toprule
+\textbf{Passo} & \textbf{Função} & \textbf{Implementação} &
+\textbf{Preserva} & \textbf{Perde} \\
+\midrule
+0 & $M$ & entrada \code{.wasm} & --- &
+  o \emph{layout} de objetos, já perdido na compilação \emph{para} WASM \\
+1 & $\tau$ & \code{wasm2c}, WABT 1.0.41 &
+  semântica, \emph{traps}, bytes da memória & nada além do que já faltava \\
+2 & $\kappa$ & \code{clang-16 -emit-llvm} &
+  semântica C, módulo comportamento indefinido & --- \\
+3 & $\epsilon$ & regex sobre o \code{.ll} &
+  ponto de entrada, quando há \code{\_start} & módulos \emph{reactor}, o caso IoT \\
+4 & $\omega$ & \emph{wrapper} e \code{llvm-link} &
+  a execução de \code{\_start} &
+  toda função exportada de aridade positiva, e o \emph{host} \\
+5 & $\pi$ & passes do Map2Check & alcançabilidade & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+%================================================================
+\section{Recomendações, em ordem}
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Separar (a) de (b).} Instrumentar \code{wasm\_rt\_trap} para
+        registrar qual caminho produziu cada abort, e reprocessar a validação
+        Juliet-WASM existente. Custo baixo, e nenhuma alegação sobre a frente WASM
+        se sustenta antes disso.
+  \item \textbf{Enunciar a Proposição \ref{prop:sound} como resultado.} A
+        \emph{soundness} para as dez classes de \emph{trap} já existe na
+        implementação atual e não está sendo reivindicada. É um resultado
+        publicável por si, e independente da fase de modelagem de memória.
+  \item \textbf{Corrigir $\epsilon$ e $\omega$ para módulos \emph{reactor}.} Gerar
+        uma chamada por função exportada, com
+        \code{\_\_VERIFIER\_nondet\_<t>()} em cada parâmetro. Sem isso, o alvo
+        declarado da proposta --- o \emph{handler} de IoT --- permanece fora do
+        alcance da ferramenta, e por um motivo puramente mecânico.
+  \item \textbf{Construir o mapa de objetos $O$.} É o que dá conteúdo à alegação
+        de detecção de corrupção de memória intra-\emph{sandbox}, e é a única das
+        quatro que constitui pesquisa em vez de engenharia.
+\end{enumerate}
+
+\end{document}

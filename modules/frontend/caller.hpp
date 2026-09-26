@@ -37,12 +37,11 @@ enum class Map2CheckMode {
 };
 
 /** NonDet generators */
-// TODO(hbgit): Add suport to other nondet like: klee, afl, afl+klee,
-// LibFuzzer+afl
+// TODO(hbgit): Add suport to other nondet like: klee, afl++, afl+klee
 enum class NonDetGenerator {
-  None,      /**< Do not generate any input */
-  LibFuzzer, /**< LibFuzzer from LLVM */
-  Klee,      /**< Use klee for symbolic analysis */
+  None,       /**< Do not generate any input */
+  AFLPlusPlus, /**< AFL++ (persistent mode, PCGUARD) */
+  Klee,       /**< Use klee for symbolic analysis */
 };
 
 /** Data Structure */
@@ -81,7 +80,7 @@ class Caller {
 
   /** Seconds of the run's budget that have not been spent yet.
    *
-   * The engines used to size themselves from the NOMINAL budget: LibFuzzer
+   * The engines used to size themselves from the NOMINAL budget: AFL++
    * took 0.2x and KLEE 0.8x, which adds to exactly the whole of it and leaves
    * nothing for the two compile-instrument-link passes between them. Under the
    * hybrid default the Caller is rebuilt per phase, so that overhead is paid
@@ -148,7 +147,7 @@ class Caller {
    * A directory of files rather than a value passed from one phase to the
    * next, and the shape is the point: it survives between phases, between
    * runs, and between alternations -- which is what time-slicing will need.
-   * LibFuzzer treats it as its corpus and grows it; the KLEE phase drops its
+   * AFL++ treats it as its corpus and grows it; the KLEE phase drops its
    * own path vectors in.
    *
    * Relative, because both engines run with the scratch directory as their

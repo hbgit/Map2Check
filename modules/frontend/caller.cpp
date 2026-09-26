@@ -144,7 +144,7 @@ unsigned Caller::exportKleeVectorsAsSeeds() {
     std::vector<uint8_t> bytes = Map2Check::ktestToFuzzerBytes(objects);
     if (bytes.empty()) continue;
 
-    // Named by index rather than by content hash: LibFuzzer renames what it
+    // Named by index rather than by content hash: AFL++ renames what it
     // keeps to its own hash anyway, so a second one here buys nothing.
     std::ostringstream name;
     name << Caller::seedDirectory << "/klee-" << index++;
@@ -248,7 +248,7 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   // is where the slice ENDS -- nothing it does can influence whether it is
   // reached -- so the slicer keeps the call site and drops the definition.
   //
-  // KLEE tolerates the resulting declaration. The native LibFuzzer link does
+  // KLEE tolerates the resulting declaration. The native AFL++ link does
   // not: it fails with "undefined reference to reach_error", no *-fuzzed.out
   // is produced, and the fuzzer stage then does nothing at all. The failure
   // was entirely silent -- the run simply came back UNKNOWN.
@@ -286,7 +286,7 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
     // runs on the slice. Say so rather than returning a half-configured run.
     Map2Check::Log::Warning(
         "could not restore a definition of " + targetFunction +
-        " after slicing -- the LibFuzzer stage will not link");
+        " after slicing -- the AFL++ stage will not link");
   }
 
   std::filesystem::rename(output, input, error);
@@ -313,8 +313,8 @@ void Caller::applyNonDetGenerator() {
       Map2Check::Log::Info("Applying optimizations for klee");
       break;
     }
-    case (NonDetGenerator::LibFuzzer): {
-      Map2Check::Log::Info("Instrumenting with LLVM LibFuzzer");
+    case (NonDetGenerator::AFLPlusPlus): {
+      Map2Check::Log::Info("Instrumenting with AFL++");
       std::ostringstream command;
       command.str("");
 
@@ -340,9 +340,8 @@ void Caller::applyNonDetGenerator() {
                                 " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";
 
       command
-          << bound << Map2Check::clangBinary
-          << "  -g -fsanitize=fuzzer -fsanitize-coverage=inline-8bit-counters "
-          << Caller::postOptimizationFlags()
+          << bound << Map2Check::aflClangFastBinary()
+          << "  -g " << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
           << " " + programHash + "-result.bc";
 
@@ -350,8 +349,8 @@ void Caller::applyNonDetGenerator() {
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << bound << Map2Check::clangBinary
-                     << "  -g -fsanitize=fuzzer "
+      commandWitness << bound << Map2Check::aflClangFastBinary()
+                     << "  -g "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
 
@@ -362,7 +361,7 @@ void Caller::applyNonDetGenerator() {
       std::error_code fuzzErr;
       if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
         Map2Check::Log::Warning(
-            "the LibFuzzer binary did not build within " +
+            "the AFL++ binary did not build within " +
             std::to_string(static_cast<int>(compileBudget)) +
             "s -- skipping the fuzzer phase and leaving the budget to KLEE");
       }
@@ -543,8 +542,8 @@ void Caller::linkLLVM() {
       linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorKlee.bc";
       break;
     }
-    case (NonDetGenerator::LibFuzzer): {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
+    case (NonDetGenerator::AFLPlusPlus): {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorAFL.bc";
       break;
     }
   }
@@ -779,57 +778,67 @@ void Caller::executeAnalysis(std::string solvername) {
 
       break;
     }
-    case (NonDetGenerator::LibFuzzer): {
+    case (NonDetGenerator::AFLPlusPlus): {
       std::error_code fuzzErr;
       const bool hasFuzzer =
           std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr);
       if (fuzzErr) {
         Map2Check::Log::Warning(
-            "could not check whether the LibFuzzer binary is available: " +
+            "could not check whether the AFL++ binary is available: " +
             fuzzErr.message());
         break;
       }
       if (!hasFuzzer) {
         Map2Check::Log::Warning(
-            "the LibFuzzer binary is unavailable -- skipping the fuzzer phase");
+            "the AFL++ binary is unavailable -- skipping the fuzzer phase");
         break;
       }
-      Map2Check::Log::Info("Executing LibFuzzer with map2check");
+      Map2Check::Log::Info("Executing AFL++ with map2check");
       std::ostringstream command;
       command.str("");
-      // -k for the same reason as the KLEE branch above; -jobs=8 also means
-      // LibFuzzer forks workers that must not outlive the budget.
       // Against what is LEFT, not against the nominal budget -- see
       // Caller::remainingSeconds.
       const double fuzzerBudget =
           std::min(0.2 * this->timeout,
                    static_cast<double>(this->remainingSeconds()));
+      // afl-fuzz needs a non-empty -i dir and a -o dir that does not already
+      // exist (the hybrid may run the fuzzer phase twice). One minimal seed,
+      // and a clean output dir each time.
+      std::error_code seedErr;
+      std::filesystem::create_directories(Caller::seedDirectory, seedErr);
+      std::string seedFile = std::string(Caller::seedDirectory) + "/seed";
+      if (!std::filesystem::exists(seedFile, seedErr)) {
+        std::ofstream seed(seedFile);
+        seed << "A";
+      }
+      std::filesystem::remove_all("afl-out", seedErr);
       command << "timeout -k " << Map2Check::killGracePeriod << " "
               << static_cast<unsigned>(fuzzerBudget) << " ";
-      // A corpus DIRECTORY, not just a run. Without one LibFuzzer keeps its
-      // corpus in memory and throws it away when the process ends: everything
-      // it discovered in its slice of the budget was discarded, every run.
-      // With one, the interesting inputs persist -- which is what makes them
-      // available to the other engine, and to a later alternation.
-      std::string corpus;
-      if (this->seedExchange) {
-        std::error_code error;
-        std::filesystem::create_directories(Caller::seedDirectory, error);
-        corpus = std::string(" ") + Caller::seedDirectory;
-      }
-      command << "./" + programHash +
-                     "-fuzzed.out -jobs=8 -use_value_profile=1"
-              << corpus << " > fuzzer.output";
+      command << Map2Check::aflFuzzBinary()
+              << " -i " << Caller::seedDirectory
+              << " -o afl-out"
+              << " -V " << std::max(1u, static_cast<unsigned>(fuzzerBudget))
+              << " -- ./" << programHash << "-fuzzed.out"
+              << " > fuzzer.output 2>&1";
 
       int result = system(command.str().c_str());
       Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
 
-      std::ostringstream commandWitness;
-      commandWitness.str("");
-      commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
-      system(commandWitness.str().c_str());
+      // Replay any crash with the witness binary to confirm a real violation.
+      // __AFL_FUZZ_INIT reads argv[1] as the input file when run standalone.
+      std::error_code crashErr;
+      if (std::filesystem::exists("afl-out/crashes", crashErr)) {
+        for (const auto &entry :
+             std::filesystem::directory_iterator("afl-out/crashes")) {
+          std::ostringstream commandWitness;
+          commandWitness.str("");
+          commandWitness << "./" << programHash << "-witness-fuzzed.out "
+                         << entry.path().string();
+          system(commandWitness.str().c_str());
+        }
+      }
       Map2Check::Log::Debug("Finished fuzzer");
 
       if (isWitnessFileCreated()) {

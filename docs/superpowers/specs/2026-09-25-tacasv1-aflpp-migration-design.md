@@ -60,9 +60,21 @@ modo só-fuzzer):
 
 | configuração | bugs achados |
 |---|---|
-| v15 LibFuzzer (value profile, 8 jobs) | 17/24 |
-| AFL++ + CmpLog, índice preservado | 4/24 |
+| v15 LibFuzzer (value profile, 8 jobs) | 20/24 |
+| AFL++ + CmpLog, índice preservado | 8/24 |
 | AFL++ + CmpLog, índice zerado por iteração | 17/24 |
+
+(Rodada final, depois de remover o `-V` do `afl-fuzz` — ver abaixo. No modo híbrido
+default, os vereditos ficaram idênticos à v15 nos 11 programas, todos corretos.)
+O AFL++ ainda perde sistematicamente os bugs guardados por **faixa** estreita
+(`5000 < x < 5100`, índice 51..59): o input-to-state do CmpLog propõe os operandos
+exatos (os limites da faixa, que ficam fora dela). Ajustar o nível/transformações do
+CmpLog (`-l`) fica como calibração para uma rodada posterior.
+
+**Orçamento sem `-V`.** O `afl-fuzz -V` compara leituras de `gettimeofday`. Um relógio
+que volta (medido: 1,1 s em 20 s no WSL2) faz a diferença dar underflow e o AFL++
+encerra depois de poucas centenas de execuções. O fuzzer passa a ser limitado só pelo
+`timeout` (temporizador relativo), como o LibFuzzer na v15.
 
 Sem o reset, o CmpLog não tem efeito. A correção fica restrita ao driver do AFL++
 (`NonDetGeneratorAFL.c`). O motor da v15 não é alterado, e o resto do smart seeding

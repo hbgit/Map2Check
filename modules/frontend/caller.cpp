@@ -856,8 +856,14 @@ void Caller::executeAnalysis(std::string solvername) {
               << " AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1"
               << " AFL_CRASHING_SEEDS_AS_NEW_CRASH=1"
               << " AFL_BENCH_UNTIL_CRASH=1 ";
+      // Bounded by `timeout` alone, as the previous fuzzer was. Not also by
+      // afl-fuzz -V: that one compares wall-clock (gettimeofday) readings,
+      // and a clock stepped backwards -- measured at over a second under
+      // WSL2 -- underflows the difference and ends the run after a few
+      // hundred executions. `timeout` uses a relative timer. At least 1s,
+      // since `timeout 0` would mean no limit at all.
       command << "timeout -k " << Map2Check::killGracePeriod << " "
-              << static_cast<unsigned>(fuzzerBudget) << " ";
+              << std::max(1u, static_cast<unsigned>(fuzzerBudget)) << " ";
       std::error_code cmplogErr;
       const bool hasCmplog =
           std::filesystem::exists(programHash + "-cmplog.out", cmplogErr);
@@ -865,8 +871,7 @@ void Caller::executeAnalysis(std::string solvername) {
               << " -i " << inputDir
               << " -o afl-out";
       if (hasCmplog) command << " -c ./" << programHash << "-cmplog.out";
-      command << " -V " << std::max(1u, static_cast<unsigned>(fuzzerBudget))
-              << " -- ./" << programHash << "-fuzzed.out"
+      command << " -- ./" << programHash << "-fuzzed.out"
               << " > fuzzer.output 2>&1";
 
       int result = system(command.str().c_str());

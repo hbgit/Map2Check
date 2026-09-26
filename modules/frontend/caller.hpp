@@ -147,8 +147,9 @@ class Caller {
    * A directory of files rather than a value passed from one phase to the
    * next, and the shape is the point: it survives between phases, between
    * runs, and between alternations -- which is what time-slicing will need.
-   * AFL++ treats it as its corpus and grows it; the KLEE phase drops its
-   * own path vectors in.
+   * AFL++ starts from it and its discoveries are copied back in after each
+   * fuzzer phase (afl-fuzz never writes into its -i dir); the KLEE phase
+   * drops its own path vectors in.
    *
    * Relative, because both engines run with the scratch directory as their
    * working directory. */

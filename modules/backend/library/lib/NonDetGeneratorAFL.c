@@ -110,11 +110,51 @@ char *map2check_non_det_pchar() {
   return string;
 }
 
+/* The persistent-mode macros, as afl-cc 4.40c defines them (src/afl-cc.c).
+ *
+ * afl-cc injects these with -D only when IT compiles C source. This file is
+ * compiled to bitcode by plain clang (the library build must not depend on
+ * AFL++, and a KLEE-only build never sees afl-cc), and afl-clang-fast later
+ * receives the linked -result.bc, which is never preprocessed again. So the
+ * expansions have to be in the bitcode already -- including the
+ * ##SIG_AFL_PERSISTENT## marker afl-fuzz looks for in the binary to switch to
+ * persistent mode. The __afl_* symbols resolve from afl-compiler-rt at that
+ * final afl-clang-fast link. Keep in sync with the pinned AFL++ tag. */
+#ifndef __AFL_FUZZ_TESTCASE_LEN
+#include <unistd.h>
+
+#define __AFL_FUZZ_INIT()                                                      \
+  int __afl_sharedmem_fuzzing = 1;                                             \
+  extern __attribute__((visibility("default"))) unsigned int *__afl_fuzz_len;  \
+  extern __attribute__((visibility("default"))) unsigned char *__afl_fuzz_ptr; \
+  unsigned char __afl_fuzz_alt[1048576];                                       \
+  unsigned char *__afl_fuzz_alt_ptr = __afl_fuzz_alt
+
+#define __AFL_FUZZ_TESTCASE_BUF (__afl_fuzz_ptr ? __afl_fuzz_ptr : __afl_fuzz_alt_ptr)
+
+#define __AFL_FUZZ_TESTCASE_LEN                                                \
+  (__afl_fuzz_ptr ? *__afl_fuzz_len                                            \
+   : (*__afl_fuzz_len = read(0, __afl_fuzz_alt_ptr, 1048576)) == 0xffffffff   \
+       ? 0                                                                     \
+       : *__afl_fuzz_len)
+
+#define __AFL_LOOP(_A)                                                         \
+  ({                                                                           \
+    static volatile const char *_B __attribute__((used, unused));             \
+    _B = (const char *)"##SIG_AFL_PERSISTENT##";                               \
+    extern __attribute__((visibility("default"))) int __afl_connected;        \
+    __attribute__((visibility("default"))) int _L(unsigned int) __asm__(      \
+        "__afl_persistent_loop");                                              \
+    _L(__afl_connected ? _A : 1);                                              \
+  })
+#endif
+
 /* AFL++ persistent-mode trampoline.
  *
  * __AFL_FUZZ_INIT registers the shared-memory test case. __AFL_LOOP runs the
  * body once per input under afl-fuzz; run standalone (replaying a saved crash
- * file as argv[1]) it runs exactly once with that file as input.
+ * file) it runs exactly once and reads that input from STDIN -- argv is
+ * ignored, so the replay must redirect the file in, not pass it as argument.
  *
  * A failed nondet_assume longjmps back here and skips the input — the
  * persistent-mode equivalent of the pthread_exit the previous fuzzer generator

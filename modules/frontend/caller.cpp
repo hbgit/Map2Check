@@ -802,20 +802,39 @@ void Caller::executeAnalysis(std::string solvername) {
           std::min(0.2 * this->timeout,
                    static_cast<double>(this->remainingSeconds()));
       // afl-fuzz needs a non-empty -i dir and a -o dir that does not already
-      // exist (the hybrid may run the fuzzer phase twice). One minimal seed,
-      // and a clean output dir each time.
+      // exist (the hybrid may run the fuzzer phase twice).
+      //
+      // The input dir is the shared seed corpus only under --seed-exchange,
+      // as it was for the previous fuzzer; otherwise a private one, so a run
+      // without the exchange leaves no seeds/ behind. Either way it gets one
+      // placeholder input when empty, because afl-fuzz refuses to start
+      // without one (the previous fuzzer could start from nothing).
       std::error_code seedErr;
-      std::filesystem::create_directories(Caller::seedDirectory, seedErr);
-      std::string seedFile = std::string(Caller::seedDirectory) + "/seed";
-      if (!std::filesystem::exists(seedFile, seedErr)) {
-        std::ofstream seed(seedFile);
+      const std::string inputDir =
+          this->seedExchange ? std::string(Caller::seedDirectory) : "afl-in";
+      std::filesystem::create_directories(inputDir, seedErr);
+      if (std::filesystem::is_empty(inputDir, seedErr)) {
+        std::ofstream seed(inputDir + "/seed");
         seed << "A";
       }
       std::filesystem::remove_all("afl-out", seedErr);
+      // The AFL_* settings go on the command line, not only into the dev
+      // image's ENV, so that a release install or a benchmark host outside
+      // the image does not trip afl-fuzz's UI, CPU-affinity, cpufreq and
+      // core_pattern checks and exit before fuzzing anything.
+      //   AFL_CRASHING_SEEDS_AS_NEW_CRASH: a seed that already reaches the
+      //     violation is recorded as a crash instead of being skipped -- the
+      //     previous fuzzer reported that case too.
+      //   AFL_BENCH_UNTIL_CRASH: stop at the first crash, as the previous
+      //     fuzzer did, and hand the rest of the budget back.
+      command << "AFL_NO_UI=1 AFL_NO_AFFINITY=1 AFL_SKIP_CPUFREQ=1"
+              << " AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1"
+              << " AFL_CRASHING_SEEDS_AS_NEW_CRASH=1"
+              << " AFL_BENCH_UNTIL_CRASH=1 ";
       command << "timeout -k " << Map2Check::killGracePeriod << " "
               << static_cast<unsigned>(fuzzerBudget) << " ";
       command << Map2Check::aflFuzzBinary()
-              << " -i " << Caller::seedDirectory
+              << " -i " << inputDir
               << " -o afl-out"
               << " -V " << std::max(1u, static_cast<unsigned>(fuzzerBudget))
               << " -- ./" << programHash << "-fuzzed.out"
@@ -826,17 +845,45 @@ void Caller::executeAnalysis(std::string solvername) {
       if (result == 31744)  // Timeout
         gotTimeout = true;
 
-      // Replay any crash with the witness binary to confirm a real violation.
-      // __AFL_FUZZ_INIT reads argv[1] as the input file when run standalone.
+      // A single instance without -M/-S is named "default" by afl-fuzz, and
+      // its findings live under afl-out/default/, not afl-out/.
+      const std::string aflFindings = "afl-out/default";
+
+      // Replay crashes with the witness binary to confirm a real violation.
+      // Standalone, the persistent binary reads its input from stdin (see
+      // NonDetGeneratorAFL.c), so the crash file is redirected in; the names
+      // AFL++ gives them contain ':' and ',', hence the quoting. Stop at the
+      // first confirmed one: every replay rewrites the recorded property, and
+      // a later one that does not reproduce would overwrite the violation.
       std::error_code crashErr;
-      if (std::filesystem::exists("afl-out/crashes", crashErr)) {
-        for (const auto &entry :
-             std::filesystem::directory_iterator("afl-out/crashes")) {
-          std::ostringstream commandWitness;
-          commandWitness.str("");
-          commandWitness << "./" << programHash << "-witness-fuzzed.out "
-                         << entry.path().string();
-          system(commandWitness.str().c_str());
+      for (const auto &entry : std::filesystem::directory_iterator(
+               aflFindings + "/crashes", crashErr)) {
+        if (entry.path().filename().string().rfind("id:", 0) != 0) continue;
+        std::ostringstream commandWitness;
+        commandWitness << "timeout -k " << Map2Check::killGracePeriod << " "
+                       << this->remainingSeconds() << " ./" << programHash
+                       << "-witness-fuzzed.out < '" << entry.path().string()
+                       << "'";
+        system(commandWitness.str().c_str());
+        if (isWitnessFileCreated()) break;
+      }
+
+      // afl-fuzz never writes back into -i, so under --seed-exchange its
+      // discoveries are copied into the shared corpus -- the previous fuzzer
+      // grew that directory in place. Inputs tagged ",orig:" are the seeds
+      // it started from, already there; the rest carry src/time in their
+      // names, so a second fuzzer phase does not collide with the first.
+      if (this->seedExchange) {
+        std::error_code queueErr;
+        for (const auto &entry : std::filesystem::directory_iterator(
+                 aflFindings + "/queue", queueErr)) {
+          const std::string name = entry.path().filename().string();
+          if (name.rfind("id:", 0) != 0) continue;
+          if (name.find(",orig:") != std::string::npos) continue;
+          std::filesystem::copy_file(
+              entry.path(),
+              std::string(Caller::seedDirectory) + "/afl-" + name,
+              std::filesystem::copy_options::skip_existing, queueErr);
         }
       }
       Map2Check::Log::Debug("Finished fuzzer");

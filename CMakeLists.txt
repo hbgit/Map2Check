@@ -42,7 +42,7 @@ endif()
 # --- Abstract-interpretation invariants (Clam, formerly crab-llvm) ---
 # Off by default, and deliberately so: an unsound invariant does not raise an
 # error, it produces a wrong TRUE. Under KLEE klee_assume() prunes a reachable
-# state; under LibFuzzer nondet_assume() calls pthread_exit() and the execution
+# state; under AFL++ nondet_assume() longjmps past the input and the execution
 # disappears. Promoting this to a default needs the differential evidence
 # described in docs/reports/2026-08-16-crabllvm-review.md.
 #

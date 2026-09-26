@@ -23,5 +23,5 @@ else()
   set(AFL_PLUS_PLUS_FOUND FALSE)
   message(WARNING "AFL++ not found (afl-clang-fast/afl-fuzz). "
     "Fuzzing will be unavailable; build the dev image (Dockerfile.dev section 7) "
-    "or set AFL_CC/AFL_FUZZ.")
+    "or set MAP2CHECK_AFL_CC/MAP2CHECK_AFL_FUZZ at run time.")
 endif()

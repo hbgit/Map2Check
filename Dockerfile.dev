@@ -131,9 +131,9 @@ ENV LD_LIBRARY_PATH="/opt/klee/lib"
 # ============================================================
 # Tag-pinned like KLEE above: AFL++ has versioned releases, so -b v4.40c is
 # the reproducible pin (the SHA pins in 7b/7c are for projects with none).
-# PCGUARD needs no custom LLVM pass: afl-clang-fast adds clang-16's own
-# -fsanitize-coverage=trace-pc-guard and the bundled runtime supplies the
-# callbacks, so the build is lighter and more robust than classic/LTO modes.
+# PCGUARD is AFL++'s own SanitizerCoveragePCGUARD pass plugin, built against
+# the image's LLVM 16 and loaded by afl-clang-fast; it is the default and most
+# robust LLVM mode, lighter than the LTO one.
 RUN git clone --depth 1 -b v4.40c https://github.com/AFLplusplus/AFLplusplus.git /tmp/afl++ && \
     cd /tmp/afl++ && \
     make -j"$(nproc)" && \

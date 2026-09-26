@@ -359,7 +359,7 @@ int main(void) {
   return 0;
 }
 EOF
-for gen in fuzzer symex; do
+for gen in afl symex; do
   ( cd "$WORK/verdict" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 120 "$MAP2CHECK" \
       --target-function --target-function-name reach_error \
       --nondet-generator "$gen" --timeout 45 hard.c ) > "$WORK/verdict/$gen.log" 2>&1
@@ -393,7 +393,7 @@ int main(void) {
 EOF
 ( cd "$WORK/width" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 150 "$MAP2CHECK" \
     --target-function --target-function-name reach_error \
-    --nondet-generator fuzzer --timeout 60 neg.c ) > "$WORK/width/run.log" 2>&1
+    --nondet-generator afl --timeout 60 neg.c ) > "$WORK/width/run.log" 2>&1
 
 if grep -q 'VERIFICATION FAILED' "$WORK/width/run.log"; then
   ok "the fuzzer reaches a negative short"
@@ -448,8 +448,9 @@ rm -rf "$WORK/seed"/*.map2check
 scratch_on=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
 n_on=$(ls "$scratch_on/seeds" 2>/dev/null | wc -l)
 
-# LibFuzzer renames what it keeps to its own content hash, so any file at all
-# means the corpus survived the process -- which it never used to.
+# afl-fuzz never writes into its -i dir; the Caller copies its queue back in
+# after the fuzzer phase, beside KLEE's exported vectors, so the corpus
+# survives the process.
 if [ "$n_on" -gt 0 ]; then
   ok "the fuzzer corpus persists with --seed-exchange ($n_on files)"
 else

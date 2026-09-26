@@ -66,15 +66,19 @@ constexpr char const* aflDefaultRoot = "/usr/local";
  * Resolved like the slicer and the invariant generator: an environment
  * override first, a documented default second. AFL++ is a subprocess tool,
  * invoked by caller.cpp at run time, so it is not copied into MAP2CHECK_PATH
- * the way clang and klee are. */
+ * the way clang and klee are.
+ *
+ * MAP2CHECK_AFL_CC, not AFL_CC: AFL_CC is AFL++'s own variable for the real
+ * compiler afl-cc wraps, so reusing it would either recurse afl-clang-fast into
+ * itself or silently build the fuzzer uninstrumented. */
 inline std::string aflClangFastBinary() {
-  const char* override_path = getenv("AFL_CC");
+  const char* override_path = getenv("MAP2CHECK_AFL_CC");
   if (override_path != nullptr) return std::string(override_path);
   return std::string(aflDefaultRoot) + "/bin/afl-clang-fast";
 }
-/** Path to the afl-fuzz binary, overridable. */
+/** Path to the afl-fuzz binary, overridable with MAP2CHECK_AFL_FUZZ. */
 inline std::string aflFuzzBinary() {
-  const char* override_path = getenv("AFL_FUZZ");
+  const char* override_path = getenv("MAP2CHECK_AFL_FUZZ");
   if (override_path != nullptr) return std::string(override_path);
   return std::string(aflDefaultRoot) + "/bin/afl-fuzz";
 }
@@ -94,7 +98,7 @@ inline std::string slicerBinary() {
 /** Seconds granted between SIGTERM and SIGKILL when a backend overruns its
  * slice (`timeout -k`). Both KLEE and AFL++ catch SIGTERM to shut down
  * gracefully, and both can miss it while wedged -- KLEE inside the solver,
- * AFL++ across its parallel workers. Without the escalation `timeout` waits
+ * AFL++ inside a hung target. Without the escalation `timeout` waits
  * forever on a child that will not die and the whole run hangs past its
  * budget. Long enough for a real graceful exit, short enough not to distort
  * the budget. */

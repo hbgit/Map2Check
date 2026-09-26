@@ -145,11 +145,15 @@ class Caller {
   /** Directory the two engines use to hand each other input vectors.
    *
    * A directory of files rather than a value passed from one phase to the
-   * next, and the shape is the point: it survives between phases, between
-   * runs, and between alternations -- which is what time-slicing will need.
-   * AFL++ starts from it and its discoveries are copied back in after each
-   * fuzzer phase (afl-fuzz never writes into its -i dir); the KLEE phase
-   * drops its own path vectors in.
+   * next, meant to survive between phases, runs and alternations -- which is
+   * what time-slicing will need. AFL++ starts from it and its discoveries are
+   * copied back in after each fuzzer phase (afl-fuzz never writes into its -i
+   * dir); the KLEE phase drops its own path vectors in.
+   *
+   * NOT yet true across phases (same as v15): it sits inside the scratch
+   * directory, which each phase's Caller recreates empty. Fixing that is part
+   * of the smart-seeds work (tacasv2/v3), since it changes what the hybrid
+   * measures.
    *
    * Relative, because both engines run with the scratch directory as their
    * working directory. */

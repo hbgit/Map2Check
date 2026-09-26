@@ -816,7 +816,12 @@ void Caller::executeAnalysis(std::string solvername) {
       if (std::filesystem::is_empty(inputDir, seedErr)) {
         std::ofstream seed(inputDir + "/seed");
         seed << "A";
+        if (!seed.good())
+          Map2Check::Log::Warning("could not write the AFL++ placeholder seed");
       }
+      if (seedErr)
+        Map2Check::Log::Warning("could not prepare the AFL++ input dir " +
+                                inputDir + ": " + seedErr.message());
       std::filesystem::remove_all("afl-out", seedErr);
       // The AFL_* settings go on the command line, not only into the dev
       // image's ENV, so that a release install or a benchmark host outside
@@ -855,13 +860,21 @@ void Caller::executeAnalysis(std::string solvername) {
       // AFL++ gives them contain ':' and ',', hence the quoting. Stop at the
       // first confirmed one: every replay rewrites the recorded property, and
       // a later one that does not reproduce would overwrite the violation.
+      // Each replay is capped: a crash that does not reproduce from a fresh
+      // process may loop instead, and must not eat what is left for KLEE.
+      // Files are selected by what they are, not by AFL++'s "id:" naming,
+      // which AFL_SHA1_FILENAMES or a SIMPLE_FILES build would change.
+      const unsigned replayBudget = std::min(
+          this->remainingSeconds(),
+          std::max(5u, static_cast<unsigned>(0.1 * this->timeout)));
       std::error_code crashErr;
       for (const auto &entry : std::filesystem::directory_iterator(
                aflFindings + "/crashes", crashErr)) {
-        if (entry.path().filename().string().rfind("id:", 0) != 0) continue;
+        if (!entry.is_regular_file(crashErr)) continue;
+        if (entry.path().filename() == "README.txt") continue;
         std::ostringstream commandWitness;
         commandWitness << "timeout -k " << Map2Check::killGracePeriod << " "
-                       << this->remainingSeconds() << " ./" << programHash
+                       << replayBudget << " ./" << programHash
                        << "-witness-fuzzed.out < '" << entry.path().string()
                        << "'";
         system(commandWitness.str().c_str());
@@ -869,16 +882,21 @@ void Caller::executeAnalysis(std::string solvername) {
       }
 
       // afl-fuzz never writes back into -i, so under --seed-exchange its
-      // discoveries are copied into the shared corpus -- the previous fuzzer
-      // grew that directory in place. Inputs tagged ",orig:" are the seeds
-      // it started from, already there; the rest carry src/time in their
-      // names, so a second fuzzer phase does not collide with the first.
+      // discoveries are copied into seeds/ -- the previous fuzzer grew that
+      // directory in place. Inputs tagged ",orig:" are the seeds it started
+      // from, already there.
+      //
+      // Caveat, inherited unchanged from v15: seeds/ lives in the scratch
+      // directory, which the next phase's Caller wipes on construction, so
+      // this corpus does not yet reach the following KLEE or fuzzer phase.
+      // Making it survive changes what the hybrid measures, and belongs to
+      // the smart-seeds work, not to the engine swap.
       if (this->seedExchange) {
         std::error_code queueErr;
         for (const auto &entry : std::filesystem::directory_iterator(
                  aflFindings + "/queue", queueErr)) {
           const std::string name = entry.path().filename().string();
-          if (name.rfind("id:", 0) != 0) continue;
+          if (!entry.is_regular_file(queueErr)) continue;
           if (name.find(",orig:") != std::string::npos) continue;
           std::filesystem::copy_file(
               entry.path(),

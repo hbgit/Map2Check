@@ -446,13 +446,16 @@ rm -rf "$WORK/seed"/*.map2check
     --target-function --target-function-name reach_error --seed-exchange \
     --debug --timeout 60 seed.c ) > "$WORK/seed/on.log" 2>&1
 scratch_on=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
-n_on=$(ls "$scratch_on/seeds" 2>/dev/null | wc -l)
+# Only the fuzzer's own discoveries count: the Caller writes a placeholder
+# seed into seeds/ itself, so a plain file count would pass with no copy-back.
+n_on=$(ls "$scratch_on/seeds" 2>/dev/null | grep -c '^afl-')
 
 # afl-fuzz never writes into its -i dir; the Caller copies its queue back in
-# after the fuzzer phase, beside KLEE's exported vectors, so the corpus
-# survives the process.
+# after the fuzzer phase, so the corpus survives the fuzzer process. (It does
+# not yet survive into the next phase: each Caller recreates the scratch
+# directory -- inherited from v15, left to the smart-seeds work.)
 if [ "$n_on" -gt 0 ]; then
-  ok "the fuzzer corpus persists with --seed-exchange ($n_on files)"
+  ok "the fuzzer discoveries are copied into seeds/ with --seed-exchange ($n_on files)"
 else
   fail "seed corpus" "nothing kept -- the corpus is still in-memory only"
 fi

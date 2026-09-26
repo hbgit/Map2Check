@@ -31,11 +31,42 @@ semântica nondet e de veredito com a v15.
 | Ordem de construção | AFL++ (tacasv1) → slicing (tacasv2) → combined (tacasv3) |
 | Escopo tacasv1 | **só a troca do fuzzer** — smart seeding fica exatamente como está |
 | Versão AFL++ | **4.40c** (última da linha 4.x; ver §3) |
-| Instrumentação | `afl-clang-fast` + `AFL_LLVM_INSTRUMENT=PCGUARD` (LLVM 16) |
+| Instrumentação | `afl-clang-fast` + `AFL_LLVM_INSTRUMENT=PCGUARD` (LLVM 16) + binário companheiro **CmpLog** (`AFL_LLVM_CMPLOG=1`, passado com `-c`) — ver §2.1 |
 | Modo de execução | **persistente** (`__AFL_FUZZ_INIT` + `__AFL_LOOP`) |
 | Paralelismo | **1 instância** `afl-fuzz` na tacasv1; `-M/-S` em PR subjacente posterior |
 | Coordenador | **permanece no Caller C++** (não vira módulo Python/pybind11) |
 | Política de nomes | **rename completo** — sem alias de transição |
+
+### 2.1 Adendo (2026-09-26): CmpLog na tacasv1
+
+Decidido depois do smoke comparativo v15 × tacasv1 (11 programas mínimos, mesma
+imagem). No modo só-fuzzer, o AFL++ só com PCGUARD achou 3 de 9 bugs, contra 7 de 9
+do LibFuzzer da v15, que roda com `-use_value_profile=1` (resolve comparações do tipo
+`x == 123456`). Medir o AFL++ sem o equivalente dele distorceria a conclusão sobre o
+motor. O CmpLog (input-to-state / RedQueen) é esse equivalente padrão no AFL++.
+
+- Terceiro binário `<hash>-cmplog.out`, compilado do mesmo `-result.bc` com
+  `AFL_LLVM_CMPLOG=1`, dentro do mesmo orçamento de compilação.
+- Opcional: se não compilar, o fuzzer roda sem `-c` e o Caller avisa.
+- O paralelismo continua em 1 instância; a diferença para os `-jobs=8` da v15 fica
+  registrada como limitação da comparação.
+
+**Consequência: o índice de leitura do gerador passa a ser zerado a cada iteração.**
+Isso reverte a decisão de preservar o índice estático de `get_next_input_from_afl`
+(que não voltava a zero entre iterações do `__AFL_LOOP`). Com ele, a mesma entrada é
+lida de posições diferentes a cada execução persistente, e o input-to-state do CmpLog
+não consegue mapear bytes → operandos. Medido no mesmo smoke (3 rodadas × 8 bugs,
+modo só-fuzzer):
+
+| configuração | bugs achados |
+|---|---|
+| v15 LibFuzzer (value profile, 8 jobs) | 17/24 |
+| AFL++ + CmpLog, índice preservado | 4/24 |
+| AFL++ + CmpLog, índice zerado por iteração | 17/24 |
+
+Sem o reset, o CmpLog não tem efeito. A correção fica restrita ao driver do AFL++
+(`NonDetGeneratorAFL.c`). O motor da v15 não é alterado, e o resto do smart seeding
+continua fora do escopo (tacasv2/v3).
 
 ---
 

@@ -44,14 +44,21 @@ const uint8_t *map2check_afl_data;
 
 size_t map2check_afl_size;
 
+/* Read position in the current test case. File scope, not function-static,
+ * so main() can rewind it for every __AFL_LOOP iteration: persistent mode
+ * runs many inputs in one process, and a position carried over from the
+ * previous input makes the same input read different values on every run.
+ * That nondeterminism is what defeats CmpLog's input-to-state matching and
+ * drags afl-fuzz's stability down. */
+static size_t map2check_afl_index = 0;
+
 uint8_t get_next_input_from_afl() {
-  static int i = 0;
-  if (i < map2check_afl_size) {
-    return map2check_afl_data[i++];
+  if (map2check_afl_index < map2check_afl_size) {
+    return map2check_afl_data[map2check_afl_index++];
   }
 
-  i = 0;
-  return map2check_afl_data[i];
+  map2check_afl_index = 0;
+  return map2check_afl_data[map2check_afl_index];
 }
 
 /* Fills `out` with `size` bytes from the AFL buffer, in target order.
@@ -168,6 +175,7 @@ int main(int argc, char **argv) {
     if (setjmp(map2check_reject_env) == 0) {
       map2check_afl_data = __AFL_FUZZ_TESTCASE_BUF;
       map2check_afl_size = __AFL_FUZZ_TESTCASE_LEN;
+      map2check_afl_index = 0;
       __map2check_main__(0, NULL);
     }
     /* else: input rejected by nondet_assume; continue to the next iteration */

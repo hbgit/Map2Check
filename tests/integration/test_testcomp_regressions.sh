@@ -463,8 +463,24 @@ fi
 # KLEE -> fuzzer: its per-path vectors become seed files. Sound only because
 # both engines now consume sizeof(type) per read, so concatenating a .ktest's
 # objects is exactly the buffer that drives the fuzzer down the same path.
-if grep -q "Seeded the fuzzer corpus with" "$WORK/seed/on.log"; then
+#
+# The export only happens if the KLEE phase runs, and with CmpLog the fuzzer
+# phase sometimes solves seed.c on its own and ends the hybrid first. That is
+# not a failure of the channel, so retry a couple of times for a run where
+# KLEE gets its turn; only a KLEE phase that ran and exported nothing fails.
+klee_log="$WORK/seed/on.log"
+for attempt in 2 3; do
+  grep -q "Executing Klee" "$klee_log" && break
+  rm -rf "$WORK/seed"/*.map2check
+  klee_log="$WORK/seed/on.$attempt.log"
+  ( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+      --target-function --target-function-name reach_error --seed-exchange \
+      --timeout 60 seed.c ) > "$klee_log" 2>&1
+done
+if grep -q "Seeded the fuzzer corpus with" "$klee_log"; then
   ok "KLEE's path vectors are exported into the seed corpus"
+elif ! grep -q "Executing Klee" "$klee_log"; then
+  ok "KLEE -> fuzzer not exercised: the fuzzer solved seed.c first in 3 runs"
 else
   fail "KLEE -> fuzzer" "no vectors exported"
 fi

@@ -356,6 +356,21 @@ void Caller::applyNonDetGenerator() {
 
       system(commandWitness.str().c_str());
 
+      // The CmpLog companion binary: the same program instrumented to log
+      // the operands of comparisons, which afl-fuzz (-c) uses to solve
+      // magic-value guards such as `x == 123456` by input-to-state
+      // substitution. It is AFL++'s counterpart of the value profile the
+      // previous fuzzer ran with (-use_value_profile=1); without it the
+      // tacasv1 comparison would pit an unarmed AFL++ against an armed
+      // LibFuzzer. Optional: if it does not build, the fuzzer runs without.
+      std::ostringstream commandCmplog;
+      commandCmplog << "AFL_LLVM_CMPLOG=1 " << bound
+                    << Map2Check::aflClangFastBinary() << "  -g "
+                    << Caller::postOptimizationFlags()
+                    << " -o " + programHash + "-cmplog.out"
+                    << " " + programHash + "-result.bc";
+      system(commandCmplog.str().c_str());
+
       // Announced rather than discovered later as a silent no-op -- the same
       // failure mode the sliced arm spent a whole campaign in.
       std::error_code fuzzErr;
@@ -364,6 +379,11 @@ void Caller::applyNonDetGenerator() {
             "the AFL++ binary did not build within " +
             std::to_string(static_cast<int>(compileBudget)) +
             "s -- skipping the fuzzer phase and leaving the budget to KLEE");
+      } else if (!std::filesystem::exists(programHash + "-cmplog.out",
+                                          fuzzErr)) {
+        Map2Check::Log::Warning(
+            "the AFL++ CmpLog binary did not build -- fuzzing without "
+            "comparison solving");
       }
       break;
     }
@@ -838,10 +858,14 @@ void Caller::executeAnalysis(std::string solvername) {
               << " AFL_BENCH_UNTIL_CRASH=1 ";
       command << "timeout -k " << Map2Check::killGracePeriod << " "
               << static_cast<unsigned>(fuzzerBudget) << " ";
+      std::error_code cmplogErr;
+      const bool hasCmplog =
+          std::filesystem::exists(programHash + "-cmplog.out", cmplogErr);
       command << Map2Check::aflFuzzBinary()
               << " -i " << inputDir
-              << " -o afl-out"
-              << " -V " << std::max(1u, static_cast<unsigned>(fuzzerBudget))
+              << " -o afl-out";
+      if (hasCmplog) command << " -c ./" << programHash << "-cmplog.out";
+      command << " -V " << std::max(1u, static_cast<unsigned>(fuzzerBudget))
               << " -- ./" << programHash << "-fuzzed.out"
               << " > fuzzer.output 2>&1";
 

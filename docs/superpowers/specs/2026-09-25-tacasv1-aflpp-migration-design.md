@@ -110,8 +110,9 @@ semântica nondet e de veredito com a v15.
 - `get_next_input_from_fuzzer()` / `get_bytes_from_fuzzer()` leem do buffer global
   (preenchido por `__AFL_FUZZ_TESTCASE_BUF`), preservando o contrato de largura
   `sizeof(type)` (o fix documentado em `NonDetGeneratorLibFuzzy.c`).
-- `nondet_assume()` → `abort()` (AFL trata abort como crash; mesmo contrato que o
-  LibFuzzer já assumia via `pthread_exit`).
+- `nondet_assume()`/`nondet_cancel()` → `longjmp` de volta ao trampoline (soft-reject:
+  descarta o input e passa para a próxima iteração, o equivalente persistente do
+  `pthread_exit` do LibFuzzer — **não** um crash).
 - `NonDetLog.c` (gravação de `klee_log.csv`) fica **intocado** — a semântica do veredito
   `cover-error` depende dele.
 
@@ -181,7 +182,7 @@ afl-fuzz -i seeds -o afl-out -V <seconds> -- ./<hash>-fuzzed.out
 | Risco | Mitigação |
 |---|---|
 | `afl-clang-fast` sobre o `<hash>-result.bc` **pré-linkado** pode não injetar cobertura (o pass do AFL roda no IR de entrada, mas o `.bc` é IR "pronto") | Smoke test (§9) confere se `afl-fuzz` **não** aborta com "no instrumentation". Fallback documentado: instrumentar na primeira compilação C→`.bc` com `afl-clang-fast` (`compileCFile()`), preservando o mesmo `.bc` para o KLEE. |
-| `abort()` do slicing/`nondet_assume` vs tratamento de crash do AFL | AFL trata `abort` como crash; o replay com `-witness-fuzzed.out` confirma violação real antes do veredito. |
+| `abort()` do slicing vs tratamento de crash do AFL | O `reach_error` instrumentado continua abortando (crash real, que o AFL registra); `nondet_assume` usa `longjmp` (soft-reject), não `abort`, então não polui `crashes/`. O replay com `-witness-fuzzed.out` confirma violação real antes do veredito. |
 | `__AFL_LOOP` (persistente) acumular entradas em `klee_log.csv` ao longo das iterações | Comportamento já existente no LibFuzzer; `readNonDetLogAsObjects` usa o último vetor. Nenhuma mudança em tacasv1. |
 | Atraso na primeira compilação do AFL++ no Docker (rebuild de imagem) | Build com cache por camada; SHA pinado para reprodutibilidade. |
 

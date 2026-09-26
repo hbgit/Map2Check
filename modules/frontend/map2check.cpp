@@ -608,6 +608,11 @@ int map2check_execution(map2check_args args) {
   //
   // Gated on generating a suite at all, and on the two sources emitTestSuite
   // itself consults -- so the check can never disagree with what gets written.
+  //
+  // "Recovered" includes the EMPTY vector of an aborting path: a program that
+  // reads no input reaches its error with zero <input> elements, and that
+  // test case covers it (tests/testcomp/programs/no_input.c). Counting only
+  // non-empty vectors downgraded exactly that case to UNKNOWN.
   if (args.generateTestSuite && !args.coverBranches &&
       args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE &&
       generator == Map2Check::NonDetGenerator::Klee &&
@@ -615,7 +620,7 @@ int map2check_execution(map2check_args args) {
       propertyViolated != Map2Check::PropertyViolated::UNKNOWN) {
     const bool haveVector =
         !Map2Check::readNonDetLog(Map2Check::kleeLogCSV).empty() ||
-        !Map2Check::readViolatingKtest(Map2Check::kleeOutputDir).empty();
+        Map2Check::hasViolatingKtest(Map2Check::kleeOutputDir);
     if (!haveVector) {
       Map2Check::Log::Warning(
           "the property file records a violation but no input vector could be "

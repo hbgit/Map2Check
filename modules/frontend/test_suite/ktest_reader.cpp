@@ -287,6 +287,27 @@ std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir) {
   return {};
 }
 
+bool hasViolatingKtest(const std::string& kleeOutDir) {
+  std::error_code error;
+  if (!std::filesystem::is_directory(kleeOutDir, error)) return false;
+  const std::string kAbortSuffix = ".abort.err";
+  for (const auto& entry :
+       std::filesystem::directory_iterator(kleeOutDir, error)) {
+    const std::string name = entry.path().filename().string();
+    if (name.size() <= kAbortSuffix.size()) continue;
+    if (name.compare(name.size() - kAbortSuffix.size(), kAbortSuffix.size(),
+                     kAbortSuffix) != 0) {
+      continue;
+    }
+    const std::string stem = name.substr(0, name.size() - kAbortSuffix.size());
+    if (std::filesystem::exists(
+            std::filesystem::path(kleeOutDir) / (stem + ".ktest"), error)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 std::vector<std::vector<std::string>> readKtestVectors(
     const std::string& kleeOutDir, size_t limit) {
   std::vector<std::vector<std::string>> vectors;

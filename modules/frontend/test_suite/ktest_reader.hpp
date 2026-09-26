@@ -73,6 +73,14 @@ std::string decodeKtestObject(const KtestObject& object);
  * runtime. Returns an empty vector when no path errored. */
 std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir);
 
+/** Whether KLEE flagged an aborting path whose .ktest is on disk at all.
+ *
+ * Unlike readViolatingKtest this also counts a path with ZERO objects: a
+ * program that reads no nondeterministic input reaches its error with the
+ * empty vector, and that empty vector is a complete, reproducible witness --
+ * not the "nothing recovered" readViolatingKtest's empty result means. */
+bool hasViolatingKtest(const std::string& kleeOutDir);
+
 /** Every input vector KLEE recorded under `kleeOutDir`, one per .ktest.
  *
  * Ordered by file name, which is KLEE's own path numbering: stable across

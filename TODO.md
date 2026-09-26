@@ -14,8 +14,8 @@ Confirmados em 2026-06-14, corrigidos em ~3 semanas (referência usual do badge:
 
 - [x] CWE-119 `strcpy` ×3 — `map2check.cpp` → `setenv()` (`f0d6a28a`)
 - [x] Off-by-one OOB — `BTree.c` (create loop `588ba5f8`; dump loop `e5442766`)
-- [x] VLA dangling return — `NonDetGeneratorKlee.c` **e** `NonDetGeneratorLibFuzzy.c` (cópia extra achada na verificação) (`f0d6a28a`)
-- [x] Shift UB — `NonDetGeneratorLibFuzzy.c` (`f0d6a28a`)
+- [x] VLA dangling return — `NonDetGeneratorKlee.c` **e** `NonDetGeneratorAFL.c` (cópia extra achada na verificação) (`f0d6a28a`)
+- [x] Shift UB — `NonDetGeneratorAFL.c` (`f0d6a28a`)
 - [x] Uninit vars — `AllocationLog.c`, `NonDetLog.c`, `ContainerBTree.c` (`ca2692c5`, `f0d6a28a`)
 - [x] Null-deref CWE-476 — `AnalysisModeMemtrack.c`/`AnalysisModeMemcleanup.c` (checagens de NULL com corpo vazio) (`e5442766`)
 
@@ -46,7 +46,7 @@ exit 0; clang-tidy `clang-analyzer-security/core` sem achados.
 O que existe (atualizado): mecanismos de memory-safety **duplicados** — ASan/UBSan
 estritos + Valgrind memcheck bloqueante. O que falta (inalterado):
 
-- [ ] Nenhum fuzzing do próprio Map2Check: `SKIP_LIB_FUZZER=ON` nos jobs de teste; o LibFuzzer embarcado é *feature do produto* (gera entradas para os programas C analisados), não self-fuzzing
+- [ ] Nenhum fuzzing do próprio Map2Check: `SKIP_AFL_PLUS_PLUS=ON` nos jobs de teste; o AFL++ embarcado é *feature do produto* (gera entradas para os programas C analisados), não self-fuzzing
 - [ ] Sem harness `LLVMFuzzerTestOneInput`, corpus ou integração OSS-Fuzz
 - [ ] Iniciativa real na roadmap: AFL++ (Phase 3, itens 3.1.1–3.1.4) — não iniciada
 

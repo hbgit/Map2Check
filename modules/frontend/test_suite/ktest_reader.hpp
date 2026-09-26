@@ -85,7 +85,7 @@ std::vector<std::vector<std::string>> readKtestVectors(
 /** Serialises objects into the byte stream a fuzzer would consume.
  *
  * Sound only because both engines now agree on widths: NonDetGeneratorKlee.c
- * passes sizeof(type) to klee_make_symbolic, and NonDetGeneratorLibFuzzy.c
+ * passes sizeof(type) to klee_make_symbolic, and NonDetGeneratorAFL.c
  * takes sizeof(type) bytes per read. Concatenating a .ktest's objects in order
  * therefore produces exactly the buffer that would drive the fuzzer down the
  * same path. Before the width fix this was impossible -- the fuzzer read one

@@ -92,9 +92,9 @@ inline std::string slicerBinary() {
   return std::string(slicerDefaultRoot) + "/bin/sbt-slicer";
 }
 /** Seconds granted between SIGTERM and SIGKILL when a backend overruns its
- * slice (`timeout -k`). Both KLEE and LibFuzzer catch SIGTERM to shut down
+ * slice (`timeout -k`). Both KLEE and AFL++ catch SIGTERM to shut down
  * gracefully, and both can miss it while wedged -- KLEE inside the solver,
- * LibFuzzer across its -jobs workers. Without the escalation `timeout` waits
+ * AFL++ across its parallel workers. Without the escalation `timeout` waits
  * forever on a child that will not die and the whole run hangs past its
  * budget. Long enough for a real graceful exit, short enough not to distort
  * the budget. */

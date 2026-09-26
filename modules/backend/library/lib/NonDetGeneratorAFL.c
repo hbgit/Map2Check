@@ -117,8 +117,8 @@ char *map2check_non_det_pchar() {
  * file as argv[1]) it runs exactly once with that file as input.
  *
  * A failed nondet_assume longjmps back here and skips the input — the
- * persistent-mode equivalent of the pthread_exit the LibFuzzer generator used
- * (a rejected input, not a crash). */
+ * persistent-mode equivalent of the pthread_exit the previous fuzzer generator
+ * used (a rejected input, not a crash). */
 __AFL_FUZZ_INIT();
 
 int main(int argc, char **argv) {

@@ -56,7 +56,7 @@ void putBigEndian32(std::ofstream& out, uint32_t value) {
  *
  * Both halves have to agree with the runtime or a seed means nothing: the name
  * is what klee_make_symbolic was called with (NonDetGeneratorKlee.c), and the
- * width is what the fuzzer consumes per read (NonDetGeneratorLibFuzzy.c).
+ * width is what the fuzzer consumes per read (NonDetGeneratorAFL.c).
  * Enumerator values come from enum NONDET_TYPE in Map2CheckTypes.h. */
 struct NonDetTypeInfo {
   const char* name;

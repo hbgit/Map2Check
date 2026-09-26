@@ -3,7 +3,7 @@
 #
 # Runs on every push and pull request.
 # Installs LLVM 16 directly on ubuntu-22.04 runner.
-# Unit tests use -DSKIP_KLEE=ON -DSKIP_LIB_FUZZER=ON,
+# Unit tests use -DSKIP_KLEE=ON -DSKIP_AFL_PLUS_PLUS=ON,
 # so the full Dockerfile.dev dependencies are not needed.
 #
 # Phase 1.5 — OpenSSF Best Practices Badge (Analysis section)
@@ -59,7 +59,7 @@ jobs:
           mkdir -p build && cd build
           cmake .. -G Ninja \
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
-            -DSKIP_LIB_FUZZER=ON \
+            -DSKIP_AFL_PLUS_PLUS=ON \
             -DSKIP_KLEE=ON \
             -DENABLE_TEST=ON
         env:
@@ -104,7 +104,7 @@ jobs:
           mkdir -p build && cd build
           cmake .. -G Ninja \
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
-            -DSKIP_LIB_FUZZER=ON \
+            -DSKIP_AFL_PLUS_PLUS=ON \
             -DSKIP_KLEE=ON \
             -DENABLE_TEST=ON \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -191,7 +191,7 @@ jobs:
           mkdir -p build && cd build
           cmake .. -G Ninja \
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
-            -DSKIP_LIB_FUZZER=ON \
+            -DSKIP_AFL_PLUS_PLUS=ON \
             -DSKIP_KLEE=ON \
             -DENABLE_TEST=ON \
             -DMAP2CHECK_ENABLE_SANITIZERS=ON
@@ -552,7 +552,7 @@ jobs:
           mkdir -p build && cd build
           cmake .. -G Ninja \
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
-            -DSKIP_LIB_FUZZER=ON \
+            -DSKIP_AFL_PLUS_PLUS=ON \
             -DSKIP_KLEE=ON \
             -DENABLE_TEST=ON \
             -DCMAKE_BUILD_TYPE=Debug \

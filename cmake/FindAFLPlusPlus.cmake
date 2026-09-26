@@ -8,7 +8,7 @@
 # back to /usr/local/bin.
 #
 # This module only records availability so the build can say so — the role
-# FindLibFuzzer.cmake played before the AFL++ migration.
+# the previous fuzzer find-module played before the AFL++ migration.
 #
 # Sets:
 #   AFL_PLUS_PLUS_FOUND  — TRUE if both binaries are present

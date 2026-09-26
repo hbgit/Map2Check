@@ -7,6 +7,7 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ### Changed
 
+- Replaced LibFuzzer with AFL++ 4.40c (persistent, PCGUARD) as the fuzzing engine.
 - Migrated the toolchain from LLVM 6.0 to LLVM 16, moving all instrumentation passes (`modules/backend/pass/`) to the New Pass Manager and opaque pointers.
 - Migrated the codebase to C++17 (CMake `CMAKE_CXX_STANDARD` 11 → 17, required by LLVM 16 headers).
 - Upgraded KLEE to 3.1.

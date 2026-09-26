@@ -16,7 +16,7 @@
  *
  * Map2Check already produces that sequence. The runtime appends every
  * __VERIFIER_nondet_* call to an ordered log (NonDetLog.c) and flushes it to
- * klee_log.csv on exit, under both the KLEE and the LibFuzzer generator. This
+ * klee_log.csv on exit, under both the KLEE and the AFL++ generator. This
  * module only serializes it -- no new instrumentation is involved, and the
  * emitter is therefore engine-agnostic by construction.
  *

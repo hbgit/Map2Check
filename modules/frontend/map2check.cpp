@@ -514,11 +514,11 @@ int map2check_execution(map2check_args args) {
   // properties: the search space is smaller and the instrumentation is added
   // to what survives.
   //
-  // Reachability and assert. Slicing needs a criterion, and Cover-Branches has
-  // none -- every branch is the goal. Asking elsewhere is refused, not ignored.
-  // Reachability slices towards the target; assert towards the two functions
-  // AssertPass instruments. Memory properties and overflow need their own
-  // criteria (tacasv2b/2c).
+  // Slicing needs a criterion, and Cover-Branches has none -- every branch is
+  // the goal. Asking there is refused, not ignored. Reachability slices towards
+  // the target and assert towards the two functions AssertPass instruments,
+  // both here, before instrumentation; memory and overflow slice after it
+  // (below), towards the runtime calls the instrumentation inserted.
   if (args.sliceProgram) {
     if (args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
       caller->sliceWithRespectToTarget(args.function, {args.function});
@@ -527,22 +527,26 @@ int map2check_execution(map2check_args args) {
                                        {"__VERIFIER_assert", "__assert_fail"});
     } else {
       if (args.mode != Map2Check::Map2CheckMode::MEMTRACK_MODE &&
-          args.mode != Map2Check::Map2CheckMode::MEMCLEANUP_MODE) {
+          args.mode != Map2Check::Map2CheckMode::MEMCLEANUP_MODE &&
+          args.mode != Map2Check::Map2CheckMode::OVERFLOW_MODE) {
         Map2Check::Log::Warning(
-            "--slice applies to reachability, assert and memory properties "
-            "only: there is no criterion to slice towards when the goal is "
-            "coverage or overflow. Analysing the whole program.");
+            "--slice applies to reachability, assert, memory and overflow "
+            "properties only: there is no criterion to slice towards when the "
+            "goal is branch coverage. Analysing the whole program.");
       }
     }
   }
 
   caller->callPass(args.function);
 
-  // Memory properties slice the INSTRUMENTED module (see sliceInstrumented):
-  // their criterion is the runtime calls the instrumentation inserted.
+  // Memory and overflow slice the INSTRUMENTED module (see
+  // sliceInstrumented): their criterion is the runtime calls the
+  // instrumentation inserted -- map2check_malloc/check_deref/... for memory,
+  // map2check_binop_* for overflow.
   if (args.sliceProgram &&
       (args.mode == Map2Check::Map2CheckMode::MEMTRACK_MODE ||
-       args.mode == Map2Check::Map2CheckMode::MEMCLEANUP_MODE)) {
+       args.mode == Map2Check::Map2CheckMode::MEMCLEANUP_MODE ||
+       args.mode == Map2Check::Map2CheckMode::OVERFLOW_MODE)) {
     caller->sliceInstrumented();
   }
   caller->linkLLVM();
@@ -769,8 +773,8 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
          "\tdirectory to write the test suite into")
         ("slice",
          "\tslice the program with respect to the target (reachability), "
-         "the assertions (--check-asserts) or the memory runtime checks "
-         "(--memtrack, --memcleanup-property) before analysing it; needs "
+         "the assertions (--check-asserts) or the runtime checks (--memtrack, "
+         "--memcleanup-property, --check-overflow) before analysing it; needs "
          "sbt-slicer")
         ("seed-exchange",
          "\tlet the two engines hand each other input vectors through a shared "

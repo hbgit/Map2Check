@@ -23,10 +23,9 @@ on:
   # Inclui feat/** como ALVO para que PRs empilhadas sejam verificadas. Sem isso
   # uma PR cuja base é outra branch de feature não dispara nada -- a #56 abriu
   # com um único check -- e os gates de regressão que ela própria adiciona nunca
-  # rodariam nela. Idem 'tacas/**': a linha TACAS empilha tacas/slicing sobre
-  # tacas/aflpp.
+  # rodariam nela.
   pull_request:
-    branches: [develop, main, master, 'feat/**', 'tacas/**']
+    branches: [develop, main, master, 'feat/**']
 
 jobs:
   # ===========================================================

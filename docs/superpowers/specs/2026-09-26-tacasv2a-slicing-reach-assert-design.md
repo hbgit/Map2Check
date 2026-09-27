@@ -117,9 +117,12 @@ precisa disso porque não gera suíte a partir da fatia.
 - `--slice` passa a valer também em `ASSERT_MODE`, com o critério `__VERIFIER_assert`.
   Os demais modos continuam recusados com aviso, até o 2b e o 2c.
 
-### 5.3 Constante da lista de nondets
-- `Map2Check::nondetFunctionNames()` em `utils/tools.hpp`, documentada como a lista que o
-  slicing preserva, com um comentário apontando para o `NonDetPass`.
+### 5.3 Funções puras do slicing
+- `modules/frontend/utils/slicer.hpp` (header-only, testável sem build completo):
+  `nondetFunctionNames()`, `slicingCriteria()`, `targetStubSource()` (o stub de
+  `__VERIFIER_assert` recebe `int cond`), `parseSlicerStatistics()` e `describeSlice()`.
+- Em assert o critério primário é `__VERIFIER_assert,__assert_fail`: o `AssertPass`
+  instrumenta as duas.
 
 ---
 

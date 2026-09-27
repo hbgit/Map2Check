@@ -285,3 +285,25 @@ TEST(HasViolatingKtest, NeedsTheKtestBesideTheReport) {
   EXPECT_FALSE(Map2Check::hasViolatingKtest("/nonexistent/klee-last"));
   fs::remove_all(d);
 }
+
+// --- a KLEE run that stopped on its timer did not finish ---------------------
+
+// KLEE halting on --max-time exits 0, exactly like a run that explored every
+// path. With one short path having written NONE to the property file, that
+// read as a proof: a reachable null dereference came back TRUE.
+TEST(KleeHaltedOnTimer, DetectsTheHaltTimerLine) {
+  fs::path d = freshDir("halt");
+  std::ofstream(d / "messages.txt")
+      << "KLEE: output directory is \"x\"\nKLEE: HaltTimer invoked\n"
+         "KLEE: halting execution, dumping remaining states\n";
+  EXPECT_TRUE(Map2Check::kleeHaltedOnTimer(d.string()));
+  fs::remove_all(d);
+}
+
+TEST(KleeHaltedOnTimer, AFinishedRunIsNotHalted) {
+  fs::path d = freshDir("finished");
+  std::ofstream(d / "messages.txt") << "KLEE: output directory is \"x\"\n";
+  EXPECT_FALSE(Map2Check::kleeHaltedOnTimer(d.string()));
+  EXPECT_FALSE(Map2Check::kleeHaltedOnTimer("/nonexistent/klee-last"));
+  fs::remove_all(d);
+}

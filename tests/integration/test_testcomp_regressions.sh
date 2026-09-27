@@ -780,7 +780,36 @@ else
   ok "a memory error inside an external call survives slicing"
 fi
 
-# --- 22. overflow slices the instrumented module and keeps the violation -----
+# --- 22. KLEE stopping on its timer is not a proof ---------------------------
+# KLEE halting on --max-time exits 0, like a run that explored every path. One
+# short path wrote NONE to the property file, and the run answered TRUE for a
+# program with a reachable null dereference. Found by slicing (memsafety-cve
+# frr.i, pacparser.i: the slice let KLEE reach its own timer), but it is not a
+# slicing defect -- this program is not sliced.
+mkdir -p "$WORK/halt"
+cat > "$WORK/halt/halt.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (x == 0) { return 0; }
+  int n = 0;
+  while (1) {
+    int y = __VERIFIER_nondet_int();
+    if (y > 3) { n++; } else { n += 2; }
+    if (n == 200000) { int *p = 0; *p = 1; }
+  }
+  return 0;
+}
+EOF
+( cd "$WORK/halt" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 20 halt.c ) > "$WORK/halt/run.log" 2>&1
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/halt/run.log"; then
+  fail "halted KLEE verdict" "TRUE after KLEE stopped on its timer"
+else
+  ok "a KLEE run halted on its timer is not reported TRUE"
+fi
+
+# --- 23. overflow slices the instrumented module and keeps the violation -----
 # Overflow checks are map2check_binop_* runtime calls, so the same
 # post-instrumentation slice as the memory properties applies.
 mkdir -p "$WORK/ovf"
@@ -804,7 +833,7 @@ else
   grep -E "Sliced|slice|VERIFICATION" "$WORK/ovf/run.log" | sed 's/^/    /'
 fi
 
-# --- 23. slicing must not invent an overflow ---------------------------------
+# --- 24. slicing must not invent an overflow ---------------------------------
 cat > "$WORK/ovf/safe.c" <<'EOF'
 extern int __VERIFIER_nondet_int(void);
 int main(void) {

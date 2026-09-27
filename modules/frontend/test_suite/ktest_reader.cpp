@@ -308,6 +308,16 @@ bool hasViolatingKtest(const std::string& kleeOutDir) {
   return false;
 }
 
+bool kleeHaltedOnTimer(const std::string& kleeOutDir) {
+  std::ifstream messages(
+      (std::filesystem::path(kleeOutDir) / "messages.txt").string());
+  std::string line;
+  while (std::getline(messages, line)) {
+    if (line.find("HaltTimer invoked") != std::string::npos) return true;
+  }
+  return false;
+}
+
 std::vector<std::vector<std::string>> readKtestVectors(
     const std::string& kleeOutDir, size_t limit) {
   std::vector<std::vector<std::string>> vectors;

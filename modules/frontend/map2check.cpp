@@ -514,16 +514,22 @@ int map2check_execution(map2check_args args) {
   // properties: the search space is smaller and the instrumentation is added
   // to what survives.
   //
-  // Reachability only. Slicing needs a criterion, and Cover-Branches has none
-  // -- every branch is the goal. Asking elsewhere is refused, not ignored.
+  // Reachability and assert. Slicing needs a criterion, and Cover-Branches has
+  // none -- every branch is the goal. Asking elsewhere is refused, not ignored.
+  // Reachability slices towards the target; assert towards the two functions
+  // AssertPass instruments. Memory properties and overflow need their own
+  // criteria (tacasv2b/2c).
   if (args.sliceProgram) {
     if (args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
       caller->sliceWithRespectToTarget(args.function, {args.function});
+    } else if (args.mode == Map2Check::Map2CheckMode::ASSERT_MODE) {
+      caller->sliceWithRespectToTarget("__VERIFIER_assert",
+                                       {"__VERIFIER_assert", "__assert_fail"});
     } else {
       Map2Check::Log::Warning(
-          "--slice applies to reachability only: there is no criterion to "
-          "slice towards when the goal is coverage or a memory property. "
-          "Analysing the whole program.");
+          "--slice applies to reachability and assert only: there is no "
+          "criterion to slice towards when the goal is coverage or a memory "
+          "or overflow property. Analysing the whole program.");
     }
   }
 
@@ -751,8 +757,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
          "\tdirectory to write the test suite into")
         ("slice",
-         "\tslice the program with respect to the target before analysing it "
-         "(reachability only; needs sbt-slicer)")
+         "\tslice the program with respect to the target (reachability) or "
+         "the assertions (--check-asserts) before analysing it; needs "
+         "sbt-slicer")
         ("seed-exchange",
          "\tlet the two engines hand each other input vectors through a shared "
          "seed corpus (hybrid runs; off by default)")

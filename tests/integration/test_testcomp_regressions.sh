@@ -516,7 +516,7 @@ fi
 ( cd "$WORK/slice" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
     --memtrack --slice --nondet-generator symex --timeout 45 reach.c ) \
   > "$WORK/slice/mode.log" 2>&1
-if grep -q "applies to reachability only" "$WORK/slice/mode.log"; then
+if grep -q "applies to reachability and assert only" "$WORK/slice/mode.log"; then
   ok "--slice is refused where there is no criterion to slice towards"
 else
   fail "slice mode guard" "--slice was accepted in a mode that has no criterion"
@@ -594,6 +594,33 @@ if [ "$(echo $order_inputs | wc -w)" -eq 2 ] && \
   ok "the sliced suite keeps the original read order [$order_inputs]"
 else
   fail "slice read order" "expected 2 inputs ending in 42, got [$order_inputs]"
+fi
+
+# --- 15. assert mode slices towards the assertions ----------------------------
+# AssertPass instruments __VERIFIER_assert and __assert_fail, so those are the
+# criteria. The program only DECLARES __VERIFIER_assert: the weak stub must
+# take the condition, or llvm-link rejects the (void) definition.
+mkdir -p "$WORK/assert"
+cat > "$WORK/assert/assert.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+extern void __VERIFIER_assert(int cond);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (a > 0) { a = a - 1; }
+  __VERIFIER_assert(b != 77);
+  return a;
+}
+EOF
+( cd "$WORK/assert" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --check-asserts --slice --nondet-generator symex --timeout 45 assert.c ) \
+  > "$WORK/assert/run.log" 2>&1
+if grep -q "Sliced with respect to __VERIFIER_assert,__assert_fail" "$WORK/assert/run.log" && \
+   grep -q "VERIFICATION FAILED" "$WORK/assert/run.log"; then
+  ok "assert mode slices towards the assertions and still finds the violation"
+else
+  fail "assert slice" "no assert-criterion slice, or the violation was lost"
+  grep -E "Sliced|slice|VERIFICATION" "$WORK/assert/run.log" | sed 's/^/    /'
 fi
 
 echo "  ---"

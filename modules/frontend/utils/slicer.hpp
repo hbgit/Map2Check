@@ -9,6 +9,7 @@
 #ifndef MODULES_FRONTEND_UTILS_SLICER_HPP_
 #define MODULES_FRONTEND_UTILS_SLICER_HPP_
 
+#include <algorithm>
 #include <cstdint>
 #include <regex>
 #include <sstream>
@@ -46,17 +47,39 @@ inline const std::vector<std::string>& nondetFunctionNames() {
   return names;
 }
 
-/** The -c argument: the primary criteria, then every nondet function. */
-inline std::string slicingCriteria(const std::vector<std::string>& primary) {
-  std::ostringstream criteria;
-  bool first = true;
-  for (const std::string& name : primary) {
-    criteria << (first ? "" : ",") << name;
-    first = false;
+/** Every __VERIFIER_nondet_* symbol in a module's textual IR (`opt -S`),
+ * in order of first appearance. The fixed list above cannot know every name a
+ * benchmark declares (int128, uint128, ...), and a name missing from the
+ * criteria silently brings the shifted suite back. */
+inline std::vector<std::string> nondetNamesInIR(const std::string& ir) {
+  static const std::regex symbol(R"(@(__VERIFIER_nondet_[A-Za-z0-9_]+))");
+  std::vector<std::string> names;
+  for (std::sregex_iterator it(ir.begin(), ir.end(), symbol), end; it != end;
+       ++it) {
+    const std::string name = (*it)[1];
+    if (std::find(names.begin(), names.end(), name) == names.end()) {
+      names.push_back(name);
+    }
   }
-  for (const std::string& name : nondetFunctionNames()) {
-    criteria << (first ? "" : ",") << name;
-    first = false;
+  return names;
+}
+
+/** The -c argument: the primary criteria, then every nondet function -- the
+ * fixed list plus `fromProgram` (nondetNamesInIR), each name once. */
+inline std::string slicingCriteria(
+    const std::vector<std::string>& primary,
+    const std::vector<std::string>& fromProgram = {}) {
+  std::vector<std::string> all(primary);
+  auto add = [&all](const std::string& name) {
+    if (std::find(all.begin(), all.end(), name) == all.end()) {
+      all.push_back(name);
+    }
+  };
+  for (const std::string& name : nondetFunctionNames()) add(name);
+  for (const std::string& name : fromProgram) add(name);
+  std::ostringstream criteria;
+  for (size_t i = 0; i < all.size(); ++i) {
+    criteria << (i == 0 ? "" : ",") << all[i];
   }
   return criteria.str();
 }

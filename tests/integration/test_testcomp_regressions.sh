@@ -623,6 +623,33 @@ else
   grep -E "Sliced|slice|VERIFICATION" "$WORK/assert/run.log" | sed 's/^/    /'
 fi
 
+# --- 16. nondet names the fixed list does not know are kept too --------------
+# The criteria carry a fixed list of __VERIFIER_nondet_* names, and no fixed
+# list knows every name a benchmark declares (int128, uint128, ...). A missing
+# one silently brings back the shifted suite of section 14, so the names are
+# also read from the program. Checked on the slicer command itself: int128 is
+# not in the fixed list, so its presence there proves it came from the program.
+mkdir -p "$WORK/names"
+cat > "$WORK/names/names.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+extern __int128 __VERIFIER_nondet_int128(void);
+extern void reach_error(void);
+int main(void) {
+  __int128 wide = __VERIFIER_nondet_int128();
+  int b = __VERIFIER_nondet_int();
+  if (b == 42) { reach_error(); }
+  return (int)wide;
+}
+EOF
+( cd "$WORK/names" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --slice --debug \
+    --nondet-generator symex --timeout 30 names.c ) > "$WORK/names/run.log" 2>&1
+if grep "sbt-slicer" "$WORK/names/run.log" | grep -q "__VERIFIER_nondet_int128"; then
+  ok "nondet names declared by the program are slicing criteria too"
+else
+  fail "program nondet names" "__VERIFIER_nondet_int128 is not among the criteria"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

@@ -92,3 +92,33 @@ TEST(DescribeSlice, FallsBackToBytesWithoutStatistics) {
   EXPECT_EQ(Map2Check::describeSlice("reach_error", {}, 10, 8),
             "Sliced with respect to reach_error: 10 -> 8 bytes of bitcode");
 }
+
+// The fixed list cannot know every name a benchmark declares (int128,
+// uint128, ...); a name missing from the criteria silently reintroduces the
+// shifted suite. The names come from the program itself as well.
+TEST(NondetNamesInIR, FindsEveryDeclaredOrCalledNondetFunction) {
+  const std::string ir =
+      "declare i32 @__VERIFIER_nondet_int()\n"
+      "declare i128 @__VERIFIER_nondet_int128()\n"
+      "  %1 = call i128 @__VERIFIER_nondet_int128(), !dbg !19\n"
+      "  call void @reach_error()\n"
+      "@__VERIFIER_nondet_not_a_call = global i32 0\n";
+  const std::vector<std::string> names = Map2Check::nondetNamesInIR(ir);
+  ASSERT_EQ(names.size(), 3u);
+  EXPECT_EQ(names[0], "__VERIFIER_nondet_int");
+  EXPECT_EQ(names[1], "__VERIFIER_nondet_int128");
+  EXPECT_EQ(names[2], "__VERIFIER_nondet_not_a_call");
+}
+
+TEST(SlicingCriteria, AddsNamesFromTheProgramOnceEach) {
+  const std::string criteria = Map2Check::slicingCriteria(
+      {"reach_error"}, {"__VERIFIER_nondet_int128", "__VERIFIER_nondet_int"});
+  EXPECT_NE(criteria.find(",__VERIFIER_nondet_int128"), std::string::npos);
+  size_t count = 0;
+  for (size_t at = criteria.find("__VERIFIER_nondet_int,");
+       at != std::string::npos;
+       at = criteria.find("__VERIFIER_nondet_int,", at + 1)) {
+    ++count;
+  }
+  EXPECT_EQ(count, 1u);
+}

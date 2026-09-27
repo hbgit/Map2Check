@@ -231,9 +231,25 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
   // and replayed on the original (defect 2).
   //
   // --statistics: counts before and after, logged below.
+  // The program's own nondet names join the fixed list: no fixed list knows
+  // every name a benchmark declares, and a missing one silently shifts the
+  // suite again. Read from the textual IR -- the bitcode string table packs
+  // names with no separator. If the disassembly fails, the fixed list stands.
+  const std::string inputIR = programHash + "-slice-input.ll";
+  std::ostringstream disassemble;
+  disassemble << Map2Check::optBinary << " -S " << input << " -o " << inputIR
+              << " > /dev/null 2>&1";
+  std::vector<std::string> programNondets;
+  if (system(disassemble.str().c_str()) == 0) {
+    std::ifstream irFile(inputIR);
+    std::stringstream irText;
+    irText << irFile.rdbuf();
+    programNondets = Map2Check::nondetNamesInIR(irText.str());
+  }
+
   command << "timeout -k " << Map2Check::killGracePeriod << " "
           << static_cast<unsigned>(sliceBudget) << " " << slicer << " -c "
-          << Map2Check::slicingCriteria(criteria)
+          << Map2Check::slicingCriteria(criteria, programNondets)
           << " --entry=main -cutoff-diverging=false --statistics -o " << output
           << " " << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());

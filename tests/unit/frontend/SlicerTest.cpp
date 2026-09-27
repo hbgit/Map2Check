@@ -1,0 +1,94 @@
+/**
+ * Copyright (C) 2014 - 2026 Map2Check tool
+ * This file is part of the Map2Check tool, and is made available under
+ * the terms of the GNU General Public License version 2.
+ *
+ * SPDX-License-Identifier: (GPL-2.0)
+ **/
+
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <string>
+#include <vector>
+
+#include "../../../modules/frontend/utils/slicer.hpp"
+
+// The suite is generated on the slice and run by TestCov on the ORIGINAL
+// program, so every nondet read the original performs must survive slicing.
+TEST(SlicingCriteria, AppendsEveryNondetFunctionAfterThePrimary) {
+  const std::string criteria = Map2Check::slicingCriteria({"reach_error"});
+  EXPECT_EQ(criteria.rfind("reach_error,", 0), 0u);
+  for (const std::string& name : Map2Check::nondetFunctionNames()) {
+    EXPECT_NE(criteria.find("," + name), std::string::npos) << name;
+  }
+}
+
+TEST(SlicingCriteria, KeepsSeveralPrimariesInOrder) {
+  const std::string criteria =
+      Map2Check::slicingCriteria({"__VERIFIER_assert", "__assert_fail"});
+  EXPECT_EQ(criteria.rfind("__VERIFIER_assert,__assert_fail,", 0), 0u);
+}
+
+TEST(NondetFunctionNames, CoversWhatNonDetPassInstruments) {
+  const auto& names = Map2Check::nondetFunctionNames();
+  for (const char* type : {"bool", "char", "uchar", "short", "ushort", "int",
+                           "uint", "unsigned", "long", "ulong", "size_t",
+                           "loff_t", "sector_t", "pointer", "pchar", "double"}) {
+    const std::string name = std::string("__VERIFIER_nondet_") + type;
+    EXPECT_NE(std::find(names.begin(), names.end(), name), names.end()) << name;
+  }
+}
+
+TEST(TargetStubSource, VoidTargetGetsAVoidStub) {
+  EXPECT_EQ(Map2Check::targetStubSource("reach_error"),
+            "void __attribute__((weak)) reach_error(void) {}\n");
+}
+
+// __VERIFIER_assert takes the condition; a (void) stub would not link against
+// the program's own declaration.
+TEST(TargetStubSource, AssertStubTakesTheCondition) {
+  EXPECT_EQ(Map2Check::targetStubSource("__VERIFIER_assert"),
+            "void __attribute__((weak)) __VERIFIER_assert(int cond) {}\n");
+}
+
+TEST(ParseSlicerStatistics, ReadsBeforeAndAfter) {
+  const std::string output =
+      "Statistics before Globals/Functions/Blocks/Instr.: 37 97 2215 10764\n"
+      "[llvm-slicer] Sliced away 1454 from 4227 nodes in DG\n"
+      "Statistics after Globals/Functions/Blocks/Instr.: 37 38 444 2989\n";
+  const Map2Check::SlicerStatistics stats =
+      Map2Check::parseSlicerStatistics(output);
+  ASSERT_TRUE(stats.found);
+  EXPECT_EQ(stats.before.functions, 97u);
+  EXPECT_EQ(stats.before.blocks, 2215u);
+  EXPECT_EQ(stats.before.instructions, 10764u);
+  EXPECT_EQ(stats.after.globals, 37u);
+  EXPECT_EQ(stats.after.functions, 38u);
+  EXPECT_EQ(stats.after.instructions, 2989u);
+}
+
+// A slicer that prints no statistics must not be reported as having sliced
+// everything away.
+TEST(ParseSlicerStatistics, MissingLinesAreNotFound) {
+  EXPECT_FALSE(Map2Check::parseSlicerStatistics("").found);
+  EXPECT_FALSE(Map2Check::parseSlicerStatistics(
+                   "Statistics before Globals/Functions/Blocks/Instr.: 1 2 3 4\n")
+                   .found);
+}
+
+TEST(DescribeSlice, ReportsCountsWhenFound) {
+  Map2Check::SlicerStatistics stats;
+  stats.found = true;
+  stats.before = {37, 97, 2215, 10764};
+  stats.after = {37, 38, 444, 2989};
+  EXPECT_EQ(Map2Check::describeSlice("reach_error", stats, 184164, 171708),
+            "Sliced with respect to reach_error: 97/2215/10764 -> 38/444/2989 "
+            "functions/blocks/instructions (184164 -> 171708 bytes of "
+            "bitcode)");
+}
+
+TEST(DescribeSlice, FallsBackToBytesWithoutStatistics) {
+  EXPECT_EQ(Map2Check::describeSlice("reach_error", {}, 10, 8),
+            "Sliced with respect to reach_error: 10 -> 8 bytes of bitcode");
+}

@@ -10,6 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CASTLE_DIR="$SCRIPT_DIR/CASTLE-Benchmark/datasets/CASTLE-C250"
 JSON_FILE="$SCRIPT_DIR/CASTLE-Benchmark/datasets/CASTLE-C250.min.json"
 RESULTS_DIR="${RESULTS_DIR:-$SCRIPT_DIR/results}"
+# Opt-in flags appended to every map2check run (e.g. "--slice"), for measuring
+# a capability against the same corpus without it. Not part of the CWE's mode:
+# the CSV's mode column stays the property that was checked.
+EXTRA_FLAGS="${EXTRA_FLAGS:-}"
 TIMEOUT_SEC=360
 
 # CWE → mode mapping (single-pass flags, --add-invariants added on UNKNOWN)
@@ -171,7 +175,7 @@ for t in data['tests']:
   start=$(date +%s%N)
   rc=0
   run_isolated "$raw" "$TIMEOUT_SEC" \
-    "$MAP2CHECK" $mode_flags --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
+    "$MAP2CHECK" $mode_flags $EXTRA_FLAGS --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
   end=$(date +%s%N)
   elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
   output=$(cat "$raw")
@@ -196,7 +200,7 @@ for t in data['tests']:
     start=$(date +%s%N)
     rc=0
     run_isolated "$raw" "$TIMEOUT_SEC" \
-      "$MAP2CHECK" $mode_flags --add-invariants --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
+      "$MAP2CHECK" $mode_flags $EXTRA_FLAGS --add-invariants --timeout "$INNER_TIMEOUT" "$bc_file" || rc=$?
     end=$(date +%s%N)
 
     if [ "$rc" -eq 3 ]; then

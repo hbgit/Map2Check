@@ -218,3 +218,12 @@ diagnóstico, não como comparação final (ver R14).
 - Redução de instruções: mediana 10,2%, máximo 36,7%. Tempo mediano 12 s × 29,5 s.
 - **Comparação com R7:** confirma que overflow tem redução maior que memória, mas nesta
   amostra quase tudo é UNKNOWN nos dois braços (orçamento de 120 s).
+
+### Nota — `busybox sleep-3.i` (FALSE-MEMTRACK errado só com slice)
+
+Não é defeito do slicing. Sem slice, o KLEE nem linka ("Linking globals named 'getopt':
+symbol multiply defined" — o programa e a uClibc definem `getopt`/`getopt_long`) → UNKNOWN.
+A fatia remove essas definições não usadas, o KLEE roda e acusa vazamento. Renomeando os
+símbolos em conflito e rodando **sem slice**, o resultado também é FALSE-MEMTRACK: é um
+falso positivo pré-existente do memtrack, que o controle escondia por não conseguir rodar.
+Em aberto como defeito do memtrack (fora do escopo do slicing).

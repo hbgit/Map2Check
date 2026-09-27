@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <sys/stat.h>
@@ -30,6 +31,7 @@
 #include "test_suite/ktest_reader.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
+#include "utils/slicer.hpp"
 #include "utils/tools.hpp"
 // namespace fs = boost::filesystem;
 // }  // namespace
@@ -176,7 +178,8 @@ std::string Caller::exportFuzzerVectorAsKtest() {
   return path;
 }
 
-bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
+bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
+                                      const std::vector<std::string> &criteria) {
   const std::string slicer = Map2Check::slicerBinary();
   if (!std::filesystem::exists(slicer)) {
     // Announced, not silently skipped. A slicer that is asked for and absent
@@ -218,10 +221,21 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
       1.0,
       std::min(0.2 * this->timeout,
                std::max(1.0, static_cast<double>(remainingSeconds()) - 5.0)));
-  command << "timeout -k " << Map2Check::killGracePeriod << " " << static_cast<unsigned>(sliceBudget)
-          << " " << slicer << " -c " << targetFunction
-          << " --entry=main -o " << output << " "
-          << input << " > slicer.output 2>&1";
+  // -cutoff-diverging=false: the cutoff rewrites every path that cannot reach
+  // the criterion into exit(0) with no debug location, and once KLEE links
+  // uClibc the verifier rejects the module ("Broken module found") -- KLEE
+  // never ran on a sliced task with a cut path (tacasv2a spec, defect 1).
+  //
+  // The nondet functions ride along as criteria so that every read the
+  // original program performs survives; the suite is generated on the slice
+  // and replayed on the original (defect 2).
+  //
+  // --statistics: counts before and after, logged below.
+  command << "timeout -k " << Map2Check::killGracePeriod << " "
+          << static_cast<unsigned>(sliceBudget) << " " << slicer << " -c "
+          << Map2Check::slicingCriteria(criteria)
+          << " --entry=main -cutoff-diverging=false --statistics -o " << output
+          << " " << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());
   const int result = system(command.str().c_str());
 
@@ -240,9 +254,16 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   // of how much was dropped.
   const auto before = std::filesystem::file_size(input, error);
   const auto after = std::filesystem::file_size(output, error);
-  Map2Check::Log::Info("Sliced with respect to " + targetFunction + ": " +
-                       std::to_string(before) + " -> " +
-                       std::to_string(after) + " bytes of bitcode");
+  std::ifstream slicerLog("slicer.output");
+  std::stringstream slicerText;
+  slicerText << slicerLog.rdbuf();
+  std::string criterionLabel;
+  for (const std::string &name : criteria) {
+    criterionLabel += (criterionLabel.empty() ? "" : ",") + name;
+  }
+  Map2Check::Log::Info(Map2Check::describeSlice(
+      criterionLabel, Map2Check::parseSlicerStatistics(slicerText.str()),
+      before, after));
 
   // sbt-slicer removes the body of the criterion function itself. reach_error
   // is where the slice ENDS -- nothing it does can influence whether it is
@@ -266,7 +287,7 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   {
     std::ofstream stub(stubSource);
     if (stub.is_open()) {
-      stub << "void __attribute__((weak)) " << targetFunction << "(void) {}\n";
+      stub << Map2Check::targetStubSource(targetFunction);
     }
   }
   std::ostringstream compileStub;

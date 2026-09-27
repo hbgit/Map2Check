@@ -130,10 +130,17 @@ class Caller {
    * decision the caller makes rather than a default. */
   bool sliceProgram = false;
 
-  /** Runs sbt-slicer over the instrumented bitcode. Returns false if the
-   * slicer is unavailable or produced nothing usable, leaving the original
-   * bitcode in place. */
-  bool sliceWithRespectToTarget(const std::string& targetFunction);
+  /** Runs sbt-slicer over the compiled (not yet instrumented) bitcode.
+   *
+   * `criteria` are the primary slicing criteria (the target function, or the
+   * assert functions); every __VERIFIER_nondet_* function is added to them so
+   * the suite found on the slice stays valid on the original program. The
+   * cutoff of diverging paths is off: its exit(0) carries no debug location
+   * and KLEE rejects the module. `targetFunction` gets its body back through a
+   * weak stub. Returns false if the slicer is unavailable or produced nothing
+   * usable, leaving the original bitcode in place. */
+  bool sliceWithRespectToTarget(const std::string& targetFunction,
+                                const std::vector<std::string>& criteria);
 
   /** Turns on the exchange of input vectors between the two engines.
    *

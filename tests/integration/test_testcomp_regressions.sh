@@ -522,6 +522,80 @@ else
   fail "slice mode guard" "--slice was accepted in a mode that has no criterion"
 fi
 
+# --- 13. a slice must leave KLEE something it can run -------------------------
+# sbt-slicer's --cutoff-diverging (default on) rewrites every path that cannot
+# reach the criterion into a `diverge:` block calling exit(0) -- with no debug
+# location. The program is compiled with -g; once KLEE links uClibc, exit has a
+# body, and the verifier rejects the module ("inlinable function call in a
+# function with debug info must have a !dbg location"). KLEE aborted before
+# executing anything, on every sliced task with a cut path: the slice arm of
+# the v15 campaign ran without its symbolic engine.
+mkdir -p "$WORK/cut"
+# ECA-shaped on purpose: the slicer turns a plain return from main into a
+# `safe_return`, so a straight-line program never gets a `diverge:` block. A
+# reactive loop whose step can take a path that never reaches the target does;
+# bounded to two steps so that KLEE decides it well inside the budget.
+cat > "$WORK/cut/cut.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+extern void reach_error(void);
+extern void exit(int);
+int a = 1;
+void step(int in) {
+  if (in == 5) { a = 2; return; }
+  if (in == 6 && a == 2) { reach_error(); }
+  if (in == 9) { exit(0); }
+}
+int main(void) {
+  for (int i = 0; i < 2; i++) {
+    int in = __VERIFIER_nondet_int();
+    step(in);
+  }
+  return 0;
+}
+EOF
+( cd "$WORK/cut" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --slice \
+    --nondet-generator symex --timeout 45 cut.c ) > "$WORK/cut/run.log" 2>&1
+if grep -q "Broken module" "$WORK/cut/run.log"; then
+  fail "slice + KLEE" "KLEE rejected the sliced module (cutoff exit without !dbg)"
+elif grep -q "VERIFICATION FAILED" "$WORK/cut/run.log"; then
+  ok "KLEE runs on the slice and reaches the target"
+else
+  fail "slice + KLEE" "no FAILED verdict on a trivially reachable target"
+  grep -E "Sliced|Exited klee|VERIFICATION" "$WORK/cut/run.log" | sed 's/^/    /'
+fi
+
+# --- 14. a suite found on the slice must hold on the original ----------------
+# TestCov runs the suite on the ORIGINAL program. A nondet read the slicer
+# dropped -- its value does not reach the target -- is still consumed there,
+# so the vector shifts: measured on ntdrivers/floppy.i.cil-1.c, FAILED and
+# NOT_COVERED. The slice keeps every nondet call, so both values appear, in
+# the original order.
+mkdir -p "$WORK/order"
+cp "$WORK/one/reach.prp" "$WORK/order/"
+cat > "$WORK/order/order.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+extern void reach_error(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (b == 42) { reach_error(); }
+  return a;
+}
+EOF
+( cd "$WORK/order" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --slice \
+    --nondet-generator symex --generate-test-suite --property-file reach.prp \
+    --timeout 60 order.c ) > "$WORK/order/run.log" 2>&1
+order_inputs=$(sed -n 's:.*<input>\(.*\)</input>.*:\1:p' \
+  "$WORK/order/test-suite/testcase-1.xml" 2>/dev/null | tr '\n' ' ')
+if [ "$(echo $order_inputs | wc -w)" -eq 2 ] && \
+   [ "$(echo $order_inputs | awk '{print $2}')" = "42" ]; then
+  ok "the sliced suite keeps the original read order [$order_inputs]"
+else
+  fail "slice read order" "expected 2 inputs ending in 42, got [$order_inputs]"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

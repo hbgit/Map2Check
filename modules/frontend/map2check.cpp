@@ -518,7 +518,7 @@ int map2check_execution(map2check_args args) {
   // -- every branch is the goal. Asking elsewhere is refused, not ignored.
   if (args.sliceProgram) {
     if (args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
-      caller->sliceWithRespectToTarget(args.function);
+      caller->sliceWithRespectToTarget(args.function, {args.function});
     } else {
       Map2Check::Log::Warning(
           "--slice applies to reachability only: there is no criterion to "

@@ -757,6 +757,29 @@ else
   fail "slice fallback" "plain=[$vla_plain] slice=[$vla_slice]"
 fi
 
+# --- 21. a memory error inside an external function must not be sliced away --
+# CASTLE-787-2 overflows a stack buffer inside strcpy. No map2check_* call
+# depends on that call, and the slicer treats external functions as only
+# reading their arguments, so it was dropped -- and the run answered TRUE for a
+# program with an out-of-bounds write. Every external call is a criterion now.
+cat > "$WORK/mem/strcpy.c" <<'EOF'
+#include <stdio.h>
+#include <string.h>
+int main(void) {
+  char username[10];
+  strcpy(username, "Is_this_too_long_for_this_array_buffer?");
+  printf("Hello %s!\n", username);
+  return 0;
+}
+EOF
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --slice --nondet-generator symex --timeout 45 strcpy.c ) > "$WORK/mem/strcpy.log" 2>&1
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/mem/strcpy.log"; then
+  fail "external call slicing" "the overflowing strcpy was sliced away: TRUE"
+else
+  ok "a memory error inside an external call survives slicing"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

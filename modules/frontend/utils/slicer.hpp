@@ -80,6 +80,27 @@ inline std::vector<std::string> runtimeNamesInIR(const std::string& ir) {
   return names;
 }
 
+/** Every function a module DECLARES without defining (`declare ... @f(`), in
+ * order of first appearance, LLVM intrinsics excluded. In the modes that slice
+ * the instrumented module these are criteria too: a memory error can happen
+ * inside an external function (strcpy overflowing a stack buffer), and nothing
+ * the runtime checks depends on such a call, so without it as a criterion the
+ * slicer drops the call and the bug with it (CASTLE-787-2: a wrong TRUE). */
+inline std::vector<std::string> externalNamesInIR(const std::string& ir) {
+  static const std::regex declaration(
+      R"((?:^|\n)declare [^\n]*?@([A-Za-z0-9_.$]+)\()");
+  std::vector<std::string> names;
+  for (std::sregex_iterator it(ir.begin(), ir.end(), declaration), end;
+       it != end; ++it) {
+    const std::string name = (*it)[1];
+    if (name.rfind("llvm.", 0) == 0) continue;
+    if (std::find(names.begin(), names.end(), name) == names.end()) {
+      names.push_back(name);
+    }
+  }
+  return names;
+}
+
 /** The -c argument: the primary criteria, then every nondet function -- the
  * fixed list plus `fromProgram` (nondetNamesInIR), each name once. */
 inline std::string slicingCriteria(

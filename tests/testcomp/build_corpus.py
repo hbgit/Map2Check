@@ -29,6 +29,12 @@ away the stratification the sampling exists to provide.
 Usage:
   build_corpus.py --property cover-error   --per-category 40 --out manifest.tsv
   build_corpus.py --property cover-branches --per-category 40 --out manifest.tsv
+  build_corpus.py --property memsafety      --per-category 10 --out manifest.tsv
+  build_corpus.py --property memcleanup     --per-category 10 --out manifest.tsv
+
+For the memory properties the manifest carries two more columns, the expected
+verdict and the subproperty (valid-deref, valid-free, valid-memtrack,
+valid-memcleanup), because a FALSE only counts when its kind matches.
 """
 
 import argparse
@@ -62,7 +68,46 @@ CATEGORIES = [
 PROPERTY_FILE = {
     "cover-error": "coverage-error-call.prp",
     "cover-branches": "coverage-branches.prp",
+    "memsafety": "valid-memsafety.prp",
+    "memcleanup": "valid-memcleanup.prp",
 }
+
+# The memory properties have no .set files in the local sv-benchmarks copy, so
+# their categories are directory lists mirroring SV-COMP's MemSafety sets
+# (tacasv2b spec, section 3.4). Threads and termination are left out: Map2Check
+# supports neither, and running them would report zeros that mean nothing.
+MEMORY_CATEGORIES = {
+    "memsafety": {
+        "Arrays": ["array-memsafety", "array-memsafety-realloc"],
+        "Heap": ["memsafety", "memsafety-ext", "memsafety-ext2",
+                 "memsafety-ext3", "memsafety-broom", "ldv-memsafety",
+                 "ldv-memsafety-bitfields", "forester-heap",
+                 "heap-manipulation"],
+        "LinkedLists": ["list-simple", "list-ext-properties",
+                        "list-properties", "ddv-machzwd"],
+        "Other": ["busybox-1.22.0", "coreutils-v8.31", "coreutils-v9.5-units",
+                  "memsafety-cve", "uthash-2.0.2", "goblint-regression",
+                  "goblint-coreutils"],
+        "Juliet": ["Juliet_Test"],
+    },
+    "memcleanup": {"MemCleanup": ["*"]},
+}
+
+EXCLUDED_DIRS = ("pthread", "weaver", "termination")
+
+
+def expand_dirs(dirs):
+    """Every task definition in the given directories, in sorted order."""
+    import glob
+
+    paths = []
+    for directory in dirs:
+        for path in glob.glob(os.path.join(BENCH, directory, "*.yml")):
+            top = os.path.relpath(path, BENCH).split(os.sep)[0]
+            if top.startswith(EXCLUDED_DIRS):
+                continue
+            paths.append(path)
+    return sorted(set(paths))
 
 
 def expand_set(name):
@@ -91,6 +136,7 @@ def task_info(yml_path, wanted_property):
     data_model = "ILP32"  # the sv-benchmarks default when unstated
     has_property = False
     expected = ""
+    subproperty = ""
     in_properties = False
     current_property = None
 
@@ -107,9 +153,17 @@ def task_info(yml_path, wanted_property):
             elif in_properties and stripped.startswith("- property_file:"):
                 current_property = stripped.split(":", 1)[1].strip()
             elif in_properties and stripped.startswith("expected_verdict:"):
-                if current_property and current_property.endswith(
-                        "unreach-call.prp"):
+                # Cover-* tasks report the unreach-call verdict (whether the
+                # error is reachable); the memory properties report their own.
+                verdict_of = ("unreach-call.prp"
+                              if wanted_property.startswith("cover")
+                              else PROPERTY_FILE[wanted_property])
+                if current_property and current_property.endswith(verdict_of):
                     expected = stripped.split(":", 1)[1].strip()
+            elif in_properties and stripped.startswith("subproperty:"):
+                if current_property and current_property.endswith(
+                        PROPERTY_FILE[wanted_property]):
+                    subproperty = stripped.split(":", 1)[1].strip()
             if current_property and current_property.endswith(
                     PROPERTY_FILE[wanted_property]):
                 has_property = True
@@ -122,7 +176,11 @@ def task_info(yml_path, wanted_property):
     program = os.path.join(os.path.dirname(yml_path), input_file)
     if not os.path.isfile(program):
         return None
-    return program, data_model, expected
+    # valid-memcleanup is a single-subproperty property: its tasks declare no
+    # subproperty, but a FALSE of any other kind is still the wrong answer.
+    if wanted_property == "memcleanup" and expected == "false" and not subproperty:
+        subproperty = "valid-memcleanup"
+    return program, data_model, expected, subproperty
 
 
 def spread_order(items):
@@ -177,11 +235,17 @@ def main():
         sys.exit("sv-benchmarks not found at %s -- run fetch-benchmarks.sh"
                  % BENCH)
 
+    memory = args.property in MEMORY_CATEGORIES
+    categories = (list(MEMORY_CATEGORIES[args.property]) if memory
+                  else CATEGORIES)
+
     per_category = {}
     summary = []
-    for category in CATEGORIES:
+    for category in categories:
         applicable = []
-        for yml in expand_set(category):
+        ymls = (expand_dirs(MEMORY_CATEGORIES[args.property][category])
+                if memory else expand_set(category))
+        for yml in ymls:
             info = task_info(yml, args.property)
             if info is not None:
                 applicable.append((yml,) + info)
@@ -189,8 +253,8 @@ def main():
         summary.append((category, len(applicable), len(chosen)))
         per_category[category] = [
             (category, os.path.relpath(program, BENCH), data_model,
-             expected or "unknown")
-            for yml, program, data_model, expected in chosen
+             expected or "unknown") + ((subproperty,) if memory else ())
+            for yml, program, data_model, expected, subproperty in chosen
         ]
 
     # Round-robin, not grouped. A run that stops at its deadline should stop
@@ -199,13 +263,17 @@ def main():
     rows = []
     depth = max((len(v) for v in per_category.values()), default=0)
     for index in range(depth):
-        for category in CATEGORIES:
+        for category in categories:
             bucket = per_category.get(category, [])
             if index < len(bucket):
                 rows.append(bucket[index])
 
     with open(args.out, "w") as handle:
-        handle.write("# category\tprogram\tdata_model\texpected_unreach\n")
+        if memory:
+            handle.write(
+                "# category\tprogram\tdata_model\texpected\tsubproperty\n")
+        else:
+            handle.write("# category\tprogram\tdata_model\texpected_unreach\n")
         for row in rows:
             handle.write("\t".join(row) + "\n")
 

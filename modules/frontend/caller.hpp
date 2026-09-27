@@ -142,6 +142,13 @@ class Caller {
   bool sliceWithRespectToTarget(const std::string& targetFunction,
                                 const std::vector<std::string>& criteria);
 
+  /** Slices the INSTRUMENTED module (<hash>-output.bc) in place, for the
+   * memory properties: every map2check_* runtime call and every nondet read
+   * is a criterion, and the entry is __map2check_main__. Runs after callPass
+   * and before linkLLVM. Returns false, leaving the module untouched, if the
+   * slicer is unavailable or produced nothing usable. */
+  bool sliceInstrumented();
+
   /** Turns on the exchange of input vectors between the two engines.
    *
    * Off by default so the hybrid keeps behaving exactly as it was measured
@@ -201,6 +208,14 @@ class Caller {
    * artefact lives. Named after the SHA-1 of the input bitcode, so two runs on
    * the same input share it. */
   std::string getScratchDir() { return currentPath + "/" + programHash; }
+ private:
+  /** Shared by both slicing entry points: disassembles `input`, adds the
+   * program's nondet names (and, with addRuntimeNames, its map2check_* calls)
+   * to `primary`, runs sbt-slicer bounded, and logs the slice under `label`.
+   * Returns false, with a warning, when there is no usable output. */
+  bool runSlicer(const std::string& input, const std::string& output,
+                 std::vector<std::string> primary, bool addRuntimeNames,
+                 const std::string& entry, const std::string& label);
 };
 
 }  // namespace Map2Check

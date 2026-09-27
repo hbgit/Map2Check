@@ -526,14 +526,25 @@ int map2check_execution(map2check_args args) {
       caller->sliceWithRespectToTarget("__VERIFIER_assert",
                                        {"__VERIFIER_assert", "__assert_fail"});
     } else {
-      Map2Check::Log::Warning(
-          "--slice applies to reachability and assert only: there is no "
-          "criterion to slice towards when the goal is coverage or a memory "
-          "or overflow property. Analysing the whole program.");
+      if (args.mode != Map2Check::Map2CheckMode::MEMTRACK_MODE &&
+          args.mode != Map2Check::Map2CheckMode::MEMCLEANUP_MODE) {
+        Map2Check::Log::Warning(
+            "--slice applies to reachability, assert and memory properties "
+            "only: there is no criterion to slice towards when the goal is "
+            "coverage or overflow. Analysing the whole program.");
+      }
     }
   }
 
   caller->callPass(args.function);
+
+  // Memory properties slice the INSTRUMENTED module (see sliceInstrumented):
+  // their criterion is the runtime calls the instrumentation inserted.
+  if (args.sliceProgram &&
+      (args.mode == Map2Check::Map2CheckMode::MEMTRACK_MODE ||
+       args.mode == Map2Check::Map2CheckMode::MEMCLEANUP_MODE)) {
+    caller->sliceInstrumented();
+  }
   caller->linkLLVM();
 
   // (3) Apply nondeterministic mode and execute analysis
@@ -757,8 +768,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
          "\tdirectory to write the test suite into")
         ("slice",
-         "\tslice the program with respect to the target (reachability) or "
-         "the assertions (--check-asserts) before analysing it; needs "
+         "\tslice the program with respect to the target (reachability), "
+         "the assertions (--check-asserts) or the memory runtime checks "
+         "(--memtrack, --memcleanup-property) before analysing it; needs "
          "sbt-slicer")
         ("seed-exchange",
          "\tlet the two engines hand each other input vectors through a shared "

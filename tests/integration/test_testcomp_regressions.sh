@@ -514,9 +514,9 @@ fi
 # There is no criterion to slice towards when the goal is a memory property or
 # branch coverage, so asking must be refused rather than quietly ignored.
 ( cd "$WORK/slice" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
-    --memtrack --slice --nondet-generator symex --timeout 45 reach.c ) \
+    --check-overflow --slice --nondet-generator symex --timeout 45 reach.c ) \
   > "$WORK/slice/mode.log" 2>&1
-if grep -q "applies to reachability and assert only" "$WORK/slice/mode.log"; then
+if grep -q "applies to reachability, assert and memory properties only" "$WORK/slice/mode.log"; then
   ok "--slice is refused where there is no criterion to slice towards"
 else
   fail "slice mode guard" "--slice was accepted in a mode that has no criterion"
@@ -648,6 +648,113 @@ if grep "sbt-slicer" "$WORK/names/run.log" | grep -q "__VERIFIER_nondet_int128";
   ok "nondet names declared by the program are slicing criteria too"
 else
   fail "program nondet names" "__VERIFIER_nondet_int128 is not among the criteria"
+fi
+
+# --- 17. memtrack slices the instrumented module and keeps the violation -----
+# Memory has no criterion in the user's program: the property is decided by the
+# runtime calls MemoryTrackPass inserts, so the slice is taken AFTER
+# instrumentation with every map2check_* call as a criterion.
+mkdir -p "$WORK/mem"
+cat > "$WORK/mem/dfree.c" <<'EOF'
+#include <stdlib.h>
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int n = __VERIFIER_nondet_int();
+  int unrelated = 0;
+  for (int i = 0; i < 4; i++) { unrelated += i; }
+  int *p = malloc(sizeof(int));
+  free(p);
+  if (n == 11) { free(p); }
+  return unrelated;
+}
+EOF
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 dfree.c ) > "$WORK/mem/plain.log" 2>&1
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --slice --nondet-generator symex --timeout 45 dfree.c ) > "$WORK/mem/slice.log" 2>&1
+plain_v=$(grep -oE "FALSE-[A-Z]+" "$WORK/mem/plain.log" | tail -1)
+slice_v=$(grep -oE "FALSE-[A-Z]+" "$WORK/mem/slice.log" | tail -1)
+if grep -q "Sliced with respect to map2check runtime" "$WORK/mem/slice.log" && \
+   grep -q "VERIFICATION FAILED" "$WORK/mem/slice.log" && [ -n "$slice_v" ] && \
+   [ "$slice_v" = "$plain_v" ]; then
+  ok "memtrack slices after instrumentation and keeps the violation ($slice_v)"
+else
+  fail "memtrack slice" "plain=[$plain_v] slice=[$slice_v]"
+  grep -E "Sliced|slice|VERIFICATION" "$WORK/mem/slice.log" | sed 's/^/    /'
+fi
+
+# --- 18. memcleanup slices too and still sees the leak ----------------------
+cat > "$WORK/mem/leak.c" <<'EOF'
+#include <stdlib.h>
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int n = __VERIFIER_nondet_int();
+  int *p = malloc(sizeof(int));
+  if (n == 5) { return 0; }
+  free(p);
+  return 0;
+}
+EOF
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memcleanup-property --slice --nondet-generator symex --timeout 45 leak.c ) \
+  > "$WORK/mem/leak.log" 2>&1
+if grep -q "Sliced with respect to map2check runtime" "$WORK/mem/leak.log" && \
+   grep -q "VERIFICATION FAILED" "$WORK/mem/leak.log"; then
+  ok "memcleanup slices and still finds the leak"
+else
+  fail "memcleanup slice" "no slice, or the leak was lost"
+  grep -E "Sliced|slice|VERIFICATION" "$WORK/mem/leak.log" | sed 's/^/    /'
+fi
+
+# --- 19. slicing must not invent a memory violation --------------------------
+cat > "$WORK/mem/safe.c" <<'EOF'
+#include <stdlib.h>
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int n = __VERIFIER_nondet_int();
+  int *p = malloc(sizeof(int));
+  if (p == 0) { return 0; }
+  *p = n;
+  if (n == 11) { *p = 0; }
+  free(p);
+  return 0;
+}
+EOF
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --slice --nondet-generator symex --timeout 45 safe.c ) > "$WORK/mem/safe.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/mem/safe.log"; then
+  fail "slice soundness" "a safe program was reported FALSE after slicing"
+else
+  ok "slicing does not invent a memory violation"
+fi
+
+# --- 20. a construct the slicer rejects falls back, loudly -------------------
+# sbt-slicer errors on llvm.stacksave (variable-length arrays). The run must
+# fall back to the unsliced module and reach the same verdict.
+cat > "$WORK/mem/vla.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int n = __VERIFIER_nondet_int();
+  if (n > 0 && n < 10) {
+    int a[n];
+    a[n] = 1;
+    return a[0];
+  }
+  return 0;
+}
+EOF
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 vla.c ) > "$WORK/mem/vla-plain.log" 2>&1
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --slice --nondet-generator symex --timeout 45 vla.c ) > "$WORK/mem/vla.log" 2>&1
+vla_plain=$(grep -oE "VERIFICATION [A-Z]+" "$WORK/mem/vla-plain.log" | tail -1)
+vla_slice=$(grep -oE "VERIFICATION [A-Z]+" "$WORK/mem/vla.log" | tail -1)
+if { grep -q "Sliced with respect to map2check runtime" "$WORK/mem/vla.log" || \
+     grep -q "analysing the unsliced program" "$WORK/mem/vla.log"; } && \
+   [ -n "$vla_slice" ] && [ "$vla_slice" = "$vla_plain" ]; then
+  ok "a slicer failure falls back and keeps the verdict ($vla_slice)"
+else
+  fail "slice fallback" "plain=[$vla_plain] slice=[$vla_slice]"
 fi
 
 echo "  ---"

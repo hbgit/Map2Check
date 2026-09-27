@@ -137,3 +137,25 @@ TEST(RuntimeNamesInIR, FindsEveryMap2checkSymbolOnce) {
   EXPECT_EQ(names[0], "map2check_malloc");
   EXPECT_EQ(names[1], "map2check_check_deref");
 }
+
+// A memory error can happen INSIDE an external function (strcpy overflowing a
+// stack buffer). No map2check_* call depends on such a call, so without it as
+// a criterion the slicer drops it and the bug with it -- measured: CASTLE-787-2
+// went from UNKNOWN to a wrong TRUE. Every declared-but-undefined function is
+// a criterion in the post-instrumentation modes; intrinsics are not calls.
+TEST(ExternalNamesInIR, FindsDeclaredFunctionsButNotIntrinsicsOrDefinitions) {
+  const std::string ir =
+      "define dso_local i32 @__map2check_main__() {\n"
+      "  call ptr @strcpy(ptr %1, ptr @.str)\n"
+      "}\n"
+      "declare ptr @strcpy(ptr noundef, ptr noundef) #2\n"
+      "declare void @llvm.dbg.declare(metadata, metadata, metadata) #1\n"
+      "declare i32 @printf(ptr noundef, ...) #2\n"
+      "declare void @map2check_malloc(ptr, i64)\n"
+      "declare ptr @strcpy(ptr noundef, ptr noundef) #2\n";
+  const std::vector<std::string> names = Map2Check::externalNamesInIR(ir);
+  ASSERT_EQ(names.size(), 3u);
+  EXPECT_EQ(names[0], "strcpy");
+  EXPECT_EQ(names[1], "printf");
+  EXPECT_EQ(names[2], "map2check_malloc");
+}

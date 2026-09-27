@@ -220,9 +220,18 @@ bool Caller::runSlicer(const std::string &input, const std::string &output,
     irText << irFile.rdbuf();
     programNondets = Map2Check::nondetNamesInIR(irText.str());
     if (addRuntimeNames) {
+      // The runtime checks decide the property; external calls can commit
+      // the error themselves (see externalNamesInIR). Both are criteria.
       for (const std::string &name :
            Map2Check::runtimeNamesInIR(irText.str())) {
         primary.push_back(name);
+      }
+      for (const std::string &name :
+           Map2Check::externalNamesInIR(irText.str())) {
+        if (std::find(primary.begin(), primary.end(), name) ==
+            primary.end()) {
+          primary.push_back(name);
+        }
       }
     }
   }

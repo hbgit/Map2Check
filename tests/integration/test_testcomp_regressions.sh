@@ -757,7 +757,30 @@ else
   fail "slice fallback" "plain=[$vla_plain] slice=[$vla_slice]"
 fi
 
-# --- 21. overflow slices the instrumented module and keeps the violation -----
+# --- 21. a memory error inside an external function must not be sliced away --
+# CASTLE-787-2 overflows a stack buffer inside strcpy. No map2check_* call
+# depends on that call, and the slicer treats external functions as only
+# reading their arguments, so it was dropped -- and the run answered TRUE for a
+# program with an out-of-bounds write. Every external call is a criterion now.
+cat > "$WORK/mem/strcpy.c" <<'EOF'
+#include <stdio.h>
+#include <string.h>
+int main(void) {
+  char username[10];
+  strcpy(username, "Is_this_too_long_for_this_array_buffer?");
+  printf("Hello %s!\n", username);
+  return 0;
+}
+EOF
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --slice --nondet-generator symex --timeout 45 strcpy.c ) > "$WORK/mem/strcpy.log" 2>&1
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/mem/strcpy.log"; then
+  fail "external call slicing" "the overflowing strcpy was sliced away: TRUE"
+else
+  ok "a memory error inside an external call survives slicing"
+fi
+
+# --- 22. overflow slices the instrumented module and keeps the violation -----
 # Overflow checks are map2check_binop_* runtime calls, so the same
 # post-instrumentation slice as the memory properties applies.
 mkdir -p "$WORK/ovf"
@@ -781,7 +804,7 @@ else
   grep -E "Sliced|slice|VERIFICATION" "$WORK/ovf/run.log" | sed 's/^/    /'
 fi
 
-# --- 22. slicing must not invent an overflow ---------------------------------
+# --- 23. slicing must not invent an overflow ---------------------------------
 cat > "$WORK/ovf/safe.c" <<'EOF'
 extern int __VERIFIER_nondet_int(void);
 int main(void) {

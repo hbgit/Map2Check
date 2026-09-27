@@ -111,3 +111,53 @@ WSL2. Build da v15 = `develop` em `415032766`, no mesmo container.
   operações aritméticas instrumentadas, enquanto o de memória são todos os acessos.
 - **Leitura:** o 2c deve ser uma extensão pequena do 2b (gating + testes + avaliação em
   CASTLE CWE-190, Juliet CWE-190 e NoOverflows do SV-COMP).
+
+## R8 — tacasv2b: CASTLE completo, controle × slice (2026-09-27)
+
+- **Config:** build 2b (`feat/tacas-slicing-mem`, AFL++ + CmpLog), CASTLE-C250 completo
+  (119 casos no escopo), 300 s, `EXTRA_FLAGS=""` × `--slice`. O slice só atua em
+  memtrack/memcleanup nesta build (overflow e assert-mode seguem as regras anteriores).
+
+| braço | TP | TN | FN | FP | UNKNOWN | TIMEOUT |
+|---|---|---|---|---|---|---|
+| v15 (referência) | 54 | 44 | 14 | 1 | 2 | 4 |
+| tacasv1 controle | 53 | 44 | 14 | 1 | 7 | 0 |
+| tacasv2b slice | 54 | 44 | **15** | 1 | 5 | 0 |
+
+- **Mudanças controle → slice:**
+  - `125-3` (memtrack): UNKNOWN em 203 s → **TP em 1,5 s**.
+  - `787-2` (memtrack): UNKNOWN em 2,4 s → **FN (TRUE errado)** em 58 s. **Defeito:** o
+    estouro acontece dentro de `strcpy` (libc). No controle, o AFL++ viu o crash e o KLEE
+    acusou "out of bound pointer" (UNKNOWN honesto); no slice, a chamada a `strcpy` foi
+    removida — ela não alimenta nenhuma chamada `map2check_*` e o slicer trata funções
+    externas como só-leitura dos argumentos — e o programa virou "seguro".
+- **Comparação com a v15:** o controle da tacasv1 perde o TP `125-3` (vira UNKNOWN) e
+  troca 4 TIMEOUT por UNKNOWN (o `-V` removido na R3 mudou a forma de terminar).
+- **Tempo (memtrack+memcleanup):** mediana 58,1 s × 58,3 s; soma 3432 s × 3377 s.
+- **Leitura:** o slicing de memória como implementado **introduz TRUE errado** quando o
+  bug está dentro de uma função externa. Correção necessária antes de qualquer conclusão
+  (ver R8b).
+
+## R9 — tacasv2b: SV-COMP MemSafety + MemCleanup, controle × slice (2026-09-27)
+
+- **Config:** `build_corpus.py --property memsafety --per-category 10` (50 tarefas:
+  Arrays, Heap, LinkedLists, Other, Juliet) e `memcleanup` (10), 120 s, mesmo build de R8.
+
+| memsafety | correct-true | correct-false | wrong-true | wrong-false | unknown | error |
+|---|---|---|---|---|---|---|
+| controle | 18 | 15 | 2 | 5 | 8 | 2 |
+| slice | 20 | 16 | **4** | **6** | 3 | 1 |
+
+- **Mudanças controle → slice:**
+  - ganhos: `coreutils od_…_1229` TIMEOUT → FALSE-DEREF correto; `memsafety-ext2/
+    optional_data_creation_test04-2` e `forester-heap/sll-buckets-1` UNKNOWN → TRUE correto;
+  - **erros novos:** `memsafety-cve/frr.i` e `memsafety-cve/pacparser.i` UNKNOWN → **TRUE
+    errado**; `busybox sleep-3.i` UNKNOWN → **FALSE-MEMTRACK errado**.
+- **MemCleanup:** idêntico nos dois braços (5 correct-false, 2 correct-true, 2 wrong-true,
+  1 error); tempo mediano 13 s → 8,5 s.
+- **Redução de instruções (memsafety):** mediana 3%, máximo 90% (45 fatias).
+- **Erros já presentes no controle:** 2 wrong-true e 5 wrong-false vêm da própria
+  tacasv1, não do slicing (a analisar à parte).
+- **Leitura:** mesmo padrão de R8 — ganhos reais, mas TRUE errado novo. Hipótese: as
+  mesmas chamadas externas removidas. Correção: toda função **externa** (declarada, sem
+  corpo) passa a ser critério nos modos pós-instrumentação.

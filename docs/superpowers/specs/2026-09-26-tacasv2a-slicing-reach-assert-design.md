@@ -36,6 +36,12 @@ famílias). Build tacasv1, orçamento de 300 s, TestCov 300 s, uma execução po
 As duas tarefas que a última variante não cobriu terminaram perto do orçamento (~258 s).
 Com uma execução por braço, não dá para separar isso de variação.
 
+**Depois da implementação** (2026-09-27, build final da `tacas/slicing`, mesma amostra e
+orçamento, uma execução por braço): controle **12/12**, slice **12/12**. `floppy.i.cil-1`
+dá FAILED + COVERED com slice. O slice terminou antes do controle em 5 das 9 tarefas ECA
+(por exemplo, `Problem17_label55`: FAILED em 51 s, contra UNKNOWN em 137 s no controle).
+São 12 tarefas: é validação de que os defeitos sumiram, não avaliação (§7).
+
 ### Defeito 1 — o KLEE aborta em toda fatia com caminho cortado
 
 - O `--cutoff-diverging` (default `true` no dg/sbt-slicer) insere um bloco `diverge:`

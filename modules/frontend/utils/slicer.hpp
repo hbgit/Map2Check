@@ -64,6 +64,22 @@ inline std::vector<std::string> nondetNamesInIR(const std::string& ir) {
   return names;
 }
 
+/** Every map2check_* runtime symbol in a module's textual IR, in order of
+ * first appearance. Used as the slicing criteria for the memory properties:
+ * the property is decided by these calls, so none of them may be removed. */
+inline std::vector<std::string> runtimeNamesInIR(const std::string& ir) {
+  static const std::regex symbol(R"(@(map2check_[A-Za-z0-9_]+))");
+  std::vector<std::string> names;
+  for (std::sregex_iterator it(ir.begin(), ir.end(), symbol), end; it != end;
+       ++it) {
+    const std::string name = (*it)[1];
+    if (std::find(names.begin(), names.end(), name) == names.end()) {
+      names.push_back(name);
+    }
+  }
+  return names;
+}
+
 /** The -c argument: the primary criteria, then every nondet function -- the
  * fixed list plus `fromProgram` (nondetNamesInIR), each name once. */
 inline std::string slicingCriteria(

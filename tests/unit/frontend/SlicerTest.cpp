@@ -122,3 +122,18 @@ TEST(SlicingCriteria, AddsNamesFromTheProgramOnceEach) {
   }
   EXPECT_EQ(count, 1u);
 }
+
+// After instrumentation the memory property lives in the runtime calls
+// MemoryTrackPass inserted; every one of them is a criterion, so nothing that
+// records memory is sliced away.
+TEST(RuntimeNamesInIR, FindsEveryMap2checkSymbolOnce) {
+  const std::string ir =
+      "declare void @map2check_malloc(ptr, i64)\n"
+      "  call void @map2check_check_deref(ptr %3, i64 4), !dbg !7\n"
+      "  call void @map2check_malloc(ptr %1, i64 8)\n"
+      "  call i32 @__VERIFIER_nondet_int()\n";
+  const std::vector<std::string> names = Map2Check::runtimeNamesInIR(ir);
+  ASSERT_EQ(names.size(), 2u);
+  EXPECT_EQ(names[0], "map2check_malloc");
+  EXPECT_EQ(names[1], "map2check_check_deref");
+}

@@ -780,6 +780,35 @@ else
   ok "a memory error inside an external call survives slicing"
 fi
 
+# --- 22. KLEE stopping on its timer is not a proof ---------------------------
+# KLEE halting on --max-time exits 0, like a run that explored every path. One
+# short path wrote NONE to the property file, and the run answered TRUE for a
+# program with a reachable null dereference. Found by slicing (memsafety-cve
+# frr.i, pacparser.i: the slice let KLEE reach its own timer), but it is not a
+# slicing defect -- this program is not sliced.
+mkdir -p "$WORK/halt"
+cat > "$WORK/halt/halt.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (x == 0) { return 0; }
+  int n = 0;
+  while (1) {
+    int y = __VERIFIER_nondet_int();
+    if (y > 3) { n++; } else { n += 2; }
+    if (n == 200000) { int *p = 0; *p = 1; }
+  }
+  return 0;
+}
+EOF
+( cd "$WORK/halt" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 20 halt.c ) > "$WORK/halt/run.log" 2>&1
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/halt/run.log"; then
+  fail "halted KLEE verdict" "TRUE after KLEE stopped on its timer"
+else
+  ok "a KLEE run halted on its timer is not reported TRUE"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

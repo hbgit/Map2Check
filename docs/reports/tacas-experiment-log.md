@@ -90,3 +90,24 @@ WSL2. Build da v15 = `develop` em `415032766`, no mesmo container.
 
 - **Leitura:** a abordagem é viável e barata; a redução é modesta. Decisão: abordagem 1 do
   2b (fatiar após a instrumentação).
+
+## R7 — tacasv2c: sondagem do slicing para overflow (2026-09-27)
+
+- **Achado de código:** o `OverflowPass` também instrumenta com chamadas de runtime
+  `map2check_binop_{add,sub,mul,sdiv,srem,…}` (`OperationsFunctions.hpp`). O mecanismo do
+  2b (fatiar o `-output.bc` com todo `map2check_*` como critério) cobre overflow sem lógica
+  nova — só o gating.
+- **Config:** tarefas NoOverflows do SV-COMP, `--check-overflow`, mesmo comando de R6.
+
+| programa | linhas | chamadas `binop` | instruções antes → depois | funções |
+|---|---|---|---|---|
+| busybox `chgrp-incomplete-2.i` | 2509 | 23 | 927 → 487 (**−47%**) | 18 → 10 |
+| bitvector `byte_add-2.i` | 134 | 16 | 452 → 442 (−2%) | 4 → 4 |
+| nla-digbench `bresenham-ll_unwindbound20.c` | 52 | 30 | 175 → 150 (−14%) | 4 → 1 |
+| goblint `04-mutex_07-ps_nr.c` | 42 | 2 | 46 → 40 (−13%) | 2 → 2 |
+
+- **Comparação com R6 (memória):** a redução em overflow é maior no programa grande
+  (−47% × −20% no busybox de memória). Faz sentido: o critério de overflow são só as
+  operações aritméticas instrumentadas, enquanto o de memória são todos os acessos.
+- **Leitura:** o 2c deve ser uma extensão pequena do 2b (gating + testes + avaliação em
+  CASTLE CWE-190, Juliet CWE-190 e NoOverflows do SV-COMP).

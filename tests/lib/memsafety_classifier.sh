@@ -10,6 +10,7 @@ classify_memsafety_result() {
     valid-free) want="FALSE-FREE" ;;
     valid-memtrack) want="FALSE-MEMTRACK" ;;
     valid-memcleanup) want="FALSE-MEMCLEANUP" ;;
+    no-overflow) want="FALSE-OVERFLOW" ;;
   esac
   case "$verdict" in
     TRUE) [ "$expected" = "true" ] && echo correct-true || echo wrong-true ;;

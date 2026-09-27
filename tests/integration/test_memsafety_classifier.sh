@@ -19,5 +19,8 @@ check false valid-deref      TRUE            wrong-true
 check false valid-deref      UNKNOWN         unknown
 check false valid-deref      TIMEOUT         unknown
 check true  ""               ERROR           error
+check false no-overflow      FALSE-OVERFLOW  correct-false
+check false no-overflow      FALSE-DEREF     wrong-false
+check true  ""               FALSE-OVERFLOW  wrong-false
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

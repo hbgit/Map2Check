@@ -227,3 +227,42 @@ A fatia remove essas definições não usadas, o KLEE roda e acusa vazamento. Re
 símbolos em conflito e rodando **sem slice**, o resultado também é FALSE-MEMTRACK: é um
 falso positivo pré-existente do memtrack, que o controle escondia por não conseguir rodar.
 Em aberto como defeito do memtrack (fora do escopo do slicing).
+
+## R14 — rodada consolidada, controle × slice, com as duas correções (2026-09-27)
+
+- **Build:** `feat/tacas-slicing-overflow` (2b + 2c + correções 1 e 2), os dois braços no
+  mesmo build. Slicing ativo para reach, assert, memtrack, memcleanup e overflow.
+- **Posterior à R14 (revisão final):** os intrínsecos de memória (`llvm.memcpy/memset/
+  memmove`) passaram a ser critério e a fatia é recusada se o IR instrumentado não puder
+  ser lido. Isso só acrescenta critério; o braço slice de MemSafety foi refeito em R14b.
+
+| corpus | controle | slice | mudanças |
+|---|---|---|---|
+| CASTLE (119) | TP 53, TN 44, FN 14, FP 1, UNK 6, ERR 1 | **idêntico** | nenhuma; tempo mediano 56,8 × 57,0 s |
+| MemSafety SV-COMP (50)* | 33 corretos, wrong-true 2, wrong-false 3 | 33 corretos, **wrong-true 1**, wrong-false 4 | 4 casos (abaixo) |
+| MemCleanup (10) | 6 corretos | **idêntico** | tempo mediano 14 × 8 s |
+| NoOverflows (20) | 4 corretos, 16 unknown | **idêntico** | — |
+| Juliet escopo C (842) | TP 141, FN 117, TN 342, FP 12, UNK 100, TO 93, ERR 37 | TP 141, **FN 117**, TN 342, FP 12, UNK 90, TO 93, ERR 47 | 12 casos, todos CWE-121 |
+
+\* reclassificado: as tarefas `Juliet_Test` do SV-COMP não declaram subpropriedade e o
+classificador contava todo FALSE nelas como errado (corrigido: "any").
+
+- **MemSafety, as 4 mudanças:** `csplit` FALSE-DEREF correto → TIMEOUT (perda);
+  `CWE122 …rand_18_bad` **TRUE errado → FALSE-DEREF correto** (ganho); `CWE127 memmove`
+  ERROR → UNKNOWN; `busybox sleep-3` UNKNOWN → FALSE-MEMTRACK (falso positivo pré-existente
+  do memtrack, exposto porque a fatia deixa o KLEE linkar — ver nota acima).
+- **Juliet, as 12 mudanças (CWE-121):** 2 UNKNOWN → TP (ganho); 2 TP → ERROR e 8 UNKNOWN
+  → ERROR. Os TP perdidos eram detecções **acidentais**: o `memcpy` estoura a pilha e
+  sobrescreve um ponteiro vizinho ("Reference to pointer was lost"); a fatia muda o
+  layout da pilha e o acidente some — o memtrack não confere limites dentro da libc.
+  Resultado honesto (UNKNOWN), classificado ERROR pelo runner do Juliet por causa do
+  `KLEE: ERROR` do `memcpy`.
+- **Comparação com R8–R13:** o TRUE errado que o slicing introduzia sumiu (Juliet FN 169
+  na R10 → 117 = controle; CASTLE 787-2 e memsafety-cve frr/pacparser resolvidos). O
+  controle também mudou por causa da correção 2: MemSafety correct-true 18 (R9) → 15,
+  porque três TRUE "de sorte" (KLEE parado pelo timer) agora saem UNKNOWN.
+- **Leitura:** nos corpora atuais o slicing é **neutro** em acertos, com trocas pontuais
+  (ganhos e perdas em números iguais) e **sem TRUE errado novo**; fica mais rápido em
+  MemCleanup. Os programas são pequenos e a fatia tem pouco a cortar (MemSafety: redução
+  mediana 3%). O ganho medido de verdade desta linha está nas correções de corretude que o
+  slicing expôs.

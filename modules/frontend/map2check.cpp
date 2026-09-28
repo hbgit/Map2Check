@@ -514,16 +514,22 @@ int map2check_execution(map2check_args args) {
   // properties: the search space is smaller and the instrumentation is added
   // to what survives.
   //
-  // Reachability only. Slicing needs a criterion, and Cover-Branches has none
-  // -- every branch is the goal. Asking elsewhere is refused, not ignored.
+  // Reachability and assert. Slicing needs a criterion, and Cover-Branches has
+  // none -- every branch is the goal. Asking elsewhere is refused, not ignored.
+  // Reachability slices towards the target; assert towards the two functions
+  // AssertPass instruments. Memory properties and overflow need their own
+  // criteria (tacasv2b/2c).
   if (args.sliceProgram) {
     if (args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
-      caller->sliceWithRespectToTarget(args.function);
+      caller->sliceWithRespectToTarget(args.function, {args.function});
+    } else if (args.mode == Map2Check::Map2CheckMode::ASSERT_MODE) {
+      caller->sliceWithRespectToTarget("__VERIFIER_assert",
+                                       {"__VERIFIER_assert", "__assert_fail"});
     } else {
       Map2Check::Log::Warning(
-          "--slice applies to reachability only: there is no criterion to "
-          "slice towards when the goal is coverage or a memory property. "
-          "Analysing the whole program.");
+          "--slice applies to reachability and assert only: there is no "
+          "criterion to slice towards when the goal is coverage or a memory "
+          "or overflow property. Analysing the whole program.");
     }
   }
 
@@ -560,15 +566,15 @@ int map2check_execution(map2check_args args) {
   //
   // Scope is deliberately narrow, and the narrowing has to be spelled out in
   // the CONDITION and not merely in a comment: the timeout branch runs before
-  // the LibFuzzer arm, so without this guard a LibFuzzer run whose crash could
+  // the AFL++ arm, so without this guard an AFL++ run whose crash could
   // not be replayed would have its property file trusted anyway -- the exact
   // evidence that should not be trusted. That is not hypothetical: under the
-  // hybrid default every case runs LibFuzzer first with 0.2x the budget, and
+  // hybrid default every case runs AFL++ first with 0.2x the budget, and
   // "Forcing timeout" appears in 2031 of the 2526 raw logs of the v5 Juliet
   // baseline.
   bool evidenceIsTrustworthy =
       recordedAViolation &&
-      (generator != Map2Check::NonDetGenerator::LibFuzzer ||
+      (generator != Map2Check::NonDetGenerator::AFLPlusPlus ||
        caller->isVerified());
 
   if (evidenceIsTrustworthy && caller->isTimeout()) {
@@ -580,7 +586,7 @@ int map2check_execution(map2check_args args) {
     Map2Check::Log::Warning("Note: Forcing timeout");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else if (!caller->isVerified() &&
-             (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
+             (generator == Map2Check::NonDetGenerator::AFLPlusPlus)) {
     Map2Check::Log::Warning("Note: Could not replicate error");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else {
@@ -608,6 +614,11 @@ int map2check_execution(map2check_args args) {
   //
   // Gated on generating a suite at all, and on the two sources emitTestSuite
   // itself consults -- so the check can never disagree with what gets written.
+  //
+  // "Recovered" includes the EMPTY vector of an aborting path: a program that
+  // reads no input reaches its error with zero <input> elements, and that
+  // test case covers it (tests/testcomp/programs/no_input.c). Counting only
+  // non-empty vectors downgraded exactly that case to UNKNOWN.
   if (args.generateTestSuite && !args.coverBranches &&
       args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE &&
       generator == Map2Check::NonDetGenerator::Klee &&
@@ -615,7 +626,7 @@ int map2check_execution(map2check_args args) {
       propertyViolated != Map2Check::PropertyViolated::UNKNOWN) {
     const bool haveVector =
         !Map2Check::readNonDetLog(Map2Check::kleeLogCSV).empty() ||
-        !Map2Check::readViolatingKtest(Map2Check::kleeOutputDir).empty();
+        Map2Check::hasViolatingKtest(Map2Check::kleeOutputDir);
     if (!haveVector) {
       Map2Check::Log::Warning(
           "the property file records a violation but no input vector could be "
@@ -646,7 +657,7 @@ int map2check_execution(map2check_args args) {
 
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
     // Printed for every generator, not just KLEE. Guarded on Klee, an
-    // undecided LibFuzzer run ended with NO verdict line at all, and a caller
+    // undecided AFL++ run ended with NO verdict line at all, and a caller
     // that parses stdout for one -- every harness here, and the BenchExec
     // tool-info -- reads that silence as the tool having crashed. It is the
     // same defect as the discarded exit code (finding G), one layer up: the
@@ -723,7 +734,7 @@ int main(int argc, char **argv) {
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
         ("nondet-generator", po::value<std::string>(),
-                      R"(specifies the nondet-generator, valid values are fuzzer (libFuzzer),
+                      R"(specifies the nondet-generator, valid values are afl (AFL++),
 symex (Klee))")
         ("smt-solver", po::value<std::string>()->default_value("z3"),
                       R"(specifies the smt-solver, valid values are stp (STP),
@@ -746,8 +757,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
          "\tdirectory to write the test suite into")
         ("slice",
-         "\tslice the program with respect to the target before analysing it "
-         "(reachability only; needs sbt-slicer)")
+         "\tslice the program with respect to the target (reachability) or "
+         "the assertions (--check-asserts) before analysing it; needs "
+         "sbt-slicer")
         ("seed-exchange",
          "\tlet the two engines hand each other input vectors through a shared "
          "seed corpus (hybrid runs; off by default)")
@@ -898,7 +910,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
                      generatorname.begin(), [](unsigned char c){
                      return std::tolower(c); });
 
-      std::vector<std::string> available_generators = {"fuzzer", "symex"};
+      std::vector<std::string> available_generators = {"afl", "symex"};
 
       if ( !std::count(available_generators.begin(), available_generators.end(), generatorname) ) {
         std::cout << "Selected generator don't exist, available: ";
@@ -910,7 +922,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       } else {
         std::cout << "Adopting " + generatorname + " nondet-generator... \n";
         if(generatorname == available_generators[0])
-          args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+          args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
         if(generatorname == available_generators[1])
           args.generator = Map2Check::NonDetGenerator::Klee;
       }
@@ -947,7 +959,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
       if(args.generator == Map2Check::NonDetGenerator::None) {
-        args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+        args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
         int result = map2check_execution(args);
         if (result != SUCCESS) {
           return result;
@@ -973,7 +985,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         // tasks in its current shape, and that number should keep meaning what
         // it means until this one is measured beside it.
         if (args.seedExchange && !foundViolation) {
-          args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+          args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
           result = map2check_execution(args);
           if (result != SUCCESS) {
             return result;

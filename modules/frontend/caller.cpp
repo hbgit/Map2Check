@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <sys/stat.h>
@@ -30,6 +31,7 @@
 #include "test_suite/ktest_reader.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
+#include "utils/slicer.hpp"
 #include "utils/tools.hpp"
 // namespace fs = boost::filesystem;
 // }  // namespace
@@ -144,7 +146,7 @@ unsigned Caller::exportKleeVectorsAsSeeds() {
     std::vector<uint8_t> bytes = Map2Check::ktestToFuzzerBytes(objects);
     if (bytes.empty()) continue;
 
-    // Named by index rather than by content hash: LibFuzzer renames what it
+    // Named by index rather than by content hash: AFL++ renames what it
     // keeps to its own hash anyway, so a second one here buys nothing.
     std::ostringstream name;
     name << Caller::seedDirectory << "/klee-" << index++;
@@ -176,7 +178,8 @@ std::string Caller::exportFuzzerVectorAsKtest() {
   return path;
 }
 
-bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
+bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
+                                      const std::vector<std::string> &criteria) {
   const std::string slicer = Map2Check::slicerBinary();
   if (!std::filesystem::exists(slicer)) {
     // Announced, not silently skipped. A slicer that is asked for and absent
@@ -218,10 +221,37 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
       1.0,
       std::min(0.2 * this->timeout,
                std::max(1.0, static_cast<double>(remainingSeconds()) - 5.0)));
-  command << "timeout -k " << Map2Check::killGracePeriod << " " << static_cast<unsigned>(sliceBudget)
-          << " " << slicer << " -c " << targetFunction
-          << " --entry=main -o " << output << " "
-          << input << " > slicer.output 2>&1";
+  // -cutoff-diverging=false: the cutoff rewrites every path that cannot reach
+  // the criterion into exit(0) with no debug location, and once KLEE links
+  // uClibc the verifier rejects the module ("Broken module found") -- KLEE
+  // never ran on a sliced task with a cut path (tacasv2a spec, defect 1).
+  //
+  // The nondet functions ride along as criteria so that every read the
+  // original program performs survives; the suite is generated on the slice
+  // and replayed on the original (defect 2).
+  //
+  // --statistics: counts before and after, logged below.
+  // The program's own nondet names join the fixed list: no fixed list knows
+  // every name a benchmark declares, and a missing one silently shifts the
+  // suite again. Read from the textual IR -- the bitcode string table packs
+  // names with no separator. If the disassembly fails, the fixed list stands.
+  const std::string inputIR = programHash + "-slice-input.ll";
+  std::ostringstream disassemble;
+  disassemble << Map2Check::optBinary << " -S " << input << " -o " << inputIR
+              << " > /dev/null 2>&1";
+  std::vector<std::string> programNondets;
+  if (system(disassemble.str().c_str()) == 0) {
+    std::ifstream irFile(inputIR);
+    std::stringstream irText;
+    irText << irFile.rdbuf();
+    programNondets = Map2Check::nondetNamesInIR(irText.str());
+  }
+
+  command << "timeout -k " << Map2Check::killGracePeriod << " "
+          << static_cast<unsigned>(sliceBudget) << " " << slicer << " -c "
+          << Map2Check::slicingCriteria(criteria, programNondets)
+          << " --entry=main -cutoff-diverging=false --statistics -o " << output
+          << " " << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());
   const int result = system(command.str().c_str());
 
@@ -240,15 +270,22 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   // of how much was dropped.
   const auto before = std::filesystem::file_size(input, error);
   const auto after = std::filesystem::file_size(output, error);
-  Map2Check::Log::Info("Sliced with respect to " + targetFunction + ": " +
-                       std::to_string(before) + " -> " +
-                       std::to_string(after) + " bytes of bitcode");
+  std::ifstream slicerLog("slicer.output");
+  std::stringstream slicerText;
+  slicerText << slicerLog.rdbuf();
+  std::string criterionLabel;
+  for (const std::string &name : criteria) {
+    criterionLabel += (criterionLabel.empty() ? "" : ",") + name;
+  }
+  Map2Check::Log::Info(Map2Check::describeSlice(
+      criterionLabel, Map2Check::parseSlicerStatistics(slicerText.str()),
+      before, after));
 
   // sbt-slicer removes the body of the criterion function itself. reach_error
   // is where the slice ENDS -- nothing it does can influence whether it is
   // reached -- so the slicer keeps the call site and drops the definition.
   //
-  // KLEE tolerates the resulting declaration. The native LibFuzzer link does
+  // KLEE tolerates the resulting declaration. The native AFL++ link does
   // not: it fails with "undefined reference to reach_error", no *-fuzzed.out
   // is produced, and the fuzzer stage then does nothing at all. The failure
   // was entirely silent -- the run simply came back UNKNOWN.
@@ -266,7 +303,7 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
   {
     std::ofstream stub(stubSource);
     if (stub.is_open()) {
-      stub << "void __attribute__((weak)) " << targetFunction << "(void) {}\n";
+      stub << Map2Check::targetStubSource(targetFunction);
     }
   }
   std::ostringstream compileStub;
@@ -286,7 +323,7 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction) {
     // runs on the slice. Say so rather than returning a half-configured run.
     Map2Check::Log::Warning(
         "could not restore a definition of " + targetFunction +
-        " after slicing -- the LibFuzzer stage will not link");
+        " after slicing -- the AFL++ stage will not link");
   }
 
   std::filesystem::rename(output, input, error);
@@ -313,8 +350,8 @@ void Caller::applyNonDetGenerator() {
       Map2Check::Log::Info("Applying optimizations for klee");
       break;
     }
-    case (NonDetGenerator::LibFuzzer): {
-      Map2Check::Log::Info("Instrumenting with LLVM LibFuzzer");
+    case (NonDetGenerator::AFLPlusPlus): {
+      Map2Check::Log::Info("Instrumenting with AFL++");
       std::ostringstream command;
       command.str("");
 
@@ -340,9 +377,8 @@ void Caller::applyNonDetGenerator() {
                                 " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";
 
       command
-          << bound << Map2Check::clangBinary
-          << "  -g -fsanitize=fuzzer -fsanitize-coverage=inline-8bit-counters "
-          << Caller::postOptimizationFlags()
+          << bound << Map2Check::aflClangFastBinary()
+          << "  -g " << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
           << " " + programHash + "-result.bc";
 
@@ -350,21 +386,41 @@ void Caller::applyNonDetGenerator() {
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << bound << Map2Check::clangBinary
-                     << "  -g -fsanitize=fuzzer "
+      commandWitness << bound << Map2Check::aflClangFastBinary()
+                     << "  -g "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
 
       system(commandWitness.str().c_str());
+
+      // The CmpLog companion binary: the same program instrumented to log
+      // the operands of comparisons, which afl-fuzz (-c) uses to solve
+      // magic-value guards such as `x == 123456` by input-to-state
+      // substitution. It is AFL++'s counterpart of the value profile the
+      // previous fuzzer ran with (-use_value_profile=1); without it the
+      // tacasv1 comparison would pit an unarmed AFL++ against an armed
+      // LibFuzzer. Optional: if it does not build, the fuzzer runs without.
+      std::ostringstream commandCmplog;
+      commandCmplog << "AFL_LLVM_CMPLOG=1 " << bound
+                    << Map2Check::aflClangFastBinary() << "  -g "
+                    << Caller::postOptimizationFlags()
+                    << " -o " + programHash + "-cmplog.out"
+                    << " " + programHash + "-result.bc";
+      system(commandCmplog.str().c_str());
 
       // Announced rather than discovered later as a silent no-op -- the same
       // failure mode the sliced arm spent a whole campaign in.
       std::error_code fuzzErr;
       if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
         Map2Check::Log::Warning(
-            "the LibFuzzer binary did not build within " +
+            "the AFL++ binary did not build within " +
             std::to_string(static_cast<int>(compileBudget)) +
             "s -- skipping the fuzzer phase and leaving the budget to KLEE");
+      } else if (!std::filesystem::exists(programHash + "-cmplog.out",
+                                          fuzzErr)) {
+        Map2Check::Log::Warning(
+            "the AFL++ CmpLog binary did not build -- fuzzing without "
+            "comparison solving");
       }
       break;
     }
@@ -543,8 +599,8 @@ void Caller::linkLLVM() {
       linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorKlee.bc";
       break;
     }
-    case (NonDetGenerator::LibFuzzer): {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorLibFuzzy.bc";
+    case (NonDetGenerator::AFLPlusPlus): {
+      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorAFL.bc";
       break;
     }
   }
@@ -779,57 +835,141 @@ void Caller::executeAnalysis(std::string solvername) {
 
       break;
     }
-    case (NonDetGenerator::LibFuzzer): {
+    case (NonDetGenerator::AFLPlusPlus): {
       std::error_code fuzzErr;
       const bool hasFuzzer =
           std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr);
       if (fuzzErr) {
         Map2Check::Log::Warning(
-            "could not check whether the LibFuzzer binary is available: " +
+            "could not check whether the AFL++ binary is available: " +
             fuzzErr.message());
         break;
       }
       if (!hasFuzzer) {
         Map2Check::Log::Warning(
-            "the LibFuzzer binary is unavailable -- skipping the fuzzer phase");
+            "the AFL++ binary is unavailable -- skipping the fuzzer phase");
         break;
       }
-      Map2Check::Log::Info("Executing LibFuzzer with map2check");
+      Map2Check::Log::Info("Executing AFL++ with map2check");
       std::ostringstream command;
       command.str("");
-      // -k for the same reason as the KLEE branch above; -jobs=8 also means
-      // LibFuzzer forks workers that must not outlive the budget.
       // Against what is LEFT, not against the nominal budget -- see
       // Caller::remainingSeconds.
       const double fuzzerBudget =
           std::min(0.2 * this->timeout,
                    static_cast<double>(this->remainingSeconds()));
-      command << "timeout -k " << Map2Check::killGracePeriod << " "
-              << static_cast<unsigned>(fuzzerBudget) << " ";
-      // A corpus DIRECTORY, not just a run. Without one LibFuzzer keeps its
-      // corpus in memory and throws it away when the process ends: everything
-      // it discovered in its slice of the budget was discarded, every run.
-      // With one, the interesting inputs persist -- which is what makes them
-      // available to the other engine, and to a later alternation.
-      std::string corpus;
-      if (this->seedExchange) {
-        std::error_code error;
-        std::filesystem::create_directories(Caller::seedDirectory, error);
-        corpus = std::string(" ") + Caller::seedDirectory;
+      // afl-fuzz needs a non-empty -i dir and a -o dir that does not already
+      // exist (the hybrid may run the fuzzer phase twice).
+      //
+      // The input dir is the shared seed corpus only under --seed-exchange,
+      // as it was for the previous fuzzer; otherwise a private one, so a run
+      // without the exchange leaves no seeds/ behind. Either way it gets one
+      // placeholder input when empty, because afl-fuzz refuses to start
+      // without one (the previous fuzzer could start from nothing).
+      std::error_code seedErr;
+      const std::string inputDir =
+          this->seedExchange ? std::string(Caller::seedDirectory) : "afl-in";
+      std::filesystem::create_directories(inputDir, seedErr);
+      if (std::filesystem::is_empty(inputDir, seedErr)) {
+        std::ofstream seed(inputDir + "/seed");
+        seed << "A";
+        if (!seed.good())
+          Map2Check::Log::Warning("could not write the AFL++ placeholder seed");
       }
-      command << "./" + programHash +
-                     "-fuzzed.out -jobs=8 -use_value_profile=1"
-              << corpus << " > fuzzer.output";
+      if (seedErr)
+        Map2Check::Log::Warning("could not prepare the AFL++ input dir " +
+                                inputDir + ": " + seedErr.message());
+      std::filesystem::remove_all("afl-out", seedErr);
+      // The AFL_* settings go on the command line, not only into the dev
+      // image's ENV, so that a release install or a benchmark host outside
+      // the image does not trip afl-fuzz's UI, CPU-affinity, cpufreq and
+      // core_pattern checks and exit before fuzzing anything.
+      //   AFL_CRASHING_SEEDS_AS_NEW_CRASH: a seed that already reaches the
+      //     violation is recorded as a crash instead of being skipped -- the
+      //     previous fuzzer reported that case too.
+      //   AFL_BENCH_UNTIL_CRASH: stop at the first crash, as the previous
+      //     fuzzer did, and hand the rest of the budget back.
+      command << "AFL_NO_UI=1 AFL_NO_AFFINITY=1 AFL_SKIP_CPUFREQ=1"
+              << " AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1"
+              << " AFL_CRASHING_SEEDS_AS_NEW_CRASH=1"
+              << " AFL_BENCH_UNTIL_CRASH=1 ";
+      // Bounded by `timeout` alone, as the previous fuzzer was. Not also by
+      // afl-fuzz -V: that one compares wall-clock (gettimeofday) readings,
+      // and a clock stepped backwards -- measured at over a second under
+      // WSL2 -- underflows the difference and ends the run after a few
+      // hundred executions. `timeout` uses a relative timer. At least 1s,
+      // since `timeout 0` would mean no limit at all.
+      command << "timeout -k " << Map2Check::killGracePeriod << " "
+              << std::max(1u, static_cast<unsigned>(fuzzerBudget)) << " ";
+      std::error_code cmplogErr;
+      const bool hasCmplog =
+          std::filesystem::exists(programHash + "-cmplog.out", cmplogErr);
+      command << Map2Check::aflFuzzBinary()
+              << " -i " << inputDir
+              << " -o afl-out";
+      if (hasCmplog) command << " -c ./" << programHash << "-cmplog.out";
+      command << " -- ./" << programHash << "-fuzzed.out"
+              << " > fuzzer.output 2>&1";
 
       int result = system(command.str().c_str());
       Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
 
-      std::ostringstream commandWitness;
-      commandWitness.str("");
-      commandWitness << "./" + programHash + "-witness-fuzzed.out crash-*";
-      system(commandWitness.str().c_str());
+      // A single instance without -M/-S is named "default" by afl-fuzz, and
+      // its findings live under afl-out/default/, not afl-out/.
+      const std::string aflFindings = "afl-out/default";
+
+      // Replay crashes with the witness binary to confirm a real violation.
+      // Standalone, the persistent binary reads its input from stdin (see
+      // NonDetGeneratorAFL.c), so the crash file is redirected in; the names
+      // AFL++ gives them contain ':' and ',', hence the quoting. Stop at the
+      // first confirmed one: every replay rewrites the recorded property, and
+      // a later one that does not reproduce would overwrite the violation.
+      // Each replay is capped: a crash that does not reproduce from a fresh
+      // process may loop instead, and must not eat what is left for KLEE.
+      // Files are selected by what they are, not by AFL++'s "id:" naming,
+      // which AFL_SHA1_FILENAMES or a SIMPLE_FILES build would change.
+      const unsigned replayBudget = std::min(
+          this->remainingSeconds(),
+          std::max(5u, static_cast<unsigned>(0.1 * this->timeout)));
+      std::error_code crashErr;
+      for (const auto &entry : std::filesystem::directory_iterator(
+               aflFindings + "/crashes", crashErr)) {
+        if (!entry.is_regular_file(crashErr)) continue;
+        if (entry.path().filename() == "README.txt") continue;
+        std::ostringstream commandWitness;
+        commandWitness << "timeout -k " << Map2Check::killGracePeriod << " "
+                       << replayBudget << " ./" << programHash
+                       << "-witness-fuzzed.out < '" << entry.path().string()
+                       << "'";
+        system(commandWitness.str().c_str());
+        if (isWitnessFileCreated()) break;
+      }
+
+      // afl-fuzz never writes back into -i, so under --seed-exchange its
+      // discoveries are copied into seeds/ -- the previous fuzzer grew that
+      // directory in place. Inputs tagged ",orig:" are the seeds it started
+      // from, already there.
+      //
+      // Caveat, inherited unchanged from v15: seeds/ lives in the scratch
+      // directory, which the next phase's Caller wipes on construction, so
+      // this corpus does not yet reach the following KLEE or fuzzer phase.
+      // Making it survive changes what the hybrid measures, and belongs to
+      // the smart-seeds work, not to the engine swap.
+      if (this->seedExchange) {
+        std::error_code queueErr;
+        for (const auto &entry : std::filesystem::directory_iterator(
+                 aflFindings + "/queue", queueErr)) {
+          const std::string name = entry.path().filename().string();
+          if (!entry.is_regular_file(queueErr)) continue;
+          if (name.find(",orig:") != std::string::npos) continue;
+          std::filesystem::copy_file(
+              entry.path(),
+              std::string(Caller::seedDirectory) + "/afl-" + name,
+              std::filesystem::copy_options::skip_existing, queueErr);
+        }
+      }
       Map2Check::Log::Debug("Finished fuzzer");
 
       if (isWitnessFileCreated()) {

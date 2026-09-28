@@ -47,8 +47,10 @@ DEADLINE_S="${DEADLINE_S:-18000}"
 # compared on the SAME task list:
 #
 #   symex        KLEE only -- every Test-Comp measurement before 2026-08-23
-#   fuzzer       LibFuzzer only
-#   hybrid       the tool's actual default: LibFuzzer at 0.2x, then KLEE
+#   afl          AFL++ only (tacasv1 onwards; `fuzzer` was LibFuzzer and is
+#                refused -- the engine is gone, and a result dir named for it
+#                would mix two engines)
+#   hybrid       the tool's actual default: the fuzzer at 0.2x, then KLEE
 #   hybrid-seed  the same, with the two engines exchanging input vectors
 #
 # The default is hybrid, which is also the tool's own default when no
@@ -67,7 +69,8 @@ GENERATOR="${GENERATOR:-hybrid}"
 # engine is running.
 EXTRA_FLAGS="${EXTRA_FLAGS:-}"
 case "$GENERATOR" in
-  symex|fuzzer) GENERATOR_FLAG="--nondet-generator $GENERATOR" ;;
+  symex|afl)    GENERATOR_FLAG="--nondet-generator $GENERATOR" ;;
+  fuzzer) echo "GENERATOR=fuzzer was LibFuzzer, which AFL++ replaced -- use GENERATOR=afl" >&2; exit 2 ;;
   hybrid)       GENERATOR_FLAG="" ;;   # absent flag IS the hybrid path
   hybrid-seed)  GENERATOR_FLAG="--seed-exchange" ;;
   *) echo "unknown GENERATOR: $GENERATOR" >&2; exit 2 ;;

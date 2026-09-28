@@ -127,9 +127,40 @@ ENV PATH="/opt/klee/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/opt/klee/lib"
 
 # ============================================================
-# 7. LibFuzzer (already included in LLVM 16 compiler-rt)
+# 7. AFL++ 4.40c (LLVM 16, PCGUARD)
 # ============================================================
-# No extra install needed — available via clang-16 -fsanitize=fuzzer
+# Tag-pinned like KLEE above: AFL++ has versioned releases, so -b v4.40c is
+# the reproducible pin (the SHA pins in 7b/7c are for projects with none).
+# PCGUARD is AFL++'s own SanitizerCoveragePCGUARD pass plugin, built against
+# the image's LLVM 16 and loaded by afl-clang-fast; it is the default and most
+# robust LLVM mode, lighter than the LTO one.
+RUN git clone --depth 1 -b v4.40c https://github.com/AFLplusplus/AFLplusplus.git /tmp/afl++ && \
+    cd /tmp/afl++ && \
+    make -j"$(nproc)" && \
+    make install && \
+    rm -rf /tmp/afl++
+
+ENV PATH="/usr/local/bin:${PATH}"
+# afl-cc locates its runtime relative to its own install; AFL_PATH is a safety
+# net for the non-LLVM modes.
+ENV AFL_PATH=/usr/local/lib/afl
+# Headless, container-safe defaults: afl-fuzz aborts under CI/containers on the
+# UI, CPU-affinity, cpufreq-governor and core-pattern checks. PCGUARD is the
+# instrumentation mode afl-clang-fast must use everywhere.
+ENV AFL_NO_UI=1 \
+    AFL_NO_AFFINITY=1 \
+    AFL_SKIP_CPUFREQ=1 \
+    AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 \
+    AFL_LLVM_INSTRUMENT=PCGUARD
+
+# Fail the image build if AFL++ cannot actually instrument — the same failure
+# mode section 7c guards against for sbt-slicer. afl-showmap exits non-zero on
+# an uninstrumented binary, and the map is empty, so both checks must pass.
+RUN printf 'int main(void){return 0;}\n' > /tmp/aflcheck.c && \
+    /usr/local/bin/afl-clang-fast -o /tmp/aflcheck /tmp/aflcheck.c && \
+    /usr/local/bin/afl-showmap -q -o /tmp/aflmap -- /tmp/aflcheck && \
+    test -s /tmp/aflmap && \
+    echo "AFL++ instruments: OK" && rm -f /tmp/aflcheck.c /tmp/aflcheck /tmp/aflmap
 
 # ============================================================
 # 7b. Clam (formerly crab-llvm) — abstract-interpretation invariants

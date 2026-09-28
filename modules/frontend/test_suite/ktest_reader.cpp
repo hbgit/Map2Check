@@ -56,7 +56,7 @@ void putBigEndian32(std::ofstream& out, uint32_t value) {
  *
  * Both halves have to agree with the runtime or a seed means nothing: the name
  * is what klee_make_symbolic was called with (NonDetGeneratorKlee.c), and the
- * width is what the fuzzer consumes per read (NonDetGeneratorLibFuzzy.c).
+ * width is what the fuzzer consumes per read (NonDetGeneratorAFL.c).
  * Enumerator values come from enum NONDET_TYPE in Map2CheckTypes.h. */
 struct NonDetTypeInfo {
   const char* name;
@@ -285,6 +285,27 @@ std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir) {
     return inputs;
   }
   return {};
+}
+
+bool hasViolatingKtest(const std::string& kleeOutDir) {
+  std::error_code error;
+  if (!std::filesystem::is_directory(kleeOutDir, error)) return false;
+  const std::string kAbortSuffix = ".abort.err";
+  for (const auto& entry :
+       std::filesystem::directory_iterator(kleeOutDir, error)) {
+    const std::string name = entry.path().filename().string();
+    if (name.size() <= kAbortSuffix.size()) continue;
+    if (name.compare(name.size() - kAbortSuffix.size(), kAbortSuffix.size(),
+                     kAbortSuffix) != 0) {
+      continue;
+    }
+    const std::string stem = name.substr(0, name.size() - kAbortSuffix.size());
+    if (std::filesystem::exists(
+            std::filesystem::path(kleeOutDir) / (stem + ".ktest"), error)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::vector<std::vector<std::string>> readKtestVectors(

@@ -255,3 +255,33 @@ TEST(ReadKtestVectors, DropsVectorsWithNoObjects) {
 TEST(ReadKtestVectors, MissingDirectoryYieldsNothing) {
   EXPECT_TRUE(Map2Check::readKtestVectors("/nonexistent/klee-last", 10).empty());
 }
+
+// --- violating path ---------------------------------------------------------
+
+// A program with no nondeterministic input reaches its error with the empty
+// vector. That is a complete witness, and the verdict must not be downgraded
+// for lacking one (tests/testcomp/programs/no_input.c).
+TEST(HasViolatingKtest, CountsAnAbortingPathWithNoObjects) {
+  fs::path d = freshDir("violating_empty");
+  KtestBuilder().writeTo(d / "test000001.ktest");
+  std::ofstream(d / "test000001.abort.err") << "abort";
+  EXPECT_TRUE(Map2Check::hasViolatingKtest(d.string()));
+  EXPECT_TRUE(Map2Check::readViolatingKtest(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(HasViolatingKtest, IgnoresErrorsThatAreNotAborts) {
+  fs::path d = freshDir("violating_ptr");
+  KtestBuilder().object("non_det_int", le32(1)).writeTo(d / "test000001.ktest");
+  std::ofstream(d / "test000001.ptr.err") << "ptr";
+  EXPECT_FALSE(Map2Check::hasViolatingKtest(d.string()));
+  fs::remove_all(d);
+}
+
+TEST(HasViolatingKtest, NeedsTheKtestBesideTheReport) {
+  fs::path d = freshDir("violating_orphan");
+  std::ofstream(d / "test000001.abort.err") << "abort";
+  EXPECT_FALSE(Map2Check::hasViolatingKtest(d.string()));
+  EXPECT_FALSE(Map2Check::hasViolatingKtest("/nonexistent/klee-last"));
+  fs::remove_all(d);
+}

@@ -15,3 +15,8 @@ add_executable(KtestReaderTest
     $<TARGET_OBJECTS:TestSuite>
 )
 map2check_test(KtestReaderTest)
+
+add_executable(SlicerTest
+    SlicerTest.cpp
+)
+map2check_test(SlicerTest)

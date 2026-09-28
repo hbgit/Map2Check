@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is Map2Check
 
-Map2Check is a bug-hunting tool that automatically generates and checks safety properties in C programs. It tracks memory pointers and variable assignments to check user-specified assertions, overflow, and pointer safety. It uses LLVM 16, LibFuzzer, and KLEE 3.1 for test case generation.
+Map2Check is a bug-hunting tool that automatically generates and checks safety properties in C programs. It tracks memory pointers and variable assignments to check user-specified assertions, overflow, and pointer safety. It uses LLVM 16, AFL++, and KLEE 3.1 for test case generation.
 
 ## Build System
 
@@ -30,7 +30,7 @@ ninja && ninja install
 # binary at release/bin/map2check
 ```
 
-`Dockerfile.dev` already builds and installs KLEE 3.1 (to `/opt/klee`) and provides LibFuzzer via LLVM 16's compiler-rt — do **not** pass `-DSKIP_KLEE=ON` or `-DSKIP_LIB_FUZZER=ON` unless you deliberately want a build without KLEE/LibFuzzer support.
+`Dockerfile.dev` already builds and installs KLEE 3.1 (to `/opt/klee`) and installs AFL++ 4.40c as a standalone toolchain (found at run time under `/usr/local/bin`) — do **not** pass `-DSKIP_KLEE=ON` or `-DSKIP_AFL_PLUS_PLUS=ON` unless you deliberately want a build without KLEE/AFL++ support.
 
 ### Manual CMake build (if LLVM 16 is locally available, e.g. via apt.llvm.org)
 
@@ -39,7 +39,7 @@ export LLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm
 export CXX=/usr/bin/clang++-16
 export CC=/usr/bin/clang-16
 mkdir build && cd build
-cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON
+cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_AFL_PLUS_PLUS=ON -DSKIP_KLEE=ON
 ninja && ninja install
 ```
 
@@ -47,7 +47,7 @@ ninja && ninja install
 
 | Flag | Default | Purpose |
 |------|---------|---------|
-| `SKIP_LIB_FUZZER` | OFF | Skip building LibFuzzer |
+| `SKIP_AFL_PLUS_PLUS` | OFF | Skip building AFL++ |
 | `SKIP_KLEE` | OFF | Skip building KLEE/Z3/STP/MiniSat |
 | `ENABLE_TEST` | OFF | Build GTest unit tests |
 | `REGRESSION` | OFF | Download regression test benchmarks |
@@ -67,7 +67,7 @@ Enabling sanitizers switches from static to shared linking and enables `-fsaniti
 
 ```sh
 cd build
-cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON -DENABLE_TEST=ON
+cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_AFL_PLUS_PLUS=ON -DSKIP_KLEE=ON -DENABLE_TEST=ON
 ninja && ninja install && ctest
 ```
 
@@ -103,7 +103,7 @@ Entry point: `map2check.cpp` → `main()`. Parses CLI options (via Boost.Program
 1. `compileCFile()` — compile the input C file to LLVM IR via clang
 2. `callPass()` — apply the appropriate LLVM pass (instrumentation)
 3. `linkLLVM()` — link instrumented IR with the library backend
-4. `applyNonDetGenerator()` — invoke LibFuzzer or KLEE to generate inputs
+4. `applyNonDetGenerator()` — invoke AFL++ or KLEE to generate inputs
 5. `executeAnalysis()` — run the instrumented binary; collect results
 6. Witness/counterexample generation in [counter_example/](modules/frontend/counter_example/) and [witness/](modules/frontend/witness/)
 
@@ -133,7 +133,7 @@ Key API: [Map2CheckFunctions.h](modules/backend/library/header/Map2CheckFunction
 
 To add a new analysis mode: implement the interface in [AnalysisMode.h](modules/backend/library/header/AnalysisMode.h) and add a new `AnalysisMode<Name>.c` file alongside the existing ones.
 
-**NonDet generators** are selected at link time: `NonDetGeneratorNone.c`, `NonDetGeneratorKlee.c`, `NonDetGeneratorLibFuzzy.c`.
+**NonDet generators** are selected at link time: `NonDetGeneratorNone.c`, `NonDetGeneratorKlee.c`, `NonDetGeneratorAFL.c`.
 
 ## Submodule Note
 

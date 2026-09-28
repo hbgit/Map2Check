@@ -73,6 +73,14 @@ std::string decodeKtestObject(const KtestObject& object);
  * runtime. Returns an empty vector when no path errored. */
 std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir);
 
+/** Whether KLEE flagged an aborting path whose .ktest is on disk at all.
+ *
+ * Unlike readViolatingKtest this also counts a path with ZERO objects: a
+ * program that reads no nondeterministic input reaches its error with the
+ * empty vector, and that empty vector is a complete, reproducible witness --
+ * not the "nothing recovered" readViolatingKtest's empty result means. */
+bool hasViolatingKtest(const std::string& kleeOutDir);
+
 /** Every input vector KLEE recorded under `kleeOutDir`, one per .ktest.
  *
  * Ordered by file name, which is KLEE's own path numbering: stable across
@@ -85,7 +93,7 @@ std::vector<std::vector<std::string>> readKtestVectors(
 /** Serialises objects into the byte stream a fuzzer would consume.
  *
  * Sound only because both engines now agree on widths: NonDetGeneratorKlee.c
- * passes sizeof(type) to klee_make_symbolic, and NonDetGeneratorLibFuzzy.c
+ * passes sizeof(type) to klee_make_symbolic, and NonDetGeneratorAFL.c
  * takes sizeof(type) bytes per read. Concatenating a .ktest's objects in order
  * therefore produces exactly the buffer that would drive the fuzzer down the
  * same path. Before the width fix this was impossible -- the fuzzer read one

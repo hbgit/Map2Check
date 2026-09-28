@@ -37,12 +37,11 @@ enum class Map2CheckMode {
 };
 
 /** NonDet generators */
-// TODO(hbgit): Add suport to other nondet like: klee, afl, afl+klee,
-// LibFuzzer+afl
+// TODO(hbgit): Add suport to other nondet like: klee, afl++, afl+klee
 enum class NonDetGenerator {
-  None,      /**< Do not generate any input */
-  LibFuzzer, /**< LibFuzzer from LLVM */
-  Klee,      /**< Use klee for symbolic analysis */
+  None,       /**< Do not generate any input */
+  AFLPlusPlus, /**< AFL++ (persistent mode, PCGUARD) */
+  Klee,       /**< Use klee for symbolic analysis */
 };
 
 /** Data Structure */
@@ -81,7 +80,7 @@ class Caller {
 
   /** Seconds of the run's budget that have not been spent yet.
    *
-   * The engines used to size themselves from the NOMINAL budget: LibFuzzer
+   * The engines used to size themselves from the NOMINAL budget: AFL++
    * took 0.2x and KLEE 0.8x, which adds to exactly the whole of it and leaves
    * nothing for the two compile-instrument-link passes between them. Under the
    * hybrid default the Caller is rebuilt per phase, so that overhead is paid
@@ -131,10 +130,17 @@ class Caller {
    * decision the caller makes rather than a default. */
   bool sliceProgram = false;
 
-  /** Runs sbt-slicer over the instrumented bitcode. Returns false if the
-   * slicer is unavailable or produced nothing usable, leaving the original
-   * bitcode in place. */
-  bool sliceWithRespectToTarget(const std::string& targetFunction);
+  /** Runs sbt-slicer over the compiled (not yet instrumented) bitcode.
+   *
+   * `criteria` are the primary slicing criteria (the target function, or the
+   * assert functions); every __VERIFIER_nondet_* function is added to them so
+   * the suite found on the slice stays valid on the original program. The
+   * cutoff of diverging paths is off: its exit(0) carries no debug location
+   * and KLEE rejects the module. `targetFunction` gets its body back through a
+   * weak stub. Returns false if the slicer is unavailable or produced nothing
+   * usable, leaving the original bitcode in place. */
+  bool sliceWithRespectToTarget(const std::string& targetFunction,
+                                const std::vector<std::string>& criteria);
 
   /** Turns on the exchange of input vectors between the two engines.
    *
@@ -146,10 +152,15 @@ class Caller {
   /** Directory the two engines use to hand each other input vectors.
    *
    * A directory of files rather than a value passed from one phase to the
-   * next, and the shape is the point: it survives between phases, between
-   * runs, and between alternations -- which is what time-slicing will need.
-   * LibFuzzer treats it as its corpus and grows it; the KLEE phase drops its
-   * own path vectors in.
+   * next, meant to survive between phases, runs and alternations -- which is
+   * what time-slicing will need. AFL++ starts from it and its discoveries are
+   * copied back in after each fuzzer phase (afl-fuzz never writes into its -i
+   * dir); the KLEE phase drops its own path vectors in.
+   *
+   * NOT yet true across phases (same as v15): it sits inside the scratch
+   * directory, which each phase's Caller recreates empty. Fixing that is part
+   * of the smart-seeds work (tacasv2/v3), since it changes what the hybrid
+   * measures.
    *
    * Relative, because both engines run with the scratch directory as their
    * working directory. */

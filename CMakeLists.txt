@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(Map2Check VERSION 8.0.0 LANGUAGES C CXX)
 
 option(BUILD_DOC "Build documentation" OFF)
-option(SKIP_LIB_FUZZER "Don't use libFuzzer" OFF)
+option(SKIP_AFL_PLUS_PLUS "Don't use AFL++" OFF)
 option(SKIP_KLEE "Don't use KLEE" OFF)
 option(REGRESSION "Prepare Regression Tests" OFF)
 option(ENABLE_TEST "Build all tests" OFF)
@@ -42,7 +42,7 @@ endif()
 # --- Abstract-interpretation invariants (Clam, formerly crab-llvm) ---
 # Off by default, and deliberately so: an unsound invariant does not raise an
 # error, it produces a wrong TRUE. Under KLEE klee_assume() prunes a reachable
-# state; under LibFuzzer nondet_assume() calls pthread_exit() and the execution
+# state; under AFL++ nondet_assume() longjmps past the input and the execution
 # disappears. Promoting this to a default needs the differential evidence
 # described in docs/reports/2026-08-16-crabllvm-review.md.
 #
@@ -60,8 +60,8 @@ endif()
 include(cmake/FindClang.cmake)
 include(cmake/FindBoost.cmake)
 
-if(NOT SKIP_LIB_FUZZER)
-  include(cmake/FindLibFuzzer.cmake)
+if(NOT SKIP_AFL_PLUS_PLUS)
+  include(cmake/FindAFLPlusPlus.cmake)
 endif()
 
 if(NOT SKIP_KLEE)

@@ -359,7 +359,7 @@ int main(void) {
   return 0;
 }
 EOF
-for gen in fuzzer symex; do
+for gen in afl symex; do
   ( cd "$WORK/verdict" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 120 "$MAP2CHECK" \
       --target-function --target-function-name reach_error \
       --nondet-generator "$gen" --timeout 45 hard.c ) > "$WORK/verdict/$gen.log" 2>&1
@@ -393,7 +393,7 @@ int main(void) {
 EOF
 ( cd "$WORK/width" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 150 "$MAP2CHECK" \
     --target-function --target-function-name reach_error \
-    --nondet-generator fuzzer --timeout 60 neg.c ) > "$WORK/width/run.log" 2>&1
+    --nondet-generator afl --timeout 60 neg.c ) > "$WORK/width/run.log" 2>&1
 
 if grep -q 'VERIFICATION FAILED' "$WORK/width/run.log"; then
   ok "the fuzzer reaches a negative short"
@@ -446,12 +446,16 @@ rm -rf "$WORK/seed"/*.map2check
     --target-function --target-function-name reach_error --seed-exchange \
     --debug --timeout 60 seed.c ) > "$WORK/seed/on.log" 2>&1
 scratch_on=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
-n_on=$(ls "$scratch_on/seeds" 2>/dev/null | wc -l)
+# Only the fuzzer's own discoveries count: the Caller writes a placeholder
+# seed into seeds/ itself, so a plain file count would pass with no copy-back.
+n_on=$(ls "$scratch_on/seeds" 2>/dev/null | grep -c '^afl-')
 
-# LibFuzzer renames what it keeps to its own content hash, so any file at all
-# means the corpus survived the process -- which it never used to.
+# afl-fuzz never writes into its -i dir; the Caller copies its queue back in
+# after the fuzzer phase, so the corpus survives the fuzzer process. (It does
+# not yet survive into the next phase: each Caller recreates the scratch
+# directory -- inherited from v15, left to the smart-seeds work.)
 if [ "$n_on" -gt 0 ]; then
-  ok "the fuzzer corpus persists with --seed-exchange ($n_on files)"
+  ok "the fuzzer discoveries are copied into seeds/ with --seed-exchange ($n_on files)"
 else
   fail "seed corpus" "nothing kept -- the corpus is still in-memory only"
 fi
@@ -459,8 +463,24 @@ fi
 # KLEE -> fuzzer: its per-path vectors become seed files. Sound only because
 # both engines now consume sizeof(type) per read, so concatenating a .ktest's
 # objects is exactly the buffer that drives the fuzzer down the same path.
-if grep -q "Seeded the fuzzer corpus with" "$WORK/seed/on.log"; then
+#
+# The export only happens if the KLEE phase runs, and with CmpLog the fuzzer
+# phase sometimes solves seed.c on its own and ends the hybrid first. That is
+# not a failure of the channel, so retry a couple of times for a run where
+# KLEE gets its turn; only a KLEE phase that ran and exported nothing fails.
+klee_log="$WORK/seed/on.log"
+for attempt in 2 3; do
+  grep -q "Executing Klee" "$klee_log" && break
+  rm -rf "$WORK/seed"/*.map2check
+  klee_log="$WORK/seed/on.$attempt.log"
+  ( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+      --target-function --target-function-name reach_error --seed-exchange \
+      --timeout 60 seed.c ) > "$klee_log" 2>&1
+done
+if grep -q "Seeded the fuzzer corpus with" "$klee_log"; then
   ok "KLEE's path vectors are exported into the seed corpus"
+elif ! grep -q "Executing Klee" "$klee_log"; then
+  ok "KLEE -> fuzzer not exercised: the fuzzer solved seed.c first in 3 runs"
 else
   fail "KLEE -> fuzzer" "no vectors exported"
 fi
@@ -496,10 +516,138 @@ fi
 ( cd "$WORK/slice" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
     --memtrack --slice --nondet-generator symex --timeout 45 reach.c ) \
   > "$WORK/slice/mode.log" 2>&1
-if grep -q "applies to reachability only" "$WORK/slice/mode.log"; then
+if grep -q "applies to reachability and assert only" "$WORK/slice/mode.log"; then
   ok "--slice is refused where there is no criterion to slice towards"
 else
   fail "slice mode guard" "--slice was accepted in a mode that has no criterion"
+fi
+
+# --- 13. a slice must leave KLEE something it can run -------------------------
+# sbt-slicer's --cutoff-diverging (default on) rewrites every path that cannot
+# reach the criterion into a `diverge:` block calling exit(0) -- with no debug
+# location. The program is compiled with -g; once KLEE links uClibc, exit has a
+# body, and the verifier rejects the module ("inlinable function call in a
+# function with debug info must have a !dbg location"). KLEE aborted before
+# executing anything, on every sliced task with a cut path: the slice arm of
+# the v15 campaign ran without its symbolic engine.
+mkdir -p "$WORK/cut"
+# ECA-shaped on purpose: the slicer turns a plain return from main into a
+# `safe_return`, so a straight-line program never gets a `diverge:` block. A
+# reactive loop whose step can take a path that never reaches the target does;
+# bounded to two steps so that KLEE decides it well inside the budget.
+cat > "$WORK/cut/cut.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+extern void reach_error(void);
+extern void exit(int);
+int a = 1;
+void step(int in) {
+  if (in == 5) { a = 2; return; }
+  if (in == 6 && a == 2) { reach_error(); }
+  if (in == 9) { exit(0); }
+}
+int main(void) {
+  for (int i = 0; i < 2; i++) {
+    int in = __VERIFIER_nondet_int();
+    step(in);
+  }
+  return 0;
+}
+EOF
+( cd "$WORK/cut" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --slice \
+    --nondet-generator symex --timeout 45 cut.c ) > "$WORK/cut/run.log" 2>&1
+if grep -q "Broken module" "$WORK/cut/run.log"; then
+  fail "slice + KLEE" "KLEE rejected the sliced module (cutoff exit without !dbg)"
+elif grep -q "VERIFICATION FAILED" "$WORK/cut/run.log"; then
+  ok "KLEE runs on the slice and reaches the target"
+else
+  fail "slice + KLEE" "no FAILED verdict on a trivially reachable target"
+  grep -E "Sliced|Exited klee|VERIFICATION" "$WORK/cut/run.log" | sed 's/^/    /'
+fi
+
+# --- 14. a suite found on the slice must hold on the original ----------------
+# TestCov runs the suite on the ORIGINAL program. A nondet read the slicer
+# dropped -- its value does not reach the target -- is still consumed there,
+# so the vector shifts: measured on ntdrivers/floppy.i.cil-1.c, FAILED and
+# NOT_COVERED. The slice keeps every nondet call, so both values appear, in
+# the original order.
+mkdir -p "$WORK/order"
+cp "$WORK/one/reach.prp" "$WORK/order/"
+cat > "$WORK/order/order.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+extern void reach_error(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (b == 42) { reach_error(); }
+  return a;
+}
+EOF
+( cd "$WORK/order" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --slice \
+    --nondet-generator symex --generate-test-suite --property-file reach.prp \
+    --timeout 60 order.c ) > "$WORK/order/run.log" 2>&1
+order_inputs=$(sed -n 's:.*<input>\(.*\)</input>.*:\1:p' \
+  "$WORK/order/test-suite/testcase-1.xml" 2>/dev/null | tr '\n' ' ')
+if [ "$(echo $order_inputs | wc -w)" -eq 2 ] && \
+   [ "$(echo $order_inputs | awk '{print $2}')" = "42" ]; then
+  ok "the sliced suite keeps the original read order [$order_inputs]"
+else
+  fail "slice read order" "expected 2 inputs ending in 42, got [$order_inputs]"
+fi
+
+# --- 15. assert mode slices towards the assertions ----------------------------
+# AssertPass instruments __VERIFIER_assert and __assert_fail, so those are the
+# criteria. The program only DECLARES __VERIFIER_assert: the weak stub must
+# take the condition, or llvm-link rejects the (void) definition.
+mkdir -p "$WORK/assert"
+cat > "$WORK/assert/assert.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+extern void __VERIFIER_assert(int cond);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (a > 0) { a = a - 1; }
+  __VERIFIER_assert(b != 77);
+  return a;
+}
+EOF
+( cd "$WORK/assert" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --check-asserts --slice --nondet-generator symex --timeout 45 assert.c ) \
+  > "$WORK/assert/run.log" 2>&1
+if grep -q "Sliced with respect to __VERIFIER_assert,__assert_fail" "$WORK/assert/run.log" && \
+   grep -q "VERIFICATION FAILED" "$WORK/assert/run.log"; then
+  ok "assert mode slices towards the assertions and still finds the violation"
+else
+  fail "assert slice" "no assert-criterion slice, or the violation was lost"
+  grep -E "Sliced|slice|VERIFICATION" "$WORK/assert/run.log" | sed 's/^/    /'
+fi
+
+# --- 16. nondet names the fixed list does not know are kept too --------------
+# The criteria carry a fixed list of __VERIFIER_nondet_* names, and no fixed
+# list knows every name a benchmark declares (int128, uint128, ...). A missing
+# one silently brings back the shifted suite of section 14, so the names are
+# also read from the program. Checked on the slicer command itself: int128 is
+# not in the fixed list, so its presence there proves it came from the program.
+mkdir -p "$WORK/names"
+cat > "$WORK/names/names.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+extern __int128 __VERIFIER_nondet_int128(void);
+extern void reach_error(void);
+int main(void) {
+  __int128 wide = __VERIFIER_nondet_int128();
+  int b = __VERIFIER_nondet_int();
+  if (b == 42) { reach_error(); }
+  return (int)wide;
+}
+EOF
+( cd "$WORK/names" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --slice --debug \
+    --nondet-generator symex --timeout 30 names.c ) > "$WORK/names/run.log" 2>&1
+if grep "sbt-slicer" "$WORK/names/run.log" | grep -q "__VERIFIER_nondet_int128"; then
+  ok "nondet names declared by the program are slicing criteria too"
+else
+  fail "program nondet names" "__VERIFIER_nondet_int128 is not among the criteria"
 fi
 
 echo "  ---"

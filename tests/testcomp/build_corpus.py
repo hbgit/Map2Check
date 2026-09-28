@@ -180,6 +180,10 @@ def task_info(yml_path, wanted_property):
     # subproperty, but a FALSE of any other kind is still the wrong answer.
     if wanted_property == "memcleanup" and expected == "false" and not subproperty:
         subproperty = "valid-memcleanup"
+    # Juliet_Test's MemSafety tasks declare none: any memory-safety FALSE
+    # answers them (the classifier's "any").
+    if wanted_property == "memsafety" and expected == "false" and not subproperty:
+        subproperty = "any"
     return program, data_model, expected, subproperty
 
 

@@ -19,5 +19,10 @@ check false valid-deref      TRUE            wrong-true
 check false valid-deref      UNKNOWN         unknown
 check false valid-deref      TIMEOUT         unknown
 check true  ""               ERROR           error
+# sv-benchmarks' Juliet_Test MemSafety tasks declare no subproperty: any
+# memory FALSE is the right answer there, but not a leak-at-exit or overflow.
+check false any              FALSE-DEREF     correct-false
+check false any              FALSE-MEMTRACK  correct-false
+check false any              FALSE-OVERFLOW  wrong-false
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

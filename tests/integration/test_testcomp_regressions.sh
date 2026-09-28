@@ -809,6 +809,31 @@ else
   ok "a KLEE run halted on its timer is not reported TRUE"
 fi
 
+# --- 23. an overflowing memcpy into a buffer nothing reads survives slicing --
+# clang lowers memcpy to llvm.memcpy.*; the copy feeds no criterion when the
+# destination is never read again, so without the intrinsic as a criterion the
+# slicer removed the overflow and the run could answer TRUE (review of 2b).
+cat > "$WORK/mem/memcpy.c" <<'EOF'
+#include <string.h>
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  char src[20];
+  char buf[10];
+  int n = __VERIFIER_nondet_int();
+  memset(src, n, sizeof(src));
+  memcpy(buf, src, 20);
+  return 0;
+}
+EOF
+( cd "$WORK/mem" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --slice --debug --nondet-generator symex --timeout 30 memcpy.c ) > "$WORK/mem/memcpy.log" 2>&1
+if grep "sbt-slicer" "$WORK/mem/memcpy.log" | grep -q "llvm.memcpy" && \
+   ! grep -q "VERIFICATION SUCCEEDED" "$WORK/mem/memcpy.log"; then
+  ok "memory intrinsics are slicing criteria and the overflow is not called safe"
+else
+  fail "intrinsic slicing" "llvm.memcpy not among the criteria, or TRUE"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

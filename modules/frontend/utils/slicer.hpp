@@ -93,12 +93,41 @@ inline std::vector<std::string> externalNamesInIR(const std::string& ir) {
   for (std::sregex_iterator it(ir.begin(), ir.end(), declaration), end;
        it != end; ++it) {
     const std::string name = (*it)[1];
-    if (name.rfind("llvm.", 0) == 0) continue;
+    // Intrinsics are not calls into code the slicer could keep -- except the
+    // memory ones: clang lowers memcpy/memset/memmove (and struct copies) to
+    // them, and an overflowing copy into a buffer nothing reads again feeds no
+    // criterion, so it has to be one (the strcpy case again).
+    if (name.rfind("llvm.", 0) == 0 && name.rfind("llvm.memcpy.", 0) != 0 &&
+        name.rfind("llvm.memmove.", 0) != 0 &&
+        name.rfind("llvm.memset.", 0) != 0) {
+      continue;
+    }
     if (std::find(names.begin(), names.end(), name) == names.end()) {
       names.push_back(name);
     }
   }
   return names;
+}
+
+/** The primary criteria for slicing the INSTRUMENTED module: every runtime
+ * check, then every external function (see externalNamesInIR). Returns false
+ * when the IR holds no runtime call at all -- a failed disassembly, an empty
+ * file -- because a slice without the checks as criteria removes them all and
+ * the property silently reads as holding. */
+inline bool instrumentedSliceCriteria(const std::string& ir,
+                                      std::vector<std::string>* criteria) {
+  criteria->clear();
+  for (const std::string& name : runtimeNamesInIR(ir)) {
+    criteria->push_back(name);
+  }
+  if (criteria->empty()) return false;
+  for (const std::string& name : externalNamesInIR(ir)) {
+    if (std::find(criteria->begin(), criteria->end(), name) ==
+        criteria->end()) {
+      criteria->push_back(name);
+    }
+  }
+  return true;
 }
 
 /** The -c argument: the primary criteria, then every nondet function -- the

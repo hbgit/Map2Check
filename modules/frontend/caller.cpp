@@ -178,8 +178,9 @@ std::string Caller::exportFuzzerVectorAsKtest() {
   return path;
 }
 
-bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
-                                      const std::vector<std::string> &criteria) {
+bool Caller::runSlicer(const std::string &input, const std::string &output,
+                       std::vector<std::string> primary, bool addRuntimeNames,
+                       const std::string &entry, const std::string &label) {
   const std::string slicer = Map2Check::slicerBinary();
   if (!std::filesystem::exists(slicer)) {
     // Announced, not silently skipped. A slicer that is asked for and absent
@@ -190,68 +191,64 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
         " -- analysing the unsliced program");
     return false;
   }
-
-  // The COMPILED bitcode, not the instrumented one: this runs before callPass
-  // so that the instrumentation is applied to the slice rather than removed by
-  // it. Entry is still plain main at this point, for the same reason.
-  const std::string input = programHash + "-compiled.bc";
-  const std::string output = programHash + "-sliced.bc";
   if (!std::filesystem::exists(input)) return false;
 
-  std::ostringstream command;
-  // -c is the slicing criterion: keep what the target call depends on. The
-  // criterion is the whole reason this only serves Cover-Error -- there is no
-  // criterion to give it when every branch is the goal.
-  //
-  // --entry is required. Run after callPass this had to be
-  // __map2check_main__, because the instrumentation renames the entry and the
-  // slicer would report "The entry function not found: main" and slice
-  // nothing. Run before it, as it now is, the program still has its own main.
   // Bounded, for the reason every other external step here is bounded: the
   // slicer builds a system dependence graph over the whole module, and on the
-  // large programs that is not fast. Measured on the v12 corpus: the sliced
-  // arm recorded 26 ERROR verdicts against the control's 9, every one of them
-  // at 87 to 89 seconds, and three were tasks the control had ANSWERED --
-  // slicing did not fail on them, it just took the run past its deadline.
-  //
-  // A slice that does not finish is not a loss: the code below already falls
-  // back to analysing the whole program, which is exactly what the control
-  // does. Overrunning the budget loses the verdict instead.
+  // large programs that is not fast. A slice that does not finish is not a
+  // loss -- the caller falls back to the whole program; overrunning the budget
+  // loses the verdict instead.
   const double sliceBudget = std::max(
       1.0,
       std::min(0.2 * this->timeout,
                std::max(1.0, static_cast<double>(remainingSeconds()) - 5.0)));
-  // -cutoff-diverging=false: the cutoff rewrites every path that cannot reach
-  // the criterion into exit(0) with no debug location, and once KLEE links
-  // uClibc the verifier rejects the module ("Broken module found") -- KLEE
-  // never ran on a sliced task with a cut path (tacasv2a spec, defect 1).
-  //
-  // The nondet functions ride along as criteria so that every read the
-  // original program performs survives; the suite is generated on the slice
-  // and replayed on the original (defect 2).
-  //
-  // --statistics: counts before and after, logged below.
-  // The program's own nondet names join the fixed list: no fixed list knows
-  // every name a benchmark declares, and a missing one silently shifts the
-  // suite again. Read from the textual IR -- the bitcode string table packs
-  // names with no separator. If the disassembly fails, the fixed list stands.
-  const std::string inputIR = programHash + "-slice-input.ll";
+
+  // The program's own names join the criteria: the nondet functions (no fixed
+  // list knows every name a benchmark declares, and a missing one silently
+  // shifts the suite), and for the memory properties every map2check_* call
+  // the instrumentation inserted. Read from the textual IR -- the bitcode
+  // string table packs names with no separator. If the disassembly fails, the
+  // fixed nondet list stands.
+  const std::string inputIR = input + ".ll";
   std::ostringstream disassemble;
   disassemble << Map2Check::optBinary << " -S " << input << " -o " << inputIR
               << " > /dev/null 2>&1";
   std::vector<std::string> programNondets;
+  std::string irText;
   if (system(disassemble.str().c_str()) == 0) {
     std::ifstream irFile(inputIR);
-    std::stringstream irText;
-    irText << irFile.rdbuf();
-    programNondets = Map2Check::nondetNamesInIR(irText.str());
+    std::stringstream irStream;
+    irStream << irFile.rdbuf();
+    irText = irStream.str();
+    programNondets = Map2Check::nondetNamesInIR(irText);
+  }
+  if (addRuntimeNames) {
+    // The runtime checks decide the property and external calls can commit
+    // the error themselves: both are criteria. Without the IR there are no
+    // checks to keep, and a slice would remove them all -- refuse instead of
+    // falling back to the nondet list, which is only sound for reach/assert.
+    std::vector<std::string> runtimeCriteria;
+    if (!Map2Check::instrumentedSliceCriteria(irText, &runtimeCriteria)) {
+      Map2Check::Log::Warning(
+          "could not read the instrumented module's runtime calls -- "
+          "analysing the unsliced program");
+      return false;
+    }
+    for (const std::string &name : runtimeCriteria) primary.push_back(name);
   }
 
+  // -cutoff-diverging=false: the cutoff rewrites every path that cannot reach
+  // the criterion into exit(0) with no debug location, and once KLEE links
+  // uClibc the verifier rejects the module ("Broken module found") -- KLEE
+  // never ran on a sliced task with a cut path (tacasv2a spec, defect 1).
+  // --statistics: counts before and after, logged below.
+  std::ostringstream command;
   command << "timeout -k " << Map2Check::killGracePeriod << " "
           << static_cast<unsigned>(sliceBudget) << " " << slicer << " -c "
-          << Map2Check::slicingCriteria(criteria, programNondets)
-          << " --entry=main -cutoff-diverging=false --statistics -o " << output
-          << " " << input << " > slicer.output 2>&1";
+          << Map2Check::slicingCriteria(primary, programNondets)
+          << " --entry=" << entry
+          << " -cutoff-diverging=false --statistics -o " << output << " "
+          << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());
   const int result = system(command.str().c_str());
 
@@ -266,20 +263,32 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
   }
 
   // Reported, because a slice is not a neutral speed-up: it narrows the
-  // question being answered, and the size difference is the only visible sign
-  // of how much was dropped.
+  // question being answered, and this line is the only visible sign of how
+  // much was dropped.
   const auto before = std::filesystem::file_size(input, error);
   const auto after = std::filesystem::file_size(output, error);
   std::ifstream slicerLog("slicer.output");
   std::stringstream slicerText;
   slicerText << slicerLog.rdbuf();
-  std::string criterionLabel;
-  for (const std::string &name : criteria) {
-    criterionLabel += (criterionLabel.empty() ? "" : ",") + name;
-  }
   Map2Check::Log::Info(Map2Check::describeSlice(
-      criterionLabel, Map2Check::parseSlicerStatistics(slicerText.str()),
-      before, after));
+      label, Map2Check::parseSlicerStatistics(slicerText.str()), before,
+      after));
+  return true;
+}
+
+bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
+                                      const std::vector<std::string> &criteria) {
+  // The COMPILED bitcode, not the instrumented one: this runs before callPass
+  // so that the instrumentation is applied to the slice rather than removed by
+  // it. Entry is still plain main at this point, for the same reason.
+  const std::string input = programHash + "-compiled.bc";
+  const std::string output = programHash + "-sliced.bc";
+  std::string label;
+  for (const std::string &name : criteria) {
+    label += (label.empty() ? "" : ",") + name;
+  }
+  if (!runSlicer(input, output, criteria, false, "main", label)) return false;
+  std::error_code error;
 
   // sbt-slicer removes the body of the criterion function itself. reach_error
   // is where the slice ENDS -- nothing it does can influence whether it is
@@ -287,13 +296,7 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
   //
   // KLEE tolerates the resulting declaration. The native AFL++ link does
   // not: it fails with "undefined reference to reach_error", no *-fuzzed.out
-  // is produced, and the fuzzer stage then does nothing at all. The failure
-  // was entirely silent -- the run simply came back UNKNOWN.
-  //
-  // Measured on rangesum05.i: --nondet-generator fuzzer answers FAILED, and
-  // the same invocation with --slice answers UNKNOWN with zero crash inputs
-  // and no fuzzed binary on disk. This is what cost the sliced arm the bulk
-  // of its 133 lost detections in the v11 factorial.
+  // is produced, and the fuzzer stage then does nothing at all.
   //
   // A WEAK definition restores the link without displacing a real one: where
   // the slice did keep the body, the strong definition still wins.
@@ -326,6 +329,24 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
         " after slicing -- the AFL++ stage will not link");
   }
 
+  std::filesystem::rename(output, input, error);
+  return !error;
+}
+
+bool Caller::sliceInstrumented() {
+  // Memory properties have no criterion in the user's program: the property
+  // is decided by the runtime calls MemoryTrackPass inserted, so the slice is
+  // taken after instrumentation with every map2check_* call as a criterion
+  // (none can be dropped), and __map2check_main__ -- the renamed user main --
+  // as the entry. tacasv2b spec, section 2.
+  const std::string input = programHash + "-output.bc";
+  const std::string output = programHash + "-sliced-instrumented.bc";
+  if (!std::filesystem::exists(input)) return false;
+  if (!runSlicer(input, output, {}, true, "__map2check_main__",
+                 "map2check runtime")) {
+    return false;
+  }
+  std::error_code error;
   std::filesystem::rename(output, input, error);
   return !error;
 }
@@ -832,6 +853,17 @@ void Caller::executeAnalysis(std::string solvername) {
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
+      // KLEE stopping on its own --max-time exits 0, like a run that explored
+      // every path, but it proves nothing. Treated as the timeout it is: a
+      // violation already recorded is kept, anything else is UNKNOWN -- never
+      // the TRUE a short path's NONE in the property file would otherwise make
+      // it (a reachable null dereference came back TRUE).
+      if (Map2Check::kleeHaltedOnTimer(Map2Check::kleeOutputDir)) {
+        Map2Check::Log::Warning(
+            "KLEE halted on its timer with states left -- not a complete "
+            "exploration");
+        gotTimeout = true;
+      }
 
       break;
     }

@@ -122,3 +122,80 @@ TEST(SlicingCriteria, AddsNamesFromTheProgramOnceEach) {
   }
   EXPECT_EQ(count, 1u);
 }
+
+// After instrumentation the memory property lives in the runtime calls
+// MemoryTrackPass inserted; every one of them is a criterion, so nothing that
+// records memory is sliced away.
+TEST(RuntimeNamesInIR, FindsEveryMap2checkSymbolOnce) {
+  const std::string ir =
+      "declare void @map2check_malloc(ptr, i64)\n"
+      "  call void @map2check_check_deref(ptr %3, i64 4), !dbg !7\n"
+      "  call void @map2check_malloc(ptr %1, i64 8)\n"
+      "  call i32 @__VERIFIER_nondet_int()\n";
+  const std::vector<std::string> names = Map2Check::runtimeNamesInIR(ir);
+  ASSERT_EQ(names.size(), 2u);
+  EXPECT_EQ(names[0], "map2check_malloc");
+  EXPECT_EQ(names[1], "map2check_check_deref");
+}
+
+// A memory error can happen INSIDE an external function (strcpy overflowing a
+// stack buffer). No map2check_* call depends on such a call, so without it as
+// a criterion the slicer drops it and the bug with it -- measured: CASTLE-787-2
+// went from UNKNOWN to a wrong TRUE. Every declared-but-undefined function is
+// a criterion in the post-instrumentation modes; intrinsics are not calls.
+TEST(ExternalNamesInIR, FindsDeclaredFunctionsButNotIntrinsicsOrDefinitions) {
+  const std::string ir =
+      "define dso_local i32 @__map2check_main__() {\n"
+      "  call ptr @strcpy(ptr %1, ptr @.str)\n"
+      "}\n"
+      "declare ptr @strcpy(ptr noundef, ptr noundef) #2\n"
+      "declare void @llvm.dbg.declare(metadata, metadata, metadata) #1\n"
+      "declare i32 @printf(ptr noundef, ...) #2\n"
+      "declare void @map2check_malloc(ptr, i64)\n"
+      "declare ptr @strcpy(ptr noundef, ptr noundef) #2\n";
+  const std::vector<std::string> names = Map2Check::externalNamesInIR(ir);
+  ASSERT_EQ(names.size(), 3u);
+  EXPECT_EQ(names[0], "strcpy");
+  EXPECT_EQ(names[1], "printf");
+  EXPECT_EQ(names[2], "map2check_malloc");
+}
+
+// clang lowers memcpy/memset/memmove (and struct copies) to intrinsics, and a
+// copy that overflows into a buffer nothing reads again feeds no criterion:
+// without its name the slicer drops it, the same wrong-TRUE shape as the
+// strcpy of CASTLE-787-2. Other intrinsics (debug info) are not calls.
+TEST(ExternalNamesInIR, KeepsTheMemoryIntrinsics) {
+  const std::string ir =
+      "declare void @llvm.memcpy.p0.p0.i64(ptr, ptr, i64, i1)\n"
+      "declare void @llvm.memset.p0.i64(ptr, i8, i64, i1)\n"
+      "declare void @llvm.memmove.p0.p0.i64(ptr, ptr, i64, i1)\n"
+      "declare void @llvm.dbg.declare(metadata, metadata, metadata)\n"
+      "declare void @llvm.lifetime.start.p0(i64, ptr)\n";
+  const std::vector<std::string> names = Map2Check::externalNamesInIR(ir);
+  ASSERT_EQ(names.size(), 3u);
+  EXPECT_EQ(names[0], "llvm.memcpy.p0.p0.i64");
+  EXPECT_EQ(names[1], "llvm.memset.p0.i64");
+  EXPECT_EQ(names[2], "llvm.memmove.p0.p0.i64");
+}
+
+// Slicing the instrumented module is only sound with the runtime checks as
+// criteria. If the IR could not be read (a failed disassembly, an empty file)
+// there are none, and the slice would remove every check: refuse instead.
+TEST(InstrumentedSliceCriteria, RefusesWithoutRuntimeCalls) {
+  std::vector<std::string> criteria;
+  EXPECT_FALSE(Map2Check::instrumentedSliceCriteria("", &criteria));
+  EXPECT_FALSE(Map2Check::instrumentedSliceCriteria(
+      "declare i32 @__VERIFIER_nondet_int()\n", &criteria));
+}
+
+TEST(InstrumentedSliceCriteria, CollectsRuntimeThenExternalNames) {
+  std::vector<std::string> criteria;
+  ASSERT_TRUE(Map2Check::instrumentedSliceCriteria(
+      "  call void @map2check_check_deref(ptr %3, i64 4)\n"
+      "declare ptr @strcpy(ptr, ptr)\n"
+      "declare void @map2check_check_deref(ptr, i64)\n",
+      &criteria));
+  ASSERT_EQ(criteria.size(), 2u);
+  EXPECT_EQ(criteria[0], "map2check_check_deref");
+  EXPECT_EQ(criteria[1], "strcpy");
+}

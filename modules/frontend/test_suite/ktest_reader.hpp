@@ -81,6 +81,12 @@ std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir);
  * not the "nothing recovered" readViolatingKtest's empty result means. */
 bool hasViolatingKtest(const std::string& kleeOutDir);
 
+/** Whether KLEE stopped on its own --max-time rather than running out of
+ * paths ("HaltTimer invoked" in messages.txt). Such a run exits 0, exactly
+ * like a finished one, but it proves nothing: a short path having written
+ * NONE to the property file made a reachable null dereference read as TRUE. */
+bool kleeHaltedOnTimer(const std::string& kleeOutDir);
+
 /** Every input vector KLEE recorded under `kleeOutDir`, one per .ktest.
  *
  * Ordered by file name, which is KLEE's own path numbering: stable across

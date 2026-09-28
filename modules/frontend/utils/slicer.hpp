@@ -64,6 +64,72 @@ inline std::vector<std::string> nondetNamesInIR(const std::string& ir) {
   return names;
 }
 
+/** Every map2check_* runtime symbol in a module's textual IR, in order of
+ * first appearance. Used as the slicing criteria for the memory properties:
+ * the property is decided by these calls, so none of them may be removed. */
+inline std::vector<std::string> runtimeNamesInIR(const std::string& ir) {
+  static const std::regex symbol(R"(@(map2check_[A-Za-z0-9_]+))");
+  std::vector<std::string> names;
+  for (std::sregex_iterator it(ir.begin(), ir.end(), symbol), end; it != end;
+       ++it) {
+    const std::string name = (*it)[1];
+    if (std::find(names.begin(), names.end(), name) == names.end()) {
+      names.push_back(name);
+    }
+  }
+  return names;
+}
+
+/** Every function a module DECLARES without defining (`declare ... @f(`), in
+ * order of first appearance, LLVM intrinsics excluded. In the modes that slice
+ * the instrumented module these are criteria too: a memory error can happen
+ * inside an external function (strcpy overflowing a stack buffer), and nothing
+ * the runtime checks depends on such a call, so without it as a criterion the
+ * slicer drops the call and the bug with it (CASTLE-787-2: a wrong TRUE). */
+inline std::vector<std::string> externalNamesInIR(const std::string& ir) {
+  static const std::regex declaration(
+      R"((?:^|\n)declare [^\n]*?@([A-Za-z0-9_.$]+)\()");
+  std::vector<std::string> names;
+  for (std::sregex_iterator it(ir.begin(), ir.end(), declaration), end;
+       it != end; ++it) {
+    const std::string name = (*it)[1];
+    // Intrinsics are not calls into code the slicer could keep -- except the
+    // memory ones: clang lowers memcpy/memset/memmove (and struct copies) to
+    // them, and an overflowing copy into a buffer nothing reads again feeds no
+    // criterion, so it has to be one (the strcpy case again).
+    if (name.rfind("llvm.", 0) == 0 && name.rfind("llvm.memcpy.", 0) != 0 &&
+        name.rfind("llvm.memmove.", 0) != 0 &&
+        name.rfind("llvm.memset.", 0) != 0) {
+      continue;
+    }
+    if (std::find(names.begin(), names.end(), name) == names.end()) {
+      names.push_back(name);
+    }
+  }
+  return names;
+}
+
+/** The primary criteria for slicing the INSTRUMENTED module: every runtime
+ * check, then every external function (see externalNamesInIR). Returns false
+ * when the IR holds no runtime call at all -- a failed disassembly, an empty
+ * file -- because a slice without the checks as criteria removes them all and
+ * the property silently reads as holding. */
+inline bool instrumentedSliceCriteria(const std::string& ir,
+                                      std::vector<std::string>* criteria) {
+  criteria->clear();
+  for (const std::string& name : runtimeNamesInIR(ir)) {
+    criteria->push_back(name);
+  }
+  if (criteria->empty()) return false;
+  for (const std::string& name : externalNamesInIR(ir)) {
+    if (std::find(criteria->begin(), criteria->end(), name) ==
+        criteria->end()) {
+      criteria->push_back(name);
+    }
+  }
+  return true;
+}
+
 /** The -c argument: the primary criteria, then every nondet function -- the
  * fixed list plus `fromProgram` (nondetNamesInIR), each name once. */
 inline std::string slicingCriteria(

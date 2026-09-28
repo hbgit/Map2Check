@@ -92,6 +92,7 @@ OUTER_TIMEOUT="${OUTER_TIMEOUT:-300}"
 INNER_TIMEOUT="${INNER_TIMEOUT:-60}"
 LIMIT="${LIMIT:-0}"                       # 0 = unlimited, counted across all CWEs
 PER_FAMILY="${PER_FAMILY:-3}"             # files sampled per family; 0 = all
+EXTRA_FLAGS="${EXTRA_FLAGS:-}"            # opt-in flags for every run, e.g. --slice
 # LIMIT_PER_CWE is deliberately gone: it was the alphabetical-prefix cap that
 # produced the v3 sampling failure documented in the header. A per-CWE ceiling
 # cannot be expressed without reintroducing that bias, so the knob is
@@ -241,7 +242,7 @@ for cwe in "${SCOPE_CWES[@]}"; do
         start=$(date +%s%N)
         rc=0
         run_isolated "$raw" "$OUTER_TIMEOUT" \
-          "$MAP2CHECK" $mode --timeout "$INNER_TIMEOUT" "$combined" || rc=$?
+          "$MAP2CHECK" $mode $EXTRA_FLAGS --timeout "$INNER_TIMEOUT" "$combined" || rc=$?
         end=$(date +%s%N)
         elapsed=$(python3 -c "print(round(($end - $start) / 1000000000, 1))")
         output=$(cat "$raw")

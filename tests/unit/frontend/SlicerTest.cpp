@@ -159,3 +159,43 @@ TEST(ExternalNamesInIR, FindsDeclaredFunctionsButNotIntrinsicsOrDefinitions) {
   EXPECT_EQ(names[1], "printf");
   EXPECT_EQ(names[2], "map2check_malloc");
 }
+
+// clang lowers memcpy/memset/memmove (and struct copies) to intrinsics, and a
+// copy that overflows into a buffer nothing reads again feeds no criterion:
+// without its name the slicer drops it, the same wrong-TRUE shape as the
+// strcpy of CASTLE-787-2. Other intrinsics (debug info) are not calls.
+TEST(ExternalNamesInIR, KeepsTheMemoryIntrinsics) {
+  const std::string ir =
+      "declare void @llvm.memcpy.p0.p0.i64(ptr, ptr, i64, i1)\n"
+      "declare void @llvm.memset.p0.i64(ptr, i8, i64, i1)\n"
+      "declare void @llvm.memmove.p0.p0.i64(ptr, ptr, i64, i1)\n"
+      "declare void @llvm.dbg.declare(metadata, metadata, metadata)\n"
+      "declare void @llvm.lifetime.start.p0(i64, ptr)\n";
+  const std::vector<std::string> names = Map2Check::externalNamesInIR(ir);
+  ASSERT_EQ(names.size(), 3u);
+  EXPECT_EQ(names[0], "llvm.memcpy.p0.p0.i64");
+  EXPECT_EQ(names[1], "llvm.memset.p0.i64");
+  EXPECT_EQ(names[2], "llvm.memmove.p0.p0.i64");
+}
+
+// Slicing the instrumented module is only sound with the runtime checks as
+// criteria. If the IR could not be read (a failed disassembly, an empty file)
+// there are none, and the slice would remove every check: refuse instead.
+TEST(InstrumentedSliceCriteria, RefusesWithoutRuntimeCalls) {
+  std::vector<std::string> criteria;
+  EXPECT_FALSE(Map2Check::instrumentedSliceCriteria("", &criteria));
+  EXPECT_FALSE(Map2Check::instrumentedSliceCriteria(
+      "declare i32 @__VERIFIER_nondet_int()\n", &criteria));
+}
+
+TEST(InstrumentedSliceCriteria, CollectsRuntimeThenExternalNames) {
+  std::vector<std::string> criteria;
+  ASSERT_TRUE(Map2Check::instrumentedSliceCriteria(
+      "  call void @map2check_check_deref(ptr %3, i64 4)\n"
+      "declare ptr @strcpy(ptr, ptr)\n"
+      "declare void @map2check_check_deref(ptr, i64)\n",
+      &criteria));
+  ASSERT_EQ(criteria.size(), 2u);
+  EXPECT_EQ(criteria[0], "map2check_check_deref");
+  EXPECT_EQ(criteria[1], "strcpy");
+}

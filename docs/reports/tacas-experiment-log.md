@@ -161,3 +161,69 @@ WSL2. Build da v15 = `develop` em `415032766`, no mesmo container.
 - **Leitura:** mesmo padrão de R8 — ganhos reais, mas TRUE errado novo. Hipótese: as
   mesmas chamadas externas removidas. Correção: toda função **externa** (declarada, sem
   corpo) passa a ser critério nos modos pós-instrumentação.
+
+## Dois defeitos de corretude achados por R8/R9 (2026-09-27)
+
+1. **Chamadas externas removidas pela fatia** (slicing, 2b): um erro de memória dentro de
+   `strcpy`/`memcpy`/… não alimenta nenhuma chamada `map2check_*`, e o slicer trata funções
+   externas como só-leitura → a chamada saía da fatia e o programa virava "seguro".
+   **Correção:** toda função declarada sem corpo é critério nos modos pós-instrumentação.
+2. **KLEE parado pelo próprio timer virava TRUE** (verdict, pré-existente na tacasv1 e na
+   v15): `--max-time` sai com 0, como uma exploração completa; se um caminho curto gravou
+   NONE, a resposta era TRUE. Reproduzido **sem slicing** (null deref alcançável → TRUE).
+   O slicing só o expôs (fatias menores deixam o KLEE chegar ao próprio timer).
+   **Correção:** KLEE com "HaltTimer invoked" conta como timeout; violação registrada é
+   mantida, o resto é UNKNOWN.
+
+As rodadas R8–R13 foram medidas **antes** de uma ou das duas correções: valem como
+diagnóstico, não como comparação final (ver R14).
+
+## R9b — MemSafety com a correção 1 (2026-09-27)
+
+| memsafety | correct-true | correct-false | wrong-true | wrong-false | unknown | error |
+|---|---|---|---|---|---|---|
+| controle (R9) | 18 | 15 | 2 | 5 | 8 | 2 |
+| slice R9 | 20 | 16 | 4 | 6 | 3 | 1 |
+| slice R9b | 21 | 13 | **4** | 5 | 7 | 0 |
+
+- `frr.i` e `pacparser.i` continuaram TRUE errado → investigação levou ao defeito 2
+  (KLEE: "HaltTimer invoked", 0 caminhos completos, 2453 parciais, e mesmo assim TRUE).
+- `busybox sleep-3.i` segue FALSE-MEMTRACK errado com slice (UNKNOWN no controle) — em aberto.
+- MemCleanup: idêntico ao controle.
+
+## R10 — Juliet escopo C, 1 arquivo/família, controle × slice (build 2b sem as correções)
+
+| braço | TP | TN | FN | FP | UNKNOWN | TIMEOUT | ERROR |
+|---|---|---|---|---|---|---|---|
+| controle | 143 | 341 | 117 | 12 | 98 | 91 | 40 |
+| slice | 133 | 343 | **169** | 12 | 72 | 88 | 25 |
+
+- **Regressão:** FN (vulnerável → TRUE) +52, concentrada em CWE-121 (10 → 44) e CWE-122
+  (9 → 26); 74 casos mudaram de classe.
+- **Confirmação das correções:** 5 casos que viraram FN, rodados de novo com o build
+  corrigido: os 5 passam de TRUE (errado) para UNKNOWN.
+- Tempo mediano igual (13,3 s × 13,5 s).
+
+## R11 — CASTLE, build 2c (com a correção 1, sem a 2), controle × slice
+
+- Controle e slice **idênticos**: TP 53, TN 44, FN 14, FP 1, UNKNOWN 7 (overflow: TP 10,
+  TN 8, FN 2 nos dois braços).
+- **Comparação com R8:** o `787-2` saiu do TRUE errado (R8) para UNKNOWN; o ganho `125-3`
+  de R8 não se repetiu.
+
+## R13 — SV-COMP NoOverflows, 10 por categoria (Main, BusyBox), controle × slice
+
+- Controle: 4 correct-true, 16 unknown. Slice: 5 correct-true, 15 unknown. **Zero erros.**
+- Ganho: `loop-zilu/benchmark18_conjunctive.i` UNKNOWN → TRUE correto.
+- Redução de instruções: mediana 10,2%, máximo 36,7%. Tempo mediano 12 s × 29,5 s.
+- **Comparação com R7:** confirma que overflow tem redução maior que memória, mas nesta
+  amostra quase tudo é UNKNOWN nos dois braços (orçamento de 120 s).
+
+### Nota — `busybox sleep-3.i` (FALSE-MEMTRACK errado só com slice)
+
+Não é defeito do slicing. Sem slice, o KLEE nem linka ("Linking globals named 'getopt':
+symbol multiply defined" — o programa e a uClibc definem `getopt`/`getopt_long`) → UNKNOWN.
+A fatia remove essas definições não usadas, o KLEE roda e acusa vazamento. Renomeando os
+símbolos em conflito e rodando **sem slice**, o resultado também é FALSE-MEMTRACK: é um
+falso positivo pré-existente do memtrack, que o controle escondia por não conseguir rodar.
+Em aberto como defeito do memtrack (fora do escopo do slicing).

@@ -22,5 +22,10 @@ check true  ""               ERROR           error
 check false no-overflow      FALSE-OVERFLOW  correct-false
 check false no-overflow      FALSE-DEREF     wrong-false
 check true  ""               FALSE-OVERFLOW  wrong-false
+# sv-benchmarks' Juliet_Test MemSafety tasks declare no subproperty: any
+# memory FALSE is the right answer there, but not a leak-at-exit or overflow.
+check false any              FALSE-DEREF     correct-false
+check false any              FALSE-MEMTRACK  correct-false
+check false any              FALSE-OVERFLOW  wrong-false
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ]

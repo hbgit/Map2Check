@@ -186,14 +186,16 @@ def task_info(yml_path, wanted_property):
     program = os.path.join(os.path.dirname(yml_path), input_file)
     if not os.path.isfile(program):
         return None
-    # Their tasks declare no subproperty, but a FALSE of any other kind is
-    # still the wrong answer.
-    # valid-memcleanup and no-overflow are single-subproperty properties.
+    # Single-subproperty properties declare none on their tasks, but a FALSE
+    # of any other kind is still the wrong answer; Juliet_Test's MemSafety
+    # tasks declare none either, and any memory-safety FALSE answers them.
     if expected == "false" and not subproperty:
         if wanted_property == "memcleanup":
             subproperty = "valid-memcleanup"
         elif wanted_property == "overflow":
             subproperty = "no-overflow"
+        elif wanted_property == "memsafety":
+            subproperty = "any"
     return program, data_model, expected, subproperty
 
 

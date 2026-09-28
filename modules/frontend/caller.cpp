@@ -214,26 +214,27 @@ bool Caller::runSlicer(const std::string &input, const std::string &output,
   disassemble << Map2Check::optBinary << " -S " << input << " -o " << inputIR
               << " > /dev/null 2>&1";
   std::vector<std::string> programNondets;
+  std::string irText;
   if (system(disassemble.str().c_str()) == 0) {
     std::ifstream irFile(inputIR);
-    std::stringstream irText;
-    irText << irFile.rdbuf();
-    programNondets = Map2Check::nondetNamesInIR(irText.str());
-    if (addRuntimeNames) {
-      // The runtime checks decide the property; external calls can commit
-      // the error themselves (see externalNamesInIR). Both are criteria.
-      for (const std::string &name :
-           Map2Check::runtimeNamesInIR(irText.str())) {
-        primary.push_back(name);
-      }
-      for (const std::string &name :
-           Map2Check::externalNamesInIR(irText.str())) {
-        if (std::find(primary.begin(), primary.end(), name) ==
-            primary.end()) {
-          primary.push_back(name);
-        }
-      }
+    std::stringstream irStream;
+    irStream << irFile.rdbuf();
+    irText = irStream.str();
+    programNondets = Map2Check::nondetNamesInIR(irText);
+  }
+  if (addRuntimeNames) {
+    // The runtime checks decide the property and external calls can commit
+    // the error themselves: both are criteria. Without the IR there are no
+    // checks to keep, and a slice would remove them all -- refuse instead of
+    // falling back to the nondet list, which is only sound for reach/assert.
+    std::vector<std::string> runtimeCriteria;
+    if (!Map2Check::instrumentedSliceCriteria(irText, &runtimeCriteria)) {
+      Map2Check::Log::Warning(
+          "could not read the instrumented module's runtime calls -- "
+          "analysing the unsliced program");
+      return false;
     }
+    for (const std::string &name : runtimeCriteria) primary.push_back(name);
   }
 
   // -cutoff-diverging=false: the cutoff rewrites every path that cannot reach

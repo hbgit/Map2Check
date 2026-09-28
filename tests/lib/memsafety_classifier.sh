@@ -11,6 +11,9 @@ classify_memsafety_result() {
     valid-memtrack) want="FALSE-MEMTRACK" ;;
     valid-memcleanup) want="FALSE-MEMCLEANUP" ;;
     no-overflow) want="FALSE-OVERFLOW" ;;
+    # MemSafety tasks that declare no subproperty (sv-benchmarks' Juliet_Test):
+    # any memory-safety FALSE answers them, a leak-at-exit or overflow does not.
+    any) case "$verdict" in FALSE-DEREF|FALSE-FREE|FALSE-MEMTRACK) want="$verdict" ;; esac ;;
   esac
   case "$verdict" in
     TRUE) [ "$expected" = "true" ] && echo correct-true || echo wrong-true ;;

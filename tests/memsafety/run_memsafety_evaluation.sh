@@ -1,6 +1,6 @@
 #!/bin/bash
-# run_memsafety_evaluation.sh -- Map2Check over a stratified SV-COMP MemSafety
-# (or MemCleanup) corpus, scoring each verdict against the task's expected
+# run_memsafety_evaluation.sh -- Map2Check over a stratified SV-COMP MemSafety,
+# MemCleanup or NoOverflows corpus, scoring each verdict against the task's expected
 # verdict AND subproperty.
 #
 # Built for tacasv2b (slicing for the memory properties): the same corpus is
@@ -19,7 +19,7 @@
 #
 # Environment:
 #   MANIFEST      from build_corpus.py --property memsafety|memcleanup (required)
-#   PROPERTY      memsafety | memcleanup (required)
+#   PROPERTY      memsafety | memcleanup | overflow (required)
 #   RESULTS_DIR   where the CSV and raw logs go (required)
 #   MAP2CHECK_PATH  install to run (required)
 #   SHARD/SHARDS  process every SHARDS-th task starting at SHARD (default 0/1)
@@ -46,6 +46,7 @@ EXTRA_FLAGS="${EXTRA_FLAGS:-}"
 case "$PROPERTY" in
   memsafety)  MODE_FLAGS="--memtrack" ;;
   memcleanup) MODE_FLAGS="--memcleanup-property" ;;
+  overflow)   MODE_FLAGS="--check-overflow" ;;
   *) echo "unknown PROPERTY: $PROPERTY" >&2; exit 2 ;;
 esac
 

@@ -514,9 +514,9 @@ fi
 # There is no criterion to slice towards when the goal is a memory property or
 # branch coverage, so asking must be refused rather than quietly ignored.
 ( cd "$WORK/slice" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
-    --check-overflow --slice --nondet-generator symex --timeout 45 reach.c ) \
+    --cover-branches --slice --nondet-generator symex --timeout 45 reach.c ) \
   > "$WORK/slice/mode.log" 2>&1
-if grep -q "applies to reachability, assert and memory properties only" "$WORK/slice/mode.log"; then
+if grep -q "applies to reachability, assert, memory and overflow properties only" "$WORK/slice/mode.log"; then
   ok "--slice is refused where there is no criterion to slice towards"
 else
   fail "slice mode guard" "--slice was accepted in a mode that has no criterion"
@@ -832,6 +832,47 @@ if grep "sbt-slicer" "$WORK/mem/memcpy.log" | grep -q "llvm.memcpy" && \
   ok "memory intrinsics are slicing criteria and the overflow is not called safe"
 else
   fail "intrinsic slicing" "llvm.memcpy not among the criteria, or TRUE"
+fi
+
+# --- 24. overflow slices the instrumented module and keeps the violation -----
+# Overflow checks are map2check_binop_* runtime calls, so the same
+# post-instrumentation slice as the memory properties applies.
+mkdir -p "$WORK/ovf"
+cat > "$WORK/ovf/ovf.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  int unrelated = 0;
+  for (int i = 0; i < 4; i++) { unrelated += i; }
+  if (x > 2147483000) { x = x + 1000; }
+  return x + unrelated;
+}
+EOF
+( cd "$WORK/ovf" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --check-overflow --slice --nondet-generator symex --timeout 45 ovf.c ) > "$WORK/ovf/run.log" 2>&1
+if grep -q "Sliced with respect to map2check runtime" "$WORK/ovf/run.log" && \
+   grep -q "VERIFICATION FAILED" "$WORK/ovf/run.log"; then
+  ok "overflow slices after instrumentation and keeps the violation"
+else
+  fail "overflow slice" "no slice, or the overflow was lost"
+  grep -E "Sliced|slice|VERIFICATION" "$WORK/ovf/run.log" | sed 's/^/    /'
+fi
+
+# --- 25. slicing must not invent an overflow ---------------------------------
+cat > "$WORK/ovf/safe.c" <<'EOF'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (x > 0 && x < 1000) { x = x + 1000; }
+  return x;
+}
+EOF
+( cd "$WORK/ovf" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --check-overflow --slice --nondet-generator symex --timeout 45 safe.c ) > "$WORK/ovf/safe.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/ovf/safe.log"; then
+  fail "overflow slice soundness" "a safe program was reported FALSE after slicing"
+else
+  ok "slicing does not invent an overflow"
 fi
 
 echo "  ---"

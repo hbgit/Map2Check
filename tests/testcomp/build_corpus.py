@@ -70,6 +70,7 @@ PROPERTY_FILE = {
     "cover-branches": "coverage-branches.prp",
     "memsafety": "valid-memsafety.prp",
     "memcleanup": "valid-memcleanup.prp",
+    "overflow": "no-overflow.prp",
 }
 
 # The memory properties have no .set files in the local sv-benchmarks copy, so
@@ -91,6 +92,15 @@ MEMORY_CATEGORIES = {
         "Juliet": ["Juliet_Test"],
     },
     "memcleanup": {"MemCleanup": ["*"]},
+    # NoOverflows, mirroring SV-COMP's NoOverflows-Main/-BusyBox (tacasv2c).
+    "overflow": {
+        "Main": ["bitvector", "nla-digbench-scaling", "recursive-simple",
+                 "loop-zilu", "signedintegeroverflow-regression",
+                 "goblint-regression"],
+        "BusyBox": ["busybox-1.22.0"],
+        # No Juliet here: sv-benchmarks' Juliet_Test declares no no-overflow
+        # task. Juliet's CWE-190/191 are measured by tests/juliet instead.
+    },
 }
 
 EXCLUDED_DIRS = ("pthread", "weaver", "termination")
@@ -176,14 +186,16 @@ def task_info(yml_path, wanted_property):
     program = os.path.join(os.path.dirname(yml_path), input_file)
     if not os.path.isfile(program):
         return None
-    # valid-memcleanup is a single-subproperty property: its tasks declare no
-    # subproperty, but a FALSE of any other kind is still the wrong answer.
-    if wanted_property == "memcleanup" and expected == "false" and not subproperty:
-        subproperty = "valid-memcleanup"
-    # Juliet_Test's MemSafety tasks declare none: any memory-safety FALSE
-    # answers them (the classifier's "any").
-    if wanted_property == "memsafety" and expected == "false" and not subproperty:
-        subproperty = "any"
+    # Single-subproperty properties declare none on their tasks, but a FALSE
+    # of any other kind is still the wrong answer; Juliet_Test's MemSafety
+    # tasks declare none either, and any memory-safety FALSE answers them.
+    if expected == "false" and not subproperty:
+        if wanted_property == "memcleanup":
+            subproperty = "valid-memcleanup"
+        elif wanted_property == "overflow":
+            subproperty = "no-overflow"
+        elif wanted_property == "memsafety":
+            subproperty = "any"
     return program, data_model, expected, subproperty
 
 

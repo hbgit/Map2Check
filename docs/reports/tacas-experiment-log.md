@@ -266,3 +266,23 @@ classificador contava todo FALSE nelas como errado (corrigido: "any").
   MemCleanup. Os programas são pequenos e a fatia tem pouco a cortar (MemSafety: redução
   mediana 3%). O ganho medido de verdade desta linha está nas correções de corretude que o
   slicing expôs.
+
+## R14b — MemSafety/MemCleanup, braço slice com o build final (2026-09-27)
+
+- **Mudança desde R14:** intrínsecos de memória (`llvm.memcpy/memset/memmove`) como
+  critério e recusa da fatia quando o IR instrumentado não pode ser lido (revisão final).
+  Mesmas tarefas e controle de R14; classificação com a regra "any" do Juliet.
+
+| memsafety (50) | correct-true | correct-false | wrong-true | wrong-false | unknown | error |
+|---|---|---|---|---|---|---|
+| controle (R14) | 15 | 18 | 2 | 3 | 9 | 3 |
+| slice (R14) | 15 | 18 | 1 | 4 | 10 | 2 |
+| **slice (R14b)** | 15 | **19** | **1** | 4 | 9 | 2 |
+
+- **Controle → R14b:** `CWE122 …rand_18_bad` TRUE errado → FALSE-DEREF correto (ganho);
+  `CWE127 memmove` ERROR → UNKNOWN; `busybox sleep-3` UNKNOWN → FALSE-MEMTRACK (falso
+  positivo pré-existente do memtrack). A perda do `csplit` de R14 não se repetiu.
+- **MemCleanup:** idêntico ao controle; tempo mediano 14 s → 7 s.
+- **Leitura:** com o build final, o slicing de memória fica **34 × 33 corretos** e
+  **1 × 2 TRUE errados** contra o controle nesta amostra — ligeiramente melhor, e sem
+  nenhum erro novo atribuível à fatia.

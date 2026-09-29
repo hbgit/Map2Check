@@ -433,31 +433,39 @@ EOF
 ( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 250 "$MAP2CHECK" \
     --target-function --target-function-name reach_error \
     --debug --timeout 60 seed.c ) > "$WORK/seed/off.log" 2>&1
-scratch_off=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
-n_off=$(ls "$scratch_off/seeds" 2>/dev/null | wc -l)
+# The seed store lives BESIDE the scratch directory (<hash>.seeds): every
+# hybrid phase recreates the scratch directory, and a store inside it never
+# reached the next phase (tacasv3a).
+n_off=$(ls -d "$WORK/seed"/*.seeds 2>/dev/null | wc -l)
 if [ "$n_off" -eq 0 ]; then
-  ok "no seed corpus without --seed-exchange"
+  ok "no seed store without --seed-exchange"
 else
-  fail "default behaviour" "$n_off seeds written without asking"
+  fail "default behaviour" "a seed store was created without asking"
 fi
 rm -rf "$WORK/seed"/*.map2check
 
 ( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
     --target-function --target-function-name reach_error --seed-exchange \
     --debug --timeout 60 seed.c ) > "$WORK/seed/on.log" 2>&1
-scratch_on=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
+store=$(ls -d "$WORK/seed"/*.seeds 2>/dev/null | head -1)
 # Only the fuzzer's own discoveries count: the Caller writes a placeholder
-# seed into seeds/ itself, so a plain file count would pass with no copy-back.
-n_on=$(ls "$scratch_on/seeds" 2>/dev/null | grep -c '^afl-')
-
-# afl-fuzz never writes into its -i dir; the Caller copies its queue back in
-# after the fuzzer phase, so the corpus survives the fuzzer process. (It does
-# not yet survive into the next phase: each Caller recreates the scratch
-# directory -- inherited from v15, left to the smart-seeds work.)
-if [ "$n_on" -gt 0 ]; then
-  ok "the fuzzer discoveries are copied into seeds/ with --seed-exchange ($n_on files)"
+# seed itself, so a plain file count would pass with no copy-back.
+n_on=$(ls "$store/afl" 2>/dev/null | grep -c '^afl-')
+if [ -n "$store" ] && [ "$n_on" -gt 0 ]; then
+  ok "the fuzzer discoveries reach the seed store beside the scratch ($n_on files)"
 else
-  fail "seed corpus" "nothing kept -- the corpus is still in-memory only"
+  fail "seed store" "no store beside the scratch directory, or no fuzzer discoveries in it"
+fi
+
+# Without --debug the store is removed after the last phase.
+rm -rf "$WORK/seed"/*.map2check "$WORK/seed"/*.seeds
+( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --timeout 60 seed.c ) > "$WORK/seed/on-clean.log" 2>&1
+if [ "$(ls -d "$WORK/seed"/*.seeds 2>/dev/null | wc -l)" -eq 0 ]; then
+  ok "no seed store is left behind without --debug"
+else
+  fail "seed store cleanup" "a *.seeds directory survived a run without --debug"
 fi
 
 # KLEE -> fuzzer: its per-path vectors become seed files. Sound only because

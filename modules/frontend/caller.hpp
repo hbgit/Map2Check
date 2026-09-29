@@ -119,6 +119,11 @@ class Caller {
 
   /** Remove generated files for verification */
   void cleanGarbage();
+  /** Back to the directory map2check was started in, without deleting the
+   * scratch directory: under --debug the scratch is kept, but the next hybrid
+   * phase must still start from the same place (the seed store is computed
+   * from it). */
+  void restoreWorkingDirectory();
 
   /** Slice the program with respect to the target before analysing it.
    *
@@ -156,22 +161,13 @@ class Caller {
    * is a separate decision that has to be earned by its own measurement. */
   bool seedExchange = false;
 
-  /** Directory the two engines use to hand each other input vectors.
-   *
-   * A directory of files rather than a value passed from one phase to the
-   * next, meant to survive between phases, runs and alternations -- which is
-   * what time-slicing will need. AFL++ starts from it and its discoveries are
-   * copied back in after each fuzzer phase (afl-fuzz never writes into its -i
-   * dir); the KLEE phase drops its own path vectors in.
-   *
-   * NOT yet true across phases (same as v15): it sits inside the scratch
-   * directory, which each phase's Caller recreates empty. Fixing that is part
-   * of the smart-seeds work (tacasv2/v3), since it changes what the hybrid
-   * measures.
-   *
-   * Relative, because both engines run with the scratch directory as their
-   * working directory. */
-  static constexpr const char* seedDirectory = "seeds";
+  /** The seed store, beside the scratch directory: <cwd>/<hash>.seeds with
+   * afl/ (fuzzer inputs), ktest/ (KLEE seeds) and replay/ (where queue entries
+   * are replayed). Beside, not inside: every hybrid phase recreates the scratch
+   * directory, and a store inside it never reached the next phase. Used only
+   * under --seed-exchange. */
+  std::string seedStore;
+  const std::string& seedStorePath() const { return seedStore; }
 
   /** Writes KLEE's per-path vectors into the seed corpus.
    *
@@ -180,12 +176,7 @@ class Caller {
    * fuzzer down the same path. Returns how many seeds were written. */
   unsigned exportKleeVectorsAsSeeds();
 
-  /** Writes what the fuzzer consumed as a .ktest KLEE can start from.
-   *
-   * The nondet log is the only record of a fuzzer run carrying both value and
-   * type, which is what a .ktest needs. Returns the path, or empty. */
-  std::string exportFuzzerVectorAsKtest();
-
+  
   /** Instrument and execute nondeterministic generator */
   void applyNonDetGenerator();
 

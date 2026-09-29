@@ -414,6 +414,9 @@ struct map2check_args {
 };
 
 bool foundViolation = false;
+// The seed store of the last phase, removed by main once every phase ran.
+static std::string lastSeedStore;
+
 int map2check_execution(map2check_args args) {
   Map2Check::Log::Info("Started Map2Check");
   // TODO(rafa.sa.xp@gmail.com): Check current mode
@@ -720,9 +723,11 @@ int map2check_execution(map2check_args args) {
   // nondet log -- and deleting it unconditionally makes the pipeline
   // impossible to inspect after the fact. Debug runs are already opting into
   // verbosity and disk use.
+  lastSeedStore = caller->seedStorePath();
   if (args.debugMode) {
     Map2Check::Log::Info("Debug mode: keeping temp files in " +
                          caller->getScratchDir());
+    caller->restoreWorkingDirectory();
   } else {
     Map2Check::Log::Debug("Removing temp files");
     caller->cleanGarbage();
@@ -1006,6 +1011,12 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
           if (result != SUCCESS) {
             return result;
           }
+        }
+        // The store outlives the phases, not the run -- unless the run asked
+        // to keep its files.
+        if (args.seedExchange && !args.debugMode && !lastSeedStore.empty()) {
+          std::error_code storeError;
+          std::filesystem::remove_all(lastSeedStore, storeError);
         }
       }
       else {

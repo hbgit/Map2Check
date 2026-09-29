@@ -31,6 +31,7 @@
 #include "test_suite/ktest_reader.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
+#include "utils/seed_store.hpp"
 #include "utils/slicer.hpp"
 #include "utils/tools.hpp"
 // namespace fs = boost::filesystem;
@@ -84,6 +85,7 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
 
   Map2Check::Log::Debug("Changing current dir");
   currentPath = std::filesystem::current_path().string();
+  seedStore = Map2Check::seedStorePath(currentPath, programHash);
   std::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Current path: " +
                         std::filesystem::current_path().string());
@@ -131,7 +133,8 @@ std::string Caller::postOptimizationFlags() {
 
 unsigned Caller::exportKleeVectorsAsSeeds() {
   std::error_code error;
-  std::filesystem::create_directories(Caller::seedDirectory, error);
+  const std::string aflSeeds = seedStore + "/afl";
+  std::filesystem::create_directories(aflSeeds, error);
 
   std::vector<std::vector<std::string>> ignored;
   unsigned written = 0;
@@ -149,7 +152,7 @@ unsigned Caller::exportKleeVectorsAsSeeds() {
     // Named by index rather than by content hash: AFL++ renames what it
     // keeps to its own hash anyway, so a second one here buys nothing.
     std::ostringstream name;
-    name << Caller::seedDirectory << "/klee-" << index++;
+    name << aflSeeds << "/klee-" << index++;
     std::ofstream out(name.str(), std::ios::binary);
     if (!out.is_open()) continue;
     out.write(reinterpret_cast<const char *>(bytes.data()),
@@ -161,21 +164,6 @@ unsigned Caller::exportKleeVectorsAsSeeds() {
                          std::to_string(written) + " vectors from KLEE");
   }
   return written;
-}
-
-std::string Caller::exportFuzzerVectorAsKtest() {
-  std::vector<Map2Check::KtestObject> objects =
-      Map2Check::readNonDetLogAsObjects(Map2Check::kleeLogCSV);
-  if (objects.empty()) return "";
-
-  std::error_code error;
-  std::filesystem::create_directories(Caller::seedDirectory, error);
-  const std::string path =
-      std::string(Caller::seedDirectory) + "/from-fuzzer.ktest";
-  if (!Map2Check::writeKtestFile(path, objects)) return "";
-  Map2Check::Log::Info("Seeding KLEE with the fuzzer's vector (" +
-                       std::to_string(objects.size()) + " inputs)");
-  return path;
 }
 
 bool Caller::runSlicer(const std::string &input, const std::string &output,
@@ -349,6 +337,11 @@ bool Caller::sliceInstrumented() {
   std::error_code error;
   std::filesystem::rename(output, input, error);
   return !error;
+}
+
+void Caller::restoreWorkingDirectory() {
+  std::error_code error;
+  std::filesystem::current_path(currentPath, error);
 }
 
 void Caller::cleanGarbage() {
@@ -721,8 +714,11 @@ void Caller::executeAnalysis(std::string solvername) {
       // holding the budget to its last second is what turned a decided run
       // into an ERROR.
       constexpr double kPostEngineReserve = 5.0;
+      // With the exchange on, the fuzzer gets a real third phase: 0.2 / 0.6 /
+      // 0.2. Without it the hybrid keeps the 0.2 / 0.8 it was measured with.
+      const double kleeShare = this->seedExchange ? 0.6 : 0.8;
       const double kleeBudget = std::max(
-          1.0, std::min(0.8 * this->timeout,
+          1.0, std::min(kleeShare * this->timeout,
                         this->remainingSeconds() - kPostEngineReserve));
       kleeCommand << "timeout -k " << Map2Check::killGracePeriod << " "
                   << static_cast<unsigned>(kleeBudget) << " ";
@@ -778,10 +774,6 @@ void Caller::executeAnalysis(std::string solvername) {
       // budget is not merely faster, it is depth the run would not otherwise
       // have reached.
       std::string seedFlag;
-      if (this->seedExchange) {
-        const std::string seed = exportFuzzerVectorAsKtest();
-        if (!seed.empty()) seedFlag = " --seed-file=" + seed;
-      }
 
       // Depth-first for Cover-Branches, and the reason is about what survives
       // the deadline rather than about search quality.
@@ -900,7 +892,7 @@ void Caller::executeAnalysis(std::string solvername) {
       // without one (the previous fuzzer could start from nothing).
       std::error_code seedErr;
       const std::string inputDir =
-          this->seedExchange ? std::string(Caller::seedDirectory) : "afl-in";
+          this->seedExchange ? seedStore + "/afl" : std::string("afl-in");
       std::filesystem::create_directories(inputDir, seedErr);
       if (std::filesystem::is_empty(inputDir, seedErr)) {
         std::ofstream seed(inputDir + "/seed");
@@ -998,7 +990,7 @@ void Caller::executeAnalysis(std::string solvername) {
           if (name.find(",orig:") != std::string::npos) continue;
           std::filesystem::copy_file(
               entry.path(),
-              std::string(Caller::seedDirectory) + "/afl-" + name,
+              seedStore + "/afl/afl-" + name,
               std::filesystem::copy_options::skip_existing, queueErr);
         }
       }

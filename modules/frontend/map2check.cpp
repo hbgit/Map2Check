@@ -16,6 +16,7 @@
 
 #include "map2check.hpp"
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -177,19 +178,28 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
   // coversError is false throughout: these vectors are paths, not violations.
   // The violating one, when there is one, is still in klee_log.csv and still
   // goes out under Cover-Error.
+  //
+  // The cap is on the SUITE, not on this phase: with the engines alternating,
+  // every KLEE phase adds cases, and later phases replay the vectors earlier
+  // ones already wrote (seeds) -- those are skipped.
   if (coverBranches) {
+    constexpr size_t kMaxKtestsRead = 5000;
     std::vector<std::vector<std::string>> vectors =
-        Map2Check::readKtestVectors(Map2Check::kleeOutputDir,
-                                    kMaxBranchTestCases);
+        Map2Check::readKtestVectors(Map2Check::kleeOutputDir, kMaxKtestsRead);
+    size_t written = 0;
     for (const std::vector<std::string> &inputs : vectors) {
+      if (writer.caseCount() >= kMaxBranchTestCases) break;
+      if (writer.hasTestCase(inputs)) continue;
       if (!writer.writeTestCase(inputs, false)) {
         Map2Check::Log::Warning("could not write test case to " + outputDir);
         return;
       }
+      ++written;
     }
     Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
-                         std::to_string(vectors.size()) +
-                         " test cases from KLEE paths)");
+                         std::to_string(written) +
+                         " test cases from KLEE paths, " +
+                         std::to_string(writer.caseCount()) + " in the suite)");
     return;
   }
 
@@ -432,6 +442,9 @@ bool provedSafe = false;
 static std::string lastSeedStore;
 // The slice cache of the last phase, removed by main with the seed store.
 static std::string lastSliceCache;
+// How long the last phase's engine ran; the rest of the phase is setup
+// (compile, instrument, link) that no engine window accounts for.
+static double lastEngineSeconds = 0;
 
 int map2check_execution(map2check_args args);
 
@@ -445,28 +458,44 @@ int alternateEngines(map2check_args args) {
   const double budget = args.timeout;
   const unsigned quiet = Map2Check::stagnationSeconds(budget);
   unsigned rounds[2] = {0, 0};
+  // The largest setup a phase has needed so far: a phase is started only if
+  // what is left covers that setup plus a stagnation period of engine time,
+  // and its window leaves the setup out. On large programs (eca-*) compiling,
+  // instrumenting and linking take longer than the stagnation period.
+  double setup = 0;
   for (int phase = 1;; ++phase) {
     const bool klee = (phase % 2 == 0);
     const double left = Map2Check::Caller::remainingOf(args.timeout);
-    if (phase > 1 && left < quiet) break;
+    if (phase > 1 && left < quiet + setup) break;
     const Map2Check::Engine engine =
         klee ? Map2Check::Engine::Klee : Map2Check::Engine::Fuzzer;
     const unsigned round = ++rounds[klee ? 1 : 0];
     args.generator = klee ? Map2Check::NonDetGenerator::Klee
                           : Map2Check::NonDetGenerator::AFLPlusPlus;
     args.phase = phase;
-    args.engineWindow =
-        Map2Check::alternationWindow(engine, round, budget, left);
-    args.stagnationLimit = quiet;
+    args.engineWindow = Map2Check::alternationWindow(
+        engine, round, budget, std::max(1.0, left - setup));
+    // KLEE's patience grows with its rounds: after coverage stops rising it
+    // may still be enumerating the paths that make a proof, and a fixed cut
+    // would never let it finish one.
+    args.stagnationLimit = klee ? Map2Check::stagnationSeconds(budget, round)
+                                : quiet;
     // Replaying the corpus for a KLEE phase that will not get to run is
     // pure cost.
-    args.feedsKlee = (!klee && left - args.engineWindow >= quiet) ? 1 : 0;
+    args.feedsKlee =
+        (!klee && left - setup - args.engineWindow >= quiet + setup) ? 1 : 0;
     Map2Check::Log::Info("Alternation phase " + std::to_string(phase) + ": " +
                          (klee ? "KLEE" : "AFL++") + ", window " +
                          std::to_string(static_cast<unsigned>(
                              args.engineWindow)) + " s");
+    const auto started = std::chrono::steady_clock::now();
+    lastEngineSeconds = 0;
     const int result = map2check_execution(args);
     if (result != SUCCESS) return result;
+    const double took = std::chrono::duration<double>(
+                            std::chrono::steady_clock::now() - started)
+                            .count();
+    setup = std::max(setup, took - lastEngineSeconds);
     if (foundViolation || provedSafe) break;
   }
   return SUCCESS;
@@ -551,6 +580,21 @@ int map2check_execution(map2check_args args) {
     std::error_code cacheError;
     std::filesystem::remove_all(caller->sliceCachePath(), cacheError);
   }
+  // A run starts from an empty suite. Its phases then add to it (see
+  // TestSuiteWriter), and a suite left in this directory by an earlier run --
+  // possibly of another program -- must not be added to.
+  if (args.generateTestSuite && args.phase <= 1) {
+    std::string suiteDir = args.testSuiteDir;
+    if (!fs::path(suiteDir).is_absolute()) {
+      suiteDir = caller->getOriginalPath() + "/" + suiteDir;
+    }
+    Map2Check::TestSuiteWriter::removeTestCases(suiteDir);
+  }
+  // Recorded now, not at the end: an exception in this phase must not leak
+  // the store or the slice cache past the cleanup in main.
+  lastSeedStore = caller->seedStorePath();
+  lastSliceCache = caller->sliceCachePath();
+  caller->engineSeconds = &lastEngineSeconds;
   caller->feedsKleePhase =
       args.feedsKlee >= 0 ? (args.feedsKlee == 1) : (args.phase == 1);
   caller->engineWindow = args.engineWindow;
@@ -979,8 +1023,21 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       args.seedExchange = true;
     }
     if (vm.count("alternate-engines")) {
-      args.alternateEngines = true;
-      args.seedExchange = true;
+      // Windows and stagnation are fractions of the budget, and turns only
+      // exist on the hybrid path: without either, say so instead of running
+      // something else under the flag's name.
+      if (!vm.count("timeout") || vm["timeout"].as<unsigned>() == 0) {
+        Map2Check::Log::Warning(
+            "--alternate-engines needs --timeout: its windows are fractions of "
+            "the budget -- running the fixed hybrid instead");
+      } else if (vm.count("nondet-generator")) {
+        Map2Check::Log::Warning(
+            "--alternate-engines applies to the hybrid only -- ignored with "
+            "--nondet-generator");
+      } else {
+        args.alternateEngines = true;
+        args.seedExchange = true;
+      }
     }
     if (vm.count("cover-branches")) {
       args.coverBranches = true;

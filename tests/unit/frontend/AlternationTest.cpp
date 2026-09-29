@@ -51,3 +51,9 @@ TEST(CoverageWatch, AnUnreadableSampleIsNotEvidence) {
   EXPECT_FALSE(watch.stagnated(-1, 60));
   EXPECT_TRUE(watch.stagnated(5, 61.5));
 }
+
+TEST(StagnationSeconds, KleesPatienceDoublesWithItsRounds) {
+  EXPECT_EQ(Map2Check::stagnationSeconds(300, 1), 15u);
+  EXPECT_EQ(Map2Check::stagnationSeconds(300, 2), 30u);
+  EXPECT_EQ(Map2Check::stagnationSeconds(300, 3), 60u);
+}

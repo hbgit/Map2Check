@@ -120,7 +120,50 @@ TestSuiteWriter::TestSuiteWriter(std::string directory)
     }
     this->counter = std::max(
         this->counter, static_cast<unsigned>(std::stoul(digits)));
+    // Its inputs, as written (escaped), so a later phase can skip a vector
+    // the suite already has.
+    std::ifstream in(entry.path());
+    std::stringstream text;
+    text << in.rdbuf();
+    const std::string xml = text.str();
+    std::vector<std::string> inputs;
+    static const std::string kOpen = "<input>", kClose = "</input>";
+    for (size_t at = xml.find(kOpen); at != std::string::npos;
+         at = xml.find(kOpen, at)) {
+      const size_t end = xml.find(kClose, at + kOpen.size());
+      if (end == std::string::npos) break;
+      inputs.push_back(xml.substr(at + kOpen.size(), end - at - kOpen.size()));
+      at = end + kClose.size();
+    }
+    this->cases.insert(inputs);
   }
+}
+
+namespace {
+std::vector<std::string> escapedInputs(const std::vector<std::string>& raw) {
+  std::vector<std::string> escaped;
+  escaped.reserve(raw.size());
+  for (const std::string& value : raw) escaped.push_back(escapeXml(value));
+  return escaped;
+}
+}  // namespace
+
+bool TestSuiteWriter::hasTestCase(
+    const std::vector<std::string>& inputs) const {
+  return this->cases.count(escapedInputs(inputs)) > 0;
+}
+
+void TestSuiteWriter::removeTestCases(const std::string& directory) {
+  std::error_code ec;
+  std::vector<std::filesystem::path> doomed;
+  for (const auto& entry : std::filesystem::directory_iterator(directory, ec)) {
+    const std::string name = entry.path().filename().string();
+    if (name.rfind("testcase-", 0) == 0 && name.size() > 13 &&
+        name.compare(name.size() - 4, 4, ".xml") == 0) {
+      doomed.push_back(entry.path());
+    }
+  }
+  for (const auto& path : doomed) std::filesystem::remove(path, ec);
 }
 
 bool TestSuiteWriter::writeMetadata(const TestSuiteMetadata& metadata) {
@@ -173,6 +216,7 @@ bool TestSuiteWriter::writeTestCase(const std::vector<std::string>& inputs,
     out << "  <input>" << escapeXml(value) << "</input>\n";
   }
   out << "</testcase>\n";
+  this->cases.insert(escapedInputs(inputs));
   out.close();
   return out.good();
 }

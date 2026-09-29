@@ -197,6 +197,11 @@ class Caller {
   unsigned stagnationLimit = 0;
   /** Whether this phase's KLEE was stopped for stagnating: incomplete. */
   bool stoppedOnStagnation = false;
+  /** Where to report how long this phase's engine ran (main sizes the next
+   * alternating phase with it); null: not reported. */
+  double* engineSeconds = nullptr;
+  /** Alternating, the fuzzer's input corpus in the store is kept below this. */
+  static constexpr size_t kMaxFuzzerCorpus = 256;
 
   /** At most this many fuzzer queue entries are converted into KLEE seeds. */
   static constexpr size_t kMaxSeedsFromFuzzer = 64;

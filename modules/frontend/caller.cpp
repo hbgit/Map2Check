@@ -213,9 +213,22 @@ int Caller::runKleeWatched(const std::string &command) {
                            .count();
     if (!watch.stagnated(kleeCoveredInstructions(stats), now)) continue;
 
+    // To KLEE itself, the child of `timeout`: signalled, `timeout` forwards
+    // to the child AND its process group, KLEE gets two SIGINTs, and the
+    // second one exits before the halt dump of the live states is written.
     pid_t pid = 0;
     std::ifstream("klee.pid") >> pid;
-    if (pid > 0) kill(pid, SIGINT);
+    pid_t klee = 0;
+    if (pid > 0) {
+      std::ifstream children("/proc/" + std::to_string(pid) + "/task/" +
+                             std::to_string(pid) + "/children");
+      children >> klee;
+    }
+    if (klee > 0) {
+      kill(klee, SIGINT);
+    } else if (pid > 0) {
+      kill(pid, SIGINT);
+    }
     this->stoppedOnStagnation = true;
     Map2Check::Log::Warning("KLEE stagnated: no new coverage for " +
                             std::to_string(this->stagnationLimit) +
@@ -1164,9 +1177,16 @@ void Caller::executeAnalysis(std::string solvername) {
       }
 
       Map2Check::Log::Debug(kleeCommand.str());
+      const auto engineStarted = std::chrono::steady_clock::now();
       int result = runKleeWatched(kleeCommand.str());
+      if (this->engineSeconds != nullptr) {
+        *this->engineSeconds = std::chrono::duration<double>(
+                                   std::chrono::steady_clock::now() -
+                                   engineStarted)
+                                   .count();
+      }
       if (this->seedExchange) {
-        keepKleeTestsAsSeeds();
+        if (this->stagnationLimit > 0) keepKleeTestsAsSeeds();
         // Written after KLEE rather than before the next phase, because the
         // .ktest files are in the scratch directory that cleanGarbage() will
         // remove -- and because a later alternation, or a resumed run, should
@@ -1214,10 +1234,16 @@ void Caller::executeAnalysis(std::string solvername) {
       command.str("");
       // Against what is LEFT, not against the nominal budget -- see
       // Caller::remainingSeconds.
+      // Alternating, the last window can be everything left: keep the same
+      // reserve KLEE keeps for replaying crashes and writing the suite.
       const double fuzzerBudget =
-          std::min(this->engineWindow > 0 ? this->engineWindow
-                                          : 0.2 * this->timeout,
-                   static_cast<double>(this->remainingSeconds()));
+          this->engineWindow > 0
+              ? std::max(1.0,
+                         std::min(this->engineWindow,
+                                  static_cast<double>(this->remainingSeconds()) -
+                                      5.0))
+              : std::min(0.2 * this->timeout,
+                         static_cast<double>(this->remainingSeconds()));
       // afl-fuzz needs a non-empty -i dir and a -o dir that does not already
       // exist (the hybrid may run the fuzzer phase twice).
       //
@@ -1276,7 +1302,14 @@ void Caller::executeAnalysis(std::string solvername) {
       command << " -- ./" << programHash << "-fuzzed.out"
               << " > fuzzer.output 2>&1";
 
+      const auto engineStarted = std::chrono::steady_clock::now();
       int result = system(command.str().c_str());
+      if (this->engineSeconds != nullptr) {
+        *this->engineSeconds = std::chrono::duration<double>(
+                                   std::chrono::steady_clock::now() -
+                                   engineStarted)
+                                   .count();
+      }
       Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
@@ -1319,11 +1352,22 @@ void Caller::executeAnalysis(std::string solvername) {
       // the next fuzzer phase starts from this corpus plus KLEE's vectors.
       if (this->seedExchange) {
         std::error_code queueErr;
+        // Alternating, the corpus grows every fuzzer round and afl-fuzz
+        // calibrates all of it before mutating: bounded, like KLEE's share.
+        size_t corpus = 0;
+        if (this->stagnationLimit > 0) {
+          for (const auto &entry : std::filesystem::directory_iterator(
+                   seedStore + "/afl", queueErr)) {
+            if (entry.is_regular_file(queueErr)) ++corpus;
+          }
+        }
         for (const auto &entry : std::filesystem::directory_iterator(
                  aflFindings + "/queue", queueErr)) {
           const std::string name = entry.path().filename().string();
           if (!entry.is_regular_file(queueErr)) continue;
           if (name.find(",orig:") != std::string::npos) continue;
+          if (this->stagnationLimit > 0 && corpus >= kMaxFuzzerCorpus) break;
+          ++corpus;
           std::filesystem::copy_file(
               entry.path(),
               seedStore + "/afl/afl-" + name,

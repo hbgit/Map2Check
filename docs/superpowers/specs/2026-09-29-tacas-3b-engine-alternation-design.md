@@ -51,9 +51,15 @@ alimenta.
 **O que o AFL++ recebe:** o `store/afl` já acumula a fila do AFL++ e os vetores do KLEE,
 então nada muda.
 
-**Seleção das entradas da fila (`selectQueueEntries`):** passa a **pular as entradas já
-exportadas** em rodadas anteriores. Os nomes exportados ficam registrados em
-`store/exported.txt`. Sem isso, toda rodada reenviaria as mesmas 64 primeiras.
+**Seleção das entradas da fila (`selectQueueEntries`):** passa a **pular as sementes com
+que o fuzzer começou** (entradas `,orig:`): são vetores do KLEE ou de rodadas anteriores,
+que o KLEE já tem. O `store/ktest` é limpo a cada exportação, porque os `.ktest` da rodada
+KLEE anterior (`kleeprev/`) carregam o que ela já explorou. (A primeira versão deste spec
+previa um `store/exported.txt`; o efeito é o mesmo com menos estado.)
+
+**Limites da troca:** no máximo 64 vetores do KLEE vão para uma janela curta do AFL++, e o
+corpus do AFL++ no store fica abaixo de 256 entradas. O `afl-fuzz` calibra todas as
+entradas antes de mutar, e 1000+ vetores do KLEE consumiram a janela inteira num teste.
 
 ### Estagnação
 
@@ -67,7 +73,9 @@ exportadas** em rodadas anteriores. Os nomes exportados ficam registrados em
   - O KLEE para de forma limpa: grava os testes dos estados que já terminaram.
   - A fase é marcada como **incompleta** (`gotTimeout`). A execução nunca vira TRUE
     por isso.
-- **Valor de S:** `max(10 s, 0,05T)`, que dá 15 s em T = 300.
+- **Valor de S:** `max(10 s, 0,05T)`, que dá 15 s em T = 300, para o AFL++. Para o KLEE,
+  S dobra a cada rodada dele: a cobertura de instruções para de subir bem antes de o KLEE
+  terminar os caminhos que formam uma prova, e um corte fixo nunca o deixaria chegar lá.
 - **Sem SQLite:** o SQLite é uma dependência opcional, via `find_package(SQLite3)`. Sem
   ele, a estagnação do KLEE fica desligada e vale só o teto da janela. O CI, que não
   instala `libsqlite3-dev`, continua compilando.
@@ -77,6 +85,20 @@ exportadas** em rodadas anteriores. Os nomes exportados ficam registrados em
 `TestSuiteWriter` numera os casos a partir de 1 em cada fase (`testcase-1.xml`, …). Com
 mais de uma fase KLEE em Cover-Branches, **uma rodada sobrescreveria a anterior**. O
 contador passa a começar depois do maior `testcase-N.xml` que já existir no diretório.
+
+### Revisão (2026-09-29), incorporada
+
+- **Orçamento:** cada fase mede o próprio tempo de preparação (compilar, instrumentar,
+  linkar), que nenhuma janela conta. Uma fase só começa se sobrar `S + preparação`, e a
+  janela desconta a preparação. O AFL++ guarda 5 s de reserva, como o KLEE.
+- **SIGINT:** vai direto ao PID do KLEE, filho do `timeout`. Mandado ao `timeout`, ele
+  repassava ao filho e ao grupo, o KLEE recebia dois sinais e perdia o despejo dos estados
+  vivos.
+- **Suíte de Cover-Branches:** o limite de 50 casos vale para a suíte, não para cada fase,
+  e vetores repetidos entre fases são pulados. A suíte começa vazia a cada execução, o que
+  evita somar casos de uma execução anterior no mesmo diretório.
+- **Flag:** sem `--timeout`, ou com `--nondet-generator`, `--alternate-engines` avisa e
+  não se aplica.
 
 ## Fora do escopo
 

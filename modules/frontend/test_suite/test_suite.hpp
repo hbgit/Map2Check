@@ -29,6 +29,7 @@
 #ifndef MODULES_FRONTEND_TEST_SUITE_TEST_SUITE_HPP_
 #define MODULES_FRONTEND_TEST_SUITE_TEST_SUITE_HPP_
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -65,12 +66,24 @@ class TestSuiteWriter {
   /** Writes metadata.xml. False if the file could not be written. */
   bool writeMetadata(const TestSuiteMetadata& metadata);
 
-  /** Writes testcase-<n>.xml, numbering from 1 in call order. */
+  /** Writes testcase-<n>.xml, numbering after the cases already in the
+   * directory (an earlier phase of the same run may have written some). */
   bool writeTestCase(const std::vector<std::string>& inputs, bool coversError);
+
+  /** How many test cases the directory holds, written earlier or by this. */
+  size_t caseCount() const { return cases.size(); }
+  /** Whether a test case with exactly these inputs is already there. */
+  bool hasTestCase(const std::vector<std::string>& inputs) const;
+
+  /** Removes every testcase-<n>.xml from `directory` -- run once, at the start
+   * of a run, so a suite never mixes cases from an earlier run. */
+  static void removeTestCases(const std::string& directory);
 
  private:
   std::string directory;
   unsigned counter;
+  /** The inputs of every case in the directory, XML-escaped as written. */
+  std::set<std::vector<std::string>> cases;
 };
 
 }  // namespace Map2Check

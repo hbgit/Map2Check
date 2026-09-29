@@ -279,3 +279,31 @@ TEST(TestSuiteWriter, NumbersAfterTheCasesAlreadyThere) {
   EXPECT_NE(slurp(d / "testcase-3.xml").find("<input>3</input>"),
             std::string::npos);
 }
+
+// Under alternation every KLEE phase adds Cover-Branches cases: the cap and
+// the duplicates are counted across phases, not per phase.
+TEST(TestSuiteWriter, KnowsTheCasesAnEarlierWriterLeft) {
+  fs::path d = freshDir("tc_known");
+  {
+    Map2Check::TestSuiteWriter first(d.string());
+    ASSERT_TRUE(first.writeTestCase({"1", "a<b"}, false));
+    EXPECT_TRUE(first.hasTestCase({"1", "a<b"}));
+  }
+  Map2Check::TestSuiteWriter second(d.string());
+  EXPECT_EQ(second.caseCount(), 1u);
+  EXPECT_TRUE(second.hasTestCase({"1", "a<b"}));
+  EXPECT_FALSE(second.hasTestCase({"1"}));
+}
+
+// A run starts from an empty suite: re-running in the same directory must not
+// keep the previous run's cases, possibly of another program.
+TEST(TestSuiteWriter, RemoveTestCasesKeepsTheMetadata) {
+  fs::path d = freshDir("tc_remove");
+  Map2Check::TestSuiteWriter w(d.string());
+  ASSERT_TRUE(w.writeMetadata(Map2Check::TestSuiteMetadata{}));
+  ASSERT_TRUE(w.writeTestCase({"1"}, false));
+  Map2Check::TestSuiteWriter::removeTestCases(d.string());
+  EXPECT_FALSE(fs::exists(d / "testcase-1.xml"));
+  EXPECT_TRUE(fs::exists(d / "metadata.xml"));
+  EXPECT_EQ(Map2Check::TestSuiteWriter(d.string()).caseCount(), 0u);
+}

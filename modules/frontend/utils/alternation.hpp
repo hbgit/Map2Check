@@ -36,6 +36,14 @@ inline unsigned stagnationSeconds(double budget) {
   return static_cast<unsigned>(std::max(10.0, 0.05 * budget));
 }
 
+/** KLEE's stagnation period in its `round`-th turn: doubled every round, like
+ * its window. Instruction coverage stops rising well before KLEE finishes the
+ * paths that make a proof, and a fixed cut would never let it get there. */
+inline unsigned stagnationSeconds(double budget, unsigned round) {
+  return stagnationSeconds(budget) *
+         (1u << std::min(round > 0 ? round - 1 : 0, 8u));
+}
+
 /** Decides from successive coverage samples whether an engine stagnated: no
  * increase for `quietSeconds` since the last one. A sample of -1 means the
  * reading failed (KLEE's stats database busy or not written yet) and is no

@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -162,6 +163,65 @@ unsigned Caller::exportKleeVectorsAsSeeds() {
   if (written > 0) {
     Map2Check::Log::Info("Seeded the fuzzer corpus with " +
                          std::to_string(written) + " vectors from KLEE");
+  }
+  return written;
+}
+
+unsigned Caller::exportFuzzerCorpusAsKtests() {
+  // Each queue entry is replayed through the witness binary, whose runtime
+  // logs every nondet read with its type (klee_log.csv) -- which is what a
+  // .ktest needs and what the fuzzer's raw bytes lack. The replay runs in the
+  // store's replay/, not here: the witness writes map2check_property and
+  // friends into its working directory, and a replay must never overwrite a
+  // violation this phase already recorded.
+  std::error_code error;
+  const std::string queue = "afl-out/default/queue";
+  const std::string replay = seedStore + "/replay";
+  const std::string ktests = seedStore + "/ktest";
+  const std::string witness =
+      std::filesystem::absolute(programHash + "-witness-fuzzed.out", error)
+          .string();
+  if (!std::filesystem::exists(witness, error)) return 0;
+
+  std::vector<std::string> names;
+  for (const auto &entry :
+       std::filesystem::directory_iterator(queue, error)) {
+    if (entry.is_regular_file(error)) {
+      names.push_back(entry.path().filename().string());
+    }
+  }
+  std::filesystem::create_directories(ktests, error);
+
+  std::set<std::vector<uint8_t>> seen;
+  unsigned written = 0;
+  for (const std::string &name :
+       Map2Check::selectQueueEntries(names, kMaxSeedsFromFuzzer)) {
+    std::filesystem::remove_all(replay, error);
+    std::filesystem::create_directories(replay, error);
+    const std::string input =
+        std::filesystem::absolute(queue + "/" + name, error).string();
+    std::ostringstream command;
+    command << "cd '" << replay << "' && MAP2CHECK_SEED_REPLAY=1 timeout -k 1 2 '" << witness
+            << "' < '" << input << "' > /dev/null 2>&1";
+    system(command.str().c_str());
+
+    const std::vector<Map2Check::KtestObject> objects =
+        Map2Check::readNonDetLogAsObjects(replay + "/" +
+                                          Map2Check::kleeLogCSV);
+    if (objects.empty()) continue;
+    if (!Map2Check::isNewVector(Map2Check::ktestToFuzzerBytes(objects),
+                                &seen)) {
+      continue;
+    }
+    if (Map2Check::writeKtestFile(
+            ktests + "/afl-" + std::to_string(written) + ".ktest", objects)) {
+      ++written;
+    }
+  }
+  std::filesystem::remove_all(replay, error);
+  if (written > 0) {
+    Map2Check::Log::Info("Seeded KLEE with " + std::to_string(written) +
+                         " vectors from AFL++");
   }
   return written;
 }
@@ -773,7 +833,30 @@ void Caller::executeAnalysis(std::string solvername) {
       // from nothing a path the fuzzer already walked -- which under a fixed
       // budget is not merely faster, it is depth the run would not otherwise
       // have reached.
+      // KLEE starts from the fuzzer's corpus when there is one, replaying
+      // each seed and exploring around it instead of rediscovering from
+      // nothing the paths the fuzzer already walked. --seed-time caps the
+      // replay at a quarter of the phase, so seeding cannot eat the search.
       std::string seedFlag;
+      if (this->seedExchange) {
+        std::error_code seedError;
+        bool haveSeeds = false;
+        for (const auto &entry : std::filesystem::directory_iterator(
+                 seedStore + "/ktest", seedError)) {
+          if (entry.is_regular_file(seedError)) {
+            haveSeeds = true;
+            break;
+          }
+        }
+        if (haveSeeds) {
+          seedFlag = " --seed-dir=" + seedStore +
+                     "/ktest --allow-seed-extension --allow-seed-truncation"
+                     " --seed-time=" +
+                     std::to_string(std::max(
+                         1u, static_cast<unsigned>(kleeBudget / 4))) +
+                     "s";
+        }
+      }
 
       // Depth-first for Cover-Branches, and the reason is about what survives
       // the deadline rather than about search quality.
@@ -993,6 +1076,11 @@ void Caller::executeAnalysis(std::string solvername) {
               seedStore + "/afl/afl-" + name,
               std::filesystem::copy_options::skip_existing, queueErr);
         }
+      }
+      // The fuzzer's corpus for the KLEE phase, unless this phase already
+      // decided the property.
+      if (this->seedExchange && !isWitnessFileCreated()) {
+        exportFuzzerCorpusAsKtests();
       }
       Map2Check::Log::Debug("Finished fuzzer");
 

@@ -883,6 +883,64 @@ else
   ok "slicing does not invent an overflow"
 fi
 
+# --- 26. the fuzzer's corpus reaches KLEE as typed seeds ---------------------
+# Each queue entry is replayed through the witness binary (inside the store's
+# replay/, so nothing it writes touches the phase), and the typed nondet log
+# becomes a .ktest; KLEE starts from the whole set with --seed-dir. The old
+# channel read a log from a scratch directory that no longer existed and sent
+# at most one vector.
+# A non-linear guard: CmpLog cannot map a*a back to input bytes, so the fuzzer
+# phase ends without the bug and hands its corpus over; KLEE solves it.
+mkdir -p "$WORK/seed2"
+cat > "$WORK/seed2/square.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "square.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (a > 100 && a < 300 && b > 0) {
+    if (a * a == 44521) { reach_error(); }
+  }
+  return 0;
+}
+EOF
+( cd "$WORK/seed2" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --debug --timeout 60 square.c ) > "$WORK/seed2/run.log" 2>&1
+n_seeds=$(grep -aoE "Seeded KLEE with [0-9]+ vectors from AFL\+\+" "$WORK/seed2/run.log" \
+          | grep -oE "[0-9]+" | head -1)
+if [ "${n_seeds:-0}" -gt 0 ] && grep -q -- "--seed-dir=" "$WORK/seed2/run.log"; then
+  ok "the fuzzer corpus reaches KLEE ($n_seeds seeds via --seed-dir)"
+elif ! grep -q "Executing Klee" "$WORK/seed2/run.log"; then
+  ok "fuzzer -> KLEE not exercised: the fuzzer solved seed.c on its own"
+else
+  fail "fuzzer -> KLEE" "KLEE ran without seeds from the fuzzer"
+fi
+
+# --- 27. replaying the corpus must not erase a violation the fuzzer found ----
+mkdir -p "$WORK/seed3"
+cat > "$WORK/seed3/easy.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "easy.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (x > 1000 && x < 1100) { reach_error(); }
+  return 0;
+}
+EOF
+( cd "$WORK/seed3" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --timeout 30 easy.c ) > "$WORK/seed3/run.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/seed3/run.log"; then
+  ok "a violation found by the fuzzer survives the seed replays"
+else
+  fail "seed replay" "the violation was lost with --seed-exchange"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

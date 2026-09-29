@@ -176,6 +176,14 @@ class Caller {
    * fuzzer down the same path. Returns how many seeds were written. */
   unsigned exportKleeVectorsAsSeeds();
 
+  /** At most this many fuzzer queue entries are converted into KLEE seeds. */
+  static constexpr size_t kMaxSeedsFromFuzzer = 64;
+
+  /** Converts the AFL++ queue into typed .ktest seeds for the KLEE phase, by
+   * replaying each entry through the witness binary inside the seed store's
+   * replay/ directory. Returns how many seeds were written. */
+  unsigned exportFuzzerCorpusAsKtests();
+
   
   /** Instrument and execute nondeterministic generator */
   void applyNonDetGenerator();

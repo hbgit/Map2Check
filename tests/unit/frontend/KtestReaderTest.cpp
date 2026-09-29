@@ -337,6 +337,28 @@ TEST(KleeDroppedPaths, AStateTerminatedEarlyDropsPaths) {
   fs::remove_all(d);
 }
 
+// KLEE that died -- a solver crash, an LLVM assertion, the OOM killer --
+// writes no HaltTimer, no .err and no "done" lines, and may leave NONE in the
+// property file from the paths it did finish.
+TEST(KleeDroppedPaths, ARunThatNeverFinishedDropsPaths) {
+  fs::path d = freshDir("crashed");
+  std::ofstream(d / "info") << "KLEE: output directory is \"x\"\n";
+  std::ofstream(d / "test000001.ktest") << "";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// Near --max-memory KLEE stops forking and follows one side of each branch
+// at random; it logs that once and can still exit 0.
+TEST(KleeDroppedPaths, SkippingForksDropsPaths) {
+  fs::path d = freshDir("skipfork");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: skipping fork (memory cap exceeded)\n";
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 3\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
 // A path pruned by an assumption is not a dropped path, and KLEE counts it
 // among the "partially completed" all the same (klee_silent_exit and a failed
 // klee_assume alike). Reading that counter made every program with an

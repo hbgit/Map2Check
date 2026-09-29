@@ -328,7 +328,27 @@ std::string kleeDroppedPaths(const std::string& kleeOutDir) {
     if (line.find("silently concretizing") != std::string::npos) {
       return "concretized a symbolic value";
     }
+    // Near --max-memory KLEE stops forking and follows one side of each
+    // branch at random, or kills states outright; either way it can still
+    // empty its queue and exit 0.
+    if (line.find("skipping fork") != std::string::npos ||
+        line.find("over memory cap") != std::string::npos) {
+      return "hit its memory cap";
+    }
   }
+
+  // KLEE that died (a solver crash, an LLVM assertion, the OOM killer) writes
+  // none of the marks below and no "done" lines -- while the paths it did
+  // finish may have written NONE to the property file.
+  bool finished = false;
+  std::ifstream info((dir / "info").string());
+  while (std::getline(info, line)) {
+    if (line.find("KLEE: done: completed paths") != std::string::npos) {
+      finished = true;
+      break;
+    }
+  }
+  if (!finished) return "did not finish its run";
 
   // A state KLEE killed leaves a test with the reason: <test>.<kind>.err for
   // an error (a model limit, a memory error, an abort that halted the search),

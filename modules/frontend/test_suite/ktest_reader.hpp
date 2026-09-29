@@ -98,6 +98,8 @@ bool kleeHaltedOnTimer(const std::string& kleeOutDir);
  *  - states KLEE killed with its own errors or early exits (a *.err or
  *    *.early test): a VLA of symbolic size did that in
  *    loops/insertion_sort-1-2, also answered TRUE.
+ * Also: KLEE hitting its memory cap ("skipping fork", "over memory cap"), and
+ * a KLEE that never finished (no "done: completed paths" in info -- a crash).
  * A path pruned by an assumption is none of these: it ends in
  * klee_silent_exit and leaves no file. */
 std::string kleeDroppedPaths(const std::string& kleeOutDir);

@@ -368,3 +368,26 @@ passava também no binário antigo — esse caminho não gera TRUE errado.
 
 **Custo esperado:** programas com float/VLA que o KLEE "provava" passam a UNKNOWN. Medir
 TRUE corretos no SV-COMP (R17) — é o preço da solidez.
+
+## R16 — `--seed-exchange` (3a) × controle R15, Cover-Error (2026-09-29)
+
+- **Config:** `build_seeds` (3a + revisão, **sem** as correções do abort e dos caminhos
+  descartados — mesma base de veredito que o controle R15), `--seed-exchange`, amostra
+  `r15-ce.tsv` (213, todas pareadas), 300 s, 3 shards.
+
+| braço | cobertas | TRUE errado | ERROR | tempo mediano |
+|---|---|---|---|---|
+| R15 controle | 129 | 5 | 0 | 5 s |
+| **R16 seeds** | **148** | 7 | 0 | 6 s |
+
+- **+19 cobertas (+15%)**, pares discordantes **21 × 2**. Por categoria (controle → seeds):
+  Sequentialized 2 → 8, XCSP 7 → 13, ECA 5 → 8, Recursive 7 → 9, ControlFlow 3 → 4,
+  BitVectors 7 → 8; as demais iguais. Perdas: 2 ECA (`Problem13_label54`,
+  `Problem10_label12`).
+- **TRUE errado 7:** todos da família `pals_*` (abort inline) e `sin_interpolated_index-1`
+  (double concretizado) — os dois defeitos que esta branch já corrige (1eb8a30b9,
+  4c16013bc). O braço seeds expõe mais deles porque a fase 3 do AFL++ não roda depois de
+  uma "prova" do KLEE.
+- **Leitura:** a troca de sementes é o maior ganho medido na linha TACAS até aqui. A
+  rodada limpa (R19, build final nos dois braços) confirma sem os TRUE errados.
+- Cover-Branches do R16 ainda rodando.

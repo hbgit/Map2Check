@@ -1033,10 +1033,12 @@ EOF
 ( cd "$WORK/abort" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
     --target-function --target-function-name reach_error --nondet-generator symex \
     --timeout 45 safe.c ) > "$WORK/abort/safe.log" 2>&1
-if grep -q "VERIFICATION FAILED" "$WORK/abort/safe.log"; then
-  fail "inline abort soundness" "a safe program with an inline abort() assumption was reported FALSE"
+# And it is still provable: the pruned path is not a dropped one. Reading
+# KLEE's "partially completed paths" as dropped paths turned this into UNKNOWN.
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/abort/safe.log"; then
+  ok "an inline abort() assumption does not invent a violation, and is provable"
 else
-  ok "an inline abort() assumption does not invent a violation"
+  fail "inline abort soundness" "a safe program with an inline abort() assumption: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/abort/safe.log" | tail -1), expected SUCCEEDED"
 fi
 
 # --- 30. KLEE finishing after dropping paths is not a proof -----------------

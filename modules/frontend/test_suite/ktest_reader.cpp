@@ -9,7 +9,6 @@
 #include "ktest_reader.hpp"
 
 #include <algorithm>
-#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -331,13 +330,22 @@ std::string kleeDroppedPaths(const std::string& kleeOutDir) {
     }
   }
 
-  static const std::string kPartial = "partially completed paths = ";
-  std::ifstream info((dir / "info").string());
-  while (std::getline(info, line)) {
-    const size_t at = line.find(kPartial);
-    if (at == std::string::npos) continue;
-    if (std::strtoul(line.c_str() + at + kPartial.size(), nullptr, 10) > 0) {
-      return "terminated states early";
+  // A state KLEE killed leaves a test with the reason: <test>.<kind>.err for
+  // an error (a model limit, a memory error, an abort that halted the search),
+  // <test>.early for an early termination (memory cap, depth, ...). Not
+  // "partially completed paths" in info: that counts the paths an assumption
+  // pruned too, and read that way no program with an assume_abort_if_not
+  // could ever be proved.
+  std::error_code error;
+  for (const auto& entry : std::filesystem::directory_iterator(dir, error)) {
+    const std::string name = entry.path().filename().string();
+    auto endsWith = [&name](const std::string& suffix) {
+      return name.size() > suffix.size() &&
+             name.compare(name.size() - suffix.size(), suffix.size(),
+                          suffix) == 0;
+    };
+    if (endsWith(".err") || endsWith(".early")) {
+      return "terminated states early (" + name + ")";
     }
   }
   return "";

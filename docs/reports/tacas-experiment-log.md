@@ -360,9 +360,9 @@ esvazia, e o frontend lia isso como exploração completa — mas nos dois casos
 
 **Correção:** `kleeDroppedPaths()` generaliza o `kleeHaltedOnTimer`: HaltTimer, qualquer
 "silently concretizing" em `warnings.txt`, ou `partially completed paths > 0` → a execução
-é tratada como timeout (violação registrada vale; senão UNKNOWN). Revalidação: `sin` →
-**FAILED** (sem a falsa prova, a fase 3 do AFL++ roda e acha o 180.0), `insertion_sort`
---slice → **UNKNOWN**. Integração 40/40 (§30 nova: double concretizado; vermelha no
+é tratada como timeout (violação registrada vale; senão UNKNOWN). Revalidação: `sin` → **FAILED** numa execução e UNKNOWN noutra (o AFL++ da fase 1 acha ou
+não o 180.0; sem `--seed-exchange` não há fase 3 — a frase anterior dizia o contrário e
+estava errada), `insertion_sort` --slice → **UNKNOWN**. Nunca TRUE. Integração 40/40 (§30 nova: double concretizado; vermelha no
 `build_seeds`, verde no novo). Uma §31 (abort dentro do `assert` da libc) foi descartada:
 passava também no binário antigo — esse caminho não gera TRUE errado.
 
@@ -391,3 +391,23 @@ TRUE corretos no SV-COMP (R17) — é o preço da solidez.
 - **Leitura:** a troca de sementes é o maior ganho medido na linha TACAS até aqui. A
   rodada limpa (R19, build final nos dois braços) confirma sem os TRUE errados.
 - Cover-Branches do R16 ainda rodando.
+
+### Correção da correção — poda por assunção não é caminho descartado (2026-09-29)
+
+A primeira versão do `kleeDroppedPaths` lia `partially completed paths > 0` no `info`. Esse
+contador inclui os caminhos **podados por assunção**: `klee_assume(0)` num caminho já falso
+é um erro do KLEE (`user.err`, "invalid klee_assume call (provably false)"), e até
+`klee_silent_exit` conta como parcial (medido num programa mínimo: os dois dão
+`partially completed paths = 1`). Resultado: **nenhum programa com `assume_abort_if_not`
+ou abort inline podia mais ser provado** — o §29 `safe.c` ia de TRUE para UNKNOWN.
+
+Correção: `nondet_assume` (KLEE) poda com `klee_silent_exit(0)`, que não deixa arquivo; e
+os caminhos descartados passam a ser lidos pelo que cada estado morto deixa no disco —
+qualquer `*.err` ou `*.early` —, além do HaltTimer e do "silently concretizing". O §29
+agora exige TRUE. `sin` e `insertion_sort` seguem sem TRUE errado (UNKNOWN; o segundo por
+`ptr.err`).
+
+**Efeito na R19:** o `install_r19` tem a versão com o contador. Em Test-Comp isso não muda
+a cobertura (o veredito não pontua), só impede o `provedSafe` de encerrar a execução mais
+cedo em programas com assunções. A R17 (SV-COMP, onde TRUE pontua) precisa do build
+corrigido.

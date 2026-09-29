@@ -95,9 +95,11 @@ bool kleeHaltedOnTimer(const std::string& kleeOutDir);
  *  - a symbolic input concretized ("silently concretizing" in warnings.txt):
  *    a nondet double pinned to 0 left one path and answered TRUE
  *    (float-benchs/sin_interpolated_index-1);
- *  - states KLEE killed with its own errors or early exits ("partially
- *    completed paths" > 0 in info): a VLA of symbolic size did that in
- *    loops/insertion_sort-1-2, also answered TRUE. */
+ *  - states KLEE killed with its own errors or early exits (a *.err or
+ *    *.early test): a VLA of symbolic size did that in
+ *    loops/insertion_sort-1-2, also answered TRUE.
+ * A path pruned by an assumption is none of these: it ends in
+ * klee_silent_exit and leaves no file. */
 std::string kleeDroppedPaths(const std::string& kleeOutDir);
 
 /** Every input vector KLEE recorded under `kleeOutDir`, one per .ktest.

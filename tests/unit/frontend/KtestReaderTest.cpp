@@ -322,11 +322,31 @@ TEST(KleeDroppedPaths, ConcretizingAnInputDropsPaths) {
   fs::remove_all(d);
 }
 
-TEST(KleeDroppedPaths, StatesKilledEarlyDropPaths) {
-  fs::path d = freshDir("partial");
-  std::ofstream(d / "info") << "KLEE: done: completed paths = 2\n"
-                               "KLEE: done: partially completed paths = 2\n";
+TEST(KleeDroppedPaths, AStateKilledByAnErrorDropsPaths) {
+  fs::path d = freshDir("killed");
+  std::ofstream(d / "test000001.ktest") << "";
+  std::ofstream(d / "test000001.model.err") << "Error: concretized symbolic size\n";
   EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, AStateTerminatedEarlyDropsPaths) {
+  fs::path d = freshDir("early");
+  std::ofstream(d / "test000002.early") << "Memory limit exceeded\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// A path pruned by an assumption is not a dropped path, and KLEE counts it
+// among the "partially completed" all the same (klee_silent_exit and a failed
+// klee_assume alike). Reading that counter made every program with an
+// assume_abort_if_not unprovable: TRUE became UNKNOWN.
+TEST(KleeDroppedPaths, AnAssumptionPrunedPathDropsNothing) {
+  fs::path d = freshDir("pruned");
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 1\n"
+                               "KLEE: done: partially completed paths = 1\n";
+  std::ofstream(d / "test000001.ktest") << "";
+  EXPECT_TRUE(Map2Check::kleeDroppedPaths(d.string()).empty());
   fs::remove_all(d);
 }
 

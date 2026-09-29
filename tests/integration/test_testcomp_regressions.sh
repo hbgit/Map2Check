@@ -986,6 +986,59 @@ else
   fail "seed store lifecycle" "stale seed kept, $replays conversions, or a safe program reported FALSE"
 fi
 
+# --- 29. an inline "if (!c) abort();" is an assumption, not the end of search --
+# In SV-COMP abort() is not an error: it discards the path. The benchmarks use
+# it inline (seq-mthreaded/pals_*: `if(!(i2)) {abort();}`), and KLEE runs with
+# --exit-on-error-type=Abort, so the first path violating that assumption ended
+# the WHOLE search with exit 0 -- and the run answered TRUE for a program with a
+# reachable bug. Measured: every wrong TRUE of the tacasv2 control arm in R15.
+mkdir -p "$WORK/abort"
+cat > "$WORK/abort/inline.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "inline.c", 3, "reach_error"); }
+extern void abort(void);
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (!(x > 0)) { abort(); }
+  int y = __VERIFIER_nondet_int();
+  if (y == x + 1) { ERROR: { reach_error(); abort(); } }
+  return 0;
+}
+EOF
+( cd "$WORK/abort" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator symex \
+    --timeout 45 inline.c ) > "$WORK/abort/inline.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/abort/inline.log"; then
+  ok "an inline abort() assumption prunes the path and the bug behind it is found"
+else
+  fail "inline abort" "the bug after an inline abort() assumption was not found: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/abort/inline.log" | tail -1)"
+fi
+
+# The same shape with no reachable bug must not turn into a violation.
+cat > "$WORK/abort/safe.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "safe.c", 3, "reach_error"); }
+extern void abort(void);
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (!(x > 0)) { abort(); }
+  if (x < 0) { ERROR: { reach_error(); abort(); } }
+  return 0;
+}
+EOF
+( cd "$WORK/abort" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator symex \
+    --timeout 45 safe.c ) > "$WORK/abort/safe.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/abort/safe.log"; then
+  fail "inline abort soundness" "a safe program with an inline abort() assumption was reported FALSE"
+else
+  ok "an inline abort() assumption does not invent a violation"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

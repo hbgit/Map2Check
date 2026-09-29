@@ -438,7 +438,7 @@ corrigido.
 | alternate | 9 | 20 | 1 | 3 | 10 | 7 |
 
 - MemCleanup (10): control 6 corretos, seeds 6, alternate 6. NoOverflows (20): control e
-  seeds 2 correct-true + 17 unknown; alternate incompleto no momento do registro.
+  seeds 2 correct-true + 17 unknown; alternate idem (2 + 17 + 1 error) — os três iguais.
 - **wrong-true comum aos três:** `CWE121…CWE193_char_declare_cpy_07_bad`. Causa: o modelo
   `ldv_strcpy` copia `strlen` bytes (sem o terminador) e o estouro real é a **leitura** em
   `printf("%s")` — que o KLEE executa como **chamada externa** (a uClibc do KLEE declara
@@ -474,3 +474,22 @@ corrigido.
 - **TRUE errado zerado em todos os braços** (eram 5 no control R15): as correções do abort e
   dos caminhos descartados confirmadas em escala.
 - Braços slice-light/o2/ntscd/ptafs e Cover-Branches ainda rodando.
+
+### R19 — diagnóstico das perdas de `--alternate-engines` (2026-09-29)
+
+Contra o braço seeds, a alternância perde 6 e ganha 2; 5 das perdas são eca-*. Reproduzido
+em `eca-rers2012/Problem06_label05.c` (300 s):
+
+- **A troca KLEE → AFL++ estava limitada** aos 64 vetores mais recentes do KLEE. No braço
+  seeds, a fase 3 do AFL++ recebe todos (4676), e o dry run dela encontra vetores que,
+  completados com zeros depois do fim, chegam ao `reach_error` (`sig:06`, crashes com
+  `op:dry_run`). É isso que cobre essas tarefas eca-* que o KLEE sozinho deixa UNKNOWN.
+  O limite descartava justamente esses vetores. Ele tinha vindo de um laço cuja calibração
+  nunca terminava, problema já resolvido com a leitura de zeros.
+- **Cada fase do AFL++ recompilava os 3 binários:** ~24 s por fase em eca-*.
+- **A estagnação fixa de 15 s cortava o AFL++ em ~17 s**, onde o híbrido fixo dava 60 s.
+
+**Correção** (`fix(hybrid): the fuzzer gets all of KLEE's vectors, built once, with growing
+patience`): sem limite na troca, cache dos binários por execução (`<hash>.build/`, também
+beneficia a fase 3 do braço seeds) e paciência do AFL++ dobrando por rodada.
+`Problem06_label05`: UNKNOWN → **FAILED em 157 s** (seeds: 281 s). Remedição na R23.

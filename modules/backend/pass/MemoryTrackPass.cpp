@@ -12,6 +12,7 @@
 
 #include <vector>
 
+#include <llvm/IR/IntrinsicInst.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 #include <llvm/Support/CommandLine.h>
@@ -209,8 +210,10 @@ void MemoryTrackPass::instrumentMemset() {
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
-  // Value *args[] = {varPointerCast, size};
-  Value *args[] = {pointer, size};
+  // map2check_load takes an i64 size; the intrinsic's may be i32.
+  Value *sizeCast = CastInst::CreateIntegerCast(
+      size, Type::getInt64Ty(*this->Ctx), false, bitcast, BBIteratorToInst(j));
+  Value *args[] = {varPointerCast, sizeCast};
   builder.CreateCall(map2check_load, args);
 
   Value *args2[] = {this->line_value, function_llvm};
@@ -502,15 +505,16 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentFree();
   } else if (this->calleeFunction->getName() == "posix_memalign") {
     this->instrumentPosixMemAllign();
-  } else if (this->calleeFunction->getName() == "memset") {
+  } else if (llvm::isa<llvm::MemSetInst>(&*this->currentInstruction) ||
+             calleeName == "memset") {
+    // By the intrinsic's kind, not its name. The names carried the pointer
+    // types -- llvm.memset.p0i8.i64 -- and with opaque pointers LLVM 16 names
+    // them llvm.memset.p0.i64: matched by name, no memset, memcpy or memmove
+    // clang emitted was checked at all (memset(p, 0, 16) on 8 malloc'd bytes
+    // came back UNKNOWN, found only by KLEE's own bounds check).
     this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memset.p0i8.i64") {
-    this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memset.p0i8.i32") {
-    this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i64") {
-    this->instrumentMemcpy();
-  } else if (this->calleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i32") {
+  } else if (llvm::isa<llvm::MemTransferInst>(&*this->currentInstruction) ||
+             calleeName == "memcpy" || calleeName == "memmove") {
     this->instrumentMemcpy();
   } else if (this->calleeFunction->getName() == "malloc") {
     this->instrumentMalloc();

@@ -1180,6 +1180,54 @@ else
   fail "alternation" "phases=$phases stagnated=$(grep -c 'KLEE stagnated' "$WORK/alternate/grow.log") elapsed=$((t1 - t0))s verdict=$(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/alternate/grow.log" | tail -1)"
 fi
 
+# --- 34. memset/memcpy/memmove are checked under LLVM 16's opaque pointers --
+# MemoryTrackPass matched the intrinsics by name, and the names carried the
+# pointer types (llvm.memset.p0i8.i64) that LLVM 16 no longer writes
+# (llvm.memset.p0.i64): no memory intrinsic clang emitted was checked.
+mkdir -p "$WORK/intrinsics"
+cat > "$WORK/intrinsics/over.c" <<'EOF2'
+#include <stdlib.h>
+#include <string.h>
+int main(void) {
+  char *p = malloc(8);
+  if (!p) return 0;
+  memset(p, 0, 16);
+  free(p);
+  return 0;
+}
+EOF2
+cat > "$WORK/intrinsics/safe.c" <<'EOF2'
+#include <stdlib.h>
+#include <string.h>
+struct S { int a[10]; char name[16]; };
+int main(void) {
+  char s[] = "hello, world";
+  struct S x = {{1, 2, 3}, "abc"}, y;
+  y = x;
+  char *p = malloc(sizeof s);
+  if (!p) return 0;
+  memcpy(p, s, sizeof s);
+  memmove(p + 1, p, 4);
+  memset(y.name, 'z', sizeof y.name);
+  free(p);
+  return y.a[0] + s[0];
+}
+EOF2
+( cd "$WORK/intrinsics" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 over.c ) > "$WORK/intrinsics/over.log" 2>&1
+( cd "$WORK/intrinsics" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 safe.c ) > "$WORK/intrinsics/safe.log" 2>&1
+if grep -q "FALSE-DEREF" "$WORK/intrinsics/over.log"; then
+  ok "a memset past the end of a heap block is a FALSE-DEREF"
+else
+  fail "memset intrinsic" "expected FALSE-DEREF, got: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/intrinsics/over.log" | tail -1)"
+fi
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/intrinsics/safe.log"; then
+  ok "in-bounds memcpy/memmove/memset and struct copies stay TRUE"
+else
+  fail "intrinsics soundness" "safe program: $(grep -aoE 'VERIFICATION [A-Z]+|FALSE[-_A-Z]*' "$WORK/intrinsics/safe.log" | tr '\n' ' ')"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

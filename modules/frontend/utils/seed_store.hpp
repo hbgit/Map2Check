@@ -28,9 +28,10 @@ inline std::string seedStorePath(const std::string& cwd,
 }
 
 /** The AFL++ queue entries to hand to KLEE: only real entries ("id:..."),
- * in queue order -- AFL++ zero-pads the id, so lexicographic order is id
- * order, oldest (simplest) first -- and at most `cap` of them, so replaying
- * them cannot eat the phase. Not the seeds the fuzzer started from (",orig:"):
+ * those that reached new edges ("+cov") first, each group in queue order --
+ * AFL++ zero-pads the id, so lexicographic order is id order, oldest
+ * (simplest) first -- and at most `cap` of them, so replaying them cannot eat
+ * the phase (tacas 3c). Not the seeds the fuzzer started from (",orig:"):
  * those are KLEE's own vectors or an earlier round's entries, which KLEE
  * already has. */
 inline std::vector<std::string> selectQueueEntries(
@@ -42,6 +43,11 @@ inline std::vector<std::string> selectQueueEntries(
                              }),
               names.end());
   std::sort(names.begin(), names.end());
+  // Ranked: the entries that reached new edges ("+cov" in AFL++'s name) before
+  // the ones that only changed hit counts, id order kept inside each group.
+  std::stable_partition(names.begin(), names.end(), [](const std::string& name) {
+    return name.find(",+cov") != std::string::npos;
+  });
   if (names.size() > cap) names.resize(cap);
   return names;
 }

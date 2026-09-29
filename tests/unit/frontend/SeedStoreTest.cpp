@@ -51,3 +51,17 @@ TEST(SelectQueueEntries, SkipsTheSeedsTheFuzzerStartedFrom) {
   ASSERT_EQ(picked.size(), 1u);
   EXPECT_EQ(picked[0], "id:000001,src:000000,op:havoc");
 }
+
+// Ranked (tacas 3c): the entries that reached new edges ("+cov") first, then
+// the ones that only changed hit counts, each in id order -- so when the queue
+// outgrows the cap, the seeds KLEE gets are the ones that went somewhere new.
+TEST(SelectQueueEntries, PutsNewCoverageFirst) {
+  const auto picked = Map2Check::selectQueueEntries(
+      {"id:000001,src:000000,op:havoc", "id:000002,src:000001,op:havoc,+cov",
+       "id:000003,src:000000,op:havoc", "id:000004,src:000002,op:havoc,+cov"},
+      3);
+  ASSERT_EQ(picked.size(), 3u);
+  EXPECT_EQ(picked[0], "id:000002,src:000001,op:havoc,+cov");
+  EXPECT_EQ(picked[1], "id:000004,src:000002,op:havoc,+cov");
+  EXPECT_EQ(picked[2], "id:000001,src:000000,op:havoc");
+}

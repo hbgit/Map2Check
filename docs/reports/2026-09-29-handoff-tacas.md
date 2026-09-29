@@ -51,12 +51,6 @@ A `EXTRA_FLAGS` usa `--seed-exchange` no braço seeds e `--slice` no braço slic
 R18. O harness é resumível pelo CSV.
 
 - **R18 (validação do abort): concluída** — 6 de 8 TRUE errados resolvidos; restam `sin_interpolated_index-1` (controle) e `insertion_sort-1-2` (slice). Ver log.
-  - O slice terminou. `cast_union_tight` foi resolvido. **`insertion_sort-1-2` continua
-    como TRUE errado.**
-  - O controle tinha 3 de 6 prontos. `pals_lcr` foi resolvido e o `floodmax` virou
-    UNKNOWN. **`sin_interpolated_index-1` continua como TRUE errado**, então a causa não é
-    abort inline.
-  - Falta: terminar o contêiner `r18-ctrl` e registrar as 3 tarefas restantes.
 - **R16 (Cover-Error e Cover-Branches com `--seed-exchange`, `build_seeds`, sem o fix do
   abort):**
   - Contêineres `r16-ce-seeds-{0,1,2}` e `r16-cb-seeds-{0,1}`.

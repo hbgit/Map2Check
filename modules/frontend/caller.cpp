@@ -242,6 +242,82 @@ int Caller::runKleeWatched(const std::string &command) {
 #endif
 }
 
+bool Caller::replayKleeVectorsForViolation() {
+  // KLEE's partial paths -- the states it dumped at a halt -- stop where the
+  // search stopped. Run natively, completed with zeros past their end (the
+  // AFL++ generator's rule), some of them go on to the error: that is how the
+  // fixed hybrid covered eca-* tasks KLEE left UNKNOWN, by accident, in its
+  // last fuzzer phase's dry run. Done on purpose here, right after KLEE, and
+  // without needing --seed-exchange.
+  std::error_code error;
+  std::string witness;
+  for (const auto &entry :
+       std::filesystem::directory_iterator(buildCache, error)) {
+    const std::string candidate =
+        entry.path().string() + "/" + programHash + "-witness-fuzzed.out";
+    if (std::filesystem::exists(candidate, error)) witness = candidate;
+  }
+  if (witness.empty()) return false;
+
+  std::vector<std::string> tests;
+  for (const auto &entry : std::filesystem::directory_iterator(
+           Map2Check::kleeOutputDir, error)) {
+    if (entry.path().extension() == ".ktest") {
+      tests.push_back(entry.path().string());
+    }
+  }
+  std::sort(tests.begin(), tests.end());
+
+  const std::string replay =
+      std::filesystem::absolute("vector-replay", error).string();
+  const auto started = std::chrono::steady_clock::now();
+  const double allowedSeconds = std::min(
+      0.1 * static_cast<double>(this->timeout),
+      static_cast<double>(this->remainingSeconds()) - 5.0);
+  if (allowedSeconds < 1.0) return false;
+  const auto allowed = std::chrono::duration<double>(allowedSeconds);
+  std::set<std::vector<uint8_t>> seen;
+  unsigned replayed = 0;
+  for (const std::string &test : tests) {
+    if (std::chrono::steady_clock::now() - started >= allowed) break;
+    const std::vector<uint8_t> bytes =
+        Map2Check::ktestToFuzzerBytes(Map2Check::readKtestFile(test));
+    if (!seen.insert(bytes).second) continue;
+    std::filesystem::remove_all(replay, error);
+    std::filesystem::create_directories(replay, error);
+    {
+      std::ofstream input(replay + "/input", std::ios::binary);
+      input.write(reinterpret_cast<const char *>(bytes.data()),
+                  static_cast<std::streamsize>(bytes.size()));
+    }
+    std::ostringstream command;
+    command << "cd '" << replay << "' && timeout -k 1 2 '" << witness
+            << "' < input > /dev/null 2>&1";
+    system(command.str().c_str());
+    ++replayed;
+    if (!std::filesystem::exists(replay + "/map2check_checked_error", error)) {
+      continue;
+    }
+    // A violation: its files (property, nondet log, trace) become this
+    // phase's, as a confirmed fuzzer crash's do.
+    for (const auto &entry :
+         std::filesystem::directory_iterator(replay, error)) {
+      if (!entry.is_regular_file(error)) continue;
+      if (entry.path().filename() == "input") continue;
+      std::filesystem::copy_file(
+          entry.path(), entry.path().filename(),
+          std::filesystem::copy_options::overwrite_existing, error);
+    }
+    std::filesystem::remove_all(replay, error);
+    Map2Check::Log::Info("A KLEE vector completed with zeros reaches the "
+                         "violation (" + std::to_string(replayed) +
+                         " replayed)");
+    return true;
+  }
+  std::filesystem::remove_all(replay, error);
+  return false;
+}
+
 void Caller::keepKleeTestsAsSeeds() {
   // The latest tests, not the first: KLEE numbers them as states finish, and
   // the later ones are the deeper paths the next turn should start from.
@@ -1315,6 +1391,13 @@ void Caller::executeAnalysis(std::string solvername) {
         exportKleeVectorsAsSeeds();
       }
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
+      // KLEE found nothing: its vectors, run on natively. Not for
+      // Cover-Branches, whose goal is no violation.
+      if (map2checkMode != Map2CheckMode::COVER_BRANCHES_MODE &&
+          !isWitnessFileCreated() &&
+          !Map2Check::hasViolatingKtest(Map2Check::kleeOutputDir)) {
+        replayKleeVectorsForViolation();
+      }
       if (result == 31744)  // Timeout
         gotTimeout = true;
       // Stopped by us for want of progress: states were left, nothing proved.

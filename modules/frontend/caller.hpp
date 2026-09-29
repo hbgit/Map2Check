@@ -262,6 +262,10 @@ class Caller {
    * stagnationLimit seconds; plain system() when the limit is 0 or the build
    * has no SQLite to read KLEE's stats with. Returns system()'s status. */
   int runKleeWatched(const std::string& command);
+  /** Runs KLEE's vectors natively through the fuzzer's witness binary (from
+   * the build cache), each completed with zeros past its end; true when one
+   * reached a violation, whose files are then in the scratch directory. */
+  bool replayKleeVectorsForViolation();
   /** Keeps KLEE's latest tests (at most kMaxSeedsFromFuzzer) in the seed
    * store's kleeprev/, to seed its next turn. */
   void keepKleeTestsAsSeeds();

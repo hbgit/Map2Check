@@ -323,3 +323,17 @@ classificador contava todo FALSE nelas como errado (corrigido: "any").
   TESTCOV_ERROR 1 (v15: 3). Tempo mediano 183 × 195 s.
 - **Leitura:** o AFL++ não muda a cobertura de ramos nesta amostra; o ganho da tacasv2
   está no Cover-Error.
+
+## R18 — validação da correção do abort() nos TRUE errados da R15 (2026-09-29, parcial)
+
+- **Config:** `build_abort` (commit 1eb8a30b9), 300 s, as tarefas com TRUE errado da R15:
+  6 no braço controle (sem slice), 2 no braço slice (`--slice`). Manifests
+  `tacas-results/r18-{ctrl,slice}.tsv`.
+- **Slice (completo):** `cast_union_tight` TRUE errado → **FAILED/COVERED** (1 s) —
+  era abort inline também, não defeito do slice. `insertion_sort-1-2` continua
+  **SUCCEEDED/NOT_COVERED** (3 s): causa diferente, a investigar (candidato: o slice).
+- **Controle (3 de 6 no momento do registro):** `pals_lcr.4.1` → FAILED/COVERED (83 s);
+  `pals_floodmax.3.4` → UNKNOWN (256 s, deixou de ser TRUE errado);
+  `sin_interpolated_index-1` → **continua SUCCEEDED/NOT_COVERED** (59 s) — a hipótese
+  "abort inline" não explica este; investigar.
+- **Pendente:** as 3 restantes do controle (`tacas-results/R18-cover-error-control_s0`).

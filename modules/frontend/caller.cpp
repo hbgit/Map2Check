@@ -934,15 +934,17 @@ void Caller::executeAnalysis(std::string solvername) {
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
-      // KLEE stopping on its own --max-time exits 0, like a run that explored
-      // every path, but it proves nothing. Treated as the timeout it is: a
+      // KLEE exits 0 when its queue empties, like a run that explored every
+      // path -- also after its timer, a concretized input or states it killed
+      // itself. None of those proves anything. Treated as the timeout it is: a
       // violation already recorded is kept, anything else is UNKNOWN -- never
       // the TRUE a short path's NONE in the property file would otherwise make
-      // it (a reachable null dereference came back TRUE).
-      if (Map2Check::kleeHaltedOnTimer(Map2Check::kleeOutputDir)) {
-        Map2Check::Log::Warning(
-            "KLEE halted on its timer with states left -- not a complete "
-            "exploration");
+      // it (a reachable null dereference, a float bug, came back TRUE).
+      const std::string dropped =
+          Map2Check::kleeDroppedPaths(Map2Check::kleeOutputDir);
+      if (!dropped.empty()) {
+        Map2Check::Log::Warning("KLEE " + dropped +
+                                " -- not a complete exploration");
         gotTimeout = true;
       }
 

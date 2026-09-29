@@ -87,6 +87,19 @@ bool hasViolatingKtest(const std::string& kleeOutDir);
  * NONE to the property file made a reachable null dereference read as TRUE. */
 bool kleeHaltedOnTimer(const std::string& kleeOutDir);
 
+/** Why KLEE's exploration was not exhaustive, or empty if it was.
+ *
+ * KLEE exits 0 whenever its state queue empties, and that is a proof only if
+ * no path was dropped on the way. Three ways to drop them, all exit 0:
+ *  - the HaltTimer (see kleeHaltedOnTimer);
+ *  - a symbolic input concretized ("silently concretizing" in warnings.txt):
+ *    a nondet double pinned to 0 left one path and answered TRUE
+ *    (float-benchs/sin_interpolated_index-1);
+ *  - states KLEE killed with its own errors or early exits ("partially
+ *    completed paths" > 0 in info): a VLA of symbolic size did that in
+ *    loops/insertion_sort-1-2, also answered TRUE. */
+std::string kleeDroppedPaths(const std::string& kleeOutDir);
+
 /** Every input vector KLEE recorded under `kleeOutDir`, one per .ktest.
  *
  * Ordered by file name, which is KLEE's own path numbering: stable across

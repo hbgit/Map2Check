@@ -1039,6 +1039,32 @@ else
   ok "an inline abort() assumption does not invent a violation"
 fi
 
+# --- 30. KLEE finishing after dropping paths is not a proof -----------------
+# KLEE exits 0 whenever its queue empties -- also after pinning a symbolic
+# double to 0 ("silently concretizing (reason: floating point)"): one path,
+# explored "completely", and float-benchs/sin_interpolated_index-1 came back
+# TRUE with a reachable bug.
+mkdir -p "$WORK/dropped"
+cat > "$WORK/dropped/float.c" <<'EOF2'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "float.c", 3, "reach_error"); }
+extern double __VERIFIER_nondet_double(void);
+int main(void) {
+  double x = __VERIFIER_nondet_double();
+  if (x > 179.5 && x < 180.5) { reach_error(); }
+  return 0;
+}
+EOF2
+( cd "$WORK/dropped" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator symex \
+    --timeout 45 float.c ) > "$WORK/dropped/float.log" 2>&1
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/dropped/float.log"; then
+  fail "concretized verdict" "TRUE after KLEE concretized the symbolic double"
+else
+  ok "a KLEE run that concretized an input is not reported TRUE"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

@@ -308,6 +308,46 @@ TEST(KleeHaltedOnTimer, AFinishedRunIsNotHalted) {
   fs::remove_all(d);
 }
 
+// KLEE also exits 0 after dropping paths without running out of them: a
+// symbolic double concretized to 0 (float-benchs/sin_interpolated_index-1: one
+// path, answered TRUE), or states killed by its own errors (a VLA of symbolic
+// size in loops/insertion_sort-1-2: "partially completed paths = 2", TRUE).
+TEST(KleeDroppedPaths, ConcretizingAnInputDropsPaths) {
+  fs::path d = freshDir("concretized");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: silently concretizing (reason: floating point) "
+         "expression (ReadLSB w64 0 non_det_double) to value 0 (x.c:155)\n";
+  std::ofstream(d / "info") << "KLEE: done: partially completed paths = 0\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, StatesKilledEarlyDropPaths) {
+  fs::path d = freshDir("partial");
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 2\n"
+                               "KLEE: done: partially completed paths = 2\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, TheHaltTimerDropsPaths) {
+  fs::path d = freshDir("halted");
+  std::ofstream(d / "messages.txt") << "KLEE: HaltTimer invoked\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, AnExhaustedRunDropsNothing) {
+  fs::path d = freshDir("exhausted");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: calling external: close(12)\n";
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 7\n"
+                               "KLEE: done: partially completed paths = 0\n";
+  std::ofstream(d / "messages.txt") << "KLEE: output directory is \"x\"\n";
+  EXPECT_TRUE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
 // --- the nondet log as seeds -------------------------------------------------
 
 // KLEE matches a seed's objects to its symbolic inputs by POSITION. A read the

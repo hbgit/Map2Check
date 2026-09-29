@@ -344,3 +344,27 @@ classificador contava todo FALSE nelas como errado (corrigido: "any").
 - **Leitura:** 6 de 8 TRUE errados eliminados (5 viraram FAILED coberto, 1 UNKNOWN).
   `cast_union_tight` também era abort inline, não defeito do slice. Restam 2 com causa
   diferente: `sin_interpolated_index-1` (controle) e `insertion_sort-1-2` (slice) — investigar.
+
+### R18 — causa dos 2 TRUE errados restantes (2026-09-29)
+
+Reproduzidos à mão (`build_abort`, 300 s). **Causa comum:** o KLEE sai com 0 quando a fila
+esvazia, e o frontend lia isso como exploração completa — mas nos dois casos ele tinha
+**descartado caminhos**:
+
+- `sin_interpolated_index-1` (controle): `silently concretizing (reason: floating point)
+  expression (ReadLSB w64 0 non_det_double) to value 0` — o KLEE 3.1 não tem double
+  simbólico; 1 caminho, "completo", TRUE.
+- `insertion_sort-1-2` (slice): o VLA `int v[SIZE]` gerou `concretized symbolic size` e
+  `null page access` — 2 estados mortos por erros do próprio KLEE (`partially completed
+  paths = 2` no `info`), TRUE.
+
+**Correção:** `kleeDroppedPaths()` generaliza o `kleeHaltedOnTimer`: HaltTimer, qualquer
+"silently concretizing" em `warnings.txt`, ou `partially completed paths > 0` → a execução
+é tratada como timeout (violação registrada vale; senão UNKNOWN). Revalidação: `sin` →
+**FAILED** (sem a falsa prova, a fase 3 do AFL++ roda e acha o 180.0), `insertion_sort`
+--slice → **UNKNOWN**. Integração 40/40 (§30 nova: double concretizado; vermelha no
+`build_seeds`, verde no novo). Uma §31 (abort dentro do `assert` da libc) foi descartada:
+passava também no binário antigo — esse caminho não gera TRUE errado.
+
+**Custo esperado:** programas com float/VLA que o KLEE "provava" passam a UNKNOWN. Medir
+TRUE corretos no SV-COMP (R17) — é o preço da solidez.

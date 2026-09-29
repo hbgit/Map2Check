@@ -9,6 +9,7 @@
 #include "ktest_reader.hpp"
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -316,6 +317,30 @@ bool kleeHaltedOnTimer(const std::string& kleeOutDir) {
     if (line.find("HaltTimer invoked") != std::string::npos) return true;
   }
   return false;
+}
+
+std::string kleeDroppedPaths(const std::string& kleeOutDir) {
+  if (kleeHaltedOnTimer(kleeOutDir)) return "halted on its timer";
+
+  const std::filesystem::path dir(kleeOutDir);
+  std::string line;
+  std::ifstream warnings((dir / "warnings.txt").string());
+  while (std::getline(warnings, line)) {
+    if (line.find("silently concretizing") != std::string::npos) {
+      return "concretized a symbolic value";
+    }
+  }
+
+  static const std::string kPartial = "partially completed paths = ";
+  std::ifstream info((dir / "info").string());
+  while (std::getline(info, line)) {
+    const size_t at = line.find(kPartial);
+    if (at == std::string::npos) continue;
+    if (std::strtoul(line.c_str() + at + kPartial.size(), nullptr, 10) > 0) {
+      return "terminated states early";
+    }
+  }
+  return "";
 }
 
 std::vector<std::vector<std::string>> readKtestVectors(

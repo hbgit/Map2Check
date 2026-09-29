@@ -299,8 +299,14 @@ void Caller::cleanUpSlice(const std::string &slice) {
   if (passes.empty()) return;
   const std::string cleaned = slice + ".clean.bc";
   std::ostringstream command;
-  command << Map2Check::optBinary << " " << passes << " " << slice << " -o "
-          << cleaned << " >> slicer.output 2>&1";
+  // Bounded like the slicer: a pass pipeline over a large module is not
+  // free, and it runs outside any engine's window.
+  const unsigned cleanupBudget = static_cast<unsigned>(std::max(
+      2.0, std::min(0.05 * this->timeout,
+                    static_cast<double>(remainingSeconds()) - 5.0)));
+  command << "timeout -k " << Map2Check::killGracePeriod << " "
+          << cleanupBudget << " " << Map2Check::optBinary << " " << passes
+          << " " << slice << " -o " << cleaned << " >> slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());
   std::error_code error;
   if (system(command.str().c_str()) == 0 &&

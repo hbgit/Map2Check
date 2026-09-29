@@ -152,7 +152,8 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                    const std::string &entryFunction,
                    const std::string &architecture,
                    const std::string &specification, bool foundViolation,
-                   bool coverBranches, Map2Check::Map2CheckMode mode) {
+                   bool coverBranches, Map2Check::Map2CheckMode mode,
+                   const std::vector<std::vector<std::string>> &fuzzerVectors) {
   Map2Check::TestSuiteMetadata metadata;
   metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
   metadata.specification = specification;
@@ -183,6 +184,23 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
   // every KLEE phase adds cases, and later phases replay the vectors earlier
   // ones already wrote (seeds) -- those are skipped.
   if (coverBranches) {
+    // The fuzzer's share first, at most half the suite, so KLEE's paths still
+    // find room: its corpus is ranked by new edges, the cases a coverage
+    // metric rewards by construction (MAP2CHECK_FUZZER_SUITE=1).
+    size_t fromFuzzer = 0;
+    for (const std::vector<std::string> &inputs : fuzzerVectors) {
+      if (writer.caseCount() >= kMaxBranchTestCases / 2) break;
+      if (writer.hasTestCase(inputs)) continue;
+      if (!writer.writeTestCase(inputs, false)) {
+        Map2Check::Log::Warning("could not write test case to " + outputDir);
+        return;
+      }
+      ++fromFuzzer;
+    }
+    if (!fuzzerVectors.empty()) {
+      Map2Check::Log::Info("Test suite: " + std::to_string(fromFuzzer) +
+                           " test cases from the fuzzer's corpus");
+    }
     constexpr size_t kMaxKtestsRead = 5000;
     std::vector<std::vector<std::string>> vectors =
         Map2Check::readKtestVectors(Map2Check::kleeOutputDir, kMaxKtestsRead);
@@ -839,11 +857,22 @@ int map2check_execution(map2check_args args) {
     if (!fs::path(outputDir).is_absolute()) {
       outputDir = caller->getOriginalPath() + "/" + outputDir;
     }
+    // Cover-Branches used only KLEE's paths: the fuzzer's corpus, the inputs
+    // that reached new edges, was thrown away with the scratch directory.
+    // Behind MAP2CHECK_FUZZER_SUITE=1 until measured.
+    std::vector<std::vector<std::string>> fuzzerVectors;
+    const char *fuzzerSuite = std::getenv("MAP2CHECK_FUZZER_SUITE");
+    if (args.coverBranches && fuzzerSuite != nullptr &&
+        std::string(fuzzerSuite) == "1" &&
+        generator == Map2Check::NonDetGenerator::AFLPlusPlus) {
+      fuzzerVectors = caller->fuzzerCorpusVectors(kMaxBranchTestCases);
+    }
     emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
                   args.architecture,
                   resolveSpecification(args.propertyFile,
                                        caller->getOriginalPath(), args.mode),
-                  foundViolation, args.coverBranches, args.mode);
+                  foundViolation, args.coverBranches, args.mode,
+                  fuzzerVectors);
   }
 
   // (6) Clean map2check execution (folders and temp files)

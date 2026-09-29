@@ -1293,6 +1293,32 @@ else
   fail "%s soundness" "fine program: $(grep -aoE 'VERIFICATION [A-Z]+|FALSE[-_A-Z]*' "$WORK/cstring/fine.log" | tr '\n' ' ')"
 fi
 
+# --- 37. MAP2CHECK_FUZZER_SUITE=1: the fuzzer's corpus joins a Cover-Branches suite
+# The suite came only from KLEE's paths; the fuzzer's queue -- the inputs that
+# reached new edges -- was thrown away with the scratch directory.
+mkdir -p "$WORK/fuzzersuite"
+cat > "$WORK/fuzzersuite/br.c" <<'EOF2'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int(), b = __VERIFIER_nondet_int();
+  int r = 0;
+  if (a > 100) r += 1; else r -= 1;
+  if (b == 4242) r += 2;
+  return r;
+}
+EOF2
+( cd "$WORK/fuzzersuite" && MAP2CHECK_FUZZER_SUITE=1 MAP2CHECK_PATH="$MAP2CHECK_DIR" \
+    timeout -k 10 200 "$MAP2CHECK" --cover-branches --generate-test-suite \
+    --timeout 40 br.c ) > "$WORK/fuzzersuite/br.log" 2>&1
+fuzzed=$(grep -aoE "[0-9]+ test cases from the fuzzer's corpus" "$WORK/fuzzersuite/br.log" | grep -oE '^[0-9]+')
+dups=$(
+       for f in "$WORK"/fuzzersuite/test-suite/testcase-*.xml; do grep -o '<input>[^<]*' "$f" | tr '\n' ' '; echo; done | sort | uniq -d | wc -l)
+if [ "${fuzzed:-0}" -ge 1 ] && [ "$dups" -eq 0 ]; then
+  ok "the fuzzer's corpus contributes test cases, without duplicates ($fuzzed)"
+else
+  fail "fuzzer suite" "fuzzer cases=${fuzzed:-0}, duplicate cases=$dups"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

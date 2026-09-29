@@ -38,6 +38,7 @@
 #endif
 
 #include "test_suite/ktest_reader.hpp"
+#include "test_suite/test_suite.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/alternation.hpp"
 #include "utils/log.hpp"
@@ -390,6 +391,48 @@ std::string environmentKnob(const char *name) {
   return value == nullptr ? std::string() : std::string(value);
 }
 }  // namespace
+
+std::vector<std::vector<std::string>> Caller::fuzzerCorpusVectors(
+    size_t cap) {
+  std::vector<std::vector<std::string>> vectors;
+  std::error_code error;
+  const std::string queue = "afl-out/default/queue";
+  const std::string replay =
+      std::filesystem::absolute("suite-replay", error).string();
+  const std::string witness =
+      std::filesystem::absolute(programHash + "-witness-fuzzed.out", error)
+          .string();
+  if (!std::filesystem::exists(witness, error)) return vectors;
+
+  std::vector<std::string> names;
+  for (const auto &entry : std::filesystem::directory_iterator(queue, error)) {
+    if (entry.is_regular_file(error)) {
+      names.push_back(entry.path().filename().string());
+    }
+  }
+  const auto started = std::chrono::steady_clock::now();
+  const auto allowed = std::chrono::duration<double>(
+      std::max(2.0, 0.05 * static_cast<double>(this->timeout)));
+  std::set<std::vector<std::string>> seen;
+  for (const std::string &name : Map2Check::selectQueueEntries(names, cap)) {
+    if (std::chrono::steady_clock::now() - started >= allowed) break;
+    std::filesystem::remove_all(replay, error);
+    std::filesystem::create_directories(replay, error);
+    const std::string input =
+        std::filesystem::absolute(queue + "/" + name, error).string();
+    std::ostringstream command;
+    command << "cd '" << replay
+            << "' && MAP2CHECK_SEED_REPLAY=1 timeout -k 1 2 '" << witness
+            << "' < '" << input << "' > /dev/null 2>&1";
+    system(command.str().c_str());
+    std::vector<std::string> values =
+        Map2Check::readNonDetLog(replay + "/" + Map2Check::kleeLogCSV);
+    if (values.empty() || !seen.insert(values).second) continue;
+    vectors.push_back(values);
+  }
+  std::filesystem::remove_all(replay, error);
+  return vectors;
+}
 
 bool Caller::runSlicer(const std::string &input, const std::string &output,
                        std::vector<std::string> primary, bool addRuntimeNames,

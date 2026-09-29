@@ -213,6 +213,12 @@ class Caller {
    * replay/ directory. Returns how many seeds were written. */
   unsigned exportFuzzerCorpusAsKtests();
 
+  /** The fuzzer's corpus as test-case vectors (Cover-Branches): at most `cap`
+   * queue entries, ranked as for KLEE, each replayed through the witness
+   * binary for the values it actually reads, duplicates dropped. Bounded like
+   * the KLEE export (5% of the budget). Empty when no fuzzer ran. */
+  std::vector<std::vector<std::string>> fuzzerCorpusVectors(size_t cap);
+
   
   /** Instrument and execute nondeterministic generator */
   void applyNonDetGenerator();

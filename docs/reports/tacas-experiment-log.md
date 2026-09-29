@@ -286,3 +286,29 @@ classificador contava todo FALSE nelas como errado (corrigido: "any").
 - **Leitura:** com o build final, o slicing de memória fica **34 × 33 corretos** e
   **1 × 2 TRUE errados** contra o controle nesta amostra — ligeiramente melhor, e sem
   nenhum erro novo atribuível à fatia.
+
+## R15 — amostra Test-Comp: tacasv2 (develop) × v15, Cover-Error (2026-09-28)
+
+- **Config:** build da `develop` depois do merge de #69/#68/#70/#71; `build_corpus.py
+  --property cover-error --per-category 20` (213 tarefas, **todas pareadas** com a
+  campanha v15 — amostragem aninhada), 300 s, TestCov 300 s, 3 shards por braço.
+  Controle = híbrido sem slice (tacasv1 + correções); slice = `--slice`.
+
+| braço | cobertas | TRUE errado | FALSE errado | tempo mediano |
+|---|---|---|---|---|
+| v15 controle | 111 | **27** | 0 | 43 s |
+| v15 slice | 108 | 15 | 0 | — |
+| **R15 controle** | **129** | **5** | 0 | **5 s** |
+| R15 slice | 126 | 4 | 0 | 7 s |
+
+- **Controle × v15:** +18 cobertas (+16%); pares discordantes 20 × 2 (só R15 × só v15).
+  Por categoria (v15 → R15): ProductLines 14 → 20, Loops 13 → 16, Arrays 15 → 18,
+  ECA 2 → 5, Sequentialized 0 → 2; Heap 19 → 18 (única perda).
+- **TRUE errado 27 → 5:** a correção "KLEE parado pelo timer não é prova" confirmada em
+  escala — a v15 respondia TRUE em 27 de 212 tarefas com bug.
+- **Slice × controle:** 126 × 129 (pares discordantes 3 × 6) — empate técnico, leve
+  desvantagem. TRUE errado 4 × 5: o slice elimina 2 (`pals_lcr…`) e introduz 2
+  (`float-benchs/cast_union_tight.c`, `loops/insertion_sort-1-2.c`); 4 ERROR (ECA,
+  ~330 s, sem suíte) só no slice.
+- **Em aberto:** os 4–5 TRUE errados restantes (`seq-mthreaded/pals_*`,
+  `float-benchs/sin_interpolated_index-1.c`, e os 2 do slice) e os 4 ERROR do slice.

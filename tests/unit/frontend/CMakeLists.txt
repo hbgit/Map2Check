@@ -20,3 +20,8 @@ add_executable(SlicerTest
     SlicerTest.cpp
 )
 map2check_test(SlicerTest)
+
+add_executable(SeedStoreTest
+    SeedStoreTest.cpp
+)
+map2check_test(SeedStoreTest)

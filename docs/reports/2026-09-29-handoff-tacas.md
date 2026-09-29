@@ -27,9 +27,11 @@ anterior, ou todas contra `develop` em ordem).
 | `feat/tacas-smart-seeds` | 3a (sementes), revisão, `provedSafe`, **fix abort → assume**, **fix caminhos descartados** (+ duas correções dele), logs R15/R16/R18 |
 | `feat/tacas-2d-slicing` | 2d: slice uma vez por execução (cache `<hash>.slice/`), knobs `MAP2CHECK_SLICE_CLEANUP` e `MAP2CHECK_SLICER_FLAGS`, `opt` limitado |
 | `feat/tacas-3b-alternation` | fix AFL (zeros após o fim da entrada); 3b `--alternate-engines`; correções da revisão; `migration-schedule.md` atualizado |
-| `feat/tacas-memtrack-intrinsics` | fix: `memset/memcpy/memmove` checados no LLVM 16 (despacho por `MemSetInst`/`MemTransferInst`) |
+| `feat/tacas-memtrack-intrinsics` | fix: `memset/memcpy/memmove` checados no LLVM 16 (despacho por `MemSetInst`/`MemTransferInst`); fix: mensagem de erro de link do AFL++ |
+| `feat/tacas-3c-seed-ranking` | 3c v1: entradas `+cov` da fila vão primeiro para o KLEE (spec `2026-09-29-tacas-3c-seed-ranking-design.md`) |
 
-- **Ponta da pilha:** `feat/tacas-memtrack-intrinsics` @ `8c70e5a73`, mais este documento.
+- **Ponta da pilha:** `feat/tacas-3c-seed-ranking` (a R19 e a R17 usam o build de
+  `8c70e5a73`; a R20 usa `install_r20`, da ponta com o 3c).
 - **Testes:** unitários 12/12; integração 46 seções.
 - **Specs:**
   - `docs/superpowers/specs/2026-09-29-tacas-2d-slicing-optimizations-design.md`;
@@ -85,6 +87,8 @@ anterior, ou todas contra `develop` em ordem).
   - Manifests `r17-*.tsv`, regenerados com `build_corpus.py` e os mesmos parâmetros da
     R9/R13. Os originais se perderam em diretórios temporários.
   - Resultados em `R17-<prop>-<arm>/`.
+- **R20:** `r20-sched.sh`, que espera a R19 lançar seus 30 jobs. Mede Cover-Error seeds e
+  alternate com o ranking do 3c (`install_r20`), para comparar com os mesmos braços da R19.
 - **R16 Cover-Branches** (`r16-cb-seeds-*`, build antigo) terminando; comparar com a R15.
 
 **Análise pendente:**

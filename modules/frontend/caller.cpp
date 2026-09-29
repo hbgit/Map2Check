@@ -97,6 +97,7 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   currentPath = std::filesystem::current_path().string();
   seedStore = Map2Check::seedStorePath(currentPath, programHash);
   sliceCache = Map2Check::sliceCachePath(currentPath, programHash);
+  buildCache = currentPath + "/" + programHash + ".build";
   std::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Current path: " +
                         std::filesystem::current_path().string());
@@ -278,13 +279,13 @@ unsigned Caller::exportKleeVectorsAsSeeds() {
       tests.push_back(entry.path().string());
     }
   }
-  // Alternating, the fuzzer gets a short window, and afl-fuzz calibrates
-  // every seed before its first mutation: a thousand KLEE vectors (measured on
-  // a nondet loop) ate the window. The latest ones, as for kleeprev/.
+  // All of them, not a sample: completed with zeros past their end, some of
+  // KLEE's partial paths reach the error when the fuzzer runs them -- the
+  // dry run records them as crashes (sig 06), and that is how the fixed
+  // hybrid covered eca-* tasks KLEE itself left UNKNOWN. A cap of the 64
+  // latest dropped exactly those (R19: 5 eca-* losses of --alternate-engines).
+  // Calibrating thousands is cheap now that a nondet loop ends on zeros.
   std::sort(tests.begin(), tests.end());
-  if (this->stagnationLimit > 0 && tests.size() > kMaxSeedsFromFuzzer) {
-    tests.erase(tests.begin(), tests.end() - kMaxSeedsFromFuzzer);
-  }
   unsigned written = 0;
   unsigned index = 0;
   for (const std::string &test : tests) {
@@ -669,6 +670,39 @@ void Caller::applyNonDetGenerator() {
     }
     case (NonDetGenerator::AFLPlusPlus): {
       Map2Check::Log::Info("Instrumenting with AFL++");
+      // Built once per run: every fuzzer phase recompiles the same modules,
+      // and on the eca-* programs the three builds take ~24 s -- per phase,
+      // which under --alternate-engines was most of each fuzzer turn. Keyed by
+      // the two modules' content, like the slice cache.
+      const std::vector<std::string> aflBinaries = {
+          programHash + "-fuzzed.out", programHash + "-witness-fuzzed.out",
+          programHash + "-cmplog.out"};
+      std::string buildKey;
+      {
+        std::ifstream result(programHash + "-result.bc", std::ios::binary);
+        std::ifstream witness(programHash + "-witness-result.bc",
+                              std::ios::binary);
+        std::stringstream content;
+        content << result.rdbuf() << "|" << witness.rdbuf();
+        buildKey = Map2Check::sliceCacheKey(content.str(), "afl++", "", "");
+      }
+      const std::string builtDir = buildCache + "/" + buildKey;
+      {
+        std::error_code cacheErr;
+        if (std::filesystem::exists(builtDir + "/" + aflBinaries[0],
+                                    cacheErr)) {
+          for (const std::string &binary : aflBinaries) {
+            if (std::filesystem::exists(builtDir + "/" + binary, cacheErr)) {
+              std::filesystem::copy_file(
+                  builtDir + "/" + binary, binary,
+                  std::filesystem::copy_options::overwrite_existing, cacheErr);
+            }
+          }
+          Map2Check::Log::Info(
+              "AFL++ binaries: reusing the build of an earlier phase");
+          break;
+        }
+      }
       std::ostringstream command;
       command.str("");
 
@@ -724,6 +758,20 @@ void Caller::applyNonDetGenerator() {
                     << " -o " + programHash + "-cmplog.out"
                     << " " + programHash + "-result.bc";
       system(commandCmplog.str().c_str());
+
+      {
+        std::error_code cacheErr;
+        if (std::filesystem::exists(aflBinaries[0], cacheErr)) {
+          std::filesystem::create_directories(builtDir, cacheErr);
+          for (const std::string &binary : aflBinaries) {
+            if (std::filesystem::exists(binary, cacheErr)) {
+              std::filesystem::copy_file(
+                  binary, builtDir + "/" + binary,
+                  std::filesystem::copy_options::overwrite_existing, cacheErr);
+            }
+          }
+        }
+      }
 
       // Announced rather than discovered later as a silent no-op -- the same
       // failure mode the sliced arm spent a whole campaign in.
@@ -1352,22 +1400,11 @@ void Caller::executeAnalysis(std::string solvername) {
       // the next fuzzer phase starts from this corpus plus KLEE's vectors.
       if (this->seedExchange) {
         std::error_code queueErr;
-        // Alternating, the corpus grows every fuzzer round and afl-fuzz
-        // calibrates all of it before mutating: bounded, like KLEE's share.
-        size_t corpus = 0;
-        if (this->stagnationLimit > 0) {
-          for (const auto &entry : std::filesystem::directory_iterator(
-                   seedStore + "/afl", queueErr)) {
-            if (entry.is_regular_file(queueErr)) ++corpus;
-          }
-        }
         for (const auto &entry : std::filesystem::directory_iterator(
                  aflFindings + "/queue", queueErr)) {
           const std::string name = entry.path().filename().string();
           if (!entry.is_regular_file(queueErr)) continue;
           if (name.find(",orig:") != std::string::npos) continue;
-          if (this->stagnationLimit > 0 && corpus >= kMaxFuzzerCorpus) break;
-          ++corpus;
           std::filesystem::copy_file(
               entry.path(),
               seedStore + "/afl/afl-" + name,

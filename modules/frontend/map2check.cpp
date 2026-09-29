@@ -442,6 +442,8 @@ bool provedSafe = false;
 static std::string lastSeedStore;
 // The slice cache of the last phase, removed by main with the seed store.
 static std::string lastSliceCache;
+// The AFL++ build cache of the last phase, removed by main likewise.
+static std::string lastBuildCache;
 // How long the last phase's engine ran; the rest of the phase is setup
 // (compile, instrument, link) that no engine window accounts for.
 static double lastEngineSeconds = 0;
@@ -458,32 +460,36 @@ int alternateEngines(map2check_args args) {
   const double budget = args.timeout;
   const unsigned quiet = Map2Check::stagnationSeconds(budget);
   unsigned rounds[2] = {0, 0};
-  // The largest setup a phase has needed so far: a phase is started only if
-  // what is left covers that setup plus a stagnation period of engine time,
-  // and its window leaves the setup out. On large programs (eca-*) compiling,
-  // instrumenting and linking take longer than the stagnation period.
-  double setup = 0;
+  // The setup each engine's phase needed last time (compile, instrument,
+  // link -- time no window covers): a phase starts only if what is left
+  // covers its setup plus a stagnation period of engine time, and its window
+  // leaves the setup out. Per engine and latest, not the maximum: the first
+  // fuzzer phase builds the AFL++ binaries, the later ones reuse them.
+  double setup[2] = {0, 0};
   for (int phase = 1;; ++phase) {
     const bool klee = (phase % 2 == 0);
+    const int self = klee ? 1 : 0;
     const double left = Map2Check::Caller::remainingOf(args.timeout);
-    if (phase > 1 && left < quiet + setup) break;
+    if (phase > 1 && left < quiet + setup[self]) break;
     const Map2Check::Engine engine =
         klee ? Map2Check::Engine::Klee : Map2Check::Engine::Fuzzer;
-    const unsigned round = ++rounds[klee ? 1 : 0];
+    const unsigned round = ++rounds[self];
     args.generator = klee ? Map2Check::NonDetGenerator::Klee
                           : Map2Check::NonDetGenerator::AFLPlusPlus;
     args.phase = phase;
     args.engineWindow = Map2Check::alternationWindow(
-        engine, round, budget, std::max(1.0, left - setup));
-    // KLEE's patience grows with its rounds: after coverage stops rising it
-    // may still be enumerating the paths that make a proof, and a fixed cut
-    // would never let it finish one.
-    args.stagnationLimit = klee ? Map2Check::stagnationSeconds(budget, round)
-                                : quiet;
+        engine, round, budget, std::max(1.0, left - setup[self]));
+    // Both engines' patience grows with their rounds. KLEE: coverage stops
+    // rising well before it finishes the paths of a proof. The fuzzer: on the
+    // eca-* state machines it finds new paths in bursts, and a fixed 15 s cut
+    // ended its turns at ~17 s where the fixed split gave it 60.
+    args.stagnationLimit = Map2Check::stagnationSeconds(budget, round);
     // Replaying the corpus for a KLEE phase that will not get to run is
     // pure cost.
-    args.feedsKlee =
-        (!klee && left - setup - args.engineWindow >= quiet + setup) ? 1 : 0;
+    args.feedsKlee = (!klee && left - setup[self] - args.engineWindow >=
+                                   quiet + setup[1])
+                         ? 1
+                         : 0;
     Map2Check::Log::Info("Alternation phase " + std::to_string(phase) + ": " +
                          (klee ? "KLEE" : "AFL++") + ", window " +
                          std::to_string(static_cast<unsigned>(
@@ -495,7 +501,7 @@ int alternateEngines(map2check_args args) {
     const double took = std::chrono::duration<double>(
                             std::chrono::steady_clock::now() - started)
                             .count();
-    setup = std::max(setup, took - lastEngineSeconds);
+    setup[self] = std::max(0.0, took - lastEngineSeconds);
     if (foundViolation || provedSafe) break;
   }
   return SUCCESS;
@@ -580,6 +586,10 @@ int map2check_execution(map2check_args args) {
     std::error_code cacheError;
     std::filesystem::remove_all(caller->sliceCachePath(), cacheError);
   }
+  if (args.phase <= 1) {
+    std::error_code cacheError;
+    std::filesystem::remove_all(caller->buildCachePath(), cacheError);
+  }
   // A run starts from an empty suite. Its phases then add to it (see
   // TestSuiteWriter), and a suite left in this directory by an earlier run --
   // possibly of another program -- must not be added to.
@@ -594,6 +604,7 @@ int map2check_execution(map2check_args args) {
   // the store or the slice cache past the cleanup in main.
   lastSeedStore = caller->seedStorePath();
   lastSliceCache = caller->sliceCachePath();
+  lastBuildCache = caller->buildCachePath();
   caller->engineSeconds = &lastEngineSeconds;
   caller->feedsKleePhase =
       args.feedsKlee >= 0 ? (args.feedsKlee == 1) : (args.phase == 1);
@@ -1131,6 +1142,10 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
           if (args.sliceProgram && !args.debugMode && !lastSliceCache.empty()) {
             std::error_code cacheError;
             std::filesystem::remove_all(lastSliceCache, cacheError);
+          }
+          if (!args.debugMode && !lastBuildCache.empty()) {
+            std::error_code cacheError;
+            std::filesystem::remove_all(lastBuildCache, cacheError);
           }
         }
       } seedStoreCleanup{args};

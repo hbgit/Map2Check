@@ -57,9 +57,18 @@ que o KLEE já tem. O `store/ktest` é limpo a cada exportação, porque os `.kt
 KLEE anterior (`kleeprev/`) carregam o que ela já explorou. (A primeira versão deste spec
 previa um `store/exported.txt`; o efeito é o mesmo com menos estado.)
 
-**Limites da troca:** no máximo 64 vetores do KLEE vão para uma janela curta do AFL++, e o
-corpus do AFL++ no store fica abaixo de 256 entradas. O `afl-fuzz` calibra todas as
-entradas antes de mutar, e 1000+ vetores do KLEE consumiram a janela inteira num teste.
+**Sem limite na troca KLEE → AFL++:** todos os vetores do KLEE vão para o fuzzer.
+Completados com zeros depois do fim, alguns caminhos parciais do KLEE chegam ao erro no
+dry run do AFL++, e é assim que o híbrido fixo cobre tarefas eca-* que o próprio KLEE deixa
+UNKNOWN. Uma primeira versão limitava a exportação aos 64 vetores mais recentes (e o corpus
+a 256). Isso custou 5 tarefas eca-* na R19 e foi removido. A calibração ficou barata depois
+que o gerador do AFL++ passou a devolver zeros no fim da entrada.
+
+**Binários do AFL++ compilados uma vez por execução** (cache `<hash>.build/`, chaveado
+pelo conteúdo dos módulos): em eca-* cada fase do fuzzer gastava ~24 s recompilando.
+
+**Paciência do AFL++ também dobra por rodada:** com o corte fixo de 15 s, os turnos do
+fuzzer em eca-* acabavam em ~17 s, onde o híbrido fixo dava 60 s.
 
 ### Estagnação
 

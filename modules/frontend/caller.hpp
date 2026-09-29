@@ -180,6 +180,10 @@ class Caller {
    * Map2Check::sliceCachePath. Removed by main with the seed store. */
   std::string sliceCache;
   const std::string& sliceCachePath() const { return sliceCache; }
+  /** AFL++ binaries kept across the phases of one run (<cwd>/<hash>.build),
+   * keyed by the content of the modules they are built from. */
+  std::string buildCache;
+  const std::string& buildCachePath() const { return buildCache; }
 
   /** Writes KLEE's per-path vectors into the seed corpus.
    *
@@ -200,8 +204,6 @@ class Caller {
   /** Where to report how long this phase's engine ran (main sizes the next
    * alternating phase with it); null: not reported. */
   double* engineSeconds = nullptr;
-  /** Alternating, the fuzzer's input corpus in the store is kept below this. */
-  static constexpr size_t kMaxFuzzerCorpus = 256;
 
   /** At most this many fuzzer queue entries are converted into KLEE seeds. */
   static constexpr size_t kMaxSeedsFromFuzzer = 64;

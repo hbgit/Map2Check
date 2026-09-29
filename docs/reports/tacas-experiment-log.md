@@ -312,3 +312,14 @@ classificador contava todo FALSE nelas como errado (corrigido: "any").
   ~330 s, sem suíte) só no slice.
 - **Em aberto:** os 4–5 TRUE errados restantes (`seq-mthreaded/pals_*`,
   `float-benchs/sin_interpolated_index-1.c`, e os 2 do slice) e os 4 ERROR do slice.
+
+### R15 — Cover-Branches, controle × v15 (mesma rodada)
+
+- 120 tarefas (10 por categoria), todas pareadas com a v15; só o braço controle (o
+  slicing não atua em Cover-Branches).
+- **Cobertura média: v15 48,0% × R15 47,7%** — neutra. Melhor em 6 tarefas, pior em 3,
+  igual em 111. Recursive 51,9 → 45,0% (a única queda relevante); XCSP 74,2 → 77,7%.
+- Validação do TestCov mais limpa: VALIDATED 116 (v15: 107), VALIDATED_ABORTS 3 (v15: 10),
+  TESTCOV_ERROR 1 (v15: 3). Tempo mediano 183 × 195 s.
+- **Leitura:** o AFL++ não muda a cobertura de ramos nesta amostra; o ganho da tacasv2
+  está no Cover-Error.

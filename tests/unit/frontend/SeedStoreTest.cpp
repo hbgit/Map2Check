@@ -28,8 +28,9 @@ TEST(SelectQueueEntries, KeepsOnlyQueueEntriesInIdOrderUpToTheCap) {
   const std::vector<std::string> chosen =
       Map2Check::selectQueueEntries(names, 2);
   ASSERT_EQ(chosen.size(), 2u);
-  EXPECT_EQ(chosen[0], "id:000000,time:0,execs:0,orig:seed");
-  EXPECT_EQ(chosen[1], "id:000001,src:000000,time:5");
+  // The ",orig:" seed is not the fuzzer's discovery (see the test below).
+  EXPECT_EQ(chosen[0], "id:000001,src:000000,time:5");
+  EXPECT_EQ(chosen[1], "id:000002,src:000000,time:9");
 }
 
 TEST(IsNewVector, RejectsEmptyAndDuplicateVectors) {
@@ -38,4 +39,15 @@ TEST(IsNewVector, RejectsEmptyAndDuplicateVectors) {
   EXPECT_TRUE(Map2Check::isNewVector({1, 2}, &seen));
   EXPECT_FALSE(Map2Check::isNewVector({1, 2}, &seen));
   EXPECT_TRUE(Map2Check::isNewVector({1, 3}, &seen));
+}
+
+// The fuzzer's own seeds come back in its queue tagged ",orig:" -- the KLEE
+// vectors, the previous rounds' entries -- and KLEE already has those. Only
+// what this round discovered is worth replaying (tacas 3b).
+TEST(SelectQueueEntries, SkipsTheSeedsTheFuzzerStartedFrom) {
+  const auto picked = Map2Check::selectQueueEntries(
+      {"id:000000,time:0,execs:0,orig:klee-0", "id:000001,src:000000,op:havoc"},
+      8);
+  ASSERT_EQ(picked.size(), 1u);
+  EXPECT_EQ(picked[0], "id:000001,src:000000,op:havoc");
 }

@@ -26,11 +26,20 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <signal.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <atomic>
+#include <thread>
+
+#ifdef MAP2CHECK_HAVE_SQLITE
+#include <sqlite3.h>
+#endif
+
 #include "test_suite/ktest_reader.hpp"
 #include "utils/gen_crypto_hash.hpp"
+#include "utils/alternation.hpp"
 #include "utils/log.hpp"
 #include "utils/seed_store.hpp"
 #include "utils/slicer.hpp"
@@ -107,6 +116,14 @@ std::chrono::steady_clock::time_point processStart() {
 }
 }  // namespace
 
+unsigned Caller::remainingOf(unsigned timeout) {
+  const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                           std::chrono::steady_clock::now() - processStart())
+                           .count();
+  const long long left = static_cast<long long>(timeout) - elapsed;
+  return left < 1 ? 1u : static_cast<unsigned>(left);
+}
+
 unsigned Caller::remainingSeconds() const {
   const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
                            std::chrono::steady_clock::now() - processStart())
@@ -133,19 +150,133 @@ std::string Caller::postOptimizationFlags() {
   return flags.str();
 }
 
+namespace {
+/** KLEE's covered-instruction count, from the last row of the SQLite stats
+ * database it rewrites every second; -1 when it cannot be read (not created
+ * yet, busy, or a build without SQLite). */
+long long kleeCoveredInstructions(const std::string &statsPath) {
+#ifdef MAP2CHECK_HAVE_SQLITE
+  sqlite3 *db = nullptr;
+  long long covered = -1;
+  if (sqlite3_open_v2(statsPath.c_str(), &db, SQLITE_OPEN_READONLY, nullptr) ==
+      SQLITE_OK) {
+    sqlite3_busy_timeout(db, 200);
+    sqlite3_stmt *statement = nullptr;
+    if (sqlite3_prepare_v2(db,
+                           "SELECT CoveredInstructions FROM stats ORDER BY "
+                           "rowid DESC LIMIT 1",
+                           -1, &statement, nullptr) == SQLITE_OK &&
+        sqlite3_step(statement) == SQLITE_ROW) {
+      covered = sqlite3_column_int64(statement, 0);
+    }
+    sqlite3_finalize(statement);
+  }
+  sqlite3_close(db);
+  return covered;
+#else
+  (void)statsPath;
+  return -1;
+#endif
+}
+}  // namespace
+
+int Caller::runKleeWatched(const std::string &command) {
+  this->stoppedOnStagnation = false;
+#ifndef MAP2CHECK_HAVE_SQLITE
+  return system(command.c_str());
+#else
+  if (this->stagnationLimit == 0) return system(command.c_str());
+
+  // The shell's pid becomes the pid of `timeout` through exec, and `timeout`
+  // forwards a SIGINT to KLEE -- whose handler halts the search cleanly and
+  // writes the tests of the states it finished.
+  std::error_code error;
+  std::filesystem::remove("klee.pid", error);
+  const std::string wrapped = "echo $$ > klee.pid; exec " + command;
+  std::atomic<bool> done{false};
+  int result = 0;
+  std::thread runner([&wrapped, &done, &result] {
+    result = system(wrapped.c_str());
+    done = true;
+  });
+
+  Map2Check::CoverageWatch watch(this->stagnationLimit);
+  const auto started = std::chrono::steady_clock::now();
+  const std::string stats = std::string(Map2Check::kleeOutputDir) + "/run.stats";
+  while (!done) {
+    for (int tick = 0; tick < 4 && !done; ++tick) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    if (done) break;
+    const double now = std::chrono::duration<double>(
+                           std::chrono::steady_clock::now() - started)
+                           .count();
+    if (!watch.stagnated(kleeCoveredInstructions(stats), now)) continue;
+
+    pid_t pid = 0;
+    std::ifstream("klee.pid") >> pid;
+    if (pid > 0) kill(pid, SIGINT);
+    this->stoppedOnStagnation = true;
+    Map2Check::Log::Warning("KLEE stagnated: no new coverage for " +
+                            std::to_string(this->stagnationLimit) +
+                            " s -- stopping it");
+    break;
+  }
+  runner.join();
+  return result;
+#endif
+}
+
+void Caller::keepKleeTestsAsSeeds() {
+  // The latest tests, not the first: KLEE numbers them as states finish, and
+  // the later ones are the deeper paths the next turn should start from.
+  std::error_code error;
+  const std::string kept = seedStore + "/kleeprev";
+  std::filesystem::remove_all(kept, error);
+  std::vector<std::string> tests;
+  for (const auto &entry : std::filesystem::directory_iterator(
+           Map2Check::kleeOutputDir, error)) {
+    if (entry.path().extension() == ".ktest") {
+      tests.push_back(entry.path().string());
+    }
+  }
+  if (tests.empty()) return;
+  std::sort(tests.begin(), tests.end());
+  if (tests.size() > kMaxSeedsFromFuzzer) {
+    tests.erase(tests.begin(), tests.end() - kMaxSeedsFromFuzzer);
+  }
+  std::filesystem::create_directories(kept, error);
+  for (const std::string &test : tests) {
+    std::filesystem::copy_file(
+        test, kept + "/" + std::filesystem::path(test).filename().string(),
+        std::filesystem::copy_options::overwrite_existing, error);
+  }
+}
+
 unsigned Caller::exportKleeVectorsAsSeeds() {
   std::error_code error;
   const std::string aflSeeds = seedStore + "/afl";
   std::filesystem::create_directories(aflSeeds, error);
 
-  std::vector<std::vector<std::string>> ignored;
-  unsigned written = 0;
-  unsigned index = 0;
+  std::vector<std::string> tests;
   for (const auto &entry : std::filesystem::directory_iterator(
            Map2Check::kleeOutputDir, error)) {
-    if (entry.path().extension() != ".ktest") continue;
+    if (entry.path().extension() == ".ktest") {
+      tests.push_back(entry.path().string());
+    }
+  }
+  // Alternating, the fuzzer gets a short window, and afl-fuzz calibrates
+  // every seed before its first mutation: a thousand KLEE vectors (measured on
+  // a nondet loop) ate the window. The latest ones, as for kleeprev/.
+  std::sort(tests.begin(), tests.end());
+  if (this->stagnationLimit > 0 && tests.size() > kMaxSeedsFromFuzzer) {
+    tests.erase(tests.begin(), tests.end() - kMaxSeedsFromFuzzer);
+  }
+  unsigned written = 0;
+  unsigned index = 0;
+  for (const std::string &test : tests) {
     std::vector<Map2Check::KtestObject> objects =
-        Map2Check::readKtestFile(entry.path().string());
+        Map2Check::readKtestFile(test);
     if (objects.empty()) continue;
 
     std::vector<uint8_t> bytes = Map2Check::ktestToFuzzerBytes(objects);
@@ -191,6 +322,9 @@ unsigned Caller::exportFuzzerCorpusAsKtests() {
       names.push_back(entry.path().filename().string());
     }
   }
+  // This round's discoveries replace the last round's: KLEE already ran on
+  // those, and its own tests from that turn (kleeprev/) carry them forward.
+  std::filesystem::remove_all(ktests, error);
   std::filesystem::create_directories(ktests, error);
 
   // Bounded as a whole, not only per entry: the replays come out of the KLEE
@@ -872,10 +1006,12 @@ void Caller::executeAnalysis(std::string solvername) {
       constexpr double kPostEngineReserve = 5.0;
       // With the exchange on, the fuzzer gets a real third phase: 0.2 / 0.6 /
       // 0.2. Without it the hybrid keeps the 0.2 / 0.8 it was measured with.
+      // Alternating (--alternate-engines), main hands each phase its window.
       const double kleeShare = this->seedExchange ? 0.6 : 0.8;
+      const double kleeCap =
+          this->engineWindow > 0 ? this->engineWindow : kleeShare * this->timeout;
       const double kleeBudget = std::max(
-          1.0, std::min(kleeShare * this->timeout,
-                        this->remainingSeconds() - kPostEngineReserve));
+          1.0, std::min(kleeCap, this->remainingSeconds() - kPostEngineReserve));
       kleeCommand << "timeout -k " << Map2Check::killGracePeriod << " "
                   << static_cast<unsigned>(kleeBudget) << " ";
       kleeCommand << Map2Check::kleeBinary;
@@ -944,9 +1080,24 @@ void Caller::executeAnalysis(std::string solvername) {
             break;
           }
         }
-        if (haveSeeds) {
-          seedFlag = " --seed-dir='" + seedStore +
-                     "/ktest' --allow-seed-extension --allow-seed-truncation"
+        // KLEE's own tests from its previous turn, when the engines alternate:
+        // replaying them rebuilds the frontier it had reached instead of
+        // rediscovering it.
+        bool haveOwnSeeds = false;
+        for (const auto &entry : std::filesystem::directory_iterator(
+                 seedStore + "/kleeprev", seedError)) {
+          if (entry.is_regular_file(seedError)) {
+            haveOwnSeeds = true;
+            break;
+          }
+        }
+        if (haveSeeds || haveOwnSeeds) {
+          seedFlag = std::string(haveSeeds ? " --seed-dir='" + seedStore +
+                                                 "/ktest'"
+                                           : "") +
+                     (haveOwnSeeds ? " --seed-dir='" + seedStore + "/kleeprev'"
+                                   : "") +
+                     " --allow-seed-extension --allow-seed-truncation"
                      " --seed-time=" +
                      std::to_string(std::max(
                          1u, static_cast<unsigned>(kleeBudget / 4))) +
@@ -1013,8 +1164,9 @@ void Caller::executeAnalysis(std::string solvername) {
       }
 
       Map2Check::Log::Debug(kleeCommand.str());
-      int result = system(kleeCommand.str().c_str());
+      int result = runKleeWatched(kleeCommand.str());
       if (this->seedExchange) {
+        keepKleeTestsAsSeeds();
         // Written after KLEE rather than before the next phase, because the
         // .ktest files are in the scratch directory that cleanGarbage() will
         // remove -- and because a later alternation, or a resumed run, should
@@ -1024,6 +1176,8 @@ void Caller::executeAnalysis(std::string solvername) {
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
+      // Stopped by us for want of progress: states were left, nothing proved.
+      if (this->stoppedOnStagnation) gotTimeout = true;
       // KLEE exits 0 when its queue empties, like a run that explored every
       // path -- also after its timer, a concretized input or states it killed
       // itself. None of those proves anything. Treated as the timeout it is: a
@@ -1061,7 +1215,8 @@ void Caller::executeAnalysis(std::string solvername) {
       // Against what is LEFT, not against the nominal budget -- see
       // Caller::remainingSeconds.
       const double fuzzerBudget =
-          std::min(0.2 * this->timeout,
+          std::min(this->engineWindow > 0 ? this->engineWindow
+                                          : 0.2 * this->timeout,
                    static_cast<double>(this->remainingSeconds()));
       // afl-fuzz needs a non-empty -i dir and a -o dir that does not already
       // exist (the hybrid may run the fuzzer phase twice).
@@ -1098,6 +1253,11 @@ void Caller::executeAnalysis(std::string solvername) {
               << " AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1"
               << " AFL_CRASHING_SEEDS_AS_NEW_CRASH=1"
               << " AFL_BENCH_UNTIL_CRASH=1 ";
+      // Alternating: the fuzzer hands the rest of its window back as soon as
+      // it stops finding coverage, and exits 0 doing so -- not a timeout.
+      if (this->stagnationLimit > 0) {
+        command << "AFL_EXIT_ON_TIME=" << this->stagnationLimit << " ";
+      }
       // Bounded by `timeout` alone, as the previous fuzzer was. Not also by
       // afl-fuzz -V: that one compares wall-clock (gettimeofday) readings,
       // and a clock stepped backwards -- measured at over a second under
@@ -1155,13 +1315,8 @@ void Caller::executeAnalysis(std::string solvername) {
       // afl-fuzz never writes back into -i, so under --seed-exchange its
       // discoveries are copied into seeds/ -- the previous fuzzer grew that
       // directory in place. Inputs tagged ",orig:" are the seeds it started
-      // from, already there.
-      //
-      // Caveat, inherited unchanged from v15: seeds/ lives in the scratch
-      // directory, which the next phase's Caller wipes on construction, so
-      // this corpus does not yet reach the following KLEE or fuzzer phase.
-      // Making it survive changes what the hybrid measures, and belongs to
-      // the smart-seeds work, not to the engine swap.
+      // from, already there. The store is beside the scratch directory, so
+      // the next fuzzer phase starts from this corpus plus KLEE's vectors.
       if (this->seedExchange) {
         std::error_code queueErr;
         for (const auto &entry : std::filesystem::directory_iterator(

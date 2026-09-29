@@ -30,12 +30,15 @@ inline std::string seedStorePath(const std::string& cwd,
 /** The AFL++ queue entries to hand to KLEE: only real entries ("id:..."),
  * in queue order -- AFL++ zero-pads the id, so lexicographic order is id
  * order, oldest (simplest) first -- and at most `cap` of them, so replaying
- * them cannot eat the phase. */
+ * them cannot eat the phase. Not the seeds the fuzzer started from (",orig:"):
+ * those are KLEE's own vectors or an earlier round's entries, which KLEE
+ * already has. */
 inline std::vector<std::string> selectQueueEntries(
     std::vector<std::string> names, size_t cap) {
   names.erase(std::remove_if(names.begin(), names.end(),
                              [](const std::string& name) {
-                               return name.rfind("id:", 0) != 0;
+                               return name.rfind("id:", 0) != 0 ||
+                                      name.find(",orig:") != std::string::npos;
                              }),
               names.end());
   std::sort(names.begin(), names.end());

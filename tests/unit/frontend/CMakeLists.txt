@@ -25,3 +25,8 @@ add_executable(SeedStoreTest
     SeedStoreTest.cpp
 )
 map2check_test(SeedStoreTest)
+
+add_executable(AlternationTest
+    AlternationTest.cpp
+)
+map2check_test(AlternationTest)

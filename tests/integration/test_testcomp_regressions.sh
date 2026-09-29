@@ -1118,6 +1118,68 @@ else
   fail "slice failure cache" "sbt-slicer ran $slicer_runs time(s); cached failure logged: $(grep -c 'no usable output (cached' "$WORK/slicecache/vla.log")"
 fi
 
+# --- 32. the fuzzer's input runs out as zeros, not as a replay of itself -----
+# Past the end of the test case the AFL++ generator used to start over from
+# its first byte, so `while (__VERIFIER_nondet_int())` fed by the placeholder
+# seed "A" never ended: afl-fuzz's dry run timed out on it and the fuzzer
+# aborted before its first execution -- on the loop idiom sv-benchmarks is
+# full of. Reads past the end now return zero.
+mkdir -p "$WORK/aflloop"
+cat > "$WORK/aflloop/loop.c" <<'EOF2'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "loop.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  while (__VERIFIER_nondet_int()) {
+    if (__VERIFIER_nondet_int() == 7) { reach_error(); }
+  }
+  return 0;
+}
+EOF2
+( cd "$WORK/aflloop" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator afl \
+    --timeout 45 loop.c ) > "$WORK/aflloop/loop.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/aflloop/loop.log"; then
+  ok "a nondet-driven loop does not hang the fuzzer's dry run"
+else
+  fail "fuzzer on a nondet loop" "expected FAILED, got: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/aflloop/loop.log" | tail -1)"
+fi
+
+# --- 33. --alternate-engines takes turns and stops a stagnant KLEE ----------
+# The fixed 0.2/0.6/0.2 split held an engine that had stopped progressing to
+# the end of its share. Alternating, each phase ends when its engine stagnates
+# and the other gets the time; KLEE stopped that way was left with states, so
+# the run is never TRUE, and the whole run stays inside its budget.
+mkdir -p "$WORK/alternate"
+cat > "$WORK/alternate/grow.c" <<'EOF2'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "grow.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int s = 0;
+  while (__VERIFIER_nondet_int()) {
+    if (__VERIFIER_nondet_int() > 0) s += 1; else s += 2;
+    if (s < 0) { reach_error(); }
+  }
+  return 0;
+}
+EOF2
+t0=$(date +%s)
+( cd "$WORK/alternate" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --alternate-engines --target-function --target-function-name reach_error \
+    --timeout 60 grow.c ) > "$WORK/alternate/grow.log" 2>&1
+t1=$(date +%s)
+phases=$(grep -c "Alternation phase" "$WORK/alternate/grow.log")
+if [ "$phases" -ge 3 ] && grep -q "KLEE stagnated" "$WORK/alternate/grow.log" && \
+   ! grep -q "VERIFICATION SUCCEEDED" "$WORK/alternate/grow.log" && \
+   [ $((t1 - t0)) -le 75 ]; then
+  ok "the engines alternate, a stagnant KLEE is stopped, no TRUE ($phases phases, $((t1 - t0)) s)"
+else
+  fail "alternation" "phases=$phases stagnated=$(grep -c 'KLEE stagnated' "$WORK/alternate/grow.log") elapsed=$((t1 - t0))s verdict=$(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/alternate/grow.log" | tail -1)"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

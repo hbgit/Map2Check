@@ -93,6 +93,9 @@ class Caller {
    * Sizing each phase against what is LEFT keeps the sum inside the budget
    * however many phases there turn out to be. */
   unsigned remainingSeconds() const;
+  /** remainingSeconds for a budget of `timeout`, without a Caller: what main
+   * sizes the alternating phases with. */
+  static unsigned remainingOf(unsigned timeout);
   /** @brief Function to compile original C file removing external memory
    * operations calls */
   void compileCFile(bool is_llvm_bc);
@@ -185,6 +188,16 @@ class Caller {
    * fuzzer down the same path. Returns how many seeds were written. */
   unsigned exportKleeVectorsAsSeeds();
 
+  /** Set by main under --alternate-engines (tacas 3b): the most this phase's
+   * engine may run, in seconds, instead of its fixed share of the budget (0:
+   * the fixed shares). */
+  double engineWindow = 0;
+  /** Seconds without new coverage after which the engine is stopped (0: never).
+   * AFL++ gets it as AFL_EXIT_ON_TIME; KLEE is watched through run.stats. */
+  unsigned stagnationLimit = 0;
+  /** Whether this phase's KLEE was stopped for stagnating: incomplete. */
+  bool stoppedOnStagnation = false;
+
   /** At most this many fuzzer queue entries are converted into KLEE seeds. */
   static constexpr size_t kMaxSeedsFromFuzzer = 64;
 
@@ -232,6 +245,13 @@ class Caller {
   /** Applies MAP2CHECK_SLICE_CLEANUP to a fresh slice, in place; on failure
    * the slice is kept as the slicer wrote it. */
   void cleanUpSlice(const std::string& slice);
+  /** Runs the KLEE command, stopping it (SIGINT) once it stagnates for
+   * stagnationLimit seconds; plain system() when the limit is 0 or the build
+   * has no SQLite to read KLEE's stats with. Returns system()'s status. */
+  int runKleeWatched(const std::string& command);
+  /** Keeps KLEE's latest tests (at most kMaxSeedsFromFuzzer) in the seed
+   * store's kleeprev/, to seed its next turn. */
+  void keepKleeTestsAsSeeds();
 };
 
 }  // namespace Map2Check

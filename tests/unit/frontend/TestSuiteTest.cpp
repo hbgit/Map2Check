@@ -262,3 +262,20 @@ TEST(IsoUtcNow, MatchesTheFormatTheFormatExpects) {
   EXPECT_EQ(now[16], ':');
   EXPECT_EQ(now[19], 'Z');
 }
+
+// Engines alternate (tacas 3b): more than one phase writes test cases into the
+// same suite. A writer counting from 1 again overwrote the earlier phase's.
+TEST(TestSuiteWriter, NumbersAfterTheCasesAlreadyThere) {
+  fs::path d = freshDir("tc_continue");
+  {
+    Map2Check::TestSuiteWriter first(d.string());
+    ASSERT_TRUE(first.writeTestCase({"1"}, false));
+    ASSERT_TRUE(first.writeTestCase({"2"}, false));
+  }
+  Map2Check::TestSuiteWriter second(d.string());
+  ASSERT_TRUE(second.writeTestCase({"3"}, false));
+  EXPECT_NE(slurp(d / "testcase-1.xml").find("<input>1</input>"),
+            std::string::npos);
+  EXPECT_NE(slurp(d / "testcase-3.xml").find("<input>3</input>"),
+            std::string::npos);
+}

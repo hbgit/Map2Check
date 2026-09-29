@@ -8,6 +8,7 @@
 
 #include "test_suite.hpp"
 
+#include <algorithm>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
@@ -95,7 +96,32 @@ std::vector<std::string> readNonDetLog(const std::string& csvPath) {
 }
 
 TestSuiteWriter::TestSuiteWriter(std::string directory)
-    : directory(std::move(directory)), counter(0) {}
+    : directory(std::move(directory)), counter(0) {
+  // After the cases already there: with the engines alternating, more than one
+  // phase writes into the same suite, and counting from 1 again overwrote the
+  // earlier phase's cases (tacas 3b spec).
+  std::error_code ec;
+  for (const auto& entry :
+       std::filesystem::directory_iterator(this->directory, ec)) {
+    const std::string name = entry.path().filename().string();
+    static const std::string kPrefix = "testcase-";
+    static const std::string kSuffix = ".xml";
+    if (name.size() <= kPrefix.size() + kSuffix.size() ||
+        name.compare(0, kPrefix.size(), kPrefix) != 0 ||
+        name.compare(name.size() - kSuffix.size(), kSuffix.size(), kSuffix) !=
+            0) {
+      continue;
+    }
+    const std::string digits = name.substr(
+        kPrefix.size(), name.size() - kPrefix.size() - kSuffix.size());
+    if (digits.empty() || digits.size() > 9 ||
+        digits.find_first_not_of("0123456789") != std::string::npos) {
+      continue;
+    }
+    this->counter = std::max(
+        this->counter, static_cast<unsigned>(std::stoul(digits)));
+  }
+}
 
 bool TestSuiteWriter::writeMetadata(const TestSuiteMetadata& metadata) {
   std::error_code ec;

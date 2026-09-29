@@ -32,6 +32,7 @@
 #include "test_suite/ktest_reader.hpp"
 #include "test_suite/test_suite.hpp"
 #include "utils/gen_crypto_hash.hpp"
+#include "utils/alternation.hpp"
 #include "utils/log.hpp"
 #include "utils/sha256.hpp"
 #include "witness/witness_include.hpp"
@@ -407,6 +408,14 @@ struct map2check_args {
   bool seedExchange = false;
   // 1..3 on the hybrid path (fuzzer, KLEE, fuzzer), 0 for a single engine.
   int phase = 0;
+  // --alternate-engines (tacas 3b): the engines take turns, each phase bounded
+  // by its window and stopped when it stagnates. 0 keeps the fixed shares.
+  bool alternateEngines = false;
+  double engineWindow = 0;
+  unsigned stagnationLimit = 0;
+  // Whether this phase's fuzzer corpus is converted into seeds for a KLEE
+  // phase that follows; -1: the fixed hybrid's rule (the first phase only).
+  int feedsKlee = -1;
   bool sliceProgram = false;
   std::string testSuiteDir = "test-suite";
   std::string propertyFile;
@@ -423,6 +432,45 @@ bool provedSafe = false;
 static std::string lastSeedStore;
 // The slice cache of the last phase, removed by main with the seed store.
 static std::string lastSliceCache;
+
+int map2check_execution(map2check_args args);
+
+/** The hybrid under --alternate-engines (tacas 3b spec): the fuzzer and KLEE
+ * take turns, fuzzer first, until a violation, a proof, or too little time
+ * for another phase. Each phase is bounded by its window -- doubled every
+ * round of that engine -- and ends earlier when its engine stagnates, handing
+ * the rest back. The fixed 0.2/0.6/0.2 split held an engine that had stopped
+ * progressing to the end of its share, and cut one that still was. */
+int alternateEngines(map2check_args args) {
+  const double budget = args.timeout;
+  const unsigned quiet = Map2Check::stagnationSeconds(budget);
+  unsigned rounds[2] = {0, 0};
+  for (int phase = 1;; ++phase) {
+    const bool klee = (phase % 2 == 0);
+    const double left = Map2Check::Caller::remainingOf(args.timeout);
+    if (phase > 1 && left < quiet) break;
+    const Map2Check::Engine engine =
+        klee ? Map2Check::Engine::Klee : Map2Check::Engine::Fuzzer;
+    const unsigned round = ++rounds[klee ? 1 : 0];
+    args.generator = klee ? Map2Check::NonDetGenerator::Klee
+                          : Map2Check::NonDetGenerator::AFLPlusPlus;
+    args.phase = phase;
+    args.engineWindow =
+        Map2Check::alternationWindow(engine, round, budget, left);
+    args.stagnationLimit = quiet;
+    // Replaying the corpus for a KLEE phase that will not get to run is
+    // pure cost.
+    args.feedsKlee = (!klee && left - args.engineWindow >= quiet) ? 1 : 0;
+    Map2Check::Log::Info("Alternation phase " + std::to_string(phase) + ": " +
+                         (klee ? "KLEE" : "AFL++") + ", window " +
+                         std::to_string(static_cast<unsigned>(
+                             args.engineWindow)) + " s");
+    const int result = map2check_execution(args);
+    if (result != SUCCESS) return result;
+    if (foundViolation || provedSafe) break;
+  }
+  return SUCCESS;
+}
 
 int map2check_execution(map2check_args args) {
   Map2Check::Log::Info("Started Map2Check");
@@ -503,7 +551,10 @@ int map2check_execution(map2check_args args) {
     std::error_code cacheError;
     std::filesystem::remove_all(caller->sliceCachePath(), cacheError);
   }
-  caller->feedsKleePhase = (args.phase == 1);
+  caller->feedsKleePhase =
+      args.feedsKlee >= 0 ? (args.feedsKlee == 1) : (args.phase == 1);
+  caller->engineWindow = args.engineWindow;
+  caller->stagnationLimit = args.stagnationLimit;
   caller->sliceProgram = args.sliceProgram;
   caller->setTimeout(args.timeout);
   caller->entryFunction = args.entryFunction;
@@ -805,6 +856,10 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
          "the assertions (--check-asserts) or the runtime checks (--memtrack, "
          "--memcleanup-property, --check-overflow) before analysing it; needs "
          "sbt-slicer")
+        ("alternate-engines",
+         "\tlet the fuzzer and KLEE take turns, each stopped once it stops "
+         "finding coverage, with windows that double every round (implies "
+         "--seed-exchange; hybrid runs only)")
         ("seed-exchange",
          "\tlet the two engines hand each other input vectors through a shared "
          "seed corpus (hybrid runs; off by default)")
@@ -923,6 +978,10 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     if (vm.count("seed-exchange")) {
       args.seedExchange = true;
     }
+    if (vm.count("alternate-engines")) {
+      args.alternateEngines = true;
+      args.seedExchange = true;
+    }
     if (vm.count("cover-branches")) {
       args.coverBranches = true;
       // The mode has to change too, not just the emitter. Without this the run
@@ -1018,6 +1077,10 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
           }
         }
       } seedStoreCleanup{args};
+      if (args.generator == Map2Check::NonDetGenerator::None &&
+          args.alternateEngines) {
+        return alternateEngines(args);
+      }
       if(args.generator == Map2Check::NonDetGenerator::None) {
         args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
         args.phase = 1;

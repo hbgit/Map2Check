@@ -28,7 +28,9 @@ anterior, ou todas contra `develop` em ordem).
 | `feat/tacas-2d-slicing` | 2d: slice uma vez por execução (cache `<hash>.slice/`), knobs `MAP2CHECK_SLICE_CLEANUP` e `MAP2CHECK_SLICER_FLAGS`, `opt` limitado |
 | `feat/tacas-3b-alternation` | fix AFL (zeros após o fim da entrada); 3b `--alternate-engines`; correções da revisão; `migration-schedule.md` atualizado |
 | `feat/tacas-memtrack-intrinsics` | fix: `memset/memcpy/memmove` checados no LLVM 16 (despacho por `MemSetInst`/`MemTransferInst`); fix: mensagem de erro de link do AFL++ |
-| `feat/tacas-3c-seed-ranking` | 3c v1: entradas `+cov` da fila vão primeiro para o KLEE (spec `2026-09-29-tacas-3c-seed-ranking-design.md`) |
+| `feat/tacas-3c-seed-ranking` | 3c v1: entradas `+cov` da fila vão primeiro para o KLEE (spec `2026-09-29-tacas-3c-seed-ranking-design.md`); logs R16-CB/R17/R19 parcial; fix do classificador (segfault do replay do AFL não é ERROR) |
+| `feat/tacas-memtrack-strings` | fix: `%s`/`puts` checam a string antes da chamada (o `printf` roda como externa no KLEE → TRUE errado do Juliet CWE193) |
+| `feat/tacas-fuzzer-suite` | knob `MAP2CHECK_FUZZER_SUITE=1`: o corpus do AFL++ entra na suíte de Cover-Branches (até metade, sem duplicatas) |
 
 - **Ponta da pilha:** `feat/tacas-3c-seed-ranking` (a R19 e a R17 usam o build de
   `8c70e5a73`; a R20 usa `install_r20`, da ponta com o 3c).
@@ -89,6 +91,13 @@ anterior, ou todas contra `develop` em ordem).
   - Resultados em `R17-<prop>-<arm>/`.
 - **R20:** `r20-sched.sh`, que espera a R19 lançar seus 30 jobs. Mede Cover-Error seeds e
   alternate com o ranking do 3c (`install_r20`), para comparar com os mesmos braços da R19.
+- **R21:** `r21-sched.sh`. MemSafety e MemCleanup (control) e o CASTLE com `install_r21`
+  (checagem de `%s`), para comparar com a R17 e a R14. Gate: nenhum falso positivo novo.
+- **R22:** `r22-sched.sh`, que espera a R19. Cover-Branches control, seeds e alternate
+  com `MAP2CHECK_FUZZER_SUITE=1` (`install_r22`), para comparar com a R19.
+- **Incidente da R19:** o shard 0 do braço seeds tinha 38 linhas do shard 1 e faltavam 42
+  tarefas dele. Foi relançado como `r19-ce-seeds-0-resume` (e `control-0-resume` para 2
+  faltantes). Na análise, filtrar as linhas pelo índice no manifest (`i % 3 == shard`).
 - **R16 Cover-Branches** (`r16-cb-seeds-*`, build antigo) terminando; comparar com a R15.
 
 **Análise pendente:**

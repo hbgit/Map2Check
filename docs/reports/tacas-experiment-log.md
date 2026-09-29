@@ -411,3 +411,17 @@ agora exige TRUE. `sin` e `insertion_sort` seguem sem TRUE errado (UNKNOWN; o se
 a cobertura (o veredito não pontua), só impede o `provedSafe` de encerrar a execução mais
 cedo em programas com assunções. A R17 (SV-COMP, onde TRUE pontua) precisa do build
 corrigido.
+
+### R16 — Cover-Branches, `--seed-exchange` × controle R15 (2026-09-29)
+
+- Mesma config da R16 Cover-Error (`build_seeds`), amostra `r15-cb.tsv` (120, pareadas).
+- **Cobertura média: controle 47,7% × seeds 49,7%** (+2,0 p.p.); melhor em 26 tarefas, pior
+  em 9. Tempo mediano 195 → 160 s.
+- Por categoria (controle → seeds): ControlFlow 41,3 → 57,9, BitVectors 65,7 → 73,7,
+  Recursive 45,0 → 53,0; **Loops 67,1 → 60,8** (uma tarefa: `geo2-ll_unwindbound50`
+  −62,5 p.p.), XCSP 77,7 → 75,0 (`AllInterval-011` −27 p.p.).
+- TestCov: VALIDATED 118 (R15: 116), VALIDATED_ABORTS 1 (3).
+- **Leitura:** diferente da tacasv2 (neutra em CB), a troca de sementes melhora a cobertura
+  de ramos, apesar de a suíte de CB sair só do KLEE — o KLEE semeado explora ramos que o
+  controle não alcançava. As duas quedas grandes ficam para a R19 confirmar (ruído do
+  fuzzer × efeito real).

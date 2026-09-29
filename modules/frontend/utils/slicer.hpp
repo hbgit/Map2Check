@@ -224,6 +224,56 @@ inline std::string describeSlice(const std::string& criterion,
   return text.str();
 }
 
+/** Where the slice of each phase is kept for the next ones: <cwd>/<hash>.slice,
+ * beside the scratch directory for the reason the seed store is (every phase
+ * recreates the scratch). Holds <key>.bc for a slice, <key>.failed for a slicer
+ * that failed or timed out -- which the next phase must not pay for again: on
+ * eca-* the slicer spent 0.2T in phase 1 AND in phase 2, and the run was
+ * killed past its budget with no suite (R15, 4 ERROR). */
+inline std::string sliceCachePath(const std::string& cwd,
+                                  const std::string& programHash) {
+  return cwd + "/" + programHash + ".slice";
+}
+
+/** The cache key: FNV-1a (64-bit, hex) over the input bitcode's CONTENT and
+ * every setting that shapes the slice, so a slice is reused only for the very
+ * same question. Fields are separated by a byte no name contains. */
+inline std::string sliceCacheKey(const std::string& inputContent,
+                                 const std::string& criteriaLabel,
+                                 const std::string& entry,
+                                 const std::string& slicerFlags) {
+  uint64_t hash = 14695981039346656037ull;
+  auto mix = [&hash](const std::string& field) {
+    for (unsigned char c : field) {
+      hash ^= c;
+      hash *= 1099511628211ull;
+    }
+    hash ^= 0xff;
+    hash *= 1099511628211ull;
+  };
+  mix(inputContent);
+  mix(criteriaLabel);
+  mix(entry);
+  mix(slicerFlags);
+  static const char* digits = "0123456789abcdef";
+  std::string key(16, '0');
+  for (int i = 15; i >= 0; --i) {
+    key[i] = digits[hash & 0xf];
+    hash >>= 4;
+  }
+  return key;
+}
+
+/** The opt arguments for MAP2CHECK_SLICE_CLEANUP (an experiment knob): the dg
+ * slicer leaves empty blocks and dead functions behind. "light" folds them
+ * away; "o2" is the full pipeline, which may exploit undefined behaviour and
+ * is measured, not trusted. Anything else means no cleanup. */
+inline std::string sliceCleanupPasses(const std::string& knob) {
+  if (knob == "light") return "-passes='function(simplifycfg,dce),globaldce'";
+  if (knob == "o2") return "-O2";
+  return "";
+}
+
 }  // namespace Map2Check
 
 #endif  // MODULES_FRONTEND_UTILS_SLICER_HPP_

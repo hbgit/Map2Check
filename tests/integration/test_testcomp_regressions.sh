@@ -1067,6 +1067,57 @@ else
   ok "a KLEE run that concretized an input is not reported TRUE"
 fi
 
+# --- 31. the hybrid slices once per run, not once per phase -----------------
+# Every phase recreates the scratch directory, and each used to run sbt-slicer
+# again. On eca-* the slicer timed out (0.2T) in phase 1 AND phase 2, the run
+# overran its budget and was killed with no suite (R15, 4 ERROR). A slice, or a
+# slicer failure, is now kept for the later phases of the same run.
+mkdir -p "$WORK/slicecache"
+cat > "$WORK/slicecache/safe.c" <<'EOF2'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "safe.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  int y = x > 0 ? x : -x;
+  if (y < 0 && x > 0) { reach_error(); }
+  return 0;
+}
+EOF2
+( cd "$WORK/slicecache" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --debug --slice --target-function --target-function-name reach_error \
+    --timeout 30 safe.c ) > "$WORK/slicecache/safe.log" 2>&1
+slicer_runs=$(grep -c "sbt-slicer -c" "$WORK/slicecache/safe.log")
+if [ "$slicer_runs" -eq 1 ] && grep -q "reusing the slice from an earlier phase" "$WORK/slicecache/safe.log"; then
+  ok "a slice is computed once and reused by the later phases"
+else
+  fail "slice cache" "sbt-slicer ran $slicer_runs time(s); reuse logged: $(grep -c 'reusing the slice' "$WORK/slicecache/safe.log")"
+fi
+
+# A slicer failure is remembered too: the VLA makes sbt-slicer fail, and the
+# later phases must not pay for it again.
+cat > "$WORK/slicecache/vla.c" <<'EOF2'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int n = __VERIFIER_nondet_int();
+  if (n > 0 && n < 10) {
+    int a[n];
+    a[0] = 1;
+    return a[0];
+  }
+  return 0;
+}
+EOF2
+( cd "$WORK/slicecache" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --debug --memtrack --slice --timeout 30 vla.c ) > "$WORK/slicecache/vla.log" 2>&1
+slicer_runs=$(grep -c "sbt-slicer -c" "$WORK/slicecache/vla.log")
+if [ "$slicer_runs" -eq 1 ] && grep -q "no usable output (cached" "$WORK/slicecache/vla.log"; then
+  ok "a slicer failure is remembered by the later phases"
+else
+  fail "slice failure cache" "sbt-slicer ran $slicer_runs time(s); cached failure logged: $(grep -c 'no usable output (cached' "$WORK/slicecache/vla.log")"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

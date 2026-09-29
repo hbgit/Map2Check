@@ -199,3 +199,46 @@ TEST(InstrumentedSliceCriteria, CollectsRuntimeThenExternalNames) {
   EXPECT_EQ(criteria[0], "map2check_check_deref");
   EXPECT_EQ(criteria[1], "strcpy");
 }
+
+// --- the slice cache (tacas 2d) ----------------------------------------------
+
+// Every hybrid phase recreates the scratch directory and used to slice again:
+// on eca-* the slicer timed out in phase 1 AND phase 2, and the run blew its
+// budget. The cache reuses a slice only for the very same input and settings.
+TEST(SliceCacheKey, IsDeterministic) {
+  EXPECT_EQ(Map2Check::sliceCacheKey("BC", "reach_error", "main", ""),
+            Map2Check::sliceCacheKey("BC", "reach_error", "main", ""));
+}
+
+TEST(SliceCacheKey, ChangesWithEveryInput) {
+  const std::string base =
+      Map2Check::sliceCacheKey("BC", "reach_error", "main", "");
+  EXPECT_NE(base, Map2Check::sliceCacheKey("BD", "reach_error", "main", ""));
+  EXPECT_NE(base, Map2Check::sliceCacheKey("BC", "reach_errors", "main", ""));
+  EXPECT_NE(base, Map2Check::sliceCacheKey("BC", "reach_error", "mai", ""));
+  EXPECT_NE(base,
+            Map2Check::sliceCacheKey("BC", "reach_error", "main", "--pta=fs"));
+  // Field boundaries count: moving a character between fields is another key.
+  EXPECT_NE(Map2Check::sliceCacheKey("B", "Creach_error", "main", ""), base);
+}
+
+TEST(SliceCacheKey, IsAFileName) {
+  const std::string key =
+      Map2Check::sliceCacheKey("BC", "reach_error", "main", "--cda=ntscd");
+  EXPECT_EQ(key.size(), 16u);
+  EXPECT_EQ(key.find_first_not_of("0123456789abcdef"), std::string::npos);
+}
+
+TEST(SliceCachePath, SitsBesideTheScratchDirectory) {
+  EXPECT_EQ(Map2Check::sliceCachePath("/w", "abc.map2check"),
+            "/w/abc.map2check.slice");
+}
+
+TEST(SliceCleanupPasses, MapsTheKnob) {
+  EXPECT_EQ(Map2Check::sliceCleanupPasses(""), "");
+  EXPECT_EQ(Map2Check::sliceCleanupPasses("none"), "");
+  EXPECT_EQ(Map2Check::sliceCleanupPasses("light"),
+            "-passes='function(simplifycfg,dce),globaldce'");
+  EXPECT_EQ(Map2Check::sliceCleanupPasses("o2"), "-O2");
+  EXPECT_EQ(Map2Check::sliceCleanupPasses("bogus"), "");
+}

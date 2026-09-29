@@ -87,6 +87,7 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   Map2Check::Log::Debug("Changing current dir");
   currentPath = std::filesystem::current_path().string();
   seedStore = Map2Check::seedStorePath(currentPath, programHash);
+  sliceCache = Map2Check::sliceCachePath(currentPath, programHash);
   std::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Current path: " +
                         std::filesystem::current_path().string());
@@ -232,9 +233,91 @@ unsigned Caller::exportFuzzerCorpusAsKtests() {
   return written;
 }
 
+namespace {
+/** MAP2CHECK_SLICER_FLAGS / MAP2CHECK_SLICE_CLEANUP: experiment knobs (tacas
+ * 2d spec), read from the environment so a campaign arm can set them without
+ * a CLI option nobody else should use. */
+std::string environmentKnob(const char *name) {
+  const char *value = std::getenv(name);
+  return value == nullptr ? std::string() : std::string(value);
+}
+}  // namespace
+
 bool Caller::runSlicer(const std::string &input, const std::string &output,
                        std::vector<std::string> primary, bool addRuntimeNames,
                        const std::string &entry, const std::string &label) {
+  // Sliced once per run, not once per phase: see Map2Check::sliceCachePath.
+  std::error_code error;
+  std::string key;
+  {
+    std::ifstream in(input, std::ios::binary);
+    if (in.is_open()) {
+      std::stringstream content;
+      content << in.rdbuf();
+      key = Map2Check::sliceCacheKey(
+          content.str(), label, entry,
+          environmentKnob("MAP2CHECK_SLICER_FLAGS") + "|" +
+              environmentKnob("MAP2CHECK_SLICE_CLEANUP"));
+    }
+  }
+  const std::string cached = sliceCache + "/" + key + ".bc";
+  const std::string failed = sliceCache + "/" + key + ".failed";
+  if (!key.empty() && std::filesystem::exists(failed, error)) {
+    Map2Check::Log::Warning(
+        "sbt-slicer produced no usable output (cached from an earlier phase) "
+        "-- analysing the unsliced program");
+    return false;
+  }
+  if (!key.empty() && std::filesystem::exists(cached, error) &&
+      std::filesystem::copy_file(
+          cached, output, std::filesystem::copy_options::overwrite_existing,
+          error)) {
+    Map2Check::Log::Info("Slice of " + label +
+                         ": reusing the slice from an earlier phase");
+    return true;
+  }
+
+  const bool sliced =
+      runSlicerUncached(input, output, primary, addRuntimeNames, entry, label);
+  if (sliced) cleanUpSlice(output);
+  if (!key.empty() && std::filesystem::exists(Map2Check::slicerBinary())) {
+    std::filesystem::create_directories(sliceCache, error);
+    if (sliced) {
+      std::filesystem::copy_file(
+          output, cached, std::filesystem::copy_options::overwrite_existing,
+          error);
+    } else {
+      std::ofstream(failed) << label << "\n";
+    }
+  }
+  return sliced;
+}
+
+void Caller::cleanUpSlice(const std::string &slice) {
+  const std::string passes = Map2Check::sliceCleanupPasses(
+      environmentKnob("MAP2CHECK_SLICE_CLEANUP"));
+  if (passes.empty()) return;
+  const std::string cleaned = slice + ".clean.bc";
+  std::ostringstream command;
+  command << Map2Check::optBinary << " " << passes << " " << slice << " -o "
+          << cleaned << " >> slicer.output 2>&1";
+  Map2Check::Log::Debug(command.str());
+  std::error_code error;
+  if (system(command.str().c_str()) == 0 &&
+      std::filesystem::exists(cleaned, error) &&
+      std::filesystem::file_size(cleaned, error) > 0) {
+    std::filesystem::rename(cleaned, slice, error);
+    if (!error) return;
+  }
+  Map2Check::Log::Warning("could not clean up the slice (" + passes +
+                          ") -- keeping it as sliced");
+}
+
+bool Caller::runSlicerUncached(const std::string &input,
+                               const std::string &output,
+                               std::vector<std::string> primary,
+                               bool addRuntimeNames, const std::string &entry,
+                               const std::string &label) {
   const std::string slicer = Map2Check::slicerBinary();
   if (!std::filesystem::exists(slicer)) {
     // Announced, not silently skipped. A slicer that is asked for and absent
@@ -301,7 +384,8 @@ bool Caller::runSlicer(const std::string &input, const std::string &output,
           << static_cast<unsigned>(sliceBudget) << " " << slicer << " -c "
           << Map2Check::slicingCriteria(primary, programNondets)
           << " --entry=" << entry
-          << " -cutoff-diverging=false --statistics -o " << output << " "
+          << " -cutoff-diverging=false --statistics "
+          << environmentKnob("MAP2CHECK_SLICER_FLAGS") << " -o " << output << " "
           << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());
   const int result = system(command.str().c_str());

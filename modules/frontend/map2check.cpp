@@ -421,6 +421,8 @@ bool foundViolation = false;
 bool provedSafe = false;
 // The seed store of the last phase, removed by main once every phase ran.
 static std::string lastSeedStore;
+// The slice cache of the last phase, removed by main with the seed store.
+static std::string lastSliceCache;
 
 int map2check_execution(map2check_args args) {
   Map2Check::Log::Info("Started Map2Check");
@@ -493,6 +495,13 @@ int map2check_execution(map2check_args args) {
   if (args.seedExchange && args.phase <= 1) {
     std::error_code storeError;
     std::filesystem::remove_all(caller->seedStorePath(), storeError);
+  }
+  // The slice cache likewise: a slice left by an earlier run is keyed by
+  // content and would be correct, but a ".failed" mark from a run with a
+  // shorter budget would refuse this one a slice it could afford.
+  if (args.sliceProgram && args.phase <= 1) {
+    std::error_code cacheError;
+    std::filesystem::remove_all(caller->sliceCachePath(), cacheError);
   }
   caller->feedsKleePhase = (args.phase == 1);
   caller->sliceProgram = args.sliceProgram;
@@ -738,6 +747,7 @@ int map2check_execution(map2check_args args) {
   // impossible to inspect after the fact. Debug runs are already opting into
   // verbosity and disk use.
   lastSeedStore = caller->seedStorePath();
+  lastSliceCache = caller->sliceCachePath();
   if (args.debugMode) {
     Map2Check::Log::Info("Debug mode: keeping temp files in " +
                          caller->getScratchDir());
@@ -1001,6 +1011,10 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
           if (args.seedExchange && !args.debugMode && !lastSeedStore.empty()) {
             std::error_code storeError;
             std::filesystem::remove_all(lastSeedStore, storeError);
+          }
+          if (args.sliceProgram && !args.debugMode && !lastSliceCache.empty()) {
+            std::error_code cacheError;
+            std::filesystem::remove_all(lastSliceCache, cacheError);
           }
         }
       } seedStoreCleanup{args};

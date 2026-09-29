@@ -173,6 +173,11 @@ class Caller {
   bool feedsKleePhase = false;
   const std::string& seedStorePath() const { return seedStore; }
 
+  /** Slices kept across the phases of one run (<cwd>/<hash>.slice); see
+   * Map2Check::sliceCachePath. Removed by main with the seed store. */
+  std::string sliceCache;
+  const std::string& sliceCachePath() const { return sliceCache; }
+
   /** Writes KLEE's per-path vectors into the seed corpus.
    *
    * Sound only because the engines agree on widths now: concatenating a
@@ -219,6 +224,14 @@ class Caller {
   bool runSlicer(const std::string& input, const std::string& output,
                  std::vector<std::string> primary, bool addRuntimeNames,
                  const std::string& entry, const std::string& label);
+  /** runSlicer without the slice cache: what actually calls sbt-slicer. */
+  bool runSlicerUncached(const std::string& input, const std::string& output,
+                         std::vector<std::string> primary,
+                         bool addRuntimeNames, const std::string& entry,
+                         const std::string& label);
+  /** Applies MAP2CHECK_SLICE_CLEANUP to a fresh slice, in place; on failure
+   * the slice is kept as the slicer wrote it. */
+  void cleanUpSlice(const std::string& slice);
 };
 
 }  // namespace Map2Check

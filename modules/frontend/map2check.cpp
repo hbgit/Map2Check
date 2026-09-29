@@ -405,6 +405,8 @@ struct map2check_args {
   bool generateTestSuite = false;
   bool coverBranches = false;
   bool seedExchange = false;
+  // 1..3 on the hybrid path (fuzzer, KLEE, fuzzer), 0 for a single engine.
+  int phase = 0;
   bool sliceProgram = false;
   std::string testSuiteDir = "test-suite";
   std::string propertyFile;
@@ -414,6 +416,9 @@ struct map2check_args {
 };
 
 bool foundViolation = false;
+// Set when a phase proved the property (TRUE). Like a violation, a proof is
+// the run's answer: no later phase may run and print a verdict after it.
+bool provedSafe = false;
 // The seed store of the last phase, removed by main once every phase ran.
 static std::string lastSeedStore;
 
@@ -482,6 +487,14 @@ int map2check_execution(map2check_args args) {
                                                   generator);
   caller->c_program_fullpath = args.inputFile;
   caller->seedExchange = args.seedExchange;
+  // The store is named after the program's content, so one left by an earlier
+  // run (kept by --debug, or leaked by a kill) would feed that run's seeds into
+  // this one: every run starts from an empty store.
+  if (args.seedExchange && args.phase <= 1) {
+    std::error_code storeError;
+    std::filesystem::remove_all(caller->seedStorePath(), storeError);
+  }
+  caller->feedsKleePhase = (args.phase == 1);
   caller->sliceProgram = args.sliceProgram;
   caller->setTimeout(args.timeout);
   caller->entryFunction = args.entryFunction;
@@ -668,6 +681,7 @@ int map2check_execution(map2check_args args) {
       } else {
         Map2Check::Log::Info("");
         Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+        provedSafe = true;
         if (args.generateWitness)
           generate_witness(args.inputFile, propertyViolated, args.spectTrue);
       }
@@ -979,14 +993,27 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
+      // The store outlives the phases, not the run: removed on every way out
+      // of this block (returns and exceptions alike), unless --debug keeps it.
+      struct SeedStoreCleanup {
+        const map2check_args &args;
+        ~SeedStoreCleanup() {
+          if (args.seedExchange && !args.debugMode && !lastSeedStore.empty()) {
+            std::error_code storeError;
+            std::filesystem::remove_all(lastSeedStore, storeError);
+          }
+        }
+      } seedStoreCleanup{args};
       if(args.generator == Map2Check::NonDetGenerator::None) {
         args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
+        args.phase = 1;
         int result = map2check_execution(args);
         if (result != SUCCESS) {
           return result;
         }
         if (!foundViolation) {
           args.generator = Map2Check::NonDetGenerator::Klee;
+          args.phase = 2;
           result = map2check_execution(args);
           if (result != SUCCESS) {
             return result;
@@ -1005,18 +1032,13 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         // Behind the flag: the hybrid was measured at 45% covered over 372
         // tasks in its current shape, and that number should keep meaning what
         // it means until this one is measured beside it.
-        if (args.seedExchange && !foundViolation) {
+        if (args.seedExchange && !foundViolation && !provedSafe) {
           args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
+          args.phase = 3;
           result = map2check_execution(args);
           if (result != SUCCESS) {
             return result;
           }
-        }
-        // The store outlives the phases, not the run -- unless the run asked
-        // to keep its files.
-        if (args.seedExchange && !args.debugMode && !lastSeedStore.empty()) {
-          std::error_code storeError;
-          std::filesystem::remove_all(lastSeedStore, storeError);
         }
       }
       else {

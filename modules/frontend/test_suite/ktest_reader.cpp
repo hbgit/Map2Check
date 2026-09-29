@@ -402,14 +402,17 @@ std::vector<KtestObject> readNonDetLogAsObjects(const std::string& csvPath) {
     if (fields.size() < 7) continue;
 
     const std::string& value = fields[5];
+    // KLEE matches a seed's objects to its inputs by POSITION: a read this
+    // cannot express (pchar, loff_t, sector_t, or a malformed row) ends the
+    // seed here. Skipping it shifted every later value onto the wrong input.
     int type = 0;
     try {
       type = std::stoi(fields[6]);
     } catch (const std::exception&) {
-      continue;
+      break;
     }
     const NonDetTypeInfo info = nonDetTypeInfo(type);
-    if (info.name == nullptr) continue;
+    if (info.name == nullptr) break;
 
     KtestObject object;
     object.name = info.name;

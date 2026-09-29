@@ -889,8 +889,9 @@ fi
 # becomes a .ktest; KLEE starts from the whole set with --seed-dir. The old
 # channel read a log from a scratch directory that no longer existed and sent
 # at most one vector.
-# A non-linear guard: CmpLog cannot map a*a back to input bytes, so the fuzzer
-# phase ends without the bug and hands its corpus over; KLEE solves it.
+# An unreachable guard (44522 is not a square), so no phase can end the hybrid
+# early: the fuzzer phase always hands its corpus over and KLEE always runs
+# with it -- the test cannot pass without exercising the channel.
 mkdir -p "$WORK/seed2"
 cat > "$WORK/seed2/square.c" <<'EOF'
 extern void __assert_fail(const char *, const char *, unsigned int,
@@ -901,7 +902,7 @@ int main(void) {
   int a = __VERIFIER_nondet_int();
   int b = __VERIFIER_nondet_int();
   if (a > 100 && a < 300 && b > 0) {
-    if (a * a == 44521) { reach_error(); }
+    if (a * a == 44522) { reach_error(); }
   }
   return 0;
 }
@@ -913,10 +914,17 @@ n_seeds=$(grep -aoE "Seeded KLEE with [0-9]+ vectors from AFL\+\+" "$WORK/seed2/
           | grep -oE "[0-9]+" | head -1)
 if [ "${n_seeds:-0}" -gt 0 ] && grep -q -- "--seed-dir=" "$WORK/seed2/run.log"; then
   ok "the fuzzer corpus reaches KLEE ($n_seeds seeds via --seed-dir)"
-elif ! grep -q "Executing Klee" "$WORK/seed2/run.log"; then
-  ok "fuzzer -> KLEE not exercised: the fuzzer solved seed.c on its own"
 else
   fail "fuzzer -> KLEE" "KLEE ran without seeds from the fuzzer"
+fi
+# The program is safe and KLEE proves it: that proof is the run's answer. The
+# third (fuzzer) phase is for runs nothing has decided yet; running it after a
+# proof printed UNKNOWN last, and every harness reads the last verdict.
+last_verdict=$(grep -aoE "VERIFICATION (FAILED|SUCCEEDED|UNKNOWN)" "$WORK/seed2/run.log" | tail -1)
+if [ "$last_verdict" = "VERIFICATION SUCCEEDED" ]; then
+  ok "a proof from the KLEE phase stays the final verdict under --seed-exchange"
+else
+  fail "exchange verdict" "KLEE proved the program safe but the run ended with [$last_verdict]"
 fi
 
 # --- 27. replaying the corpus must not erase a violation the fuzzer found ----
@@ -939,6 +947,43 @@ if grep -q "VERIFICATION FAILED" "$WORK/seed3/run.log"; then
   ok "a violation found by the fuzzer survives the seed replays"
 else
   fail "seed replay" "the violation was lost with --seed-exchange"
+fi
+
+# --- 28. the seed store starts clean, and the last phase replays nothing ----
+# The store's name is derived from the program's content, so a store left by
+# an earlier run -- a --debug run keeps it on purpose, a killed one leaks it --
+# would feed its seeds into the next run of the same program: it is wiped at
+# the start of a run. And the fuzzer's corpus is converted for KLEE only when a
+# KLEE phase follows; after the last phase the replays would be pure cost.
+mkdir -p "$WORK/seed4"
+cat > "$WORK/seed4/safe.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "safe.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (a > 100 && b > a) { b = b - a; }
+  if (a != a) { reach_error(); }
+  return b;
+}
+EOF
+( cd "$WORK/seed4" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --debug --timeout 60 safe.c ) > "$WORK/seed4/first.log" 2>&1
+store4=$(ls -d "$WORK/seed4"/*.seeds 2>/dev/null | head -1)
+[ -n "$store4" ] && mkdir -p "$store4/ktest" && echo stale > "$store4/ktest/stale-from-an-old-run.ktest"
+rm -rf "$WORK/seed4"/*.map2check
+( cd "$WORK/seed4" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --debug --timeout 60 safe.c ) > "$WORK/seed4/run.log" 2>&1
+replays=$(grep -c "Seeded KLEE with" "$WORK/seed4/run.log")
+if [ -n "$store4" ] && [ ! -e "$store4/ktest/stale-from-an-old-run.ktest" ] && \
+   [ "$replays" -le 1 ] && ! grep -q "VERIFICATION FAILED" "$WORK/seed4/run.log"; then
+  ok "the seed store starts clean and only the first fuzzer phase feeds KLEE"
+else
+  fail "seed store lifecycle" "stale seed kept, $replays conversions, or a safe program reported FALSE"
 fi
 
 echo "  ---"

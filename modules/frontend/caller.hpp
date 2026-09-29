@@ -167,6 +167,10 @@ class Caller {
    * directory, and a store inside it never reached the next phase. Used only
    * under --seed-exchange. */
   std::string seedStore;
+  /** Set by main on the hybrid's first phase: the fuzzer corpus is converted
+   * into KLEE seeds only when a KLEE phase follows. After the last phase the
+   * replays would be pure cost against a spent budget. */
+  bool feedsKleePhase = false;
   const std::string& seedStorePath() const { return seedStore; }
 
   /** Writes KLEE's per-path vectors into the seed corpus.

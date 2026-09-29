@@ -192,10 +192,16 @@ unsigned Caller::exportFuzzerCorpusAsKtests() {
   }
   std::filesystem::create_directories(ktests, error);
 
+  // Bounded as a whole, not only per entry: the replays come out of the KLEE
+  // phase's budget, so they stop at 5% of the run's budget (at least 2 s).
+  const auto started = std::chrono::steady_clock::now();
+  const auto allowed = std::chrono::duration<double>(
+      std::max(2.0, 0.05 * static_cast<double>(this->timeout)));
   std::set<std::vector<uint8_t>> seen;
   unsigned written = 0;
   for (const std::string &name :
        Map2Check::selectQueueEntries(names, kMaxSeedsFromFuzzer)) {
+    if (std::chrono::steady_clock::now() - started >= allowed) break;
     std::filesystem::remove_all(replay, error);
     std::filesystem::create_directories(replay, error);
     const std::string input =
@@ -849,8 +855,8 @@ void Caller::executeAnalysis(std::string solvername) {
           }
         }
         if (haveSeeds) {
-          seedFlag = " --seed-dir=" + seedStore +
-                     "/ktest --allow-seed-extension --allow-seed-truncation"
+          seedFlag = " --seed-dir='" + seedStore +
+                     "/ktest' --allow-seed-extension --allow-seed-truncation"
                      " --seed-time=" +
                      std::to_string(std::max(
                          1u, static_cast<unsigned>(kleeBudget / 4))) +
@@ -1012,7 +1018,7 @@ void Caller::executeAnalysis(std::string solvername) {
       const bool hasCmplog =
           std::filesystem::exists(programHash + "-cmplog.out", cmplogErr);
       command << Map2Check::aflFuzzBinary()
-              << " -i " << inputDir
+              << " -i '" << inputDir << "'"
               << " -o afl-out";
       if (hasCmplog) command << " -c ./" << programHash << "-cmplog.out";
       command << " -- ./" << programHash << "-fuzzed.out"
@@ -1079,7 +1085,8 @@ void Caller::executeAnalysis(std::string solvername) {
       }
       // The fuzzer's corpus for the KLEE phase, unless this phase already
       // decided the property.
-      if (this->seedExchange && !isWitnessFileCreated()) {
+      if (this->seedExchange && this->feedsKleePhase &&
+          !isWitnessFileCreated()) {
         exportFuzzerCorpusAsKtests();
       }
       Map2Check::Log::Debug("Finished fuzzer");

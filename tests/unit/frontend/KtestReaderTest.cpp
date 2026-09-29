@@ -307,3 +307,21 @@ TEST(KleeHaltedOnTimer, AFinishedRunIsNotHalted) {
   EXPECT_FALSE(Map2Check::kleeHaltedOnTimer("/nonexistent/klee-last"));
   fs::remove_all(d);
 }
+
+// --- the nondet log as seeds -------------------------------------------------
+
+// KLEE matches a seed's objects to its symbolic inputs by POSITION. A read the
+// converter cannot express (a pchar, a loff_t) must end the seed there: skipping
+// it shifted every later object onto the wrong input.
+TEST(ReadNonDetLogAsObjects, StopsAtTheFirstUnsupportedRead) {
+  fs::path d = freshDir("nondetlog");
+  std::ofstream(d / "klee_log.csv")
+      << "1;0;main;0;x;7;0\n"      // int 7
+      << "2;0;main;0;s;0;9\n"      // pchar: unsupported
+      << "3;0;main;0;y;9;0\n";     // int 9, must not be taken
+  const auto objects =
+      Map2Check::readNonDetLogAsObjects((d / "klee_log.csv").string());
+  ASSERT_EQ(objects.size(), 1u);
+  EXPECT_EQ(objects[0].name, "non_det_int");
+  fs::remove_all(d);
+}

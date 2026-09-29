@@ -156,6 +156,7 @@ void analysis_generate_aux_witness_files() {
 // TODO: FIX THIS, not working for static array
 #include <stdio.h>
 void map2check_load(void *ptr, int size) {}
+void map2check_check_cstring(const char *string) {}
 
 void map2check_free_resolved_address(void *ptr, unsigned line,
                                      const char *function_name,

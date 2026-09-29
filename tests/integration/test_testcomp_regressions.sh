@@ -1246,6 +1246,53 @@ else
   fail "fuzzer link error" "$(grep -a 'AFL++ binary' "$WORK/afllink/decl.log" | head -1)"
 fi
 
+# --- 36. a %s that reads past its buffer is a FALSE-DEREF --------------------
+# KLEE's uClibc declares printf without defining it, so KLEE runs it as a
+# native external call: the read of an unterminated string happened outside
+# every check, and Juliet's CWE121 CWE193 "cpy" tasks came back TRUE. The
+# strings a %s (or puts) will read are checked before the call.
+mkdir -p "$WORK/cstring"
+cat > "$WORK/cstring/unterminated.c" <<'EOF2'
+#include <stdio.h>
+#include <string.h>
+int main(void) {
+  char buf[10];
+  char src[11] = "AAAAAAAAAA";
+  memcpy(buf, src, strlen(src));
+  printf("%s\n", buf);
+  return 0;
+}
+EOF2
+cat > "$WORK/cstring/fine.c" <<'EOF2'
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+int main(void) {
+  char buf[16] = "hello";
+  char *heap = malloc(8);
+  if (!heap) return 0;
+  strcpy(heap, "abc");
+  printf("%s %s %d %.3s %5s\n", buf, "literal", 42, heap, heap);
+  puts(buf);
+  free(heap);
+  return 0;
+}
+EOF2
+( cd "$WORK/cstring" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 unterminated.c ) > "$WORK/cstring/unterminated.log" 2>&1
+( cd "$WORK/cstring" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 fine.c ) > "$WORK/cstring/fine.log" 2>&1
+if grep -q "FALSE-DEREF" "$WORK/cstring/unterminated.log"; then
+  ok "printing an unterminated buffer with %s is a FALSE-DEREF"
+else
+  fail "%s past the buffer" "expected FALSE-DEREF, got: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/cstring/unterminated.log" | tail -1)"
+fi
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/cstring/fine.log"; then
+  ok "terminated strings, literals, %.Ns and puts stay TRUE"
+else
+  fail "%s soundness" "fine program: $(grep -aoE 'VERIFICATION [A-Z]+|FALSE[-_A-Z]*' "$WORK/cstring/fine.log" | tr '\n' ' ')"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

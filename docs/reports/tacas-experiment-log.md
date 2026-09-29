@@ -425,3 +425,52 @@ corrigido.
   de ramos, apesar de a suíte de CB sair só do KLEE — o KLEE semeado explora ramos que o
   controle não alcançava. As duas quedas grandes ficam para a R19 confirmar (ruído do
   fuzzer × efeito real).
+
+## R17 — SV-COMP MemSafety/MemCleanup/NoOverflows, control × seeds × alternate (2026-09-29)
+
+- **Config:** `install_r19` (commit 8c70e5a73), manifests regenerados com `build_corpus.py`
+  (memsafety 10/categoria = 50, memcleanup 10, overflow 10/categoria = 20), 120 s.
+
+| memsafety (50) | correct-true | correct-false | wrong-true | wrong-false | unknown | error |
+|---|---|---|---|---|---|---|
+| control | 10 | 19 | 2 | 3 | 10 | 6 |
+| seeds | 10 | 20 | 1 | 3 | 10 | 6 |
+| alternate | 9 | 20 | 1 | 3 | 10 | 7 |
+
+- MemCleanup (10): control 6 corretos, seeds 6, alternate 6. NoOverflows (20): control e
+  seeds 2 correct-true + 17 unknown; alternate incompleto no momento do registro.
+- **wrong-true comum aos três:** `CWE121…CWE193_char_declare_cpy_07_bad`. Causa: o modelo
+  `ldv_strcpy` copia `strlen` bytes (sem o terminador) e o estouro real é a **leitura** em
+  `printf("%s")` — que o KLEE executa como **chamada externa** (a uClibc do KLEE declara
+  `printf` sem defini-lo: `calling external: printf(...)`), fora de qualquer checagem, e o
+  memtrack não confere argumentos `%s`. Lacuna de solidez pré-existente; correção em
+  aberto: checar a string de cada `%s` (e `puts`/`str*`) antes da chamada.
+- **wrong-true só no control:** `CWE122…CWE129_rand_18_bad` — os braços com sementes o
+  acham (FALSE correto).
+- **Os 6 `error` são do classificador, não da ferramenta:** as tarefas
+  `array-memsafety/*-alloca` têm `alloca` de tamanho não determinístico; o AFL++ acha um
+  crash (pilha estourada), o replay imprime "Segmentation fault", e
+  `verdict_classifier.sh` conta isso como falha — embora o Map2Check termine com UNKNOWN
+  (o KLEE concretiza o tamanho → `model.err` → caminho descartado).
+- **Leitura:** as sementes não pioram nada em SV-COMP e ganham 1 FALSE e eliminam 1 TRUE
+  errado; a alternância perde 1 TRUE correto frente ao control (a estagnação corta o KLEE
+  — o preço previsto na revisão).
+
+## R19 — Test-Comp, parcial (2026-09-29)
+
+- **Cover-Error, 171 tarefas pareadas nos 4 braços principais** (o shard 0 do braço seeds
+  perdeu 42 tarefas por um incidente de escrita e está sendo completado):
+
+| braço | cobertas | TRUE errado | ERROR | tempo mediano |
+|---|---|---|---|---|
+| R15 control (referência) | 101 | 5 | 0 | 6 s |
+| control | 101 | **0** | 0 | 3 s |
+| **seeds** | **120** | 0 | 0 | 5 s |
+| alternate | 118 | 0 | 0 | 14 s |
+| slice | 102 | 0 | 2 | 4 s |
+
+- seeds × control: **+20 −1**; alternate × control: +17 −0; alternate × seeds: +4 −6;
+  slice × control: +3 −2.
+- **TRUE errado zerado em todos os braços** (eram 5 no control R15): as correções do abort e
+  dos caminhos descartados confirmadas em escala.
+- Braços slice-light/o2/ntscd/ptafs e Cover-Branches ainda rodando.

@@ -742,9 +742,9 @@ void Caller::applyNonDetGenerator() {
           << bound() << Map2Check::aflClangFastBinary()
           << "  -g " << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
-          << " " + programHash + "-result.bc";
+          << " " + programHash + "-result.bc" << " > afl-build.log 2>&1";
 
-      system(command.str().c_str());
+      const int built = system(command.str().c_str());
 
       std::ostringstream commandWitness;
       commandWitness.str("");
@@ -785,13 +785,32 @@ void Caller::applyNonDetGenerator() {
       }
 
       // Announced rather than discovered later as a silent no-op -- the same
-      // failure mode the sliced arm spent a whole campaign in.
+      // failure mode the sliced arm spent a whole campaign in. And for what it
+      // is: a link error (an undefined reach_error) used to be reported as a
+      // build that ran out of time.
       std::error_code fuzzErr;
       if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
+        std::string why;
+        if (built == 31744) {  // timeout's 124
+          why = "did not build within " +
+                std::to_string(static_cast<int>(compileBudget)) + "s";
+        } else {
+          std::ifstream buildLog("afl-build.log");
+          // The first complaint names the cause (an undefined reference);
+          // the last is only clang's "linker command failed".
+          std::string line, firstError;
+          while (firstError.empty() && std::getline(buildLog, line)) {
+            if (line.find("error") != std::string::npos ||
+                line.find("undefined reference") != std::string::npos) {
+              firstError = line;
+            }
+          }
+          why = "failed to build (status " + std::to_string(built) + ")" +
+                (firstError.empty() ? "" : ": " + firstError);
+        }
         Map2Check::Log::Warning(
-            "the AFL++ binary did not build within " +
-            std::to_string(static_cast<int>(compileBudget)) +
-            "s -- skipping the fuzzer phase and leaving the budget to KLEE");
+            "the AFL++ binary " + why +
+            " -- skipping the fuzzer phase and leaving the budget to KLEE");
       } else if (!std::filesystem::exists(programHash + "-cmplog.out",
                                           fuzzErr)) {
         Map2Check::Log::Warning(

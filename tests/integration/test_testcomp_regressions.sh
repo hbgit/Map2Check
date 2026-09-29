@@ -1228,6 +1228,24 @@ else
   fail "intrinsics soundness" "safe program: $(grep -aoE 'VERIFICATION [A-Z]+|FALSE[-_A-Z]*' "$WORK/intrinsics/safe.log" | tr '\n' ' ')"
 fi
 
+# --- 35. a fuzzer binary that fails to link says so ---------------------------
+# Every missing AFL++ binary was reported as one that "did not build within
+# Ns", the budget's fault -- including a link error that no budget would fix.
+mkdir -p "$WORK/afllink"
+cat > "$WORK/afllink/decl.c" <<'EOF2'
+extern void reach_error(void);
+extern int __VERIFIER_nondet_int(void);
+int main(void) { if (__VERIFIER_nondet_int() == 3) reach_error(); return 0; }
+EOF2
+( cd "$WORK/afllink" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 100 "$MAP2CHECK" \
+    --nondet-generator afl --target-function --target-function-name reach_error \
+    --timeout 30 decl.c ) > "$WORK/afllink/decl.log" 2>&1
+if grep -q "AFL++ binary failed to build.*undefined reference" "$WORK/afllink/decl.log"; then
+  ok "a fuzzer link error is reported as one, with its cause"
+else
+  fail "fuzzer link error" "$(grep -a 'AFL++ binary' "$WORK/afllink/decl.log" | head -1)"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

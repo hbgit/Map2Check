@@ -324,16 +324,23 @@ classificador contava todo FALSE nelas como errado (corrigido: "any").
 - **Leitura:** o AFL++ não muda a cobertura de ramos nesta amostra; o ganho da tacasv2
   está no Cover-Error.
 
-## R18 — validação da correção do abort() nos TRUE errados da R15 (2026-09-29, parcial)
+## R18 — validação da correção do abort() nos TRUE errados da R15 (2026-09-29)
 
 - **Config:** `build_abort` (commit 1eb8a30b9), 300 s, as tarefas com TRUE errado da R15:
   6 no braço controle (sem slice), 2 no braço slice (`--slice`). Manifests
   `tacas-results/r18-{ctrl,slice}.tsv`.
-- **Slice (completo):** `cast_union_tight` TRUE errado → **FAILED/COVERED** (1 s) —
-  era abort inline também, não defeito do slice. `insertion_sort-1-2` continua
-  **SUCCEEDED/NOT_COVERED** (3 s): causa diferente, a investigar (candidato: o slice).
-- **Controle (3 de 6 no momento do registro):** `pals_lcr.4.1` → FAILED/COVERED (83 s);
-  `pals_floodmax.3.4` → UNKNOWN (256 s, deixou de ser TRUE errado);
-  `sin_interpolated_index-1` → **continua SUCCEEDED/NOT_COVERED** (59 s) — a hipótese
-  "abort inline" não explica este; investigar.
-- **Pendente:** as 3 restantes do controle (`tacas-results/R18-cover-error-control_s0`).
+
+| tarefa | braço | R15 | R18 |
+|---|---|---|---|
+| pals_lcr.4.1 | controle | TRUE errado | FAILED/COVERED (83 s) |
+| pals_lcr-var-start-time.4.2 | controle | TRUE errado | FAILED/COVERED (175 s) |
+| pals_STARTPALS_Triplicated.1 | controle | TRUE errado | FAILED/COVERED (9 s) |
+| pals_floodmax.3.1 | controle | TRUE errado (R16) | FAILED/COVERED (24 s) |
+| pals_floodmax.3.4 | controle | TRUE errado | UNKNOWN (256 s) |
+| sin_interpolated_index-1 | controle | TRUE errado | **TRUE errado** (59 s) |
+| cast_union_tight | slice | TRUE errado | FAILED/COVERED (1 s) |
+| insertion_sort-1-2 | slice | TRUE errado | **TRUE errado** (3 s) |
+
+- **Leitura:** 6 de 8 TRUE errados eliminados (5 viraram FAILED coberto, 1 UNKNOWN).
+  `cast_union_tight` também era abort inline, não defeito do slice. Restam 2 com causa
+  diferente: `sin_interpolated_index-1` (controle) e `insertion_sort-1-2` (slice) — investigar.

@@ -50,7 +50,7 @@ A `EXTRA_FLAGS` usa `--seed-exchange` no braço seeds e `--slice` no braço slic
 `rNN-run.sh` fixa `MAP2CHECK_PATH`: `build_seeds/install` na R16, `build_abort/install` na
 R18. O harness é resumível pelo CSV.
 
-- **R18 (validação do abort):** o resultado parcial já está no log.
+- **R18 (validação do abort): concluída** — 6 de 8 TRUE errados resolvidos; restam `sin_interpolated_index-1` (controle) e `insertion_sort-1-2` (slice). Ver log.
   - O slice terminou. `cast_union_tight` foi resolvido. **`insertion_sort-1-2` continua
     como TRUE errado.**
   - O controle tinha 3 de 6 prontos. `pals_lcr` foi resolvido e o `floodmax` virou

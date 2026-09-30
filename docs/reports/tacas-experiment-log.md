@@ -611,3 +611,25 @@ symex, 60 s):
   - recuo para a compilação normal quando o Clam falha (antes, o pipeline ficava sem
     bitcode);
   - `MAP2CHECK_PREOPT=ssa`.
+
+## R20, R22, R23, R24 — primeiros resultados (2026-09-30, madrugada)
+
+Todos contra o braço equivalente da R19, nas tarefas em comum (linhas filtradas por shard).
+
+| rodada | mudança medida | tarefas | cobertas (nova × R19) | +/− | TRUE errado |
+|---|---|---|---|---|---|
+| **R24 control** (completa) | replay dos vetores do KLEE, híbrido **sem** sementes | 213 | **146 × 128** | **+20 −2** | 0 |
+| R24 seeds (parcial) | replay + sementes | 59 | 47 × 46 | +1 −0 | 0 |
+| R20 seeds (parcial) | ranking `+cov` (3c) | 178 | 128 × 128 | +2 −2 | 0 |
+| R23 seeds (parcial) | build final (cache do AFL++, orçamento, fd 3) | 177 | 132 × 128 | +5 −1 | 0 |
+
+- **O replay dos vetores do KLEE traz o híbrido simples para perto do braço com sementes**
+  (146 contra 151 da R19 seeds). As mudanças concentram-se em `pals_*`, eca-*, XCSP (`aim-*`,
+  `CostasArray`, `AllInterval`) e `fuzzle`, justamente as tarefas em que o seeds ganhava
+  com o dry run do AFL++. O mecanismo diagnosticado se confirma.
+- **3c v1 (ranking):** neutro nesta amostra (+2 −2). O ranking só pesa quando a fila passa
+  de 64 entradas.
+- **Cover-Branches, R22** (corpus do AFL++ na suíte, `MAP2CHECK_FUZZER_SUITE=1`):
+  - control, 99 tarefas: **49,2% × 44,8%**, 33 melhores e 2 piores; TestCov VALIDATED
+    97/99;
+  - seeds, 22 tarefas: 48,5% × 44,8%, 4 melhores e 3 piores.

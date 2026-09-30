@@ -23,6 +23,7 @@
 #include <iostream>
 #include <regex>
 #include <set>
+#include <stdexcept>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -75,7 +76,10 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   this->nonDetGenerator = generator;
   GenHash hash;
   hash.setFilePath(bc_program_path);
-  hash.generate_sha1_hash_for_file();
+  if (hash.generate_sha1_hash_for_file() != 0) {
+    throw std::runtime_error("cannot read the input program " +
+                             bc_program_path);
+  }
   this->programHash = hash.getOutputSha1HashFile() + ".map2check";
 
   // The scratch directory is named after the SHA-1 of the input bitcode, so it

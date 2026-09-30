@@ -120,6 +120,25 @@ anterior, ou todas contra `develop` em ordem).
 - **2d:** promover o vencedor entre light, o2, ntscd e ptafs a padrão, com commit próprio.
 - **3b:** promover `--alternate-engines` a padrão do híbrido se ele ganhar de seeds.
 
+## 4b. Estado em 2026-09-29, noite
+
+- **Resultados já no log:** R19 (Cover-Error e Cover-Branches) e R21.
+  - Cover-Error: seeds +23 −0 contra o control; alternate +20 −0.
+  - Cover-Branches: alternate 50,3% contra 44,7%.
+  - TRUE errado 0 em todos os braços.
+- **Correções da noite:**
+  - fd 3 do harness fechado para os filhos;
+  - varredura do IR sem regex (2d);
+  - orçamento único para as 3 compilações do AFL++ (3b);
+  - checagem de `%s` atrás de `MAP2CHECK_CHECK_CSTRINGS=1`, por falso positivo em Juliet
+    good.
+  - A ponta passou na integração 50/50.
+- **Knobs de slicing:** nenhum promovido (as variantes ficaram em ±3).
+- **Na fila** (8 vagas, reduzidas por falta de memória): R20, R21-castle, R22, R23, R24
+  (e o shard `r24-ce-control-0-resume`). As rodadas usam installs anteriores às correções
+  da noite. Isso só afeta slice em programas enormes e o harness, que foi corrigido no repo
+  e vale para contêineres novos.
+
 ## 5. Depois das rodadas
 
 1. Registrar R17 e R19 no log.

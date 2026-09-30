@@ -144,6 +144,25 @@ anterior, ou todas contra `develop` em ordem).
   durante o pico de falta de memória; os dados foram para `discarded-r22a/`. O hash agora
   falha com mensagem clara (`fix(frontend): an unreadable input program...`).
 
+## 4c. Próxima frente, por decisão do usuário: a lacuna Crab-LLVM → Clam
+
+Depois de fechar a campanha atual e **antes das outras lacunas** (floats, memória não
+inicializada, busca dirigida). O ponto de partida:
+- O motor antigo era a cadeia de forks `hbgit/crab-llvm` (branch `dev-llvm-6.0`), com
+  `hbgit/crab`, `hbgit/sea-dsa` e `hbgit/llvm-dsa`. Os commits públicos do hbgit nesses
+  forks são só de porte e build para o LLVM 6. As especializações de que o usuário lembra
+  não aparecem ali; **perguntar onde estão**.
+- O release do SV-COMP 2020 (`v7.3.1`, `map2check-rc-v7.3-svcomp20.zip`) traz o motor
+  compilado em `bin/crabllvm`, com Apron (domínios `oct` e `pk`). O domínio padrão era
+  `zones`.
+- No Clam `dev16` do `Dockerfile.dev`, o padrão também é `zones`, mas nem Apron, nem Elina,
+  nem LDD, nem PPLite são compilados: `oct`, `pk` e `boxes` ficam indisponíveis. O
+  comentário do Dockerfile que fala em "intervalos" está errado.
+- O `--add-invariants` sobre o Clam **nunca foi medido** (o gate previsto é CASTLE e Juliet
+  sem perder detecção).
+- Primeiro passo: um **inventário diferencial**. Rodar o motor do v7.3.1 e o Clam `dev16`
+  nos mesmos programas e comparar os invariantes, antes de portar qualquer coisa.
+
 ## 5. Depois das rodadas
 
 1. Registrar R17 e R19 no log.

@@ -139,6 +139,11 @@ anterior, ou todas contra `develop` em ordem).
   da noite. Isso só afeta slice em programas enormes e o harness, que foi corrigido no repo
   e vale para contêineres novos.
 
+- **R22 control relançado** (`r22-cb-control-*-rerun`): a primeira tentativa deu ERROR nas
+  120 tarefas ("cannot create std::vector larger than max_size()", input ilegível no hash)
+  durante o pico de falta de memória; os dados foram para `discarded-r22a/`. O hash agora
+  falha com mensagem clara (`fix(frontend): an unreadable input program...`).
+
 ## 5. Depois das rodadas
 
 1. Registrar R17 e R19 no log.

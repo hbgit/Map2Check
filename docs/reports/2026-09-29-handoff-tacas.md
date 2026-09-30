@@ -199,3 +199,17 @@ inicializada, busca dirigida). O ponto de partida:
    `release/` foi restaurado a partir de `install_v15/`.
 7. O worktree velho `../Map2Check-2c` precisa de `--force` para ser removido. **Pedir
    permissão** antes.
+
+## 6. Campanha completa da 9.0 (lançada em 2026-09-30, 14h16)
+
+- **Lançador:** `../tacas-results/v9-campaign.sh`, rodando com `setsid`, log em
+  `../tacas-results/v9-campaign.log`. Ele espera o R26 terminar e roda sozinho, na ordem
+  do plano: CASTLE, Cover-Error (1087, 3 shards), Juliet (grupos a–d, como a v15) e
+  Cover-Branches (2765, 6 shards).
+- **Build:** `install_v9`, cópia congelada da ponta de `feat/map2check-9.0`
+  (`v9-commit.txt`). Um commit de código novo antes do merge exige rodar de novo a parte
+  afetada.
+- **Imagem:** `map2check-v9-eval:latest`, que é a `map2check-dev:aflpp` com o TestCov.
+- **Condições da v15:** `--memory=4g`, `--cpus=2` (Test-Comp) e `--cpus=1` (Juliet e
+  CASTLE), 300 s, `PER_FAMILY=10`; no máximo 5 contêineres.
+- **Resultados:** `../tacas-results/V9-*`, pareados com `tests/*/results_v15*`.

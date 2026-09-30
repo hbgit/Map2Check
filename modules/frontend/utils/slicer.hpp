@@ -10,6 +10,7 @@
 #define MODULES_FRONTEND_UTILS_SLICER_HPP_
 
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
 #include <regex>
 #include <sstream>
@@ -47,37 +48,43 @@ inline const std::vector<std::string>& nondetFunctionNames() {
   return names;
 }
 
-/** Every __VERIFIER_nondet_* symbol in a module's textual IR (`opt -S`),
- * in order of first appearance. The fixed list above cannot know every name a
- * benchmark declares (int128, uint128, ...), and a name missing from the
- * criteria silently brings the shifted suite back. */
-inline std::vector<std::string> nondetNamesInIR(const std::string& ir) {
-  static const std::regex symbol(R"(@(__VERIFIER_nondet_[A-Za-z0-9_]+))");
+/** Every symbol `@<prefix>...` in a module's textual IR, without the '@', in
+ * order of first appearance. A plain scan, not std::regex: on the eca-* modules
+ * (megabytes of IR) the regexes took ~45 s, outside every budget, and pushed
+ * the run past its deadline with no verdict (R19, 4 ERROR of the slice arm). */
+inline std::vector<std::string> symbolsWithPrefixInIR(const std::string& ir,
+                                                      const std::string& prefix) {
+  auto isNameChar = [](char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+  };
   std::vector<std::string> names;
-  for (std::sregex_iterator it(ir.begin(), ir.end(), symbol), end; it != end;
-       ++it) {
-    const std::string name = (*it)[1];
-    if (std::find(names.begin(), names.end(), name) == names.end()) {
+  const std::string needle = "@" + prefix;
+  for (size_t at = ir.find(needle); at != std::string::npos;
+       at = ir.find(needle, at + 1)) {
+    size_t end = at + 1;
+    while (end < ir.size() && isNameChar(ir[end])) ++end;
+    const std::string name = ir.substr(at + 1, end - at - 1);
+    if (name.size() > prefix.size() &&
+        std::find(names.begin(), names.end(), name) == names.end()) {
       names.push_back(name);
     }
   }
   return names;
 }
 
+/** Every __VERIFIER_nondet_* symbol in a module's textual IR (`opt -S`),
+ * in order of first appearance. The fixed list above cannot know every name a
+ * benchmark declares (int128, uint128, ...), and a name missing from the
+ * criteria silently brings the shifted suite back. */
+inline std::vector<std::string> nondetNamesInIR(const std::string& ir) {
+  return symbolsWithPrefixInIR(ir, "__VERIFIER_nondet_");
+}
+
 /** Every map2check_* runtime symbol in a module's textual IR, in order of
  * first appearance. Used as the slicing criteria for the memory properties:
  * the property is decided by these calls, so none of them may be removed. */
 inline std::vector<std::string> runtimeNamesInIR(const std::string& ir) {
-  static const std::regex symbol(R"(@(map2check_[A-Za-z0-9_]+))");
-  std::vector<std::string> names;
-  for (std::sregex_iterator it(ir.begin(), ir.end(), symbol), end; it != end;
-       ++it) {
-    const std::string name = (*it)[1];
-    if (std::find(names.begin(), names.end(), name) == names.end()) {
-      names.push_back(name);
-    }
-  }
-  return names;
+  return symbolsWithPrefixInIR(ir, "map2check_");
 }
 
 /** Every function a module DECLARES without defining (`declare ... @f(`), in
@@ -87,24 +94,38 @@ inline std::vector<std::string> runtimeNamesInIR(const std::string& ir) {
  * the runtime checks depends on such a call, so without it as a criterion the
  * slicer drops the call and the bug with it (CASTLE-787-2: a wrong TRUE). */
 inline std::vector<std::string> externalNamesInIR(const std::string& ir) {
-  static const std::regex declaration(
-      R"((?:^|\n)declare [^\n]*?@([A-Za-z0-9_.$]+)\()");
+  auto isNameChar = [](char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '_' ||
+           c == '.' || c == '$';
+  };
   std::vector<std::string> names;
-  for (std::sregex_iterator it(ir.begin(), ir.end(), declaration), end;
-       it != end; ++it) {
-    const std::string name = (*it)[1];
-    // Intrinsics are not calls into code the slicer could keep -- except the
-    // memory ones: clang lowers memcpy/memset/memmove (and struct copies) to
-    // them, and an overflowing copy into a buffer nothing reads again feeds no
-    // criterion, so it has to be one (the strcpy case again).
-    if (name.rfind("llvm.", 0) == 0 && name.rfind("llvm.memcpy.", 0) != 0 &&
-        name.rfind("llvm.memmove.", 0) != 0 &&
-        name.rfind("llvm.memset.", 0) != 0) {
-      continue;
+  size_t line = 0;
+  while (line < ir.size()) {
+    size_t next = ir.find('\n', line);
+    if (next == std::string::npos) next = ir.size();
+    if (ir.compare(line, 8, "declare ") == 0) {
+      const size_t at = ir.find('@', line);
+      if (at != std::string::npos && at < next) {
+        size_t end = at + 1;
+        while (end < next && isNameChar(ir[end])) ++end;
+        if (end < next && ir[end] == '(') {
+          const std::string name = ir.substr(at + 1, end - at - 1);
+          // Intrinsics are not calls into code the slicer could keep -- except
+          // the memory ones: clang lowers memcpy/memset/memmove (and struct
+          // copies) to them, and an overflowing copy into a buffer nothing
+          // reads again feeds no criterion, so it has to be one.
+          const bool intrinsic = name.rfind("llvm.", 0) == 0 &&
+                                 name.rfind("llvm.memcpy.", 0) != 0 &&
+                                 name.rfind("llvm.memmove.", 0) != 0 &&
+                                 name.rfind("llvm.memset.", 0) != 0;
+          if (!intrinsic &&
+              std::find(names.begin(), names.end(), name) == names.end()) {
+            names.push_back(name);
+          }
+        }
+      }
     }
-    if (std::find(names.begin(), names.end(), name) == names.end()) {
-      names.push_back(name);
-    }
+    line = next + 1;
   }
   return names;
 }

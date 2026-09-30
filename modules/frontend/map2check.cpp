@@ -186,7 +186,7 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
   if (coverBranches) {
     // The fuzzer's share first, at most half the suite, so KLEE's paths still
     // find room: its corpus is ranked by new edges, the cases a coverage
-    // metric rewards by construction (MAP2CHECK_FUZZER_SUITE=1).
+    // metric rewards by construction (on by default; MAP2CHECK_FUZZER_SUITE=0).
     size_t fromFuzzer = 0;
     for (const std::vector<std::string> &inputs : fuzzerVectors) {
       if (writer.caseCount() >= kMaxBranchTestCases / 2) break;
@@ -859,11 +859,12 @@ int map2check_execution(map2check_args args) {
     }
     // Cover-Branches used only KLEE's paths: the fuzzer's corpus, the inputs
     // that reached new edges, was thrown away with the scratch directory.
-    // Behind MAP2CHECK_FUZZER_SUITE=1 until measured.
+    // On by default since 9.0 (R22: 49.7% against 44.7% on the fixed hybrid;
+    // R26: 53.5% with the alternation); MAP2CHECK_FUZZER_SUITE=0 turns it off.
     std::vector<std::vector<std::string>> fuzzerVectors;
     const char *fuzzerSuite = std::getenv("MAP2CHECK_FUZZER_SUITE");
-    if (args.coverBranches && fuzzerSuite != nullptr &&
-        std::string(fuzzerSuite) == "1" &&
+    if (args.coverBranches &&
+        !(fuzzerSuite != nullptr && std::string(fuzzerSuite) == "0") &&
         generator == Map2Check::NonDetGenerator::AFLPlusPlus) {
       fuzzerVectors = caller->fuzzerCorpusVectors(kMaxBranchTestCases);
     }
@@ -941,12 +942,16 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
          "--memcleanup-property, --check-overflow) before analysing it; needs "
          "sbt-slicer")
         ("alternate-engines",
-         "\tlet the fuzzer and KLEE take turns, each stopped once it stops "
-         "finding coverage, with windows that double every round (implies "
-         "--seed-exchange; hybrid runs only)")
+         "\tthe default hybrid (needs --timeout): the fuzzer and KLEE take "
+         "turns, each stopped once it stops finding coverage, with windows "
+         "that double every round, handing each other seeds")
+        ("fixed-hybrid",
+         "\tthe 8.x hybrid instead: the fuzzer for 0.2 of the budget, then "
+         "KLEE (with --seed-exchange: 0.2 / 0.6 / 0.2 and a last fuzzer phase)")
         ("seed-exchange",
          "\tlet the two engines hand each other input vectors through a shared "
-         "seed corpus (hybrid runs; off by default)")
+         "seed corpus (implied by the default hybrid; with --fixed-hybrid, off "
+         "unless given)")
         ("cover-branches",
          "\temit one test case per path KLEE explored, from its .ktest output, "
          "instead of the single violating vector (Test-Comp Cover-Branches)")
@@ -1062,22 +1067,32 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     if (vm.count("seed-exchange")) {
       args.seedExchange = true;
     }
-    if (vm.count("alternate-engines")) {
+    // The hybrid is the alternation by default since 9.0: measured on the
+    // 213-task Cover-Error sample it ties the seed-exchange hybrid (157 each,
+    // against 128 for the 8.x fixed hybrid) and leads Cover-Branches (53.5%
+    // against 46.5%, R26). --fixed-hybrid keeps the 8.x schedule.
+    const bool hybrid = !vm.count("nondet-generator");
+    const bool budgeted =
+        vm.count("timeout") && vm["timeout"].as<unsigned>() > 0;
+    if (vm.count("fixed-hybrid")) {
+      if (vm.count("alternate-engines")) {
+        Map2Check::Log::Warning(
+            "--fixed-hybrid and --alternate-engines both given -- using the "
+            "fixed hybrid");
+      }
+    } else if (hybrid && budgeted) {
+      args.alternateEngines = true;
+      args.seedExchange = true;
+    } else if (vm.count("alternate-engines")) {
       // Windows and stagnation are fractions of the budget, and turns only
       // exist on the hybrid path: without either, say so instead of running
       // something else under the flag's name.
-      if (!vm.count("timeout") || vm["timeout"].as<unsigned>() == 0) {
-        Map2Check::Log::Warning(
-            "--alternate-engines needs --timeout: its windows are fractions of "
-            "the budget -- running the fixed hybrid instead");
-      } else if (vm.count("nondet-generator")) {
-        Map2Check::Log::Warning(
-            "--alternate-engines applies to the hybrid only -- ignored with "
-            "--nondet-generator");
-      } else {
-        args.alternateEngines = true;
-        args.seedExchange = true;
-      }
+      Map2Check::Log::Warning(
+          !budgeted ? "--alternate-engines needs --timeout: its windows are "
+                      "fractions of the budget -- running the fixed hybrid "
+                      "instead"
+                    : "--alternate-engines applies to the hybrid only -- "
+                      "ignored with --nondet-generator");
     }
     if (vm.count("cover-branches")) {
       args.coverBranches = true;

@@ -71,6 +71,77 @@ $ ./map2check --help
 
 When you use a LLVM bytecode as input for the tool, be sure to add `-g` flag when generating the file, it is not required, but map2check will provide better info (like line numbers).
 
+#### Engines, test suites and analysis options (9.0)
+
+<p align="justify">
+Map2Check generates inputs with two engines: the <b>AFL++ 4.40c</b> fuzzer (persistent mode, PCGUARD,
+CmpLog) and the <b>KLEE 3.1</b> symbolic executor. By default, and whenever <code>--timeout</code> is
+given, the two run as an <b>alternating hybrid</b>. They take turns, each turn ends once its engine stops
+finding new coverage, and every round doubles the turn's window. The engines also hand each other
+input vectors.
+</p>
+
+| Option | Effect |
+|---|---|
+| *(default, with `--timeout`)* | Alternating hybrid with seed exchange. Same as `--alternate-engines`. |
+| `--fixed-hybrid` | The 8.x schedule: the fuzzer for 0.2 of the budget, then KLEE. |
+| `--fixed-hybrid --seed-exchange` | The 8.x schedule with seed exchange (0.2 / 0.6 / 0.2, with a last fuzzer phase). |
+| `--nondet-generator afl` / `symex` | One engine only: AFL++ or KLEE. In 8.x the fuzzer value was `fuzzer`. |
+| `--slice` | Slice the program before the analysis (sbt-slicer), for reachability, `--check-asserts`, `--memtrack`, `--memcleanup-property` and `--check-overflow`. |
+| `--generate-test-suite` | Emit a Test-Comp test suite (`test-suite/`). |
+| `--generate-test-suite --cover-branches` | Emit a Cover-Branches suite, up to 50 cases, from KLEE's paths and the fuzzer's corpus. |
+| `--add-invariants` | Optional, and off in the default build. See below. |
+
+<p align="justify">
+<b>Verdicts.</b> A TRUE verdict needs KLEE to have explored every path. Map2Check reports
+<code>UNKNOWN</code> instead when KLEE stopped early for any reason:
+</p>
+
+- its timer ran out;
+- it concretized a symbolic input (for example a floating-point value);
+- it killed states;
+- it hit its memory cap;
+- it crashed.
+
+<p align="justify">
+A call to <code>abort()</code> in the program under analysis is treated the way SV-COMP treats it: as
+an assumption. It prunes that path and does not end the search.
+</p>
+
+<p align="justify">
+<b>Environment knobs.</b> These exist for experiments; the defaults are the measured choices.
+</p>
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `MAP2CHECK_FUZZER_SUITE` | on | `0` leaves the fuzzer's corpus out of Cover-Branches suites. |
+| `MAP2CHECK_SLICE_CLEANUP` | none | `light` or `o2`: an opt pipeline over the fresh slice. Measured neutral. |
+| `MAP2CHECK_SLICER_FLAGS` | — | Extra sbt-slicer flags, e.g. `--cda=ntscd`. Measured neutral. |
+| `MAP2CHECK_PREOPT` | off | `ssa`: mem2reg + simplifycfg before instrumentation, for reachability and assert only. Measured neutral in the hybrid. |
+| `MAP2CHECK_CHECK_CSTRINGS` | off | `1`: check the strings a `%s` or `puts` reads. It fixes one wrong TRUE on Juliet, but produces false positives on memory the runtime does not track (CASTLE: FP from 1 to 4). |
+| `MAP2CHECK_CLAM_PROFILE` | default | `memory` or `none`: see `--add-invariants`. |
+
+<p align="justify">
+<b><code>--add-invariants</code></b> inserts abstract-interpretation invariants computed by
+<a href="https://github.com/seahorn/clam">Clam</a> (formerly crab-llvm). The build must be configured
+with <code>-DENABLE_CLAM=ON</code> and Clam installed at <code>$CLAM_DIR</code>; otherwise the option is
+refused with exit code 3.
+</p>
+
+<p align="justify">
+The option stays <b>optional</b> while it is under study. So far:
+</p>
+
+- In the SV-COMP 2019/2020 builds, the invariants reached neither the instrumentation nor KLEE: they were emitted as `llvm.assume`.
+- On the current hybrid, the first measurement found no gain.
+- Clam is bounded to 0.2 of the budget and falls back to the plain compile when it fails.
+- A dedicated study round is planned. See `docs/reports/tacas-experiment-log.md` (INV-1, R25).
+
+<p align="justify">
+Measurements of every option above are recorded in
+<a href="docs/reports/tacas-experiment-log.md">docs/reports/tacas-experiment-log.md</a>.
+</p>
+
 ___
 
 #### Verifying WebAssembly (WASM) binaries

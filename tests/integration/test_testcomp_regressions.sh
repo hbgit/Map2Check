@@ -428,17 +428,17 @@ int main(void) {
 }
 EOF
 
-# Off by default: the hybrid's measured behaviour must not change until the
-# exchange has earned its place beside it.
+# The 8.x fixed hybrid keeps its behaviour: no exchange unless asked. (Since
+# 9.0 the default hybrid is the alternation, which exchanges seeds.)
 ( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 250 "$MAP2CHECK" \
-    --target-function --target-function-name reach_error \
+    --fixed-hybrid --target-function --target-function-name reach_error \
     --debug --timeout 60 seed.c ) > "$WORK/seed/off.log" 2>&1
 # The seed store lives BESIDE the scratch directory (<hash>.seeds): every
 # hybrid phase recreates the scratch directory, and a store inside it never
 # reached the next phase (tacasv3a).
 n_off=$(ls -d "$WORK/seed"/*.seeds 2>/dev/null | wc -l)
 if [ "$n_off" -eq 0 ]; then
-  ok "no seed store without --seed-exchange"
+  ok "no seed store with --fixed-hybrid and without --seed-exchange"
 else
   fail "default behaviour" "a seed store was created without asking"
 fi

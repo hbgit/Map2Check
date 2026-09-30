@@ -15,6 +15,13 @@ search. Measured against the v15 baseline in `docs/reports/tacas-experiment-log.
 
 ### Changed (breaking)
 
+- **The default hybrid is the alternation** (`--alternate-engines`, with seed
+  exchange) whenever `--timeout` is given. `--fixed-hybrid` keeps the 8.x
+  schedule. Measured on the 213-task Cover-Error sample: 157 covered, against
+  128 for the 8.x hybrid. On Cover-Branches: 53.5% against 46.5% (R26).
+- The fuzzer's corpus is part of Cover-Branches suites by default
+  (`MAP2CHECK_FUZZER_SUITE=0` turns it off).
+
 - Fuzzing engine: LibFuzzer replaced by AFL++ 4.40c (persistent mode, PCGUARD,
   CmpLog). `--nondet-generator fuzzer` is now `--nondet-generator afl`.
 - Verdicts: TRUE only from an exhaustive KLEE exploration. KLEE exiting 0 after
@@ -42,8 +49,8 @@ search. Measured against the v15 baseline in `docs/reports/tacas-experiment-log.
 - KLEE's vectors, completed with zeros past their end, are run natively
   through the witness after every KLEE phase that found nothing.
 - AFL++ binaries built once per run (`<hash>.build/`), within one build budget.
-- `MAP2CHECK_FUZZER_SUITE=1`: the fuzzer's corpus contributes Cover-Branches
-  test cases (up to half the suite, deduplicated).
+- The fuzzer's corpus contributes Cover-Branches test cases (up to half the
+  suite, deduplicated).
 - `--add-invariants` profiles (`MAP2CHECK_CLAM_PROFILE=default|memory|none`),
   the number of invariants inserted in the log, and a fallback when Clam
   fails. `MAP2CHECK_PREOPT=ssa` (reachability and assert): the module in SSA

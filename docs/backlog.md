@@ -46,3 +46,21 @@ Itens decididos como "não agora", cada um com o motivo e onde está a evidênci
     usar `-` nos campos vazios;
   - os filhos herdavam o manifest pelo descritor 3. Corrigido no harness do repositório
     (`3<&-`).
+
+## Validação de witness (fase D, item 4.2): estudo, a discutir com o orientador
+
+- **Estado atual:**
+  - O Map2Check gera só witness **GraphML** (`--generate-witness`, formato 1.0), gravado
+    em `../witness.graphml` a partir do scratch.
+  - Não gera o formato **2.0 (YAML)**, adotado pelo SV-COMP. É preciso confirmar no
+    call do ano quais formatos ainda são aceitos.
+  - Nenhum teste valida os witnesses gerados.
+  - A Test-Comp não usa witness; a suíte é validada pelo TestCov. O item só pesa para o
+    SV-COMP.
+- **Caminho barato já esboçado (validação por execução):** compilar o programa original
+  (com ASan, para as propriedades de memória), alimentá-lo com o vetor que viola a
+  propriedade (que o Map2Check já emite na suíte de Cover-Error) e confirmar o
+  `reach_error` ou o crash. É parecido com o que o TestCov faz e com os validadores por
+  execução do SV-COMP.
+- **Não começar a implementação** antes da conversa com o orientador: definir se o
+  objetivo é o formato 2.0, a validação por execução, os dois ou nenhum.

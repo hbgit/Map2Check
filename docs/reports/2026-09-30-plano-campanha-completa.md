@@ -15,7 +15,7 @@ e o pareamento é feito pelo programa.
 | corpus | tarefas | manifest | custo médio por tarefa* | horas-vaga |
 |---|---|---|---|---|
 | Test-Comp Cover-Error | 1 087 | `tests/testcomp/corpus/cover-error-q400.tsv` (o recorte da v15) | ~85 s + TestCov ≈ 110 s | ~33 |
-| Test-Comp Cover-Branches | o recorte da v15 (conferir se é `cover-branches-q400.tsv`, 2 765, ou `cover-branches.tsv`, 1 522) | idem | ~240 s + TestCov ≈ 300 s | 127 a 230 |
+| Test-Comp Cover-Branches | 2 765 (o mesmo recorte da v15, confirmado) | `tests/testcomp/corpus/cover-branches-q400.tsv` | ~240 s + TestCov ≈ 300 s | ~230 |
 | Juliet (escopo C) | ~8 000 | `tests/juliet` (os 4 shards da v15) | ~36 s | ~80 |
 | CASTLE | 250 (119 em escopo) | `tests/castle` | ~60 s | ~2 |
 | SV-COMP MemSafety, MemCleanup e NoOverflows | por categoria, a decidir | `build_corpus.py` | ~36 s | depende |
@@ -29,9 +29,9 @@ e o pareamento é feito pelo programa.
 - Duração, com 5 vagas:
   - Cover-Error: ~7 h;
   - Juliet: ~16 h;
-  - Cover-Branches: 1 a 2 dias, conforme o recorte;
+  - Cover-Branches: ~2 dias (2 765 tarefas);
   - CASTLE e SV-COMP por categoria: algumas horas.
-  - Total: **~2,5 a 3,5 dias**.
+  - Total: **~3,5 dias**.
 - Ordem sugerida, das decisões mais baratas para as mais caras:
   1. CASTLE;
   2. Cover-Error;

@@ -160,6 +160,18 @@ inicializada, busca dirigida). O ponto de partida:
   comentário do Dockerfile que fala em "intervalos" está errado.
 - O `--add-invariants` sobre o Clam **nunca foi medido** (o gate previsto é CASTLE e Juliet
   sem perder detecção).
+- **Sonda de 2026-09-29, num programa com laço.** O motor do v7.3.1 roda em
+  `python:2.7-slim` com o clang do LLVM 6 que vem no próprio release.
+  - As flags do v7.3.1, tiradas das strings do binário, incluem `--crab-promote-assume`:
+    **17 invariantes emitidos como `llvm.assume`**.
+  - O Clam, com as flags atuais, emite **18 como `verifier.assume`**, que o NonDetPass
+    converte em `klee_assume`.
+  - O NonDetPass antigo só reconhecia `verifier.assume`, e o **KLEE ignora `llvm.assume`**
+    (testado no 3.1). Então, no v7.3.1, os invariantes **não chegavam ao KLEE como
+    restrição**. Se ajudavam, era pelo otimizador do LLVM, que dobra ramos com base em
+    `llvm.assume`. O mecanismo é outro, e é provavelmente isso que "não é a mesma coisa"
+    quer dizer.
+  - Os dois motores produzem fatos no estilo de zones (`x − y ≤ c`).
 - Primeiro passo: um **inventário diferencial**. Rodar o motor do v7.3.1 e o Clam `dev16`
   nos mesmos programas e comparar os invariantes, antes de portar qualquer coisa.
 

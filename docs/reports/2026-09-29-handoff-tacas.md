@@ -172,7 +172,18 @@ inicializada, busca dirigida). O ponto de partida:
     `llvm.assume`. O mecanismo é outro, e é provavelmente isso que "não é a mesma coisa"
     quer dizer.
   - Os dois motores produzem fatos no estilo de zones (`x − y ≤ c`).
-- Primeiro passo: um **inventário diferencial**. Rodar o motor do v7.3.1 e o Clam `dev16`
+- **INV-1 feito** (log de experimentos). Os invariantes estavam inertes desde a v7.3
+  (out/2018). O ganho observado vinha do pré-processamento em SSA, não dos invariantes.
+  Branch `feat/tacas-invariants`:
+  - `MAP2CHECK_CLAM_PROFILE=default|memory|none`;
+  - `MAP2CHECK_PREOPT=ssa`, só para alcançabilidade e assert;
+  - build `build_inv` com `-DENABLE_CLAM=ON` e os links `lib/klee/runtime` e `lib/clang`
+    criados à mão.
+- **R25 na fila** (`r25-sched.sh`, `install_r25`):
+  - Cover-Error, shard 0 (71 tarefas): off, ssa, clam-none, clam-default, clam-memory;
+  - MemSafety (50): off, clam-none, clam-default, clam-memory.
+  - Gate: nenhuma detecção perdida.
+- Primeiro passo (feito, ver INV-1): um **inventário diferencial**. Rodar o motor do v7.3.1 e o Clam `dev16`
   nos mesmos programas e comparar os invariantes, antes de portar qualquer coisa.
 
 ## 5. Depois das rodadas

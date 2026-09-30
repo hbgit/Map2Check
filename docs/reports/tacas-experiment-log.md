@@ -650,3 +650,16 @@ Todos contra o braço equivalente da R19, nas tarefas em comum (linhas filtradas
   - **a primeira R22 control (120 ERROR) teve a mesma causa, e não falta de memória**,
     como registrado antes. O relançamento dela usou `-e` e é válido;
   - os outros braços têm flags não vazias ou nenhuma variável, e não foram afetados.
+
+### R20 e R23 seeds, completas (2026-09-30, 01h)
+
+| rodada | o que muda | cobertas (213) | vs R19 seeds (151) | vs R19 control (128) | TRUE errado |
+|---|---|---|---|---|---|
+| R20 seeds | + ranking `+cov` (3c v1) | 150 | +2 −3 | +22 | 0 |
+| **R23 seeds** | build final (cache do AFL++, fd 3, hash, orçamento) | **154** | **+5 −2** | **+26** | 0 |
+
+- **3c v1 é neutro** também na amostra completa: fica disponível, sem ganho medido.
+- **O build final com sementes é o melhor resultado de Cover-Error da linha: 154/213
+  (72,3%)**, contra 111 da v15 na mesma amostra.
+- As perdas recorrentes (`Problem10_label12`, `Problem13_label54`) aparecem também no
+  R20. São tarefas eca-* no limite do orçamento.

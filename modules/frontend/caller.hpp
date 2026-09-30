@@ -99,6 +99,8 @@ class Caller {
   /** @brief Function to compile original C file removing external memory
    * operations calls */
   void compileCFile(bool is_llvm_bc);
+  /** MAP2CHECK_PREOPT=ssa: compile into SSA form (see compileCFile). */
+  bool ssaPreoptimization() const;
 
   /** Compiles the input through Clam so the emitted bitcode carries
    * verifier.assume(invariant) calls. Requires Clam dev16 installed; callers

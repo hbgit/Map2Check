@@ -142,6 +142,20 @@ unsigned Caller::remainingSeconds() const {
   return left < 1 ? 1u : static_cast<unsigned>(left);
 }
 
+bool Caller::ssaPreoptimization() const {
+  // Reachability and assert only. The memory modes track locals through the
+  // allocas mem2reg removes (a pointer kept in a local, promoted, made a
+  // legitimate free() look invalid: FALSE-FREE on safe programs), the overflow
+  // mode lost detections, and simplifycfg turns branches into selects, which
+  // is fewer paths and fewer Cover-Branches test cases.
+  if (map2checkMode != Map2CheckMode::REACHABILITY_MODE &&
+      map2checkMode != Map2CheckMode::ASSERT_MODE) {
+    return false;
+  }
+  const char *knob = std::getenv("MAP2CHECK_PREOPT");
+  return knob != nullptr && std::string(knob) == "ssa";
+}
+
 std::string Caller::preOptimizationFlags() {
   std::ostringstream flags;
   flags.str("");
@@ -1668,11 +1682,40 @@ void Caller::compileCFile(bool is_llvm_bc) {
             << " -Wno-everything "
             << " -Winteger-overflow "
             << " -c -emit-llvm -g"
-            << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
+            << " " << Caller::preOptimizationFlags()
+            << (ssaPreoptimization() ? " -Xclang -disable-O0-optnone" : "")
+            << " -o " << compiledFile
             << " " << programHash << "-preprocessed.c "
             << " > " << programHash << "-clang.out 2>&1";
 
     system(command.str().c_str());
+
+    // MAP2CHECK_PREOPT=ssa: the module in SSA form, as Clam's preprocessing
+    // leaves it. At -O0 clang marks every function optnone and every local
+    // lives in memory; KLEE then pays a memory object and a solver array per
+    // variable. A first probe of --add-invariants found that compiling through
+    // Clam with NO invariant inserted decided a loop program the plain
+    // pipeline left UNKNOWN (both the safe and the buggy variant) -- the gain
+    // was the preprocessing, not the invariants. mem2reg only promotes locals
+    // whose address is never taken; simplifycfg keeps common code unsunk, as
+    // Clam does. Neither reorders a call, so the nondet order is unchanged.
+    if (ssaPreoptimization()) {
+      std::ostringstream ssa;
+      ssa << Map2Check::optBinary
+          << " -passes='function(mem2reg,simplifycfg)'"
+          << " --simplifycfg-sink-common=false " << compiledFile << " -o "
+          << compiledFile << ".ssa.bc >> " << programHash << "-clang.out 2>&1";
+      std::error_code ssaError;
+      if (system(ssa.str().c_str()) == 0 &&
+          std::filesystem::exists(compiledFile + ".ssa.bc", ssaError)) {
+        std::filesystem::rename(compiledFile + ".ssa.bc", compiledFile,
+                                ssaError);
+      } else {
+        Map2Check::Log::Warning(
+            "could not bring the module into SSA form -- analysing it as "
+            "compiled");
+      }
+    }
 
     this->pathprogram = compiledFile;
   } else {
@@ -1785,15 +1828,60 @@ void Caller::compileWithClam() {
   // map2check_crab_assume, which the runtime forwards to klee_assume -- so
   // nothing downstream needs to change.
   // See docs/reports/2026-08-16-crabllvm-review.md.
+  // MAP2CHECK_CLAM_PROFILE=memory: the configuration --add-invariants had
+  // until 2018-10-19, when it last reached KLEE -- memory contents tracked
+  // (crab-llvm's --crab-track=arr, Clam's mem) and an invariant after every
+  // load. From v7.3 on it ran --crab-promote-assume, which emits llvm.assume,
+  // which NonDetPass does not map and both KLEE 2.1 and 3.1 ignore: the
+  // invariants of the SV-COMP 2019/2020 builds reached nothing. Measured side
+  // by side against the default (num, block-entry) before choosing.
+  // MAP2CHECK_CLAM_PROFILE=none: Clam's pipeline without inserting anything,
+  // to tell the effect of compiling through Clam from that of the invariants
+  // (a first probe found the two pulling in opposite directions).
+  const char *profileEnv = std::getenv("MAP2CHECK_CLAM_PROFILE");
+  const std::string profile = profileEnv != nullptr ? profileEnv : "default";
+  const bool memoryProfile = profile == "memory";
+  const bool noInvariants = profile == "none";
   command << Map2Check::clamBinary() << " -o " << compiledFile << " -m 64 -g"
           << " --crab-inter"
-          << " --crab-track=num"
-          << " --crab-opt=add-invariants"
-          << " --crab-opt-invariants-loc=block-entry"
-          << " " << programHash << "-preprocessed.c ";
+          << (memoryProfile ? " --crab-track=mem" : " --crab-track=num")
+          << (noInvariants ? " --crab-opt=none" : " --crab-opt=add-invariants")
+          << (noInvariants    ? ""
+              : memoryProfile ? " --crab-opt-invariants-loc=after-load"
+                              : " --crab-opt-invariants-loc=block-entry")
+          << " " << programHash << "-preprocessed.c > clam.output 2>&1";
 
   Map2Check::Log::Debug(command.str());
-  system(command.str().c_str());
+  const int clamResult = system(command.str().c_str());
+
+  std::error_code error;
+  if (clamResult != 0 || !std::filesystem::exists(compiledFile, error) ||
+      std::filesystem::file_size(compiledFile, error) == 0) {
+    // Not the silence of the old path (issue #54): said, and the run goes on
+    // with the program as it is.
+    Map2Check::Log::Warning(
+        "Clam failed (status " + std::to_string(clamResult) +
+        ") -- analysing the program without invariants");
+    compileCFile(false);
+    return;
+  }
+
+  // How many invariants went in: the measure of what --add-invariants does.
+  std::ostringstream disassemble;
+  disassemble << Map2Check::optBinary << " -S " << compiledFile
+              << " -o clam-invariants.ll > /dev/null 2>&1";
+  unsigned invariants = 0;
+  if (system(disassemble.str().c_str()) == 0) {
+    std::ifstream ir("clam-invariants.ll");
+    std::string line;
+    while (std::getline(ir, line)) {
+      if (line.find("call void @verifier.assume") != std::string::npos) {
+        ++invariants;
+      }
+    }
+  }
+  Map2Check::Log::Info("Clam inserted " + std::to_string(invariants) +
+                       " invariant(s) (" + profile + " profile)");
 
   this->pathprogram = compiledFile;
 }

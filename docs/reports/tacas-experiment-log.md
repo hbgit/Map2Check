@@ -554,3 +554,60 @@ do descritor 3 foram completados com `-resume`):
   filhos o herdavam, inclusive o programa analisado via chamadas externas do KLEE. O offset
   andou sob o laço: o shard 0 da R24 parou em 29 de 71, e o shard 0 do seeds da R19 recebeu
   linhas do shard 1. Os filhos agora rodam com o fd 3 fechado.
+
+## INV-1 — `--add-invariants`: crab-llvm antigo × Clam (2026-09-30)
+
+**Pergunta:** o `--add-invariants` do crab-llvm "funcionava", e o do Clam "não é a mesma
+coisa"?
+
+**O que se descobriu sobre o motor antigo** (release v7.3.1 do SV-COMP 2020, que roda em
+`python:2.7-slim` com o clang do LLVM 6 embutido):
+- Houve **duas configurações**.
+  - Até 18/10/2018: `--crab-track=arr --crab-add-invariants=after-load`. Os invariantes
+    saíam como `verifier.assume`, o NonDetPass os mapeava para `map2check_crab_assume`, e
+    eles chegavam ao KLEE como `klee_assume`.
+  - A partir da v7.3 (SV-COMP 2019 e 2020): `--crab-track=num
+    --crab-add-invariants=block-entry --crab-promote-assume`. O `promote` emite
+    `llvm.assume`, que o NonDetPass não mapeia e que o KLEE ignora (testado no KLEE 2.1 do
+    release e no 3.1, com e sem `--optimize`). **Os invariantes das versões de competição
+    não chegavam a lugar nenhum.**
+
+**Geração, 90 programas** (40 de alcançabilidade da amostra Cover-Error e 50 de MemSafety),
+timeout de 60 s:
+
+| config | rodou | com invariante | total |
+|---|---|---|---|
+| OLD-A (antigo, até 2018) | 76 | 14 | 155 |
+| OLD-B (antigo, v7.3; `llvm.assume`, inerte) | 35 | 33 | 224 698 |
+| NEW-cur (Clam, `num` + `block-entry`) | 79 | 68 | 72 452 |
+| NEW-A (Clam, `mem` + `after-load`) | 70 | 19 | 702 |
+
+- A configuração que "funcionava" insere **poucos** invariantes, depois de leituras de
+  memória. A atual do Clam insere **muitos**, na entrada de cada bloco. O perfil
+  `memory` do Clam reproduz a ordem de grandeza da antiga.
+
+**Efeito na análise, sonda num laço** (`n ≤ 1000`, versões segura e com bug em `n == 777`,
+symex, 60 s):
+
+| braço | seguro | com bug |
+|---|---|---|
+| sem `--add-invariants` | UNKNOWN (HaltTimer) | UNKNOWN |
+| Clam padrão (18 invariantes) | UNKNOWN | UNKNOWN |
+| Clam `memory` (0 invariantes) | **TRUE** | **FAILED** |
+| Clam `none` (pipeline do Clam, 0 invariantes) | **TRUE** | **FAILED** |
+| **sem Clam, `MAP2CHECK_PREOPT=ssa`** | **TRUE** | **FAILED** |
+
+- **O ganho vem do pré-processamento, não dos invariantes.** O Clam compila com
+  `-disable-O0-optnone` e deixa o módulo em SSA (`mem2reg`, `simplifycfg`). O Map2Check
+  compila em `-O0` com `optnone`, cada variável local vira um objeto de memória no KLEE, e
+  o laço não fecha no orçamento.
+- Os 18 invariantes do perfil padrão não bastaram: o KLEE completou mais caminhos com eles
+  (261 contra 184 sem), mas também parou no HaltTimer.
+- **Hipótese a medir em escala (R25):** `MAP2CHECK_PREOPT=ssa` (sem Clam) é um ganho
+  geral, e os invariantes só se pagam somados ao SSA, se se pagarem.
+- Implementado nesta frente (`feat/tacas-invariants`):
+  - `MAP2CHECK_CLAM_PROFILE=default|memory|none`;
+  - log com a contagem de invariantes inseridos;
+  - recuo para a compilação normal quando o Clam falha (antes, o pipeline ficava sem
+    bitcode);
+  - `MAP2CHECK_PREOPT=ssa`.

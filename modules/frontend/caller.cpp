@@ -723,12 +723,23 @@ void Caller::applyNonDetGenerator() {
           1.0, std::min(0.25 * this->timeout,
                         std::max(1.0, static_cast<double>(remainingSeconds()) -
                                           5.0)));
-      const std::string bound = "timeout -k " +
-                                std::to_string(Map2Check::killGracePeriod) +
-                                " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";
+      // One budget for the three builds, not one each: sequential, each
+      // bounded by 0.25T, they could take 0.75T -- on eca-* that ran the
+      // process past its deadline with no verdict (R19). Each build gets what
+      // is left of the shared deadline.
+      const auto buildDeadline =
+          std::chrono::steady_clock::now() +
+          std::chrono::duration<double>(compileBudget);
+      auto bound = [&buildDeadline]() {
+        const double left = std::chrono::duration<double>(
+                                buildDeadline - std::chrono::steady_clock::now())
+                                .count();
+        return "timeout -k " + std::to_string(Map2Check::killGracePeriod) +
+               " " + std::to_string(std::max(1, static_cast<int>(left))) + " ";
+      };
 
       command
-          << bound << Map2Check::aflClangFastBinary()
+          << bound() << Map2Check::aflClangFastBinary()
           << "  -g " << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
           << " " + programHash + "-result.bc";
@@ -737,7 +748,7 @@ void Caller::applyNonDetGenerator() {
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << bound << Map2Check::aflClangFastBinary()
+      commandWitness << bound() << Map2Check::aflClangFastBinary()
                      << "  -g "
                      << " -o " + programHash + "-witness-fuzzed.out"
                      << " " + programHash + "-witness-result.bc";
@@ -752,7 +763,7 @@ void Caller::applyNonDetGenerator() {
       // tacasv1 comparison would pit an unarmed AFL++ against an armed
       // LibFuzzer. Optional: if it does not build, the fuzzer runs without.
       std::ostringstream commandCmplog;
-      commandCmplog << "AFL_LLVM_CMPLOG=1 " << bound
+      commandCmplog << "AFL_LLVM_CMPLOG=1 " << bound()
                     << Map2Check::aflClangFastBinary() << "  -g "
                     << Caller::postOptimizationFlags()
                     << " -o " + programHash + "-cmplog.out"

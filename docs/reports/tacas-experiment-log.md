@@ -663,3 +663,48 @@ Todos contra o braço equivalente da R19, nas tarefas em comum (linhas filtradas
   (72,3%)**, contra 111 da v15 na mesma amostra.
 - As perdas recorrentes (`Problem10_label12`, `Problem13_label54`) aparecem também no
   R20. São tarefas eca-* no limite do orçamento.
+
+## Madrugada de 2026-09-30 — R22, R23, R24 e R25 completas
+
+**Cover-Error, 213 tarefas** (referência: R19 control, 128):
+
+| braço | cobertas | % | vs R19 control | TRUE errado | tempo mediano |
+|---|---|---|---|---|---|
+| R24 control (replay dos vetores do KLEE) | 146 | 68,5 | +20 −2 | 0 | 4 s |
+| R23 seeds (build final) | 154 | 72,3 | +26 −0 | 0 | 4 s |
+| **R24 seeds (build final + replay)** | **155** | **72,8** | **+27 −0** | 0 | 5 s |
+| R23 alternate (build final) | 153 | 71,8 | +26 −1 | 0 | 12 s |
+
+- R23 alternate × R19 alternate: +7 −2. A correção das perdas eca-* funcionou.
+  R23 alternate × R23 seeds: +4 −5, um empate.
+- **v15 → build final na mesma amostra: 111 → 155 cobertas, TRUE errado 27 → 0.**
+
+**Cover-Branches, 120 tarefas** (R19 control 44,7%):
+
+| braço | cobertura média | melhor / pior |
+|---|---|---|
+| R19 seeds | 46,1% | 31 / 13 |
+| **R19 alternate** | **50,6%** | 44 / 5 |
+| R22 control + corpus do AFL++ | 49,7% | 40 / 3 |
+| R22 seeds + corpus do AFL++ | 49,4% | 36 / 8 |
+
+**R25 (`--add-invariants` e SSA), shard 0 de Cover-Error (71 tarefas) e MemSafety (50):**
+
+| braço | Cover-Error cobertas | ERROR | MemSafety (corretas / wrong-true / wrong-false) |
+|---|---|---|---|
+| off | 51 | 0 | 28 / 2 / 2 |
+| ssa | 50 (+2 −3) | 0 | — |
+| clam-none | 50 (+1 −2) | 2 | 25 / 1 / 4 |
+| clam-default | 49 (+1 −3) | 4 | 27 / 1 / 4 |
+| clam-memory | 44 (+2 −9) | 7 | 25 / 2 / 4 |
+
+- **No híbrido, nem o SSA nem os invariantes ajudam.** O ganho que a sonda viu era do KLEE
+  sozinho; no híbrido, o AFL++ e o replay dos vetores já decidem essas tarefas. Os braços
+  com Clam **pioram**: mais FALSE errados em MemSafety (4 contra 2), e ERROR por o Clam
+  estourar o orçamento, já corrigido com um limite de 0,2T.
+- **Decisão:** `--add-invariants` continua opcional e desligado por padrão; o SSA não é
+  promovido.
+- **Incidente:** a mudança de versão no `CMakeLists.txt` fez o cache do `build_inv` ser
+  regenerado, com o prefixo voltando para `release/` e o `ENABLE_CLAM` para OFF. O
+  `release/` foi sobrescrito de novo e restaurado a partir do `install_v15` (idêntico,
+  conferido com `diff`). As rodadas usaram installs congelados antes disso.

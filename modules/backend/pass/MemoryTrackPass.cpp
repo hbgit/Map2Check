@@ -10,6 +10,8 @@
 
 #include "MemoryTrackPass.hpp"
 
+#include <cstdlib>
+#include <string>
 #include <vector>
 
 #include <llvm/Analysis/ValueTracking.h>
@@ -260,6 +262,16 @@ void MemoryTrackPass::instrumentMemcpy() {
 }
 
 namespace {
+/** Behind MAP2CHECK_CHECK_CSTRINGS=1 until measured on more of Juliet. The
+ * check fixes a wrong TRUE (CWE193 "cpy" bad: the buffer is full, the read
+ * always overruns it) and makes a wrong FALSE on the matching good tasks, whose
+ * terminator is a byte never initialized -- which SV-COMP counts as a
+ * terminator and a native or KLEE run does not (R21: one of each in 50). */
+bool cstringChecksEnabled() {
+  const char *knob = std::getenv("MAP2CHECK_CHECK_CSTRINGS");
+  return knob != nullptr && std::string(knob) == "1";
+}
+
 /** The argument positions a constant printf format reads as strings: each
  * %s without a precision (a %.Ns may legitimately point at an unterminated
  * buffer). `first` is the position of the first variadic argument. Returns
@@ -607,9 +619,10 @@ void MemoryTrackPass::switchCallInstruction() {
   } else if (llvm::isa<llvm::MemTransferInst>(&*this->currentInstruction) ||
              calleeName == "memcpy" || calleeName == "memmove") {
     this->instrumentMemcpy();
-  } else if (calleeName == "printf" || calleeName == "fprintf" ||
-             calleeName == "sprintf" || calleeName == "snprintf" ||
-             calleeName == "puts" || calleeName == "fputs") {
+  } else if ((calleeName == "printf" || calleeName == "fprintf" ||
+              calleeName == "sprintf" || calleeName == "snprintf" ||
+              calleeName == "puts" || calleeName == "fputs") &&
+             cstringChecksEnabled()) {
     this->instrumentCStringArguments();
   } else if (this->calleeFunction->getName() == "malloc") {
     this->instrumentMalloc();

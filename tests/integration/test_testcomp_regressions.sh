@@ -1246,7 +1246,7 @@ else
   fail "fuzzer link error" "$(grep -a 'AFL++ binary' "$WORK/afllink/decl.log" | head -1)"
 fi
 
-# --- 36. a %s that reads past its buffer is a FALSE-DEREF --------------------
+# --- 36. MAP2CHECK_CHECK_CSTRINGS=1: a %s that reads past its buffer is a FALSE-DEREF
 # KLEE's uClibc declares printf without defining it, so KLEE runs it as a
 # native external call: the read of an unterminated string happened outside
 # every check, and Juliet's CWE121 CWE193 "cpy" tasks came back TRUE. The
@@ -1278,9 +1278,9 @@ int main(void) {
   return 0;
 }
 EOF2
-( cd "$WORK/cstring" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+( cd "$WORK/cstring" && MAP2CHECK_CHECK_CSTRINGS=1 MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
     --memtrack --nondet-generator symex --timeout 45 unterminated.c ) > "$WORK/cstring/unterminated.log" 2>&1
-( cd "$WORK/cstring" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+( cd "$WORK/cstring" && MAP2CHECK_CHECK_CSTRINGS=1 MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
     --memtrack --nondet-generator symex --timeout 45 fine.c ) > "$WORK/cstring/fine.log" 2>&1
 if grep -q "FALSE-DEREF" "$WORK/cstring/unterminated.log"; then
   ok "printing an unterminated buffer with %s is a FALSE-DEREF"

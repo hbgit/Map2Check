@@ -633,3 +633,20 @@ Todos contra o braço equivalente da R19, nas tarefas em comum (linhas filtradas
   - control, 99 tarefas: **49,2% × 44,8%**, 33 melhores e 2 piores; TestCov VALIDATED
     97/99;
   - seeds, 22 tarefas: 48,5% × 44,8%, 4 melhores e 3 piores.
+
+## R21 CASTLE e dois incidentes (2026-09-30, madrugada)
+
+- **CASTLE com `install_r21`** (checagem de `%s` ainda **ligada** nesse build): TP 54, TN 44,
+  FN 12, UNKNOWN 5, **FP 4** (R14: TP 53, TN 44, FN 14, FP 1). Os 4 FP (787-1, 787-2,
+  787-4, 822-3) são todos um `printf("%s")` de memória que o runtime não rastreia: buffer
+  preenchido por `scanf` e `argv[0]`. É uma confirmação independente de que
+  `MAP2CHECK_CHECK_CSTRINGS` deve continuar **desligado** (como está no branch da PR); os
+  FN caíram de 14 para 12.
+- **Incidente do escalonador** (corrige uma conclusão anterior): os escalonadores leem os
+  jobs com `IFS=$'\t' read`, e o bash junta tabs consecutivos. Com a coluna de flags vazia,
+  o conteúdo da coluna de ambiente escorregava para a de flags. Com isso:
+  - o braço `ssa` da R25 passou `MAP2CHECK_PREOPT=ssa` ao Map2Check como **nome de
+    arquivo** (71/71 ERROR). Relançado com `-e`;
+  - **a primeira R22 control (120 ERROR) teve a mesma causa, e não falta de memória**,
+    como registrado antes. O relançamento dela usou `-e` e é válido;
+  - os outros braços têm flags não vazias ou nenhuma variável, e não foram afetados.

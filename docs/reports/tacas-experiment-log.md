@@ -493,3 +493,64 @@ em `eca-rers2012/Problem06_label05.c` (300 s):
 patience`): sem limite na troca, cache dos binários por execução (`<hash>.build/`, também
 beneficia a fase 3 do braço seeds) e paciência do AFL++ dobrando por rodada.
 `Problem06_label05`: UNKNOWN → **FAILED em 157 s** (seeds: 281 s). Remedição na R23.
+
+## R19 — resultado (2026-09-29)
+
+**Cover-Error, 213 tarefas** (linhas filtradas pelo shard; os shards afetados pelo incidente
+do descritor 3 foram completados com `-resume`):
+
+| braço | cobertas | % | TRUE errado | ERROR | vs control | tempo mediano |
+|---|---|---|---|---|---|---|
+| control | 128 | 60,1 | 0 | 0 | — | 3 s |
+| **seeds** | **151** | **70,9** | 0 | 0 | **+23 −0** | 5 s |
+| alternate | 148 | 69,5 | 0 | 0 | +20 −0 | 9 s |
+| slice | 128 | 60,1 | 0 | 4 | +3 −3 | 4 s |
+| slice-light | 127 | 59,6 | 0 | 4 | +3 −4 | 4 s |
+| slice-o2 (207) | 128 | 61,8 | 0 | 4 | +5 −3 | 4 s |
+| slice-ntscd (181, parcial) | 113 | 62,4 | 0 | 4 | +2 −1 | 5 s |
+| slice-ptafs (155, parcial) | 90 | 58,1 | 0 | 4 | +1 −3 | 5 s |
+
+- **TRUE errado 0 em todos os braços** (R15 control: 5). As correções de veredito se
+  confirmam em escala.
+- **Sementes: +23 −0** contra o control, o melhor resultado da linha TACAS. Alternância:
+  +20 −0. As 5 perdas eca-* dela frente ao seeds têm causa achada e corrigida (ver o
+  diagnóstico acima); a remedição fica para a R23.
+- **Slicing:** as variantes não mudam o quadro (±3). Nenhuma supera o slice simples com
+  margem, e nenhum knob é promovido por enquanto. Os 4 ERROR de ECA continuam: o cache do
+  2d eliminou o refatiamento, mas o passo do slice ainda levava 105 s (regex sobre o IR,
+  ~45 s fora de qualquer orçamento) e as 3 compilações do AFL++ somavam até 0,75T.
+  Correções: varredura sem regex e um orçamento único para as compilações.
+  `Problem102_label34` com `--slice`: ERROR → UNKNOWN em 307 s.
+
+**Cover-Branches, 120 tarefas:**
+
+| braço | cobertura média | melhor / pior que o control |
+|---|---|---|
+| control | 44,7% | — |
+| seeds | 46,1% | 31 / 13 |
+| **alternate** | **50,3%** (119) | **43 / 5** |
+
+- **A alternância é o melhor braço em Cover-Branches** (+5,6 p.p.), o que se explica pelas
+  várias fases do KLEE, cada uma alimentada pelo corpus do fuzzer. O control da R19 (44,7%)
+  ficou abaixo do da R15 (47,7%) na mesma amostra. A carga da máquina foi maior (11
+  contêineres e falta de memória no fim), e isso pesa em Cover-Branches, que usa o
+  orçamento inteiro.
+
+## R21 — checagem de `%s` e correção do classificador, SV-COMP (2026-09-29)
+
+- `install_r21`, control, contra a R17 control.
+  - **MemSafety:** o CWE193 cpy bad foi de TRUE errado para **FALSE correto**. Os 6
+    `error` das tarefas alloca viraram `unknown` (classificador corrigido).
+  - **Falso positivo novo:** `CWE121…dest_char_declare_cpy_01_good` foi de TRUE correto
+    para FALSE-DEREF errado. O `ldv_strcpy` do SV-COMP copia `strlen` bytes sem o
+    terminador, e o terminador do buffer da versão good é um byte **não inicializado**:
+    para o gabarito do SV-COMP ele é zero; numa execução nativa ou no KLEE (que preenche
+    `alloca` com um padrão diferente de zero) não é.
+  - **MemCleanup:** os 2 `error` viraram `unknown`.
+- **Decisão:** a checagem de `%s` fica atrás de `MAP2CHECK_CHECK_CSTRINGS=1`, desligada
+  por padrão, até ser medida numa amostra maior do Juliet (1 acerto × 1 erro em 50 não
+  basta; pelos pesos do SV-COMP compensaria, mas não com essa amostra).
+- **Incidente de harness (descritor 3):** o laço do harness lê o manifest pelo fd 3, e os
+  filhos o herdavam, inclusive o programa analisado via chamadas externas do KLEE. O offset
+  andou sob o laço: o shard 0 da R24 parou em 29 de 71, e o shard 0 do seeds da R19 recebeu
+  linhas do shard 1. Os filhos agora rodam com o fd 3 fechado.

@@ -5,6 +5,67 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [9.0.0] - Unreleased
+
+A major version: the fuzzing engine changed (LibFuzzer → AFL++ 4.40c), the
+`--nondet-generator` values changed (`fuzzer` → `afl`), and several verdicts
+change meaning -- a KLEE run that did not explore every path is no longer
+TRUE, and the program's own `abort()` prunes a path instead of ending the
+search. Measured against the v15 baseline in `docs/reports/tacas-experiment-log.md`.
+
+### Changed (breaking)
+
+- Fuzzing engine: LibFuzzer replaced by AFL++ 4.40c (persistent mode, PCGUARD,
+  CmpLog). `--nondet-generator fuzzer` is now `--nondet-generator afl`.
+- Verdicts: TRUE only from an exhaustive KLEE exploration. KLEE exiting 0 after
+  its timer, after concretizing a symbolic input (floats), after killing
+  states (`*.err`, `*.early`), near its memory cap, or after crashing is now
+  UNKNOWN, never TRUE.
+- The program's own `abort()` (inline or through `assume_abort_if_not`) prunes
+  the path (`map2check_assume(0)`, `klee_silent_exit` under KLEE) instead of
+  stopping KLEE's search.
+
+### Added
+
+- `--slice` for every property (reachability, assert, memtrack, memcleanup,
+  overflow) through sbt-slicer, preserving the nondet read order; the slice is
+  computed once per run (`<hash>.slice/`), a slicer failure is remembered, and
+  the criteria are collected without regex. Experiment knobs:
+  `MAP2CHECK_SLICE_CLEANUP=light|o2`, `MAP2CHECK_SLICER_FLAGS`.
+- `--seed-exchange`: the engines hand each other input vectors through a
+  persistent store (`<hash>.seeds/`) -- the fuzzer queue, replayed through the
+  witness binary into typed `.ktest` seeds for KLEE (ranked: new-edge entries
+  first), and KLEE's vectors back to the fuzzer.
+- `--alternate-engines`: AFL++ and KLEE take turns, each ending when its engine
+  stagnates (`AFL_EXIT_ON_TIME`; KLEE's covered instructions from `run.stats`,
+  SQLite optional), with windows and patience doubling every round.
+- KLEE's vectors, completed with zeros past their end, are run natively
+  through the witness after every KLEE phase that found nothing.
+- AFL++ binaries built once per run (`<hash>.build/`), within one build budget.
+- `MAP2CHECK_FUZZER_SUITE=1`: the fuzzer's corpus contributes Cover-Branches
+  test cases (up to half the suite, deduplicated).
+- `--add-invariants` profiles (`MAP2CHECK_CLAM_PROFILE=default|memory|none`),
+  the number of invariants inserted in the log, and a fallback when Clam
+  fails. `MAP2CHECK_PREOPT=ssa` (reachability and assert): the module in SSA
+  form before instrumentation.
+- `MAP2CHECK_CHECK_CSTRINGS=1`: the strings a `%s` or `puts` reads are checked.
+
+### Fixed
+
+- The AFL++ generator replayed its input from the start past its end: a
+  `while (__VERIFIER_nondet_int())` loop never ended and afl-fuzz aborted in
+  its dry run. Reads past the end are now zero.
+- MemoryTrackPass matched memory intrinsics by their LLVM 6 names:
+  `memset/memcpy/memmove` were never checked under LLVM 16.
+- A fuzzer binary that fails to link is reported with its cause instead of as
+  a build timeout; an unreadable input program is reported as such.
+- The Cover-Branches suite: the 50-case cap and duplicates count across
+  phases, and a run starts from an empty suite.
+- Evaluation harnesses: children no longer inherit the manifest's descriptor
+  (the program under test could move the loop's offset); a crash replayed from
+  the fuzzer is not a tool failure.
+
+
 ### Changed
 
 - Replaced LibFuzzer with AFL++ 4.40c (persistent, PCGUARD) as the fuzzing engine.

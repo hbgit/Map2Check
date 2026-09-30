@@ -1842,7 +1842,16 @@ void Caller::compileWithClam() {
   const std::string profile = profileEnv != nullptr ? profileEnv : "default";
   const bool memoryProfile = profile == "memory";
   const bool noInvariants = profile == "none";
-  command << Map2Check::clamBinary() << " -o " << compiledFile << " -m 64 -g"
+  // Bounded like the slicer: on the eca-* and product-lines programs Clam's
+  // analysis ran past the whole budget and the run was killed with no verdict
+  // (R25: 4-7 ERROR per arm). Past the bound, the fallback below compiles the
+  // program without invariants.
+  const unsigned clamBudget = static_cast<unsigned>(std::max(
+      1.0, std::min(0.2 * this->timeout,
+                    static_cast<double>(remainingSeconds()) - 5.0)));
+  command << "timeout -k " << Map2Check::killGracePeriod << " " << clamBudget
+          << " " << Map2Check::clamBinary() << " -o " << compiledFile
+          << " -m 64 -g"
           << " --crab-inter"
           << (memoryProfile ? " --crab-track=mem" : " --crab-track=num")
           << (noInvariants ? " --crab-opt=none" : " --crab-opt=add-invariants")

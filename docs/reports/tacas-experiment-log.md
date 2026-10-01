@@ -708,3 +708,29 @@ Todos contra o braço equivalente da R19, nas tarefas em comum (linhas filtradas
   regenerado, com o prefixo voltando para `release/` e o `ENABLE_CLAM` para OFF. O
   `release/` foi sobrescrito de novo e restaurado a partir do `install_v15` (idêntico,
   conferido com `diff`). As rodadas usaram installs congelados antes disso.
+
+## R26 completa (2026-09-30) e primeiros lotes da campanha da 9.0
+
+**R26, SV-COMP (120 s):** a alternância **não perde nenhum TRUE correto**.
+
+| | control (fixo) | seeds | alternate |
+|---|---|---|---|
+| MemSafety (50): correct-true / correct-false | 10 / 19 | 10 / 20 | **10 / 20** |
+| MemSafety: wrong-true / wrong-false | 2 / 3 | 1 / 3 | **1 / 3** |
+| MemCleanup (10): corretos | 6 | 6 | 6 |
+| NoOverflows (20): corretos | 2 | 2 | 2 |
+
+As sementes e a alternância corrigem o TRUE errado do `CWE122…rand_18`. O seeds teve 1
+ERROR (`tricky_address2`).
+
+**CASTLE:** R26 e a campanha da 9.0 dão TP 54, TN 44, FN 14, FP 1, **igual à v15**; os 4
+TIMEOUT da v15 viraram UNKNOWN.
+
+**Campanha da 9.0, parcial** (`install_v9` = `3476ff769`; condições da v15: 4 GB, 300 s):
+
+| corpus | pareado com a v15 | v15 | 9.0 |
+|---|---|---|---|
+| Cover-Error (q400) | 532 de 1087 | 288 cobertas, **57 TRUE errados** | **394 cobertas (+112 −6), 0 TRUE errado**; mediana 59 → 19 s |
+| Juliet, grupos a e b | 2 271 | TP 340, FN 118, FP 20, TN 1074, ERROR 114 | **TP 776**, FN 90, FP 20, TN 1058, ERROR 0 |
+
+- Juliet: 294 UNKNOWN e 102 ERROR da v15 viraram TP; 16 TN viraram UNKNOWN.

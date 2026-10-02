@@ -213,3 +213,17 @@ inicializada, busca dirigida). O ponto de partida:
 - **Condições da v15:** `--memory=4g`, `--cpus=2` (Test-Comp) e `--cpus=1` (Juliet e
   CASTLE), 300 s, `PER_FAMILY=10`; no máximo 5 contêineres.
 - **Resultados:** `../tacas-results/V9-*`, pareados com `tests/*/results_v15*`.
+
+### Queda de energia (2026-10-02) e como retomar
+
+- A campanha parou na queda; os CSVs ficaram íntegros, exceto o
+  `V9-juliet-b/juliet_scope_c_results.csv`, que tinha 300 bytes nulos no fim. Ele foi
+  limpo, e a cópia original está em `.bak-powerloss`.
+- O lançador foi reescrito para sobreviver a outra queda:
+  - os contêineres usam `--restart=unless-stopped` e voltam sozinhos com o Docker;
+  - um job concluído grava `../tacas-results/.v9-done-<nome>` e fica parado, e o lançador
+    o remove. Sem isso, a política de reinício o rodaria de novo.
+- **Para retomar depois de um reboot**, dentro de `../tacas-results`:
+  `SLOTS=5 setsid nohup ./v9-campaign.sh > v9-campaign.stderr 2>&1 < /dev/null &`
+  Ele pula o que estiver marcado como concluído, e os harnesses pulam o que já está no
+  CSV. Retomada conferida sem duplicatas.

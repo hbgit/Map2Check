@@ -253,6 +253,27 @@ int Caller::runKleeWatched(const std::string &command) {
     Map2Check::Log::Warning("KLEE stagnated: no new coverage for " +
                             std::to_string(this->stagnationLimit) +
                             " s -- stopping it");
+    // A KLEE blocked inside a native external call (Juliet's fscanf variants:
+    // __isoc99_fscanf handed a uClibc FILE*) never looks at the interrupt
+    // flag -- nor at its own --max-time -- and used to hold the rest of its
+    // window until timeout's SIGKILL. Not stopped within the grace, it is
+    // killed now and the time goes to the next phase. Nothing is lost: a run
+    // that stagnated is already counted incomplete.
+    constexpr int kInterruptGraceSeconds = 10;
+    for (int tick = 0; tick < 2 * kInterruptGraceSeconds && !done; ++tick) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    if (!done) {
+      if (klee > 0) {
+        kill(klee, SIGKILL);
+      } else if (pid > 0) {
+        kill(pid, SIGKILL);
+      }
+      Map2Check::Log::Warning(
+          "KLEE did not stop within " +
+          std::to_string(kInterruptGraceSeconds) +
+          " s of the interrupt (blocked in an external call?) -- killed it");
+    }
     break;
   }
   runner.join();
@@ -879,7 +900,12 @@ void Caller::applyNonDetGenerator() {
           << bound() << Map2Check::aflClangFastBinary()
           << "  -g " << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
-          << " " + programHash + "-result.bc" << " > afl-build.log 2>&1";
+          << " " + programHash + "-result.bc"
+          // libm: a program calling sqrt/pow failed to link ("undefined
+          // reference to `sqrt'") and lost its fuzzer phase (Juliet CWE190/191,
+          // 9.0 campaign). KLEE gets libm through uClibc; the native links
+          // did not.
+          << " -lm > afl-build.log 2>&1";
 
       const int built = system(command.str().c_str());
 
@@ -888,7 +914,7 @@ void Caller::applyNonDetGenerator() {
       commandWitness << bound() << Map2Check::aflClangFastBinary()
                      << "  -g "
                      << " -o " + programHash + "-witness-fuzzed.out"
-                     << " " + programHash + "-witness-result.bc";
+                     << " " + programHash + "-witness-result.bc -lm";
 
       system(commandWitness.str().c_str());
 
@@ -904,7 +930,7 @@ void Caller::applyNonDetGenerator() {
                     << Map2Check::aflClangFastBinary() << "  -g "
                     << Caller::postOptimizationFlags()
                     << " -o " + programHash + "-cmplog.out"
-                    << " " + programHash + "-result.bc";
+                    << " " + programHash + "-result.bc -lm";
       system(commandCmplog.str().c_str());
 
       {

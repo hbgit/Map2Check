@@ -64,3 +64,10 @@ Itens decididos como "não agora", cada um com o motivo e onde está a evidênci
   execução do SV-COMP.
 - **Não começar a implementação** antes da conversa com o orientador: definir se o
   objetivo é o formato 2.0, a validação por execução, os dois ou nenhum.
+
+## `--debug` com a alternância dá segfault
+
+- Achado em 2026-10-02: `map2check --debug --check-overflow --timeout 60` sobre um caso do
+  Juliet (CWE190 `char_fscanf_square_01`, good) termina com segfault depois das fases. O
+  scratch aparece aninhado (`<hash>.map2check/<hash>.map2check-…`). Sem `--debug` a
+  execução termina normalmente. Só afeta a depuração.

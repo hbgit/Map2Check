@@ -734,3 +734,30 @@ TIMEOUT da v15 viraram UNKNOWN.
 | Juliet, grupos a e b | 2 271 | TP 340, FN 118, FP 20, TN 1074, ERROR 114 | **TP 776**, FN 90, FP 20, TN 1058, ERROR 0 |
 
 - Juliet: 294 UNKNOWN e 102 ERROR da v15 viraram TP; 16 TN viraram UNKNOWN.
+
+## Campanha da 9.0: dois defeitos achados no Juliet c, e a troca de build (2026-10-02)
+
+- **Achado:** o grupo c do Juliet (CWE190 e 191, overflow) teve **55 ERROR** que a v15 não
+  tinha, e 207 das 272 paradas por estagnação terminaram em SIGKILL.
+  1. **Link do fuzzer sem `-lm`.** Um programa com `sqrt` ou `pow` não linkava ("undefined
+     reference to `sqrt`"), perdia a fase do AFL++ e o harness contava ERROR.
+  2. **KLEE preso numa chamada externa nativa.** As variantes `fscanf` passam um `FILE*`
+     da uClibc ao `__isoc99_fscanf` nativo. Preso ali, o KLEE não olha o sinal de
+     interrupção nem o próprio `--max-time`, e só saía no SIGKILL do fim da janela,
+     desperdiçando o resto dela. Testado à parte: o KLEE isolado responde ao SIGINT
+     normalmente; nesse módulo não reage nem em 60 s.
+- **Correção** (`76eedfc75`): os links nativos levam `-lm`; um KLEE que não para em 10 s
+  depois do SIGINT é morto e o tempo vai para a próxima fase. No caso reproduzido:
+  5 fases em vez de 4 no mesmo orçamento e o fuzzer linkando.
+- **Troca de build na campanha** (decisão do usuário: corrigir, refazer o que deu erro e
+  seguir com a versão corrigida como a 9.0):
+  - `install_v9` passa a ser o build de `76eedfc75`; o anterior fica em
+    `install_v9-3476ff7`;
+  - **refeitos com o build novo:** o grupo c inteiro do Juliet, as 2 tarefas de
+    Cover-Error que chamam a libm (`loop-floats-scientific-comp/loop2-1.c` e `loop4.i`) e o
+    Cover-Branches (que mal tinha começado);
+  - **mantidos do build anterior:** CASTLE, Cover-Error (exceto essas 2) e os grupos a, b e
+    d do Juliet, sem erro de libm. Os dois defeitos não mudam veredito; o segundo só
+    devolvia tempo nas paradas por estagnação.
+- **Fora da campanha:** o `--debug` dá segfault com a alternância (no fim da execução).
+  Só afeta a depuração e ficou registrado para corrigir.

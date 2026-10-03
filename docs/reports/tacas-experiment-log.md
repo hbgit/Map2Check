@@ -761,3 +761,35 @@ TIMEOUT da v15 viraram UNKNOWN.
     devolvia tempo nas paradas por estagnação.
 - **Fora da campanha:** o `--debug` dá segfault com a alternância (no fim da execução).
   Só afeta a depuração e ficou registrado para corrigir.
+
+## Campanha da 9.0 — Cover-Error, CASTLE e Juliet a, b, d completos (2026-10-02, 23h)
+
+**Cover-Error, 1 087 tarefas** (recorte da v15, pareado):
+
+| | v15 | 9.0 |
+|---|---|---|
+| cobertas | 470 | **722 (+265 −13, +54%)** |
+| TRUE errado | **175** | **0** |
+| ERROR | 9 | 0 |
+| tempo mediano | 176 s | 72 s |
+
+- Por categoria (v15 → 9.0): ECA 58 → 146, ProductLines 111 → 169, Sequentialized
+  9 → 78, XCSP 22 → 38, Arrays 84 → 92, Loops 102 → 109; nenhuma categoria cai.
+
+**Juliet** (pareado; a, b e d completos, c refeito com o build corrigido e em curso):
+
+| grupo | TP (v15 → 9.0) | FN | FP | TN | ERROR |
+|---|---|---|---|---|---|
+| a (2 320) | 214 → **611** | 127 → 100 | 0 → 0 | 1 140 → 1 131 | 269 → 0 |
+| b (1 600) | 216 → **473** | 202 → 170 | 30 → 30 | 729 → 722 | 111 → 0 |
+| d (960) | 364 → 364 | 116 → 114 | 80 → 80 | 380 → 369 | 0 → 0 |
+
+- O grupo d não ganhou TP, perdeu 11 TN para UNKNOWN e teve mais UNKNOWN + TIMEOUT
+  (20 → 33). É a única queda; investigar quando a campanha fechar.
+
+**CASTLE:** igual à v15 (TP 54, FN 14, FP 1).
+
+**Cover-Branches, parcial (111 de 2 765):** 48,3% contra 42,1% da v15, 47 melhores e 19
+piores. TestCov: VALIDATED 84, VALIDATED_ABORTS 23, TESTCOV_ERROR 4 (v15: 93, 15 e 3). O
+aumento de VALIDATED_ABORTS vem dos casos do corpus do fuzzer que violam uma assunção
+(o teste termina num `abort()`). A suíte continua válida e a cobertura conta.

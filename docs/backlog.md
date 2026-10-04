@@ -71,3 +71,36 @@ Itens decididos como "não agora", cada um com o motivo e onde está a evidênci
   Juliet (CWE190 `char_fscanf_square_01`, good) termina com segfault depois das fases. O
   scratch aparece aninhado (`<hash>.map2check/<hash>.map2check-…`). Sem `--debug` a
   execução termina normalmente. Só afeta a depuração.
+
+## Recorte da campanha × conjunto oficial da Test-Comp 2026
+
+- **Contexto:** a campanha da 9.0 usa o recorte da v15 (`cover-error-q400.tsv`, 1 087
+  tarefas; `cover-branches-q400.tsv`, 2 765). A Test-Comp 2026 tem 1 895 tarefas em
+  C.Cover-Error e 14 322 em C.Cover-Branches
+  ([resultados](https://test-comp.sosy-lab.org/2026/results/results-verified/)).
+- **Diferença de composição (Cover-Error):**
+  - faltam no recorte as subcategorias novas: SoftwareSystems-Intel-TDX-Module (658),
+    Hardware (497), coreutils (29) e BusyBox, OpenBSD e Linux64 (7);
+  - o ECA pesa 400 tarefas no recorte, contra 18 no conjunto oficial;
+  - as subcategorias clássicas (ProductLines, Loops, Sequentialized, Arrays, XCSP,
+    Floats, BitVectors, ControlFlow, Recursive) praticamente coincidem.
+- **Consequência:** os 722 pontos de Cover-Error da 9.0 valem só para a comparação
+  pareada com a v15. Não estimam a pontuação oficial, que é normalizada por subcategoria.
+- **TODO:** montar um manifest com as subcategorias ausentes (Hardware, Intel-TDX,
+  coreutils) e rodar uma amostra delas depois da campanha de Cover-Branches.
+
+## Caminhos podados pelo assume no KLEE não geram teste
+
+- **Sintoma:** na campanha da 9.0, 29 tarefas de Cover-Branches (25 XCSP, 4 Floats)
+  terminam com zero testes. O XCSP cai de 76,2% para 58,1% de cobertura média, o que
+  custa cerca de 1,7 p.p. na média geral.
+- **Causa:** o `nondet_assume` sob o KLEE poda com `klee_silent_exit`, que não grava
+  `.ktest`. Quando todos os caminhos são podados, a suíte sai vazia.
+- **Correção proposta:** podar com `_exit(0)`. O caminho termina normalmente e grava o
+  teste, sem rodar os handlers de saída.
+- **Validação necessária:**
+  - os testes de integração;
+  - o §29 (`safe.c`) continua dando TRUE;
+  - o memtrack com `sleep-3` não ganha falso positivo.
+  - Depois disso, repetir só as tarefas que ficaram com zero testes.
+- **TODO:** aguarda decisão.

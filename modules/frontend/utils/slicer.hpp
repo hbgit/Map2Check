@@ -10,6 +10,7 @@
 #define MODULES_FRONTEND_UTILS_SLICER_HPP_
 
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
 #include <regex>
 #include <sstream>
@@ -47,37 +48,43 @@ inline const std::vector<std::string>& nondetFunctionNames() {
   return names;
 }
 
-/** Every __VERIFIER_nondet_* symbol in a module's textual IR (`opt -S`),
- * in order of first appearance. The fixed list above cannot know every name a
- * benchmark declares (int128, uint128, ...), and a name missing from the
- * criteria silently brings the shifted suite back. */
-inline std::vector<std::string> nondetNamesInIR(const std::string& ir) {
-  static const std::regex symbol(R"(@(__VERIFIER_nondet_[A-Za-z0-9_]+))");
+/** Every symbol `@<prefix>...` in a module's textual IR, without the '@', in
+ * order of first appearance. A plain scan, not std::regex: on the eca-* modules
+ * (megabytes of IR) the regexes took ~45 s, outside every budget, and pushed
+ * the run past its deadline with no verdict (R19, 4 ERROR of the slice arm). */
+inline std::vector<std::string> symbolsWithPrefixInIR(const std::string& ir,
+                                                      const std::string& prefix) {
+  auto isNameChar = [](char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+  };
   std::vector<std::string> names;
-  for (std::sregex_iterator it(ir.begin(), ir.end(), symbol), end; it != end;
-       ++it) {
-    const std::string name = (*it)[1];
-    if (std::find(names.begin(), names.end(), name) == names.end()) {
+  const std::string needle = "@" + prefix;
+  for (size_t at = ir.find(needle); at != std::string::npos;
+       at = ir.find(needle, at + 1)) {
+    size_t end = at + 1;
+    while (end < ir.size() && isNameChar(ir[end])) ++end;
+    const std::string name = ir.substr(at + 1, end - at - 1);
+    if (name.size() > prefix.size() &&
+        std::find(names.begin(), names.end(), name) == names.end()) {
       names.push_back(name);
     }
   }
   return names;
 }
 
+/** Every __VERIFIER_nondet_* symbol in a module's textual IR (`opt -S`),
+ * in order of first appearance. The fixed list above cannot know every name a
+ * benchmark declares (int128, uint128, ...), and a name missing from the
+ * criteria silently brings the shifted suite back. */
+inline std::vector<std::string> nondetNamesInIR(const std::string& ir) {
+  return symbolsWithPrefixInIR(ir, "__VERIFIER_nondet_");
+}
+
 /** Every map2check_* runtime symbol in a module's textual IR, in order of
  * first appearance. Used as the slicing criteria for the memory properties:
  * the property is decided by these calls, so none of them may be removed. */
 inline std::vector<std::string> runtimeNamesInIR(const std::string& ir) {
-  static const std::regex symbol(R"(@(map2check_[A-Za-z0-9_]+))");
-  std::vector<std::string> names;
-  for (std::sregex_iterator it(ir.begin(), ir.end(), symbol), end; it != end;
-       ++it) {
-    const std::string name = (*it)[1];
-    if (std::find(names.begin(), names.end(), name) == names.end()) {
-      names.push_back(name);
-    }
-  }
-  return names;
+  return symbolsWithPrefixInIR(ir, "map2check_");
 }
 
 /** Every function a module DECLARES without defining (`declare ... @f(`), in
@@ -87,24 +94,38 @@ inline std::vector<std::string> runtimeNamesInIR(const std::string& ir) {
  * the runtime checks depends on such a call, so without it as a criterion the
  * slicer drops the call and the bug with it (CASTLE-787-2: a wrong TRUE). */
 inline std::vector<std::string> externalNamesInIR(const std::string& ir) {
-  static const std::regex declaration(
-      R"((?:^|\n)declare [^\n]*?@([A-Za-z0-9_.$]+)\()");
+  auto isNameChar = [](char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '_' ||
+           c == '.' || c == '$';
+  };
   std::vector<std::string> names;
-  for (std::sregex_iterator it(ir.begin(), ir.end(), declaration), end;
-       it != end; ++it) {
-    const std::string name = (*it)[1];
-    // Intrinsics are not calls into code the slicer could keep -- except the
-    // memory ones: clang lowers memcpy/memset/memmove (and struct copies) to
-    // them, and an overflowing copy into a buffer nothing reads again feeds no
-    // criterion, so it has to be one (the strcpy case again).
-    if (name.rfind("llvm.", 0) == 0 && name.rfind("llvm.memcpy.", 0) != 0 &&
-        name.rfind("llvm.memmove.", 0) != 0 &&
-        name.rfind("llvm.memset.", 0) != 0) {
-      continue;
+  size_t line = 0;
+  while (line < ir.size()) {
+    size_t next = ir.find('\n', line);
+    if (next == std::string::npos) next = ir.size();
+    if (ir.compare(line, 8, "declare ") == 0) {
+      const size_t at = ir.find('@', line);
+      if (at != std::string::npos && at < next) {
+        size_t end = at + 1;
+        while (end < next && isNameChar(ir[end])) ++end;
+        if (end < next && ir[end] == '(') {
+          const std::string name = ir.substr(at + 1, end - at - 1);
+          // Intrinsics are not calls into code the slicer could keep -- except
+          // the memory ones: clang lowers memcpy/memset/memmove (and struct
+          // copies) to them, and an overflowing copy into a buffer nothing
+          // reads again feeds no criterion, so it has to be one.
+          const bool intrinsic = name.rfind("llvm.", 0) == 0 &&
+                                 name.rfind("llvm.memcpy.", 0) != 0 &&
+                                 name.rfind("llvm.memmove.", 0) != 0 &&
+                                 name.rfind("llvm.memset.", 0) != 0;
+          if (!intrinsic &&
+              std::find(names.begin(), names.end(), name) == names.end()) {
+            names.push_back(name);
+          }
+        }
+      }
     }
-    if (std::find(names.begin(), names.end(), name) == names.end()) {
-      names.push_back(name);
-    }
+    line = next + 1;
   }
   return names;
 }
@@ -222,6 +243,56 @@ inline std::string describeSlice(const std::string& criterion,
     text << bytesBefore << " -> " << bytesAfter << " bytes of bitcode";
   }
   return text.str();
+}
+
+/** Where the slice of each phase is kept for the next ones: <cwd>/<hash>.slice,
+ * beside the scratch directory for the reason the seed store is (every phase
+ * recreates the scratch). Holds <key>.bc for a slice, <key>.failed for a slicer
+ * that failed or timed out -- which the next phase must not pay for again: on
+ * eca-* the slicer spent 0.2T in phase 1 AND in phase 2, and the run was
+ * killed past its budget with no suite (R15, 4 ERROR). */
+inline std::string sliceCachePath(const std::string& cwd,
+                                  const std::string& programHash) {
+  return cwd + "/" + programHash + ".slice";
+}
+
+/** The cache key: FNV-1a (64-bit, hex) over the input bitcode's CONTENT and
+ * every setting that shapes the slice, so a slice is reused only for the very
+ * same question. Fields are separated by a byte no name contains. */
+inline std::string sliceCacheKey(const std::string& inputContent,
+                                 const std::string& criteriaLabel,
+                                 const std::string& entry,
+                                 const std::string& slicerFlags) {
+  uint64_t hash = 14695981039346656037ull;
+  auto mix = [&hash](const std::string& field) {
+    for (unsigned char c : field) {
+      hash ^= c;
+      hash *= 1099511628211ull;
+    }
+    hash ^= 0xff;
+    hash *= 1099511628211ull;
+  };
+  mix(inputContent);
+  mix(criteriaLabel);
+  mix(entry);
+  mix(slicerFlags);
+  static const char* digits = "0123456789abcdef";
+  std::string key(16, '0');
+  for (int i = 15; i >= 0; --i) {
+    key[i] = digits[hash & 0xf];
+    hash >>= 4;
+  }
+  return key;
+}
+
+/** The opt arguments for MAP2CHECK_SLICE_CLEANUP (an experiment knob): the dg
+ * slicer leaves empty blocks and dead functions behind. "light" folds them
+ * away; "o2" is the full pipeline, which may exploit undefined behaviour and
+ * is measured, not trusted. Anything else means no cleanup. */
+inline std::string sliceCleanupPasses(const std::string& knob) {
+  if (knob == "light") return "-passes='function(simplifycfg,dce),globaldce'";
+  if (knob == "o2") return "-O2";
+  return "";
 }
 
 }  // namespace Map2Check

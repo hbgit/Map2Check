@@ -146,7 +146,7 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
         $GENERATOR_FLAG $EXTRA_FLAGS --generate-test-suite $GOAL_FLAGS \
         --property-file prop.prp --architecture "$arch" \
         --timeout "$BUDGET" "$name"
-  ) > "$work/map2check.log" 2>&1 </dev/null
+  ) > "$work/map2check.log" 2>&1 </dev/null 3<&-
   t1=$(date +%s)
 
   verdict=$(grep -oE 'VERIFICATION (FAILED|SUCCEEDED|UNKNOWN)' "$work/map2check.log" | tail -1)
@@ -158,11 +158,11 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
   coverage=""
   goals=""
   if [ -d "$work/test-suite" ]; then
-    ( cd "$work/test-suite" && zip -q -r ../suite.zip . ) </dev/null
+    ( cd "$work/test-suite" && zip -q -r ../suite.zip . ) </dev/null 3<&-
     bits=$([ "$arch" = "64bit" ] && echo -64 || echo -32)
     ( cd "$work" && timeout -k 10 "$TESTCOV_S" testcov --test-suite suite.zip \
         --no-isolation "$bits" --goal prop.prp "$name" ) \
-      > "$work/testcov.log" 2>&1 </dev/null
+      > "$work/testcov.log" 2>&1 </dev/null 3<&-
     # TestCov exits 0 whether or not the suite covers, so the verdict is the
     # Result line, never $?.
     #

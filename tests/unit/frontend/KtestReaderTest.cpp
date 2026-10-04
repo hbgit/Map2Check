@@ -307,3 +307,103 @@ TEST(KleeHaltedOnTimer, AFinishedRunIsNotHalted) {
   EXPECT_FALSE(Map2Check::kleeHaltedOnTimer("/nonexistent/klee-last"));
   fs::remove_all(d);
 }
+
+// KLEE also exits 0 after dropping paths without running out of them: a
+// symbolic double concretized to 0 (float-benchs/sin_interpolated_index-1: one
+// path, answered TRUE), or states killed by its own errors (a VLA of symbolic
+// size in loops/insertion_sort-1-2: "partially completed paths = 2", TRUE).
+TEST(KleeDroppedPaths, ConcretizingAnInputDropsPaths) {
+  fs::path d = freshDir("concretized");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: silently concretizing (reason: floating point) "
+         "expression (ReadLSB w64 0 non_det_double) to value 0 (x.c:155)\n";
+  std::ofstream(d / "info") << "KLEE: done: partially completed paths = 0\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, AStateKilledByAnErrorDropsPaths) {
+  fs::path d = freshDir("killed");
+  std::ofstream(d / "test000001.ktest") << "";
+  std::ofstream(d / "test000001.model.err") << "Error: concretized symbolic size\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, AStateTerminatedEarlyDropsPaths) {
+  fs::path d = freshDir("early");
+  std::ofstream(d / "test000002.early") << "Memory limit exceeded\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// KLEE that died -- a solver crash, an LLVM assertion, the OOM killer --
+// writes no HaltTimer, no .err and no "done" lines, and may leave NONE in the
+// property file from the paths it did finish.
+TEST(KleeDroppedPaths, ARunThatNeverFinishedDropsPaths) {
+  fs::path d = freshDir("crashed");
+  std::ofstream(d / "info") << "KLEE: output directory is \"x\"\n";
+  std::ofstream(d / "test000001.ktest") << "";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// Near --max-memory KLEE stops forking and follows one side of each branch
+// at random; it logs that once and can still exit 0.
+TEST(KleeDroppedPaths, SkippingForksDropsPaths) {
+  fs::path d = freshDir("skipfork");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: skipping fork (memory cap exceeded)\n";
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 3\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// A path pruned by an assumption is not a dropped path, and KLEE counts it
+// among the "partially completed" all the same (klee_silent_exit and a failed
+// klee_assume alike). Reading that counter made every program with an
+// assume_abort_if_not unprovable: TRUE became UNKNOWN.
+TEST(KleeDroppedPaths, AnAssumptionPrunedPathDropsNothing) {
+  fs::path d = freshDir("pruned");
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 1\n"
+                               "KLEE: done: partially completed paths = 1\n";
+  std::ofstream(d / "test000001.ktest") << "";
+  EXPECT_TRUE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, TheHaltTimerDropsPaths) {
+  fs::path d = freshDir("halted");
+  std::ofstream(d / "messages.txt") << "KLEE: HaltTimer invoked\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, AnExhaustedRunDropsNothing) {
+  fs::path d = freshDir("exhausted");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: calling external: close(12)\n";
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 7\n"
+                               "KLEE: done: partially completed paths = 0\n";
+  std::ofstream(d / "messages.txt") << "KLEE: output directory is \"x\"\n";
+  EXPECT_TRUE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// --- the nondet log as seeds -------------------------------------------------
+
+// KLEE matches a seed's objects to its symbolic inputs by POSITION. A read the
+// converter cannot express (a pchar, a loff_t) must end the seed there: skipping
+// it shifted every later object onto the wrong input.
+TEST(ReadNonDetLogAsObjects, StopsAtTheFirstUnsupportedRead) {
+  fs::path d = freshDir("nondetlog");
+  std::ofstream(d / "klee_log.csv")
+      << "1;0;main;0;x;7;0\n"      // int 7
+      << "2;0;main;0;s;0;9\n"      // pchar: unsupported
+      << "3;0;main;0;y;9;0\n";     // int 9, must not be taken
+  const auto objects =
+      Map2Check::readNonDetLogAsObjects((d / "klee_log.csv").string());
+  ASSERT_EQ(objects.size(), 1u);
+  EXPECT_EQ(objects[0].name, "non_det_int");
+  fs::remove_all(d);
+}

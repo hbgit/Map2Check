@@ -52,13 +52,17 @@ size_t map2check_afl_size;
  * drags afl-fuzz's stability down. */
 static size_t map2check_afl_index = 0;
 
+/* Past the end of the test case every read is zero. It used to start over
+ * from the first byte, so `while (__VERIFIER_nondet_int())` fed by the
+ * placeholder seed "A" never ended: afl-fuzz's dry run timed out on it and the
+ * fuzzer aborted before its first execution. Zero ends such a loop, and it is
+ * what the witness replay logs, so the suite built from that log stays exact.
+ * (It also read data[0] of an empty test case.) */
 uint8_t get_next_input_from_afl() {
   if (map2check_afl_index < map2check_afl_size) {
     return map2check_afl_data[map2check_afl_index++];
   }
-
-  map2check_afl_index = 0;
-  return map2check_afl_data[map2check_afl_index];
+  return 0;
 }
 
 /* Fills `out` with `size` bytes from the AFL buffer, in target order.

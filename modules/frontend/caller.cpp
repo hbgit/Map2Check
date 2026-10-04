@@ -22,15 +22,28 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <set>
+#include <stdexcept>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <signal.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <atomic>
+#include <thread>
+
+#ifdef MAP2CHECK_HAVE_SQLITE
+#include <sqlite3.h>
+#endif
+
 #include "test_suite/ktest_reader.hpp"
+#include "test_suite/test_suite.hpp"
 #include "utils/gen_crypto_hash.hpp"
+#include "utils/alternation.hpp"
 #include "utils/log.hpp"
+#include "utils/seed_store.hpp"
 #include "utils/slicer.hpp"
 #include "utils/tools.hpp"
 // namespace fs = boost::filesystem;
@@ -63,7 +76,10 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
   this->nonDetGenerator = generator;
   GenHash hash;
   hash.setFilePath(bc_program_path);
-  hash.generate_sha1_hash_for_file();
+  if (hash.generate_sha1_hash_for_file() != 0) {
+    throw std::runtime_error("cannot read the input program " +
+                             bc_program_path);
+  }
   this->programHash = hash.getOutputSha1HashFile() + ".map2check";
 
   // The scratch directory is named after the SHA-1 of the input bitcode, so it
@@ -84,6 +100,9 @@ Caller::Caller(std::string bc_program_path, Map2CheckMode mode,
 
   Map2Check::Log::Debug("Changing current dir");
   currentPath = std::filesystem::current_path().string();
+  seedStore = Map2Check::seedStorePath(currentPath, programHash);
+  sliceCache = Map2Check::sliceCachePath(currentPath, programHash);
+  buildCache = currentPath + "/" + programHash + ".build";
   std::filesystem::current_path(currentPath + "/" + programHash);
   Map2Check::Log::Debug("Current path: " +
                         std::filesystem::current_path().string());
@@ -103,6 +122,14 @@ std::chrono::steady_clock::time_point processStart() {
 }
 }  // namespace
 
+unsigned Caller::remainingOf(unsigned timeout) {
+  const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                           std::chrono::steady_clock::now() - processStart())
+                           .count();
+  const long long left = static_cast<long long>(timeout) - elapsed;
+  return left < 1 ? 1u : static_cast<unsigned>(left);
+}
+
 unsigned Caller::remainingSeconds() const {
   const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
                            std::chrono::steady_clock::now() - processStart())
@@ -113,6 +140,20 @@ unsigned Caller::remainingSeconds() const {
   // report that it had none, and the caller has no way to tell that apart
   // from a crash.
   return left < 1 ? 1u : static_cast<unsigned>(left);
+}
+
+bool Caller::ssaPreoptimization() const {
+  // Reachability and assert only. The memory modes track locals through the
+  // allocas mem2reg removes (a pointer kept in a local, promoted, made a
+  // legitimate free() look invalid: FALSE-FREE on safe programs), the overflow
+  // mode lost detections, and simplifycfg turns branches into selects, which
+  // is fewer paths and fewer Cover-Branches test cases.
+  if (map2checkMode != Map2CheckMode::REACHABILITY_MODE &&
+      map2checkMode != Map2CheckMode::ASSERT_MODE) {
+    return false;
+  }
+  const char *knob = std::getenv("MAP2CHECK_PREOPT");
+  return knob != nullptr && std::string(knob) == "ssa";
 }
 
 std::string Caller::preOptimizationFlags() {
@@ -129,18 +170,243 @@ std::string Caller::postOptimizationFlags() {
   return flags.str();
 }
 
-unsigned Caller::exportKleeVectorsAsSeeds() {
-  std::error_code error;
-  std::filesystem::create_directories(Caller::seedDirectory, error);
+namespace {
+/** KLEE's covered-instruction count, from the last row of the SQLite stats
+ * database it rewrites every second; -1 when it cannot be read (not created
+ * yet, busy, or a build without SQLite). */
+long long kleeCoveredInstructions(const std::string &statsPath) {
+#ifdef MAP2CHECK_HAVE_SQLITE
+  sqlite3 *db = nullptr;
+  long long covered = -1;
+  if (sqlite3_open_v2(statsPath.c_str(), &db, SQLITE_OPEN_READONLY, nullptr) ==
+      SQLITE_OK) {
+    sqlite3_busy_timeout(db, 200);
+    sqlite3_stmt *statement = nullptr;
+    if (sqlite3_prepare_v2(db,
+                           "SELECT CoveredInstructions FROM stats ORDER BY "
+                           "rowid DESC LIMIT 1",
+                           -1, &statement, nullptr) == SQLITE_OK &&
+        sqlite3_step(statement) == SQLITE_ROW) {
+      covered = sqlite3_column_int64(statement, 0);
+    }
+    sqlite3_finalize(statement);
+  }
+  sqlite3_close(db);
+  return covered;
+#else
+  (void)statsPath;
+  return -1;
+#endif
+}
+}  // namespace
 
-  std::vector<std::vector<std::string>> ignored;
-  unsigned written = 0;
-  unsigned index = 0;
+int Caller::runKleeWatched(const std::string &command) {
+  this->stoppedOnStagnation = false;
+#ifndef MAP2CHECK_HAVE_SQLITE
+  return system(command.c_str());
+#else
+  if (this->stagnationLimit == 0) return system(command.c_str());
+
+  // The shell's pid becomes the pid of `timeout` through exec, and `timeout`
+  // forwards a SIGINT to KLEE -- whose handler halts the search cleanly and
+  // writes the tests of the states it finished.
+  std::error_code error;
+  std::filesystem::remove("klee.pid", error);
+  const std::string wrapped = "echo $$ > klee.pid; exec " + command;
+  std::atomic<bool> done{false};
+  int result = 0;
+  std::thread runner([&wrapped, &done, &result] {
+    result = system(wrapped.c_str());
+    done = true;
+  });
+
+  Map2Check::CoverageWatch watch(this->stagnationLimit);
+  const auto started = std::chrono::steady_clock::now();
+  const std::string stats = std::string(Map2Check::kleeOutputDir) + "/run.stats";
+  while (!done) {
+    for (int tick = 0; tick < 4 && !done; ++tick) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    if (done) break;
+    const double now = std::chrono::duration<double>(
+                           std::chrono::steady_clock::now() - started)
+                           .count();
+    if (!watch.stagnated(kleeCoveredInstructions(stats), now)) continue;
+
+    // To KLEE itself, the child of `timeout`: signalled, `timeout` forwards
+    // to the child AND its process group, KLEE gets two SIGINTs, and the
+    // second one exits before the halt dump of the live states is written.
+    pid_t pid = 0;
+    std::ifstream("klee.pid") >> pid;
+    pid_t klee = 0;
+    if (pid > 0) {
+      std::ifstream children("/proc/" + std::to_string(pid) + "/task/" +
+                             std::to_string(pid) + "/children");
+      children >> klee;
+    }
+    if (klee > 0) {
+      kill(klee, SIGINT);
+    } else if (pid > 0) {
+      kill(pid, SIGINT);
+    }
+    this->stoppedOnStagnation = true;
+    Map2Check::Log::Warning("KLEE stagnated: no new coverage for " +
+                            std::to_string(this->stagnationLimit) +
+                            " s -- stopping it");
+    // A KLEE blocked inside a native external call (Juliet's fscanf variants:
+    // __isoc99_fscanf handed a uClibc FILE*) never looks at the interrupt
+    // flag -- nor at its own --max-time -- and used to hold the rest of its
+    // window until timeout's SIGKILL. Not stopped within the grace, it is
+    // killed now and the time goes to the next phase. Nothing is lost: a run
+    // that stagnated is already counted incomplete.
+    constexpr int kInterruptGraceSeconds = 10;
+    for (int tick = 0; tick < 2 * kInterruptGraceSeconds && !done; ++tick) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    if (!done) {
+      if (klee > 0) {
+        kill(klee, SIGKILL);
+      } else if (pid > 0) {
+        kill(pid, SIGKILL);
+      }
+      Map2Check::Log::Warning(
+          "KLEE did not stop within " +
+          std::to_string(kInterruptGraceSeconds) +
+          " s of the interrupt (blocked in an external call?) -- killed it");
+    }
+    break;
+  }
+  runner.join();
+  return result;
+#endif
+}
+
+bool Caller::replayKleeVectorsForViolation() {
+  // KLEE's partial paths -- the states it dumped at a halt -- stop where the
+  // search stopped. Run natively, completed with zeros past their end (the
+  // AFL++ generator's rule), some of them go on to the error: that is how the
+  // fixed hybrid covered eca-* tasks KLEE left UNKNOWN, by accident, in its
+  // last fuzzer phase's dry run. Done on purpose here, right after KLEE, and
+  // without needing --seed-exchange.
+  std::error_code error;
+  std::string witness;
+  for (const auto &entry :
+       std::filesystem::directory_iterator(buildCache, error)) {
+    const std::string candidate =
+        entry.path().string() + "/" + programHash + "-witness-fuzzed.out";
+    if (std::filesystem::exists(candidate, error)) witness = candidate;
+  }
+  if (witness.empty()) return false;
+
+  std::vector<std::string> tests;
   for (const auto &entry : std::filesystem::directory_iterator(
            Map2Check::kleeOutputDir, error)) {
-    if (entry.path().extension() != ".ktest") continue;
+    if (entry.path().extension() == ".ktest") {
+      tests.push_back(entry.path().string());
+    }
+  }
+  std::sort(tests.begin(), tests.end());
+
+  const std::string replay =
+      std::filesystem::absolute("vector-replay", error).string();
+  const auto started = std::chrono::steady_clock::now();
+  const double allowedSeconds = std::min(
+      0.1 * static_cast<double>(this->timeout),
+      static_cast<double>(this->remainingSeconds()) - 5.0);
+  if (allowedSeconds < 1.0) return false;
+  const auto allowed = std::chrono::duration<double>(allowedSeconds);
+  std::set<std::vector<uint8_t>> seen;
+  unsigned replayed = 0;
+  for (const std::string &test : tests) {
+    if (std::chrono::steady_clock::now() - started >= allowed) break;
+    const std::vector<uint8_t> bytes =
+        Map2Check::ktestToFuzzerBytes(Map2Check::readKtestFile(test));
+    if (!seen.insert(bytes).second) continue;
+    std::filesystem::remove_all(replay, error);
+    std::filesystem::create_directories(replay, error);
+    {
+      std::ofstream input(replay + "/input", std::ios::binary);
+      input.write(reinterpret_cast<const char *>(bytes.data()),
+                  static_cast<std::streamsize>(bytes.size()));
+    }
+    std::ostringstream command;
+    command << "cd '" << replay << "' && timeout -k 1 2 '" << witness
+            << "' < input > /dev/null 2>&1";
+    system(command.str().c_str());
+    ++replayed;
+    if (!std::filesystem::exists(replay + "/map2check_checked_error", error)) {
+      continue;
+    }
+    // A violation: its files (property, nondet log, trace) become this
+    // phase's, as a confirmed fuzzer crash's do.
+    for (const auto &entry :
+         std::filesystem::directory_iterator(replay, error)) {
+      if (!entry.is_regular_file(error)) continue;
+      if (entry.path().filename() == "input") continue;
+      std::filesystem::copy_file(
+          entry.path(), entry.path().filename(),
+          std::filesystem::copy_options::overwrite_existing, error);
+    }
+    std::filesystem::remove_all(replay, error);
+    Map2Check::Log::Info("A KLEE vector completed with zeros reaches the "
+                         "violation (" + std::to_string(replayed) +
+                         " replayed)");
+    return true;
+  }
+  std::filesystem::remove_all(replay, error);
+  return false;
+}
+
+void Caller::keepKleeTestsAsSeeds() {
+  // The latest tests, not the first: KLEE numbers them as states finish, and
+  // the later ones are the deeper paths the next turn should start from.
+  std::error_code error;
+  const std::string kept = seedStore + "/kleeprev";
+  std::filesystem::remove_all(kept, error);
+  std::vector<std::string> tests;
+  for (const auto &entry : std::filesystem::directory_iterator(
+           Map2Check::kleeOutputDir, error)) {
+    if (entry.path().extension() == ".ktest") {
+      tests.push_back(entry.path().string());
+    }
+  }
+  if (tests.empty()) return;
+  std::sort(tests.begin(), tests.end());
+  if (tests.size() > kMaxSeedsFromFuzzer) {
+    tests.erase(tests.begin(), tests.end() - kMaxSeedsFromFuzzer);
+  }
+  std::filesystem::create_directories(kept, error);
+  for (const std::string &test : tests) {
+    std::filesystem::copy_file(
+        test, kept + "/" + std::filesystem::path(test).filename().string(),
+        std::filesystem::copy_options::overwrite_existing, error);
+  }
+}
+
+unsigned Caller::exportKleeVectorsAsSeeds() {
+  std::error_code error;
+  const std::string aflSeeds = seedStore + "/afl";
+  std::filesystem::create_directories(aflSeeds, error);
+
+  std::vector<std::string> tests;
+  for (const auto &entry : std::filesystem::directory_iterator(
+           Map2Check::kleeOutputDir, error)) {
+    if (entry.path().extension() == ".ktest") {
+      tests.push_back(entry.path().string());
+    }
+  }
+  // All of them, not a sample: completed with zeros past their end, some of
+  // KLEE's partial paths reach the error when the fuzzer runs them -- the
+  // dry run records them as crashes (sig 06), and that is how the fixed
+  // hybrid covered eca-* tasks KLEE itself left UNKNOWN. A cap of the 64
+  // latest dropped exactly those (R19: 5 eca-* losses of --alternate-engines).
+  // Calibrating thousands is cheap now that a nondet loop ends on zeros.
+  std::sort(tests.begin(), tests.end());
+  unsigned written = 0;
+  unsigned index = 0;
+  for (const std::string &test : tests) {
     std::vector<Map2Check::KtestObject> objects =
-        Map2Check::readKtestFile(entry.path().string());
+        Map2Check::readKtestFile(test);
     if (objects.empty()) continue;
 
     std::vector<uint8_t> bytes = Map2Check::ktestToFuzzerBytes(objects);
@@ -149,7 +415,7 @@ unsigned Caller::exportKleeVectorsAsSeeds() {
     // Named by index rather than by content hash: AFL++ renames what it
     // keeps to its own hash anyway, so a second one here buys nothing.
     std::ostringstream name;
-    name << Caller::seedDirectory << "/klee-" << index++;
+    name << aflSeeds << "/klee-" << index++;
     std::ofstream out(name.str(), std::ios::binary);
     if (!out.is_open()) continue;
     out.write(reinterpret_cast<const char *>(bytes.data()),
@@ -163,24 +429,207 @@ unsigned Caller::exportKleeVectorsAsSeeds() {
   return written;
 }
 
-std::string Caller::exportFuzzerVectorAsKtest() {
-  std::vector<Map2Check::KtestObject> objects =
-      Map2Check::readNonDetLogAsObjects(Map2Check::kleeLogCSV);
-  if (objects.empty()) return "";
-
+unsigned Caller::exportFuzzerCorpusAsKtests() {
+  // Each queue entry is replayed through the witness binary, whose runtime
+  // logs every nondet read with its type (klee_log.csv) -- which is what a
+  // .ktest needs and what the fuzzer's raw bytes lack. The replay runs in the
+  // store's replay/, not here: the witness writes map2check_property and
+  // friends into its working directory, and a replay must never overwrite a
+  // violation this phase already recorded.
   std::error_code error;
-  std::filesystem::create_directories(Caller::seedDirectory, error);
-  const std::string path =
-      std::string(Caller::seedDirectory) + "/from-fuzzer.ktest";
-  if (!Map2Check::writeKtestFile(path, objects)) return "";
-  Map2Check::Log::Info("Seeding KLEE with the fuzzer's vector (" +
-                       std::to_string(objects.size()) + " inputs)");
-  return path;
+  const std::string queue = "afl-out/default/queue";
+  const std::string replay = seedStore + "/replay";
+  const std::string ktests = seedStore + "/ktest";
+  const std::string witness =
+      std::filesystem::absolute(programHash + "-witness-fuzzed.out", error)
+          .string();
+  if (!std::filesystem::exists(witness, error)) return 0;
+
+  std::vector<std::string> names;
+  for (const auto &entry :
+       std::filesystem::directory_iterator(queue, error)) {
+    if (entry.is_regular_file(error)) {
+      names.push_back(entry.path().filename().string());
+    }
+  }
+  // This round's discoveries replace the last round's: KLEE already ran on
+  // those, and its own tests from that turn (kleeprev/) carry them forward.
+  std::filesystem::remove_all(ktests, error);
+  std::filesystem::create_directories(ktests, error);
+
+  // Bounded as a whole, not only per entry: the replays come out of the KLEE
+  // phase's budget, so they stop at 5% of the run's budget (at least 2 s).
+  const auto started = std::chrono::steady_clock::now();
+  const auto allowed = std::chrono::duration<double>(
+      std::max(2.0, 0.05 * static_cast<double>(this->timeout)));
+  std::set<std::vector<uint8_t>> seen;
+  unsigned written = 0;
+  for (const std::string &name :
+       Map2Check::selectQueueEntries(names, kMaxSeedsFromFuzzer)) {
+    if (std::chrono::steady_clock::now() - started >= allowed) break;
+    std::filesystem::remove_all(replay, error);
+    std::filesystem::create_directories(replay, error);
+    const std::string input =
+        std::filesystem::absolute(queue + "/" + name, error).string();
+    std::ostringstream command;
+    command << "cd '" << replay << "' && MAP2CHECK_SEED_REPLAY=1 timeout -k 1 2 '" << witness
+            << "' < '" << input << "' > /dev/null 2>&1";
+    system(command.str().c_str());
+
+    const std::vector<Map2Check::KtestObject> objects =
+        Map2Check::readNonDetLogAsObjects(replay + "/" +
+                                          Map2Check::kleeLogCSV);
+    if (objects.empty()) continue;
+    if (!Map2Check::isNewVector(Map2Check::ktestToFuzzerBytes(objects),
+                                &seen)) {
+      continue;
+    }
+    if (Map2Check::writeKtestFile(
+            ktests + "/afl-" + std::to_string(written) + ".ktest", objects)) {
+      ++written;
+    }
+  }
+  std::filesystem::remove_all(replay, error);
+  if (written > 0) {
+    Map2Check::Log::Info("Seeded KLEE with " + std::to_string(written) +
+                         " vectors from AFL++");
+  }
+  return written;
+}
+
+namespace {
+/** MAP2CHECK_SLICER_FLAGS / MAP2CHECK_SLICE_CLEANUP: experiment knobs (tacas
+ * 2d spec), read from the environment so a campaign arm can set them without
+ * a CLI option nobody else should use. */
+std::string environmentKnob(const char *name) {
+  const char *value = std::getenv(name);
+  return value == nullptr ? std::string() : std::string(value);
+}
+}  // namespace
+
+std::vector<std::vector<std::string>> Caller::fuzzerCorpusVectors(
+    size_t cap) {
+  std::vector<std::vector<std::string>> vectors;
+  std::error_code error;
+  const std::string queue = "afl-out/default/queue";
+  const std::string replay =
+      std::filesystem::absolute("suite-replay", error).string();
+  const std::string witness =
+      std::filesystem::absolute(programHash + "-witness-fuzzed.out", error)
+          .string();
+  if (!std::filesystem::exists(witness, error)) return vectors;
+
+  std::vector<std::string> names;
+  for (const auto &entry : std::filesystem::directory_iterator(queue, error)) {
+    if (entry.is_regular_file(error)) {
+      names.push_back(entry.path().filename().string());
+    }
+  }
+  const auto started = std::chrono::steady_clock::now();
+  const auto allowed = std::chrono::duration<double>(
+      std::max(2.0, 0.05 * static_cast<double>(this->timeout)));
+  std::set<std::vector<std::string>> seen;
+  for (const std::string &name : Map2Check::selectQueueEntries(names, cap)) {
+    if (std::chrono::steady_clock::now() - started >= allowed) break;
+    std::filesystem::remove_all(replay, error);
+    std::filesystem::create_directories(replay, error);
+    const std::string input =
+        std::filesystem::absolute(queue + "/" + name, error).string();
+    std::ostringstream command;
+    command << "cd '" << replay
+            << "' && MAP2CHECK_SEED_REPLAY=1 timeout -k 1 2 '" << witness
+            << "' < '" << input << "' > /dev/null 2>&1";
+    system(command.str().c_str());
+    std::vector<std::string> values =
+        Map2Check::readNonDetLog(replay + "/" + Map2Check::kleeLogCSV);
+    if (values.empty() || !seen.insert(values).second) continue;
+    vectors.push_back(values);
+  }
+  std::filesystem::remove_all(replay, error);
+  return vectors;
 }
 
 bool Caller::runSlicer(const std::string &input, const std::string &output,
                        std::vector<std::string> primary, bool addRuntimeNames,
                        const std::string &entry, const std::string &label) {
+  // Sliced once per run, not once per phase: see Map2Check::sliceCachePath.
+  std::error_code error;
+  std::string key;
+  {
+    std::ifstream in(input, std::ios::binary);
+    if (in.is_open()) {
+      std::stringstream content;
+      content << in.rdbuf();
+      key = Map2Check::sliceCacheKey(
+          content.str(), label, entry,
+          environmentKnob("MAP2CHECK_SLICER_FLAGS") + "|" +
+              environmentKnob("MAP2CHECK_SLICE_CLEANUP"));
+    }
+  }
+  const std::string cached = sliceCache + "/" + key + ".bc";
+  const std::string failed = sliceCache + "/" + key + ".failed";
+  if (!key.empty() && std::filesystem::exists(failed, error)) {
+    Map2Check::Log::Warning(
+        "sbt-slicer produced no usable output (cached from an earlier phase) "
+        "-- analysing the unsliced program");
+    return false;
+  }
+  if (!key.empty() && std::filesystem::exists(cached, error) &&
+      std::filesystem::copy_file(
+          cached, output, std::filesystem::copy_options::overwrite_existing,
+          error)) {
+    Map2Check::Log::Info("Slice of " + label +
+                         ": reusing the slice from an earlier phase");
+    return true;
+  }
+
+  const bool sliced =
+      runSlicerUncached(input, output, primary, addRuntimeNames, entry, label);
+  if (sliced) cleanUpSlice(output);
+  if (!key.empty() && std::filesystem::exists(Map2Check::slicerBinary())) {
+    std::filesystem::create_directories(sliceCache, error);
+    if (sliced) {
+      std::filesystem::copy_file(
+          output, cached, std::filesystem::copy_options::overwrite_existing,
+          error);
+    } else {
+      std::ofstream(failed) << label << "\n";
+    }
+  }
+  return sliced;
+}
+
+void Caller::cleanUpSlice(const std::string &slice) {
+  const std::string passes = Map2Check::sliceCleanupPasses(
+      environmentKnob("MAP2CHECK_SLICE_CLEANUP"));
+  if (passes.empty()) return;
+  const std::string cleaned = slice + ".clean.bc";
+  std::ostringstream command;
+  // Bounded like the slicer: a pass pipeline over a large module is not
+  // free, and it runs outside any engine's window.
+  const unsigned cleanupBudget = static_cast<unsigned>(std::max(
+      2.0, std::min(0.05 * this->timeout,
+                    static_cast<double>(remainingSeconds()) - 5.0)));
+  command << "timeout -k " << Map2Check::killGracePeriod << " "
+          << cleanupBudget << " " << Map2Check::optBinary << " " << passes
+          << " " << slice << " -o " << cleaned << " >> slicer.output 2>&1";
+  Map2Check::Log::Debug(command.str());
+  std::error_code error;
+  if (system(command.str().c_str()) == 0 &&
+      std::filesystem::exists(cleaned, error) &&
+      std::filesystem::file_size(cleaned, error) > 0) {
+    std::filesystem::rename(cleaned, slice, error);
+    if (!error) return;
+  }
+  Map2Check::Log::Warning("could not clean up the slice (" + passes +
+                          ") -- keeping it as sliced");
+}
+
+bool Caller::runSlicerUncached(const std::string &input,
+                               const std::string &output,
+                               std::vector<std::string> primary,
+                               bool addRuntimeNames, const std::string &entry,
+                               const std::string &label) {
   const std::string slicer = Map2Check::slicerBinary();
   if (!std::filesystem::exists(slicer)) {
     // Announced, not silently skipped. A slicer that is asked for and absent
@@ -247,7 +696,8 @@ bool Caller::runSlicer(const std::string &input, const std::string &output,
           << static_cast<unsigned>(sliceBudget) << " " << slicer << " -c "
           << Map2Check::slicingCriteria(primary, programNondets)
           << " --entry=" << entry
-          << " -cutoff-diverging=false --statistics -o " << output << " "
+          << " -cutoff-diverging=false --statistics "
+          << environmentKnob("MAP2CHECK_SLICER_FLAGS") << " -o " << output << " "
           << input << " > slicer.output 2>&1";
   Map2Check::Log::Debug(command.str());
   const int result = system(command.str().c_str());
@@ -351,6 +801,11 @@ bool Caller::sliceInstrumented() {
   return !error;
 }
 
+void Caller::restoreWorkingDirectory() {
+  std::error_code error;
+  std::filesystem::current_path(currentPath, error);
+}
+
 void Caller::cleanGarbage() {
   std::filesystem::current_path(currentPath);
   std::ostringstream removeCommand;
@@ -373,6 +828,39 @@ void Caller::applyNonDetGenerator() {
     }
     case (NonDetGenerator::AFLPlusPlus): {
       Map2Check::Log::Info("Instrumenting with AFL++");
+      // Built once per run: every fuzzer phase recompiles the same modules,
+      // and on the eca-* programs the three builds take ~24 s -- per phase,
+      // which under --alternate-engines was most of each fuzzer turn. Keyed by
+      // the two modules' content, like the slice cache.
+      const std::vector<std::string> aflBinaries = {
+          programHash + "-fuzzed.out", programHash + "-witness-fuzzed.out",
+          programHash + "-cmplog.out"};
+      std::string buildKey;
+      {
+        std::ifstream result(programHash + "-result.bc", std::ios::binary);
+        std::ifstream witness(programHash + "-witness-result.bc",
+                              std::ios::binary);
+        std::stringstream content;
+        content << result.rdbuf() << "|" << witness.rdbuf();
+        buildKey = Map2Check::sliceCacheKey(content.str(), "afl++", "", "");
+      }
+      const std::string builtDir = buildCache + "/" + buildKey;
+      {
+        std::error_code cacheErr;
+        if (std::filesystem::exists(builtDir + "/" + aflBinaries[0],
+                                    cacheErr)) {
+          for (const std::string &binary : aflBinaries) {
+            if (std::filesystem::exists(builtDir + "/" + binary, cacheErr)) {
+              std::filesystem::copy_file(
+                  builtDir + "/" + binary, binary,
+                  std::filesystem::copy_options::overwrite_existing, cacheErr);
+            }
+          }
+          Map2Check::Log::Info(
+              "AFL++ binaries: reusing the build of an earlier phase");
+          break;
+        }
+      }
       std::ostringstream command;
       command.str("");
 
@@ -393,24 +881,40 @@ void Caller::applyNonDetGenerator() {
           1.0, std::min(0.25 * this->timeout,
                         std::max(1.0, static_cast<double>(remainingSeconds()) -
                                           5.0)));
-      const std::string bound = "timeout -k " +
-                                std::to_string(Map2Check::killGracePeriod) +
-                                " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";
+      // One budget for the three builds, not one each: sequential, each
+      // bounded by 0.25T, they could take 0.75T -- on eca-* that ran the
+      // process past its deadline with no verdict (R19). Each build gets what
+      // is left of the shared deadline.
+      const auto buildDeadline =
+          std::chrono::steady_clock::now() +
+          std::chrono::duration<double>(compileBudget);
+      auto bound = [&buildDeadline]() {
+        const double left = std::chrono::duration<double>(
+                                buildDeadline - std::chrono::steady_clock::now())
+                                .count();
+        return "timeout -k " + std::to_string(Map2Check::killGracePeriod) +
+               " " + std::to_string(std::max(1, static_cast<int>(left))) + " ";
+      };
 
       command
-          << bound << Map2Check::aflClangFastBinary()
+          << bound() << Map2Check::aflClangFastBinary()
           << "  -g " << Caller::postOptimizationFlags()
           << " -o " + programHash + "-fuzzed.out"
-          << " " + programHash + "-result.bc";
+          << " " + programHash + "-result.bc"
+          // libm: a program calling sqrt/pow failed to link ("undefined
+          // reference to `sqrt'") and lost its fuzzer phase (Juliet CWE190/191,
+          // 9.0 campaign). KLEE gets libm through uClibc; the native links
+          // did not.
+          << " -lm > afl-build.log 2>&1";
 
-      system(command.str().c_str());
+      const int built = system(command.str().c_str());
 
       std::ostringstream commandWitness;
       commandWitness.str("");
-      commandWitness << bound << Map2Check::aflClangFastBinary()
+      commandWitness << bound() << Map2Check::aflClangFastBinary()
                      << "  -g "
                      << " -o " + programHash + "-witness-fuzzed.out"
-                     << " " + programHash + "-witness-result.bc";
+                     << " " + programHash + "-witness-result.bc -lm";
 
       system(commandWitness.str().c_str());
 
@@ -422,21 +926,54 @@ void Caller::applyNonDetGenerator() {
       // tacasv1 comparison would pit an unarmed AFL++ against an armed
       // LibFuzzer. Optional: if it does not build, the fuzzer runs without.
       std::ostringstream commandCmplog;
-      commandCmplog << "AFL_LLVM_CMPLOG=1 " << bound
+      commandCmplog << "AFL_LLVM_CMPLOG=1 " << bound()
                     << Map2Check::aflClangFastBinary() << "  -g "
                     << Caller::postOptimizationFlags()
                     << " -o " + programHash + "-cmplog.out"
-                    << " " + programHash + "-result.bc";
+                    << " " + programHash + "-result.bc -lm";
       system(commandCmplog.str().c_str());
 
+      {
+        std::error_code cacheErr;
+        if (std::filesystem::exists(aflBinaries[0], cacheErr)) {
+          std::filesystem::create_directories(builtDir, cacheErr);
+          for (const std::string &binary : aflBinaries) {
+            if (std::filesystem::exists(binary, cacheErr)) {
+              std::filesystem::copy_file(
+                  binary, builtDir + "/" + binary,
+                  std::filesystem::copy_options::overwrite_existing, cacheErr);
+            }
+          }
+        }
+      }
+
       // Announced rather than discovered later as a silent no-op -- the same
-      // failure mode the sliced arm spent a whole campaign in.
+      // failure mode the sliced arm spent a whole campaign in. And for what it
+      // is: a link error (an undefined reach_error) used to be reported as a
+      // build that ran out of time.
       std::error_code fuzzErr;
       if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
+        std::string why;
+        if (built == 31744) {  // timeout's 124
+          why = "did not build within " +
+                std::to_string(static_cast<int>(compileBudget)) + "s";
+        } else {
+          std::ifstream buildLog("afl-build.log");
+          // The first complaint names the cause (an undefined reference);
+          // the last is only clang's "linker command failed".
+          std::string line, firstError;
+          while (firstError.empty() && std::getline(buildLog, line)) {
+            if (line.find("error") != std::string::npos ||
+                line.find("undefined reference") != std::string::npos) {
+              firstError = line;
+            }
+          }
+          why = "failed to build (status " + std::to_string(built) + ")" +
+                (firstError.empty() ? "" : ": " + firstError);
+        }
         Map2Check::Log::Warning(
-            "the AFL++ binary did not build within " +
-            std::to_string(static_cast<int>(compileBudget)) +
-            "s -- skipping the fuzzer phase and leaving the budget to KLEE");
+            "the AFL++ binary " + why +
+            " -- skipping the fuzzer phase and leaving the budget to KLEE");
       } else if (!std::filesystem::exists(programHash + "-cmplog.out",
                                           fuzzErr)) {
         Map2Check::Log::Warning(
@@ -721,9 +1258,14 @@ void Caller::executeAnalysis(std::string solvername) {
       // holding the budget to its last second is what turned a decided run
       // into an ERROR.
       constexpr double kPostEngineReserve = 5.0;
+      // With the exchange on, the fuzzer gets a real third phase: 0.2 / 0.6 /
+      // 0.2. Without it the hybrid keeps the 0.2 / 0.8 it was measured with.
+      // Alternating (--alternate-engines), main hands each phase its window.
+      const double kleeShare = this->seedExchange ? 0.6 : 0.8;
+      const double kleeCap =
+          this->engineWindow > 0 ? this->engineWindow : kleeShare * this->timeout;
       const double kleeBudget = std::max(
-          1.0, std::min(0.8 * this->timeout,
-                        this->remainingSeconds() - kPostEngineReserve));
+          1.0, std::min(kleeCap, this->remainingSeconds() - kPostEngineReserve));
       kleeCommand << "timeout -k " << Map2Check::killGracePeriod << " "
                   << static_cast<unsigned>(kleeBudget) << " ";
       kleeCommand << Map2Check::kleeBinary;
@@ -777,10 +1319,44 @@ void Caller::executeAnalysis(std::string solvername) {
       // from nothing a path the fuzzer already walked -- which under a fixed
       // budget is not merely faster, it is depth the run would not otherwise
       // have reached.
+      // KLEE starts from the fuzzer's corpus when there is one, replaying
+      // each seed and exploring around it instead of rediscovering from
+      // nothing the paths the fuzzer already walked. --seed-time caps the
+      // replay at a quarter of the phase, so seeding cannot eat the search.
       std::string seedFlag;
       if (this->seedExchange) {
-        const std::string seed = exportFuzzerVectorAsKtest();
-        if (!seed.empty()) seedFlag = " --seed-file=" + seed;
+        std::error_code seedError;
+        bool haveSeeds = false;
+        for (const auto &entry : std::filesystem::directory_iterator(
+                 seedStore + "/ktest", seedError)) {
+          if (entry.is_regular_file(seedError)) {
+            haveSeeds = true;
+            break;
+          }
+        }
+        // KLEE's own tests from its previous turn, when the engines alternate:
+        // replaying them rebuilds the frontier it had reached instead of
+        // rediscovering it.
+        bool haveOwnSeeds = false;
+        for (const auto &entry : std::filesystem::directory_iterator(
+                 seedStore + "/kleeprev", seedError)) {
+          if (entry.is_regular_file(seedError)) {
+            haveOwnSeeds = true;
+            break;
+          }
+        }
+        if (haveSeeds || haveOwnSeeds) {
+          seedFlag = std::string(haveSeeds ? " --seed-dir='" + seedStore +
+                                                 "/ktest'"
+                                           : "") +
+                     (haveOwnSeeds ? " --seed-dir='" + seedStore + "/kleeprev'"
+                                   : "") +
+                     " --allow-seed-extension --allow-seed-truncation"
+                     " --seed-time=" +
+                     std::to_string(std::max(
+                         1u, static_cast<unsigned>(kleeBudget / 4))) +
+                     "s";
+        }
       }
 
       // Depth-first for Cover-Branches, and the reason is about what survives
@@ -842,8 +1418,16 @@ void Caller::executeAnalysis(std::string solvername) {
       }
 
       Map2Check::Log::Debug(kleeCommand.str());
-      int result = system(kleeCommand.str().c_str());
+      const auto engineStarted = std::chrono::steady_clock::now();
+      int result = runKleeWatched(kleeCommand.str());
+      if (this->engineSeconds != nullptr) {
+        *this->engineSeconds = std::chrono::duration<double>(
+                                   std::chrono::steady_clock::now() -
+                                   engineStarted)
+                                   .count();
+      }
       if (this->seedExchange) {
+        if (this->stagnationLimit > 0) keepKleeTestsAsSeeds();
         // Written after KLEE rather than before the next phase, because the
         // .ktest files are in the scratch directory that cleanGarbage() will
         // remove -- and because a later alternation, or a resumed run, should
@@ -851,17 +1435,28 @@ void Caller::executeAnalysis(std::string solvername) {
         exportKleeVectorsAsSeeds();
       }
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
+      // KLEE found nothing: its vectors, run on natively. Not for
+      // Cover-Branches, whose goal is no violation.
+      if (map2checkMode != Map2CheckMode::COVER_BRANCHES_MODE &&
+          !isWitnessFileCreated() &&
+          !Map2Check::hasViolatingKtest(Map2Check::kleeOutputDir)) {
+        replayKleeVectorsForViolation();
+      }
       if (result == 31744)  // Timeout
         gotTimeout = true;
-      // KLEE stopping on its own --max-time exits 0, like a run that explored
-      // every path, but it proves nothing. Treated as the timeout it is: a
+      // Stopped by us for want of progress: states were left, nothing proved.
+      if (this->stoppedOnStagnation) gotTimeout = true;
+      // KLEE exits 0 when its queue empties, like a run that explored every
+      // path -- also after its timer, a concretized input or states it killed
+      // itself. None of those proves anything. Treated as the timeout it is: a
       // violation already recorded is kept, anything else is UNKNOWN -- never
       // the TRUE a short path's NONE in the property file would otherwise make
-      // it (a reachable null dereference came back TRUE).
-      if (Map2Check::kleeHaltedOnTimer(Map2Check::kleeOutputDir)) {
-        Map2Check::Log::Warning(
-            "KLEE halted on its timer with states left -- not a complete "
-            "exploration");
+      // it (a reachable null dereference, a float bug, came back TRUE).
+      const std::string dropped =
+          Map2Check::kleeDroppedPaths(Map2Check::kleeOutputDir);
+      if (!dropped.empty()) {
+        Map2Check::Log::Warning("KLEE " + dropped +
+                                " -- not a complete exploration");
         gotTimeout = true;
       }
 
@@ -887,9 +1482,16 @@ void Caller::executeAnalysis(std::string solvername) {
       command.str("");
       // Against what is LEFT, not against the nominal budget -- see
       // Caller::remainingSeconds.
+      // Alternating, the last window can be everything left: keep the same
+      // reserve KLEE keeps for replaying crashes and writing the suite.
       const double fuzzerBudget =
-          std::min(0.2 * this->timeout,
-                   static_cast<double>(this->remainingSeconds()));
+          this->engineWindow > 0
+              ? std::max(1.0,
+                         std::min(this->engineWindow,
+                                  static_cast<double>(this->remainingSeconds()) -
+                                      5.0))
+              : std::min(0.2 * this->timeout,
+                         static_cast<double>(this->remainingSeconds()));
       // afl-fuzz needs a non-empty -i dir and a -o dir that does not already
       // exist (the hybrid may run the fuzzer phase twice).
       //
@@ -900,7 +1502,7 @@ void Caller::executeAnalysis(std::string solvername) {
       // without one (the previous fuzzer could start from nothing).
       std::error_code seedErr;
       const std::string inputDir =
-          this->seedExchange ? std::string(Caller::seedDirectory) : "afl-in";
+          this->seedExchange ? seedStore + "/afl" : std::string("afl-in");
       std::filesystem::create_directories(inputDir, seedErr);
       if (std::filesystem::is_empty(inputDir, seedErr)) {
         std::ofstream seed(inputDir + "/seed");
@@ -925,6 +1527,11 @@ void Caller::executeAnalysis(std::string solvername) {
               << " AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1"
               << " AFL_CRASHING_SEEDS_AS_NEW_CRASH=1"
               << " AFL_BENCH_UNTIL_CRASH=1 ";
+      // Alternating: the fuzzer hands the rest of its window back as soon as
+      // it stops finding coverage, and exits 0 doing so -- not a timeout.
+      if (this->stagnationLimit > 0) {
+        command << "AFL_EXIT_ON_TIME=" << this->stagnationLimit << " ";
+      }
       // Bounded by `timeout` alone, as the previous fuzzer was. Not also by
       // afl-fuzz -V: that one compares wall-clock (gettimeofday) readings,
       // and a clock stepped backwards -- measured at over a second under
@@ -937,13 +1544,20 @@ void Caller::executeAnalysis(std::string solvername) {
       const bool hasCmplog =
           std::filesystem::exists(programHash + "-cmplog.out", cmplogErr);
       command << Map2Check::aflFuzzBinary()
-              << " -i " << inputDir
+              << " -i '" << inputDir << "'"
               << " -o afl-out";
       if (hasCmplog) command << " -c ./" << programHash << "-cmplog.out";
       command << " -- ./" << programHash << "-fuzzed.out"
               << " > fuzzer.output 2>&1";
 
+      const auto engineStarted = std::chrono::steady_clock::now();
       int result = system(command.str().c_str());
+      if (this->engineSeconds != nullptr) {
+        *this->engineSeconds = std::chrono::duration<double>(
+                                   std::chrono::steady_clock::now() -
+                                   engineStarted)
+                                   .count();
+      }
       Map2Check::Log::Warning("Exited fuzzer with " + std::to_string(result));
       if (result == 31744)  // Timeout
         gotTimeout = true;
@@ -982,13 +1596,8 @@ void Caller::executeAnalysis(std::string solvername) {
       // afl-fuzz never writes back into -i, so under --seed-exchange its
       // discoveries are copied into seeds/ -- the previous fuzzer grew that
       // directory in place. Inputs tagged ",orig:" are the seeds it started
-      // from, already there.
-      //
-      // Caveat, inherited unchanged from v15: seeds/ lives in the scratch
-      // directory, which the next phase's Caller wipes on construction, so
-      // this corpus does not yet reach the following KLEE or fuzzer phase.
-      // Making it survive changes what the hybrid measures, and belongs to
-      // the smart-seeds work, not to the engine swap.
+      // from, already there. The store is beside the scratch directory, so
+      // the next fuzzer phase starts from this corpus plus KLEE's vectors.
       if (this->seedExchange) {
         std::error_code queueErr;
         for (const auto &entry : std::filesystem::directory_iterator(
@@ -998,9 +1607,15 @@ void Caller::executeAnalysis(std::string solvername) {
           if (name.find(",orig:") != std::string::npos) continue;
           std::filesystem::copy_file(
               entry.path(),
-              std::string(Caller::seedDirectory) + "/afl-" + name,
+              seedStore + "/afl/afl-" + name,
               std::filesystem::copy_options::skip_existing, queueErr);
         }
+      }
+      // The fuzzer's corpus for the KLEE phase, unless this phase already
+      // decided the property.
+      if (this->seedExchange && this->feedsKleePhase &&
+          !isWitnessFileCreated()) {
+        exportFuzzerCorpusAsKtests();
       }
       Map2Check::Log::Debug("Finished fuzzer");
 
@@ -1093,11 +1708,40 @@ void Caller::compileCFile(bool is_llvm_bc) {
             << " -Wno-everything "
             << " -Winteger-overflow "
             << " -c -emit-llvm -g"
-            << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
+            << " " << Caller::preOptimizationFlags()
+            << (ssaPreoptimization() ? " -Xclang -disable-O0-optnone" : "")
+            << " -o " << compiledFile
             << " " << programHash << "-preprocessed.c "
             << " > " << programHash << "-clang.out 2>&1";
 
     system(command.str().c_str());
+
+    // MAP2CHECK_PREOPT=ssa: the module in SSA form, as Clam's preprocessing
+    // leaves it. At -O0 clang marks every function optnone and every local
+    // lives in memory; KLEE then pays a memory object and a solver array per
+    // variable. A first probe of --add-invariants found that compiling through
+    // Clam with NO invariant inserted decided a loop program the plain
+    // pipeline left UNKNOWN (both the safe and the buggy variant) -- the gain
+    // was the preprocessing, not the invariants. mem2reg only promotes locals
+    // whose address is never taken; simplifycfg keeps common code unsunk, as
+    // Clam does. Neither reorders a call, so the nondet order is unchanged.
+    if (ssaPreoptimization()) {
+      std::ostringstream ssa;
+      ssa << Map2Check::optBinary
+          << " -passes='function(mem2reg,simplifycfg)'"
+          << " --simplifycfg-sink-common=false " << compiledFile << " -o "
+          << compiledFile << ".ssa.bc >> " << programHash << "-clang.out 2>&1";
+      std::error_code ssaError;
+      if (system(ssa.str().c_str()) == 0 &&
+          std::filesystem::exists(compiledFile + ".ssa.bc", ssaError)) {
+        std::filesystem::rename(compiledFile + ".ssa.bc", compiledFile,
+                                ssaError);
+      } else {
+        Map2Check::Log::Warning(
+            "could not bring the module into SSA form -- analysing it as "
+            "compiled");
+      }
+    }
 
     this->pathprogram = compiledFile;
   } else {
@@ -1210,15 +1854,69 @@ void Caller::compileWithClam() {
   // map2check_crab_assume, which the runtime forwards to klee_assume -- so
   // nothing downstream needs to change.
   // See docs/reports/2026-08-16-crabllvm-review.md.
-  command << Map2Check::clamBinary() << " -o " << compiledFile << " -m 64 -g"
+  // MAP2CHECK_CLAM_PROFILE=memory: the configuration --add-invariants had
+  // until 2018-10-19, when it last reached KLEE -- memory contents tracked
+  // (crab-llvm's --crab-track=arr, Clam's mem) and an invariant after every
+  // load. From v7.3 on it ran --crab-promote-assume, which emits llvm.assume,
+  // which NonDetPass does not map and both KLEE 2.1 and 3.1 ignore: the
+  // invariants of the SV-COMP 2019/2020 builds reached nothing. Measured side
+  // by side against the default (num, block-entry) before choosing.
+  // MAP2CHECK_CLAM_PROFILE=none: Clam's pipeline without inserting anything,
+  // to tell the effect of compiling through Clam from that of the invariants
+  // (a first probe found the two pulling in opposite directions).
+  const char *profileEnv = std::getenv("MAP2CHECK_CLAM_PROFILE");
+  const std::string profile = profileEnv != nullptr ? profileEnv : "default";
+  const bool memoryProfile = profile == "memory";
+  const bool noInvariants = profile == "none";
+  // Bounded like the slicer: on the eca-* and product-lines programs Clam's
+  // analysis ran past the whole budget and the run was killed with no verdict
+  // (R25: 4-7 ERROR per arm). Past the bound, the fallback below compiles the
+  // program without invariants.
+  const unsigned clamBudget = static_cast<unsigned>(std::max(
+      1.0, std::min(0.2 * this->timeout,
+                    static_cast<double>(remainingSeconds()) - 5.0)));
+  command << "timeout -k " << Map2Check::killGracePeriod << " " << clamBudget
+          << " " << Map2Check::clamBinary() << " -o " << compiledFile
+          << " -m 64 -g"
           << " --crab-inter"
-          << " --crab-track=num"
-          << " --crab-opt=add-invariants"
-          << " --crab-opt-invariants-loc=block-entry"
-          << " " << programHash << "-preprocessed.c ";
+          << (memoryProfile ? " --crab-track=mem" : " --crab-track=num")
+          << (noInvariants ? " --crab-opt=none" : " --crab-opt=add-invariants")
+          << (noInvariants    ? ""
+              : memoryProfile ? " --crab-opt-invariants-loc=after-load"
+                              : " --crab-opt-invariants-loc=block-entry")
+          << " " << programHash << "-preprocessed.c > clam.output 2>&1";
 
   Map2Check::Log::Debug(command.str());
-  system(command.str().c_str());
+  const int clamResult = system(command.str().c_str());
+
+  std::error_code error;
+  if (clamResult != 0 || !std::filesystem::exists(compiledFile, error) ||
+      std::filesystem::file_size(compiledFile, error) == 0) {
+    // Not the silence of the old path (issue #54): said, and the run goes on
+    // with the program as it is.
+    Map2Check::Log::Warning(
+        "Clam failed (status " + std::to_string(clamResult) +
+        ") -- analysing the program without invariants");
+    compileCFile(false);
+    return;
+  }
+
+  // How many invariants went in: the measure of what --add-invariants does.
+  std::ostringstream disassemble;
+  disassemble << Map2Check::optBinary << " -S " << compiledFile
+              << " -o clam-invariants.ll > /dev/null 2>&1";
+  unsigned invariants = 0;
+  if (system(disassemble.str().c_str()) == 0) {
+    std::ifstream ir("clam-invariants.ll");
+    std::string line;
+    while (std::getline(ir, line)) {
+      if (line.find("call void @verifier.assume") != std::string::npos) {
+        ++invariants;
+      }
+    }
+  }
+  Map2Check::Log::Info("Clam inserted " + std::to_string(invariants) +
+                       " invariant(s) (" + profile + " profile)");
 
   this->pathprogram = compiledFile;
 }

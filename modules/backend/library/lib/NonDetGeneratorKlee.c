@@ -23,7 +23,15 @@ void nondet_generate_aux_witness_files() {
 
 extern void klee_assume(int);
 
-void nondet_assume(int expr) { klee_assume(expr); }
+/* A failed assumption ends the path silently. klee_assume(0) on a path where
+ * the condition is already false is a KLEE error ("invalid klee_assume call
+ * (provably false)", a user.err), and the frontend must read every KLEE error
+ * as a dropped path -- which made every program with an assume_abort_if_not
+ * unprovable. klee_silent_exit leaves no test and no error. */
+extern void klee_silent_exit(int status);
+void nondet_assume(int expr) {
+  if (!expr) klee_silent_exit(0);
+}
 
 extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Map2Check VERSION 8.0.0 LANGUAGES C CXX)
+project(Map2Check VERSION 9.0.0 LANGUAGES C CXX)
 
 option(BUILD_DOC "Build documentation" OFF)
 option(SKIP_AFL_PLUS_PLUS "Don't use AFL++" OFF)

@@ -4,6 +4,15 @@
 **Fim previsto:** 30/Mai/2027  
 **Regime:** ~5h/dia útil de desenvolvimento efetivo  
 
+> **Situação em 29/Set/2026 — linha TACAS.** As fases 2 e 3 foram antecipadas e entregues
+> por um caminho diferente do planejado abaixo: o slicing usa o `sbt-slicer` (dg) como
+> processo externo, e não uma biblioteca integrada; a coordenação AFL++ ↔ KLEE roda dentro
+> do frontend C++, e não num coordenador Python com IPC. As tabelas das fases 2 e 3 trazem
+> o status real e onde cada item foi feito. Medições em `docs/reports/tacas-experiment-log.md`
+> (rodadas R1–R19). Resultado de referência (R15, Cover-Error, 213 tarefas, 300 s): controle
+> tacasv2 **129 cobertas** × v15 111, TRUE errado 27 → 5, tempo mediano 43 → 5 s; com a troca
+> de sementes (R16) **148 cobertas**.
+
 ---
 
 ## Métricas do Codebase Atual
@@ -176,19 +185,19 @@
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ☐ | 2.1.1 | Criar `FindDG.cmake` (FetchContent de `mchalupa/dg`) | 28/Set | 30/Set | 3 | DG compila com LLVM 16 | — |
-| ☐ | 2.1.2 | Validar `llvm-slicer` standalone no container | 01/Out | 02/Out | 2 | Slice de programa simples funciona | — |
-| ☐ | 2.1.3 | Criar módulo `SlicingPreprocessor` (API C++) | 05/Out | 16/Out | 10 | Testes unitários do módulo | — |
-| ☐ | 2.1.4 | Definir critério de slicing automático (`__VERIFIER_error` + MemSafety) | 19/Out | 23/Out | 5 | Slice preserva instruções de interesse | `docs/migration/2.1-dg-library.md` |
+| ✅ | 2.1.1 | ~~`FindDG.cmake`~~ → `sbt-slicer` (dg) instalado no `Dockerfile.dev` em `/opt/sbt-slicer` | 28/Set | 26/Set | — | Slicer roda com LLVM 16 | tacasv2a |
+| ✅ | 2.1.2 | Validar o slicer standalone no container | 01/Out | 26/Set | — | Slice de programa simples funciona | tacasv2a |
+| ✅ | 2.1.3 | ~~`SlicingPreprocessor`~~ → `Caller::runSlicer` + `utils/slicer.hpp` (critérios, estatísticas, stub do alvo) | 05/Out | 27/Set | — | `SlicerTest` (21 testes) | specs `2026-09-2{6,7}-tacasv2{a,b,c}-*` |
+| ✅ | 2.1.4 | Critérios por propriedade: alvo/assert antes da instrumentação; `map2check_*` + nondets + externas + intrínsecos de memória depois dela (memsafety, memcleanup, overflow) | 19/Out | 27/Set | — | Integração §13–§25 | `docs/reports/tacas-experiment-log.md` (R1–R14b) |
 
 ### 2.2 Integração no Pipeline (Semanas 18-20)
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ☐ | 2.2.1 | Adicionar opção `--slice` ao CLI | 26/Out | 27/Out | 2 | `map2check --help` mostra opção | — |
-| ☐ | 2.2.2 | Integrar pipeline: `C → IR → Slice → Instrumentação → Análise` | 28/Out | 06/Nov | 8 | Suite completa com `--slice` ativo | — |
-| ☐ | 2.2.3 | Testes comparativos: com e sem slicing nos 9 benchmarks | 09/Nov | 13/Nov | 5 | Tabela de redução de tamanho bitcode | — |
-| ☐ | 2.2.4 | Testes em benchmarks SV-COMP ReachSafety (amostra) | 16/Nov | 20/Nov | 5 | ≥ baseline em cobertura | `docs/migration/2.2-slicing-pipeline.md` |
+| ✅ | 2.2.1 | Opção `--slice` no CLI | 26/Out | 26/Set | — | `map2check --help` mostra opção | tacasv2a |
+| ✅ | 2.2.2 | Pipeline `C → IR → Slice → Instrumentação → Análise` (e slice pós-instrumentação para memória/overflow) | 28/Out | 27/Set | — | Integração com `--slice` | tacasv2a/b/c |
+| ✅ | 2.2.3 | Comparativos controle × slice (Test-Comp, MemSafety, NoOverflows, CASTLE, Juliet) | 09/Nov | 28/Set | — | R8–R15 | `docs/reports/tacas-experiment-log.md` |
+| ⏳ | 2.2.4 | Test-Comp Cover-Error: slice **empata** com o controle (126 × 129, R15) — otimizações na 2.4 | 16/Nov | — | — | ≥ controle em cobertas, TRUE errado = 0 | R15, R19 |
 
 ### 2.3 Validação e Buffer (Semanas 21-22)
 
@@ -196,6 +205,15 @@
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
 | ☐ | 2.3.1 | Medir impacto: memória, tempo, taxa de unknown | 23/Nov | 27/Nov | 5 | Relatório quantitativo | `docs/migration/2.3-fase2-final.md` |
 | ☐ | 2.3.2 | **Buffer/contingência** | 30/Nov | 04/Dez | 5 | — | — |
+
+### 2.4 Otimizações do slicing — tacas 2d (Set/2026)
+
+| Done | ID | Tarefa | Teste | Relatório |
+|:-----|:---|:-------|:------|:----------|
+| ✅ | 2.4.1 | Fatiar uma vez por execução (cache `<hash>.slice/`, inclusive da falha do slicer) — elimina os 4 ERROR de ECA da R15 | Integração §31 | spec `2026-09-29-tacas-2d-slicing-optimizations-design.md` |
+| ⏳ | 2.4.2 | Limpeza pós-slice (`MAP2CHECK_SLICE_CLEANUP` = `light` ou `o2`) — em medição | R19 | — |
+| ⏳ | 2.4.3 | Parâmetros do dg (`--cda=ntscd`, `--pta=fs`) — em medição | R19 | — |
+| ☐ | 2.4.4 | Cutoff-diverging com `!dbg` (só se 2.4.1–2.4.3 não bastarem) | — | — |
 
 > **Marco Fase 2:** Slicing funcional, redução mensurável em timeouts  
 > **Data-alvo:** 04/Dez/2026
@@ -208,28 +226,39 @@
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ☐ | 3.1.1 | `FindAFLPlusPlus.cmake` — compilar/instalar AFL++ 4.40c | 07/Dez | 11/Dez | 5 | `afl-fuzz --version` OK | — |
-| ☐ | 3.1.2 | Instrumentação AFL++ com LLVM 16 (modo PCGUARD) | 14/Dez | 18/Dez | 5 | Programa de teste instrumentado e fuzzado | — |
-| ☐ | 3.1.3 | Wrapper de compilação para programas com instrumentação AFL++ | 21/Dez | 24/Dez | 4 | Programa fuzzeado encontra crash | — |
-| ☐ | 3.1.4 | Validação: fuzzing standalone em benchmarks simples | 05/Jan | 09/Jan | 5 | ≥3 crashes encontrados em programas unsafe | `docs/migration/3.1-aflpp.md` |
+| ✅ | 3.1.1 | AFL++ 4.40c no `Dockerfile.dev` (toolchain em `/usr/local/bin`), substituindo o LibFuzzer | 07/Dez | 25/Set | — | `afl-fuzz --version` OK | tacasv1 |
+| ✅ | 3.1.2 | Instrumentação PCGUARD + modo persistente + binário CmpLog | 14/Dez | 26/Set | — | Programa instrumentado e fuzzado | tacasv1 |
+| ✅ | 3.1.3 | Pipeline de compilação AFL++ no `Caller` + replay de crash pelo binário witness | 21/Dez | 26/Set | — | Crash confirmado por replay | tacasv1 |
+| ✅ | 3.1.4 | Validação em Test-Comp; correções: leitura após o fim da entrada devolve zero (laços `while(nondet)` travavam o dry run) | 05/Jan | 29/Set | — | Integração §32 | spec `2026-09-25-tacasv1-aflpp-migration-design.md` |
 
 ### 3.2 Coordenador Central (Semanas 27-30)
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ☐ | 3.2.1 | Criar módulo `coordinator/` (Python + subprocess) | 12/Jan | 16/Jan | 5 | Testes unitários do módulo | — |
-| ☐ | 3.2.2 | IPC POSIX: shared memory + semáforos | 19/Jan | 23/Jan | 5 | Comunicação bidirecional testada | — |
-| ☐ | 3.2.3 | Ciclo de vida: AFL++ → monitoramento → KLEE → reinjeção | 26/Jan | 06/Fev | 10 | Programa simples verificado end-to-end | — |
-| ☐ | 3.2.4 | Heurística de Desbloqueio de Fronteira (Δt, proximidade) | 09/Fev | 13/Fev | 5 | Detecção de estagnação + branch flipping | `docs/migration/3.2-coordinator.md` |
+| ✅ | 3.2.1 | ~~`coordinator/` em Python~~ → laço `alternateEngines()` no frontend C++ (`--alternate-engines`) | 12/Jan | 29/Set | — | `AlternationTest` | spec `2026-09-29-tacas-3b-engine-alternation-design.md` |
+| ✅ | 3.2.2 | ~~IPC POSIX~~ → troca por arquivos no store `<hash>.seeds/` (fases sequenciais, 1 núcleo) | 19/Jan | 28/Set | — | Integração §11, §26–§28 | tacas 3a |
+| ✅ | 3.2.3 | Ciclo AFL++ → KLEE → reinjeção, em rodadas com janelas que dobram | 26/Jan | 29/Set | — | Integração §33 | tacas 3b |
+| ⏳ | 3.2.4 | Detecção de estagnação (`AFL_EXIT_ON_TIME`; `CoveredInstructions` do `run.stats` do KLEE) — em medição; *branch flipping* por proximidade ainda não | 09/Fev | — | — | R19 | tacas 3b |
 
 ### 3.3 Smart Seeds e Validação (Semanas 31-34)
 
 | Done | ID | Tarefa | Início | Fim | Dias | Teste | Relatório |
 |:-----|:---|:-------|:-------|:----|:-----|:------|:----------|
-| ☐ | 3.3.1 | Gerenciador de Smart Seeds (serialização, conversão, filtro) | 16/Fev | 20/Fev | 5 | Seeds transferidas AFL++ ↔ KLEE | — |
-| ☐ | 3.3.2 | Ranking por densidade SDG | 23/Fev | 27/Fev | 5 | Seeds priorizadas corretamente | — |
-| ☐ | 3.3.3 | Teste integrado: pipeline completo com coordenação | 02/Mar | 06/Mar | 5 | Benchmark com melhoria de cobertura | `docs/migration/3.3-fase3-final.md` |
+| ✅ | 3.3.1 | Smart seeds: fila do AFL++ → replay tipado → `.ktest`; `.ktest` → bytes do AFL++ (`--seed-exchange`) | 16/Fev | 28/Set | — | `SeedStoreTest`, `KtestReaderTest` | spec `2026-09-28-tacasv3a-smart-seeds-plumbing-design.md` |
+| ☐ | 3.3.2 | Ranking de sementes (novidade de cobertura; densidade SDG) — tacas 3c | 23/Fev | — | 5 | Seeds priorizadas corretamente | — |
+| ⏳ | 3.3.3 | Teste integrado com coordenação: R16 (seeds 148 × 129 cobertas); R19 (alternância) em curso | 02/Mar | — | — | Benchmark com melhoria de cobertura | `docs/reports/tacas-experiment-log.md` |
 | ☐ | 3.3.4 | **Buffer/contingência** | 09/Mar | 13/Mar | 5 | — | — |
+
+### 3.4 Correções de veredito achadas nas rodadas TACAS
+
+| Done | ID | Correção | Teste |
+|:-----|:---|:---------|:------|
+| ✅ | 3.4.1 | KLEE parado pelo HaltTimer não é prova (TRUE errado 27 → 5 na R15) | Integração |
+| ✅ | 3.4.2 | Vetor vazio conta como testemunha (programas sem entrada) | `KtestReaderTest` |
+| ✅ | 3.4.3 | `abort()` do programa poda o caminho (`map2check_assume(0)`), não encerra a busca do KLEE | Integração §29 |
+| ✅ | 3.4.4 | KLEE que concretizou uma entrada ou matou estados cedo não é prova | Integração §30 |
+| ☐ | 3.4.5 | MemoryTrackPass não instrumenta os intrínsecos `llvm.memcpy/memset/memmove` do LLVM 16 | — |
+| ☐ | 3.4.6 | Falso positivo do memtrack no busybox `sleep-3` | — |
 
 > **Marco Fase 3:** Coordenador funcional, AFL++ ↔ KLEE com Smart Seeds  
 > **Data-alvo:** 13/Mar/2027

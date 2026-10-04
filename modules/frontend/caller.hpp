@@ -93,9 +93,14 @@ class Caller {
    * Sizing each phase against what is LEFT keeps the sum inside the budget
    * however many phases there turn out to be. */
   unsigned remainingSeconds() const;
+  /** remainingSeconds for a budget of `timeout`, without a Caller: what main
+   * sizes the alternating phases with. */
+  static unsigned remainingOf(unsigned timeout);
   /** @brief Function to compile original C file removing external memory
    * operations calls */
   void compileCFile(bool is_llvm_bc);
+  /** MAP2CHECK_PREOPT=ssa: compile into SSA form (see compileCFile). */
+  bool ssaPreoptimization() const;
 
   /** Compiles the input through Clam so the emitted bitcode carries
    * verifier.assume(invariant) calls. Requires Clam dev16 installed; callers
@@ -119,6 +124,11 @@ class Caller {
 
   /** Remove generated files for verification */
   void cleanGarbage();
+  /** Back to the directory map2check was started in, without deleting the
+   * scratch directory: under --debug the scratch is kept, but the next hybrid
+   * phase must still start from the same place (the seed store is computed
+   * from it). */
+  void restoreWorkingDirectory();
 
   /** Slice the program with respect to the target before analysing it.
    *
@@ -156,22 +166,26 @@ class Caller {
    * is a separate decision that has to be earned by its own measurement. */
   bool seedExchange = false;
 
-  /** Directory the two engines use to hand each other input vectors.
-   *
-   * A directory of files rather than a value passed from one phase to the
-   * next, meant to survive between phases, runs and alternations -- which is
-   * what time-slicing will need. AFL++ starts from it and its discoveries are
-   * copied back in after each fuzzer phase (afl-fuzz never writes into its -i
-   * dir); the KLEE phase drops its own path vectors in.
-   *
-   * NOT yet true across phases (same as v15): it sits inside the scratch
-   * directory, which each phase's Caller recreates empty. Fixing that is part
-   * of the smart-seeds work (tacasv2/v3), since it changes what the hybrid
-   * measures.
-   *
-   * Relative, because both engines run with the scratch directory as their
-   * working directory. */
-  static constexpr const char* seedDirectory = "seeds";
+  /** The seed store, beside the scratch directory: <cwd>/<hash>.seeds with
+   * afl/ (fuzzer inputs), ktest/ (KLEE seeds) and replay/ (where queue entries
+   * are replayed). Beside, not inside: every hybrid phase recreates the scratch
+   * directory, and a store inside it never reached the next phase. Used only
+   * under --seed-exchange. */
+  std::string seedStore;
+  /** Set by main on the hybrid's first phase: the fuzzer corpus is converted
+   * into KLEE seeds only when a KLEE phase follows. After the last phase the
+   * replays would be pure cost against a spent budget. */
+  bool feedsKleePhase = false;
+  const std::string& seedStorePath() const { return seedStore; }
+
+  /** Slices kept across the phases of one run (<cwd>/<hash>.slice); see
+   * Map2Check::sliceCachePath. Removed by main with the seed store. */
+  std::string sliceCache;
+  const std::string& sliceCachePath() const { return sliceCache; }
+  /** AFL++ binaries kept across the phases of one run (<cwd>/<hash>.build),
+   * keyed by the content of the modules they are built from. */
+  std::string buildCache;
+  const std::string& buildCachePath() const { return buildCache; }
 
   /** Writes KLEE's per-path vectors into the seed corpus.
    *
@@ -180,12 +194,34 @@ class Caller {
    * fuzzer down the same path. Returns how many seeds were written. */
   unsigned exportKleeVectorsAsSeeds();
 
-  /** Writes what the fuzzer consumed as a .ktest KLEE can start from.
-   *
-   * The nondet log is the only record of a fuzzer run carrying both value and
-   * type, which is what a .ktest needs. Returns the path, or empty. */
-  std::string exportFuzzerVectorAsKtest();
+  /** Set by main under --alternate-engines (tacas 3b): the most this phase's
+   * engine may run, in seconds, instead of its fixed share of the budget (0:
+   * the fixed shares). */
+  double engineWindow = 0;
+  /** Seconds without new coverage after which the engine is stopped (0: never).
+   * AFL++ gets it as AFL_EXIT_ON_TIME; KLEE is watched through run.stats. */
+  unsigned stagnationLimit = 0;
+  /** Whether this phase's KLEE was stopped for stagnating: incomplete. */
+  bool stoppedOnStagnation = false;
+  /** Where to report how long this phase's engine ran (main sizes the next
+   * alternating phase with it); null: not reported. */
+  double* engineSeconds = nullptr;
 
+  /** At most this many fuzzer queue entries are converted into KLEE seeds. */
+  static constexpr size_t kMaxSeedsFromFuzzer = 64;
+
+  /** Converts the AFL++ queue into typed .ktest seeds for the KLEE phase, by
+   * replaying each entry through the witness binary inside the seed store's
+   * replay/ directory. Returns how many seeds were written. */
+  unsigned exportFuzzerCorpusAsKtests();
+
+  /** The fuzzer's corpus as test-case vectors (Cover-Branches): at most `cap`
+   * queue entries, ranked as for KLEE, each replayed through the witness
+   * binary for the values it actually reads, duplicates dropped. Bounded like
+   * the KLEE export (5% of the budget). Empty when no fuzzer ran. */
+  std::vector<std::vector<std::string>> fuzzerCorpusVectors(size_t cap);
+
+  
   /** Instrument and execute nondeterministic generator */
   void applyNonDetGenerator();
 
@@ -216,6 +252,25 @@ class Caller {
   bool runSlicer(const std::string& input, const std::string& output,
                  std::vector<std::string> primary, bool addRuntimeNames,
                  const std::string& entry, const std::string& label);
+  /** runSlicer without the slice cache: what actually calls sbt-slicer. */
+  bool runSlicerUncached(const std::string& input, const std::string& output,
+                         std::vector<std::string> primary,
+                         bool addRuntimeNames, const std::string& entry,
+                         const std::string& label);
+  /** Applies MAP2CHECK_SLICE_CLEANUP to a fresh slice, in place; on failure
+   * the slice is kept as the slicer wrote it. */
+  void cleanUpSlice(const std::string& slice);
+  /** Runs the KLEE command, stopping it (SIGINT) once it stagnates for
+   * stagnationLimit seconds; plain system() when the limit is 0 or the build
+   * has no SQLite to read KLEE's stats with. Returns system()'s status. */
+  int runKleeWatched(const std::string& command);
+  /** Runs KLEE's vectors natively through the fuzzer's witness binary (from
+   * the build cache), each completed with zeros past its end; true when one
+   * reached a violation, whose files are then in the scratch directory. */
+  bool replayKleeVectorsForViolation();
+  /** Keeps KLEE's latest tests (at most kMaxSeedsFromFuzzer) in the seed
+   * store's kleeprev/, to seed its next turn. */
+  void keepKleeTestsAsSeeds();
 };
 
 }  // namespace Map2Check

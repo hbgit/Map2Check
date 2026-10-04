@@ -227,3 +227,14 @@ inicializada, busca dirigida). O ponto de partida:
   `SLOTS=5 setsid nohup ./v9-campaign.sh > v9-campaign.stderr 2>&1 < /dev/null &`
   Ele pula o que estiver marcado como concluído, e os harnesses pulam o que já está no
   CSV. Retomada conferida sem duplicatas.
+
+### Cover-Branches: shard 5 dividido em 4 partes (2026-10-03, 20h)
+
+- Para encurtar a cauda (os shards 4 e 5 tinham ~460 tarefas cada, a ~13/h), o shard 5
+  foi dividido em `../tacas-results/cb-s5-p{0..3}.tsv` (115 tarefas cada), com resultados
+  em `V9-cb_s5_p{0..3}`. Eles rodam pelo lançador auxiliar `v9-cb5.sh`. O principal foi
+  encerrado (só faltava o shard 5) e `.v9-done-v9-cb-s5` impede que ele o suba inteiro.
+- **Análise:** juntar `V9-cb_s{0..4}` (filtrando por índice % 6) com as 4 partes do
+  shard 5 (sem filtro).
+- **Após um reboot:** relançar `./v9-cb5.sh`; ele também remove os jobs concluídos dos
+  shards 0 a 4.

@@ -793,3 +793,45 @@ TIMEOUT da v15 viraram UNKNOWN.
 piores. TestCov: VALIDATED 84, VALIDATED_ABORTS 23, TESTCOV_ERROR 4 (v15: 93, 15 e 3). O
 aumento de VALIDATED_ABORTS vem dos casos do corpus do fuzzer que violam uma assunção
 (o teste termina num `abort()`). A suíte continua válida e a cobertura conta.
+
+## Campanha da 9.0 — Cover-Branches completo (2026-10-05)
+
+O shard 4 fechou às 4h48 e, com ele, a campanha inteira. O build é o `76eedfc75`
+(`install_v9`) e as condições são as da v15: 300 s por tarefa, `--memory=4g`, TestCov
+com 300 s.
+
+**Cover-Branches, 2 765 tarefas** (recorte da v15, pareado):
+
+| | v15 | 9.0 |
+|---|---|---|
+| cobertura média | 41,4% | **45,1% (+3,7 p.p.)** |
+| cobertura mediana | 38,5% | **47,6%** |
+| melhores / piores / iguais | — | 932 / 381 / 1 452 |
+| VALIDATED / VALIDATED_ABORTS | 2 325 / 329 | 2 416 / 209 |
+| TESTCOV_ERROR | 110 | 140 (139 ECA) |
+| tempo mediano | 114 s | 274 s |
+
+- **Por categoria** (cobertura média, v15 → 9.0):
+  - Arrays: 60,7 → 76,2;
+  - BitVectors: 60,6 → 70,0;
+  - ControlFlow: 44,9 → 53,1;
+  - Recursive: 57,8 → 65,3;
+  - Heap: 40,6 → 47,3;
+  - Loops: 70,5 → 73,8;
+  - LinkedLists: 75,8 → 78,5;
+  - Sequentialized: 56,0 → 58,7;
+  - Floats: 5,4 → 6,7;
+  - ProductLines: 20,3 → 20,7;
+  - ECA: 10,5 → 10,6.
+  - **A única queda é o XCSP: 77,6 → 54,6.**
+- **Tarefas com zero testes.** 50 tarefas (43 XCSP, 7 Floats) geram testes na v15 e
+  nenhum na 9.0. Elas somam 1,6 p.p. da média geral; sem elas, a comparação fica em
+  40,5% → 45,9%.
+  - A causa é a poda de assunção com `klee_silent_exit` (ver o backlog).
+  - Na direção contrária, 51 tarefas sem teste na v15 passam a ter testes na 9.0.
+- **TESTCOV_ERROR.** Dos 140, 109 já davam erro na v15. Quase todos são do ECA: o
+  TestCov passa do limite de 300 s do harness. Falta revalidar com um limite maior.
+- **Tempo.** A 9.0 gasta o orçamento inteiro, porque a alternância só para por
+  estagnação e a suíte continua crescendo. Na v15 o híbrido fixo terminava antes.
+- O campo de veredito (SUCCEEDED 1 655 → 296) não pesa em Cover-Branches. Só a cobertura
+  validada pelo TestCov conta.

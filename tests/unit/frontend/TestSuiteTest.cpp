@@ -307,3 +307,31 @@ TEST(TestSuiteWriter, RemoveTestCasesKeepsTheMetadata) {
   EXPECT_TRUE(fs::exists(d / "metadata.xml"));
   EXPECT_EQ(Map2Check::TestSuiteWriter(d.string()).caseCount(), 0u);
 }
+
+// A case from an assumption-pruned path is remembered as such across phases,
+// and only such a case is evicted to make room for a deeper path.
+TEST(TestSuiteWriter, EvictsOnlyPrunedCasesAcrossPhases) {
+  fs::path d = freshDir("tc_pruned");
+  {
+    Map2Check::TestSuiteWriter first(d.string());
+    ASSERT_TRUE(first.writeTestCase({"1"}, false));
+    ASSERT_TRUE(first.writeTestCase({"2"}, false, true));
+    EXPECT_EQ(first.prunedCount(), 1u);
+  }
+  Map2Check::TestSuiteWriter second(d.string());
+  EXPECT_EQ(second.caseCount(), 2u);
+  EXPECT_EQ(second.prunedCount(), 1u);
+  EXPECT_TRUE(second.hasTestCase({"2"}));
+
+  EXPECT_TRUE(second.evictPrunedCase());
+  EXPECT_FALSE(fs::exists(d / "testcase-2.xml"));
+  EXPECT_TRUE(fs::exists(d / "testcase-1.xml"));
+  EXPECT_EQ(second.caseCount(), 1u);
+  EXPECT_FALSE(second.hasTestCase({"2"}));
+  EXPECT_FALSE(second.evictPrunedCase());
+
+  ASSERT_TRUE(second.writeTestCase({"3"}, false));
+  EXPECT_TRUE(fs::exists(d / "testcase-3.xml"));
+  EXPECT_EQ(slurp(d / "testcase-3.xml").find("pruned"), std::string::npos);
+  fs::remove_all(d);
+}

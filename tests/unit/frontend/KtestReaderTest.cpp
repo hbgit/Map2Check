@@ -252,6 +252,63 @@ TEST(ReadKtestVectors, DropsVectorsWithNoObjects) {
   fs::remove_all(d);
 }
 
+// A path a failed assumption pruned carries the marker object. The marker is
+// not an input, and such paths come after every other one, so shallow pruned
+// paths cannot crowd deep ones out of a capped suite.
+TEST(ReadKtestFile, StripsThePrunedPathMarker) {
+  fs::path d = freshDir("marker");
+  KtestBuilder()
+      .object("non_det_int", le32(5))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000001.ktest");
+  bool pruned = false;
+  auto objects =
+      Map2Check::readKtestFile((d / "test000001.ktest").string(), &pruned);
+  EXPECT_TRUE(pruned);
+  ASSERT_EQ(objects.size(), 1u);
+  EXPECT_EQ(objects[0].name, "non_det_int");
+  fs::remove_all(d);
+}
+
+TEST(ReadKtestVectors, PrunedPathsComeLast) {
+  fs::path d = freshDir("pruned");
+  KtestBuilder()
+      .object("non_det_int", le32(1))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000001.ktest");
+  KtestBuilder().object("non_det_int", le32(2)).writeTo(d / "test000002.ktest");
+  KtestBuilder()
+      .object("non_det_int", le32(3))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000003.ktest");
+  KtestBuilder().object("non_det_int", le32(4)).writeTo(d / "test000004.ktest");
+
+  auto all = Map2Check::readKtestVectors(d.string(), 100);
+  ASSERT_EQ(all.size(), 4u);
+  EXPECT_EQ(all[0], std::vector<std::string>{"2"});
+  EXPECT_EQ(all[1], std::vector<std::string>{"4"});
+  EXPECT_EQ(all[2], std::vector<std::string>{"1"});
+  EXPECT_EQ(all[3], std::vector<std::string>{"3"});
+
+  auto capped = Map2Check::readKtestVectors(d.string(), 3);
+  ASSERT_EQ(capped.size(), 3u);
+  EXPECT_EQ(capped[2], std::vector<std::string>{"1"});
+  fs::remove_all(d);
+}
+
+// Only pruned paths: they are the whole suite rather than none of it.
+TEST(ReadKtestVectors, OnlyPrunedPathsStillMakeASuite) {
+  fs::path d = freshDir("onlypruned");
+  KtestBuilder()
+      .object("non_det_int", le32(7))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000001.ktest");
+  auto vectors = Map2Check::readKtestVectors(d.string(), 100);
+  ASSERT_EQ(vectors.size(), 1u);
+  EXPECT_EQ(vectors[0], std::vector<std::string>{"7"});
+  fs::remove_all(d);
+}
+
 TEST(ReadKtestVectors, MissingDirectoryYieldsNothing) {
   EXPECT_TRUE(Map2Check::readKtestVectors("/nonexistent/klee-last", 10).empty());
 }
@@ -405,5 +462,22 @@ TEST(ReadNonDetLogAsObjects, StopsAtTheFirstUnsupportedRead) {
       Map2Check::readNonDetLogAsObjects((d / "klee_log.csv").string());
   ASSERT_EQ(objects.size(), 1u);
   EXPECT_EQ(objects[0].name, "non_det_int");
+  fs::remove_all(d);
+}
+
+TEST(ReadKtestVectors, FlagsThePrunedVectors) {
+  fs::path d = freshDir("prunedflags");
+  KtestBuilder()
+      .object("non_det_int", le32(1))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000001.ktest");
+  KtestBuilder().object("non_det_int", le32(2)).writeTo(d / "test000002.ktest");
+  std::vector<bool> pruned;
+  auto vectors = Map2Check::readKtestVectors(d.string(), 100, &pruned);
+  ASSERT_EQ(vectors.size(), 2u);
+  ASSERT_EQ(pruned.size(), 2u);
+  EXPECT_FALSE(pruned[0]);
+  EXPECT_TRUE(pruned[1]);
+  EXPECT_EQ(vectors[1], std::vector<std::string>{"1"});
   fs::remove_all(d);
 }

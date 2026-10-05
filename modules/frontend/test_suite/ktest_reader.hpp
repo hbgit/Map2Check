@@ -49,8 +49,17 @@ struct KtestObject {
   std::vector<uint8_t> bytes;
 };
 
-/** Parses one .ktest file. Empty on a file that is absent or not a ktest. */
-std::vector<KtestObject> readKtestFile(const std::string& path);
+/** The object NonDetGeneratorKlee.c makes just before a failed assumption
+ * ends the path. It carries no input: it only marks the .ktest as a path the
+ * program itself declared infeasible. */
+constexpr const char* kPrunedPathMarker = "map2check_pruned";
+
+/** Parses one .ktest file. Empty on a file that is absent or not a ktest.
+ *
+ * The pruned-path marker is never returned as an object; `pruned`, when given,
+ * says whether the file carried it. */
+std::vector<KtestObject> readKtestFile(const std::string& path,
+                                       bool* pruned = nullptr);
 
 /** Renders one object as the decimal string a <input> element carries.
  *
@@ -100,8 +109,8 @@ bool kleeHaltedOnTimer(const std::string& kleeOutDir);
  *    loops/insertion_sort-1-2, also answered TRUE.
  * Also: KLEE hitting its memory cap ("skipping fork", "over memory cap"), and
  * a KLEE that never finished (no "done: completed paths" in info -- a crash).
- * A path pruned by an assumption is none of these: it ends in
- * klee_silent_exit and leaves no file. */
+ * A path pruned by an assumption is none of these: it ends in _exit, a
+ * normal exit, and leaves an ordinary .ktest. */
 std::string kleeDroppedPaths(const std::string& kleeOutDir);
 
 /** Every input vector KLEE recorded under `kleeOutDir`, one per .ktest.
@@ -109,9 +118,17 @@ std::string kleeDroppedPaths(const std::string& kleeOutDir);
  * Ordered by file name, which is KLEE's own path numbering: stable across
  * runs, so two runs over the same output number their test cases alike.
  * `limit` bounds the suite. Vectors with no objects are dropped -- a path that
- * read no input is not a test case. */
+ * read no input is not a test case.
+ *
+ * Paths a failed assumption pruned come after every other path. They still
+ * cover branches -- on a program whose every path meets a failed assumption
+ * they are the whole suite -- but they are usually shallow, and taken in KLEE's
+ * order they filled the suite's cap ahead of the deep paths: xcsp/AllInterval
+ * fell from 95% to 9% coverage. `pruned`, when given, flags each returned
+ * vector that came from such a path. */
 std::vector<std::vector<std::string>> readKtestVectors(
-    const std::string& kleeOutDir, size_t limit);
+    const std::string& kleeOutDir, size_t limit,
+    std::vector<bool>* pruned = nullptr);
 
 /** Serialises objects into the byte stream a fuzzer would consume.
  *

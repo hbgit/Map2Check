@@ -158,8 +158,9 @@ bool isUnsignedName(const std::string& name) {
 
 }  // namespace
 
-std::vector<KtestObject> readKtestFile(const std::string& path) {
+std::vector<KtestObject> readKtestFile(const std::string& path, bool* pruned) {
   std::vector<KtestObject> objects;
+  if (pruned != nullptr) *pruned = false;
   std::ifstream in(path, std::ios::binary);
   if (!in.is_open()) return objects;
 
@@ -212,6 +213,10 @@ std::vector<KtestObject> readKtestFile(const std::string& path) {
     // A partial object is dropped, but the ones already read are kept: a
     // .ktest truncated by a kill still describes a usable prefix of the path,
     // and the same forgiving rule governs the CSV log.
+    if (name == kPrunedPathMarker) {
+      if (pruned != nullptr) *pruned = true;
+      continue;
+    }
     objects.push_back(KtestObject{name, std::move(bytes)});
   }
 
@@ -372,8 +377,9 @@ std::string kleeDroppedPaths(const std::string& kleeOutDir) {
 }
 
 std::vector<std::vector<std::string>> readKtestVectors(
-    const std::string& kleeOutDir, size_t limit) {
+    const std::string& kleeOutDir, size_t limit, std::vector<bool>* pruned) {
   std::vector<std::vector<std::string>> vectors;
+  if (pruned != nullptr) pruned->clear();
   std::error_code error;
   if (!std::filesystem::is_directory(kleeOutDir, error)) return vectors;
 
@@ -389,17 +395,26 @@ std::vector<std::vector<std::string>> readKtestVectors(
   }
   std::sort(paths.begin(), paths.end());
 
+  std::vector<std::vector<std::string>> prunedVectors;
   for (const std::string& path : paths) {
     if (vectors.size() >= limit) break;
-    std::vector<KtestObject> objects = readKtestFile(path);
+    bool isPruned = false;
+    std::vector<KtestObject> objects = readKtestFile(path, &isPruned);
     if (objects.empty()) continue;
+    if (isPruned && prunedVectors.size() >= limit) continue;
 
     std::vector<std::string> inputs;
     inputs.reserve(objects.size());
     for (const KtestObject& object : objects) {
       inputs.push_back(decodeKtestObject(object));
     }
+    (isPruned ? prunedVectors : vectors).push_back(std::move(inputs));
+  }
+  if (pruned != nullptr) pruned->assign(vectors.size(), false);
+  for (std::vector<std::string>& inputs : prunedVectors) {
+    if (vectors.size() >= limit) break;
     vectors.push_back(std::move(inputs));
+    if (pruned != nullptr) pruned->push_back(true);
   }
   return vectors;
 }

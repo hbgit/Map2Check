@@ -187,10 +187,19 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
     // The fuzzer's share first, at most half the suite, so KLEE's paths still
     // find room: its corpus is ranked by new edges, the cases a coverage
     // metric rewards by construction (on by default; MAP2CHECK_FUZZER_SUITE=0).
+    // Cases from assumption-pruned paths (see evictPrunedCase) hold no claim
+    // on the suite: they count toward neither share and give way when full.
     size_t fromFuzzer = 0;
     for (const std::vector<std::string> &inputs : fuzzerVectors) {
-      if (writer.caseCount() >= kMaxBranchTestCases / 2) break;
+      if (writer.caseCount() - writer.prunedCount() >=
+          kMaxBranchTestCases / 2) {
+        break;
+      }
       if (writer.hasTestCase(inputs)) continue;
+      if (writer.caseCount() >= kMaxBranchTestCases &&
+          !writer.evictPrunedCase()) {
+        break;
+      }
       if (!writer.writeTestCase(inputs, false)) {
         Map2Check::Log::Warning("could not write test case to " + outputDir);
         return;
@@ -202,13 +211,19 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                            " test cases from the fuzzer's corpus");
     }
     constexpr size_t kMaxKtestsRead = 5000;
-    std::vector<std::vector<std::string>> vectors =
-        Map2Check::readKtestVectors(Map2Check::kleeOutputDir, kMaxKtestsRead);
+    std::vector<bool> pruned;
+    std::vector<std::vector<std::string>> vectors = Map2Check::readKtestVectors(
+        Map2Check::kleeOutputDir, kMaxKtestsRead, &pruned);
     size_t written = 0;
-    for (const std::vector<std::string> &inputs : vectors) {
-      if (writer.caseCount() >= kMaxBranchTestCases) break;
+    for (size_t i = 0; i < vectors.size(); ++i) {
+      const std::vector<std::string> &inputs = vectors[i];
       if (writer.hasTestCase(inputs)) continue;
-      if (!writer.writeTestCase(inputs, false)) {
+      // Pruned vectors come last, so once one finds the suite full, all do.
+      if (writer.caseCount() >= kMaxBranchTestCases &&
+          (pruned[i] || !writer.evictPrunedCase())) {
+        break;
+      }
+      if (!writer.writeTestCase(inputs, false, pruned[i])) {
         Map2Check::Log::Warning("could not write test case to " + outputDir);
         return;
       }

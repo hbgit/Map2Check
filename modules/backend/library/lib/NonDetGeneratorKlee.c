@@ -35,11 +35,18 @@ extern void klee_assume(int);
  * Cover-Branches suite. _exit ends the path normally, so KLEE writes its
  * .ktest, and it skips the exit handlers: a path the program declared
  * infeasible reports no leak. */
-void nondet_assume(int expr) {
-  if (!expr) _exit(0);
-}
-
 extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
+
+/* The path's test still goes after every unpruned one in a Cover-Branches
+ * suite (readKtestVectors), so the one-byte "map2check_pruned" object marks
+ * it. The reader strips the marker; it is never an input. */
+void nondet_assume(int expr) {
+  if (!expr) {
+    char pruned;
+    klee_make_symbolic(&pruned, sizeof(pruned), "map2check_pruned");
+    _exit(0);
+  }
+}
 
 /* "non_det_" #type, not "non_det_#type". The stringify operator only applies
  * to a macro parameter written OUTSIDE a string literal; inside one, # and t

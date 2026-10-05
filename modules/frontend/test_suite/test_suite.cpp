@@ -31,6 +31,10 @@ const char kTestCaseDoctype[] =
     "\"+//IDN sosy-lab.org//DTD test-format testcase 1.1//EN\" "
     "\"https://sosy-lab.org/test-format/testcase-1.1.dtd\">";
 
+/** Marks a case as an assumption-pruned path (see evictPrunedCase). A comment
+ * is outside the test format, so validators and TestCov ignore it. */
+const char kPrunedComment[] = "<!-- map2check: assumption-pruned path -->";
+
 /** Field index of the value in a nondet log row.
  * NonDetLog.c writes: id;line;scope;function_name;step;value;type */
 constexpr size_t kValueField = 5;
@@ -136,7 +140,20 @@ TestSuiteWriter::TestSuiteWriter(std::string directory)
       at = end + kClose.size();
     }
     this->cases.insert(inputs);
+    if (xml.find(kPrunedComment) != std::string::npos) {
+      this->prunedCases[inputs] = entry.path();
+    }
   }
+}
+
+bool TestSuiteWriter::evictPrunedCase() {
+  if (this->prunedCases.empty()) return false;
+  auto victim = this->prunedCases.begin();
+  std::error_code ec;
+  std::filesystem::remove(victim->second, ec);
+  this->cases.erase(victim->first);
+  this->prunedCases.erase(victim);
+  return true;
 }
 
 namespace {
@@ -197,7 +214,7 @@ bool TestSuiteWriter::writeMetadata(const TestSuiteMetadata& metadata) {
 }
 
 bool TestSuiteWriter::writeTestCase(const std::vector<std::string>& inputs,
-                                    bool coversError) {
+                                    bool coversError, bool pruned) {
   std::error_code ec;
   std::filesystem::create_directories(this->directory, ec);
 
@@ -207,6 +224,7 @@ bool TestSuiteWriter::writeTestCase(const std::vector<std::string>& inputs,
   if (!out.is_open()) return false;
 
   out << kXmlDeclaration << "\n" << kTestCaseDoctype << "\n";
+  if (pruned) out << kPrunedComment << "\n";
   // coversError defaults to "false" in the DTD, so it is only spelled out when
   // the run actually reached the error.
   out << (coversError ? "<testcase coversError=\"true\">\n" : "<testcase>\n");
@@ -217,6 +235,10 @@ bool TestSuiteWriter::writeTestCase(const std::vector<std::string>& inputs,
   }
   out << "</testcase>\n";
   this->cases.insert(escapedInputs(inputs));
+  if (pruned) {
+    this->prunedCases[escapedInputs(inputs)] =
+        std::filesystem::path(this->directory) / name;
+  }
   out.close();
   return out.good();
 }

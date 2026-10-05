@@ -10,6 +10,7 @@
 #include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
 #include <stdlib.h>
+#include <unistd.h>
 
 extern int __map2check_main__(int argc, char **argv);
 
@@ -23,14 +24,19 @@ void nondet_generate_aux_witness_files() {
 
 extern void klee_assume(int);
 
-/* A failed assumption ends the path silently. klee_assume(0) on a path where
- * the condition is already false is a KLEE error ("invalid klee_assume call
- * (provably false)", a user.err), and the frontend must read every KLEE error
- * as a dropped path -- which made every program with an assume_abort_if_not
- * unprovable. klee_silent_exit leaves no test and no error. */
-extern void klee_silent_exit(int status);
+/* A failed assumption ends the path as a normal exit. klee_assume(0) on a
+ * path where the condition is already false is a KLEE error ("invalid
+ * klee_assume call (provably false)", a user.err), and the frontend must read
+ * every KLEE error as a dropped path -- which made every program with an
+ * assume_abort_if_not unprovable.
+ *
+ * klee_silent_exit avoided the error but wrote no test either, so a program
+ * whose every path meets a failed assumption (most of XCSP) got an empty
+ * Cover-Branches suite. _exit ends the path normally, so KLEE writes its
+ * .ktest, and it skips the exit handlers: a path the program declared
+ * infeasible reports no leak. */
 void nondet_assume(int expr) {
-  if (!expr) klee_silent_exit(0);
+  if (!expr) _exit(0);
 }
 
 extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);

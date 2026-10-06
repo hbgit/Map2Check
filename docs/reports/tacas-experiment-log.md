@@ -835,3 +835,33 @@ com 300 s.
   estagnação e a suíte continua crescendo. Na v15 o híbrido fixo terminava antes.
 - O campo de veredito (SUCCEEDED 1 655 → 296) não pesa em Cover-Branches. Só a cobertura
   validada pelo TestCov conta.
+
+## Correção dos caminhos podados pelo assume, e rerrodada (2026-10-05/06)
+
+- **Defeito:** sob o KLEE, o `nondet_assume` podava com `klee_silent_exit`, que não grava
+  `.ktest`. Na campanha da 9.0, 50 tarefas de Cover-Branches (43 XCSP, 7 Floats) tinham
+  testes na v15 e nenhum na 9.0.
+- **Correção 1** (`e4e0b74c7`): a poda passa a usar `_exit(0)`. O caminho termina
+  normalmente e o KLEE grava o teste.
+- **Correção 2** (`6848d2395`): o caminho podado leva um objeto marcador
+  (`map2check_pruned`).
+  - O leitor remove o marcador e põe esses vetores depois dos outros.
+  - A suíte marca o caso com um comentário XML e o troca por um caminho mais profundo
+    quando atinge o limite de 50, inclusive em fases seguintes.
+  - Motivo: só com a correção 1, a primeira fase do KLEE no AllInterval achava apenas
+    caminhos podados e enchia a suíte. A cobertura caía de 95% para 9%.
+- **Rerrodada** (300 s por tarefa, mesmas condições), com a cobertura média em %:
+
+| lote | tarefas | v15 | 9.0 | só a correção 1 | correções 1 e 2 |
+|---|---|---|---|---|---|
+| tarefas sem teste na 9.0 | 50 | 88,8 | 0,0 | 88,8 | **88,8** |
+| XCSP que já tinham testes | 76 | 64,9 | 85,5 | 78,5 | **94,7** (+20 −6 contra a 9.0) |
+| controle sorteado | 100 | 46,9 | 54,4 | 55,9 | **55,0** (+19 −7) |
+| Cover-Error sorteado | 100 | — | 63 cobertas | 66 | **63** (+3 −3, ECA), TRUE errado 0 |
+
+- **Projeção no Cover-Branches completo** (as 226 tarefas trocadas pelas da rerrodada):
+  - média: v15 41,4% → 9.0 45,1% → **47,0%**;
+  - XCSP: 77,6% → 54,6% → **96,6%**.
+- **Ainda abaixo da 9.0 original:** AllInterval-035 (38,6 → 2,9), -025 e -017. As oscilações
+  de mais e de menos no controle e no Cover-Error ficam dentro da variação entre
+  execuções vista nas rodadas anteriores.

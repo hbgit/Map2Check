@@ -89,7 +89,7 @@ Itens decididos como "não agora", cada um com o motivo e onde está a evidênci
 - **TODO:** montar um manifest com as subcategorias ausentes (Hardware, Intel-TDX,
   coreutils) e rodar uma amostra delas depois da campanha de Cover-Branches.
 
-## Caminhos podados pelo assume no KLEE não geram teste
+## ~~Caminhos podados pelo assume no KLEE não geram teste~~ (resolvido)
 
 - **Sintoma:** na campanha da 9.0, 29 tarefas de Cover-Branches (25 XCSP, 4 Floats)
   terminam com zero testes. O XCSP cai de 76,2% para 58,1% de cobertura média, o que
@@ -103,4 +103,4 @@ Itens decididos como "não agora", cada um com o motivo e onde está a evidênci
   - o §29 (`safe.c`) continua dando TRUE;
   - o memtrack com `sleep-3` não ganha falso positivo.
   - Depois disso, repetir só as tarefas que ficaram com zero testes.
-- **TODO:** aguarda decisão.
+- **Resolvido** em `e4e0b74c7` e `6848d2395` (ver o log de experimentos, 2026-10-05/06).

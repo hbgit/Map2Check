@@ -1,0 +1,148 @@
+{
+  "system_prompt": "You are a program-verification engine. You receive one C translation unit and\none safety property. You decide whether some execution of the program can\nviolate that property, and you answer in a fixed format.\n\nAssume the SV-COMP execution model:\n  - `main` is the entry point.\n  - `__VERIFIER_nondet_<type>()` returns an arbitrary value of that type; every\n    call is independent. Reason over all possible return values.\n  - `__VERIFIER_assume(c)` and `assume_abort_if_not(c)` discard executions in\n    which `c` is false. Executions they discard cannot violate anything.\n  - The machine model is 64-bit little-endian (LP64), signed integers are\n    two's complement, `int` is 32 bits, `long` and pointers are 64 bits.\n  - Library functions behave as the C standard specifies. `malloc` may return\n    NULL.\n\nJudge ONLY the property you are given. A program may contain other defects;\nthey are irrelevant and must not change your verdict.\n\nThe program may or may not violate the property. Both outcomes are equally\nlikely a priori. Do not assume a defect is present because you were asked to\nlook for one.\n\nAnswer with exactly three lines and nothing else:\n\nVERDICT: <one token from the allowed list you are given>\nLINE: <1-based line number of the violating operation, or - if not applicable>\nREASON: <one sentence, at most 30 words>\n\n`UNKNOWN` is a legitimate answer and is scored separately from a wrong one.\nUse it when you cannot decide. Never answer with prose outside the three lines,\nnever hedge inside VERDICT, never emit more than one VERDICT line.",
+  "prompts": [
+    {
+      "id": "P1",
+      "verdict": "FALSE-DEREF",
+      "map2check_command": "map2check --memtrack --nondet-generator symex <file.c>",
+      "benchmark_cwes": [
+        121,
+        122,
+        125,
+        476,
+        787,
+        822,
+        843,
+        416
+      ],
+      "allowed_tokens": [
+        "FALSE-DEREF",
+        "TRUE",
+        "UNKNOWN"
+      ],
+      "placeholders": [
+        "PROGRAM"
+      ],
+      "user_prompt": "PROPERTY — valid-deref\n\nEvery memory dereference the program performs must be valid: the address must\npoint inside a live object, at an offset within that object's bounds, for the\nfull width of the access.\n\nA violation is any of:\n  - reading or writing through a NULL pointer;\n  - reading or writing outside the bounds of an allocated object (heap, stack\n    or global), including off-by-one past the end;\n  - dereferencing a pointer to memory that has already been freed;\n  - dereferencing a pointer to a local variable whose scope has ended;\n  - dereferencing an uninitialised or otherwise indeterminate pointer.\n\nNot a violation for this property:\n  - failing to free memory (that is a different property);\n  - passing an invalid pointer to free() without dereferencing it;\n  - integer overflow, division by zero, or a failing assertion.\n\nAnswer FALSE-DEREF if some execution performs an invalid dereference.\nAnswer TRUE if no execution can.\nAnswer UNKNOWN if you cannot decide.\n\nPROGRAM:\n```c\n{{PROGRAM}}\n```"
+    },
+    {
+      "id": "P2",
+      "verdict": "FALSE-FREE",
+      "map2check_command": "map2check --memtrack --nondet-generator symex <file.c>",
+      "benchmark_cwes": [
+        415,
+        416,
+        761
+      ],
+      "allowed_tokens": [
+        "FALSE-FREE",
+        "TRUE",
+        "UNKNOWN"
+      ],
+      "placeholders": [
+        "PROGRAM"
+      ],
+      "user_prompt": "PROPERTY — valid-free\n\nEvery call to free() (and to realloc() with a non-null pointer) must receive\neither NULL or a pointer that was returned by a previous allocation and has not\nbeen freed since — and it must point at the START of that allocation.\n\nA violation is any of:\n  - freeing the same pointer twice;\n  - freeing a pointer that no allocation returned (a stack address, a global, a\n    string literal, an arbitrary integer cast to a pointer);\n  - freeing a pointer that has been advanced away from the start of its block\n    (e.g. `p++` then `free(p)`);\n  - freeing a pointer whose value is indeterminate.\n\n`free(NULL)` is well defined and is NOT a violation.\n\nNot a violation for this property:\n  - dereferencing a freed pointer without freeing it again (that is\n    valid-deref);\n  - never freeing an allocation (that is valid-memtrack).\n\nAnswer FALSE-FREE if some execution performs an invalid free.\nAnswer TRUE if no execution can.\nAnswer UNKNOWN if you cannot decide.\n\nPROGRAM:\n```c\n{{PROGRAM}}\n```"
+    },
+    {
+      "id": "P3",
+      "verdict": "FALSE-MEMTRACK",
+      "map2check_command": "map2check --memtrack --nondet-generator symex <file.c>",
+      "benchmark_cwes": [],
+      "allowed_tokens": [
+        "FALSE-MEMTRACK",
+        "TRUE",
+        "UNKNOWN"
+      ],
+      "placeholders": [
+        "PROGRAM"
+      ],
+      "user_prompt": "PROPERTY — valid-memtrack\n\nThe program must not lose track of allocated memory. A block is lost when the\nlast pointer to it is overwritten, goes out of scope, or is otherwise destroyed\nwhile the block is still allocated — after that no execution could free it even\nin principle.\n\nA violation is any of:\n  - overwriting the only pointer to a block that is still allocated;\n  - returning from a function while the only pointer to a block is a local\n    variable of that function;\n  - losing a block on an early-return or error path while the normal path frees\n    it.\n\nNot a violation for this property:\n  - a block that is still reachable through some live pointer when main\n    returns — that is valid-memcleanup, a different property;\n  - freeing a block twice, or dereferencing it after free.\n\nNote the distinction carefully: this property is about UNREACHABLE memory, not\nabout unfreed memory.\n\nAnswer FALSE-MEMTRACK if some execution makes an allocated block unreachable.\nAnswer TRUE if no execution can.\nAnswer UNKNOWN if you cannot decide.\n\nPROGRAM:\n```c\n{{PROGRAM}}\n```"
+    },
+    {
+      "id": "P4",
+      "verdict": "FALSE-MEMCLEANUP",
+      "map2check_command": "map2check --memcleanup-property --nondet-generator symex <file.c>",
+      "benchmark_cwes": [
+        401
+      ],
+      "allowed_tokens": [
+        "FALSE-MEMCLEANUP",
+        "TRUE",
+        "UNKNOWN"
+      ],
+      "placeholders": [
+        "PROGRAM"
+      ],
+      "user_prompt": "PROPERTY — valid-memcleanup\n\nAll memory allocated by the program must have been deallocated by the time main\nreturns (or exit() is called). Whether a pointer to the block still exists is\nirrelevant: the question is only whether the block was freed.\n\nA violation is any execution that terminates normally with at least one\nallocated, unfreed block.\n\nNot a violation for this property:\n  - an unfreed block in an execution that does not terminate;\n  - freeing a block twice, dereferencing it after free, or making it\n    unreachable while still freeing it later.\n\nNote the distinction from valid-memtrack: a block kept in a global pointer and\nnever freed satisfies valid-memtrack (it is still reachable) but violates\nvalid-memcleanup.\n\nAnswer FALSE-MEMCLEANUP if some terminating execution leaves memory allocated.\nAnswer TRUE if every terminating execution frees everything.\nAnswer UNKNOWN if you cannot decide.\n\nPROGRAM:\n```c\n{{PROGRAM}}\n```"
+    },
+    {
+      "id": "P5",
+      "verdict": "FALSE-OVERFLOW",
+      "map2check_command": "map2check --check-overflow --nondet-generator symex <file.c>",
+      "benchmark_cwes": [
+        190,
+        191
+      ],
+      "allowed_tokens": [
+        "FALSE-OVERFLOW",
+        "TRUE",
+        "UNKNOWN"
+      ],
+      "placeholders": [
+        "PROGRAM"
+      ],
+      "user_prompt": "PROPERTY — no-overflow\n\nNo arithmetic operation on a SIGNED integer type may produce a result outside\nthe range of the operation's resulting type. Evaluate the property on the type\nthat C's usual arithmetic conversions give the operation, not on the type of\nthe variable the result is stored into.\n\nA violation is any of:\n  - a signed addition, subtraction or multiplication whose mathematical result\n    falls outside the range of its resulting type;\n  - the division or remainder `INT_MIN / -1` and `INT_MIN % -1`.\n\nNOT a violation for this property:\n  - arithmetic on unsigned types — unsigned wraparound is defined behaviour and\n    is explicitly outside this property;\n  - floating-point arithmetic of any kind;\n  - conversions and truncations that merely discard bits (e.g. assigning a\n    long to an int);\n  - division or remainder by zero — that is a different property;\n  - out-of-bounds accesses, invalid frees, or failing assertions.\n\nRemember that operands narrower than int are promoted to int before the\noperation, so arithmetic on two chars is evaluated in int and rarely overflows.\n\nAnswer FALSE-OVERFLOW if some execution overflows a signed integer operation.\nAnswer TRUE if no execution can.\nAnswer UNKNOWN if you cannot decide.\n\nPROGRAM:\n```c\n{{PROGRAM}}\n```"
+    },
+    {
+      "id": "P6",
+      "verdict": "FALSE-DIVBYZERO",
+      "map2check_command": "map2check --check-overflow --nondet-generator symex <file.c>",
+      "benchmark_cwes": [
+        369
+      ],
+      "allowed_tokens": [
+        "FALSE-DIVBYZERO",
+        "TRUE",
+        "UNKNOWN"
+      ],
+      "placeholders": [
+        "PROGRAM"
+      ],
+      "user_prompt": "PROPERTY — no division by zero\n\nNo execution may evaluate an integer division or remainder whose right operand\nis zero.\n\nA violation is any execution reaching `a / b` or `a % b` on integer types with\nb == 0, including the compound forms `a /= b` and `a %= b`.\n\nNot a violation for this property:\n  - floating-point division by zero, which is defined and yields an infinity or\n    a NaN;\n  - signed overflow such as INT_MIN / -1 — that is the no-overflow property;\n  - a division by zero that appears only in code no execution reaches, or only\n    on a path excluded by __VERIFIER_assume / assume_abort_if_not.\n\nAnswer FALSE-DIVBYZERO if some execution divides or takes a remainder by zero.\nAnswer TRUE if no execution can.\nAnswer UNKNOWN if you cannot decide.\n\nPROGRAM:\n```c\n{{PROGRAM}}\n```"
+    },
+    {
+      "id": "P7",
+      "verdict": "ASSERT",
+      "map2check_command": "map2check --check-asserts --nondet-generator symex <file.c>",
+      "benchmark_cwes": [
+        617
+      ],
+      "allowed_tokens": [
+        "ASSERT",
+        "TRUE",
+        "UNKNOWN"
+      ],
+      "placeholders": [
+        "PROGRAM"
+      ],
+      "user_prompt": "PROPERTY — assertion validity\n\nEvery assertion in the program must hold whenever it is evaluated. Both\n`assert(c)` (which expands to a call to __assert_fail when c is false) and\n`__VERIFIER_assert(c)` count.\n\nA violation is any execution that reaches an assertion whose condition\nevaluates to false.\n\nNot a violation for this property:\n  - an assertion whose condition is false only under inputs excluded by\n    __VERIFIER_assume or assume_abort_if_not;\n  - an assertion inside code no execution reaches;\n  - any memory error, overflow or division by zero that occurs on a path that\n    never reaches a failing assertion. If such an error would occur BEFORE the\n    assertion on the same path, the assertion is not reached and this property\n    is not violated by that path.\n\nAnswer ASSERT if some execution reaches an assertion that evaluates to false.\nAnswer TRUE if no execution can.\nAnswer UNKNOWN if you cannot decide.\n\nPROGRAM:\n```c\n{{PROGRAM}}\n```"
+    },
+    {
+      "id": "P8",
+      "verdict": "TARGET-REACHED",
+      "map2check_command": "map2check --target-function --target-function-name <NAME> --nondet-generator symex <file.c>",
+      "benchmark_cwes": [],
+      "allowed_tokens": [
+        "TARGET-REACHED",
+        "TRUE",
+        "UNKNOWN"
+      ],
+      "placeholders": [
+        "PROGRAM",
+        "TARGET"
+      ],
+      "user_prompt": "PROPERTY — unreach-call\n\nThe function `{{TARGET}}` must never be called. Determine whether some\nexecution of the program reaches a call to it.\n\nA violation is any execution in which `{{TARGET}}` is called, directly or\nthrough any chain of calls, including through a function pointer.\n\nNot a violation for this property:\n  - a call to `{{TARGET}}` that appears in the source but that no execution\n    reaches;\n  - a call reachable only on a path excluded by __VERIFIER_assume or\n    assume_abort_if_not;\n  - any memory error, overflow or division by zero on a path that never reaches\n    the call.\n\nAnswer TARGET-REACHED if some execution calls `{{TARGET}}`.\nAnswer TRUE if no execution can.\nAnswer UNKNOWN if you cannot decide.\n\nPROGRAM:\n```c\n{{PROGRAM}}\n```"
+    }
+  ]
+}

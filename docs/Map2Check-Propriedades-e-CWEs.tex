@@ -1,0 +1,578 @@
+% !TeX program = pdflatex
+%
+% Map2Check v8 -- Modos, propriedades, sub-propriedades e cobertura de CWEs
+%
+% Documento de referencia levantado diretamente do codigo-fonte da branch
+% wasm-verification-upgrade. Cada tabela cita o arquivo e a linha de onde o
+% dado foi extraido, para que qualquer divergencia futura seja rastreavel.
+%
+% Compilar com pdfLaTeX (duas passadas). Sem dependencias fora do TeX Live
+% scheme-small.
+%
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+\setlength{\emergencystretch}{3.5em}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\setlength{\LTcapwidth}{\textwidth}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\urlstyle{tt}
+\def\UrlBreaks{\do\/\do\.\do\-\do\_\do\{\do\}}
+
+%---------------------------------------------------------------- macros
+\newcommand{\enquote}[1]{``#1''}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\flag}[1]{\texttt{-\/-#1}}
+\newcommand{\src}[1]{{\small\texttt{#1}}}
+\newcommand{\yes}{\textcolor{green!45!black}{\textbf{sim}}}
+\newcommand{\no}{\textcolor{red!65!black}{\textbf{não}}}
+\newcommand{\parcial}{\textcolor{orange!75!black}{\textbf{parcial}}}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Map2Check --- Propriedades e CWEs}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{\textbf{Map2Check}\\[2mm]
+\large Modos de verificação, propriedades, sub-propriedades\\ e cobertura de CWEs}
+\author{Levantamento a partir do código-fonte\\
+\small branch \code{wasm-verification-upgrade} --- Map2Check v8.0.0}
+\date{6 de setembro de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Este documento inventaria \emph{tudo} que o Map2Check consegue verificar hoje:
+os seis modos de verificação implementados, as especificações SV-COMP que cada
+um responde, os dez veredictos que o runtime é capaz de escrever, e o
+mapeamento CWE${\rightarrow}$modo tal como ele existe nos dois harnesses de
+avaliação do repositório (CASTLE e Juliet). Nada aqui é aspiracional: cada
+entrada cita o arquivo e a linha que a sustenta, e as limitações conhecidas
+estão na Seção~\ref{sec:limitacoes} em vez de omitidas.
+\end{abstract}
+
+\tableofcontents
+\bigskip
+
+%================================================================
+\section{Escopo e fontes}
+
+O levantamento foi feito sobre quatro camadas do código, porque a resposta
+completa não está em nenhuma delas isoladamente:
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+  \item \textbf{CLI} --- \src{modules/frontend/map2check.cpp} define as flags e
+        traduz cada uma em um modo.
+  \item \textbf{Orquestração} --- \src{modules/frontend/caller.hpp:21} declara
+        \code{enum class Map2CheckMode}; \src{caller.cpp:389} decide quais
+        \emph{passes} LLVM cada modo carrega.
+  \item \textbf{Instrumentação} --- \src{modules/backend/pass/*.cpp} são os
+        passes que injetam as chamadas de verificação no IR.
+  \item \textbf{Runtime} --- \src{modules/backend/library/lib/AnalysisMode*.c}
+        implementam a checagem em tempo de execução e escrevem o veredicto;
+        \src{header/Map2CheckTypes.h:68} enumera os veredictos possíveis.
+\end{enumerate}
+
+A cobertura de CWEs vem dos dois \emph{runners} de avaliação versionados no
+repositório, que são a única declaração executável desse mapeamento:
+\src{tests/castle/run\_castle\_evaluation.sh} e
+\src{tests/juliet/run\_juliet\_evaluation.sh}. O contrato entre eles é
+verificado por \src{tests/integration/test\_cwe\_mode\_mapping.sh}, que impede
+que qualquer CWE do benchmark caia num modo não declarado.
+
+%================================================================
+\section{Modos de verificação}
+
+São seis modos, dos quais cinco checam uma propriedade e um --- Cover-Branches
+--- não checa propriedade alguma, existindo apenas para produzir suítes de
+teste.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}l L{3.4cm} L{3.75cm} Y@{}}
+\toprule
+\textbf{\#} & \textbf{Modo} & \textbf{Flag} & \textbf{O que checa} \\
+\midrule
+1 & \code{MEMTRACK\_MODE} \newline \emph{(padrão)} & \flag{memtrack} &
+Segurança de memória: \emph{free} inválido, dereferência inválida e vazamento
+de memória alocada. \\
+\addlinespace
+2 & \code{MEMCLEANUP\_MODE} & \flag{memcleanup-property} &
+Toda memória alocada foi liberada até o fim do \code{main}. \\
+\addlinespace
+3 & \code{OVERFLOW\_MODE} & \flag{check-overflow} &
+Overflow de inteiro \emph{com sinal} e divisão/resto por zero. \\
+\addlinespace
+4 & \code{REACHABILITY\_MODE} & \flag{target-function} \newline
+\flag{target-function-name} & Se uma função-alvo nomeada é alcançável. \\
+\addlinespace
+5 & \code{ASSERT\_MODE} & \flag{check-asserts} &
+Se algum \code{\_\_VERIFIER\_assert} ou \code{\_\_assert\_fail} pode falhar. \\
+\addlinespace
+6 & \code{COVER\_BRANCHES\_MODE} & \flag{cover-branches} &
+\emph{Nada.} Explora caminhos e registra suas entradas (Test-Comp
+Cover-Branches). \\
+\bottomrule
+\end{tabularx}
+\caption{Os seis modos. Fonte: \src{caller.hpp:21--37} e
+\src{map2check.cpp:781--878}.}
+\end{table}
+
+\subsection{Especificação SV-COMP correspondente}
+
+É preciso separar duas coisas que o código trata em lugares diferentes, e que
+não coincidem.
+
+\paragraph{Na \emph{witness}.} A especificação é escolhida pela
+\textbf{propriedade violada}, não pelo modo --- \src{witness/graph.cpp:208--237}
+faz um \code{switch} sobre \code{PropertyViolated}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.6cm} Y@{}}
+\toprule
+\textbf{Veredicto} & \textbf{Especificação emitida} \\
+\midrule
+\code{FALSE-FREE}     & \code{CHECK( init(main()), LTL(G valid-free) )} \\
+\code{FALSE-DEREF}    & \code{CHECK( init(main()), LTL(G valid-deref) )} \\
+\code{FALSE-MEMTRACK} & \code{CHECK( init(main()), LTL(G valid-memtrack) )} \\
+\code{FALSE-OVERFLOW} & \code{CHECK( init(main()), LTL(G ! overflow) )} \\
+\code{TARGET-REACHED} & especificação de alvo (\code{SpecificationType::TARGET}) \\
+\addlinespace
+\code{NONE} (\emph{TRUE}) & conforme \code{spectTrue}: alvo, \code{! overflow},
+ou --- por padrão --- as três linhas de \code{valid-free} $+$
+\code{valid-deref} $+$ \code{valid-memtrack} (\code{MEMSAFETY}). \\
+\bottomrule
+\end{tabularx}
+\caption{Fonte: \src{witness/witness.hpp:64--101} (enum
+\code{SpecificationType}) e \src{witness/graph.cpp:198--258}.
+\textbf{Não existe especificação de \code{memcleanup}}: o enum
+\code{SpecificationType} tem seis valores e nenhum deles é
+\code{valid-memcleanup}. Ver a Seção~\ref{sec:limitacoes}, item~3.}
+\end{table}
+
+\paragraph{Nos metadados do \emph{test-suite}.} Aqui a especificação vem do
+arquivo passado em \flag{property-file}, copiado \emph{verbatim}. As duas
+strings abaixo são apenas o \emph{fallback} para quando esse arquivo não é
+passado ou não pode ser lido (\src{map2check.cpp:104--128}):
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.6cm} Y@{}}
+\toprule
+\textbf{Modo} & \textbf{\emph{Fallback} de \code{<specification>}} \\
+\midrule
+\code{REACHABILITY} &
+\code{COVER( init(main()), FQL(COVER EDGES(@CALL(reach\_error))) )} \\
+\addlinespace
+demais modos &
+\code{COVER( init(main()), FQL(COVER EDGES(@DECISIONEDGE)) )} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Pipeline de passes por modo}
+
+Cada modo monta uma sequência distinta de \emph{passes} do New Pass Manager. O
+\code{nondet-pass} e o \code{map2check-library} são carregados sempre.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.4cm} L{4.3cm} Y@{}}
+\toprule
+\textbf{Modo} & \textbf{Pass adicional} & \textbf{Runtime} \\
+\midrule
+\code{MEMTRACK}       & \code{MemoryTrackPass}  & \code{AnalysisModeMemtrack.c} \\
+\code{MEMCLEANUP}     & \code{MemoryTrackPass}  & \code{AnalysisModeMemcleanup.c} \\
+\code{OVERFLOW}       & \code{OverflowPass}     & \code{AnalysisModeOverflow.c} \\
+\code{REACHABILITY}   & \code{TargetPass}       & \code{AnalysisModeNone.c} \\
+\code{ASSERT}         & \code{AssertPass}       & \code{AnalysisModeAssert.c} \\
+\code{COVER\_BRANCHES}& \emph{nenhum}           & \code{AnalysisModeNone.c} \\
+\bottomrule
+\end{tabularx}
+\caption{Passes: \src{caller.cpp:389--445}; \emph{runtime} linkado:
+\src{caller.cpp:499--531}. \code{REACHABILITY} não precisa de um
+\code{AnalysisMode} próprio porque \code{TARGET-REACHED} é escrito pela
+biblioteca comum (\src{Map2CheckFunctions.c:62}). Cover-Branches é
+deliberadamente o pipeline mais enxuto: menos instrumentação significa mais
+caminhos explorados pelo KLEE no mesmo orçamento.}
+\end{table}
+
+%================================================================
+\section{Veredictos e sub-propriedades}
+
+Um modo não produz um único veredicto. O runtime escreve em
+\code{map2check\_property} um dentre nove valores --- o \emph{enum} tem dez,
+mas \code{UNKNOWN} nunca chega lá (ver abaixo) --- oito dos quais são violações
+concretas. Esta é a granularidade real da ferramenta --- e é o nível certo para
+uma comparação contra outra ferramenta, já que \code{FALSE-FREE},
+\code{FALSE-DEREF} e \code{FALSE-MEMTRACK} compartilham a mesma flag mas são
+defeitos distintos.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}c L{3.4cm} L{3.3cm} Y@{}}
+\toprule
+\textbf{Cód.} & \textbf{Veredicto} & \textbf{Emitido por} & \textbf{Significado} \\
+\midrule
+0 & \code{NONE}             & todos                & Nenhuma violação encontrada (\emph{TRUE}). \\
+1 & \code{UNKNOWN} \newline {\footnotesize(nunca gravado)} & --- & Indeciso. \textbf{As duas chamadas que o escreveriam estão comentadas} (\src{AnalysisModeMemtrack.c:308}, \src{AnalysisModeMemcleanup.c:298}); ver a Seção~\ref{sec:limitacoes}, item~11. \\
+2 & \code{FALSE-FREE}       & Memtrack, Memcleanup & \emph{free} de ponteiro inválido, \emph{double free}, \emph{free} de memória não alocada. Também o \code{free} de WASM sobre \emph{offset} não alocado. \\
+3 & \code{FALSE-DEREF}      & Memtrack             & Dereferência de ponteiro inválido (nulo, liberado, fora da alocação). \\
+4 & \code{FALSE-MEMTRACK}   & Memtrack             & Memória alocada e não liberada (\emph{leak}). \\
+5 & \code{TARGET-REACHED}   & TargetPass           & A função-alvo é alcançável. \\
+6 & \code{FALSE-OVERFLOW} \newline {\footnotesize(gravado como \code{OVERFLOW})} & Overflow; \newline Memtrack (WASM) & Overflow em aritmética de inteiro com sinal. \textbf{No modo WASM é também o veredicto de acesso fora dos limites} da \emph{linear memory} (\src{AnalysisModeMemtrack.c:418--424}). \\
+7 & \code{ASSERT}           & AssertPass           & Assertiva do usuário violada. \\
+8 & \code{FALSE-MEMCLEANUP} & Memcleanup           & Memória ainda viva no retorno do \code{main}. \\
+9 & \code{FALSE-DIVBYZERO}  & Overflow             & Divisão ou resto por zero. \\
+\bottomrule
+\end{tabularx}
+\caption{Fonte: \src{library/header/Map2CheckTypes.h:68--79} (enum
+\code{ViolatedProperty}) e \src{frontend/utils/tools.hpp:105--116}
+(\code{PropertyViolated}). Os pontos de emissão estão em
+\src{AnalysisModeMemtrack.c:141,174,299,356,413,421},
+\src{AnalysisModeMemcleanup.c:142,170,346},
+\src{AnalysisModeOverflow.c:193} e \src{AnalysisModeAssert.c:20}.}
+\end{table}
+
+\paragraph{Observação importante.} \code{FALSE-DIVBYZERO} \emph{não tem flag
+própria}: divisão por zero é detectada como efeito colateral de
+\flag{check-overflow}, porque a instrumentação de \code{SDiv}/\code{SRem} é a
+mesma que checa o overflow de \code{INT\_MIN / -1}. Qualquer comparação com
+outra ferramenta precisa acionar \flag{check-overflow} para cobrir CWE-369.
+
+%================================================================
+\section{Operações instrumentadas em \texttt{OVERFLOW\_MODE}}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.3cm} C{2.9cm} Y@{}}
+\toprule
+\textbf{Instrução LLVM} & \textbf{Instrumentada} & \textbf{Nota} \\
+\midrule
+\code{Add}, \code{Sub}, \code{Mul} & \yes &
+Apenas a variante \emph{com sinal}. O critério é a \emph{flag} \code{nsw} da
+instrução: \src{isUnitAssignment = !binOp->hasNoSignedWrap()}, então só a
+aritmética que o clang marcou como \code{nsw} é instrumentada. As versões
+\code{uint} existem no código porém estão comentadas. \\
+\code{SDiv} & \yes & Gera \code{FALSE-OVERFLOW} (\code{INT\_MIN / -1}) ou \code{FALSE-DIVBYZERO}. \\
+\code{SRem} & \yes & Idem. \\
+\addlinespace
+\code{UDiv}, \code{URem} & \no & Aritmética sem sinal não faz parte da propriedade \code{no-overflow}. \\
+\code{Shl}, \code{LShr}, \code{AShr} & \no &
+O \code{case} de \code{Shl} existe no \code{switch} mas tem \textbf{corpo
+vazio} --- deslocamento à esquerda com perda de bits \emph{não} é detectado. \\
+\code{And}, \code{Or}, \code{Xor} & \no & \emph{Case} vazio. \\
+\code{FAdd}, \code{FSub}, \code{FMul}, \code{FDiv}, \code{FRem} & \no &
+\emph{No-op} deliberado: o SV-COMP define \code{no-overflow} apenas sobre tipos
+inteiros. \\
+\bottomrule
+\end{tabularx}
+\caption{Fonte: \src{pass/OverflowPass.cpp:325--424}. São \textbf{cinco} as
+instruções efetivamente instrumentadas. A propriedade é avaliada
+sobre \emph{o tipo resultante da operação}, conforme a definição do SV-COMP ---
+ver o comentário em \src{OverflowPass.cpp:418} e
+\src{pass/OperationsFunctions.hpp:63}.}
+\end{table}
+
+%================================================================
+\section{Cobertura de CWEs}
+
+O repositório contém dois mapeamentos CWE${\rightarrow}$modo, ambos executáveis
+e ambos versionados. Eles não são idênticos porque os benchmarks não são: o
+CASTLE-C250 cobre CWEs de segurança mais amplas, e o Juliet cobre famílias de
+memória e aritmética com muitas variantes por família.
+
+\subsection{Mapeamento consolidado}
+
+\begin{longtable}{@{\extracolsep{\fill}}l L{4.5cm} L{3.9cm} C{1.7cm} C{1.5cm}@{}}
+\caption{União dos dois mapeamentos. \textbf{15 CWEs} distintos são
+verificáveis. Fonte: \src{tests/castle/run\_castle\_evaluation.sh}
+(\code{CWE\_MODE}) e \src{tests/juliet/run\_juliet\_evaluation.sh:108--126}.
+\enquote{---} significa que o CWE não está naquele benchmark, não que seja
+insuportado.}\label{tab:cwe}\\
+\toprule
+\textbf{CWE} & \textbf{Descrição} & \textbf{Modo} & \textbf{CASTLE} & \textbf{Juliet} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{@{}l}{\small\emph{(continuação da Tabela \thetable)}}\\
+\toprule
+\textbf{CWE} & \textbf{Descrição} & \textbf{Modo} & \textbf{CASTLE} & \textbf{Juliet} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{r@{}}{\small\emph{continua na próxima página}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{5}{@{}l}{\emph{Segurança de memória --- \flag{memtrack}}}\\
+\midrule
+121 & Stack-based buffer overflow          & \flag{memtrack} & --- & \yes \\
+122 & Heap-based buffer overflow           & \flag{memtrack} & --- & \yes \\
+125 & Out-of-bounds read                   & \flag{memtrack} & \yes & --- \\
+415 & Double free                          & \flag{memtrack} & \yes & \yes \\
+416 & Use after free                       & \flag{memtrack} & \yes & \yes \\
+476 & NULL pointer dereference             & \flag{memtrack} & \yes & \yes \\
+761 & Free of pointer not at start of buffer & \flag{memtrack} & \yes & \yes \\
+787 & Out-of-bounds write                  & \flag{memtrack} & \yes & --- \\
+822 & Untrusted pointer dereference        & \flag{memtrack} & \yes & --- \\
+843 & Type confusion (\emph{access of resource with incompatible type}) & \flag{memtrack} & \yes & --- \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Aritmética --- \flag{check-overflow}}}\\
+\midrule
+190 & Integer overflow / wraparound        & \flag{check-overflow} & \yes & \yes \\
+191 & Integer underflow                    & \flag{check-overflow} & --- & \yes \\
+369 & Divide by zero                       & \flag{check-overflow} & \yes & \yes \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Ciclo de vida de memória --- \flag{memcleanup-property}}}\\
+\midrule
+401 & Missing release of memory (\emph{memory leak}) & \flag{memcleanup-property} & \yes & \yes \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Assertivas --- \flag{check-asserts}}}\\
+\midrule
+617 & Reachable assertion                  & \flag{check-asserts} & \yes & --- \\
+\end{longtable}
+
+\subsection{CWEs explicitamente fora de escopo}
+
+O runner do CASTLE declara treze CWEs como fora de escopo. Isso é uma decisão
+deliberada e testada, não uma omissão: \src{test\_cwe\_mode\_mapping.sh}
+\emph{exige} que todo CWE do benchmark esteja ou mapeado ou declarado fora de
+escopo, justamente para que nada caia num modo degenerado em silêncio.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.5cm} Y@{}}
+\toprule
+\textbf{CWEs} & \textbf{Motivo} \\
+\midrule
+628, 674, 770, 835 &
+Terminação e consumo de recurso (recursão descontrolada, alocação sem limite,
+laço infinito). O Map2Check não implementa a propriedade de terminação. \\
+\addlinespace
+22, 78, 89, 134 &
+Injeção e uso indevido de dados externos (\emph{path traversal}, injeção de
+comando/SQL, \emph{format string}). Exigem modelo de \emph{taint}, ausente. \\
+\addlinespace
+253, 327, 362, 522, 798 &
+Verificação incorreta de retorno, criptografia fraca, condição de corrida,
+credenciais desprotegidas/embutidas. Nenhuma é expressável como uma das cinco
+propriedades implementadas. \\
+\bottomrule
+\end{tabularx}
+\caption{Fonte: \src{run\_castle\_evaluation.sh:49}
+(\code{OUT\_OF\_SCOPE\_CWES}).}
+\end{table}
+
+\subsection{Cobertura no modo WebAssembly}
+
+Com \flag{wasm} a entrada é um binário \code{.wasm} elevado a C via
+\code{wasm2c} (WABT $\geq$ 1.0.41) e daí a LLVM-IR. A análise é
+\emph{agnóstica à linguagem-fonte}: instrumenta a \emph{linear memory} e as
+chamadas \code{wasm\_rt\_*}, comuns a todo módulo elevado. O modo é forçado
+para \code{MEMTRACK\_MODE}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}Y L{3.6cm} C{2.2cm}@{}}
+\toprule
+\textbf{Propriedade} & \textbf{CWEs de exemplo} & \textbf{Estado} \\
+\midrule
+Acesso fora dos limites da \emph{linear memory}\newline
+{\footnotesize (reportado como \code{FALSE-OVERFLOW}, não \code{FALSE-DEREF})}
+& 121, 122, 124, 126, 127 & \yes \\
+Overflow aritmético & 190 & \yes \\
+Alcançabilidade de função-alvo/erro & --- & \yes \\
+\emph{Leak} / \emph{use-after-free} / \emph{double free} & 401, 416, 415 & \no \\
+\bottomrule
+\end{tabularx}
+\caption{Fonte: \src{README.md:92--99}. A última linha é trabalho futuro por uma
+razão estrutural: no código elevado, o alocador da linguagem-fonte é compilado
+\emph{dentro} da linear memory, então as chamadas \code{malloc}/\code{free} não
+existem no IR. Rastrear memória ali exigiria uma convenção de exportação ou
+heurística de detecção de alocador.}
+\end{table}
+
+%================================================================
+\section{Eixos ortogonais}
+
+Não são propriedades, mas multiplicam a matriz de execução e precisam ser
+fixados em qualquer comparação para que ela seja justa.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.4cm} Y@{}}
+\toprule
+\textbf{Eixo} & \textbf{Valores} \\
+\midrule
+Gerador de \emph{nondet} & \code{fuzzer} (LibFuzzer), \code{symex} (KLEE), nenhum \\
+Solucionador SMT & \code{z3} (padrão) e \code{stp} passam direto ao KLEE;
+\code{btor} e \code{yices2} são roteados por \code{metasmt} e \textbf{não
+funcionam} na imagem de referência (ver Seção~\ref{sec:limitacoes}, item~9) \\
+Entrada & C / \code{.i} / \code{.bc}; ou \code{.wasm} via \flag{wasm} \\
+Função de entrada & \flag{entry-function} (padrão \code{main}) \\
+Modificadores & \flag{slice}, \flag{seed-exchange}, \flag{add-invariants}, \flag{btree} \\
+Saídas & \flag{generate-witness}, \flag{generate-test-suite}, \flag{generate-testcase}, \flag{print-counter} \\
+\bottomrule
+\end{tabularx}
+\caption{Fonte: \src{map2check.cpp:719--766}.}
+\end{table}
+
+\paragraph{Funções \emph{nondet} reconhecidas (16).}
+\code{\_\_VERIFIER\_nondet\_} seguido de:
+\code{int}, \code{uint}, \code{unsigned}, \code{char}, \code{uchar},
+\code{pchar}, \code{short}, \code{ushort}, \code{long}, \code{ulong},
+\code{bool}, \code{pointer}, \code{size\_t}, \code{loff\_t},
+\code{sector\_t}, \code{double}
+(\src{pass/NonDetPass.cpp:155--171}). Além disso,
+\code{\_\_VERIFIER\_assume} e \code{assume\_abort\_if\_not} são reescritos como
+poda de caminho em vez de \code{abort()}
+(\src{NonDetPass.cpp:33--99}) --- sem isso, uma suposição falhando deixava um
+\code{abort.err} indistinguível de uma violação real.
+
+\paragraph{Códigos de saída.}
+\code{0} sucesso; \code{1} erro de linha de comando; \code{3} a opção é válida
+mas esta compilação não tem a capacidade (é o caso de \flag{add-invariants}
+sem \code{-DENABLE\_CLAM=ON}); \code{4} o veredicto divergiu de
+\flag{expected-result}. O código \code{4} substituiu um \code{abort()}, que
+fazia o BenchExec ler \enquote{resposta errada} como \enquote{ferramenta
+quebrada} (\src{map2check.cpp:47--60}).
+
+%================================================================
+\section{Limitações conhecidas}
+\label{sec:limitacoes}
+
+Registradas aqui porque uma comparação que as ignore mede a coisa errada.
+
+\begin{enumerate}[leftmargin=*,itemsep=3pt]
+  \item \textbf{Overflow sem sinal não é instrumentado.} As variantes
+        \code{uint} de \code{Add}/\code{Sub}/\code{Mul} estão no código, porém
+        comentadas. Isso está alinhado com a definição do SV-COMP, mas diverge
+        do que uma ferramenta genérica de análise poderia reportar.
+  \item \textbf{Ponto flutuante é \emph{no-op} deliberado.}
+        \code{FAdd}/\code{FSub}/\code{FMul}/\code{FDiv}/\code{FRem} não geram
+        veredicto.
+  \item \textbf{Deslocamento à esquerda não é checado.} O \code{case} de
+        \code{Shl} em \src{OverflowPass.cpp:395} tem corpo vazio, como
+        \code{LShr}, \code{AShr}, \code{And}, \code{Or} e \code{Xor}. Um
+        \code{x << n} que perde bits significativos passa como \emph{TRUE}.
+  \item \textbf{Divisão por zero não tem flag própria} --- só é alcançada via
+        \flag{check-overflow}.
+  \item \textbf{Três veredictos geram uma \emph{witness} de corretude apesar de
+        serem violações.} O \code{switch} de
+        \src{witness/graph.cpp:208--237} tem \code{case} para
+        \code{FALSE-FREE}, \code{FALSE-DEREF}, \code{FALSE-MEMTRACK},
+        \code{TARGET-REACHED} e \code{FALSE-OVERFLOW}. \code{ASSERT},
+        \code{FALSE-MEMCLEANUP} e \code{FALSE-DIVBYZERO} caem no
+        \code{default}, que constrói um \code{CorrectnessWitnessGraph} --- e,
+        sem \code{spectTrue}, o rotula com a especificação \code{MEMSAFETY}.
+        Afeta apenas execuções com \flag{generate-witness}; o veredicto
+        impresso e o código de saída continuam corretos.
+  \item \textbf{Alcançabilidade com alvo \code{main} é degenerada.} O
+        \code{TargetPass} instrumenta \emph{sítios de chamada} cuja função
+        chamada tem o nome dado; um programa nunca chama o próprio \code{main}.
+        Na baseline v6, 98 de 217 execuções passaram por esse modo e produziram
+        zero \code{FALSE} em 59 programas sabidamente vulneráveis. O teste
+        \src{test\_cwe\_mode\_mapping.sh} hoje proíbe esse mapeamento.
+  \item \textbf{Invariantes (Clam) são \emph{opt-in}.} Um invariante não-sólido
+        produz um \code{TRUE} errado em vez de um erro, o que é a falha mais
+        cara possível --- por isso exige \code{-DENABLE\_CLAM=ON} \emph{e} o
+        driver instalado.
+  \item \textbf{\emph{Slicing}, \emph{seed-exchange} e WASM rodam nos defaults}
+        da biblioteca; estão integrados, não ajustados. Qualquer número medido
+        sobre eles reflete a configuração padrão, não um limite da técnica.
+  \item \textbf{Dois dos quatro solucionadores não existem no build.} A CLI
+        aceita \code{z3}, \code{stp}, \code{btor} e \code{yices2}
+        (\src{map2check.cpp:804}), mas \code{btor} e \code{yices2} são
+        entregues ao KLEE como \code{-{}-solver-backend=metasmt}
+        (\src{caller.cpp:748--758}) e o \code{Dockerfile.dev} compila o KLEE
+        apenas com \code{ENABLE\_SOLVER\_Z3} e \code{ENABLE\_SOLVER\_STP} ---
+        sem metaSMT, sem Boolector, sem Yices. Passar um deles é aceito na
+        linha de comando e falha na execução.
+  \item \textbf{O veredicto de overflow é gravado como \code{OVERFLOW}, não
+        \code{FALSE-OVERFLOW}.} \src{PropertyGenerator.c:97} escreve a string
+        \code{OVERFLOW} em \code{map2check\_property}, e é isso que
+        \src{tools.cpp:228} lê de volta. \code{FALSE-OVERFLOW} é o nome do
+        valor do \emph{enum}, não o texto no arquivo: um harness que procure
+        \code{FALSE-OVERFLOW} não casa com nada.
+  \item \textbf{\code{UNKNOWN} nunca é gravado, e o arquivo alternativo tem o
+        nome errado.} O \code{switch} de \src{PropertyGenerator.c} tem
+        \code{case UNKNOWN:}, mas as duas únicas chamadas
+        \code{write\_property(UNKNOWN, ...)} estão comentadas
+        (\src{AnalysisModeMemtrack.c:308},
+        \src{AnalysisModeMemcleanup.c:298}) --- é código morto, do mesmo tipo
+        do \code{case} de \code{Shl}. O runtime usa
+        \code{write\_property\_unknown()}, que escreve num arquivo à parte
+        chamado \code{map2check\_property\_\_unknown} (dois sublinhados,
+        \src{PropertyGenerator.c:16}); o frontend abre
+        \code{map2check\_property\_unknown} (um sublinhado,
+        \src{tools.cpp:114}). Os dois nomes não coincidem, então esse arquivo
+        também nunca é lido. O tool ainda \emph{reporta}
+        \code{VERIFICATION UNKNOWN}, mas por outras rotas --- o inicializador
+        do campo (\src{tools.hpp:136}), o \code{map2check\_property} ausente ou
+        ilegível (\src{tools.cpp:102,252}) e o próprio frontend em caso de
+        estouro de tempo (\src{map2check.cpp:581,585}). O que não existe é o
+        caminho pelo qual o \emph{runtime} declararia indecisão.
+  \item \textbf{KLEE: \flag{max-time} exige segundos inteiros.} Um valor
+        fracionário encerra a execução em silêncio.
+\end{enumerate}
+
+%================================================================
+\section{Resumo quantitativo}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}Y c@{}}
+\toprule
+\textbf{Dimensão} & \textbf{Total} \\
+\midrule
+Modos de verificação implementados & 6 \\
+\quad dos quais checam uma propriedade & 5 \\
+Valores do \emph{enum} \code{ViolatedProperty} & 10 \\
+\quad realmente gravados em \code{map2check\_property} & 9 \\
+\quad que são violações concretas & 8 \\
+\quad que geram \emph{witness} de violação & 5 \\
+Tipos de especificação de \emph{witness} (\code{SpecificationType}) & 6 \\
+Instruções LLVM instrumentadas para overflow & 5 \\
+Funções \emph{nondet} reconhecidas & 16 \\
+CWEs verificáveis (união CASTLE $\cup$ Juliet) & 15 \\
+CWEs declarados fora de escopo & 13 \\
+Solucionadores SMT aceitos pela CLI & 4 \\
+\quad utilizáveis na imagem de referência (Z3, STP) & 2 \\
+Geradores de entrada selecionáveis (\flag{nondet-generator}) & 2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\end{document}

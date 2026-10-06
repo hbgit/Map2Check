@@ -177,8 +177,12 @@ RUN printf 'int main(void){return 0;}\n' > /tmp/aflcheck.c && \
 # libzstd-dev is required, not optional: LLVM 16 from apt.llvm.org exports
 # zstd::libzstd_shared, so Clam's find_package(LLVM) fails outright without it.
 # libflint-dev is NOT needed -- that belongs to the PPLite domain, and no
-# optional domain is enabled here: --crab-track=num uses the default interval
-# domain, so LDD, Apron, Elina and PPLite would all be dead weight.
+# optional domain is enabled here. Clam's default domain is zones (a DBM,
+# built into Crab), the same default the crab-llvm of the SV-COMP builds had;
+# what LDD, Apron, Elina and PPLite would add is boxes, oct and pk, which the
+# old engine shipped (Apron) and --add-invariants never selected. Whether they
+# are worth building is part of the pending --add-invariants study
+# (docs/backlog.md).
 RUN apt-get update && apt-get install -y \
     libmpfr-dev \
     libzstd-dev \

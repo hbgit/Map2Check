@@ -10,6 +10,7 @@
 #include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
 #include <stdlib.h>
+#include <unistd.h>
 
 extern int __map2check_main__(int argc, char **argv);
 
@@ -23,9 +24,29 @@ void nondet_generate_aux_witness_files() {
 
 extern void klee_assume(int);
 
-void nondet_assume(int expr) { klee_assume(expr); }
-
+/* A failed assumption ends the path as a normal exit. klee_assume(0) on a
+ * path where the condition is already false is a KLEE error ("invalid
+ * klee_assume call (provably false)", a user.err), and the frontend must read
+ * every KLEE error as a dropped path -- which made every program with an
+ * assume_abort_if_not unprovable.
+ *
+ * klee_silent_exit avoided the error but wrote no test either, so a program
+ * whose every path meets a failed assumption (most of XCSP) got an empty
+ * Cover-Branches suite. _exit ends the path normally, so KLEE writes its
+ * .ktest, and it skips the exit handlers: a path the program declared
+ * infeasible reports no leak. */
 extern void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
+
+/* The path's test still goes after every unpruned one in a Cover-Branches
+ * suite (readKtestVectors), so the one-byte "map2check_pruned" object marks
+ * it. The reader strips the marker; it is never an input. */
+void nondet_assume(int expr) {
+  if (!expr) {
+    char pruned;
+    klee_make_symbolic(&pruned, sizeof(pruned), "map2check_pruned");
+    _exit(0);
+  }
+}
 
 /* "non_det_" #type, not "non_det_#type". The stringify operator only applies
  * to a macro parameter written OUTSIDE a string literal; inside one, # and t

@@ -29,6 +29,9 @@
 #ifndef MODULES_FRONTEND_TEST_SUITE_TEST_SUITE_HPP_
 #define MODULES_FRONTEND_TEST_SUITE_TEST_SUITE_HPP_
 
+#include <filesystem>
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -65,12 +68,39 @@ class TestSuiteWriter {
   /** Writes metadata.xml. False if the file could not be written. */
   bool writeMetadata(const TestSuiteMetadata& metadata);
 
-  /** Writes testcase-<n>.xml, numbering from 1 in call order. */
-  bool writeTestCase(const std::vector<std::string>& inputs, bool coversError);
+  /** Writes testcase-<n>.xml, numbering after the cases already in the
+   * directory (an earlier phase of the same run may have written some).
+   *
+   * `pruned` marks the case as a path a failed assumption ended (an XML
+   * comment, which TestCov ignores), so a later phase can evict it. */
+  bool writeTestCase(const std::vector<std::string>& inputs, bool coversError,
+                     bool pruned = false);
+
+  /** How many test cases the directory holds, written earlier or by this. */
+  size_t caseCount() const { return cases.size(); }
+  /** How many of them are assumption-pruned paths. */
+  size_t prunedCount() const { return prunedCases.size(); }
+  /** Removes one assumption-pruned case to make room for a deeper one.
+   *
+   * The suite is written phase by phase under a cap. On xcsp/AllInterval the
+   * first KLEE phase found only pruned paths and filled the cap with them, and
+   * the deep paths of the next phase found no room: 95% coverage fell to 9%.
+   * False when there is no pruned case to remove. */
+  bool evictPrunedCase();
+  /** Whether a test case with exactly these inputs is already there. */
+  bool hasTestCase(const std::vector<std::string>& inputs) const;
+
+  /** Removes every testcase-<n>.xml from `directory` -- run once, at the start
+   * of a run, so a suite never mixes cases from an earlier run. */
+  static void removeTestCases(const std::string& directory);
 
  private:
   std::string directory;
   unsigned counter;
+  /** The inputs of every case in the directory, XML-escaped as written. */
+  std::set<std::vector<std::string>> cases;
+  /** The pruned cases among them, with the file each one lives in. */
+  std::map<std::vector<std::string>, std::filesystem::path> prunedCases;
 };
 
 }  // namespace Map2Check

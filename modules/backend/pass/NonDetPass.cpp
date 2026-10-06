@@ -100,6 +100,58 @@ bool rewriteAssumeToPrune(Function &F) {
   return true;
 }
 
+/** Rewrites the program's own calls to abort() into path pruning. Returns how
+ * many it rewrote.
+ *
+ * In SV-COMP, abort() is not an error -- reach_error is the only one -- it is
+ * how a program discards a path, and the benchmarks write that assumption
+ * inline as well as through assume_abort_if_not:
+ *
+ *     i2 = init();
+ *     if(!(i2)) {abort();}
+ *
+ * KLEE runs with --exit-on-error-type=Abort, so the first path violating such
+ * an assumption ended the whole search, with exit status 0, and the run
+ * answered TRUE for a program whose bug lay further on. Measured: every wrong
+ * TRUE of the tacasv2 control arm in the R15 Cover-Error sample (the
+ * seq-mthreaded/pals_* family and float-benchs/sin_interpolated_index-1).
+ *
+ * This runs on the user's module before the runtime is linked, so every abort
+ * here is the program's; the runtime's own abort (the one that signals a
+ * recorded violation) is never touched. A violation is still reported the same
+ * way: TargetPass instruments reach_error itself, so a `{reach_error();
+ * abort();}` records the violation before the rewritten abort is reached. */
+unsigned rewriteAbortCallsToPrune(Function &F) {
+  std::vector<CallInst *> aborts;
+  for (BasicBlock &block : F) {
+    for (Instruction &instruction : block) {
+      if (CallInst *call = dyn_cast<CallInst>(&instruction)) {
+        Function *callee = call->getCalledFunction();
+        if (callee != nullptr && callee->getName() == "abort" &&
+            call->arg_size() == 0) {
+          aborts.push_back(call);
+        }
+      }
+    }
+  }
+  if (aborts.empty()) return 0;
+
+  LLVMContext &ctx = F.getContext();
+  llvm::Type *int32 = llvm::Type::getInt32Ty(ctx);
+  llvm::FunctionCallee assume = F.getParent()->getOrInsertFunction(
+      "map2check_assume", llvm::Type::getVoidTy(ctx), int32);
+  for (CallInst *call : aborts) {
+    IRBuilder<> builder(call);
+    llvm::CallInst *pruned =
+        builder.CreateCall(assume, {llvm::ConstantInt::get(int32, 0)});
+    pruned->setDebugLoc(call->getDebugLoc());
+    call->eraseFromParent();
+  }
+  llvm::errs() << "[map2check] rewrote " << aborts.size() << " abort() call(s)"
+               << " in " << F.getName() << " to prune the path\n";
+  return aborts.size();
+}
+
 }  // namespace
 
 PreservedAnalyses NonDetPass::run(Function &F,
@@ -109,6 +161,8 @@ PreservedAnalyses NonDetPass::run(Function &F,
   if (rewriteAssumeToPrune(F)) {
     return PreservedAnalyses::none();
   }
+
+  rewriteAbortCallsToPrune(F);
 
   this->nonDetFunctions = make_unique<NonDetFunctions>(&F, &F.getContext());
   bool initializedFunctionName = false;

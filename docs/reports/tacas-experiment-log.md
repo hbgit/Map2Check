@@ -286,3 +286,582 @@ classificador contava todo FALSE nelas como errado (corrigido: "any").
 - **Leitura:** com o build final, o slicing de memória fica **34 × 33 corretos** e
   **1 × 2 TRUE errados** contra o controle nesta amostra — ligeiramente melhor, e sem
   nenhum erro novo atribuível à fatia.
+
+## R15 — amostra Test-Comp: tacasv2 (develop) × v15, Cover-Error (2026-09-28)
+
+- **Config:** build da `develop` depois do merge de #69/#68/#70/#71; `build_corpus.py
+  --property cover-error --per-category 20` (213 tarefas, **todas pareadas** com a
+  campanha v15 — amostragem aninhada), 300 s, TestCov 300 s, 3 shards por braço.
+  Controle = híbrido sem slice (tacasv1 + correções); slice = `--slice`.
+
+| braço | cobertas | TRUE errado | FALSE errado | tempo mediano |
+|---|---|---|---|---|
+| v15 controle | 111 | **27** | 0 | 43 s |
+| v15 slice | 108 | 15 | 0 | — |
+| **R15 controle** | **129** | **5** | 0 | **5 s** |
+| R15 slice | 126 | 4 | 0 | 7 s |
+
+- **Controle × v15:** +18 cobertas (+16%); pares discordantes 20 × 2 (só R15 × só v15).
+  Por categoria (v15 → R15): ProductLines 14 → 20, Loops 13 → 16, Arrays 15 → 18,
+  ECA 2 → 5, Sequentialized 0 → 2; Heap 19 → 18 (única perda).
+- **TRUE errado 27 → 5:** a correção "KLEE parado pelo timer não é prova" confirmada em
+  escala — a v15 respondia TRUE em 27 de 212 tarefas com bug.
+- **Slice × controle:** 126 × 129 (pares discordantes 3 × 6) — empate técnico, leve
+  desvantagem. TRUE errado 4 × 5: o slice elimina 2 (`pals_lcr…`) e introduz 2
+  (`float-benchs/cast_union_tight.c`, `loops/insertion_sort-1-2.c`); 4 ERROR (ECA,
+  ~330 s, sem suíte) só no slice.
+- **Em aberto:** os 4–5 TRUE errados restantes (`seq-mthreaded/pals_*`,
+  `float-benchs/sin_interpolated_index-1.c`, e os 2 do slice) e os 4 ERROR do slice.
+
+### R15 — Cover-Branches, controle × v15 (mesma rodada)
+
+- 120 tarefas (10 por categoria), todas pareadas com a v15; só o braço controle (o
+  slicing não atua em Cover-Branches).
+- **Cobertura média: v15 48,0% × R15 47,7%** — neutra. Melhor em 6 tarefas, pior em 3,
+  igual em 111. Recursive 51,9 → 45,0% (a única queda relevante); XCSP 74,2 → 77,7%.
+- Validação do TestCov mais limpa: VALIDATED 116 (v15: 107), VALIDATED_ABORTS 3 (v15: 10),
+  TESTCOV_ERROR 1 (v15: 3). Tempo mediano 183 × 195 s.
+- **Leitura:** o AFL++ não muda a cobertura de ramos nesta amostra; o ganho da tacasv2
+  está no Cover-Error.
+
+## R18 — validação da correção do abort() nos TRUE errados da R15 (2026-09-29)
+
+- **Config:** `build_abort` (commit 1eb8a30b9), 300 s, as tarefas com TRUE errado da R15:
+  6 no braço controle (sem slice), 2 no braço slice (`--slice`). Manifests
+  `tacas-results/r18-{ctrl,slice}.tsv`.
+
+| tarefa | braço | R15 | R18 |
+|---|---|---|---|
+| pals_lcr.4.1 | controle | TRUE errado | FAILED/COVERED (83 s) |
+| pals_lcr-var-start-time.4.2 | controle | TRUE errado | FAILED/COVERED (175 s) |
+| pals_STARTPALS_Triplicated.1 | controle | TRUE errado | FAILED/COVERED (9 s) |
+| pals_floodmax.3.1 | controle | TRUE errado (R16) | FAILED/COVERED (24 s) |
+| pals_floodmax.3.4 | controle | TRUE errado | UNKNOWN (256 s) |
+| sin_interpolated_index-1 | controle | TRUE errado | **TRUE errado** (59 s) |
+| cast_union_tight | slice | TRUE errado | FAILED/COVERED (1 s) |
+| insertion_sort-1-2 | slice | TRUE errado | **TRUE errado** (3 s) |
+
+- **Leitura:** 6 de 8 TRUE errados eliminados (5 viraram FAILED coberto, 1 UNKNOWN).
+  `cast_union_tight` também era abort inline, não defeito do slice. Restam 2 com causa
+  diferente: `sin_interpolated_index-1` (controle) e `insertion_sort-1-2` (slice) — investigar.
+
+### R18 — causa dos 2 TRUE errados restantes (2026-09-29)
+
+Reproduzidos à mão (`build_abort`, 300 s). **Causa comum:** o KLEE sai com 0 quando a fila
+esvazia, e o frontend lia isso como exploração completa — mas nos dois casos ele tinha
+**descartado caminhos**:
+
+- `sin_interpolated_index-1` (controle): `silently concretizing (reason: floating point)
+  expression (ReadLSB w64 0 non_det_double) to value 0` — o KLEE 3.1 não tem double
+  simbólico; 1 caminho, "completo", TRUE.
+- `insertion_sort-1-2` (slice): o VLA `int v[SIZE]` gerou `concretized symbolic size` e
+  `null page access` — 2 estados mortos por erros do próprio KLEE (`partially completed
+  paths = 2` no `info`), TRUE.
+
+**Correção:** `kleeDroppedPaths()` generaliza o `kleeHaltedOnTimer`: HaltTimer, qualquer
+"silently concretizing" em `warnings.txt`, ou `partially completed paths > 0` → a execução
+é tratada como timeout (violação registrada vale; senão UNKNOWN). Revalidação: `sin` → **FAILED** numa execução e UNKNOWN noutra (o AFL++ da fase 1 acha ou
+não o 180.0; sem `--seed-exchange` não há fase 3 — a frase anterior dizia o contrário e
+estava errada), `insertion_sort` --slice → **UNKNOWN**. Nunca TRUE. Integração 40/40 (§30 nova: double concretizado; vermelha no
+`build_seeds`, verde no novo). Uma §31 (abort dentro do `assert` da libc) foi descartada:
+passava também no binário antigo — esse caminho não gera TRUE errado.
+
+**Custo esperado:** programas com float/VLA que o KLEE "provava" passam a UNKNOWN. Medir
+TRUE corretos no SV-COMP (R17) — é o preço da solidez.
+
+## R16 — `--seed-exchange` (3a) × controle R15, Cover-Error (2026-09-29)
+
+- **Config:** `build_seeds` (3a + revisão, **sem** as correções do abort e dos caminhos
+  descartados — mesma base de veredito que o controle R15), `--seed-exchange`, amostra
+  `r15-ce.tsv` (213, todas pareadas), 300 s, 3 shards.
+
+| braço | cobertas | TRUE errado | ERROR | tempo mediano |
+|---|---|---|---|---|
+| R15 controle | 129 | 5 | 0 | 5 s |
+| **R16 seeds** | **148** | 7 | 0 | 6 s |
+
+- **+19 cobertas (+15%)**, pares discordantes **21 × 2**. Por categoria (controle → seeds):
+  Sequentialized 2 → 8, XCSP 7 → 13, ECA 5 → 8, Recursive 7 → 9, ControlFlow 3 → 4,
+  BitVectors 7 → 8; as demais iguais. Perdas: 2 ECA (`Problem13_label54`,
+  `Problem10_label12`).
+- **TRUE errado 7:** todos da família `pals_*` (abort inline) e `sin_interpolated_index-1`
+  (double concretizado) — os dois defeitos que esta branch já corrige (1eb8a30b9,
+  4c16013bc). O braço seeds expõe mais deles porque a fase 3 do AFL++ não roda depois de
+  uma "prova" do KLEE.
+- **Leitura:** a troca de sementes é o maior ganho medido na linha TACAS até aqui. A
+  rodada limpa (R19, build final nos dois braços) confirma sem os TRUE errados.
+- Cover-Branches do R16 ainda rodando.
+
+### Correção da correção — poda por assunção não é caminho descartado (2026-09-29)
+
+A primeira versão do `kleeDroppedPaths` lia `partially completed paths > 0` no `info`. Esse
+contador inclui os caminhos **podados por assunção**: `klee_assume(0)` num caminho já falso
+é um erro do KLEE (`user.err`, "invalid klee_assume call (provably false)"), e até
+`klee_silent_exit` conta como parcial (medido num programa mínimo: os dois dão
+`partially completed paths = 1`). Resultado: **nenhum programa com `assume_abort_if_not`
+ou abort inline podia mais ser provado** — o §29 `safe.c` ia de TRUE para UNKNOWN.
+
+Correção: `nondet_assume` (KLEE) poda com `klee_silent_exit(0)`, que não deixa arquivo; e
+os caminhos descartados passam a ser lidos pelo que cada estado morto deixa no disco —
+qualquer `*.err` ou `*.early` —, além do HaltTimer e do "silently concretizing". O §29
+agora exige TRUE. `sin` e `insertion_sort` seguem sem TRUE errado (UNKNOWN; o segundo por
+`ptr.err`).
+
+**Efeito na R19:** o `install_r19` tem a versão com o contador. Em Test-Comp isso não muda
+a cobertura (o veredito não pontua), só impede o `provedSafe` de encerrar a execução mais
+cedo em programas com assunções. A R17 (SV-COMP, onde TRUE pontua) precisa do build
+corrigido.
+
+### R16 — Cover-Branches, `--seed-exchange` × controle R15 (2026-09-29)
+
+- Mesma config da R16 Cover-Error (`build_seeds`), amostra `r15-cb.tsv` (120, pareadas).
+- **Cobertura média: controle 47,7% × seeds 49,7%** (+2,0 p.p.); melhor em 26 tarefas, pior
+  em 9. Tempo mediano 195 → 160 s.
+- Por categoria (controle → seeds): ControlFlow 41,3 → 57,9, BitVectors 65,7 → 73,7,
+  Recursive 45,0 → 53,0; **Loops 67,1 → 60,8** (uma tarefa: `geo2-ll_unwindbound50`
+  −62,5 p.p.), XCSP 77,7 → 75,0 (`AllInterval-011` −27 p.p.).
+- TestCov: VALIDATED 118 (R15: 116), VALIDATED_ABORTS 1 (3).
+- **Leitura:** diferente da tacasv2 (neutra em CB), a troca de sementes melhora a cobertura
+  de ramos, apesar de a suíte de CB sair só do KLEE — o KLEE semeado explora ramos que o
+  controle não alcançava. As duas quedas grandes ficam para a R19 confirmar (ruído do
+  fuzzer × efeito real).
+
+## R17 — SV-COMP MemSafety/MemCleanup/NoOverflows, control × seeds × alternate (2026-09-29)
+
+- **Config:** `install_r19` (commit 8c70e5a73), manifests regenerados com `build_corpus.py`
+  (memsafety 10/categoria = 50, memcleanup 10, overflow 10/categoria = 20), 120 s.
+
+| memsafety (50) | correct-true | correct-false | wrong-true | wrong-false | unknown | error |
+|---|---|---|---|---|---|---|
+| control | 10 | 19 | 2 | 3 | 10 | 6 |
+| seeds | 10 | 20 | 1 | 3 | 10 | 6 |
+| alternate | 9 | 20 | 1 | 3 | 10 | 7 |
+
+- MemCleanup (10): control 6 corretos, seeds 6, alternate 6. NoOverflows (20): control e
+  seeds 2 correct-true + 17 unknown; alternate idem (2 + 17 + 1 error) — os três iguais.
+- **wrong-true comum aos três:** `CWE121…CWE193_char_declare_cpy_07_bad`. Causa: o modelo
+  `ldv_strcpy` copia `strlen` bytes (sem o terminador) e o estouro real é a **leitura** em
+  `printf("%s")` — que o KLEE executa como **chamada externa** (a uClibc do KLEE declara
+  `printf` sem defini-lo: `calling external: printf(...)`), fora de qualquer checagem, e o
+  memtrack não confere argumentos `%s`. Lacuna de solidez pré-existente; correção em
+  aberto: checar a string de cada `%s` (e `puts`/`str*`) antes da chamada.
+- **wrong-true só no control:** `CWE122…CWE129_rand_18_bad` — os braços com sementes o
+  acham (FALSE correto).
+- **Os 6 `error` são do classificador, não da ferramenta:** as tarefas
+  `array-memsafety/*-alloca` têm `alloca` de tamanho não determinístico; o AFL++ acha um
+  crash (pilha estourada), o replay imprime "Segmentation fault", e
+  `verdict_classifier.sh` conta isso como falha — embora o Map2Check termine com UNKNOWN
+  (o KLEE concretiza o tamanho → `model.err` → caminho descartado).
+- **Leitura:** as sementes não pioram nada em SV-COMP e ganham 1 FALSE e eliminam 1 TRUE
+  errado; a alternância perde 1 TRUE correto frente ao control (a estagnação corta o KLEE
+  — o preço previsto na revisão).
+
+## R19 — Test-Comp, parcial (2026-09-29)
+
+- **Cover-Error, 171 tarefas pareadas nos 4 braços principais** (o shard 0 do braço seeds
+  perdeu 42 tarefas por um incidente de escrita e está sendo completado):
+
+| braço | cobertas | TRUE errado | ERROR | tempo mediano |
+|---|---|---|---|---|
+| R15 control (referência) | 101 | 5 | 0 | 6 s |
+| control | 101 | **0** | 0 | 3 s |
+| **seeds** | **120** | 0 | 0 | 5 s |
+| alternate | 118 | 0 | 0 | 14 s |
+| slice | 102 | 0 | 2 | 4 s |
+
+- seeds × control: **+20 −1**; alternate × control: +17 −0; alternate × seeds: +4 −6;
+  slice × control: +3 −2.
+- **TRUE errado zerado em todos os braços** (eram 5 no control R15): as correções do abort e
+  dos caminhos descartados confirmadas em escala.
+- Braços slice-light/o2/ntscd/ptafs e Cover-Branches ainda rodando.
+
+### R19 — diagnóstico das perdas de `--alternate-engines` (2026-09-29)
+
+Contra o braço seeds, a alternância perde 6 e ganha 2; 5 das perdas são eca-*. Reproduzido
+em `eca-rers2012/Problem06_label05.c` (300 s):
+
+- **A troca KLEE → AFL++ estava limitada** aos 64 vetores mais recentes do KLEE. No braço
+  seeds, a fase 3 do AFL++ recebe todos (4676), e o dry run dela encontra vetores que,
+  completados com zeros depois do fim, chegam ao `reach_error` (`sig:06`, crashes com
+  `op:dry_run`). É isso que cobre essas tarefas eca-* que o KLEE sozinho deixa UNKNOWN.
+  O limite descartava justamente esses vetores. Ele tinha vindo de um laço cuja calibração
+  nunca terminava, problema já resolvido com a leitura de zeros.
+- **Cada fase do AFL++ recompilava os 3 binários:** ~24 s por fase em eca-*.
+- **A estagnação fixa de 15 s cortava o AFL++ em ~17 s**, onde o híbrido fixo dava 60 s.
+
+**Correção** (`fix(hybrid): the fuzzer gets all of KLEE's vectors, built once, with growing
+patience`): sem limite na troca, cache dos binários por execução (`<hash>.build/`, também
+beneficia a fase 3 do braço seeds) e paciência do AFL++ dobrando por rodada.
+`Problem06_label05`: UNKNOWN → **FAILED em 157 s** (seeds: 281 s). Remedição na R23.
+
+## R19 — resultado (2026-09-29)
+
+**Cover-Error, 213 tarefas** (linhas filtradas pelo shard; os shards afetados pelo incidente
+do descritor 3 foram completados com `-resume`):
+
+| braço | cobertas | % | TRUE errado | ERROR | vs control | tempo mediano |
+|---|---|---|---|---|---|---|
+| control | 128 | 60,1 | 0 | 0 | — | 3 s |
+| **seeds** | **151** | **70,9** | 0 | 0 | **+23 −0** | 5 s |
+| alternate | 148 | 69,5 | 0 | 0 | +20 −0 | 9 s |
+| slice | 128 | 60,1 | 0 | 4 | +3 −3 | 4 s |
+| slice-light | 127 | 59,6 | 0 | 4 | +3 −4 | 4 s |
+| slice-o2 (207) | 128 | 61,8 | 0 | 4 | +5 −3 | 4 s |
+| slice-ntscd (181, parcial) | 113 | 62,4 | 0 | 4 | +2 −1 | 5 s |
+| slice-ptafs (155, parcial) | 90 | 58,1 | 0 | 4 | +1 −3 | 5 s |
+
+- **TRUE errado 0 em todos os braços** (R15 control: 5). As correções de veredito se
+  confirmam em escala.
+- **Sementes: +23 −0** contra o control, o melhor resultado da linha TACAS. Alternância:
+  +20 −0. As 5 perdas eca-* dela frente ao seeds têm causa achada e corrigida (ver o
+  diagnóstico acima); a remedição fica para a R23.
+- **Slicing:** as variantes não mudam o quadro (±3). Nenhuma supera o slice simples com
+  margem, e nenhum knob é promovido por enquanto. Os 4 ERROR de ECA continuam: o cache do
+  2d eliminou o refatiamento, mas o passo do slice ainda levava 105 s (regex sobre o IR,
+  ~45 s fora de qualquer orçamento) e as 3 compilações do AFL++ somavam até 0,75T.
+  Correções: varredura sem regex e um orçamento único para as compilações.
+  `Problem102_label34` com `--slice`: ERROR → UNKNOWN em 307 s.
+
+**Cover-Branches, 120 tarefas:**
+
+| braço | cobertura média | melhor / pior que o control |
+|---|---|---|
+| control | 44,7% | — |
+| seeds | 46,1% | 31 / 13 |
+| **alternate** | **50,3%** (119) | **43 / 5** |
+
+- **A alternância é o melhor braço em Cover-Branches** (+5,6 p.p.), o que se explica pelas
+  várias fases do KLEE, cada uma alimentada pelo corpus do fuzzer. O control da R19 (44,7%)
+  ficou abaixo do da R15 (47,7%) na mesma amostra. A carga da máquina foi maior (11
+  contêineres e falta de memória no fim), e isso pesa em Cover-Branches, que usa o
+  orçamento inteiro.
+
+## R21 — checagem de `%s` e correção do classificador, SV-COMP (2026-09-29)
+
+- `install_r21`, control, contra a R17 control.
+  - **MemSafety:** o CWE193 cpy bad foi de TRUE errado para **FALSE correto**. Os 6
+    `error` das tarefas alloca viraram `unknown` (classificador corrigido).
+  - **Falso positivo novo:** `CWE121…dest_char_declare_cpy_01_good` foi de TRUE correto
+    para FALSE-DEREF errado. O `ldv_strcpy` do SV-COMP copia `strlen` bytes sem o
+    terminador, e o terminador do buffer da versão good é um byte **não inicializado**:
+    para o gabarito do SV-COMP ele é zero; numa execução nativa ou no KLEE (que preenche
+    `alloca` com um padrão diferente de zero) não é.
+  - **MemCleanup:** os 2 `error` viraram `unknown`.
+- **Decisão:** a checagem de `%s` fica atrás de `MAP2CHECK_CHECK_CSTRINGS=1`, desligada
+  por padrão, até ser medida numa amostra maior do Juliet (1 acerto × 1 erro em 50 não
+  basta; pelos pesos do SV-COMP compensaria, mas não com essa amostra).
+- **Incidente de harness (descritor 3):** o laço do harness lê o manifest pelo fd 3, e os
+  filhos o herdavam, inclusive o programa analisado via chamadas externas do KLEE. O offset
+  andou sob o laço: o shard 0 da R24 parou em 29 de 71, e o shard 0 do seeds da R19 recebeu
+  linhas do shard 1. Os filhos agora rodam com o fd 3 fechado.
+
+## INV-1 — `--add-invariants`: crab-llvm antigo × Clam (2026-09-30)
+
+**Pergunta:** o `--add-invariants` do crab-llvm "funcionava", e o do Clam "não é a mesma
+coisa"?
+
+**O que se descobriu sobre o motor antigo** (release v7.3.1 do SV-COMP 2020, que roda em
+`python:2.7-slim` com o clang do LLVM 6 embutido):
+- Houve **duas configurações**.
+  - Até 18/10/2018: `--crab-track=arr --crab-add-invariants=after-load`. Os invariantes
+    saíam como `verifier.assume`, o NonDetPass os mapeava para `map2check_crab_assume`, e
+    eles chegavam ao KLEE como `klee_assume`.
+  - A partir da v7.3 (SV-COMP 2019 e 2020): `--crab-track=num
+    --crab-add-invariants=block-entry --crab-promote-assume`. O `promote` emite
+    `llvm.assume`, que o NonDetPass não mapeia e que o KLEE ignora (testado no KLEE 2.1 do
+    release e no 3.1, com e sem `--optimize`). **Os invariantes das versões de competição
+    não chegavam a lugar nenhum.**
+
+**Geração, 90 programas** (40 de alcançabilidade da amostra Cover-Error e 50 de MemSafety),
+timeout de 60 s:
+
+| config | rodou | com invariante | total |
+|---|---|---|---|
+| OLD-A (antigo, até 2018) | 76 | 14 | 155 |
+| OLD-B (antigo, v7.3; `llvm.assume`, inerte) | 35 | 33 | 224 698 |
+| NEW-cur (Clam, `num` + `block-entry`) | 79 | 68 | 72 452 |
+| NEW-A (Clam, `mem` + `after-load`) | 70 | 19 | 702 |
+
+- A configuração que "funcionava" insere **poucos** invariantes, depois de leituras de
+  memória. A atual do Clam insere **muitos**, na entrada de cada bloco. O perfil
+  `memory` do Clam reproduz a ordem de grandeza da antiga.
+
+**Efeito na análise, sonda num laço** (`n ≤ 1000`, versões segura e com bug em `n == 777`,
+symex, 60 s):
+
+| braço | seguro | com bug |
+|---|---|---|
+| sem `--add-invariants` | UNKNOWN (HaltTimer) | UNKNOWN |
+| Clam padrão (18 invariantes) | UNKNOWN | UNKNOWN |
+| Clam `memory` (0 invariantes) | **TRUE** | **FAILED** |
+| Clam `none` (pipeline do Clam, 0 invariantes) | **TRUE** | **FAILED** |
+| **sem Clam, `MAP2CHECK_PREOPT=ssa`** | **TRUE** | **FAILED** |
+
+- **O ganho vem do pré-processamento, não dos invariantes.** O Clam compila com
+  `-disable-O0-optnone` e deixa o módulo em SSA (`mem2reg`, `simplifycfg`). O Map2Check
+  compila em `-O0` com `optnone`, cada variável local vira um objeto de memória no KLEE, e
+  o laço não fecha no orçamento.
+- Os 18 invariantes do perfil padrão não bastaram: o KLEE completou mais caminhos com eles
+  (261 contra 184 sem), mas também parou no HaltTimer.
+- **Hipótese a medir em escala (R25):** `MAP2CHECK_PREOPT=ssa` (sem Clam) é um ganho
+  geral, e os invariantes só se pagam somados ao SSA, se se pagarem.
+- Implementado nesta frente (`feat/tacas-invariants`):
+  - `MAP2CHECK_CLAM_PROFILE=default|memory|none`;
+  - log com a contagem de invariantes inseridos;
+  - recuo para a compilação normal quando o Clam falha (antes, o pipeline ficava sem
+    bitcode);
+  - `MAP2CHECK_PREOPT=ssa`.
+
+## R20, R22, R23, R24 — primeiros resultados (2026-09-30, madrugada)
+
+Todos contra o braço equivalente da R19, nas tarefas em comum (linhas filtradas por shard).
+
+| rodada | mudança medida | tarefas | cobertas (nova × R19) | +/− | TRUE errado |
+|---|---|---|---|---|---|
+| **R24 control** (completa) | replay dos vetores do KLEE, híbrido **sem** sementes | 213 | **146 × 128** | **+20 −2** | 0 |
+| R24 seeds (parcial) | replay + sementes | 59 | 47 × 46 | +1 −0 | 0 |
+| R20 seeds (parcial) | ranking `+cov` (3c) | 178 | 128 × 128 | +2 −2 | 0 |
+| R23 seeds (parcial) | build final (cache do AFL++, orçamento, fd 3) | 177 | 132 × 128 | +5 −1 | 0 |
+
+- **O replay dos vetores do KLEE traz o híbrido simples para perto do braço com sementes**
+  (146 contra 151 da R19 seeds). As mudanças concentram-se em `pals_*`, eca-*, XCSP (`aim-*`,
+  `CostasArray`, `AllInterval`) e `fuzzle`, justamente as tarefas em que o seeds ganhava
+  com o dry run do AFL++. O mecanismo diagnosticado se confirma.
+- **3c v1 (ranking):** neutro nesta amostra (+2 −2). O ranking só pesa quando a fila passa
+  de 64 entradas.
+- **Cover-Branches, R22** (corpus do AFL++ na suíte, `MAP2CHECK_FUZZER_SUITE=1`):
+  - control, 99 tarefas: **49,2% × 44,8%**, 33 melhores e 2 piores; TestCov VALIDATED
+    97/99;
+  - seeds, 22 tarefas: 48,5% × 44,8%, 4 melhores e 3 piores.
+
+## R21 CASTLE e dois incidentes (2026-09-30, madrugada)
+
+- **CASTLE com `install_r21`** (checagem de `%s` ainda **ligada** nesse build): TP 54, TN 44,
+  FN 12, UNKNOWN 5, **FP 4** (R14: TP 53, TN 44, FN 14, FP 1). Os 4 FP (787-1, 787-2,
+  787-4, 822-3) são todos um `printf("%s")` de memória que o runtime não rastreia: buffer
+  preenchido por `scanf` e `argv[0]`. É uma confirmação independente de que
+  `MAP2CHECK_CHECK_CSTRINGS` deve continuar **desligado** (como está no branch da PR); os
+  FN caíram de 14 para 12.
+- **Incidente do escalonador** (corrige uma conclusão anterior): os escalonadores leem os
+  jobs com `IFS=$'\t' read`, e o bash junta tabs consecutivos. Com a coluna de flags vazia,
+  o conteúdo da coluna de ambiente escorregava para a de flags. Com isso:
+  - o braço `ssa` da R25 passou `MAP2CHECK_PREOPT=ssa` ao Map2Check como **nome de
+    arquivo** (71/71 ERROR). Relançado com `-e`;
+  - **a primeira R22 control (120 ERROR) teve a mesma causa, e não falta de memória**,
+    como registrado antes. O relançamento dela usou `-e` e é válido;
+  - os outros braços têm flags não vazias ou nenhuma variável, e não foram afetados.
+
+### R20 e R23 seeds, completas (2026-09-30, 01h)
+
+| rodada | o que muda | cobertas (213) | vs R19 seeds (151) | vs R19 control (128) | TRUE errado |
+|---|---|---|---|---|---|
+| R20 seeds | + ranking `+cov` (3c v1) | 150 | +2 −3 | +22 | 0 |
+| **R23 seeds** | build final (cache do AFL++, fd 3, hash, orçamento) | **154** | **+5 −2** | **+26** | 0 |
+
+- **3c v1 é neutro** também na amostra completa: fica disponível, sem ganho medido.
+- **O build final com sementes é o melhor resultado de Cover-Error da linha: 154/213
+  (72,3%)**, contra 111 da v15 na mesma amostra.
+- As perdas recorrentes (`Problem10_label12`, `Problem13_label54`) aparecem também no
+  R20. São tarefas eca-* no limite do orçamento.
+
+## Madrugada de 2026-09-30 — R22, R23, R24 e R25 completas
+
+**Cover-Error, 213 tarefas** (referência: R19 control, 128):
+
+| braço | cobertas | % | vs R19 control | TRUE errado | tempo mediano |
+|---|---|---|---|---|---|
+| R24 control (replay dos vetores do KLEE) | 146 | 68,5 | +20 −2 | 0 | 4 s |
+| R23 seeds (build final) | 154 | 72,3 | +26 −0 | 0 | 4 s |
+| **R24 seeds (build final + replay)** | **155** | **72,8** | **+27 −0** | 0 | 5 s |
+| R23 alternate (build final) | 153 | 71,8 | +26 −1 | 0 | 12 s |
+
+- R23 alternate × R19 alternate: +7 −2. A correção das perdas eca-* funcionou.
+  R23 alternate × R23 seeds: +4 −5, um empate.
+- **v15 → build final na mesma amostra: 111 → 155 cobertas, TRUE errado 27 → 0.**
+
+**Cover-Branches, 120 tarefas** (R19 control 44,7%):
+
+| braço | cobertura média | melhor / pior |
+|---|---|---|
+| R19 seeds | 46,1% | 31 / 13 |
+| **R19 alternate** | **50,6%** | 44 / 5 |
+| R22 control + corpus do AFL++ | 49,7% | 40 / 3 |
+| R22 seeds + corpus do AFL++ | 49,4% | 36 / 8 |
+
+**R25 (`--add-invariants` e SSA), shard 0 de Cover-Error (71 tarefas) e MemSafety (50):**
+
+| braço | Cover-Error cobertas | ERROR | MemSafety (corretas / wrong-true / wrong-false) |
+|---|---|---|---|
+| off | 51 | 0 | 28 / 2 / 2 |
+| ssa | 50 (+2 −3) | 0 | — |
+| clam-none | 50 (+1 −2) | 2 | 25 / 1 / 4 |
+| clam-default | 49 (+1 −3) | 4 | 27 / 1 / 4 |
+| clam-memory | 44 (+2 −9) | 7 | 25 / 2 / 4 |
+
+- **No híbrido, nem o SSA nem os invariantes ajudam.** O ganho que a sonda viu era do KLEE
+  sozinho; no híbrido, o AFL++ e o replay dos vetores já decidem essas tarefas. Os braços
+  com Clam **pioram**: mais FALSE errados em MemSafety (4 contra 2), e ERROR por o Clam
+  estourar o orçamento, já corrigido com um limite de 0,2T.
+- **Decisão:** `--add-invariants` continua opcional e desligado por padrão; o SSA não é
+  promovido.
+- **Incidente:** a mudança de versão no `CMakeLists.txt` fez o cache do `build_inv` ser
+  regenerado, com o prefixo voltando para `release/` e o `ENABLE_CLAM` para OFF. O
+  `release/` foi sobrescrito de novo e restaurado a partir do `install_v15` (idêntico,
+  conferido com `diff`). As rodadas usaram installs congelados antes disso.
+
+## R26 completa (2026-09-30) e primeiros lotes da campanha da 9.0
+
+**R26, SV-COMP (120 s):** a alternância **não perde nenhum TRUE correto**.
+
+| | control (fixo) | seeds | alternate |
+|---|---|---|---|
+| MemSafety (50): correct-true / correct-false | 10 / 19 | 10 / 20 | **10 / 20** |
+| MemSafety: wrong-true / wrong-false | 2 / 3 | 1 / 3 | **1 / 3** |
+| MemCleanup (10): corretos | 6 | 6 | 6 |
+| NoOverflows (20): corretos | 2 | 2 | 2 |
+
+As sementes e a alternância corrigem o TRUE errado do `CWE122…rand_18`. O seeds teve 1
+ERROR (`tricky_address2`).
+
+**CASTLE:** R26 e a campanha da 9.0 dão TP 54, TN 44, FN 14, FP 1, **igual à v15**; os 4
+TIMEOUT da v15 viraram UNKNOWN.
+
+**Campanha da 9.0, parcial** (`install_v9` = `3476ff769`; condições da v15: 4 GB, 300 s):
+
+| corpus | pareado com a v15 | v15 | 9.0 |
+|---|---|---|---|
+| Cover-Error (q400) | 532 de 1087 | 288 cobertas, **57 TRUE errados** | **394 cobertas (+112 −6), 0 TRUE errado**; mediana 59 → 19 s |
+| Juliet, grupos a e b | 2 271 | TP 340, FN 118, FP 20, TN 1074, ERROR 114 | **TP 776**, FN 90, FP 20, TN 1058, ERROR 0 |
+
+- Juliet: 294 UNKNOWN e 102 ERROR da v15 viraram TP; 16 TN viraram UNKNOWN.
+
+## Campanha da 9.0: dois defeitos achados no Juliet c, e a troca de build (2026-10-02)
+
+- **Achado:** o grupo c do Juliet (CWE190 e 191, overflow) teve **55 ERROR** que a v15 não
+  tinha, e 207 das 272 paradas por estagnação terminaram em SIGKILL.
+  1. **Link do fuzzer sem `-lm`.** Um programa com `sqrt` ou `pow` não linkava ("undefined
+     reference to `sqrt`"), perdia a fase do AFL++ e o harness contava ERROR.
+  2. **KLEE preso numa chamada externa nativa.** As variantes `fscanf` passam um `FILE*`
+     da uClibc ao `__isoc99_fscanf` nativo. Preso ali, o KLEE não olha o sinal de
+     interrupção nem o próprio `--max-time`, e só saía no SIGKILL do fim da janela,
+     desperdiçando o resto dela. Testado à parte: o KLEE isolado responde ao SIGINT
+     normalmente; nesse módulo não reage nem em 60 s.
+- **Correção** (`76eedfc75`): os links nativos levam `-lm`; um KLEE que não para em 10 s
+  depois do SIGINT é morto e o tempo vai para a próxima fase. No caso reproduzido:
+  5 fases em vez de 4 no mesmo orçamento e o fuzzer linkando.
+- **Troca de build na campanha** (decisão do usuário: corrigir, refazer o que deu erro e
+  seguir com a versão corrigida como a 9.0):
+  - `install_v9` passa a ser o build de `76eedfc75`; o anterior fica em
+    `install_v9-3476ff7`;
+  - **refeitos com o build novo:** o grupo c inteiro do Juliet, as 2 tarefas de
+    Cover-Error que chamam a libm (`loop-floats-scientific-comp/loop2-1.c` e `loop4.i`) e o
+    Cover-Branches (que mal tinha começado);
+  - **mantidos do build anterior:** CASTLE, Cover-Error (exceto essas 2) e os grupos a, b e
+    d do Juliet, sem erro de libm. Os dois defeitos não mudam veredito; o segundo só
+    devolvia tempo nas paradas por estagnação.
+- **Fora da campanha:** o `--debug` dá segfault com a alternância (no fim da execução).
+  Só afeta a depuração e ficou registrado para corrigir.
+
+## Campanha da 9.0 — Cover-Error, CASTLE e Juliet a, b, d completos (2026-10-02, 23h)
+
+**Cover-Error, 1 087 tarefas** (recorte da v15, pareado):
+
+| | v15 | 9.0 |
+|---|---|---|
+| cobertas | 470 | **722 (+265 −13, +54%)** |
+| TRUE errado | **175** | **0** |
+| ERROR | 9 | 0 |
+| tempo mediano | 176 s | 72 s |
+
+- Por categoria (v15 → 9.0): ECA 58 → 146, ProductLines 111 → 169, Sequentialized
+  9 → 78, XCSP 22 → 38, Arrays 84 → 92, Loops 102 → 109; nenhuma categoria cai.
+
+**Juliet** (pareado; a, b e d completos, c refeito com o build corrigido e em curso):
+
+| grupo | TP (v15 → 9.0) | FN | FP | TN | ERROR |
+|---|---|---|---|---|---|
+| a (2 320) | 214 → **611** | 127 → 100 | 0 → 0 | 1 140 → 1 131 | 269 → 0 |
+| b (1 600) | 216 → **473** | 202 → 170 | 30 → 30 | 729 → 722 | 111 → 0 |
+| d (960) | 364 → 364 | 116 → 114 | 80 → 80 | 380 → 369 | 0 → 0 |
+
+- O grupo d não ganhou TP, perdeu 11 TN para UNKNOWN e teve mais UNKNOWN + TIMEOUT
+  (20 → 33). É a única queda; investigar quando a campanha fechar.
+
+**CASTLE:** igual à v15 (TP 54, FN 14, FP 1).
+
+**Cover-Branches, parcial (111 de 2 765):** 48,3% contra 42,1% da v15, 47 melhores e 19
+piores. TestCov: VALIDATED 84, VALIDATED_ABORTS 23, TESTCOV_ERROR 4 (v15: 93, 15 e 3). O
+aumento de VALIDATED_ABORTS vem dos casos do corpus do fuzzer que violam uma assunção
+(o teste termina num `abort()`). A suíte continua válida e a cobertura conta.
+
+## Campanha da 9.0 — Cover-Branches completo (2026-10-05)
+
+O shard 4 fechou às 4h48 e, com ele, a campanha inteira. O build é o `76eedfc75`
+(`install_v9`) e as condições são as da v15: 300 s por tarefa, `--memory=4g`, TestCov
+com 300 s.
+
+**Cover-Branches, 2 765 tarefas** (recorte da v15, pareado):
+
+| | v15 | 9.0 |
+|---|---|---|
+| cobertura média | 41,4% | **45,1% (+3,7 p.p.)** |
+| cobertura mediana | 38,5% | **47,6%** |
+| melhores / piores / iguais | — | 932 / 381 / 1 452 |
+| VALIDATED / VALIDATED_ABORTS | 2 325 / 329 | 2 416 / 209 |
+| TESTCOV_ERROR | 110 | 140 (139 ECA) |
+| tempo mediano | 114 s | 274 s |
+
+- **Por categoria** (cobertura média, v15 → 9.0):
+  - Arrays: 60,7 → 76,2;
+  - BitVectors: 60,6 → 70,0;
+  - ControlFlow: 44,9 → 53,1;
+  - Recursive: 57,8 → 65,3;
+  - Heap: 40,6 → 47,3;
+  - Loops: 70,5 → 73,8;
+  - LinkedLists: 75,8 → 78,5;
+  - Sequentialized: 56,0 → 58,7;
+  - Floats: 5,4 → 6,7;
+  - ProductLines: 20,3 → 20,7;
+  - ECA: 10,5 → 10,6.
+  - **A única queda é o XCSP: 77,6 → 54,6.**
+- **Tarefas com zero testes.** 50 tarefas (43 XCSP, 7 Floats) geram testes na v15 e
+  nenhum na 9.0. Elas somam 1,6 p.p. da média geral; sem elas, a comparação fica em
+  40,5% → 45,9%.
+  - A causa é a poda de assunção com `klee_silent_exit` (ver o backlog).
+  - Na direção contrária, 51 tarefas sem teste na v15 passam a ter testes na 9.0.
+- **TESTCOV_ERROR.** Dos 140, 109 já davam erro na v15. Quase todos são do ECA: o
+  TestCov passa do limite de 300 s do harness. Falta revalidar com um limite maior.
+- **Tempo.** A 9.0 gasta o orçamento inteiro, porque a alternância só para por
+  estagnação e a suíte continua crescendo. Na v15 o híbrido fixo terminava antes.
+- O campo de veredito (SUCCEEDED 1 655 → 296) não pesa em Cover-Branches. Só a cobertura
+  validada pelo TestCov conta.
+
+## Correção dos caminhos podados pelo assume, e rerrodada (2026-10-05/06)
+
+- **Defeito:** sob o KLEE, o `nondet_assume` podava com `klee_silent_exit`, que não grava
+  `.ktest`. Na campanha da 9.0, 50 tarefas de Cover-Branches (43 XCSP, 7 Floats) tinham
+  testes na v15 e nenhum na 9.0.
+- **Correção 1** (`e4e0b74c7`): a poda passa a usar `_exit(0)`. O caminho termina
+  normalmente e o KLEE grava o teste.
+- **Correção 2** (`6848d2395`): o caminho podado leva um objeto marcador
+  (`map2check_pruned`).
+  - O leitor remove o marcador e põe esses vetores depois dos outros.
+  - A suíte marca o caso com um comentário XML e o troca por um caminho mais profundo
+    quando atinge o limite de 50, inclusive em fases seguintes.
+  - Motivo: só com a correção 1, a primeira fase do KLEE no AllInterval achava apenas
+    caminhos podados e enchia a suíte. A cobertura caía de 95% para 9%.
+- **Rerrodada** (300 s por tarefa, mesmas condições), com a cobertura média em %:
+
+| lote | tarefas | v15 | 9.0 | só a correção 1 | correções 1 e 2 |
+|---|---|---|---|---|---|
+| tarefas sem teste na 9.0 | 50 | 88,8 | 0,0 | 88,8 | **88,8** |
+| XCSP que já tinham testes | 76 | 64,9 | 85,5 | 78,5 | **94,7** (+20 −6 contra a 9.0) |
+| controle sorteado | 100 | 46,9 | 54,4 | 55,9 | **55,0** (+19 −7) |
+| Cover-Error sorteado | 100 | — | 63 cobertas | 66 | **63** (+3 −3, ECA), TRUE errado 0 |
+
+- **Projeção no Cover-Branches completo** (as 226 tarefas trocadas pelas da rerrodada):
+  - média: v15 41,4% → 9.0 45,1% → **47,0%**;
+  - XCSP: 77,6% → 54,6% → **96,6%**.
+- **Ainda abaixo da 9.0 original:** AllInterval-035 (38,6 → 2,9), -025 e -017. As oscilações
+  de mais e de menos no controle e no Cover-Error ficam dentro da variação entre
+  execuções vista nas rodadas anteriores.

@@ -38,6 +38,9 @@ int GenHash::generate_sha1_hash_for_file() {
   std::stringstream ss;
   std::ifstream file(this->filepath.c_str(), std::ios::binary | std::ios::ate);
   std::streamsize size = file.tellg();
+  // An unreadable file reads as size -1, which std::vector rejected with a
+  // bare "cannot create std::vector larger than max_size()".
+  if (!file.is_open() || size < 0) return -1;
   file.seekg(0, std::ios::beg);
 
   std::vector<char> buffer(size);

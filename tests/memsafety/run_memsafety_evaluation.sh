@@ -103,7 +103,7 @@ while IFS=$'\t' read -r category program data_model expected subproperty <&3; do
   # shellcheck disable=SC2086  # the flag strings are word lists on purpose
   ( cd "$work" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 $((BUDGET + 30)) \
       "$MAP2CHECK" $MODE_FLAGS $EXTRA_FLAGS --architecture "$arch" \
-      --timeout "$BUDGET" "$name" ) > "$work/map2check.log" 2>&1 </dev/null || rc=$?
+      --timeout "$BUDGET" "$name" ) > "$work/map2check.log" 2>&1 </dev/null 3<&- || rc=$?
   t1=$(date +%s)
 
   output=$(cat "$work/map2check.log")

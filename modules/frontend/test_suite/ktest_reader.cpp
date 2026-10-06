@@ -158,8 +158,9 @@ bool isUnsignedName(const std::string& name) {
 
 }  // namespace
 
-std::vector<KtestObject> readKtestFile(const std::string& path) {
+std::vector<KtestObject> readKtestFile(const std::string& path, bool* pruned) {
   std::vector<KtestObject> objects;
+  if (pruned != nullptr) *pruned = false;
   std::ifstream in(path, std::ios::binary);
   if (!in.is_open()) return objects;
 
@@ -212,6 +213,10 @@ std::vector<KtestObject> readKtestFile(const std::string& path) {
     // A partial object is dropped, but the ones already read are kept: a
     // .ktest truncated by a kill still describes a usable prefix of the path,
     // and the same forgiving rule governs the CSV log.
+    if (name == kPrunedPathMarker) {
+      if (pruned != nullptr) *pruned = true;
+      continue;
+    }
     objects.push_back(KtestObject{name, std::move(bytes)});
   }
 
@@ -318,9 +323,63 @@ bool kleeHaltedOnTimer(const std::string& kleeOutDir) {
   return false;
 }
 
+std::string kleeDroppedPaths(const std::string& kleeOutDir) {
+  if (kleeHaltedOnTimer(kleeOutDir)) return "halted on its timer";
+
+  const std::filesystem::path dir(kleeOutDir);
+  std::string line;
+  std::ifstream warnings((dir / "warnings.txt").string());
+  while (std::getline(warnings, line)) {
+    if (line.find("silently concretizing") != std::string::npos) {
+      return "concretized a symbolic value";
+    }
+    // Near --max-memory KLEE stops forking and follows one side of each
+    // branch at random, or kills states outright; either way it can still
+    // empty its queue and exit 0.
+    if (line.find("skipping fork") != std::string::npos ||
+        line.find("over memory cap") != std::string::npos) {
+      return "hit its memory cap";
+    }
+  }
+
+  // KLEE that died (a solver crash, an LLVM assertion, the OOM killer) writes
+  // none of the marks below and no "done" lines -- while the paths it did
+  // finish may have written NONE to the property file.
+  bool finished = false;
+  std::ifstream info((dir / "info").string());
+  while (std::getline(info, line)) {
+    if (line.find("KLEE: done: completed paths") != std::string::npos) {
+      finished = true;
+      break;
+    }
+  }
+  if (!finished) return "did not finish its run";
+
+  // A state KLEE killed leaves a test with the reason: <test>.<kind>.err for
+  // an error (a model limit, a memory error, an abort that halted the search),
+  // <test>.early for an early termination (memory cap, depth, ...). Not
+  // "partially completed paths" in info: that counts the paths an assumption
+  // pruned too, and read that way no program with an assume_abort_if_not
+  // could ever be proved.
+  std::error_code error;
+  for (const auto& entry : std::filesystem::directory_iterator(dir, error)) {
+    const std::string name = entry.path().filename().string();
+    auto endsWith = [&name](const std::string& suffix) {
+      return name.size() > suffix.size() &&
+             name.compare(name.size() - suffix.size(), suffix.size(),
+                          suffix) == 0;
+    };
+    if (endsWith(".err") || endsWith(".early")) {
+      return "terminated states early (" + name + ")";
+    }
+  }
+  return "";
+}
+
 std::vector<std::vector<std::string>> readKtestVectors(
-    const std::string& kleeOutDir, size_t limit) {
+    const std::string& kleeOutDir, size_t limit, std::vector<bool>* pruned) {
   std::vector<std::vector<std::string>> vectors;
+  if (pruned != nullptr) pruned->clear();
   std::error_code error;
   if (!std::filesystem::is_directory(kleeOutDir, error)) return vectors;
 
@@ -336,17 +395,26 @@ std::vector<std::vector<std::string>> readKtestVectors(
   }
   std::sort(paths.begin(), paths.end());
 
+  std::vector<std::vector<std::string>> prunedVectors;
   for (const std::string& path : paths) {
     if (vectors.size() >= limit) break;
-    std::vector<KtestObject> objects = readKtestFile(path);
+    bool isPruned = false;
+    std::vector<KtestObject> objects = readKtestFile(path, &isPruned);
     if (objects.empty()) continue;
+    if (isPruned && prunedVectors.size() >= limit) continue;
 
     std::vector<std::string> inputs;
     inputs.reserve(objects.size());
     for (const KtestObject& object : objects) {
       inputs.push_back(decodeKtestObject(object));
     }
+    (isPruned ? prunedVectors : vectors).push_back(std::move(inputs));
+  }
+  if (pruned != nullptr) pruned->assign(vectors.size(), false);
+  for (std::vector<std::string>& inputs : prunedVectors) {
+    if (vectors.size() >= limit) break;
     vectors.push_back(std::move(inputs));
+    if (pruned != nullptr) pruned->push_back(true);
   }
   return vectors;
 }
@@ -402,14 +470,17 @@ std::vector<KtestObject> readNonDetLogAsObjects(const std::string& csvPath) {
     if (fields.size() < 7) continue;
 
     const std::string& value = fields[5];
+    // KLEE matches a seed's objects to its inputs by POSITION: a read this
+    // cannot express (pchar, loff_t, sector_t, or a malformed row) ends the
+    // seed here. Skipping it shifted every later value onto the wrong input.
     int type = 0;
     try {
       type = std::stoi(fields[6]);
     } catch (const std::exception&) {
-      continue;
+      break;
     }
     const NonDetTypeInfo info = nonDetTypeInfo(type);
-    if (info.name == nullptr) continue;
+    if (info.name == nullptr) break;
 
     KtestObject object;
     object.name = info.name;

@@ -428,36 +428,44 @@ int main(void) {
 }
 EOF
 
-# Off by default: the hybrid's measured behaviour must not change until the
-# exchange has earned its place beside it.
+# The 8.x fixed hybrid keeps its behaviour: no exchange unless asked. (Since
+# 9.0 the default hybrid is the alternation, which exchanges seeds.)
 ( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 250 "$MAP2CHECK" \
-    --target-function --target-function-name reach_error \
+    --fixed-hybrid --target-function --target-function-name reach_error \
     --debug --timeout 60 seed.c ) > "$WORK/seed/off.log" 2>&1
-scratch_off=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
-n_off=$(ls "$scratch_off/seeds" 2>/dev/null | wc -l)
+# The seed store lives BESIDE the scratch directory (<hash>.seeds): every
+# hybrid phase recreates the scratch directory, and a store inside it never
+# reached the next phase (tacasv3a).
+n_off=$(ls -d "$WORK/seed"/*.seeds 2>/dev/null | wc -l)
 if [ "$n_off" -eq 0 ]; then
-  ok "no seed corpus without --seed-exchange"
+  ok "no seed store with --fixed-hybrid and without --seed-exchange"
 else
-  fail "default behaviour" "$n_off seeds written without asking"
+  fail "default behaviour" "a seed store was created without asking"
 fi
 rm -rf "$WORK/seed"/*.map2check
 
 ( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
     --target-function --target-function-name reach_error --seed-exchange \
     --debug --timeout 60 seed.c ) > "$WORK/seed/on.log" 2>&1
-scratch_on=$(find "$WORK/seed" -maxdepth 1 -name '*.map2check' -print -quit)
+store=$(ls -d "$WORK/seed"/*.seeds 2>/dev/null | head -1)
 # Only the fuzzer's own discoveries count: the Caller writes a placeholder
-# seed into seeds/ itself, so a plain file count would pass with no copy-back.
-n_on=$(ls "$scratch_on/seeds" 2>/dev/null | grep -c '^afl-')
-
-# afl-fuzz never writes into its -i dir; the Caller copies its queue back in
-# after the fuzzer phase, so the corpus survives the fuzzer process. (It does
-# not yet survive into the next phase: each Caller recreates the scratch
-# directory -- inherited from v15, left to the smart-seeds work.)
-if [ "$n_on" -gt 0 ]; then
-  ok "the fuzzer discoveries are copied into seeds/ with --seed-exchange ($n_on files)"
+# seed itself, so a plain file count would pass with no copy-back.
+n_on=$(ls "$store/afl" 2>/dev/null | grep -c '^afl-')
+if [ -n "$store" ] && [ "$n_on" -gt 0 ]; then
+  ok "the fuzzer discoveries reach the seed store beside the scratch ($n_on files)"
 else
-  fail "seed corpus" "nothing kept -- the corpus is still in-memory only"
+  fail "seed store" "no store beside the scratch directory, or no fuzzer discoveries in it"
+fi
+
+# Without --debug the store is removed after the last phase.
+rm -rf "$WORK/seed"/*.map2check "$WORK/seed"/*.seeds
+( cd "$WORK/seed" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --timeout 60 seed.c ) > "$WORK/seed/on-clean.log" 2>&1
+if [ "$(ls -d "$WORK/seed"/*.seeds 2>/dev/null | wc -l)" -eq 0 ]; then
+  ok "no seed store is left behind without --debug"
+else
+  fail "seed store cleanup" "a *.seeds directory survived a run without --debug"
 fi
 
 # KLEE -> fuzzer: its per-path vectors become seed files. Sound only because
@@ -873,6 +881,442 @@ if grep -q "VERIFICATION FAILED" "$WORK/ovf/safe.log"; then
   fail "overflow slice soundness" "a safe program was reported FALSE after slicing"
 else
   ok "slicing does not invent an overflow"
+fi
+
+# --- 26. the fuzzer's corpus reaches KLEE as typed seeds ---------------------
+# Each queue entry is replayed through the witness binary (inside the store's
+# replay/, so nothing it writes touches the phase), and the typed nondet log
+# becomes a .ktest; KLEE starts from the whole set with --seed-dir. The old
+# channel read a log from a scratch directory that no longer existed and sent
+# at most one vector.
+# An unreachable guard (44522 is not a square), so no phase can end the hybrid
+# early: the fuzzer phase always hands its corpus over and KLEE always runs
+# with it -- the test cannot pass without exercising the channel.
+mkdir -p "$WORK/seed2"
+cat > "$WORK/seed2/square.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "square.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (a > 100 && a < 300 && b > 0) {
+    if (a * a == 44522) { reach_error(); }
+  }
+  return 0;
+}
+EOF
+( cd "$WORK/seed2" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --debug --timeout 60 square.c ) > "$WORK/seed2/run.log" 2>&1
+n_seeds=$(grep -aoE "Seeded KLEE with [0-9]+ vectors from AFL\+\+" "$WORK/seed2/run.log" \
+          | grep -oE "[0-9]+" | head -1)
+if [ "${n_seeds:-0}" -gt 0 ] && grep -q -- "--seed-dir=" "$WORK/seed2/run.log"; then
+  ok "the fuzzer corpus reaches KLEE ($n_seeds seeds via --seed-dir)"
+else
+  fail "fuzzer -> KLEE" "KLEE ran without seeds from the fuzzer"
+fi
+# The program is safe and KLEE proves it: that proof is the run's answer. The
+# third (fuzzer) phase is for runs nothing has decided yet; running it after a
+# proof printed UNKNOWN last, and every harness reads the last verdict.
+last_verdict=$(grep -aoE "VERIFICATION (FAILED|SUCCEEDED|UNKNOWN)" "$WORK/seed2/run.log" | tail -1)
+if [ "$last_verdict" = "VERIFICATION SUCCEEDED" ]; then
+  ok "a proof from the KLEE phase stays the final verdict under --seed-exchange"
+else
+  fail "exchange verdict" "KLEE proved the program safe but the run ended with [$last_verdict]"
+fi
+
+# --- 27. replaying the corpus must not erase a violation the fuzzer found ----
+mkdir -p "$WORK/seed3"
+cat > "$WORK/seed3/easy.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "easy.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (x > 1000 && x < 1100) { reach_error(); }
+  return 0;
+}
+EOF
+( cd "$WORK/seed3" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --timeout 30 easy.c ) > "$WORK/seed3/run.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/seed3/run.log"; then
+  ok "a violation found by the fuzzer survives the seed replays"
+else
+  fail "seed replay" "the violation was lost with --seed-exchange"
+fi
+
+# --- 28. the seed store starts clean, and the last phase replays nothing ----
+# The store's name is derived from the program's content, so a store left by
+# an earlier run -- a --debug run keeps it on purpose, a killed one leaks it --
+# would feed its seeds into the next run of the same program: it is wiped at
+# the start of a run. And the fuzzer's corpus is converted for KLEE only when a
+# KLEE phase follows; after the last phase the replays would be pure cost.
+mkdir -p "$WORK/seed4"
+cat > "$WORK/seed4/safe.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "safe.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int();
+  int b = __VERIFIER_nondet_int();
+  if (a > 100 && b > a) { b = b - a; }
+  if (a != a) { reach_error(); }
+  return b;
+}
+EOF
+( cd "$WORK/seed4" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --debug --timeout 60 safe.c ) > "$WORK/seed4/first.log" 2>&1
+store4=$(ls -d "$WORK/seed4"/*.seeds 2>/dev/null | head -1)
+[ -n "$store4" ] && mkdir -p "$store4/ktest" && echo stale > "$store4/ktest/stale-from-an-old-run.ktest"
+rm -rf "$WORK/seed4"/*.map2check
+( cd "$WORK/seed4" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 300 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --seed-exchange \
+    --debug --timeout 60 safe.c ) > "$WORK/seed4/run.log" 2>&1
+replays=$(grep -c "Seeded KLEE with" "$WORK/seed4/run.log")
+if [ -n "$store4" ] && [ ! -e "$store4/ktest/stale-from-an-old-run.ktest" ] && \
+   [ "$replays" -le 1 ] && ! grep -q "VERIFICATION FAILED" "$WORK/seed4/run.log"; then
+  ok "the seed store starts clean and only the first fuzzer phase feeds KLEE"
+else
+  fail "seed store lifecycle" "stale seed kept, $replays conversions, or a safe program reported FALSE"
+fi
+
+# --- 29. an inline "if (!c) abort();" is an assumption, not the end of search --
+# In SV-COMP abort() is not an error: it discards the path. The benchmarks use
+# it inline (seq-mthreaded/pals_*: `if(!(i2)) {abort();}`), and KLEE runs with
+# --exit-on-error-type=Abort, so the first path violating that assumption ended
+# the WHOLE search with exit 0 -- and the run answered TRUE for a program with a
+# reachable bug. Measured: every wrong TRUE of the tacasv2 control arm in R15.
+mkdir -p "$WORK/abort"
+cat > "$WORK/abort/inline.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "inline.c", 3, "reach_error"); }
+extern void abort(void);
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (!(x > 0)) { abort(); }
+  int y = __VERIFIER_nondet_int();
+  if (y == x + 1) { ERROR: { reach_error(); abort(); } }
+  return 0;
+}
+EOF
+( cd "$WORK/abort" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator symex \
+    --timeout 45 inline.c ) > "$WORK/abort/inline.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/abort/inline.log"; then
+  ok "an inline abort() assumption prunes the path and the bug behind it is found"
+else
+  fail "inline abort" "the bug after an inline abort() assumption was not found: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/abort/inline.log" | tail -1)"
+fi
+
+# The same shape with no reachable bug must not turn into a violation.
+cat > "$WORK/abort/safe.c" <<'EOF'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "safe.c", 3, "reach_error"); }
+extern void abort(void);
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (!(x > 0)) { abort(); }
+  if (x < 0) { ERROR: { reach_error(); abort(); } }
+  return 0;
+}
+EOF
+( cd "$WORK/abort" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator symex \
+    --timeout 45 safe.c ) > "$WORK/abort/safe.log" 2>&1
+# And it is still provable: the pruned path is not a dropped one. Reading
+# KLEE's "partially completed paths" as dropped paths turned this into UNKNOWN.
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/abort/safe.log"; then
+  ok "an inline abort() assumption does not invent a violation, and is provable"
+else
+  fail "inline abort soundness" "a safe program with an inline abort() assumption: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/abort/safe.log" | tail -1), expected SUCCEEDED"
+fi
+
+# --- 30. KLEE finishing after dropping paths is not a proof -----------------
+# KLEE exits 0 whenever its queue empties -- also after pinning a symbolic
+# double to 0 ("silently concretizing (reason: floating point)"): one path,
+# explored "completely", and float-benchs/sin_interpolated_index-1 came back
+# TRUE with a reachable bug.
+mkdir -p "$WORK/dropped"
+cat > "$WORK/dropped/float.c" <<'EOF2'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "float.c", 3, "reach_error"); }
+extern double __VERIFIER_nondet_double(void);
+int main(void) {
+  double x = __VERIFIER_nondet_double();
+  if (x > 179.5 && x < 180.5) { reach_error(); }
+  return 0;
+}
+EOF2
+( cd "$WORK/dropped" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator symex \
+    --timeout 45 float.c ) > "$WORK/dropped/float.log" 2>&1
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/dropped/float.log"; then
+  fail "concretized verdict" "TRUE after KLEE concretized the symbolic double"
+else
+  ok "a KLEE run that concretized an input is not reported TRUE"
+fi
+
+# --- 31. the hybrid slices once per run, not once per phase -----------------
+# Every phase recreates the scratch directory, and each used to run sbt-slicer
+# again. On eca-* the slicer timed out (0.2T) in phase 1 AND phase 2, the run
+# overran its budget and was killed with no suite (R15, 4 ERROR). A slice, or a
+# slicer failure, is now kept for the later phases of the same run.
+mkdir -p "$WORK/slicecache"
+cat > "$WORK/slicecache/safe.c" <<'EOF2'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "safe.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  int y = x > 0 ? x : -x;
+  if (y < 0 && x > 0) { reach_error(); }
+  return 0;
+}
+EOF2
+( cd "$WORK/slicecache" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --debug --slice --target-function --target-function-name reach_error \
+    --timeout 30 safe.c ) > "$WORK/slicecache/safe.log" 2>&1
+slicer_runs=$(grep -c "sbt-slicer -c" "$WORK/slicecache/safe.log")
+if [ "$slicer_runs" -eq 1 ] && grep -q "reusing the slice from an earlier phase" "$WORK/slicecache/safe.log"; then
+  ok "a slice is computed once and reused by the later phases"
+else
+  fail "slice cache" "sbt-slicer ran $slicer_runs time(s); reuse logged: $(grep -c 'reusing the slice' "$WORK/slicecache/safe.log")"
+fi
+
+# A slicer failure is remembered too: the VLA makes sbt-slicer fail, and the
+# later phases must not pay for it again.
+cat > "$WORK/slicecache/vla.c" <<'EOF2'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int n = __VERIFIER_nondet_int();
+  if (n > 0 && n < 10) {
+    int a[n];
+    a[0] = 1;
+    return a[0];
+  }
+  return 0;
+}
+EOF2
+( cd "$WORK/slicecache" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --debug --memtrack --slice --timeout 30 vla.c ) > "$WORK/slicecache/vla.log" 2>&1
+slicer_runs=$(grep -c "sbt-slicer -c" "$WORK/slicecache/vla.log")
+if [ "$slicer_runs" -eq 1 ] && grep -q "no usable output (cached" "$WORK/slicecache/vla.log"; then
+  ok "a slicer failure is remembered by the later phases"
+else
+  fail "slice failure cache" "sbt-slicer ran $slicer_runs time(s); cached failure logged: $(grep -c 'no usable output (cached' "$WORK/slicecache/vla.log")"
+fi
+
+# --- 32. the fuzzer's input runs out as zeros, not as a replay of itself -----
+# Past the end of the test case the AFL++ generator used to start over from
+# its first byte, so `while (__VERIFIER_nondet_int())` fed by the placeholder
+# seed "A" never ended: afl-fuzz's dry run timed out on it and the fuzzer
+# aborted before its first execution -- on the loop idiom sv-benchmarks is
+# full of. Reads past the end now return zero.
+mkdir -p "$WORK/aflloop"
+cat > "$WORK/aflloop/loop.c" <<'EOF2'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "loop.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  while (__VERIFIER_nondet_int()) {
+    if (__VERIFIER_nondet_int() == 7) { reach_error(); }
+  }
+  return 0;
+}
+EOF2
+( cd "$WORK/aflloop" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --target-function --target-function-name reach_error --nondet-generator afl \
+    --timeout 45 loop.c ) > "$WORK/aflloop/loop.log" 2>&1
+if grep -q "VERIFICATION FAILED" "$WORK/aflloop/loop.log"; then
+  ok "a nondet-driven loop does not hang the fuzzer's dry run"
+else
+  fail "fuzzer on a nondet loop" "expected FAILED, got: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/aflloop/loop.log" | tail -1)"
+fi
+
+# --- 33. --alternate-engines takes turns and stops a stagnant KLEE ----------
+# The fixed 0.2/0.6/0.2 split held an engine that had stopped progressing to
+# the end of its share. Alternating, each phase ends when its engine stagnates
+# and the other gets the time; KLEE stopped that way was left with states, so
+# the run is never TRUE, and the whole run stays inside its budget.
+mkdir -p "$WORK/alternate"
+cat > "$WORK/alternate/grow.c" <<'EOF2'
+extern void __assert_fail(const char *, const char *, unsigned int,
+                          const char *) __attribute__((__noreturn__));
+void reach_error(void) { __assert_fail("0", "grow.c", 3, "reach_error"); }
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int s = 0;
+  while (__VERIFIER_nondet_int()) {
+    if (__VERIFIER_nondet_int() > 0) s += 1; else s += 2;
+    if (s < 0) { reach_error(); }
+  }
+  return 0;
+}
+EOF2
+t0=$(date +%s)
+( cd "$WORK/alternate" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --alternate-engines --target-function --target-function-name reach_error \
+    --timeout 60 grow.c ) > "$WORK/alternate/grow.log" 2>&1
+t1=$(date +%s)
+phases=$(grep -c "Alternation phase" "$WORK/alternate/grow.log")
+if [ "$phases" -ge 3 ] && grep -q "KLEE stagnated" "$WORK/alternate/grow.log" && \
+   ! grep -q "VERIFICATION SUCCEEDED" "$WORK/alternate/grow.log" && \
+   [ $((t1 - t0)) -le 75 ]; then
+  ok "the engines alternate, a stagnant KLEE is stopped, no TRUE ($phases phases, $((t1 - t0)) s)"
+else
+  fail "alternation" "phases=$phases stagnated=$(grep -c 'KLEE stagnated' "$WORK/alternate/grow.log") elapsed=$((t1 - t0))s verdict=$(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/alternate/grow.log" | tail -1)"
+fi
+
+# --- 34. memset/memcpy/memmove are checked under LLVM 16's opaque pointers --
+# MemoryTrackPass matched the intrinsics by name, and the names carried the
+# pointer types (llvm.memset.p0i8.i64) that LLVM 16 no longer writes
+# (llvm.memset.p0.i64): no memory intrinsic clang emitted was checked.
+mkdir -p "$WORK/intrinsics"
+cat > "$WORK/intrinsics/over.c" <<'EOF2'
+#include <stdlib.h>
+#include <string.h>
+int main(void) {
+  char *p = malloc(8);
+  if (!p) return 0;
+  memset(p, 0, 16);
+  free(p);
+  return 0;
+}
+EOF2
+cat > "$WORK/intrinsics/safe.c" <<'EOF2'
+#include <stdlib.h>
+#include <string.h>
+struct S { int a[10]; char name[16]; };
+int main(void) {
+  char s[] = "hello, world";
+  struct S x = {{1, 2, 3}, "abc"}, y;
+  y = x;
+  char *p = malloc(sizeof s);
+  if (!p) return 0;
+  memcpy(p, s, sizeof s);
+  memmove(p + 1, p, 4);
+  memset(y.name, 'z', sizeof y.name);
+  free(p);
+  return y.a[0] + s[0];
+}
+EOF2
+( cd "$WORK/intrinsics" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 over.c ) > "$WORK/intrinsics/over.log" 2>&1
+( cd "$WORK/intrinsics" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 safe.c ) > "$WORK/intrinsics/safe.log" 2>&1
+if grep -q "FALSE-DEREF" "$WORK/intrinsics/over.log"; then
+  ok "a memset past the end of a heap block is a FALSE-DEREF"
+else
+  fail "memset intrinsic" "expected FALSE-DEREF, got: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/intrinsics/over.log" | tail -1)"
+fi
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/intrinsics/safe.log"; then
+  ok "in-bounds memcpy/memmove/memset and struct copies stay TRUE"
+else
+  fail "intrinsics soundness" "safe program: $(grep -aoE 'VERIFICATION [A-Z]+|FALSE[-_A-Z]*' "$WORK/intrinsics/safe.log" | tr '\n' ' ')"
+fi
+
+# --- 35. a fuzzer binary that fails to link says so ---------------------------
+# Every missing AFL++ binary was reported as one that "did not build within
+# Ns", the budget's fault -- including a link error that no budget would fix.
+mkdir -p "$WORK/afllink"
+cat > "$WORK/afllink/decl.c" <<'EOF2'
+extern void reach_error(void);
+extern int __VERIFIER_nondet_int(void);
+int main(void) { if (__VERIFIER_nondet_int() == 3) reach_error(); return 0; }
+EOF2
+( cd "$WORK/afllink" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 100 "$MAP2CHECK" \
+    --nondet-generator afl --target-function --target-function-name reach_error \
+    --timeout 30 decl.c ) > "$WORK/afllink/decl.log" 2>&1
+if grep -q "AFL++ binary failed to build.*undefined reference" "$WORK/afllink/decl.log"; then
+  ok "a fuzzer link error is reported as one, with its cause"
+else
+  fail "fuzzer link error" "$(grep -a 'AFL++ binary' "$WORK/afllink/decl.log" | head -1)"
+fi
+
+# --- 36. MAP2CHECK_CHECK_CSTRINGS=1: a %s that reads past its buffer is a FALSE-DEREF
+# KLEE's uClibc declares printf without defining it, so KLEE runs it as a
+# native external call: the read of an unterminated string happened outside
+# every check, and Juliet's CWE121 CWE193 "cpy" tasks came back TRUE. The
+# strings a %s (or puts) will read are checked before the call.
+mkdir -p "$WORK/cstring"
+cat > "$WORK/cstring/unterminated.c" <<'EOF2'
+#include <stdio.h>
+#include <string.h>
+int main(void) {
+  char buf[10];
+  char src[11] = "AAAAAAAAAA";
+  memcpy(buf, src, strlen(src));
+  printf("%s\n", buf);
+  return 0;
+}
+EOF2
+cat > "$WORK/cstring/fine.c" <<'EOF2'
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+int main(void) {
+  char buf[16] = "hello";
+  char *heap = malloc(8);
+  if (!heap) return 0;
+  strcpy(heap, "abc");
+  printf("%s %s %d %.3s %5s\n", buf, "literal", 42, heap, heap);
+  puts(buf);
+  free(heap);
+  return 0;
+}
+EOF2
+( cd "$WORK/cstring" && MAP2CHECK_CHECK_CSTRINGS=1 MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 unterminated.c ) > "$WORK/cstring/unterminated.log" 2>&1
+( cd "$WORK/cstring" && MAP2CHECK_CHECK_CSTRINGS=1 MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --memtrack --nondet-generator symex --timeout 45 fine.c ) > "$WORK/cstring/fine.log" 2>&1
+if grep -q "FALSE-DEREF" "$WORK/cstring/unterminated.log"; then
+  ok "printing an unterminated buffer with %s is a FALSE-DEREF"
+else
+  fail "%s past the buffer" "expected FALSE-DEREF, got: $(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/cstring/unterminated.log" | tail -1)"
+fi
+if grep -q "VERIFICATION SUCCEEDED" "$WORK/cstring/fine.log"; then
+  ok "terminated strings, literals, %.Ns and puts stay TRUE"
+else
+  fail "%s soundness" "fine program: $(grep -aoE 'VERIFICATION [A-Z]+|FALSE[-_A-Z]*' "$WORK/cstring/fine.log" | tr '\n' ' ')"
+fi
+
+# --- 37. MAP2CHECK_FUZZER_SUITE=1: the fuzzer's corpus joins a Cover-Branches suite
+# The suite came only from KLEE's paths; the fuzzer's queue -- the inputs that
+# reached new edges -- was thrown away with the scratch directory.
+mkdir -p "$WORK/fuzzersuite"
+cat > "$WORK/fuzzersuite/br.c" <<'EOF2'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a = __VERIFIER_nondet_int(), b = __VERIFIER_nondet_int();
+  int r = 0;
+  if (a > 100) r += 1; else r -= 1;
+  if (b == 4242) r += 2;
+  return r;
+}
+EOF2
+( cd "$WORK/fuzzersuite" && MAP2CHECK_FUZZER_SUITE=1 MAP2CHECK_PATH="$MAP2CHECK_DIR" \
+    timeout -k 10 200 "$MAP2CHECK" --cover-branches --generate-test-suite \
+    --timeout 40 br.c ) > "$WORK/fuzzersuite/br.log" 2>&1
+fuzzed=$(grep -aoE "[0-9]+ test cases from the fuzzer's corpus" "$WORK/fuzzersuite/br.log" | grep -oE '^[0-9]+')
+dups=$(
+       for f in "$WORK"/fuzzersuite/test-suite/testcase-*.xml; do grep -o '<input>[^<]*' "$f" | tr '\n' ' '; echo; done | sort | uniq -d | wc -l)
+if [ "${fuzzed:-0}" -ge 1 ] && [ "$dups" -eq 0 ]; then
+  ok "the fuzzer's corpus contributes test cases, without duplicates ($fuzzed)"
+else
+  fail "fuzzer suite" "fuzzer cases=${fuzzed:-0}, duplicate cases=$dups"
 fi
 
 echo "  ---"

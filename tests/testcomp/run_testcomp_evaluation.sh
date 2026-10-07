@@ -26,7 +26,7 @@
 #   DEADLINE_S    stop starting new tasks after this many seconds (default 18000)
 #   SUITES_DIR    if set, keep every suite as
 #                 $SUITES_DIR/<rundefinition>/<task>.yml/test-suite.zip, the layout
-#                 tests/testcomp/official/validate.sh reads (the official
+#                 tests/testcomp/official/run.sh validate reads (the official
 #                 validators need the suites, not this harness's verdict)
 #
 # The container needs gcc-multilib. Most sv-benchmarks tasks declare ILP32, and

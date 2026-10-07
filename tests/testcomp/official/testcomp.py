@@ -99,6 +99,15 @@ def stage_tasks(task_list, sv_benchmarks, staging):
             for name in [os.path.basename(yml)] + inputs:
                 shutil.copy2(os.path.join(os.path.dirname(yml), name),
                              os.path.join(target_dir, name))
+            # Some tasks carry property files of their own (eca-rers2018/), named
+            # relative to the task definition. BenchExec resolves every property
+            # a definition lists, so one missing file aborts the whole run -- and
+            # with it every task's result.
+            local_properties = os.path.join(os.path.dirname(yml), "properties")
+            if os.path.isdir(local_properties):
+                shutil.copytree(local_properties,
+                                os.path.join(target_dir, "properties"),
+                                dirs_exist_ok=True)
             tasks.append(os.path.join(target_dir, os.path.basename(yml)))
     return tasks
 

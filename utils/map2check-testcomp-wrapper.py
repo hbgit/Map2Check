@@ -62,6 +62,28 @@ def parse_args(argv):
     return parser.parse_args(argv)
 
 
+def tool_environment():
+    """The environment map2check runs with.
+
+    In the Test-Comp archive (utils/testcomp-archive/make-archive.sh) AFL++
+    travels inside the tool directory, since the competition machines do not
+    have it: map2check is pointed at the bundled afl-fuzz and afl-clang-fast,
+    afl-cc at its passes and runtime objects (AFL_PATH) and at the bundled
+    LLVM 16 clang (AFL_CC). Outside the archive -- a development install --
+    none of these exist and the defaults (/usr/local) stay in force."""
+    env = dict(os.environ)
+    bundled = {
+        "MAP2CHECK_AFL_FUZZ": os.path.join(HERE, "bin", "afl-fuzz"),
+        "MAP2CHECK_AFL_CC": os.path.join(HERE, "bin", "afl-clang-fast"),
+        "AFL_PATH": os.path.join(HERE, "lib", "afl"),
+        "AFL_CC": os.path.join(HERE, "bin", "clang"),
+    }
+    if os.path.exists(bundled["MAP2CHECK_AFL_FUZZ"]):
+        for key, value in bundled.items():
+            env.setdefault(key, value)
+    return env
+
+
 def read_property(path):
     with open(path, "r") as handle:
         return handle.read()
@@ -97,7 +119,7 @@ def main(argv):
 
     architecture = "32bit" if args.data_model == "ILP32" else "64bit"
 
-    # The inner budget is what Map2Check divides between LibFuzzer and KLEE; the
+    # The inner budget is what Map2Check divides between AFL++ and KLEE; the
     # outer one is the backstop for a shutdown that hangs.
     inner = max(1, args.budget - SHUTDOWN_MARGIN)
 
@@ -114,7 +136,7 @@ def main(argv):
     sys.stdout.flush()
 
     try:
-        completed = subprocess.run(command, timeout=args.budget)
+        completed = subprocess.run(command, timeout=args.budget, env=tool_environment())
         rc = completed.returncode
     except subprocess.TimeoutExpired:
         print("Timed out")

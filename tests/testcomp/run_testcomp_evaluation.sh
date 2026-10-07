@@ -24,6 +24,10 @@
 #   BUDGET        seconds given to map2check per task (default 60)
 #   TESTCOV_S     seconds given to TestCov per task (default 90)
 #   DEADLINE_S    stop starting new tasks after this many seconds (default 18000)
+#   SUITES_DIR    if set, keep every suite as
+#                 $SUITES_DIR/<rundefinition>/<task>.yml/test-suite.zip, the layout
+#                 tests/testcomp/official/validate.sh reads (the official
+#                 validators need the suites, not this harness's verdict)
 #
 # The container needs gcc-multilib. Most sv-benchmarks tasks declare ILP32, and
 # without it TestCov cannot compile the program for -32 and reports no Result
@@ -203,6 +207,14 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
   if [ "$testcov" = "TESTCOV_ERROR" ] || [ "$verdict" = "ERROR" ]; then
     cp "$work/map2check.log" "$RESULTS_DIR/raw/$(echo "$program" | tr '/' '_').m2c.log" 2>/dev/null
     cp "$work/testcov.log" "$RESULTS_DIR/raw/$(echo "$program" | tr '/' '_').tc.log" 2>/dev/null
+  fi
+
+  if [ -n "${SUITES_DIR:-}" ] && [ -f "$work/suite.zip" ]; then
+    rundef=$([ "$PROPERTY" = "cover-branches" ] && echo Test-Comp26_coverage-branches \
+             || echo Test-Comp26_coverage-error-call)
+    taskdef=$(basename "${program%.*}").yml
+    mkdir -p "$SUITES_DIR/$rundef/$taskdef"
+    cp "$work/suite.zip" "$SUITES_DIR/$rundef/$taskdef/test-suite.zip"
   fi
 
   rm -rf "$work"

@@ -892,3 +892,36 @@ com 300 s.
 - **Leitura:** o ambiente oficial funciona ponta a ponta. Falta (1) recalibrar o teto de 50
   com o validador oficial e (2) implementar a seleção da suíte por cobertura. O CI que
   reproduz este ambiente ficou **adiado** (custo ~20–35 min/run; ver o handoff de 07/10).
+
+## Issue #74 — tipos nondet não modelados (2026-10-12)
+
+- **Correção:** `05a157371` (branch `feat/nondet-missing-types`, sobre `feat/testcomp-official-env`).
+  O `NonDetPass` passa a modelar `float`, `longlong`, `ulonglong`, `u8/u16/u32` e
+  `__VERIFIER_nondet_memory(p, n)`. Cada tipo tem gerador KLEE e AFL++ da largura certa,
+  linha de log com o valor inteiro (64 bits e float não passam mais pelo logger de `int`) e
+  nome decodificado pelo leitor de ktest; float sai em `%.9g` (ida e volta exata).
+  `nondet_memory` segue o harness dos validadores: **n entradas `uchar`, uma por byte**
+  (o KLEE cria um objeto de n bytes, o leitor o expande). `_Bool`, `charp` e `uint128`
+  continuam fora: o harness oficial não tem os dois primeiros e o corpus não usa nenhum.
+- **Build:** `install_v99b` (`build_v99b`, prefixo próprio; o `install_v99` da campanha
+  ficou intocado). 12/12 testes unitários; 8 testes novos (decodificação, expansão de
+  memória, log → semente).
+- **Integração (programas sintéticos, 120 s):** ulonglong, longlong, u8/u16/u32, memory e
+  float — `install_v99` 5× `UNKNOWN`; `install_v99b` 5× `FAILED` em 0–17 s, e as 5 suítes
+  dão `Result: TRUE` no TestCov 3.11 oficial.
+- **Sonda em tarefas reais (300 s, `install_v99b`):**
+  - **Floats 5/5 `FAILED` em 1–6 s** (na v99: `UNKNOWN` em ~830 s cada) e **TRUE nos 3
+    validadores oficiais** (gcc-unformatted, clang-unformatted, testcoca). Dados em
+    `tacas-results/V99b-probe74/`.
+  - **Intel-TDX 0/8.** O `failed external call` sumiu, mas não basta: cada execução lê
+    **~31 500 valores nondet** (os *havoc* de structs/arrays inteiros), o AFL++ roda a ~97
+    exec/s e o KLEE executa 39 M instruções em 150 s sem completar **nenhum** caminho.
+    Além disso, 44/658 tarefas exigem `rcx == (uint64_t)<ponteiro de malloc>`, que nenhum
+    vetor reproduz fora do alocador do KLEE. É um problema de escala, separado do #74.
+- **Campanha V99:** as 256 Intel-TDX que faltavam no CE foram marcadas `SKIPPED` (todas
+  chamam um nondet não modelado → `UNKNOWN` por construção no `install_v99`; já eram 0/399).
+  Backup dos CSVs em `results.csv.bak-before-tdx-skip`. Libera ~28 h de vaga para o CB.
+- **Re-rodada `v99-b74-ce` (em andamento, 900 s/8 GB/4 núcleos, `install_v99b`):** as 33
+  Floats, 12 Intel-TDX (amostra, semente 7499) e 15 tarefas `FAILED` de outras categorias como
+  guarda de regressão. Ocupa uma das 2 vagas do launcher. Resultados em
+  `tacas-results/V99b-ce-affected/`, suítes em `tacas-results/V99b-suites/`.

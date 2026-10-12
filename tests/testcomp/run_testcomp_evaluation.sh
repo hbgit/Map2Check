@@ -163,6 +163,11 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
   goals=""
   if [ -d "$work/test-suite" ]; then
     ( cd "$work/test-suite" && zip -q -r ../suite.zip . ) </dev/null 3<&-
+  fi
+  # TESTCOV_S=0 skips the internal TestCov (3.7) and leaves the verdict to the
+  # official validators (tests/testcomp/official/run.sh validate), which read
+  # the suite kept by SUITES_DIR.
+  if [ -d "$work/test-suite" ] && [ "${TESTCOV_S:-90}" -ne 0 ]; then
     bits=$([ "$arch" = "64bit" ] && echo -64 || echo -32)
     ( cd "$work" && timeout -k 10 "$TESTCOV_S" testcov --test-suite suite.zip \
         --no-isolation "$bits" --goal prop.prp "$name" ) \

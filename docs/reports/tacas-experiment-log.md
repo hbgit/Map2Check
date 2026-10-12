@@ -865,3 +865,30 @@ com 300 s.
 - **Ainda abaixo da 9.0 original:** AllInterval-035 (38,6 → 2,9), -025 e -017. As oscilações
   de mais e de menos no controle e no Cover-Error ficam dentro da variação entre
   execuções vista nas rodadas anteriores.
+
+## Ambiente oficial da Test-Comp e revalidação das suítes ECA (2026-10-06/07)
+
+- **Motivo:** o teto de 50 casos por suíte (`kMaxBranchTestCases`) foi calibrado no **nosso**
+  ambiente (TestCov 3.7, 300 s, sem BenchExec). A competição não limita o tamanho da suíte,
+  então os testes precisam rodar como ela roda.
+- **Ambiente construído:** branch `feat/testcomp-official-env`. Imagem oficial (Ubuntu
+  24.04, digest fixo) + BenchExec 3.34 + TestCov 3.11.post3 + TestCoCa, as cinco definições
+  oficiais de validação e um `map2check.xml` (não oficial) para gerar. Pontuação como a
+  competição funde: Cover-Branches = melhor cobertura entre os validadores; Cover-Error =
+  um TRUE basta. Detalhes em `docs/reports/2026-10-06-ambiente-testcomp-oficial.md`.
+- **Verificação (smoke2, 3 tarefas):** os cinco validadores **concordam**. `s52iff_overflow`
+  81,25%; `AllInterval-011` 90,91% (gcc) / 86,36% (clang); `Problem10_label28` 37,81%. Uma
+  suíte ECA de 50 casos validou em ~40 s no TestCov 3.11, contra o estouro de 300 s do 3.7.
+- **Achado e correção (2026-10-07).** Ao revalidar as **140 suítes** de Cover-Branches que
+  deram `TESTCOV_ERROR` (TestCov 3.7, 300 s) na campanha da 9.0, todas saíram `MISSING`.
+  Causa: `testcomp.py:stage_tasks()` não copiava os arquivos de propriedade **locais da
+  tarefa**; o `eca-rers2018/Problem14.yml` referencia ~100 `properties/unreach-call-*.prp`
+  relativos à tarefa, e o BenchExec **aborta o task set inteiro** quando um não resolve.
+  Correção `44d2160ab`; com ela, `Problem14` valida (`done`, ~2,4% nos cinco validadores).
+- **Ressalva da rodada completa:** o host de 25 GB ficou **sob swap** (`7 GB × 3 threads`) e
+  o BenchExec avisou `System has swapped during benchmarking. Benchmark results are
+  unreliable!`; as variantes `formatted` saíram quase todas `TIMEOUT`. Os números do tcerr
+  desta rodada **não** são conclusivos — repetir com `--numOfThreads 1`–`2`.
+- **Leitura:** o ambiente oficial funciona ponta a ponta. Falta (1) recalibrar o teto de 50
+  com o validador oficial e (2) implementar a seleção da suíte por cobertura. O CI que
+  reproduz este ambiente ficou **adiado** (custo ~20–35 min/run; ver o handoff de 07/10).

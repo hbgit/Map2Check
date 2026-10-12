@@ -148,7 +148,8 @@ def run_benchexec(definition, tool_dir, out_dir, staging, args, env=None):
         "--tool-directory", ".",
         "--outputpath", out_dir + "/",
         "--numOfThreads", str(args.threads),
-        "--no-compress-results",
+        # Results are read once and the whole output directory is removed after
+        # each validator (see validate); compression is BenchExec's default.
         "--read-only-dir", "/", "--overlay-dir", "/home/", "--overlay-dir", "./",
         # An overlay, not full access: what one run writes beside a program
         # must not reach the next.
@@ -221,6 +222,10 @@ def generate(args):
                 archive.write(os.path.join(suite_dir, name), name)
         count += 1
     shutil.rmtree(tool_root, ignore_errors=True)
+    # The suites are zipped out; the tool tree, the staged sv-benchmarks and the
+    # BenchExec output (whose .files hold every test-suite) are scratch.
+    shutil.rmtree(result_dir, ignore_errors=True)
+    shutil.rmtree(staging, ignore_errors=True)
     hand_back(out)
     hand_back(suites)
     print(f"{count} suites in {os.path.join(suites, rundefinition)}")
@@ -252,6 +257,12 @@ def validate(args):
             print(f"warning: benchexec exited non-zero for {name}", flush=True)
         shutil.rmtree(work, ignore_errors=True)
         per_validator[name] = read_results(result_dir)
+        # Keep the scratch when debugging (MAP2CHECK_KEEP_RESULTS=1); otherwise
+        # drop it, or a few-thousand-task corpus fills the disk.
+        if not os.environ.get("MAP2CHECK_KEEP_RESULTS"):
+            shutil.rmtree(result_dir, ignore_errors=True)
+    if not os.environ.get("MAP2CHECK_KEEP_RESULTS"):
+        shutil.rmtree(staging, ignore_errors=True)
 
     names = list(per_validator)
     with open(os.path.join(out, "scores.csv"), "w", newline="") as handle:

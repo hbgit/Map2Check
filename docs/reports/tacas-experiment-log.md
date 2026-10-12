@@ -921,7 +921,22 @@ com 300 s.
 - **Campanha V99:** as 256 Intel-TDX que faltavam no CE foram marcadas `SKIPPED` (todas
   chamam um nondet não modelado → `UNKNOWN` por construção no `install_v99`; já eram 0/399).
   Backup dos CSVs em `results.csv.bak-before-tdx-skip`. Libera ~28 h de vaga para o CB.
-- **Re-rodada `v99-b74-ce` (em andamento, 900 s/8 GB/4 núcleos, `install_v99b`):** as 33
+- **Re-rodada `v99-b74-ce` (900 s/8 GB/4 núcleos, `install_v99b`):** as 33
   Floats, 12 Intel-TDX (amostra, semente 7499) e 15 tarefas `FAILED` de outras categorias como
   guarda de regressão. Ocupa uma das 2 vagas do launcher. Resultados em
   `tacas-results/V99b-ce-affected/`, suítes em `tacas-results/V99b-suites/`.
+- **Resultado da re-rodada (concluída às 18h37):**
+  - **Floats: 11/33 → 33/33 `FAILED`.** As 22 recuperadas levavam ~810–865 s na v99 e
+    agora levam 0–92 s.
+  - **Guarda de regressão: 15/15 continuam `FAILED`.**
+  - **Intel-TDX: 0/12.**
+  - **Validação oficial:** 48/48 suítes `true` em cada um dos 3 validadores (score 48,0).
+  - Relatório completo em `docs/reports/2026-10-12-issue74-rerodada.md`.
+- **Issue #75 — explosão de estados do KLEE ao gravar o log nondet.**
+  - **Sintético:** N leituras `int` e alvo no fim. N = 5 já dá 861 caminhos parciais e
+    28 s; N = 10 dá `UNKNOWN`.
+  - **Causa:** 1 549 das 1 551 bifurcações estão em `nondet_log_to_file → vfprintf`,
+    porque o log grava valores ainda simbólicos.
+  - **Alcance:** é o que segura a Intel-TDX, e vale para qualquer tarefa com muitas
+    leituras nondet.
+  - **Hipótese descartada:** a B-tree em disco; o build liga o `ContainerRealloc`.

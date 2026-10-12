@@ -223,6 +223,22 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   CALL_IF_HELPER(Sector_t, SECTOR_T, sector_t)
   CALL_IF_HELPER(Uint, UINT, uint)
   CALL_IF_HELPER(Double, DOUBLE, double)
+  // Issue #74. Unmodeled, each of these stayed an external call KLEE could
+  // not resolve ("failed external call: __VERIFIER_nondet_ulonglong"), which
+  // killed every path through it: all of Intel-TDX and most of Floats came
+  // back UNKNOWN with zero completed paths.
+  CALL_IF_HELPER(Float, FLOAT, float)
+  CALL_IF_HELPER(Longlong, LONGLONG, longlong)
+  CALL_IF_HELPER(Ulonglong, ULONGLONG, ulonglong)
+  CALL_IF_HELPER(U8, U8, u8)
+  CALL_IF_HELPER(U16, U16, u16)
+  CALL_IF_HELPER(U32, U32, u32)
+
+  // Renamed only: it returns nothing to log at the call site, so the runtime
+  // logs the bytes it writes (map2check_non_det_memory).
+  if (calleeFunction->getName() == "__VERIFIER_nondet_memory") {
+    this->instrumentNonDet(NonDetType::MEMORY, calleeFunction);
+  }
 
   if ((calleeFunction->getName() == "__VERIFIER_assume")) {
     this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
@@ -261,6 +277,13 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
     INSTRUMENT_CASE_HELPER(SECTOR_T, sector_t)
     INSTRUMENT_CASE_HELPER(UINT, uint)
     INSTRUMENT_CASE_HELPER(DOUBLE, double)
+    INSTRUMENT_CASE_HELPER(FLOAT, float)
+    INSTRUMENT_CASE_HELPER(LONGLONG, longlong)
+    INSTRUMENT_CASE_HELPER(ULONGLONG, ulonglong)
+    INSTRUMENT_CASE_HELPER(U8, u8)
+    INSTRUMENT_CASE_HELPER(U16, u16)
+    INSTRUMENT_CASE_HELPER(U32, u32)
+    INSTRUMENT_CASE_HELPER(MEMORY, memory)
     case (NonDetType::ASSUME): {
       Twine assume("map2check_assume");
       calleeFunction->setName(assume);
@@ -326,12 +349,36 @@ namespace {
         this->nonDetFunctions->getNonDet##type##Function();     \
     builder.CreateCall(NonDetFunction, args);                   \
   }
+/* Widened to double: the log keeps one floating-point member. */
+#define NONDET_IMPL_HELPER_FLOAT(type)                                      \
+  void NonDetPass::instrumentNonDet##type(CallInst *callInst,               \
+                                          LLVMContext *Ctx) {               \
+    auto j = this->currentInstruction;                                      \
+    j++;                                                                    \
+    IRBuilder<> builder(BBIteratorToInst(j));                               \
+    Value *function_llvm = this->getFunctionNameValue();                    \
+    Value *widened =                                                        \
+        builder.CreateFPExt(callInst, Type::getDoubleTy(*Ctx));             \
+    DebugInfo debugInfo(Ctx, callInst);                                     \
+    Value *args[] = {debugInfo.getLineNumberValue(),                        \
+                     debugInfo.getScopeNumberValue(), widened,              \
+                     function_llvm};                                        \
+    FunctionCallee NonDetFunction =                                         \
+        this->nonDetFunctions->getNonDet##type##Function();                 \
+    builder.CreateCall(NonDetFunction, args);                               \
+  }
 }  // namespace
 
 NONDET_IMPL_HELPER(Integer)
 NONDET_IMPL_HELPER(Unsigned)
 NONDET_IMPL_HELPER(Uint)
 NONDET_IMPL_HELPER(Double)
+NONDET_IMPL_HELPER_FLOAT(Float)
+NONDET_IMPL_HELPER(Longlong)
+NONDET_IMPL_HELPER(Ulonglong)
+NONDET_IMPL_HELPER(U32)
+NONDET_IMPL_HELPER_CAST(U8)
+NONDET_IMPL_HELPER_CAST(U16)
 NONDET_IMPL_HELPER_CAST(Char)
 NONDET_IMPL_HELPER_CAST(Ushort)
 NONDET_IMPL_HELPER_CAST(Short)

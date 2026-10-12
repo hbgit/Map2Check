@@ -34,7 +34,9 @@ TEST(NondetFunctionNames, CoversWhatNonDetPassInstruments) {
   const auto& names = Map2Check::nondetFunctionNames();
   for (const char* type : {"bool", "char", "uchar", "short", "ushort", "int",
                            "uint", "unsigned", "long", "ulong", "size_t",
-                           "loff_t", "sector_t", "pointer", "pchar", "double"}) {
+                           "loff_t", "sector_t", "pointer", "pchar", "double",
+                           "float", "longlong", "ulonglong", "u8", "u16", "u32",
+                           "memory"}) {
     const std::string name = std::string("__VERIFIER_nondet_") + type;
     EXPECT_NE(std::find(names.begin(), names.end(), name), names.end()) << name;
   }

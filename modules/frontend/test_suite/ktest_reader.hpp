@@ -68,6 +68,15 @@ std::vector<KtestObject> readKtestFile(const std::string& path,
  * to drop a test case. */
 std::string decodeKtestObject(const KtestObject& object);
 
+/** The object NonDetGeneratorKlee.c makes for __VERIFIER_nondet_memory(p, n):
+ * n bytes in one object. */
+constexpr const char* kMemoryObject = "non_det_memory";
+
+/** Renders one object as the <input> elements it stands for: one, except for a
+ * memory object, which is one uchar input per byte -- how the validators'
+ * harness reads __VERIFIER_nondet_memory. */
+std::vector<std::string> decodeKtestInputs(const KtestObject& object);
+
 /** The input vector of the path KLEE flagged as an error, if there is one.
  *
  * For Cover-Error, where the suite needs the ONE vector that reaches the bug.

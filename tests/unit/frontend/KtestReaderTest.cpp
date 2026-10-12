@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -87,6 +88,18 @@ std::vector<uint8_t> le32(int32_t value) {
 std::vector<uint8_t> leDouble(double value) {
   std::vector<uint8_t> bytes(8);
   std::memcpy(bytes.data(), &value, 8);
+  return bytes;
+}
+
+std::vector<uint8_t> le64(int64_t value) {
+  std::vector<uint8_t> bytes(8);
+  std::memcpy(bytes.data(), &value, 8);
+  return bytes;
+}
+
+std::vector<uint8_t> leFloat(float value) {
+  std::vector<uint8_t> bytes(4);
+  std::memcpy(bytes.data(), &value, 4);
   return bytes;
 }
 
@@ -479,5 +492,112 @@ TEST(ReadKtestVectors, FlagsThePrunedVectors) {
   EXPECT_FALSE(pruned[0]);
   EXPECT_TRUE(pruned[1]);
   EXPECT_EQ(vectors[1], std::vector<std::string>{"1"});
+  fs::remove_all(d);
+}
+
+// --- the types issue #74 added ------------------------------------------------
+
+// Intel-TDX reads __VERIFIER_nondet_ulonglong, and its values span all 64
+// bits: one decoded through the 32-bit path is a different input.
+TEST(DecodeKtestObject, DecodesSixtyFourBitTypes) {
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_longlong", le64(-5))),
+            "-5");
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_ulonglong", le64(-1))),
+            "18446744073709551615");
+}
+
+TEST(DecodeKtestObject, DecodesTheFixedWidthUnsignedTypes) {
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_u8", {0xff})), "255");
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_u16", {0xff, 0xff})),
+            "65535");
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_u32", le32(-1))),
+            "4294967295");
+}
+
+// Four bytes read as an integer is the failure mode a float has without its
+// own name. The text must also round-trip: the validator parses it with %f,
+// and a fixed six decimals turns 1e-30 into 0.
+TEST(DecodeKtestObject, DecodesFloatsSoTheyRoundTrip) {
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_float", leFloat(1.5f))),
+            "1.5");
+  const std::string tiny =
+      Map2Check::decodeKtestObject(obj("non_det_float", leFloat(1e-30f)));
+  EXPECT_EQ(std::strtof(tiny.c_str(), nullptr), 1e-30f) << "got " << tiny;
+}
+
+// The validators' harness reads __VERIFIER_nondet_memory(p, n) as n uchar
+// inputs, one per byte; KLEE holds it as one object of n bytes.
+TEST(DecodeKtestInputs, ExpandsMemoryIntoOneUcharPerByte) {
+  EXPECT_EQ(Map2Check::decodeKtestInputs(obj("non_det_memory", {1, 0, 255})),
+            (std::vector<std::string>{"1", "0", "255"}));
+  EXPECT_EQ(Map2Check::decodeKtestInputs(obj("non_det_int", le32(-2))),
+            std::vector<std::string>{"-2"});
+}
+
+TEST(ReadKtestVectors, ExpandsMemoryObjectsInPlace) {
+  fs::path d = freshDir("memory");
+  KtestBuilder()
+      .object("non_det_int", le32(7))
+      .object("non_det_memory", {9, 8})
+      .object("non_det_ulonglong", le64(3))
+      .writeTo(d / "test000001.ktest");
+  auto vectors = Map2Check::readKtestVectors(d.string(), 100);
+  ASSERT_EQ(vectors.size(), 1u);
+  EXPECT_EQ(vectors[0], (std::vector<std::string>{"7", "9", "8", "3"}));
+  fs::remove_all(d);
+}
+
+TEST(ReadViolatingKtest, ExpandsMemoryObjectsInPlace) {
+  fs::path d = freshDir("memoryerr");
+  KtestBuilder()
+      .object("non_det_memory", {4, 5})
+      .writeTo(d / "test000001.ktest");
+  std::ofstream(d / "test000001.abort.err") << "abort";
+  EXPECT_EQ(Map2Check::readViolatingKtest(d.string()),
+            (std::vector<std::string>{"4", "5"}));
+  fs::remove_all(d);
+}
+
+// Enumerators 16-21 of NONDET_TYPE (Map2CheckTypes.h).
+TEST(ReadNonDetLogAsObjects, ConvertsTheTypesIssue74Added) {
+  fs::path d = freshDir("nondetlog74");
+  std::ofstream(d / "klee_log.csv")
+      << "0;1;0;main;0;1.5;16\n"
+      << "1;1;0;main;1;-3;17\n"
+      << "2;1;0;main;2;18446744073709551615;18\n"
+      << "3;1;0;main;3;200;19\n"
+      << "4;1;0;main;4;60000;20\n"
+      << "5;1;0;main;5;4000000000;21\n";
+  const auto objects =
+      Map2Check::readNonDetLogAsObjects((d / "klee_log.csv").string());
+  ASSERT_EQ(objects.size(), 6u);
+  EXPECT_EQ(objects[0].name, "non_det_float");
+  EXPECT_EQ(objects[0].bytes, leFloat(1.5f));
+  EXPECT_EQ(objects[1].name, "non_det_longlong");
+  EXPECT_EQ(objects[1].bytes, le64(-3));
+  EXPECT_EQ(objects[2].name, "non_det_ulonglong");
+  EXPECT_EQ(objects[2].bytes, le64(-1));
+  EXPECT_EQ(objects[3].name, "non_det_u8");
+  EXPECT_EQ(objects[3].bytes, std::vector<uint8_t>{200});
+  EXPECT_EQ(objects[4].name, "non_det_u16");
+  EXPECT_EQ(objects[4].bytes, (std::vector<uint8_t>{0x60, 0xea}));
+  EXPECT_EQ(objects[5].name, "non_det_u32");
+  EXPECT_EQ(objects[5].bytes, le32(static_cast<int32_t>(4000000000u)));
+  fs::remove_all(d);
+}
+
+// The runtime logs __VERIFIER_nondet_memory(p, n) as n MEMORY_BYTE rows while
+// KLEE makes one n-byte object, and the log does not mark where a call ends.
+// n one-byte seed objects would not match it, so the seed stops there.
+TEST(ReadNonDetLogAsObjects, StopsAtAMemoryByte) {
+  fs::path d = freshDir("nondetlogmem");
+  std::ofstream(d / "klee_log.csv")
+      << "0;1;0;main;0;7;0\n"
+      << "1;0;0;__VERIFIER_nondet_memory;1;3;22\n"
+      << "2;1;0;main;2;9;0\n";
+  const auto objects =
+      Map2Check::readNonDetLogAsObjects((d / "klee_log.csv").string());
+  ASSERT_EQ(objects.size(), 1u);
+  EXPECT_EQ(objects[0].name, "non_det_int");
   fs::remove_all(d);
 }

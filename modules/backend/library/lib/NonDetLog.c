@@ -42,10 +42,18 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
      * where the format has seven. The value column still parsed by accident,
      * being first, but the type column moved to index 7 and anything reading
      * it got a copy of the value instead. */
-    if (((int)call->type) == UNSIGNED) {
+    if (((int)call->type) == UNSIGNED || ((int)call->type) == U32) {
       fprintf(output, "%u;", call->value.as_unsigned);
     } else if (((int)call->type) == DOUBLE) {
       fprintf(output, "%lf;", call->value.as_double);
+    } else if (((int)call->type) == FLOAT) {
+      /* %.9g, not %lf: nine significant digits round-trip any float, while
+       * six fixed decimals print 1e-30 as 0 -- a different input. */
+      fprintf(output, "%.9g;", (float)call->value.as_double);
+    } else if (((int)call->type) == LONGLONG) {
+      fprintf(output, "%lld;", call->value.as_longlong);
+    } else if (((int)call->type) == ULONGLONG) {
+      fprintf(output, "%llu;", call->value.as_ulonglong);
     } else {
       fprintf(output, "%d;", call->value.as_int);
     }
@@ -74,8 +82,10 @@ NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,
    * `value` points at a parameter of the map2check_nondet_* wrapper, and that
    * frame is gone long before the log is flushed at exit. */
   if (value != NULL) {
-    if (type == DOUBLE) {
+    if (type == DOUBLE || type == FLOAT) {
       result.value.as_double = *(double *)value;
+    } else if (type == LONGLONG || type == ULONGLONG) {
+      result.value.as_longlong = *(long long *)value;
     } else {
       result.value.as_int = *(int *)value;
     }
@@ -126,6 +136,10 @@ MAP2CHECK_NONDET_GENERATOR(size_t, SIZE_T)
 MAP2CHECK_NONDET_GENERATOR(loff_t, LOFF_T)
 MAP2CHECK_NONDET_GENERATOR(sector_t, SECTOR_T)
 MAP2CHECK_NONDET_GENERATOR(uint, UINT)
+MAP2CHECK_NONDET_GENERATOR(u8, U8)
+MAP2CHECK_NONDET_GENERATOR(u16, U16)
+MAP2CHECK_NONDET_GENERATOR(u32, U32)
+MAP2CHECK_NONDET_GENERATOR(memory_byte, MEMORY_BYTE)
 // FIX: MAP2CHECK_NONDET_GENERATOR(unsigned, UNSIGNED)
 
 void map2check_nondet_unsigned(unsigned line, unsigned scope, unsigned value,
@@ -145,6 +159,35 @@ void map2check_nondet_double(unsigned line, unsigned scope, double value,
    * logged floating-point input was nonsense. */
   NONDET_CALL nondetCall =
       new_nondet_call(DOUBLE, line, scope, &value, function_name,
+                      map2check_get_current_step());
+  helper_map2check_nondet_append_element(nondetCall);
+}
+
+/* A float arrives widened to double (NonDetPass emits an fpext), so the row
+ * keeps one floating-point member; FLOAT says how to print it. */
+void map2check_nondet_float(unsigned line, unsigned scope, double value,
+                            const char *function_name) {
+  NONDET_CALL nondetCall =
+      new_nondet_call(FLOAT, line, scope, &value, function_name,
+                      map2check_get_current_step());
+  helper_map2check_nondet_append_element(nondetCall);
+}
+
+/* 64-bit, not through the int-valued macro above: that one truncates to 32
+ * bits, and an Intel-TDX register value cut in half is a different input. */
+void map2check_nondet_longlong(unsigned line, unsigned scope, long long value,
+                               const char *function_name) {
+  NONDET_CALL nondetCall =
+      new_nondet_call(LONGLONG, line, scope, &value, function_name,
+                      map2check_get_current_step());
+  helper_map2check_nondet_append_element(nondetCall);
+}
+
+void map2check_nondet_ulonglong(unsigned line, unsigned scope,
+                                unsigned long long value,
+                                const char *function_name) {
+  NONDET_CALL nondetCall =
+      new_nondet_call(ULONGLONG, line, scope, &value, function_name,
                       map2check_get_current_step());
   helper_map2check_nondet_append_element(nondetCall);
 }

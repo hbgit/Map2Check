@@ -10,6 +10,7 @@
 #include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 extern int __map2check_main__(int argc, char **argv);
@@ -101,3 +102,30 @@ MAP2CHECK_NON_DET_GENERATOR(loff_t)
 MAP2CHECK_NON_DET_GENERATOR(sector_t)
 MAP2CHECK_NON_DET_GENERATOR(uint)
 MAP2CHECK_NON_DET_GENERATOR(double)
+MAP2CHECK_NON_DET_GENERATOR(float)
+MAP2CHECK_NON_DET_GENERATOR(longlong)
+MAP2CHECK_NON_DET_GENERATOR(ulonglong)
+MAP2CHECK_NON_DET_GENERATOR(u8)
+MAP2CHECK_NON_DET_GENERATOR(u16)
+MAP2CHECK_NON_DET_GENERATOR(u32)
+
+/* A fresh object, copied in, rather than klee_make_symbolic(destination):
+ * KLEE accepts only the exact start and size of an allocation, and the
+ * benchmarks pass a field or a struct inside a larger one
+ * (`__VERIFIER_nondet_memory(dest, sizeof(tdr_t))`). One object of `size`
+ * bytes, not `size` objects of one: the reader expands it into one uchar
+ * input per byte (decodeKtestInputs), as the validators' harness reads it. */
+void map2check_non_det_memory(void *destination, size_t size) {
+  if (size == 0)
+    return;
+  unsigned char *bytes = malloc(size);
+  if (bytes == NULL)
+    return;
+  klee_make_symbolic(bytes, size, "non_det_memory");
+  memcpy(destination, bytes, size);
+  size_t i = 0;
+  for (; i < size; i++) {
+    map2check_nondet_memory_byte(0, 0, bytes[i], "__VERIFIER_nondet_memory");
+  }
+  free(bytes);
+}

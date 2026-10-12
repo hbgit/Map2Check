@@ -11,6 +11,7 @@
 /* This mode returns consts */
 
 #include <stdint.h>
+#include <string.h>
 extern int __map2check_main__();
 
 int main() {
@@ -36,6 +37,22 @@ void *map2check_non_det_pointer() {
 }
 
 long map2check_non_det_long() { return 0; }
+
+float map2check_non_det_float() { return 0; }
+
+long long map2check_non_det_longlong() { return 0; }
+
+unsigned long long map2check_non_det_ulonglong() { return 0; }
+
+unsigned char map2check_non_det_u8() { return 0; }
+
+unsigned short map2check_non_det_u16() { return 0; }
+
+unsigned int map2check_non_det_u32() { return 0; }
+
+void map2check_non_det_memory(void *destination, size_t size) {
+  memset(destination, 0, size);
+}
 void nondet_assume(int expr) {}
 void nondet_init() {}
 void nondet_destroy() {}

@@ -28,9 +28,10 @@ namespace Map2Check {
  * the program and 10 in the slice; FAILED, NOT_COVERED). Keeping these calls
  * as criteria keeps the consumption order.
  *
- * The first sixteen are what NonDetPass instruments; the rest are SV-COMP
- * names it does not model yet, kept so their order is not lost either. The
- * slicer accepts names the program does not use. */
+ * All but _Bool and charp are what NonDetPass instruments (the last seven
+ * since issue #74); those two are SV-COMP names it does not model yet, kept so
+ * their order is not lost either. The slicer accepts names the program does
+ * not use. */
 inline const std::vector<std::string>& nondetFunctionNames() {
   static const std::vector<std::string> names = {
       "__VERIFIER_nondet_bool",     "__VERIFIER_nondet_char",
@@ -44,7 +45,8 @@ inline const std::vector<std::string>& nondetFunctionNames() {
       "__VERIFIER_nondet_float",    "__VERIFIER_nondet_longlong",
       "__VERIFIER_nondet_ulonglong", "__VERIFIER_nondet__Bool",
       "__VERIFIER_nondet_u8",       "__VERIFIER_nondet_u16",
-      "__VERIFIER_nondet_u32",      "__VERIFIER_nondet_charp"};
+      "__VERIFIER_nondet_u32",      "__VERIFIER_nondet_charp",
+      "__VERIFIER_nondet_memory"};
   return names;
 }
 

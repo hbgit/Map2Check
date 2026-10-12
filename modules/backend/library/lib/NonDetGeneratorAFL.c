@@ -101,6 +101,23 @@ MAP2CHECK_NON_DET_GENERATOR(double)
 MAP2CHECK_NON_DET_GENERATOR(int)
 MAP2CHECK_NON_DET_GENERATOR(uint)
 MAP2CHECK_NON_DET_GENERATOR(unsigned)
+MAP2CHECK_NON_DET_GENERATOR(float)
+MAP2CHECK_NON_DET_GENERATOR(longlong)
+MAP2CHECK_NON_DET_GENERATOR(ulonglong)
+MAP2CHECK_NON_DET_GENERATOR(u8)
+MAP2CHECK_NON_DET_GENERATOR(u16)
+MAP2CHECK_NON_DET_GENERATOR(u32)
+
+/* `size` bytes straight from the test case, as KLEE's one object of `size`
+ * bytes; logged a byte at a time, as the validators' harness reads it. */
+void map2check_non_det_memory(void *destination, size_t size) {
+  unsigned char *bytes = (unsigned char *)destination;
+  get_bytes_from_afl(bytes, size);
+  size_t i = 0;
+  for (; i < size; i++) {
+    map2check_nondet_memory_byte(0, 0, bytes[i], "__VERIFIER_nondet_memory");
+  }
+}
 
 #define MAP2CHECK_MAX_FUZZED_STRING 4096
 

@@ -9,6 +9,7 @@
 #include "ktest_reader.hpp"
 
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -80,6 +81,16 @@ NonDetTypeInfo nonDetTypeInfo(int type) {
     case 13: return {"non_det_uint", sizeof(unsigned), false, true};
     case 14: return {"non_det_short", sizeof(short), false, false};
     case 15: return {"non_det_double", sizeof(double), true, false};
+    case 16: return {"non_det_float", sizeof(float), true, false};
+    case 17: return {"non_det_longlong", sizeof(int64_t), false, false};
+    case 18: return {"non_det_ulonglong", sizeof(uint64_t), false, true};
+    case 19: return {"non_det_u8", sizeof(uint8_t), false, true};
+    case 20: return {"non_det_u16", sizeof(uint16_t), false, true};
+    case 21: return {"non_det_u32", sizeof(uint32_t), false, true};
+    // 22 (MEMORY_BYTE) is deliberately absent: the runtime logs a
+    // __VERIFIER_nondet_memory call as one row per byte, KLEE holds it as ONE
+    // object, and the log does not say where one call's bytes end. The seed
+    // stops there, as it does at a pchar.
     default: return {nullptr, 0, false, false};
   }
 }
@@ -87,6 +98,16 @@ NonDetTypeInfo nonDetTypeInfo(int type) {
 /** Encodes a logged decimal value into the object's little-endian bytes. */
 void encodeValue(const std::string& text, const NonDetTypeInfo& info,
                  std::vector<uint8_t>* out) {
+  if (info.isFloating && info.width == sizeof(float)) {
+    float value = 0.0f;
+    try {
+      value = std::stof(text);
+    } catch (const std::exception&) {
+      value = 0.0f;
+    }
+    std::memcpy(out->data(), &value, std::min(out->size(), sizeof(float)));
+    return;
+  }
   if (info.isFloating) {
     double value = 0.0;
     try {
@@ -146,10 +167,11 @@ int64_t signExtend(uint64_t value, size_t byteWidth) {
 }
 
 bool isUnsignedName(const std::string& name) {
-  static const char* kUnsigned[] = {"non_det_unsigned", "non_det_uint",
-                                    "non_det_ulong",    "non_det_ushort",
-                                    "non_det_uchar",    "non_det_size_t",
-                                    "non_det_bool",     "non_det_pointer"};
+  static const char* kUnsigned[] = {
+      "non_det_unsigned", "non_det_uint",      "non_det_ulong",
+      "non_det_ushort",   "non_det_uchar",     "non_det_size_t",
+      "non_det_bool",     "non_det_pointer",   "non_det_ulonglong",
+      "non_det_u8",       "non_det_u16",       "non_det_u32"};
   for (const char* candidate : kUnsigned) {
     if (name == candidate) return true;
   }
@@ -236,6 +258,17 @@ std::string decodeKtestObject(const KtestObject& object) {
     return text;
   }
 
+  if (object.name == "non_det_float") {
+    float value = 0.0f;
+    const size_t width = std::min<size_t>(object.bytes.size(), sizeof(float));
+    std::memcpy(&value, object.bytes.data(), width);
+    // %.9g round-trips any float, as the CSV log prints it; the validators
+    // parse it with %f.
+    char text[32];
+    std::snprintf(text, sizeof(text), "%.9g", static_cast<double>(value));
+    return text;
+  }
+
   const uint64_t raw = leBytesToUnsigned(object.bytes);
   if (isUnsignedName(object.name)) {
     return std::to_string(raw);
@@ -244,6 +277,14 @@ std::string decodeKtestObject(const KtestObject& object) {
   // signedness wrong turns -1 into 4294967295, which a validator rejects as
   // out of range far more visibly than it would a wrong-but-plausible value.
   return std::to_string(signExtend(raw, object.bytes.size()));
+}
+
+std::vector<std::string> decodeKtestInputs(const KtestObject& object) {
+  if (object.name != kMemoryObject) return {decodeKtestObject(object)};
+  std::vector<std::string> inputs;
+  inputs.reserve(object.bytes.size());
+  for (uint8_t byte : object.bytes) inputs.push_back(std::to_string(byte));
+  return inputs;
 }
 
 std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir) {
@@ -285,7 +326,8 @@ std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir) {
     std::vector<std::string> inputs;
     inputs.reserve(objects.size());
     for (const KtestObject& object : objects) {
-      inputs.push_back(decodeKtestObject(object));
+      const std::vector<std::string> decoded = decodeKtestInputs(object);
+      inputs.insert(inputs.end(), decoded.begin(), decoded.end());
     }
     return inputs;
   }
@@ -406,7 +448,8 @@ std::vector<std::vector<std::string>> readKtestVectors(
     std::vector<std::string> inputs;
     inputs.reserve(objects.size());
     for (const KtestObject& object : objects) {
-      inputs.push_back(decodeKtestObject(object));
+      const std::vector<std::string> decoded = decodeKtestInputs(object);
+      inputs.insert(inputs.end(), decoded.begin(), decoded.end());
     }
     (isPruned ? prunedVectors : vectors).push_back(std::move(inputs));
   }

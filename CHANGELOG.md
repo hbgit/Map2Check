@@ -56,9 +56,23 @@ search. Measured against the v15 baseline in `docs/reports/tacas-experiment-log.
   fails. `MAP2CHECK_PREOPT=ssa` (reachability and assert): the module in SSA
   form before instrumentation.
 - `MAP2CHECK_CHECK_CSTRINGS=1`: the strings a `%s` or `puts` reads are checked.
+- Official Test-Comp 2026 validation (`tests/testcomp/official/run.sh`):
+  suites are generated and validated under BenchExec with the competition's
+  validators (TestCov gcc/clang unformatted, TestCoCa clang formatted), each
+  task with its own property files; the corpora are drawn from the official
+  task set with proportional stratification (`build_corpus_official.py`).
 
 ### Fixed
 
+- Nondet types the instrumentation did not model (#74): `float`, `longlong`,
+  `ulonglong`, `u8`/`u16`/`u32` and `__VERIFIER_nondet_memory` were external
+  calls, so KLEE killed every state and the task was UNKNOWN by construction.
+  Each now has a KLEE and an AFL++ generator of the right width, a full-width
+  log entry (64-bit and float values no longer go through the `int` logger;
+  floats print as `%.9g`) and a ktest decoding; `nondet_memory` yields one
+  `uchar` input per byte, as the validators' harness reads it. Floats in the
+  official Cover-Error corpus: 11/33 → 33/33, every suite confirmed by all
+  three validators.
 - The AFL++ generator replayed its input from the start past its end: a
   `while (__VERIFIER_nondet_int())` loop never ended and afl-fuzz aborted in
   its dry run. Reads past the end are now zero.

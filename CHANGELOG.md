@@ -56,6 +56,7 @@ search. Measured against the v15 baseline in `docs/reports/tacas-experiment-log.
   fails. `MAP2CHECK_PREOPT=ssa` (reachability and assert): the module in SSA
   form before instrumentation.
 - `MAP2CHECK_CHECK_CSTRINGS=1`: the strings a `%s` or `puts` reads are checked.
+- `MAP2CHECK_KLEE_MAX_MEMORY` (MB): KLEE's memory cap, default unchanged.
 - Official Test-Comp 2026 validation (`tests/testcomp/official/run.sh`):
   suites are generated and validated under BenchExec with the competition's
   validators (TestCov gcc/clang unformatted, TestCoCa clang formatted), each
@@ -73,6 +74,13 @@ search. Measured against the v15 baseline in `docs/reports/tacas-experiment-log.
   `uchar` input per byte, as the validators' harness reads it. Floats in the
   official Cover-Error corpus: 11/33 → 33/33, every suite confirmed by all
   three validators.
+- The KLEE runtime wrote its nondet log with the values still symbolic, and
+  uClibc's `vfprintf` forked on every digit (#75): a straight-line program
+  with ten nondet reads reached its target and never finished. The values are
+  now pinned to one model before printing, the rows are formatted without
+  `printf` (byte-identical output), a log past 1,024 rows is left to the
+  violating `.ktest`, and the log container grows geometrically. Ten reads:
+  UNKNOWN → FAILED in 1 s; 10,000 reads: UNKNOWN → FAILED in 31 s.
 - The AFL++ generator replayed its input from the start past its end: a
   `while (__VERIFIER_nondet_int())` loop never ended and afl-fuzz aborted in
   its dry run. Reads past the end are now zero.

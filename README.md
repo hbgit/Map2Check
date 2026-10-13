@@ -120,6 +120,7 @@ an assumption. It prunes that path and does not end the search.
 | `MAP2CHECK_PREOPT` | off | `ssa`: mem2reg + simplifycfg before instrumentation, for reachability and assert only. Measured neutral in the hybrid. |
 | `MAP2CHECK_CHECK_CSTRINGS` | off | `1`: check the strings a `%s` or `puts` reads. It fixes one wrong TRUE on Juliet, but produces false positives on memory the runtime does not track (CASTLE: FP from 1 to 4). |
 | `MAP2CHECK_CLAM_PROFILE` | default | `memory` or `none`: see `--add-invariants`. |
+| `MAP2CHECK_KLEE_MAX_MEMORY` | KLEE's 2000 | KLEE's `--max-memory`, in MB. Raising it to 6000 changed nothing on Intel-TDX (0/8 either way). |
 
 <p align="justify">
 <b><code>--add-invariants</code></b> inserts abstract-interpretation invariants computed by

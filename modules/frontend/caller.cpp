@@ -1303,6 +1303,17 @@ void Caller::executeAnalysis(std::string solvername) {
                   << std::max(1u, static_cast<unsigned>(0.875 * kleeBudget))
                   << "s";
 
+      // KLEE's own default cap is 2,000 MB, well under what a Test-Comp run
+      // gets; past it KLEE kills states and stops forking, and the run can no
+      // longer be TRUE. MAP2CHECK_KLEE_MAX_MEMORY (MB) raises it.
+      if (const char *maxMemory = std::getenv("MAP2CHECK_KLEE_MAX_MEMORY")) {
+        const std::string megabytes(maxMemory);
+        if (!megabytes.empty() &&
+            megabytes.find_first_not_of("0123456789") == std::string::npos) {
+          kleeCommand << " --max-memory=" << megabytes;
+        }
+      }
+
 
       // Halting on the first error is right when there is a property to
       // decide -- the answer is known, and more exploration is waste. It is

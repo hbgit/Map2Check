@@ -14,25 +14,71 @@
 
 const char *klee_log_file = "klee_log.csv";
 
+/* Decimal conversion by hand, not through printf. Under KLEE, uClibc's
+ * vfprintf is interpreted instruction by instruction -- about 7,000 per call,
+ * seven calls per row -- and the log of a run with 1,000 nondet reads cost
+ * 44 M instructions, 93% of the whole path (issue #75). Each helper appends
+ * to `buffer` and returns the new end. */
+static char *put_ulonglong(char *buffer, unsigned long long value) {
+  char digits[20];
+  int n = 0;
+  do {
+    digits[n++] = (char)('0' + value % 10);
+    value /= 10;
+  } while (value != 0);
+  while (n > 0)
+    *buffer++ = digits[--n];
+  return buffer;
+}
+
+static char *put_longlong(char *buffer, long long value) {
+  if (value < 0) {
+    *buffer++ = '-';
+    /* negate in unsigned: -LLONG_MIN overflows */
+    return put_ulonglong(buffer, 0ULL - (unsigned long long)value);
+  }
+  return put_ulonglong(buffer, (unsigned long long)value);
+}
+
+static char *put_string(char *buffer, const char *text, size_t max) {
+  size_t i;
+  for (i = 0; i < max && text[i] != '\0'; i++)
+    *buffer++ = text[i];
+  return buffer;
+}
+
 Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
   if (klee_container.type != NONDET_LOG_CONTAINER) {
     return FALSE;
   }
 
   FILE *output = fopen(klee_log_file, "w");
+  if (output == NULL) {
+    return FALSE;
+  }
 
-  int i = 0;
+  /* id;line;scope;function;step;value;type -- five numbers of at most 20
+   * characters, the name, a double of at most ~320 (%lf of DBL_MAX) */
+  char row[512];
+  unsigned i = 0;
   unsigned size = klee_container.size;
   for (; i < size; i++) {
     NONDET_CALL *call = (NONDET_CALL *)get_element_at(i, klee_container);
     if (call == NULL) {
+      fclose(output);
       return FALSE;
     }
-    fprintf(output, "%d;", i);
-    fprintf(output, "%u;", call->line);
-    fprintf(output, "%u;", call->scope);
-    fprintf(output, "%s;", call->function_name);
-    fprintf(output, "%u;", call->step_on_execution);
+    char *end = row;
+    end = put_longlong(end, (int)i);
+    *end++ = ';';
+    end = put_ulonglong(end, call->line);
+    *end++ = ';';
+    end = put_ulonglong(end, call->scope);
+    *end++ = ';';
+    end = put_string(end, call->function_name, FUNCTION_MAX_LENGTH_NAME);
+    *end++ = ';';
+    end = put_ulonglong(end, call->step_on_execution);
+    *end++ = ';';
 
     // The value generated from nondet function. Read inline: it is stored in
     // the row, not behind a pointer into a stack frame that no longer exists.
@@ -43,28 +89,32 @@ Bool nondet_log_to_file(MAP2CHECK_CONTAINER klee_container) {
      * being first, but the type column moved to index 7 and anything reading
      * it got a copy of the value instead. */
     if (((int)call->type) == UNSIGNED || ((int)call->type) == U32) {
-      fprintf(output, "%u;", call->value.as_unsigned);
+      end = put_ulonglong(end, call->value.as_unsigned);
     } else if (((int)call->type) == DOUBLE) {
-      fprintf(output, "%lf;", call->value.as_double);
+      end += snprintf(end, row + sizeof(row) - end - 16, "%lf",
+                      call->value.as_double);
     } else if (((int)call->type) == FLOAT) {
       /* %.9g, not %lf: nine significant digits round-trip any float, while
        * six fixed decimals print 1e-30 as 0 -- a different input. */
-      fprintf(output, "%.9g;", (float)call->value.as_double);
+      end += snprintf(end, row + sizeof(row) - end - 16, "%.9g",
+                      (float)call->value.as_double);
     } else if (((int)call->type) == LONGLONG) {
-      fprintf(output, "%lld;", call->value.as_longlong);
+      end = put_longlong(end, call->value.as_longlong);
     } else if (((int)call->type) == ULONGLONG) {
-      fprintf(output, "%llu;", call->value.as_ulonglong);
+      end = put_ulonglong(end, call->value.as_ulonglong);
     } else {
-      fprintf(output, "%d;", call->value.as_int);
+      end = put_longlong(end, call->value.as_int);
     }
+    *end++ = ';';
 
     // Type of the nondet function
-    fprintf(output, "%d\n", ((int)call->type));
+    end = put_longlong(end, (int)call->type);
+    *end++ = '\n';
+    fwrite(row, 1, (size_t)(end - row), output);
   }
 
   fclose(output);
   return TRUE;
-
 }
 
 NONDET_CALL new_nondet_call(enum NONDET_TYPE type, unsigned line,
@@ -106,10 +156,9 @@ MAP2CHECK_CONTAINER map2check_nondet_get_log() { return nondet_log; }
 void helper_map2check_nondet_append_element(NONDET_CALL nondetCall) {
   map2check_next_current_step();
 
-  NONDET_CALL *row = (NONDET_CALL *)malloc(sizeof(NONDET_CALL));
-  *row = nondetCall;
-
-  append_element(&nondet_log, row);
+  /* append_element copies the row: a heap copy here leaked one row per
+   * nondet read (and was one more memory object per read under KLEE). */
+  append_element(&nondet_log, &nondetCall);
 }
 
 #define MAP2CHECK_NONDET_GENERATOR(type, nondet_type)                          \

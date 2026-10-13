@@ -1319,6 +1319,34 @@ else
   fail "fuzzer suite" "fuzzer cases=${fuzzed:-0}, duplicate cases=$dups"
 fi
 
+# --- 38. KLEE: a dozen nondet reads still reach a verdict (issue #75)
+# The runtime printed its nondet log with the values still symbolic, and
+# uClibc's vfprintf forks on every digit: with ten reads KLEE reached the
+# target and never finished writing the log -- UNKNOWN on a straight line.
+mkdir -p "$WORK/manyreads"
+cat > "$WORK/manyreads/many.c" <<'EOF2'
+extern void abort(void);
+void reach_error(void) {}
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int a[12];
+  for (int i = 0; i < 12; i++) a[i] = __VERIFIER_nondet_int();
+  if (a[0] == 7 && a[11] == 42) { reach_error(); abort(); }
+  return 0;
+}
+EOF2
+echo 'CHECK( init(main()), LTL(G ! call(reach_error())) )' > "$WORK/manyreads/prop.prp"
+( cd "$WORK/manyreads" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --nondet-generator symex --generate-test-suite --target-function --target-function-name reach_error \
+    --property-file prop.prp --timeout 60 many.c ) > "$WORK/manyreads/many.log" 2>&1
+vec=$(grep -ho '<input>[^<]*' "$WORK"/manyreads/test-suite/testcase-*.xml 2>/dev/null | sed 's/<input>//' | tr '\n' ' ')
+set -- $vec
+if grep -q "VERIFICATION FAILED" "$WORK/manyreads/many.log" && [ "$#" -eq 12 ] && [ "$1" = 7 ] && [ "${12}" = 42 ]; then
+  ok "KLEE alone finds the error behind 12 nondet reads, with the full vector"
+else
+  fail "nondet log explosion" "$(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/manyreads/many.log" | tail -1); vector: $vec"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

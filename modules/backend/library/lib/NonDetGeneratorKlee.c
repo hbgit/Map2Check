@@ -19,11 +19,47 @@ int main(int argc, char **argv) { return __map2check_main__(argc, argv); }
 
 void nondet_init() { nondet_log_init(); }
 void nondet_destroy() { nondet_log_destroy(); }
-void nondet_generate_aux_witness_files() {
-  nondet_log_to_file(map2check_nondet_get_log());
+extern long long klee_get_value_i64(long long expr);
+extern void klee_assume(int);
+
+/* Pin every logged value to one concrete model before printing it. The values
+ * are still symbolic when the path ends, and uClibc's vfprintf branches on
+ * each digit it converts: every row multiplied the states, so a program with
+ * ten nondet reads reached its target and never finished writing the log
+ * (issue #75). The assume makes each value consistent with the path and with
+ * the values pinned before it, so the row is one input vector, not a set of
+ * independent guesses. The 64-bit view covers every member of the union; the
+ * narrower ones were zero-extended by new_nondet_call's memset. */
+static void concretize_nondet_log(MAP2CHECK_CONTAINER log) {
+  unsigned i;
+  for (i = 0; i < log.size; i++) {
+    NONDET_CALL *call = (NONDET_CALL *)get_element_at(i, log);
+    if (call == NULL)
+      return;
+    long long symbolic;
+    memcpy(&symbolic, &call->value, sizeof(symbolic));
+    long long concrete = klee_get_value_i64(symbolic);
+    klee_assume(symbolic == concrete);
+    memcpy(&call->value, &concrete, sizeof(concrete));
+  }
 }
 
-extern void klee_assume(int);
+/* Pinning costs a solver query per row, and the equalities pile up: with
+ * 1,000 rows the violating path took 6 s, with 10,000 it never reached its
+ * abort -- the target found, KLEE's timer expiring mid-log. Past this size the
+ * log is not written: the violating state's .ktest, which KLEE solves in one
+ * query when the state ends, carries the same vector in the same order, and
+ * the frontend reads it whenever klee_log.csv is missing. */
+#define MAP2CHECK_KLEE_LOG_MAX_ROWS 1024U
+
+void nondet_generate_aux_witness_files() {
+  MAP2CHECK_CONTAINER log = map2check_nondet_get_log();
+  if (log.size > MAP2CHECK_KLEE_LOG_MAX_ROWS)
+    return;
+  concretize_nondet_log(log);
+  nondet_log_to_file(log);
+}
+
 
 /* A failed assumption ends the path as a normal exit. klee_assume(0) on a
  * path where the condition is already false is a KLEE error ("invalid

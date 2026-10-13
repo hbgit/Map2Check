@@ -940,3 +940,51 @@ com 300 s.
   - **Alcance:** é o que segura a Intel-TDX, e vale para qualquer tarefa com muitas
     leituras nondet.
   - **Hipótese descartada:** a B-tree em disco; o build liga o `ContainerRealloc`.
+
+## Issue #75 — correção do log nondet do KLEE, sondas e amostra (2026-10-12/13)
+
+- **Correção (`8da579488`, `b4bda9011`, na `feat/map2check-9.0`):**
+  - o log nondet é **concretizado** (`klee_get_value_i64` + `klee_assume`) antes de ser
+    gravado;
+  - o `fprintf` foi trocado por formatação manual (custava ~7 000 instruções KLEE por
+    chamada);
+  - o `ContainerRealloc` cresce geometricamente;
+  - logs com mais de 1 024 linhas não são gravados, e o vetor sai do `.ktest`;
+  - knob `MAP2CHECK_KLEE_MAX_MEMORY`.
+  - Build `install_v99c`. Teste unitário `NonDetLogTest` (CSV byte a byte igual ao do
+    `fprintf`) e regressão de integração §38.
+- **Sintético (N leituras `int`, alvo no fim, KLEE puro):**
+
+  | N | v99b | v99c |
+  |---|---|---|
+  | 5 | 28 s | 1 s |
+  | 10 | `UNKNOWN` | 1 s |
+  | 100 | `UNKNOWN` | 1 s |
+  | 1 000 | `UNKNOWN` | 6 s |
+  | 10 000 | `UNKNOWN` | 31 s (vetor do ktest) |
+
+- **Sonda em tarefas reais (300 s):**
+  - Floats 5/5 continuam `FAILED`.
+  - **Intel-TDX 0/8**, com a memória padrão e também com `MAP2CHECK_KLEE_MAX_MEMORY=6000`.
+  - A `t1` no KLEE puro (240 s) completa 852 caminhos (antes: 0), deixa 557 parciais e
+    perde estados pelo teto de memória.
+  - Conclusão: o que resta é a **explosão genuína** do programa (havoc de milhares de
+    leituras e pré-condição longa), não mais o log. É uma frente separada.
+- **Amostra `m2c-sample75` (40 tarefas de CE, semente 7575, 900 s/8 GB/4 núcleos):**
+  20 `FAILED` e 20 `UNKNOWN` da v99, comparadas 1 a 1. Dados em
+  `tacas-results/V99c-sample/`.
+  - **20/20 `FAILED` mantidas**, e as 20 suítes dão `true` nos 3 validadores oficiais.
+    Isso é idêntico à v99, inclusive o `ERROR (1)` do TestCov em
+    `seq_cmp_antisymmetry_cover_target`, que só o TestCoCa valida.
+  - **Tempo das 20 `FAILED`: 1 584 s → 1 364 s (−14 %).** O ganho vem de duas tarefas:
+    - `Problem11_label00`: 249 → 89 s;
+    - `id_o100`: 76 → 1 s.
+
+    Nas demais, a variação ficou dentro do ruído (`aim-100-3-4-sat-1`: 78 → 115 s).
+  - **0/20 ganhos nas `UNKNOWN`**: 19 Hardware (btor2c) e `Problem101_label00`. Agora usam
+    quase todo o orçamento (~830–900 s, contra ~710–890 s na v99), sem vetor.
+  - **Leitura:** a #75 não introduz regressão e acelera alguns casos. Na Hardware o
+    gargalo não é o log.
+- **Campanha:** em 13/10 às 00h43, o `v99c-campaign.sh` iniciou as 256 Intel-TDX `SKIPPED`
+  no `install_v99c` (`v99c-ce-tdx-s0/1`). O Cover-Branches (4 shards, 3 500 tarefas,
+  `install_v99c`) começa sozinho quando todo o CE terminar.

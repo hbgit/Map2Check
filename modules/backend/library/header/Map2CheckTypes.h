@@ -54,7 +54,19 @@ enum NONDET_TYPE {
   SECTOR_T = 12,
   UINT = 13,
   SHORT = 14,
-  DOUBLE = 15
+  DOUBLE = 15,
+  /* Issue #74: SV-COMP names NonDetPass did not model. Each was an external
+   * call KLEE could not resolve, which killed every path through it. */
+  FLOAT = 16,
+  LONGLONG = 17,
+  ULONGLONG = 18,
+  U8 = 19,
+  U16 = 20,
+  U32 = 21,
+  /* One byte of a __VERIFIER_nondet_memory(p, n) call, logged by the runtime:
+   * the validators read that call as n uchar inputs. Its own type, not UCHAR,
+   * so the seed converter can tell that n rows are one KLEE object. */
+  MEMORY_BYTE = 22
 };
 
 enum Container_Type {
@@ -152,6 +164,8 @@ typedef
     int as_int;
     unsigned as_unsigned;
     double as_double;
+    long long as_longlong;
+    unsigned long long as_ulonglong;
   } value;
   /** Name of the function where operation took place */
   char function_name[FUNCTION_MAX_LENGTH_NAME];

@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 2.3//EN" "https://www.sosy-lab.org/benchexec/benchmark-2.3.dtd">
+<benchmark tool="testcov" displayName="TestCov" timelimit="10 min" hardtimelimit="11 min" memlimit="7 GB" cpuCores="2">
+
+  <require cpuModel="Intel Xeon E3-1230 v5 @ 3.40 GHz" />
+
+  <resultfiles>**output/**</resultfiles>
+
+  <option name="--memlimit" />
+  <option name="6GB" />
+  <option name="--timelimit-per-run" />
+  <option name="50" />
+  <option name="--format" />
+  <option name="--verbose" />
+  <option name="--no-plots" />
+  <option name="--prep-cgroup" />
+  <option name="--disable-info-files" />
+  <option name="--compiler" />
+  <option name="clang" />
+  <option name="--cov-tool" />
+  <option name="llvm-cov" />
+  <option name="--reduction" />
+  <option name="BY_ORDER" />
+  <option name="--reduction-output" />
+  <option name="test-suite" />
+
+  <rundefinition name="Test-Comp26_coverage-error-call">
+    <requiredfiles>../results-verified/LOGDIR/${rundefinition_name}/${taskdef_name}/test-suite.zip</requiredfiles>
+    <option name="--test-suite">../../results-verified/LOGDIR/${rundefinition_name}/${taskdef_name}/test-suite.zip</option>
+    <propertyfile>../sv-benchmarks/c/properties/coverage-error-call.prp</propertyfile>
+
+    <tasks name="C.coverage-error-call.Arrays">
+      <includesfile>../sv-benchmarks/c/Arrays.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.BitVectors">
+      <includesfile>../sv-benchmarks/c/BitVectors.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.ControlFlow">
+      <includesfile>../sv-benchmarks/c/ControlFlow.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.ECA">
+      <includesfile>../sv-benchmarks/c/ECA.set</includesfile>
+      <excludesfile>excludes/ECA-excludes.set</excludesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.Floats">
+      <includesfile>../sv-benchmarks/c/Floats.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.Heap">
+      <includesfile>../sv-benchmarks/c/Heap.set</includesfile>
+      <includesfile>../sv-benchmarks/c/LinkedLists.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.Loops">
+      <includesfile>../sv-benchmarks/c/Loops.set</includesfile>
+      <includesfile>../sv-benchmarks/c/VerifyThis-Loops.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.ProductLines">
+      <includesfile>../sv-benchmarks/c/ProductLines.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.Recursive">
+      <includesfile>../sv-benchmarks/c/Recursive.set</includesfile>
+      <includesfile>../sv-benchmarks/c/VerifyThis-Recursive.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.Sequentialized">
+      <includesfile>../sv-benchmarks/c/Sequentialized.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.XCSP">
+      <includesfile>../sv-benchmarks/c/XCSP.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.Hardware">
+      <includesfile>../sv-benchmarks/c/Hardware.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.SoftwareSystems-BusyBox">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-BusyBox.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.SoftwareSystems-coreutils">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-coreutils.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.SoftwareSystems-OpenBSD">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-OpenBSD.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.SoftwareSystems-DeviceDriversLinux64">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-DeviceDriversLinux64.set</includesfile>
+      <excludesfile>../sv-benchmarks/c/SoftwareSystems-DeviceDriversLinux64Large.set</excludesfile>
+    </tasks>
+    <tasks name="C.coverage-error-call.SoftwareSystems-Intel-TDX-Module">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-Intel-TDX-Module.set</includesfile>
+    </tasks>
+    </rundefinition>
+
+  <rundefinition name="Test-Comp26_coverage-branches">
+    <requiredfiles>../results-verified/LOGDIR/${rundefinition_name}/${taskdef_name}/test-suite.zip</requiredfiles>
+    <option name="--test-suite">../../results-verified/LOGDIR/${rundefinition_name}/${taskdef_name}/test-suite.zip</option>
+    <propertyfile>../sv-benchmarks/c/properties/coverage-branches.prp</propertyfile>
+
+    <tasks name="C.coverage-branches.Arrays">
+      <includesfile>../sv-benchmarks/c/Arrays.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.BitVectors">
+      <includesfile>../sv-benchmarks/c/BitVectors.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.ControlFlow">
+      <includesfile>../sv-benchmarks/c/ControlFlow.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.ECA">
+      <includesfile>../sv-benchmarks/c/ECA.set</includesfile>
+      <excludesfile>excludes/ECA-excludes.set</excludesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Floats">
+      <includesfile>../sv-benchmarks/c/Floats.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Hardness">
+      <includesfile>../sv-benchmarks/c/Hardness.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Hardware">
+      <includesfile>../sv-benchmarks/c/Hardware.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Heap">
+      <includesfile>../sv-benchmarks/c/Heap.set</includesfile>
+      <includesfile>../sv-benchmarks/c/LinkedLists.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Loops">
+      <includesfile>../sv-benchmarks/c/Loops.set</includesfile>
+      <includesfile>../sv-benchmarks/c/VerifyThis-Loops.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.ProductLines">
+      <includesfile>../sv-benchmarks/c/ProductLines.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Recursive">
+      <includesfile>../sv-benchmarks/c/Recursive.set</includesfile>
+      <includesfile>../sv-benchmarks/c/VerifyThis-Recursive.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Sequentialized">
+      <includesfile>../sv-benchmarks/c/Sequentialized.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.XCSP">
+      <includesfile>../sv-benchmarks/c/XCSP.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Combinations">
+      <includesfile>../sv-benchmarks/c/Combinations.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.SoftwareSystems-AWS-C-Common">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-AWS-C-Common.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.SoftwareSystems-BusyBox">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-BusyBox.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.SoftwareSystems-coreutils">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-coreutils.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.SoftwareSystems-OpenBSD">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-OpenBSD.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.SoftwareSystems-DeviceDriversLinux64">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-DeviceDriversLinux64.set</includesfile>
+      <excludesfile>../sv-benchmarks/c/SoftwareSystems-DeviceDriversLinux64Large.set</excludesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.SoftwareSystems-Intel-TDX-Module">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-Intel-TDX-Module.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.SoftwareSystems-uthash">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-uthash.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.SoftwareSystems-SQLite">
+      <includesfile>../sv-benchmarks/c/SoftwareSystems-SQLite.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Termination-BitVectors">
+      <includesfile>../sv-benchmarks/c/BitVectors-Termination.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Termination-MainControlFlow">
+      <includesfile>../sv-benchmarks/c/ControlFlow-Termination.set</includesfile>
+    </tasks>
+    <tasks name="C.coverage-branches.Termination-MainHeap">
+      <includesfile>../sv-benchmarks/c/Heap-Termination.set</includesfile>
+    </tasks>
+  </rundefinition>
+
+  <columns>
+    <column title="branches_covered">DEBUG:suite_validation:Accumulated coverage:</column>
+    <column title="branches_total">Number of goals</column>
+  </columns>
+
+</benchmark>

@@ -70,11 +70,14 @@ class Tool(benchexec.tools.template.BaseTool2):
         data_model = (task.options or {}).get("data_model", "LP64")
 
         cmd = [executable, "-p", task.property_file, "--data-model", data_model]
-        if rlimits.walltime:
-            # Handing the tool its own budget is what lets it stop and finish
-            # writing the suite. Left to the harness's kill, metadata.xml can be
-            # truncated mid-write, which is worse than an empty suite.
-            cmd += ["--budget", str(rlimits.walltime)]
+        # Handing the tool its own budget is what lets it stop and finish
+        # writing the suite. Left to the harness's kill, metadata.xml can be
+        # truncated mid-write, which is worse than an empty suite. Test-Comp
+        # limits CPU time (15 min) and sets no wall-time limit; the hybrid runs
+        # one engine at a time, so its CPU time tracks its wall time.
+        budget = rlimits.walltime or rlimits.cputime
+        if budget:
+            cmd += ["--budget", str(budget)]
         return cmd + list(options) + [task.single_input_file]
 
     def determine_result(self, run):

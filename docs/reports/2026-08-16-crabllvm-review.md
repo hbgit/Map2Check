@@ -283,3 +283,28 @@ Tudo verificável e datado de 2026-08-16:
 - Leitura direta dos cinco pontos de acoplamento no Map2Check, citados por
   arquivo e linha
 - Baseline v5 para os números de externas não resolvidas e de precisão
+
+---
+
+## Adendo (2026-09-30): o que o motor antigo fazia de fato
+
+Medido com o release v7.3.1 (SV-COMP 2020), que roda em `python:2.7-slim` com o clang do
+LLVM 6 que vem nele. Detalhes em `docs/reports/tacas-experiment-log.md`, INV-1 e R25.
+
+- **Houve duas configurações.** Até 18/10/2018 (commit `4bb409c20`) o Map2Check usava
+  `--crab-track=arr --crab-add-invariants=after-load`, e os invariantes saíam como
+  `verifier.assume`, que o NonDetPass mapeava para `klee_assume`. Da v7.3 em diante
+  entrou o `--crab-promote-assume`, que emite `llvm.assume`. O NonDetPass antigo não o
+  mapeava, e o KLEE 2.1 do release o ignora (o mesmo vale para o KLEE 3.1). **Nas versões
+  de competição de 2019 e 2020 os invariantes não tinham efeito.**
+- A seção 2 desta revisão já suspeitava disso ("a invocação legada não teria injetado
+  nada"); agora está medido.
+- **O que parecia funcionar** provavelmente era o caminho de compilação: passar pelo
+  crab-llvm, e hoje pelo Clam, deixa o módulo em SSA, e o KLEE explora isso melhor. Numa
+  sonda só com o KLEE, o Clam sem nenhum invariante decidiu o que o pipeline normal
+  deixava UNKNOWN.
+- **No híbrido atual** (R25) os perfis do Clam não ganharam, e o MemSafety teve mais
+  FALSE errados.
+- A opção continua **opcional**. Os perfis (`MAP2CHECK_CLAM_PROFILE=default|memory|none`),
+  a contagem de invariantes no log, o limite de 0,2T e o recuo para a compilação normal
+  entraram na 9.0. A rodada dedicada de estudo está em `docs/backlog.md`.

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE benchmark PUBLIC "+//IDN sosy-lab.org//DTD BenchExec benchmark 2.3//EN" "https://www.sosy-lab.org/benchexec/benchmark-2.3.dtd">
+<!-- Map2Check as a Test-Comp 2026 test generator. Not an official file: there
+     is no map2check.xml in the testcomp26 tag. Modelled on the definitions of
+     the tools that are there (klee.xml, fusebmc.xml, symbiotic.xml): the same
+     limits, the same result files and the same run definitions. The tool-info
+     module is utils/moduleBenchExec/map2check_testcomp.py. -->
+<benchmark tool="moduleBenchExec.map2check_testcomp" displayName="Map2Check" timelimit="15 min" memlimit="15 GB" cpuCores="4">
+
+  <require cpuModel="Intel Xeon E3-1230 v5 @ 3.40 GHz" />
+
+  <resultfiles>**/test-suite</resultfiles>
+
+  <rundefinition name="Test-Comp26_coverage-error-call">
+    <propertyfile>../sv-benchmarks/c/properties/coverage-error-call.prp</propertyfile>
+    <tasks name="replaced-by-testcomp.py">
+      <includesfile>../sv-benchmarks/c/ReachSafety-ControlFlow.set</includesfile>
+    </tasks>
+  </rundefinition>
+
+  <rundefinition name="Test-Comp26_coverage-branches">
+    <propertyfile>../sv-benchmarks/c/properties/coverage-branches.prp</propertyfile>
+    <tasks name="replaced-by-testcomp.py">
+      <includesfile>../sv-benchmarks/c/ReachSafety-ControlFlow.set</includesfile>
+    </tasks>
+  </rundefinition>
+
+</benchmark>

@@ -129,4 +129,32 @@ uint map2check_non_det_uint();
  */
 double map2check_non_det_double();
 
+/* Issue #74: the SV-COMP names NonDetPass did not model. The typedefs give the
+ * generator macros one identifier per type, which also names the KLEE object
+ * ("non_det_ulonglong"), the only place a .ktest keeps the type. */
+float map2check_non_det_float();
+
+typedef long long longlong;
+longlong map2check_non_det_longlong();
+
+typedef unsigned long long ulonglong;
+ulonglong map2check_non_det_ulonglong();
+
+typedef unsigned char u8;
+u8 map2check_non_det_u8();
+
+typedef unsigned short u16;
+u16 map2check_non_det_u16();
+
+typedef unsigned int u32;
+u32 map2check_non_det_u32();
+
+/**
+ * @brief Fills `size` bytes at `destination` with nondeterministic values
+ *
+ * The validators' harness reads it as `size` uchar inputs, one per byte, so
+ * the runtime logs it that way (MEMORY_BYTE rows).
+ */
+void map2check_non_det_memory(void *destination, size_t size);
+
 #endif

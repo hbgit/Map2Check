@@ -61,6 +61,14 @@ the driver is present at `$CLAM_DIR/bin/clam.py`. It is opt-in because an unsoun
 invariant produces a wrong TRUE rather than an error — see
 [the dependency review](docs/reports/2026-08-16-crabllvm-review.md).
 
+Status of `--add-invariants` (2026-09-30): **optional and under study**.
+- The crab-llvm invariants of the SV-COMP 2019/2020 builds were emitted as `llvm.assume`,
+  which neither `NonDetPass` nor KLEE consumes.
+- On the current hybrid, Clam's profiles (`MAP2CHECK_CLAM_PROFILE=default|memory|none`)
+  have shown no gain so far.
+- A dedicated study round is pending; see `docs/reports/tacas-experiment-log.md` (INV-1,
+  R25) and `docs/backlog.md`.
+
 Enabling sanitizers switches from static to shared linking and enables `-fsanitize=address,undefined -fno-omit-frame-pointer -g`.
 
 ### Run unit tests
@@ -106,6 +114,18 @@ Entry point: `map2check.cpp` → `main()`. Parses CLI options (via Boost.Program
 4. `applyNonDetGenerator()` — invoke AFL++ or KLEE to generate inputs
 5. `executeAnalysis()` — run the instrumented binary; collect results
 6. Witness/counterexample generation in [counter_example/](modules/frontend/counter_example/) and [witness/](modules/frontend/witness/)
+
+With no `--nondet-generator`, `main()` runs the hybrid, and each phase builds a new `Caller`:
+- **Alternating (the default since 9.0, needs `--timeout`):** AFL++ and KLEE take turns
+  (`alternateEngines()`), each stopped on stagnation.
+- **Fixed (`--fixed-hybrid`):** the 8.x schedule.
+
+State that must survive the phases lives beside the scratch directory, not inside it:
+`<hash>.seeds/` (seed store), `<hash>.slice/` (slice cache) and `<hash>.build/` (AFL++
+binaries).
+
+A TRUE verdict requires an exhaustive KLEE run: see `kleeDroppedPaths()` in
+`modules/frontend/test_suite/ktest_reader.cpp`.
 
 **Verification modes** (enum `Map2CheckMode`): `MEMTRACK_MODE`, `REACHABILITY_MODE`, `OVERFLOW_MODE`, `ASSERT_MODE`, `MEMCLEANUP_MODE`.
 

@@ -72,7 +72,15 @@ classify_map2check_verdict() {
   if echo "$output" | grep -E "undefined reference to" | grep -qv "KLEE: WARNING"; then
     echo "ERROR"; return
   fi
-  if echo "$output" | grep -qE "Segmentation fault|dumped core|Aborted \(core dumped\)"; then
+  # A crash counts where the TOOL crashed. After "Exited fuzzer with" and
+  # before the next phase, the process that dumps core is the program under
+  # test, replayed on the fuzzer's crash to confirm it -- that is the program
+  # crashing, as it should (array-memsafety/*-alloca: a nondet-sized alloca).
+  if echo "$output" | awk '
+      /Exited fuzzer with/ { replay = 1 }
+      /Started Map2Check/  { replay = 0 }
+      /Segmentation fault|dumped core|Aborted \(core dumped\)/ { if (!replay) found = 1 }
+      END { exit !found }'; then
     echo "ERROR"; return
   fi
 

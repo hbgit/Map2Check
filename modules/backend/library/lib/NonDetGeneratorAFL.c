@@ -52,13 +52,17 @@ size_t map2check_afl_size;
  * drags afl-fuzz's stability down. */
 static size_t map2check_afl_index = 0;
 
+/* Past the end of the test case every read is zero. It used to start over
+ * from the first byte, so `while (__VERIFIER_nondet_int())` fed by the
+ * placeholder seed "A" never ended: afl-fuzz's dry run timed out on it and the
+ * fuzzer aborted before its first execution. Zero ends such a loop, and it is
+ * what the witness replay logs, so the suite built from that log stays exact.
+ * (It also read data[0] of an empty test case.) */
 uint8_t get_next_input_from_afl() {
   if (map2check_afl_index < map2check_afl_size) {
     return map2check_afl_data[map2check_afl_index++];
   }
-
-  map2check_afl_index = 0;
-  return map2check_afl_data[map2check_afl_index];
+  return 0;
 }
 
 /* Fills `out` with `size` bytes from the AFL buffer, in target order.
@@ -97,6 +101,23 @@ MAP2CHECK_NON_DET_GENERATOR(double)
 MAP2CHECK_NON_DET_GENERATOR(int)
 MAP2CHECK_NON_DET_GENERATOR(uint)
 MAP2CHECK_NON_DET_GENERATOR(unsigned)
+MAP2CHECK_NON_DET_GENERATOR(float)
+MAP2CHECK_NON_DET_GENERATOR(longlong)
+MAP2CHECK_NON_DET_GENERATOR(ulonglong)
+MAP2CHECK_NON_DET_GENERATOR(u8)
+MAP2CHECK_NON_DET_GENERATOR(u16)
+MAP2CHECK_NON_DET_GENERATOR(u32)
+
+/* `size` bytes straight from the test case, as KLEE's one object of `size`
+ * bytes; logged a byte at a time, as the validators' harness reads it. */
+void map2check_non_det_memory(void *destination, size_t size) {
+  unsigned char *bytes = (unsigned char *)destination;
+  get_bytes_from_afl(bytes, size);
+  size_t i = 0;
+  for (; i < size; i++) {
+    map2check_nondet_memory_byte(0, 0, bytes[i], "__VERIFIER_nondet_memory");
+  }
+}
 
 #define MAP2CHECK_MAX_FUZZED_STRING 4096
 

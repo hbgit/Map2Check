@@ -17,20 +17,13 @@ no_input.c       COVERED
 char_input.c     COVERED
 unreachable.c    NOT_COVERED
 
-# loop_reads.c -- NOT_COVERED, and the reason is now known (finding K).
+# loop_reads.c -- COVERED since issue #75 (commit 8da579488).
 #
-# Map2Check DOES find the violation here. Running with --debug shows
-# "TARGET-REACHED found" -- the property file is written -- and then KLEE is
-# killed by the timeout while still exploring other states, at which point
-# map2check.cpp forces the verdict to UNKNOWN and throws the violation away:
-#
-#   if (caller->isTimeout()) { propertyViolated = UNKNOWN; }
-#
-# So no suite is emitted and the suite cannot cover anything. The emitter is
-# never reached, and the emitter is not at fault.
-#
-# This line becomes COVERED once the verdict logic consults the property before
-# forcing UNKNOWN on timeout. The gate will insist on the update, which is the
-# point of keeping the case here instead of deleting it.
-# See docs/reports/2026-08-12-castle-juliet-findings.md, finding K.
-loop_reads.c     NOT_COVERED
+# It was NOT_COVERED from finding K until then: KLEE reached the target but
+# forked on every symbolic value written to the nondet log (vfprintf), so the
+# run ran out of budget before a test vector came out. Concretizing the log
+# before writing it removed the explosion.
+# Measured at BUDGET=120: install_v99b NOT_COVERED, install_v99c COVERED (2/2).
+# See docs/reports/2026-08-12-castle-juliet-findings.md (finding K) and the
+# issue #75 entry in docs/reports/tacas-experiment-log.md.
+loop_reads.c     COVERED

@@ -57,7 +57,14 @@ enum class NonDetType {
   SECTOR_T,
   UINT,
   CRAB_ASSUME,
-  DOUBLE
+  DOUBLE,
+  FLOAT,
+  LONGLONG,
+  ULONGLONG,
+  U8,
+  U16,
+  U32,
+  MEMORY
 };
 
 namespace InstrumentNonDetS {
@@ -95,6 +102,12 @@ struct NonDetPass : public llvm::PassInfoMixin<NonDetPass> {
   INSTRUMENT_HEADER_HELPER(Sector_t)
   INSTRUMENT_HEADER_HELPER(Uint)
   INSTRUMENT_HEADER_HELPER(Double)
+  INSTRUMENT_HEADER_HELPER(Float)
+  INSTRUMENT_HEADER_HELPER(Longlong)
+  INSTRUMENT_HEADER_HELPER(Ulonglong)
+  INSTRUMENT_HEADER_HELPER(U8)
+  INSTRUMENT_HEADER_HELPER(U16)
+  INSTRUMENT_HEADER_HELPER(U32)
   void instrumentCrabAssume(CallInst *callInst, LLVMContext *Ctx);
   std::unique_ptr<NonDetFunctions> nonDetFunctions;
   Value *functionName = NULL;

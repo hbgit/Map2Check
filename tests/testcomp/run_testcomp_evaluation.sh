@@ -24,6 +24,10 @@
 #   BUDGET        seconds given to map2check per task (default 60)
 #   TESTCOV_S     seconds given to TestCov per task (default 90)
 #   DEADLINE_S    stop starting new tasks after this many seconds (default 18000)
+#   SUITES_DIR    if set, keep every suite as
+#                 $SUITES_DIR/<rundefinition>/<task>.yml/test-suite.zip, the layout
+#                 tests/testcomp/official/run.sh validate reads (the official
+#                 validators need the suites, not this harness's verdict)
 #
 # The container needs gcc-multilib. Most sv-benchmarks tasks declare ILP32, and
 # without it TestCov cannot compile the program for -32 and reports no Result
@@ -146,7 +150,7 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
         $GENERATOR_FLAG $EXTRA_FLAGS --generate-test-suite $GOAL_FLAGS \
         --property-file prop.prp --architecture "$arch" \
         --timeout "$BUDGET" "$name"
-  ) > "$work/map2check.log" 2>&1 </dev/null
+  ) > "$work/map2check.log" 2>&1 </dev/null 3<&-
   t1=$(date +%s)
 
   verdict=$(grep -oE 'VERIFICATION (FAILED|SUCCEEDED|UNKNOWN)' "$work/map2check.log" | tail -1)
@@ -158,11 +162,16 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
   coverage=""
   goals=""
   if [ -d "$work/test-suite" ]; then
-    ( cd "$work/test-suite" && zip -q -r ../suite.zip . ) </dev/null
+    ( cd "$work/test-suite" && zip -q -r ../suite.zip . ) </dev/null 3<&-
+  fi
+  # TESTCOV_S=0 skips the internal TestCov (3.7) and leaves the verdict to the
+  # official validators (tests/testcomp/official/run.sh validate), which read
+  # the suite kept by SUITES_DIR.
+  if [ -d "$work/test-suite" ] && [ "${TESTCOV_S:-90}" -ne 0 ]; then
     bits=$([ "$arch" = "64bit" ] && echo -64 || echo -32)
     ( cd "$work" && timeout -k 10 "$TESTCOV_S" testcov --test-suite suite.zip \
         --no-isolation "$bits" --goal prop.prp "$name" ) \
-      > "$work/testcov.log" 2>&1 </dev/null
+      > "$work/testcov.log" 2>&1 </dev/null 3<&-
     # TestCov exits 0 whether or not the suite covers, so the verdict is the
     # Result line, never $?.
     #
@@ -203,6 +212,14 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
   if [ "$testcov" = "TESTCOV_ERROR" ] || [ "$verdict" = "ERROR" ]; then
     cp "$work/map2check.log" "$RESULTS_DIR/raw/$(echo "$program" | tr '/' '_').m2c.log" 2>/dev/null
     cp "$work/testcov.log" "$RESULTS_DIR/raw/$(echo "$program" | tr '/' '_').tc.log" 2>/dev/null
+  fi
+
+  if [ -n "${SUITES_DIR:-}" ] && [ -f "$work/suite.zip" ]; then
+    rundef=$([ "$PROPERTY" = "cover-branches" ] && echo Test-Comp26_coverage-branches \
+             || echo Test-Comp26_coverage-error-call)
+    taskdef=$(basename "${program%.*}").yml
+    mkdir -p "$SUITES_DIR/$rundef/$taskdef"
+    cp "$work/suite.zip" "$SUITES_DIR/$rundef/$taskdef/test-suite.zip"
   fi
 
   rm -rf "$work"

@@ -22,21 +22,22 @@ docker run --rm -u root -v "$PWD":/src -w /src map2check-dev:latest bash -c '
   mkdir -p release/lib/klee &&
   ln -sfn /opt/klee/lib/klee/runtime release/lib/klee/runtime &&
   ln -sfn /usr/lib/llvm-16/lib/clang release/lib/clang &&
-  GENS="symex" REPS=5 TIMEOUT=45 MAP2CHECK_PATH=/src/release \
+  GENS="afl symex" REPS=5 TIMEOUT=45 MAP2CHECK_PATH=/src/release \
     scripts/cutover/run-corpus.sh release tests/cutover/baseline-c.tsv'
 ```
 
 Runner self-test: `bash scripts/cutover/test-run-corpus.sh`.
 
-## Known issues found during the smoke run (read before running the full baseline)
+## Notes on the C runtime (found in the smoke run)
 
 - The runner argument is `release` (the dir holding the `map2check` wrapper), not `release/bin`.
-- The C binary has no `fuzzer` generator; valid values are `afl` and `symex`. `GENS=fuzzer`
-  gives "Selected generator don't exist" (runner records TIMEOUT). `afl` needs
-  `/usr/local/bin/afl-clang-fast`, absent from this image (runner records UNKNOWN).
-  Only `symex` works in `map2check-dev:latest`, so the command above uses `GENS="symex"`.
-- The C pipeline chdirs into a scratch dir and removes it, so `map2check_property` is never
-  left in the runner's cwd: tag/line/function columns are `-` for C. They are printed on stdout
-  ("Violated property: file ... line N function F" then "TAG: ...") if Task 4.1 needs them.
-- Smoke (symex, REPS=1): 11 FAILED, 4 SUCCEEDED, 26 UNKNOWN (41 rows, ~1 s each; KLEE
-  "Forcing timeout" yields UNKNOWN).
+- Valid generators are `afl` and `symex` (no `fuzzer`). `afl` needs `/usr/local/bin/afl-clang-fast`,
+  absent from `map2check-dev:latest`; a rebuilt image (`map2check-dev:cutover-f01e8c3e`) adds AFL++.
+  With the old image only `GENS=symex` works (afl rows come out UNKNOWN in 0.08 s).
+- The C pipeline deletes its scratch dir, so `map2check_property` is not left in cwd. The runner
+  derives tag/line/function from stdout (fixtures in `scripts/cutover/fixtures/`); FALSE-MEMTRACK
+  and FALSE-MEMCLEANUP carry no line/function (`-`). Witness is 1 only if `--generate-witness`
+  output is seen (the runner does not pass it).
+- The runner passes `--timeout $TIMEOUT` to map2check (default is 0 = unlimited-ish and caused
+  premature "Forcing timeout" UNKNOWNs); the outer `timeout` is TIMEOUT+15.
+- Smoke (symex, REPS=1, 41 rows): 13 FAILED, 8 SUCCEEDED, 20 UNKNOWN.

@@ -24,4 +24,26 @@ IFS=$'\t' read -r task prp gen rep verdict tag line func witness wall rss <<<"$r
 [ "$task" = "x/a.yml" ] && [ "$prp" = "valid-memsafety" ] && [ "$gen" = fuzzer ] \
   && [ "$verdict" = FAILED ] && [ "$tag" = FALSE-DEREF ] && [ "$line" = 7 ] \
   && [ "$func" = main ] && [ "$witness" = 0 ] || { echo "linha inesperada: $row" >&2; exit 1; }
+
+# Runtime C: sem map2check_property no cwd; tag/linha/função vêm do stdout.
+FIX="$HERE/fixtures"
+mkdir -p "$T/cbin"
+cat > "$T/cbin/map2check" <<EOS
+#!/usr/bin/env bash
+cat "$FIX/c-failed-stdout.txt"
+EOS
+chmod +x "$T/cbin/map2check"
+CASES="$T/cases" GENS=symex REPS=1 "$HERE/run-corpus.sh" "$T/cbin" "$T/c.tsv"
+IFS=$'\t' read -r task prp gen rep verdict tag line func witness wall rss <<<"$(sed -n 2p "$T/c.tsv")"
+[ "$verdict" = FAILED ] && [ "$tag" = FALSE-DEREF ] && [ "$line" = 108 ] \
+  && [ "$func" = is_relaxed_prefix ] && [ "$witness" = 0 ] \
+  || { echo "linha C inesperada: $verdict $tag $line $func $witness" >&2; exit 1; }
+cat > "$T/cbin/map2check" <<EOS
+#!/usr/bin/env bash
+cat "$FIX/c-succeeded-stdout.txt"
+EOS
+CASES="$T/cases" GENS=symex REPS=1 "$HERE/run-corpus.sh" "$T/cbin" "$T/c.tsv"
+IFS=$'\t' read -r task prp gen rep verdict tag line func witness wall rss <<<"$(sed -n 2p "$T/c.tsv")"
+[ "$verdict" = SUCCEEDED ] && [ "$tag" = - ] && [ "$line" = - ] && [ "$func" = - ] \
+  || { echo "linha C (sucesso) inesperada: $verdict $tag $line $func" >&2; exit 1; }
 echo ok

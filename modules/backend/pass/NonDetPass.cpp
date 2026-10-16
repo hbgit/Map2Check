@@ -79,17 +79,25 @@ bool rewriteAssumeToPrune(Function &F) {
 
   // The program's own __VERIFIER_assume gives way to the library's: its
   // body would otherwise call itself, and the link would see two
-  // definitions.
-  llvm::FunctionCallee assume =
-      Map2Check::getOrInsertRuntime(*F.getParent(),
-                                    Map2Check::RuntimeHook::Assume);
-  if (assume.getCallee() == &F) {
-    F.deleteBody();
-    Map2Check::allowUnwind(F);
-    llvm::errs() << "[map2check] dropped the program's " << F.getName()
-                 << " for the runtime's\n";
+  // definitions. It is renamed, made internal and left unused (the passes
+  // after this one in the pipeline still run on it, so it keeps a body);
+  // every use goes to the core declaration.
+  const char *coreAssume =
+      Map2Check::runtimeCall(Map2Check::RuntimeHook::Assume, F.getContext())
+          .name;
+  if (F.getName() == coreAssume) {
+    F.setName("__map2check_program_assume");
+    F.setLinkage(llvm::GlobalValue::InternalLinkage);
+    llvm::FunctionCallee core = Map2Check::getOrInsertRuntime(
+        *F.getParent(), Map2Check::RuntimeHook::Assume);
+    F.replaceAllUsesWith(core.getCallee());
+    Map2Check::allowUnwind(*llvm::cast<Function>(core.getCallee()));
+    llvm::errs() << "[map2check] replaced the program's " << coreAssume
+                 << " with the runtime's\n";
     return true;
   }
+  llvm::FunctionCallee assume = Map2Check::getOrInsertRuntime(
+      *F.getParent(), Map2Check::RuntimeHook::Assume);
 
   LLVMContext &ctx = F.getContext();
   llvm::Value *condition = F.getArg(0);

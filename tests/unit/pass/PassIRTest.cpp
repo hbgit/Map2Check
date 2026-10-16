@@ -692,14 +692,27 @@ TEST(PassIR, NonDetTurnsCrabAssumeIntoVerifierAssume) {
 }
 
 // assume_abort_if_not aborts on a false condition; its body becomes a call to
-// the library's assume. A program's own __VERIFIER_assume loses its body, so
-// the library's definition is the only one (no recursion, no duplicate).
+// the library's assume. A program's own __VERIFIER_assume is renamed and left
+// unused, so the library's definition is the only one (no recursion, no
+// duplicate); it keeps its body for the passes that run after this one.
 TEST(PassIR, NonDetRewritesAbortingAssumes) {
-  auto m = runPassOn("NonDetPass", "nondet-pass", "assume_defined.c");
+  // map2check-library runs after nondet-pass on the same functions.
+  auto m = runPassOn("NonDetPass,Map2CheckLibrary", "nondet-pass,map2check-library",
+                     "assume_defined.c");
   ASSERT_VALID(m);
   llvm::Function* verifierAssume = m->getFunction("__VERIFIER_assume");
   ASSERT_NE(verifierAssume, nullptr);
   EXPECT_TRUE(verifierAssume->isDeclaration());
+  llvm::Function* programAssume = m->getFunction("__map2check_program_assume");
+  ASSERT_NE(programAssume, nullptr);
+  EXPECT_TRUE(programAssume->hasInternalLinkage());
+  EXPECT_TRUE(programAssume->use_empty());
+  // main's call now reaches the library's assume.
+  bool fromMain = false;
+  for (llvm::CallInst* call : callsTo(*m, "__VERIFIER_assume")) {
+    fromMain |= call->getFunction()->getName() == "__map2check_main__";
+  }
+  EXPECT_TRUE(fromMain);
   EXPECT_EQ(verifierAssume->getFunctionType(),
             runtimeCall(RuntimeHook::Assume, m->getContext()).type);
 
@@ -711,7 +724,9 @@ TEST(PassIR, NonDetRewritesAbortingAssumes) {
     if (call->getFunction() == abortIfNot) inBody.push_back(call);
   }
   ASSERT_EQ(inBody.size(), 1u);
-  EXPECT_FALSE(calls(*m, "abort"));
+  for (llvm::CallInst* call : callsTo(*m, "abort")) {
+    EXPECT_NE(call->getFunction(), abortIfNot) << "the abort is gone";
+  }
   // cond != 0, as C reads the int condition.
   auto* zext = llvm::dyn_cast<llvm::ZExtInst>(inBody[0]->getArgOperand(0));
   ASSERT_NE(zext, nullptr);

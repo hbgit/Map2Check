@@ -87,6 +87,8 @@ if(ENABLE_TEST)
   add_subdirectory(tests)
 endif()
 
+include(cmake/Map2CheckRustRuntime.cmake)
+
 add_subdirectory(modules)
 
 if(BUILD_DOC)

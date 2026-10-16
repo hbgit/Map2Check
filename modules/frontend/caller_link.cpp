@@ -24,6 +24,7 @@
 // constructor that calls map2check_enable_witness (Step 4b), linked only into
 // the witness artefacts as WitnessGeneration.bc used to be.
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <sstream>

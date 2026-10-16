@@ -284,6 +284,20 @@ TEST(CallerLink, ExistingSeedsAreLeftUntouched) {
 }
 
 TEST(CallerLink, KleeRuntimeIsLookedUpUnderMap2CheckPath) {
+  // Restores MAP2CHECK_PATH however the test ends.
+  struct RestoreEnv {
+    bool had;
+    std::string value;
+    ~RestoreEnv() {
+      if (had)
+        setenv("MAP2CHECK_PATH", value.c_str(), 1);
+      else
+        unsetenv("MAP2CHECK_PATH");
+    }
+  };
+  const char* previous = getenv("MAP2CHECK_PATH");
+  RestoreEnv restore{previous != nullptr,
+                     previous != nullptr ? previous : ""};
   const std::string prefix = freshDir("prefix");
   ASSERT_EQ(setenv("MAP2CHECK_PATH", prefix.c_str(), 1), 0);
   EXPECT_EQ(Map2Check::installedKleeRuntime(),

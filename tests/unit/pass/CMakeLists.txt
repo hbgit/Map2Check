@@ -60,4 +60,25 @@ else()
   add_dependencies(PassIRTest
     TrackBasicBlockPass AssertPass TargetPass LoopPredAssumePass Map2CheckLibrary
     OverflowPass NonDetPass MemoryTrackPass)
+
+  # Steps 5 and 5b of Task 3.2: every input, instrumented with all passes of
+  # each analysis mode, links against the Rust runtime; an assume rejection
+  # unwinds at -O2 under the libFuzzer driver.
+  if(MAP2CHECK_RUST_LIB_DIR)
+    set(M2C_E2E_RUST_LIB "${MAP2CHECK_RUST_LIB_DIR}/libmap2check.a")
+  elseif(MAP2CHECK_RUST_SRC)
+    set(M2C_E2E_RUST_LIB "${MAP2CHECK_RUST_SRC}/target/runtime/libmap2check.a")
+  endif()
+  if(M2C_E2E_RUST_LIB)
+    m2c_pass_test(EndToEndLinkTest EndToEndLinkTest.cpp)
+    target_compile_definitions(EndToEndLinkTest PRIVATE
+      M2C_RUST_LIB="${M2C_E2E_RUST_LIB}")
+    add_dependencies(EndToEndLinkTest
+      NonDetPass MemoryTrackPass OverflowPass AssertPass TargetPass Map2CheckLibrary)
+    if(NOT MAP2CHECK_RUST_LIB_DIR)
+      add_dependencies(EndToEndLinkTest Map2CheckRustRuntime)
+    endif()
+  else()
+    message(STATUS "EndToEndLinkTest skipped: no Rust runtime configured")
+  endif()
 endif()

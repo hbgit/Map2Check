@@ -1,7 +1,15 @@
 ; The shape wasm2c gives a lifted module: an allocator returning an i32
 ; linear-memory offset, and accesses through a GEP into the memory's data.
-declare i32 @w2c_m_dlmalloc(ptr, i32)
-declare void @w2c_m_dlfree(ptr, i32)
+; The allocator bodies are stand-ins, so the module links on its own.
+define i32 @w2c_m_dlmalloc(ptr %instance, i32 %size) {
+entry:
+  ret i32 64
+}
+
+define void @w2c_m_dlfree(ptr %instance, i32 %offset) {
+entry:
+  ret void
+}
 
 define i32 @main() {
 entry:

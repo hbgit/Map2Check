@@ -8,3 +8,4 @@ endfunction(map2check_test)
 # are ported to Rust (plan Task 5.2) and are deleted with the C runtime (Task 6.2).
 # add_subdirectory(backend-library)
 add_subdirectory(frontend)
+add_subdirectory(pass)

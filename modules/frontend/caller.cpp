@@ -1218,12 +1218,34 @@ void Caller::compileWithClam() {
   // map2check_crab_assume, which the runtime forwards to klee_assume -- so
   // nothing downstream needs to change.
   // See docs/reports/2026-08-16-crabllvm-review.md.
+  //
+  // D1 condition 11: the program's bitcode must not be nounwind, and clam.py
+  // has no way to forward clang flags. So the C is compiled here, with the
+  // flags clam.py itself would use (-disable-O0-optnone, -fdeclspec,
+  // -fno-discard-value-names, -m64, -g, its include dir) plus
+  // kProgramUnwindFlags, and clam.py receives bitcode, for which it skips its
+  // own clang step. Measured on a loop program: the same 8 verifier.assume
+  // calls are injected as when clam.py compiles the C, and main loses
+  // nounwind.
+  const std::string clamInput = programHash + "-clam-input.bc";
+  std::ostringstream compileForClam;
+  compileForClam << Map2Check::clangBinary << " -Wno-everything"
+                 << " -c -emit-llvm -g -m64"
+                 << " " << Map2Check::kProgramUnwindFlags
+                 << " -Xclang -disable-O0-optnone -fdeclspec"
+                 << " -fno-discard-value-names"
+                 << " -I" << clamRoot << "/include"
+                 << " -o " << clamInput << " " << programHash
+                 << "-preprocessed.c";
+  Map2Check::Log::Debug(compileForClam.str());
+  system(compileForClam.str().c_str());
+
   command << Map2Check::clamBinary() << " -o " << compiledFile << " -m 64 -g"
           << " --crab-inter"
           << " --crab-track=num"
           << " --crab-opt=add-invariants"
           << " --crab-opt-invariants-loc=block-entry"
-          << " " << programHash << "-preprocessed.c ";
+          << " " << clamInput << " ";
 
   Map2Check::Log::Debug(command.str());
   system(command.str().c_str());

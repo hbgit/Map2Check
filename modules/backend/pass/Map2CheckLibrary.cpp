@@ -55,6 +55,8 @@ Map2CheckLibrary::Map2CheckLibrary() : mode(AnalysisModeOption) {}
 PreservedAnalyses Map2CheckLibrary::run(Function& F,
                                         llvm::FunctionAnalysisManager& AM) {
   llvm::Module& M = *F.getParent();
+  // Normally done by NonDetPass already; idempotent.
+  Map2Check::resolveProgramDefinitions(M);
   this->setModeFunction =
       Map2Check::getOrInsertRuntime(M, Map2Check::RuntimeHook::SetMode);
   this->initFunction =

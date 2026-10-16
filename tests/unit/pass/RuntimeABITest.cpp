@@ -16,6 +16,7 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 
+#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>
@@ -216,4 +217,30 @@ TEST(RuntimeABI, NonDetValueSlotsFollowApiDeltas) {
     EXPECT_FALSE(nonDetGenerator(e.cType).empty()) << e.cType;
   }
   EXPECT_EQ(Map2Check::nonDetValueSlot("float", ctx).type, nullptr);
+}
+
+// The lists of program definitions that give way or become internal: the
+// assume and the 16 generators the library exports; the SV-COMP and
+// unprefixed runtime names. No name is in both.
+TEST(RuntimeABI, ProgramDefinitionLists) {
+  const std::vector<std::string>& discarded = Map2Check::discardedProgramDefinitions();
+  const std::vector<std::string>& internalized =
+      Map2Check::internalizedProgramDefinitions();
+  EXPECT_EQ(discarded.size(), 17u);
+  EXPECT_EQ(internalized.size(), 8u);
+  std::set<std::string> all(discarded.begin(), discarded.end());
+  all.insert(internalized.begin(), internalized.end());
+  EXPECT_EQ(all.size(), discarded.size() + internalized.size());
+  EXPECT_TRUE(all.count("__VERIFIER_assume"));
+  EXPECT_TRUE(all.count("__VERIFIER_nondet_pchar"));
+  EXPECT_TRUE(all.count("__VERIFIER_assert"));
+  EXPECT_TRUE(all.count("vcc_reset_meta_data"));
+  // Every generator the pass logs is discarded when the program defines it.
+  for (const char* type : {"int", "uint", "char", "uchar", "short", "ushort",
+                           "long", "ulong", "bool", "pointer", "pchar",
+                           "size_t", "loff_t", "sector_t", "double"}) {
+    EXPECT_TRUE(std::count(discarded.begin(), discarded.end(),
+                           Map2Check::nonDetGenerator(type)))
+        << type;
+  }
 }

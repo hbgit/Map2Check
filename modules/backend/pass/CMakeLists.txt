@@ -7,6 +7,8 @@ set(CXX_FLAGS "${CXX_FLAGS}  -fno-rtti ")
 
 set_target_properties(DebugInfo PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
 set_target_properties(RuntimeABI PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
+# Both are linked into every plugin (a shared object).
+set_target_properties(DebugInfo RuntimeABI PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 list(APPEND MAP2CHECK_PASS_LIB "")
 list(APPEND MAP2CHECK_PASS_LIB "NonDetPass")

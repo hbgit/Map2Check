@@ -11,7 +11,9 @@
 #include "RuntimeABI.hpp"
 
 #include <llvm/ADT/StringSwitch.h>
+#include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/InstrTypes.h>
+#include <llvm/IR/Instructions.h>
 #include <llvm/IR/Type.h>
 
 namespace Map2Check {
@@ -193,6 +195,68 @@ void allowUnwind(llvm::Function& fn) {
       call->removeFnAttr(llvm::Attribute::NoUnwind);
     }
   }
+}
+
+const std::vector<std::string>& discardedProgramDefinitions() {
+  static const std::vector<std::string> names = [] {
+    std::vector<std::string> all = {"__VERIFIER_assume"};
+    // The 16 generators the library exports (feature libfuzzer and klee).
+    for (const char* type :
+         {"bool", "char", "uchar", "short", "ushort", "int", "uint", "long",
+          "ulong", "float", "double", "size_t", "loff_t", "sector_t",
+          "pointer", "pchar"}) {
+      all.push_back(std::string("__VERIFIER_nondet_") + type);
+    }
+    return all;
+  }();
+  return names;
+}
+
+const std::vector<std::string>& internalizedProgramDefinitions() {
+  static const std::vector<std::string> names = {
+      "__VERIFIER_assert",    "__VERIFIER_error",
+      "get_current_step",     "get_next_step",
+      "get_current_property", "set_false_result",
+      "print_all_containers_as_json", "vcc_reset_meta_data"};
+  return names;
+}
+
+bool resolveProgramDefinitions(llvm::Module& module) {
+  bool changed = false;
+  llvm::LLVMContext& ctx = module.getContext();
+  const char* coreAssume = runtimeCall(RuntimeHook::Assume, ctx).name;
+
+  for (const std::string& name : discardedProgramDefinitions()) {
+    llvm::Function* program = module.getFunction(name);
+    if (program == nullptr || program->isDeclaration()) continue;
+    llvm::FunctionType* type = name == coreAssume
+                                   ? runtimeCall(RuntimeHook::Assume, ctx).type
+                                   : program->getFunctionType();
+    program->setName("__map2check_program_" + name);
+    llvm::FunctionCallee library = module.getOrInsertFunction(name, type);
+    program->replaceAllUsesWith(library.getCallee());
+    program->deleteBody();
+    llvm::BasicBlock* entry = llvm::BasicBlock::Create(ctx, "entry", program);
+    new llvm::UnreachableInst(ctx, entry);
+    program->setLinkage(llvm::GlobalValue::InternalLinkage);
+    if (name == coreAssume) {
+      allowUnwind(*llvm::cast<llvm::Function>(library.getCallee()));
+    }
+    changed = true;
+  }
+
+  for (const std::string& name : internalizedProgramDefinitions()) {
+    llvm::Function* program = module.getFunction(name);
+    if (program == nullptr || program->isDeclaration() ||
+        program->hasLocalLinkage()) {
+      continue;
+    }
+    program->setComdat(nullptr);
+    program->setVisibility(llvm::GlobalValue::DefaultVisibility);
+    program->setLinkage(llvm::GlobalValue::InternalLinkage);
+    changed = true;
+  }
+  return changed;
 }
 
 }  // namespace Map2Check

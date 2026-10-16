@@ -703,7 +703,8 @@ TEST(PassIR, NonDetRewritesAbortingAssumes) {
   llvm::Function* verifierAssume = m->getFunction("__VERIFIER_assume");
   ASSERT_NE(verifierAssume, nullptr);
   EXPECT_TRUE(verifierAssume->isDeclaration());
-  llvm::Function* programAssume = m->getFunction("__map2check_program_assume");
+  llvm::Function* programAssume =
+      m->getFunction("__map2check_program___VERIFIER_assume");
   ASSERT_NE(programAssume, nullptr);
   EXPECT_TRUE(programAssume->hasInternalLinkage());
   EXPECT_TRUE(programAssume->use_empty());
@@ -1063,4 +1064,82 @@ TEST(PassIR, MemoryTrackWasmModeEmitsWasmHooks) {
   ASSERT_EQ(freed.size(), 1u);
   EXPECT_EQ(stripCasts(freed[0]->getArgOperand(0)), alloc);
   EXPECT_TRUE(freed[0]->getArgOperand(1)->getType()->isIntegerTy(64));
+}
+
+// ---------------------------------------------------------------------------
+// Program definitions of library exports (RuntimeABI
+// resolveProgramDefinitions, run first by NonDetPass)
+// ---------------------------------------------------------------------------
+
+namespace {
+
+/// The program's definition of `name` gave way to the library's: `name` is a
+/// declaration and its old body is an unused internal stub.
+void expectDiscarded(llvm::Module& m, const std::string& name) {
+  SCOPED_TRACE(name);
+  llvm::Function* library = m.getFunction(name);
+  ASSERT_NE(library, nullptr);
+  EXPECT_TRUE(library->isDeclaration());
+  llvm::Function* program = m.getFunction("__map2check_program_" + name);
+  ASSERT_NE(program, nullptr);
+  EXPECT_TRUE(program->hasInternalLinkage());
+  EXPECT_TRUE(program->use_empty());
+  ASSERT_EQ(program->size(), 1u);
+  EXPECT_TRUE(llvm::isa<llvm::UnreachableInst>(program->getEntryBlock().front()));
+}
+
+/// The program keeps its definition of `name`, internal and under the same
+/// name, so the library's export does not clash with it.
+void expectInternalized(llvm::Module& m, const std::string& name) {
+  SCOPED_TRACE(name);
+  llvm::Function* program = m.getFunction(name);
+  ASSERT_NE(program, nullptr);
+  EXPECT_FALSE(program->isDeclaration());
+  EXPECT_TRUE(program->hasInternalLinkage());
+  EXPECT_EQ(m.getFunction("__map2check_program_" + name), nullptr);
+}
+
+}  // namespace
+
+TEST(PassIR, ProgramDefinitionsOfLibraryExportsAreResolved) {
+  auto m = runPassOn("NonDetPass,AssertPass,Map2CheckLibrary",
+                     "nondet-pass,assert-pass,map2check-library",
+                     "svcomp_defs.c", "-m2c-analysis-mode=assert");
+  ASSERT_VALID(m);
+  expectDiscarded(*m, "__VERIFIER_nondet_int");
+  expectDiscarded(*m, "__VERIFIER_assume");
+  expectNoNounwind(*m, "__VERIFIER_assume");
+  expectInternalized(*m, "__VERIFIER_assert");
+  expectInternalized(*m, "__VERIFIER_error");
+  expectInternalized(*m, "get_current_step");
+
+  // The generator call now reaches the library and is still logged.
+  std::vector<llvm::CallInst*> gen = callsTo(*m, "__VERIFIER_nondet_int");
+  ASSERT_EQ(gen.size(), 1u);
+  EXPECT_EQ(gen[0]->getFunction()->getName(), "__map2check_main__");
+  EXPECT_EQ(callsTo(*m, "map2check_save_nondet_log_int").size(), 1u);
+
+  // The program's __VERIFIER_assert keeps its body, and AssertPass still
+  // instruments the call to it (matched by name).
+  llvm::Function* assertFn = m->getFunction("__VERIFIER_assert");
+  bool callsReachError = false;
+  for (llvm::CallInst* call : callsTo(*m, "reach_error")) {
+    callsReachError |= call->getFunction() == assertFn;
+  }
+  EXPECT_TRUE(callsReachError);
+  std::vector<llvm::CallInst*> asserts = callsTo(*m, "__VERIFIER_assert");
+  ASSERT_EQ(asserts.size(), 1u);
+  std::vector<llvm::CallInst*> checks = callsTo(*m, "map2check_is_valid_assert");
+  ASSERT_EQ(checks.size(), 1u);
+  EXPECT_EQ(checks[0]->getArgOperand(2), asserts[0]->getArgOperand(0));
+}
+
+TEST(PassIR, ProgramDefinitionsAfterMainAreResolvedToo) {
+  auto m = runPassOn("NonDetPass,AssertPass", "nondet-pass,assert-pass",
+                     "svcomp_defs_late.c");
+  ASSERT_VALID(m);
+  expectDiscarded(*m, "__VERIFIER_nondet_int");
+  expectInternalized(*m, "__VERIFIER_assert");
+  EXPECT_EQ(callsTo(*m, "map2check_save_nondet_log_int").size(), 1u);
+  EXPECT_EQ(callsTo(*m, "map2check_is_valid_assert").size(), 1u);
 }

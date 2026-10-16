@@ -35,7 +35,9 @@ namespace {
  * is replaced instead, which reaches every call site at once. */
 const char *const kAssumeByAbort[] = {"assume_abort_if_not",
                                       "assume_abort_if_not_",
-                                      "__VERIFIER_assume",
+                                      // A program's own __VERIFIER_assume is
+                                      // discarded for the library's instead
+                                      // (resolveProgramDefinitions).
                                       // The XCSP family spells it this way,
                                       // and spelling was the whole difference:
                                       // 59 of 59 XCSP tasks answered
@@ -77,25 +79,6 @@ bool rewriteAssumeToPrune(Function &F) {
   if (F.arg_size() != 1 || !F.getArg(0)->getType()->isIntegerTy()) return false;
   if (!F.getReturnType()->isVoidTy()) return false;
 
-  // The program's own __VERIFIER_assume gives way to the library's: its
-  // body would otherwise call itself, and the link would see two
-  // definitions. It is renamed, made internal and left unused (the passes
-  // after this one in the pipeline still run on it, so it keeps a body);
-  // every use goes to the core declaration.
-  const char *coreAssume =
-      Map2Check::runtimeCall(Map2Check::RuntimeHook::Assume, F.getContext())
-          .name;
-  if (F.getName() == coreAssume) {
-    F.setName("__map2check_program_assume");
-    F.setLinkage(llvm::GlobalValue::InternalLinkage);
-    llvm::FunctionCallee core = Map2Check::getOrInsertRuntime(
-        *F.getParent(), Map2Check::RuntimeHook::Assume);
-    F.replaceAllUsesWith(core.getCallee());
-    Map2Check::allowUnwind(*llvm::cast<Function>(core.getCallee()));
-    llvm::errs() << "[map2check] replaced the program's " << coreAssume
-                 << " with the runtime's\n";
-    return true;
-  }
   llvm::FunctionCallee assume = Map2Check::getOrInsertRuntime(
       *F.getParent(), Map2Check::RuntimeHook::Assume);
 
@@ -168,6 +151,11 @@ Value *toSlotType(IRBuilder<> &builder, Value *value,
 
 PreservedAnalyses NonDetPass::run(Function &F,
                                   llvm::FunctionAnalysisManager &AM) {
+  // First thing of the first pass: program definitions of library exports
+  // give way to the library's or become internal (RuntimeABI), before any
+  // instrumentation looks at them.
+  bool resolved = Map2Check::resolveProgramDefinitions(*F.getParent());
+
   // The library's assume rejects an input by unwinding through its callers,
   // so no declaration of it or call to it may be nounwind (D1 condition 11).
   if (Function *assume = F.getParent()->getFunction(
@@ -204,7 +192,7 @@ PreservedAnalyses NonDetPass::run(Function &F,
     }
   }
   if (nonDetCalls.empty() && crabAssumes.empty()) {
-    return PreservedAnalyses::all();
+    return resolved ? PreservedAnalyses::none() : PreservedAnalyses::all();
   }
 
   IRBuilder<> entryBuilder(&*F.getEntryBlock().getFirstInsertionPt());

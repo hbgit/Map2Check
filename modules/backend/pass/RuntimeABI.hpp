@@ -28,6 +28,7 @@
 #include <llvm/IR/Module.h>
 
 #include <string>
+#include <vector>
 
 namespace Map2Check {
 
@@ -109,6 +110,27 @@ NonDetValueSlot nonDetValueSlot(llvm::StringRef cType, llvm::LLVMContext& ctx);
 /// library rejects an input by unwinding through its caller (D1 condition
 /// 11), so a nounwind declaration or call site of it is undefined behaviour.
 void allowUnwind(llvm::Function& fn);
+
+/// Library exports a program may define itself (SV-COMP style); the link
+/// would see two definitions. Two treatments, as develop had them:
+///
+/// - Discarded: the program's definition gives way to the library's. A
+///   program-defined nondet generator (`int __VERIFIER_nondet_int(void)
+///   { return 0; }`) would feed constants instead of the fuzzer's or KLEE's
+///   input, and the program's __VERIFIER_assume would abort where the
+///   library prunes the path. Every use is sent to a declaration of the same
+///   name; the old body is renamed __map2check_program_<name>, made internal
+///   and reduced to `unreachable` (passes later in the pipeline still visit
+///   it, so it keeps a body).
+/// - Internalized: the program keeps its own definition, with internal
+///   linkage and the same name, so its calls use its body.
+const std::vector<std::string>& discardedProgramDefinitions();
+const std::vector<std::string>& internalizedProgramDefinitions();
+
+/// Applies both lists to `module`. Idempotent; true when it changed
+/// anything. The first pass of every pipeline (NonDetPass) calls it before
+/// any instrumentation.
+bool resolveProgramDefinitions(llvm::Module& module);
 
 }  // namespace Map2Check
 

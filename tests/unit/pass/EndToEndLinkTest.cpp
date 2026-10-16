@@ -13,7 +13,9 @@
 //
 // Each input of inputs/ is compiled as the frontend compiles the program
 // (Caller::compileFile: -c -emit-llvm -g -fexceptions -O0), instrumented with
-// every pass of the mode as Caller::callPass chains them, and linked with
+// every pass of the mode as Caller::callPass chains them (the table below
+// mirrors modules/frontend/caller.cpp, Caller::callPass; keep them in step
+// until Task 3.3 shares it), and linked with
 // clang-16 -fexceptions -fsanitize=fuzzer.
 
 #include <gtest/gtest.h>
@@ -156,6 +158,16 @@ std::set<std::string> linkerErrors(const std::string& log) {
   return found;
 }
 
+/// Writes `value` as the 4 little-endian bytes __VERIFIER_nondet_int reads.
+void writeInt(const std::string& path, int32_t value) {
+  std::ofstream out(path, std::ios::binary);
+  unsigned char bytes[4];
+  for (int b = 0; b < 4; ++b) {
+    bytes[b] = static_cast<unsigned char>((static_cast<uint32_t>(value) >> (8 * b)) & 0xff);
+  }
+  out.write(reinterpret_cast<const char*>(bytes), 4);
+}
+
 struct LinkCase {
   std::string mode;
   std::string input;
@@ -226,14 +238,6 @@ TEST(EndToEndRun, AssumeRejectionsUnwindAtO2UnderLibFuzzer) {
 
   // x <= 0 is rejected by __VERIFIER_assume(x > 0); x = 5 is accepted.
   fs::create_directories(dir + "/inputs");
-  auto writeInt = [&](const std::string& path, int32_t value) {
-    std::ofstream out(path, std::ios::binary);
-    unsigned char bytes[4];
-    for (int b = 0; b < 4; ++b) {
-      bytes[b] = static_cast<unsigned char>((static_cast<uint32_t>(value) >> (8 * b)) & 0xff);
-    }
-    out.write(reinterpret_cast<const char*>(bytes), 4);
-  };
   std::ostringstream files;
   for (int k = 0; k < 100; ++k) {
     std::string path = dir + "/inputs/rejected" + std::to_string(k);
@@ -262,6 +266,33 @@ TEST(EndToEndRun, AssumeRejectionsUnwindAtO2UnderLibFuzzer) {
   EXPECT_EQ(out, "accepted 4\n");
   for (const char* bad : {"deadly signal", "failed to initiate panic", "Aborted",
                           "panic in FFI boundary"}) {
+    EXPECT_EQ(errText.find(bad), std::string::npos) << bad << "\n" << errText;
+  }
+}
+
+// SV-COMP programs define library exports themselves (inputs/svcomp_defs.c).
+// At run time the nondet value comes from the fuzzer input, not from the
+// program's `return 0;` generator, and the assume is the library's (it
+// prunes, where the program's would abort); the program's internalized
+// get_current_step keeps its own body.
+TEST(EndToEndRun, ProgramDefinedExportsGiveWayToTheLibrary) {
+  std::string dir = freshWorkDir("svcomp-defs-O2");
+  std::string bitcode = instrument(dir, "svcomp_defs.c", pipeline("assert"));
+  ASSERT_FALSE(bitcode.empty()) << readFile(dir + "/opt.err");
+  ASSERT_EQ(link(dir, bitcode, "-O2"), 0) << readFile(dir + "/link.txt");
+
+  fs::create_directories(dir + "/inputs");
+  writeInt(dir + "/inputs/rejected", 7);       // __VERIFIER_assume(x != 7)
+  writeInt(dir + "/inputs/reached", 123456);   // if (x == 123456)
+  std::ostringstream cmd;
+  cmd << dir << "/program " << dir << "/inputs/rejected " << dir
+      << "/inputs/reached > " << dir << "/run.out 2> " << dir << "/run.err";
+  int rc = std::system(cmd.str().c_str());
+  std::string out = readFile(dir + "/run.out");
+  std::string errText = readFile(dir + "/run.err");
+  EXPECT_EQ(rc, 0) << errText;
+  EXPECT_NE(out.find("from the input 42\n"), std::string::npos) << out;
+  for (const char* bad : {"deadly signal", "Aborted", "panic in FFI boundary"}) {
     EXPECT_EQ(errText.find(bad), std::string::npos) << bad << "\n" << errText;
   }
 }

@@ -115,4 +115,29 @@ EXTRA_FLAGS="--btree" CASES="$T/cases" GENS=symex REPS=1 "$HERE/run-corpus.sh" "
 grep -q -- '--memtrack --btree .*b.c$' "$T/args" \
   || { echo "EXTRA_FLAGS nao repassado: $(cat "$T/args")" >&2; exit 1; }
 
+# OOM_EVENTS: um oom_kill novo no cgroup durante a tarefa vira veredito OOM,
+# a menos que a tarefa tenha decidido (SUCCEEDED/FAILED); nesse caso so avisa.
+printf 'oom 0\noom_kill 0\n' > "$T/events"
+cat > "$T/cbin/map2check" <<EOS
+#!/usr/bin/env bash
+printf 'oom 1\noom_kill 1\n' > "$T/events"
+echo "VERIFICATION UNKNOWN"
+EOS
+OOM_EVENTS="$T/events" CASES="$T/cases" GENS=symex REPS=1 "$HERE/run-corpus.sh" "$T/cbin" "$T/o.tsv"
+[ "$(cut -f5 <(sed -n 2p "$T/o.tsv"))" = OOM ] || { echo "OOM nao registrado: $(sed -n 2p "$T/o.tsv")" >&2; exit 1; }
+cat > "$T/cbin/map2check" <<EOS
+#!/usr/bin/env bash
+printf 'oom_kill 2\n' > "$T/events"
+echo "VERIFICATION FAILED"
+EOS
+OOM_EVENTS="$T/events" CASES="$T/cases" GENS=symex REPS=1 "$HERE/run-corpus.sh" "$T/cbin" "$T/o.tsv" 2>"$T/err"
+[ "$(cut -f5 <(sed -n 2p "$T/o.tsv"))" = FAILED ] && grep -q 'oom_kill' "$T/err" \
+  || { echo "OOM com veredito decidido: $(sed -n 2p "$T/o.tsv")" >&2; exit 1; }
+cat > "$T/cbin/map2check" <<EOS
+#!/usr/bin/env bash
+echo "VERIFICATION UNKNOWN"
+EOS
+OOM_EVENTS="$T/events" CASES="$T/cases" GENS=symex REPS=1 "$HERE/run-corpus.sh" "$T/cbin" "$T/o.tsv"
+[ "$(cut -f5 <(sed -n 2p "$T/o.tsv"))" = UNKNOWN ] || { echo "OOM falso: $(sed -n 2p "$T/o.tsv")" >&2; exit 1; }
+
 echo ok

@@ -9,6 +9,10 @@ CASES="${CASES:-$ROOT/tests/regression_test/test_cases/sv-benchmarks}"
 GENS="${GENS:-afl symex}"; REPS="${REPS:-5}"; TIMEOUT="${TIMEOUT:-45}"
 # EXTRA_FLAGS: flags acrescentadas às da propriedade (ex.: --btree, Task 4.3).
 EXTRA_FLAGS="${EXTRA_FLAGS:-}"
+# OOM_EVENTS: memory.events do cgroup (default: o do container, se legível).
+# Um oom_kill novo durante uma tarefa sem veredito decidido grava veredito OOM.
+OOM_EVENTS="${OOM_EVENTS:-/sys/fs/cgroup/memory.events}"
+oom_kills() { sed -nE 's/^oom_kill ([0-9]+)$/\1/p' "$OOM_EVENTS" 2>/dev/null || true; }
 
 flags_for() {
   case "$1" in
@@ -30,6 +34,7 @@ while IFS= read -r yml; do
     for gen in $GENS; do
       for rep in $(seq 1 "$REPS"); do
         work="$(mktemp -d)"
+        oom_before="$(oom_kills)"
         # shellcheck disable=SC2086
         ( cd "$work" && /usr/bin/time -f '%e\t%M' -o time.txt \
             timeout "$((TIMEOUT + 15))" "$BIN_DIR/map2check" --timeout "$TIMEOUT" --nondet-generator "$gen" $flags "$input" \
@@ -38,6 +43,14 @@ while IFS= read -r yml; do
         grep -q 'VERIFICATION SUCCEEDED' "$work/out.txt" && verdict=SUCCEEDED
         grep -q 'VERIFICATION FAILED' "$work/out.txt" && verdict=FAILED
         grep -q 'VERIFICATION UNKNOWN' "$work/out.txt" && verdict=UNKNOWN
+        oom_after="$(oom_kills)"
+        if [ -n "$oom_before" ] && [ -n "$oom_after" ] && [ "$oom_after" -gt "$oom_before" ]; then
+          case "$verdict" in
+            SUCCEEDED|FAILED)
+              echo "run-corpus: oom_kill during ${yml#"$CASES"/} ($prp, $gen, rep $rep), verdict $verdict kept" >&2 ;;
+            *) verdict=OOM ;;
+          esac
+        fi
         tag=-; line=-; func=-
         # tag/line/function are only meaningful for a FAILED verdict; every other
         # verdict gets "-" whichever source (property file or stdout) was used.

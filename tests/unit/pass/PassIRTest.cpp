@@ -516,3 +516,203 @@ TEST(PassIR, OverflowPassesTheOperationWidth) {
     expectBinopCall(inFn[0], c.opcode, c.bits, /*line=*/-1);
   }
 }
+
+// ---------------------------------------------------------------------------
+// NonDetPass -> __VERIFIER_nondet_<t>, map2check_save_nondet_log_<t>, Assume
+// ---------------------------------------------------------------------------
+
+namespace {
+
+struct NonDetCase {
+  const char* cType;
+  int line;  // of the call in inputs/nondet_types.c
+};
+
+void PrintTo(const NonDetCase& c, std::ostream* os) { *os << c.cType; }
+
+int callLine(llvm::Instruction* i) {
+  const llvm::DebugLoc& loc = i->getDebugLoc();
+  return loc ? static_cast<int>(loc.getLine()) : -1;
+}
+
+/// The value stored in `slot` by a store that precedes `before` in its block.
+llvm::Value* storedBefore(llvm::Value* slot, llvm::Instruction* before) {
+  llvm::Value* stored = nullptr;
+  for (llvm::Instruction& i : *before->getParent()) {
+    if (&i == before) break;
+    if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+      if (store->getPointerOperand() == slot) stored = store->getValueOperand();
+    }
+  }
+  return stored;
+}
+
+llvm::Value* stripCasts(llvm::Value* v) {
+  while (auto* cast = llvm::dyn_cast<llvm::CastInst>(v)) v = cast->getOperand(0);
+  return v;
+}
+
+std::unique_ptr<llvm::Module>& nonDetModule() {
+  static std::unique_ptr<llvm::Module> m =
+      runPassOn("NonDetPass", "nondet-pass", "nondet_types.c");
+  return m;
+}
+
+}  // namespace
+
+class NonDetType : public ::testing::TestWithParam<NonDetCase> {};
+
+// Each __VERIFIER_nondet_<t> call keeps (or gets) its core generator, and its
+// value reaches map2check_save_nondet_log_<t> through an alloca of the C type
+// with the NONDET_TYPE number as type_var.
+TEST_P(NonDetType, LogsTheValueThroughATypedSlot) {
+  const NonDetCase& c = GetParam();
+  std::unique_ptr<llvm::Module>& m = nonDetModule();
+  ASSERT_VALID(m);
+  llvm::LLVMContext& ctx = m->getContext();
+  Map2Check::NonDetValueSlot slot = Map2Check::nonDetValueSlot(c.cType, ctx);
+  ASSERT_NE(slot.type, nullptr);
+
+  // The generator call of this line.
+  std::string generator = Map2Check::nonDetGenerator(c.cType);
+  llvm::CallInst* gen = nullptr;
+  for (llvm::CallInst* call : callsTo(*m, generator)) {
+    if (callLine(call) == c.line) gen = call;
+  }
+  ASSERT_NE(gen, nullptr) << "no call to " << generator << " on line " << c.line;
+
+  // Its logger: core name and type, (line, scope, type_var, slot, fn).
+  std::string logger = Map2Check::nonDetLogger(c.cType);
+  llvm::Function* decl = m->getFunction(logger);
+  ASSERT_NE(decl, nullptr) << logger;
+  EXPECT_EQ(decl->getFunctionType(), Map2Check::nonDetLoggerType(ctx));
+  llvm::CallInst* log = nullptr;
+  for (llvm::CallInst* call : callsTo(*m, logger)) {
+    if (intArg(call->getArgOperand(0)) == c.line) log = call;
+  }
+  ASSERT_NE(log, nullptr) << "no " << logger << " for line " << c.line;
+  EXPECT_EQ(log->getFunctionType(), Map2Check::nonDetLoggerType(ctx));
+  ASSERT_EQ(log->arg_size(), 5u);
+  EXPECT_TRUE(llvm::isa<llvm::ConstantInt>(log->getArgOperand(1)));  // scope
+  EXPECT_EQ(intArg(log->getArgOperand(2)), slot.typeVar);
+  auto* alloca = llvm::dyn_cast<llvm::AllocaInst>(log->getArgOperand(3));
+  ASSERT_NE(alloca, nullptr) << "the value is passed through an alloca";
+  EXPECT_EQ(alloca->getAllocatedType(), slot.type);
+  EXPECT_EQ(stringArg(log->getArgOperand(4)), "main");
+  // The slot holds the generator's value, converted to the C type.
+  llvm::Value* stored = storedBefore(alloca, log);
+  ASSERT_NE(stored, nullptr) << "nothing stored in the slot before the log";
+  EXPECT_EQ(stored->getType(), slot.type);
+  EXPECT_EQ(stripCasts(stored), gen);
+  // The log follows the generator call in the same block.
+  EXPECT_EQ(gen->getParent(), log->getParent());
+  EXPECT_TRUE(gen->comesBefore(log));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    PassIR, NonDetType,
+    ::testing::Values(NonDetCase{"int", 18}, NonDetCase{"unsigned", 19},
+                      NonDetCase{"uint", 20}, NonDetCase{"char", 21},
+                      NonDetCase{"uchar", 22}, NonDetCase{"short", 23},
+                      NonDetCase{"ushort", 24}, NonDetCase{"long", 25},
+                      NonDetCase{"ulong", 26}, NonDetCase{"bool", 27},
+                      NonDetCase{"pointer", 28}, NonDetCase{"pchar", 29},
+                      NonDetCase{"size_t", 30}, NonDetCase{"loff_t", 31},
+                      NonDetCase{"sector_t", 32}, NonDetCase{"double", 33}),
+    [](const ::testing::TestParamInfo<NonDetCase>& info) {
+      return std::string(info.param.cType);
+    });
+
+TEST(PassIR, NonDetEmitsNoCRuntimeName) {
+  std::unique_ptr<llvm::Module>& m = nonDetModule();
+  ASSERT_VALID(m);
+  for (llvm::Function& f : *m) {
+    EXPECT_FALSE(f.getName().starts_with("map2check_non_det_")) << f.getName().str();
+    EXPECT_FALSE(f.getName().starts_with("map2check_nondet_")) << f.getName().str();
+  }
+  // The library has no __VERIFIER_nondet_unsigned: that call now goes to
+  // __VERIFIER_nondet_uint and is still logged as unsigned.
+  llvm::Function* unsignedDecl = m->getFunction("__VERIFIER_nondet_unsigned");
+  if (unsignedDecl != nullptr) EXPECT_TRUE(unsignedDecl->use_empty());
+  EXPECT_EQ(callsTo(*m, "__VERIFIER_nondet_uint").size(), 2u);
+  EXPECT_EQ(callsTo(*m, "map2check_save_nondet_log_unsigned").size(), 1u);
+  EXPECT_EQ(callsTo(*m, "map2check_save_nondet_log_uint").size(), 1u);
+}
+
+namespace {
+
+void expectNoNounwind(llvm::Module& m, llvm::StringRef name) {
+  llvm::Function* f = m.getFunction(name);
+  ASSERT_NE(f, nullptr) << name.str();
+  EXPECT_FALSE(f->hasFnAttribute(llvm::Attribute::NoUnwind)) << name.str();
+  std::vector<llvm::CallInst*> found = callsTo(m, name);
+  EXPECT_FALSE(found.empty()) << name.str();
+  for (llvm::CallInst* call : found) {
+    EXPECT_FALSE(call->hasFnAttr(llvm::Attribute::NoUnwind))
+        << "nounwind call to " << name.str() << " in "
+        << call->getFunction()->getName().str();
+  }
+}
+
+}  // namespace
+
+// Compiled without -fexceptions every call is nounwind; the assume of the
+// library unwinds, so the pass clears it on the declaration and the calls.
+TEST(PassIR, NonDetKeepsVerifierAssumeAndDropsNounwind) {
+  auto m = runPassOn("NonDetPass", "nondet-pass", "assume.c");
+  ASSERT_VALID(m);
+  expectCoreCalls(*m, RuntimeHook::Assume);
+  EXPECT_EQ(m->getFunction("map2check_assume"), nullptr);
+  expectNoNounwind(*m, "__VERIFIER_assume");
+}
+
+TEST(PassIR, NonDetTurnsCrabAssumeIntoVerifierAssume) {
+  auto m = runPassOn("NonDetPass", "nondet-pass", "crab_assume.ll");
+  ASSERT_VALID(m);
+  expectCoreCalls(*m, RuntimeHook::Assume);
+  EXPECT_FALSE(calls(*m, "verifier.assume"));
+  EXPECT_EQ(m->getFunction("map2check_crab_assume"), nullptr);
+  std::vector<llvm::CallInst*> found = callsTo(*m, "__VERIFIER_assume");
+  ASSERT_EQ(found.size(), 2u);
+  for (llvm::CallInst* call : found) {
+    // The i1 invariant is widened to the i32 the core takes.
+    auto* zext = llvm::dyn_cast<llvm::ZExtInst>(call->getArgOperand(0));
+    ASSERT_NE(zext, nullptr);
+    EXPECT_TRUE(zext->getSrcTy()->isIntegerTy(1));
+    EXPECT_TRUE(llvm::isa<llvm::ICmpInst>(zext->getOperand(0)));
+  }
+  expectNoNounwind(*m, "__VERIFIER_assume");
+}
+
+// assume_abort_if_not aborts on a false condition; its body becomes a call to
+// the library's assume. A program's own __VERIFIER_assume loses its body, so
+// the library's definition is the only one (no recursion, no duplicate).
+TEST(PassIR, NonDetRewritesAbortingAssumes) {
+  auto m = runPassOn("NonDetPass", "nondet-pass", "assume_defined.c");
+  ASSERT_VALID(m);
+  llvm::Function* verifierAssume = m->getFunction("__VERIFIER_assume");
+  ASSERT_NE(verifierAssume, nullptr);
+  EXPECT_TRUE(verifierAssume->isDeclaration());
+  EXPECT_EQ(verifierAssume->getFunctionType(),
+            runtimeCall(RuntimeHook::Assume, m->getContext()).type);
+
+  llvm::Function* abortIfNot = m->getFunction("assume_abort_if_not");
+  ASSERT_NE(abortIfNot, nullptr);
+  ASSERT_FALSE(abortIfNot->isDeclaration());
+  std::vector<llvm::CallInst*> inBody;
+  for (llvm::CallInst* call : callsTo(*m, "__VERIFIER_assume")) {
+    if (call->getFunction() == abortIfNot) inBody.push_back(call);
+  }
+  ASSERT_EQ(inBody.size(), 1u);
+  EXPECT_FALSE(calls(*m, "abort"));
+  // cond != 0, as C reads the int condition.
+  auto* zext = llvm::dyn_cast<llvm::ZExtInst>(inBody[0]->getArgOperand(0));
+  ASSERT_NE(zext, nullptr);
+  auto* cmp = llvm::dyn_cast<llvm::ICmpInst>(zext->getOperand(0));
+  ASSERT_NE(cmp, nullptr);
+  EXPECT_EQ(cmp->getPredicate(), llvm::ICmpInst::ICMP_NE);
+  EXPECT_EQ(cmp->getOperand(0), abortIfNot->getArg(0));
+
+  expectNoNounwind(*m, "__VERIFIER_assume");
+  expectNoNounwind(*m, "assume_abort_if_not");
+}

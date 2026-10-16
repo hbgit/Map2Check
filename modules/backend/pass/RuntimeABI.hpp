@@ -23,6 +23,7 @@
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 
@@ -86,6 +87,28 @@ std::string nonDetLogger(llvm::StringRef cType);
 /// Type shared by every nondet logger:
 /// (i32 line, i32 scope, i32 type_var, ptr value, ptr fn) -> ptr.
 llvm::FunctionType* nonDetLoggerType(llvm::LLVMContext& ctx);
+
+/// Metadata kind on the instructions a pass adds for the runtime's own use
+/// (the nondet value slots), which are not program memory to track.
+inline constexpr char kRuntimeMetadata[] = "map2check.runtime";
+
+/// How a nondet value reaches map2check_save_nondet_log_<t>: the pass stores
+/// it in an alloca of `type` (the C type of docs/api-deltas.md of the
+/// library: bool widens to int, pointer/pchar are addresses) and passes
+/// `typeVar`, the enum NONDET_TYPE number of the type
+/// (Map2CheckTypes.h:41-58). `isSigned` says how an integer of another
+/// width is converted to `type`.
+struct NonDetValueSlot {
+  llvm::Type* type;  // nullptr when the type is not in the mapping
+  bool isSigned;
+  int typeVar;
+};
+NonDetValueSlot nonDetValueSlot(llvm::StringRef cType, llvm::LLVMContext& ctx);
+
+/// Removes `nounwind` from `fn` and from every call to it. An assume of the
+/// library rejects an input by unwinding through its caller (D1 condition
+/// 11), so a nounwind declaration or call site of it is undefined behaviour.
+void allowUnwind(llvm::Function& fn);
 
 }  // namespace Map2Check
 

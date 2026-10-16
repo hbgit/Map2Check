@@ -11,6 +11,7 @@
 #include "RuntimeABI.hpp"
 
 #include <llvm/ADT/StringSwitch.h>
+#include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Type.h>
 
 namespace Map2Check {
@@ -151,6 +152,47 @@ llvm::FunctionType* nonDetLoggerType(llvm::LLVMContext& ctx) {
   llvm::Type* i32 = llvm::Type::getInt32Ty(ctx);
   llvm::Type* p = llvm::PointerType::get(ctx, 0);
   return fn(p, {i32, i32, i32, p, p});
+}
+
+NonDetValueSlot nonDetValueSlot(llvm::StringRef cType,
+                                llvm::LLVMContext& ctx) {
+  llvm::Type* i8 = llvm::Type::getInt8Ty(ctx);
+  llvm::Type* i16 = llvm::Type::getInt16Ty(ctx);
+  llvm::Type* i32 = llvm::Type::getInt32Ty(ctx);
+  llvm::Type* i64 = llvm::Type::getInt64Ty(ctx);
+  llvm::Type* p = llvm::PointerType::get(ctx, 0);
+  llvm::Type* dbl = llvm::Type::getDoubleTy(ctx);
+  // enum NONDET_TYPE: INTEGER 0, CHAR 1, POINTER 2, USHORT 3, LONG 4,
+  // UNSIGNED 5, ULONG 6, BOOL 7, UCHAR 8, PCHAR 9, SIZE_T 10, LOFF_T 11,
+  // SECTOR_T 12, UINT 13, SHORT 14, DOUBLE 15.
+  return llvm::StringSwitch<NonDetValueSlot>(cType)
+      .Case("int", {i32, true, 0})
+      .Case("char", {i8, true, 1})
+      .Case("pointer", {p, false, 2})
+      .Case("ushort", {i16, false, 3})
+      .Case("long", {i64, true, 4})
+      .Case("unsigned", {i32, false, 5})
+      .Case("ulong", {i64, false, 6})
+      .Case("bool", {i32, false, 7})  // typedef int bool; _Bool widens
+      .Case("uchar", {i8, false, 8})
+      .Case("pchar", {p, false, 9})
+      .Case("size_t", {i64, false, 10})
+      .Case("loff_t", {i64, true, 11})  // long long
+      .Case("sector_t", {i64, false, 12})  // unsigned long
+      .Case("uint", {i32, false, 13})
+      .Case("short", {i16, true, 14})
+      .Case("double", {dbl, true, 15})
+      .Default({nullptr, false, -1});
+}
+
+void allowUnwind(llvm::Function& fn) {
+  fn.removeFnAttr(llvm::Attribute::NoUnwind);
+  for (llvm::User* user : fn.users()) {
+    auto* call = llvm::dyn_cast<llvm::CallBase>(user);
+    if (call != nullptr && call->getCalledOperand() == &fn) {
+      call->removeFnAttr(llvm::Attribute::NoUnwind);
+    }
+  }
 }
 
 }  // namespace Map2Check

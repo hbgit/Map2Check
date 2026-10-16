@@ -178,3 +178,42 @@ TEST(RuntimeABI, NonDetLoggerTypeIsUniform) {
   EXPECT_EQ(Map2Check::nonDetLoggerType(ctx),
             llvm::FunctionType::get(p, {i32, i32, i32, p, p}, false));
 }
+
+// The alloca type of each nondet logger is the C type of docs/api-deltas.md
+// of the library (pointer: void **, pchar: char **, bool: int), and type_var
+// is develop's enum NONDET_TYPE (Map2CheckTypes.h:41-58).
+TEST(RuntimeABI, NonDetValueSlotsFollowApiDeltas) {
+  llvm::LLVMContext ctx;
+  llvm::Type* i8 = llvm::Type::getInt8Ty(ctx);
+  llvm::Type* i16 = llvm::Type::getInt16Ty(ctx);
+  llvm::Type* i32 = llvm::Type::getInt32Ty(ctx);
+  llvm::Type* i64 = llvm::Type::getInt64Ty(ctx);
+  llvm::Type* p = llvm::PointerType::get(ctx, 0);
+  llvm::Type* dbl = llvm::Type::getDoubleTy(ctx);
+  struct Expected {
+    const char* cType;
+    llvm::Type* type;
+    bool isSigned;
+    int typeVar;
+  };
+  const std::vector<Expected> expected = {
+      {"int", i32, true, 0},        {"char", i8, true, 1},
+      {"pointer", p, false, 2},     {"ushort", i16, false, 3},
+      {"long", i64, true, 4},       {"unsigned", i32, false, 5},
+      {"ulong", i64, false, 6},     {"bool", i32, false, 7},
+      {"uchar", i8, false, 8},      {"pchar", p, false, 9},
+      {"size_t", i64, false, 10},   {"loff_t", i64, true, 11},
+      {"sector_t", i64, false, 12}, {"uint", i32, false, 13},
+      {"short", i16, true, 14},     {"double", dbl, true, 15},
+  };
+  for (const Expected& e : expected) {
+    Map2Check::NonDetValueSlot slot = Map2Check::nonDetValueSlot(e.cType, ctx);
+    EXPECT_EQ(slot.type, e.type) << e.cType;
+    EXPECT_EQ(slot.isSigned, e.isSigned) << e.cType;
+    EXPECT_EQ(slot.typeVar, e.typeVar) << e.cType;
+    // Every type with a slot has a logger and a generator in the mapping.
+    EXPECT_FALSE(nonDetLogger(e.cType).empty()) << e.cType;
+    EXPECT_FALSE(nonDetGenerator(e.cType).empty()) << e.cType;
+  }
+  EXPECT_EQ(Map2Check::nonDetValueSlot("float", ctx).type, nullptr);
+}

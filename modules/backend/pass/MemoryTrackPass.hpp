@@ -102,6 +102,7 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   struct PendingFree {
     llvm::CallInst* call;
     llvm::Value* slot;
+    llvm::LoadInst* block;  // the program's own load of *slot
     ConstantInt* line;
     ConstantInt* scope;
   };

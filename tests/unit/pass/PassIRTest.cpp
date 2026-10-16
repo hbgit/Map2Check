@@ -832,10 +832,11 @@ TEST(PassIR, MemoryTrackFreeOfAVariableChecksThenMapsTheLoadedBlock) {
     ASSERT_EQ(check[0]->getParent(), map[0]->getParent());
     EXPECT_TRUE(check[0]->comesBefore(map[0]));
     EXPECT_EQ(check[0]->getArgOperand(1), slot);
-    auto* loaded = llvm::dyn_cast<llvm::LoadInst>(check[0]->getArgOperand(2));
-    ASSERT_NE(loaded, nullptr) << "the block address is *slot";
-    EXPECT_EQ(loaded->getPointerOperand(), slot);
-    EXPECT_TRUE(loaded->getType()->isPointerTy());
+    // The block is the program's own load of *slot, the very value free
+    // receives: no second load.
+    llvm::Value* loaded = check[0]->getArgOperand(2);
+    EXPECT_EQ(loaded, programLoad);
+    EXPECT_EQ(map[0]->getArgOperand(2), programLoad);
     EXPECT_TRUE(llvm::isa<llvm::ConstantInt>(check[0]->getArgOperand(3)));
     EXPECT_EQ(stringArg(check[0]->getArgOperand(5)), "main");
 
@@ -859,6 +860,18 @@ TEST(PassIR, MemoryTrackFreeOfAVariableChecksThenMapsTheLoadedBlock) {
     EXPECT_EQ(nonNull, guarded);
     EXPECT_EQ(isNull, freeCall->getParent());
     EXPECT_EQ(guarded->getSingleSuccessor(), freeCall->getParent());
+
+    // No load of the slot other than the program's, from that load to the
+    // free (its block, the guarded block, the free's block).
+    for (llvm::BasicBlock* bb : {programLoad->getParent(), guarded, freeCall->getParent()}) {
+      for (llvm::Instruction& i : *bb) {
+        auto* load = llvm::dyn_cast<llvm::LoadInst>(&i);
+        if (load == nullptr || load == programLoad) continue;
+        if (bb == programLoad->getParent() && load->comesBefore(programLoad)) continue;
+        if (bb == freeCall->getParent() && freeCall->comesBefore(load)) continue;
+        EXPECT_NE(load->getPointerOperand(), slot) << "extra load of the slot";
+      }
+    }
   }
 }
 

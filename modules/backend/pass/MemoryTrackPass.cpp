@@ -241,7 +241,7 @@ void MemoryTrackPass::instrumentFree() {
 
   if (li != nullptr && li->getType()->isPointerTy()) {
     this->pendingFrees.push_back(
-        {callInst, li->getPointerOperand(), this->line_value,
+        {callInst, li->getPointerOperand(), li, this->line_value,
          this->scope_value});
     return;
   }
@@ -255,17 +255,17 @@ void MemoryTrackPass::instrumentFree() {
 }
 
 // The core keys the release on the heap address, and the C runtime read it
-// from the pointer variable's slot: load *slot right before the free, skip
-// both calls for NULL as the C runtime did, else check_free then map_free,
-// both (name, slot, *slot, scope, line, fn).
+// from the pointer variable's slot: the block is the program's own load of
+// *slot (the value free receives; no second load), both calls are skipped
+// for NULL as the C runtime did, else check_free then map_free, both
+// (name, slot, *slot, scope, line, fn).
 void MemoryTrackPass::instrumentPendingFrees() {
   for (const PendingFree &pending : this->pendingFrees) {
     IRBuilder<> builder(pending.call);
     Value *name_llvm =
         builder.CreateGlobalStringPtr(pending.slot->getName());
     Value *slot = coerceToParamType(builder, pending.slot, checkFree, 1);
-    LoadInst *block = builder.CreateLoad(PointerType::get(*this->Ctx, 0), slot,
-                                         "map2check.freed");
+    LoadInst *block = pending.block;
     Value *nonNull = builder.CreateIsNotNull(block);
     Instruction *then = llvm::SplitBlockAndInsertIfThen(
         nonNull, pending.call, /*Unreachable=*/false);

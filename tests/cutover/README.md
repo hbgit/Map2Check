@@ -41,3 +41,12 @@ Runner self-test: `bash scripts/cutover/test-run-corpus.sh`.
 - The runner passes `--timeout $TIMEOUT` to map2check (default is 0 = unlimited-ish and caused
   premature "Forcing timeout" UNKNOWNs); the outer `timeout` is TIMEOUT+15.
 - Smoke (symex, REPS=1, 41 rows): 13 FAILED, 8 SUCCEEDED, 20 UNKNOWN.
+
+## Baseline completa do runtime C (`baseline-c.tsv`)
+
+- Gerada em 2026-10-15 sobre `develop` `f01e8c3e` com `GENS="afl symex" REPS=5 TIMEOUT=45`.
+- Imagem: `map2check-dev:cutover-f01e8c3e` (`sha256:0e5ba2669491ccf6e762d8c25af9218ffc71e53e769700fc435d21b8bf92280d`), reconstruída do `Dockerfile.dev` de `develop` (contém AFL++ 4.40c). Pacote `time` instalado em tempo de execução. Build em `build-afl/`, instalação em `release-afl/` (`MAP2CHECK_PATH=/src/release-afl`).
+- 410 linhas (41 tarefas×propriedade × 2 geradores × 5 repetições), todas com 11 colunas.
+- Vereditos: `afl` 55 FAILED / 150 UNKNOWN; `symex` 65 FAILED / 40 SUCCEEDED / 100 UNKNOWN. O AFL++ não prova TRUE: nenhum SUCCEEDED com `afl` é esperado.
+- Tags: 40 FALSE-DEREF, 40 FALSE-FREE, 20 FALSE-MEMTRACK, 20 TARGET-REACHED; nenhuma UNMAPPED.
+- Esta baseline é a referência de estado conhecido do C. O gate da Task 4.2 a regenera no merge-base da branch de migração.

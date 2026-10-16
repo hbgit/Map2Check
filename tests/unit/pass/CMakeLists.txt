@@ -58,5 +58,6 @@ else()
   m2c_pass_test(PassIRTest PassIRTest.cpp)
   # The plugins are loaded by opt at test time; build them before the test.
   add_dependencies(PassIRTest
-    TrackBasicBlockPass AssertPass TargetPass LoopPredAssumePass Map2CheckLibrary)
+    TrackBasicBlockPass AssertPass TargetPass LoopPredAssumePass Map2CheckLibrary
+    OverflowPass NonDetPass MemoryTrackPass)
 endif()

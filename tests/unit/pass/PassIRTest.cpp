@@ -420,3 +420,99 @@ TEST(PassIR, ProgramUnwindFlagsNeverDisableUnwindTables) {
   EXPECT_EQ(flags.find("-fno-unwind-tables"), std::string::npos);
   EXPECT_EQ(flags.find("-fno-asynchronous-unwind-tables"), std::string::npos);
 }
+
+// ---------------------------------------------------------------------------
+// OverflowPass -> BinopAdd/Sub/Mul/SDiv/SRem
+// ---------------------------------------------------------------------------
+
+namespace {
+
+/// The value a binop operand had before the pass widened it to i64.
+llvm::Value* beforeSExt(llvm::Value* v) {
+  if (auto* sext = llvm::dyn_cast<llvm::SExtInst>(v)) return sext->getOperand(0);
+  return v;
+}
+
+/// Checks one binop call: it sits right before the operation it guards, its
+/// operands are that operation's operands sign-extended to i64, and it passes
+/// the operation's width, the line and the enclosing function.
+void expectBinopCall(llvm::CallInst* call, unsigned opcode, int bits, int line) {
+  auto* op = llvm::dyn_cast<llvm::BinaryOperator>(call->getNextNode());
+  ASSERT_NE(op, nullptr) << "the check must precede the operation";
+  EXPECT_EQ(op->getOpcode(), opcode);
+  EXPECT_EQ(beforeSExt(call->getArgOperand(0)), op->getOperand(0));
+  EXPECT_EQ(beforeSExt(call->getArgOperand(1)), op->getOperand(1));
+  if (bits < 64) {
+    EXPECT_TRUE(llvm::isa<llvm::SExtInst>(call->getArgOperand(0)));
+    EXPECT_TRUE(llvm::isa<llvm::SExtInst>(call->getArgOperand(1)));
+  }
+  EXPECT_EQ(intArg(call->getArgOperand(2)), bits);
+  if (line >= 0) EXPECT_EQ(intArg(call->getArgOperand(3)), line);
+  EXPECT_EQ(stringArg(call->getArgOperand(4)),
+            call->getFunction()->getName().str());
+}
+
+}  // namespace
+
+TEST(PassIR, OverflowEmitsSignedBinopsWithBitsLineAndFunction) {
+  auto m = runPassOn("OverflowPass", "overflow-pass", "overflow.c");
+  ASSERT_VALID(m);
+  expectCoreCalls(*m, RuntimeHook::BinopAdd);
+  expectCoreCalls(*m, RuntimeHook::BinopSub);
+  expectCoreCalls(*m, RuntimeHook::BinopMul);
+  expectCoreCalls(*m, RuntimeHook::BinopSDiv);
+  expectCoreCalls(*m, RuntimeHook::BinopSRem);
+
+  // int a + b (line 6) and long + 1L (line 11); the unsigned add of line 12
+  // has no nsw and is not checked.
+  std::vector<llvm::CallInst*> add = callsTo(*m, "map2check_binop_add_signed");
+  ASSERT_EQ(add.size(), 2u);
+  expectBinopCall(add[0], llvm::Instruction::Add, 32, 6);
+  expectBinopCall(add[1], llvm::Instruction::Add, 64, 11);
+
+  std::vector<llvm::CallInst*> sub = callsTo(*m, "map2check_binop_sub_signed");
+  ASSERT_EQ(sub.size(), 1u);
+  expectBinopCall(sub[0], llvm::Instruction::Sub, 32, 7);
+  std::vector<llvm::CallInst*> mul = callsTo(*m, "map2check_binop_mul_signed");
+  ASSERT_EQ(mul.size(), 1u);
+  expectBinopCall(mul[0], llvm::Instruction::Mul, 32, 8);
+  std::vector<llvm::CallInst*> div = callsTo(*m, "map2check_binop_div_signed");
+  ASSERT_EQ(div.size(), 1u);
+  expectBinopCall(div[0], llvm::Instruction::SDiv, 32, 9);
+  std::vector<llvm::CallInst*> rem = callsTo(*m, "map2check_binop_rem_signed");
+  ASSERT_EQ(rem.size(), 1u);
+  expectBinopCall(rem[0], llvm::Instruction::SRem, 32, 10);
+
+  // No C name, no _uint variant (a C no-op), no dead overflowError.
+  for (const char* legacy :
+       {"map2check_binop_add", "map2check_binop_sub", "map2check_binop_mul",
+        "map2check_binop_sdiv", "map2check_binop_srem",
+        "map2check_binop_add_uint", "map2check_binop_sub_uint",
+        "map2check_binop_mul_uint", "overflowError"}) {
+    EXPECT_EQ(m->getFunction(legacy), nullptr) << legacy;
+  }
+}
+
+TEST(PassIR, OverflowPassesTheOperationWidth) {
+  auto m = runPassOn("OverflowPass", "overflow-pass", "overflow_widths.ll");
+  ASSERT_VALID(m);
+  struct WidthCase {
+    const char* fn;
+    const char* hook;
+    unsigned opcode;
+    int bits;
+  };
+  for (const WidthCase& c :
+       {WidthCase{"add8", "map2check_binop_add_signed", llvm::Instruction::Add, 8},
+        WidthCase{"sub16", "map2check_binop_sub_signed", llvm::Instruction::Sub, 16},
+        WidthCase{"mul32", "map2check_binop_mul_signed", llvm::Instruction::Mul, 32},
+        WidthCase{"add64", "map2check_binop_add_signed", llvm::Instruction::Add, 64}}) {
+    SCOPED_TRACE(c.fn);
+    std::vector<llvm::CallInst*> inFn;
+    for (llvm::CallInst* call : callsTo(*m, c.hook)) {
+      if (call->getFunction()->getName() == c.fn) inFn.push_back(call);
+    }
+    ASSERT_EQ(inFn.size(), 1u);
+    expectBinopCall(inFn[0], c.opcode, c.bits, /*line=*/-1);
+  }
+}

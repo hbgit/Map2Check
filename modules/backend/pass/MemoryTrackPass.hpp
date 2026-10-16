@@ -57,7 +57,6 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   void instrumentNotStaticArrayAlloca();
   void instrumentAllocation();
   void instrumentFunctionAddress();
-  void instrumentFunctionArgumentAddress();
   void runOnAllocaInstruction();
   void runOnCallInstruction();
   void runOnStoreInstruction();
@@ -84,20 +83,32 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   Function* calleeFunction;
   BasicBlock::iterator currentInstruction;
   BasicBlock::iterator lastInstructionMain;
-  FunctionCallee map2check_pointer;
-  FunctionCallee map2check_malloc;
-  FunctionCallee map2check_calloc;
-  FunctionCallee map2check_free;
-  FunctionCallee map2check_alloca;
-  FunctionCallee map2check_non_static_alloca;
-  FunctionCallee map2check_posix;
-  FunctionCallee map2check_load;
-  FunctionCallee map2check_check_deref;
-  FunctionCallee map2check_function;
-  FunctionCallee map2check_free_resolved_address;
-  FunctionCallee map2check_wasm_malloc;
-  FunctionCallee map2check_wasm_free;
-  FunctionCallee map2check_wasm_check_access;
+  // Core API of map2check-library (RuntimeABI.hpp), declared per function.
+  FunctionCallee storePointer;        // StorePointer
+  FunctionCallee mapMalloc;           // Malloc
+  FunctionCallee mapCalloc;           // Calloc
+  FunctionCallee checkFree;           // CheckFree
+  FunctionCallee mapFree;             // MapFree
+  FunctionCallee mapAlloca;           // Alloca
+  FunctionCallee mapNonStaticAlloca;  // NonStaticAlloca
+  FunctionCallee mapPosixMemalign;    // PosixMemalign
+  FunctionCallee checkLoad;           // Load
+  FunctionCallee mapFunctAddress;     // FunctionAddr
+  FunctionCallee checkFreeResolved;   // FreeResolved
+  FunctionCallee wasmMalloc;          // WasmMalloc
+  FunctionCallee wasmFree;            // WasmFree
+  FunctionCallee wasmCheckAccess;     // WasmCheckAccess
+  // free(var) calls, guarded after the walk: the NULL check splits blocks.
+  struct PendingFree {
+    llvm::CallInst* call;
+    llvm::Value* slot;
+    ConstantInt* line;
+    ConstantInt* scope;
+  };
+  std::vector<PendingFree> pendingFrees;
+  llvm::Value* functionNameValue = nullptr;
+  llvm::Value* functionName();
+  void instrumentPendingFrees();
   ConstantInt* scope_value;
   ConstantInt* line_value;
   LLVMContext* Ctx;

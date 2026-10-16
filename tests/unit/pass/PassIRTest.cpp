@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -71,7 +72,7 @@ std::string compileInput(const std::string& dir, const std::string& input,
   return run(cmd.str()) == 0 ? bc : "";
 }
 
-/// Runs plugin lib<plugin> with -passes='<pipeline>' (plus `optFlags`) on
+/// Runs plugin lib<plugin> (or several, comma-separated) with -passes='<pipeline>' (plus `optFlags`) on
 /// inputs/<input> and parses the result.
 std::unique_ptr<llvm::Module> runPassOn(const std::string& plugin,
                                         const std::string& pipeline,
@@ -83,8 +84,14 @@ std::unique_ptr<llvm::Module> runPassOn(const std::string& plugin,
   if (bc.empty()) return nullptr;
   std::string out = dir + "/output.bc";
   std::ostringstream cmd;
-  cmd << M2C_TEST_OPT << " -load-pass-plugin=" << M2C_PASS_PLUGIN_DIR << "/lib"
-      << plugin << M2C_PASS_PLUGIN_SUFFIX << " " << optFlags << " -passes='"
+  cmd << M2C_TEST_OPT;
+  // `plugin` may list several plugins, separated by commas.
+  std::stringstream plugins(plugin);
+  for (std::string one; std::getline(plugins, one, ',');) {
+    cmd << " -load-pass-plugin=" << M2C_PASS_PLUGIN_DIR << "/lib" << one
+        << M2C_PASS_PLUGIN_SUFFIX;
+  }
+  cmd << " " << optFlags << " -passes='"
       << pipeline << "' " << bc << " -o " << out << " 2> " << dir
       << "/opt.err";
   if (run(cmd.str()) != 0) return nullptr;
@@ -726,4 +733,306 @@ TEST(PassIR, LoopPredAssumeDropsNounwind) {
   expectCoreCalls(*m, RuntimeHook::Assume);
   EXPECT_EQ(callsTo(*m, "__VERIFIER_assume").size(), 2u);
   expectNoNounwind(*m, "__VERIFIER_assume");
+}
+
+// ---------------------------------------------------------------------------
+// MemoryTrackPass -> Malloc, Calloc, Alloca, NonStaticAlloca, StorePointer,
+// Load, CheckFree, MapFree, FreeResolved, PosixMemalign, Wasm*
+// ---------------------------------------------------------------------------
+
+namespace {
+
+std::unique_ptr<llvm::Module>& memTrackModule() {
+  static std::unique_ptr<llvm::Module> m =
+      runPassOn("MemoryTrackPass", "memory-track", "memtrack.c");
+  return m;
+}
+
+/// Calls to `name` whose argument `lineArg` is `line`.
+std::vector<llvm::CallInst*> callsOnLine(llvm::Module& m, llvm::StringRef name,
+                                         unsigned lineArg, int line) {
+  std::vector<llvm::CallInst*> found;
+  for (llvm::CallInst* call : callsTo(m, name)) {
+    if (intArg(call->getArgOperand(lineArg)) == line) found.push_back(call);
+  }
+  return found;
+}
+
+/// The program's call to `name` on source line `line`.
+llvm::CallInst* programCall(llvm::Module& m, llvm::StringRef name, int line) {
+  for (llvm::CallInst* call : callsTo(m, name)) {
+    if (callLine(call) == line) return call;
+  }
+  return nullptr;
+}
+
+}  // namespace
+
+TEST(PassIR, MemoryTrackEmitsOnlyCoreNames) {
+  std::unique_ptr<llvm::Module>& m = memTrackModule();
+  ASSERT_VALID(m);
+  for (RuntimeHook hook :
+       {RuntimeHook::Malloc, RuntimeHook::Calloc, RuntimeHook::Alloca,
+        RuntimeHook::NonStaticAlloca, RuntimeHook::StorePointer,
+        RuntimeHook::Load, RuntimeHook::CheckFree, RuntimeHook::MapFree,
+        RuntimeHook::FreeResolved, RuntimeHook::PosixMemalign}) {
+    SCOPED_TRACE(runtimeCall(hook, m->getContext()).name);
+    expectCoreCalls(*m, hook);
+  }
+  for (const char* legacy :
+       {"map2check_malloc", "map2check_calloc", "map2check_free",
+        "map2check_load", "map2check_check_deref", "map2check_alloca",
+        "map2check_non_static_alloca", "map2check_add_store_pointer",
+        "map2check_free_resolved_address", "map2check_posix",
+        "map2check_function"}) {
+    EXPECT_EQ(m->getFunction(legacy), nullptr) << legacy;
+  }
+}
+
+// free(p) of a pointer variable: load *slot, skip NULL, then check_free and
+// map_free, both (name, slot, *slot, scope, line, fn), before the free.
+TEST(PassIR, MemoryTrackFreeOfAVariableChecksThenMapsTheLoadedBlock) {
+  std::unique_ptr<llvm::Module>& m = memTrackModule();
+  ASSERT_VALID(m);
+  EXPECT_EQ(callsTo(*m, "map2check_check_free").size(), 3u);
+  EXPECT_EQ(callsTo(*m, "map2check_map_free").size(), 3u);
+  for (int line : {15, 17, 18}) {
+    SCOPED_TRACE(line);
+    llvm::CallInst* freeCall = programCall(*m, "free", line);
+    ASSERT_NE(freeCall, nullptr);
+    auto* programLoad = llvm::dyn_cast<llvm::LoadInst>(freeCall->getArgOperand(0));
+    ASSERT_NE(programLoad, nullptr);
+    llvm::Value* slot = programLoad->getPointerOperand();
+
+    std::vector<llvm::CallInst*> check =
+        callsOnLine(*m, "map2check_check_free", 4, line);
+    std::vector<llvm::CallInst*> map =
+        callsOnLine(*m, "map2check_map_free", 4, line);
+    ASSERT_EQ(check.size(), 1u);
+    ASSERT_EQ(map.size(), 1u);
+    // Same arguments, check first, in the same guarded block.
+    for (unsigned a = 0; a < 6; ++a) {
+      EXPECT_EQ(check[0]->getArgOperand(a), map[0]->getArgOperand(a)) << a;
+    }
+    ASSERT_EQ(check[0]->getParent(), map[0]->getParent());
+    EXPECT_TRUE(check[0]->comesBefore(map[0]));
+    EXPECT_EQ(check[0]->getArgOperand(1), slot);
+    auto* loaded = llvm::dyn_cast<llvm::LoadInst>(check[0]->getArgOperand(2));
+    ASSERT_NE(loaded, nullptr) << "the block address is *slot";
+    EXPECT_EQ(loaded->getPointerOperand(), slot);
+    EXPECT_TRUE(loaded->getType()->isPointerTy());
+    EXPECT_TRUE(llvm::isa<llvm::ConstantInt>(check[0]->getArgOperand(3)));
+    EXPECT_EQ(stringArg(check[0]->getArgOperand(5)), "main");
+
+    // The guard: the block runs only when *slot is not NULL, and both paths
+    // reach the free.
+    llvm::BasicBlock* guarded = check[0]->getParent();
+    llvm::BasicBlock* pred = guarded->getSinglePredecessor();
+    ASSERT_NE(pred, nullptr);
+    auto* br = llvm::dyn_cast<llvm::BranchInst>(pred->getTerminator());
+    ASSERT_NE(br, nullptr);
+    ASSERT_TRUE(br->isConditional());
+    auto* cmp = llvm::dyn_cast<llvm::ICmpInst>(br->getCondition());
+    ASSERT_NE(cmp, nullptr);
+    EXPECT_EQ(cmp->getOperand(0), loaded);
+    EXPECT_TRUE(llvm::isa<llvm::ConstantPointerNull>(cmp->getOperand(1)));
+    llvm::BasicBlock* nonNull =
+        cmp->getPredicate() == llvm::ICmpInst::ICMP_NE ? br->getSuccessor(0)
+                                                        : br->getSuccessor(1);
+    llvm::BasicBlock* isNull =
+        nonNull == br->getSuccessor(0) ? br->getSuccessor(1) : br->getSuccessor(0);
+    EXPECT_EQ(nonNull, guarded);
+    EXPECT_EQ(isNull, freeCall->getParent());
+    EXPECT_EQ(guarded->getSingleSuccessor(), freeCall->getParent());
+  }
+}
+
+// free(make()) frees an address with no variable: one resolved-address check
+// with is_null_valid 0. realloc(p, n) checks its old block with
+// is_null_valid 1, then maps the new block as a malloc.
+TEST(PassIR, MemoryTrackFreeOfAnAddressAndReallocUseFreeResolved) {
+  std::unique_ptr<llvm::Module>& m = memTrackModule();
+  ASSERT_VALID(m);
+  std::vector<llvm::CallInst*> resolved =
+      callsTo(*m, "map2check_check_free_resolved_address");
+  ASSERT_EQ(resolved.size(), 2u);
+
+  llvm::CallInst* freeCall = programCall(*m, "free", 16);
+  ASSERT_NE(freeCall, nullptr);
+  std::vector<llvm::CallInst*> onFree =
+      callsOnLine(*m, "map2check_check_free_resolved_address", 1, 16);
+  ASSERT_EQ(onFree.size(), 1u);
+  EXPECT_EQ(onFree[0]->getArgOperand(0), freeCall->getArgOperand(0));
+  EXPECT_EQ(stringArg(onFree[0]->getArgOperand(2)), "main");
+  EXPECT_TRUE(onFree[0]->getArgOperand(3)->getType()->isIntegerTy(16));
+  EXPECT_EQ(intArg(onFree[0]->getArgOperand(3)), 0);
+  EXPECT_TRUE(onFree[0]->comesBefore(freeCall));
+
+  llvm::CallInst* reallocCall = programCall(*m, "realloc", 8);
+  ASSERT_NE(reallocCall, nullptr);
+  std::vector<llvm::CallInst*> onRealloc =
+      callsOnLine(*m, "map2check_check_free_resolved_address", 1, 8);
+  ASSERT_EQ(onRealloc.size(), 1u);
+  EXPECT_EQ(onRealloc[0]->getArgOperand(0), reallocCall->getArgOperand(0));
+  EXPECT_EQ(intArg(onRealloc[0]->getArgOperand(3)), 1);
+  EXPECT_TRUE(onRealloc[0]->comesBefore(reallocCall));
+  bool mapped = false;
+  for (llvm::CallInst* call : callsTo(*m, "map2check_map_malloc")) {
+    if (call->getArgOperand(0) == reallocCall) {
+      mapped = true;
+      EXPECT_EQ(intArg(call->getArgOperand(1)), 32);
+    }
+  }
+  EXPECT_TRUE(mapped);
+}
+
+TEST(PassIR, MemoryTrackMapsMallocCallocAndPosixMemalign) {
+  std::unique_ptr<llvm::Module>& m = memTrackModule();
+  ASSERT_VALID(m);
+  // (block, i32 size): malloc in make() and main().
+  for (int line : {3, 6}) {
+    llvm::CallInst* mallocCall = programCall(*m, "malloc", line);
+    ASSERT_NE(mallocCall, nullptr) << line;
+    bool mapped = false;
+    for (llvm::CallInst* call : callsTo(*m, "map2check_map_malloc")) {
+      if (call->getArgOperand(0) != mallocCall) continue;
+      mapped = true;
+      EXPECT_EQ(intArg(call->getArgOperand(1)), line == 3 ? 4 : 16);
+      EXPECT_TRUE(mallocCall->comesBefore(call));
+    }
+    EXPECT_TRUE(mapped) << line;
+  }
+  // (block, i32 qty, i32 size)
+  llvm::CallInst* callocCall = programCall(*m, "calloc", 7);
+  ASSERT_NE(callocCall, nullptr);
+  std::vector<llvm::CallInst*> calloc = callsTo(*m, "map2check_map_calloc");
+  ASSERT_EQ(calloc.size(), 1u);
+  EXPECT_EQ(calloc[0]->getArgOperand(0), callocCall);
+  EXPECT_EQ(intArg(calloc[0]->getArgOperand(1)), 2);
+  EXPECT_EQ(intArg(calloc[0]->getArgOperand(2)), 4);
+  // (memptr, i32 size)
+  llvm::CallInst* posix = programCall(*m, "posix_memalign", 12);
+  ASSERT_NE(posix, nullptr);
+  std::vector<llvm::CallInst*> mapped = callsTo(*m, "map2check_map_posix_memalign");
+  ASSERT_EQ(mapped.size(), 1u);
+  EXPECT_EQ(mapped[0]->getArgOperand(0), posix->getArgOperand(0));
+  EXPECT_EQ(intArg(mapped[0]->getArgOperand(1)), 64);
+  EXPECT_TRUE(posix->comesBefore(mapped[0]));
+}
+
+// map_alloca(name, addr, i32 size, i32 size_primitive, i32 line, i32 scope)
+// for the static array and the global; map_non_static_alloca takes the VLA's
+// element count.
+TEST(PassIR, MemoryTrackMapsAllocasGlobalsAndVlas) {
+  std::unique_ptr<llvm::Module>& m = memTrackModule();
+  ASSERT_VALID(m);
+  bool array = false;
+  bool global = false;
+  for (llvm::CallInst* call : callsTo(*m, "map2check_map_alloca")) {
+    llvm::Value* addr = call->getArgOperand(1);
+    if (auto* alloca = llvm::dyn_cast<llvm::AllocaInst>(addr)) {
+      if (alloca->getAllocatedType()->isArrayTy()) {
+        array = true;
+        EXPECT_EQ(intArg(call->getArgOperand(2)), 20);
+        EXPECT_EQ(intArg(call->getArgOperand(3)), 4);
+        EXPECT_TRUE(llvm::isa<llvm::ConstantInt>(call->getArgOperand(4)));
+        EXPECT_TRUE(llvm::isa<llvm::ConstantInt>(call->getArgOperand(5)));
+      }
+    } else if (addr == m->getNamedGlobal("g")) {
+      global = true;
+      EXPECT_EQ(stringArg(call->getArgOperand(0)), "g");
+      EXPECT_EQ(intArg(call->getArgOperand(2)), 4);
+      EXPECT_EQ(intArg(call->getArgOperand(3)), 4);
+    }
+  }
+  EXPECT_TRUE(array);
+  EXPECT_TRUE(global);
+
+  std::vector<llvm::CallInst*> vla = callsTo(*m, "map2check_map_non_static_alloca");
+  ASSERT_EQ(vla.size(), 1u);
+  auto* alloca = llvm::dyn_cast<llvm::AllocaInst>(vla[0]->getArgOperand(1));
+  ASSERT_NE(alloca, nullptr);
+  EXPECT_TRUE(alloca->isArrayAllocation());
+  // The element count, narrowed to i32; the element size.
+  EXPECT_EQ(stripCasts(vla[0]->getArgOperand(2)),
+            stripCasts(alloca->getArraySize()));
+  EXPECT_EQ(intArg(vla[0]->getArgOperand(3)), 4);
+  EXPECT_EQ(intArg(vla[0]->getArgOperand(4)), 10);
+}
+
+// check_load(ptr, i32 line, i32 scope, i32 size, fn) before each load and
+// store; map_store_pointer(var, value, scope, name, line, fn) after a store
+// of a pointer.
+TEST(PassIR, MemoryTrackChecksLoadsAndStoresAndMapsStoredPointers) {
+  std::unique_ptr<llvm::Module>& m = memTrackModule();
+  ASSERT_VALID(m);
+  // arr[0] = *q on line 13: the load of q (8 bytes), of *q and the store (4).
+  std::vector<llvm::CallInst*> line13 = callsOnLine(*m, "map2check_check_load", 1, 13);
+  ASSERT_GE(line13.size(), 3u);
+  std::multiset<int64_t> sizes;
+  for (llvm::CallInst* call : line13) {
+    sizes.insert(intArg(call->getArgOperand(3)));
+    EXPECT_TRUE(llvm::isa<llvm::ConstantInt>(call->getArgOperand(2)));
+    EXPECT_EQ(stringArg(call->getArgOperand(4)), "main");
+    // Right before the access it checks.
+    llvm::Instruction* next = call->getNextNode();
+    ASSERT_TRUE(llvm::isa<llvm::LoadInst>(next) || llvm::isa<llvm::StoreInst>(next));
+    llvm::Value* accessed = llvm::isa<llvm::LoadInst>(next)
+                                ? llvm::cast<llvm::LoadInst>(next)->getPointerOperand()
+                                : llvm::cast<llvm::StoreInst>(next)->getPointerOperand();
+    EXPECT_EQ(call->getArgOperand(0)->stripPointerCasts(),
+              accessed->stripPointerCasts());
+  }
+  EXPECT_GE(sizes.count(8), 1u);
+  EXPECT_GE(sizes.count(4), 2u);
+
+  // p = malloc(...) on line 6.
+  std::vector<llvm::CallInst*> stored = callsOnLine(*m, "map2check_map_store_pointer", 4, 6);
+  ASSERT_EQ(stored.size(), 1u);
+  auto* store = llvm::dyn_cast<llvm::StoreInst>(stored[0]->getPrevNode());
+  ASSERT_NE(store, nullptr);
+  EXPECT_EQ(stored[0]->getArgOperand(0), store->getPointerOperand());
+  EXPECT_EQ(stored[0]->getArgOperand(1), store->getValueOperand());
+  EXPECT_TRUE(llvm::isa<llvm::ConstantInt>(stored[0]->getArgOperand(2)));
+  EXPECT_EQ(stringArg(stored[0]->getArgOperand(5)), "main");
+}
+
+// The nondet value slots NonDetPass adds are not program memory.
+TEST(PassIR, MemoryTrackSkipsTheNonDetSlots) {
+  auto m = runPassOn("NonDetPass,MemoryTrackPass", "nondet-pass,memory-track",
+                     "nondet_types.c");
+  ASSERT_VALID(m);
+  EXPECT_TRUE(calls(*m, "map2check_check_load"));
+  for (const char* hook : {"map2check_check_load", "map2check_map_alloca",
+                           "map2check_map_store_pointer"}) {
+    for (llvm::CallInst* call : callsTo(*m, hook)) {
+      llvm::Value* addr =
+          call->getArgOperand(llvm::StringRef(hook) == "map2check_map_alloca" ? 1 : 0);
+      auto* alloca = llvm::dyn_cast<llvm::AllocaInst>(addr->stripPointerCasts());
+      if (alloca == nullptr) continue;
+      EXPECT_FALSE(alloca->hasMetadata(Map2Check::kRuntimeMetadata))
+          << hook << " on " << alloca->getName().str();
+    }
+  }
+}
+
+TEST(PassIR, MemoryTrackWasmModeEmitsWasmHooks) {
+  auto m = runPassOn("MemoryTrackPass", "memory-track", "wasm.ll", "-wasm-mode");
+  ASSERT_VALID(m);
+  expectCoreCalls(*m, RuntimeHook::WasmMalloc);
+  expectCoreCalls(*m, RuntimeHook::WasmFree);
+  expectCoreCalls(*m, RuntimeHook::WasmCheckAccess);
+  llvm::CallInst* alloc = programCall(*m, "w2c_m_dlmalloc", -1);
+  ASSERT_NE(alloc, nullptr);
+  std::vector<llvm::CallInst*> malloc = callsTo(*m, "map2check_wasm_malloc");
+  ASSERT_EQ(malloc.size(), 1u);
+  EXPECT_EQ(stripCasts(malloc[0]->getArgOperand(0)), alloc);
+  EXPECT_EQ(intArg(malloc[0]->getArgOperand(1)), 16);  // zext of the i32 size
+  std::vector<llvm::CallInst*> access = callsTo(*m, "map2check_wasm_check_access");
+  ASSERT_EQ(access.size(), 2u);  // the store and the load
+  for (llvm::CallInst* call : access) EXPECT_EQ(intArg(call->getArgOperand(1)), 4);
+  std::vector<llvm::CallInst*> freed = callsTo(*m, "map2check_wasm_free");
+  ASSERT_EQ(freed.size(), 1u);
+  EXPECT_EQ(stripCasts(freed[0]->getArgOperand(0)), alloc);
+  EXPECT_TRUE(freed[0]->getArgOperand(1)->getType()->isIntegerTy(64));
 }

@@ -54,6 +54,8 @@ class Caller {
                             /** Get optimization flags for original C file
                              *  @return Flags for clang */
   static std::string preOptimizationFlags();
+  /** Value of opt's -m2c-analysis-mode for `mode` (map2check_set_mode). */
+  static const char* runtimeAnalysisMode(Map2CheckMode mode);
   /** Get optimization flags for final bytecode
    *  @return Flags for opt */
   static std::string postOptimizationFlags();

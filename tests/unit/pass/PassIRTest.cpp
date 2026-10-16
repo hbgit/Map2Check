@@ -288,6 +288,9 @@ struct ModeCase {
   int value;
 };
 
+// Stable ctest names: print the option, not the bytes of the struct.
+void PrintTo(const ModeCase& mode, std::ostream* os) { *os << mode.option; }
+
 class LibraryMode : public ::testing::TestWithParam<ModeCase> {};
 
 TEST_P(LibraryMode, EmitsSetModeBeforeInit) {

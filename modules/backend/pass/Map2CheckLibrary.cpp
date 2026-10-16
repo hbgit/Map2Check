@@ -16,6 +16,8 @@
 #include <llvm/Passes/PassPlugin.h>
 #include <llvm/Support/CommandLine.h>
 
+#include "RuntimeABI.hpp"
+
 using llvm::CallInst;
 using llvm::dyn_cast;
 using llvm::IRBuilder;
@@ -27,9 +29,38 @@ static llvm::cl::opt<std::string> EntryFunction(
     llvm::cl::desc("Name of the entry function (default: main)"),
     llvm::cl::init("main"));
 
+// Values of map2check-library's AnalysisMode (map2check_set_mode). The
+// frontend passes the mode of the run; the C runtime got it from the
+// AnalysisMode*.bc it linked, the Rust runtime is one library for every mode.
+static llvm::cl::opt<Map2CheckLibrary::AnalysisMode> AnalysisModeOption(
+    "m2c-analysis-mode",
+    llvm::cl::desc("Analysis mode passed to map2check_set_mode"),
+    llvm::cl::values(
+        clEnumValN(Map2CheckLibrary::AnalysisMode::None, "none",
+                   "no property (cover-branches)"),
+        clEnumValN(Map2CheckLibrary::AnalysisMode::Memtrack, "memtrack",
+                   "memory safety"),
+        clEnumValN(Map2CheckLibrary::AnalysisMode::Memcleanup, "memcleanup",
+                   "memory cleanup"),
+        clEnumValN(Map2CheckLibrary::AnalysisMode::Overflow, "overflow",
+                   "signed integer overflow"),
+        clEnumValN(Map2CheckLibrary::AnalysisMode::Assert, "assert",
+                   "__VERIFIER_assert"),
+        clEnumValN(Map2CheckLibrary::AnalysisMode::Target, "target",
+                   "reachability of the target function")),
+    llvm::cl::init(Map2CheckLibrary::AnalysisMode::None));
+
+Map2CheckLibrary::Map2CheckLibrary() : mode(AnalysisModeOption) {}
+
 PreservedAnalyses Map2CheckLibrary::run(Function& F,
                                         llvm::FunctionAnalysisManager& AM) {
-  this->libraryFunctions = make_unique<LibraryFunctions>(&F, &F.getContext());
+  llvm::Module& M = *F.getParent();
+  this->setModeFunction =
+      Map2Check::getOrInsertRuntime(M, Map2Check::RuntimeHook::SetMode);
+  this->initFunction =
+      Map2Check::getOrInsertRuntime(M, Map2Check::RuntimeHook::Init);
+  this->successFunction =
+      Map2Check::getOrInsertRuntime(M, Map2Check::RuntimeHook::Success);
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
 
@@ -64,15 +95,18 @@ PreservedAnalyses Map2CheckLibrary::run(Function& F,
 
 void Map2CheckLibrary::instrumentStartInstruction(LLVMContext* Ctx) {
   IRBuilder<> builder(reinterpret_cast<Instruction*>(&*currentInstruction));
-  Value* argument =
-      ConstantInt::getSigned(Type::getInt32Ty(*Ctx), this->SVCOMP ? 1 : 0);
-  Value* args[] = {argument};
-  builder.CreateCall(this->libraryFunctions->getInitFunction(), args);
+  // map2check_set_mode(mode) must precede map2check_init(); init no longer
+  // takes the dead isSvComp argument of the C runtime.
+  Value* mode = ConstantInt::getSigned(Type::getInt32Ty(*Ctx),
+                                       static_cast<int>(this->mode));
+  Value* args[] = {mode};
+  builder.CreateCall(this->setModeFunction, args);
+  builder.CreateCall(this->initFunction);
 }
 
 void Map2CheckLibrary::instrumentReleaseInstruction(LLVMContext* Ctx) {
   IRBuilder<> builder(reinterpret_cast<Instruction*>(&*currentInstruction));
-  builder.CreateCall(this->libraryFunctions->getExitFunction());
+  builder.CreateCall(this->successFunction);
 }
 
 void Map2CheckLibrary::runOnCallInstruction(CallInst* callInst,

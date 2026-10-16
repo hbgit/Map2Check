@@ -448,6 +448,26 @@ void Caller::applyNonDetGenerator() {
   }
 }
 
+const char* Caller::runtimeAnalysisMode(Map2CheckMode mode) {
+  // Values of -m2c-analysis-mode (Map2CheckLibrary), i.e. map2check-library's
+  // AnalysisMode. Cover-branches checks no property; reachability is Target.
+  switch (mode) {
+    case Map2CheckMode::MEMTRACK_MODE:
+      return "memtrack";
+    case Map2CheckMode::MEMCLEANUP_MODE:
+      return "memcleanup";
+    case Map2CheckMode::OVERFLOW_MODE:
+      return "overflow";
+    case Map2CheckMode::ASSERT_MODE:
+      return "assert";
+    case Map2CheckMode::REACHABILITY_MODE:
+      return "target";
+    case Map2CheckMode::COVER_BRANCHES_MODE:
+      return "none";
+  }
+  return "none";
+}
+
 int Caller::callPass(std::string target_function, bool sv_comp) {
   std::ostringstream transformCommand;
   transformCommand.str("");
@@ -527,6 +547,9 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
   passesArg << ",map2check-library";
 
   transformCommand << " -entry-function=" << this->entryFunction;
+  // The Rust runtime is one library for every mode: Map2CheckLibrary emits
+  // map2check_set_mode(<mode>) before map2check_init().
+  transformCommand << " -m2c-analysis-mode=" << runtimeAnalysisMode(map2checkMode);
   if (loadsMemoryTrackPass) {
     transformCommand << " -m2c-entry-function=" << this->entryFunction;
   }

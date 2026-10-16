@@ -399,21 +399,20 @@ void Caller::applyNonDetGenerator() {
                                 std::to_string(Map2Check::killGracePeriod) +
                                 " " + std::to_string(static_cast<unsigned>(compileBudget)) + " ";
 
-      command
-          << bound << Map2Check::aflClangFastBinary()
-          << "  -g " << Caller::postOptimizationFlags()
-          << " -o " + programHash + "-fuzzed.out"
-          << " " + programHash + "-result.bc";
-
+      // Route B1 (D1): afl-clang-fast's libFuzzer driver calls the
+      // library's LLVMFuzzerTestOneInput, which runs __map2check_main__ once
+      // per input. The witness binary also links the witness constructor.
+      Caller::LinkInputs inputs{programHash, map2checkMode, nonDetGenerator,
+                                dataStructure, wasmMode, false};
+      command << bound << buildFuzzerCommand(inputs);
+      Map2Check::Log::Debug(command.str());
       system(command.str().c_str());
 
+      Caller::LinkInputs witnessInputs = inputs;
+      witnessInputs.witness = true;
       std::ostringstream commandWitness;
-      commandWitness.str("");
-      commandWitness << bound << Map2Check::aflClangFastBinary()
-                     << "  -g "
-                     << " -o " + programHash + "-witness-fuzzed.out"
-                     << " " + programHash + "-witness-result.bc";
-
+      commandWitness << bound << buildFuzzerCommand(witnessInputs);
+      Map2Check::Log::Debug(commandWitness.str());
       system(commandWitness.str().c_str());
 
       // The CmpLog companion binary: the same program instrumented to log
@@ -423,12 +422,11 @@ void Caller::applyNonDetGenerator() {
       // previous fuzzer ran with (-use_value_profile=1); without it the
       // tacasv1 comparison would pit an unarmed AFL++ against an armed
       // LibFuzzer. Optional: if it does not build, the fuzzer runs without.
+      Caller::LinkInputs cmplogInputs = inputs;
+      cmplogInputs.cmplog = true;
       std::ostringstream commandCmplog;
-      commandCmplog << "AFL_LLVM_CMPLOG=1 " << bound
-                    << Map2Check::aflClangFastBinary() << "  -g "
-                    << Caller::postOptimizationFlags()
-                    << " -o " + programHash + "-cmplog.out"
-                    << " " + programHash + "-result.bc";
+      commandCmplog << bound << buildFuzzerCommand(cmplogInputs);
+      Map2Check::Log::Debug(commandCmplog.str());
       system(commandCmplog.str().c_str());
 
       // Announced rather than discovered later as a silent no-op -- the same
@@ -436,9 +434,10 @@ void Caller::applyNonDetGenerator() {
       std::error_code fuzzErr;
       if (!std::filesystem::exists(programHash + "-fuzzed.out", fuzzErr)) {
         Map2Check::Log::Warning(
-            "the AFL++ binary did not build within " +
+            "the AFL++ binary did not build (link error, or over the " +
             std::to_string(static_cast<int>(compileBudget)) +
-            "s -- skipping the fuzzer phase and leaving the budget to KLEE");
+            "s budget) -- skipping the fuzzer phase and leaving the budget "
+            "to KLEE");
       } else if (!std::filesystem::exists(programHash + "-cmplog.out",
                                           fuzzErr)) {
         Map2Check::Log::Warning(
@@ -553,99 +552,59 @@ int Caller::callPass(std::string target_function, bool sv_comp) {
 }
 
 void Caller::linkLLVM() {
-  /* Link functions called after executing the passes */
-  // TODO(rafa.sa.xp@gmail.com) Only link against used libraries
-
+  // The runtime is map2check-library (decision D1). No bitcode of the C
+  // runtime is linked any more: the mode reaches the library through
+  // map2check_set_mode, and the witness through a constructor (Step 4b).
+  // See caller_link.cpp.
   Map2Check::Log::Info("Linking with map2check library");
 
-  std::ostringstream witnessCommand;
-  std::ostringstream linkCommand;
-  linkCommand.str("");
-  linkCommand << Map2Check::llvmLinkBinary;
-  linkCommand << " " + programHash + "-output.bc"
-              << " ${MAP2CHECK_PATH}/lib/Map2CheckFunctions.bc"
-              << " ${MAP2CHECK_PATH}/lib/TrackBBLog.bc"
-              << " ${MAP2CHECK_PATH}/lib/NonDetLog.bc"
-              << " ${MAP2CHECK_PATH}/lib/PropertyGenerator.bc";
-
-  switch (dataStructure) {
-    case DataStructure::Array: {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/ContainerRealloc.bc";
-      break;
-    }
-    case DataStructure::BTree: {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/ContainerBTree.bc"
-                  << " ${MAP2CHECK_PATH}/lib/BTree.bc";
-      break;
-    }
+  if (this->dataStructure == DataStructure::BTree) {
+    // Already announced at option parsing; the Rust runtime has one container.
+    Map2Check::Log::Debug("--btree ignored at link time");
   }
 
-  switch (map2checkMode) {
-    case Map2CheckMode::MEMTRACK_MODE: {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemtrack.bc"
-                  << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
-                  << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
-                  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
-      break;
-    }
-    case Map2CheckMode::MEMCLEANUP_MODE: {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeMemcleanup.bc"
-                  << " ${MAP2CHECK_PATH}/lib/AllocationLog.bc"
-                  << " ${MAP2CHECK_PATH}/lib/ListLog.bc"
-                  << " ${MAP2CHECK_PATH}/lib/HeapLog.bc";
-      break;
-    }
-    case Map2CheckMode::OVERFLOW_MODE: {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeOverflow.bc";
-      break;
-    }
-    case Map2CheckMode::ASSERT_MODE: {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeAssert.bc";
-      break;
-    }
-    case Map2CheckMode::REACHABILITY_MODE: {
-      // Since the map2check api provides the function, we do not need to do any
-      // analysis
-      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
-      break;
-    }
-    case Map2CheckMode::COVER_BRANCHES_MODE: {
-      // No property, so no analysis -- the run exists to explore and record.
-      linkCommand << " ${MAP2CHECK_PATH}/lib/AnalysisModeNone.bc";
-      break;
-    }
+  Caller::LinkInputs verification{programHash, map2checkMode, nonDetGenerator,
+                                  dataStructure, wasmMode, false};
+  Caller::LinkInputs witness = verification;
+  witness.witness = true;
+
+  if (nonDetGenerator == NonDetGenerator::Klee && !kleeRuntimeInstalled()) {
+    Map2Check::Log::Error(
+        "the symex generator needs the KLEE runtime of map2check-library at " +
+        installedKleeRuntime() +
+        ", which this install does not have (configure Map2Check with "
+        "-DMAP2CHECK_RUST_KLEE_BC). Skipping the KLEE phase.");
+    return;
   }
 
-  switch (nonDetGenerator) {
-    case (NonDetGenerator::None): {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorNone.bc";
-      break;
-    }
-    case (NonDetGenerator::Klee): {  // TODO(hbgit): Add klee non det generator
-      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorKlee.bc";
-      break;
-    }
-    case (NonDetGenerator::AFLPlusPlus): {
-      linkCommand << " ${MAP2CHECK_PATH}/lib/NonDetGeneratorAFL.bc";
-      break;
-    }
+  // The witness constructor: native for the AFL++ witness binary, bitcode
+  // for KLEE, in both cases with -fexceptions (D1 condition 11).
+  {
+    std::ofstream source(witnessSourcePath(witness));
+    source << witnessConstructorSource();
+    if (!source.good())
+      Map2Check::Log::Warning("could not write the witness constructor");
+  }
+  const std::string compileWitness = buildWitnessObjectCommand(witness);
+  Map2Check::Log::Debug(compileWitness);
+  if (system(compileWitness.c_str()) != 0) {
+    Map2Check::Log::Warning(
+        "the witness constructor did not compile -- a violation will not be "
+        "confirmed");
   }
 
-  if (this->wasmMode) {
-    linkCommand << " ${MAP2CHECK_PATH}/lib/WasmRuntimeStubs.bc";
+  // KLEE runs only the witness bitcode, and linking the 7 MB runtime twice
+  // would be wasted time; the native generators link both variants (the
+  // runtime itself enters at the afl-clang-fast step).
+  std::vector<Caller::LinkInputs> variants = {witness};
+  if (nonDetGenerator != NonDetGenerator::Klee) variants.push_back(verification);
+  for (const Caller::LinkInputs &variant : variants) {
+    const std::string command = buildLinkCommand(variant);
+    Map2Check::Log::Debug(command);
+    if (system(command.c_str()) != 0) {
+      Map2Check::Log::Warning("llvm-link failed for " + resultBitcode(variant));
+    }
   }
-
-  witnessCommand.str("");
-  witnessCommand << linkCommand.str();
-  witnessCommand << " ${MAP2CHECK_PATH}/lib/WitnessGeneration.bc";
-  witnessCommand << "  > " + programHash + "-witness-result.bc";
-  Map2Check::Log::Debug(witnessCommand.str());
-  system(witnessCommand.str().c_str());
-
-  linkCommand << " ${MAP2CHECK_PATH}/lib/WitnessGenerationNone.bc";
-  linkCommand << "  > " + programHash + "-result.bc";
-  Map2Check::Log::Debug(linkCommand.str());
-  system(linkCommand.str().c_str());
 }
 
 std::string Caller::generateWasmWrapperStatic(const std::string& wasmOutHeaderPath,
@@ -714,6 +673,11 @@ void Caller::executeAnalysis(std::string solvername) {
       break;
     }
     case (NonDetGenerator::Klee): {
+      if (!std::filesystem::exists(programHash + "-witness-result.bc")) {
+        Map2Check::Log::Warning(
+            "no KLEE bitcode was linked -- skipping the KLEE phase");
+        break;
+      }
       Map2Check::Log::Info("Executing Klee with map2check");
       std::ostringstream kleeCommand;
       kleeCommand.str("");
@@ -904,19 +868,16 @@ void Caller::executeAnalysis(std::string solvername) {
       // without the exchange leaves no seeds/ behind. Either way it gets one
       // placeholder input when empty, because afl-fuzz refuses to start
       // without one (the previous fuzzer could start from nothing).
+      //
+      // The placeholder is at least kAflSeedMinBytes long (D1 condition 4):
+      // the uninstrumented Rust reader adds no edges that would grow the
+      // corpus to a whole operand, so CmpLog needs one in the seed.
       std::error_code seedErr;
       const std::string inputDir =
           this->seedExchange ? std::string(Caller::seedDirectory) : "afl-in";
-      std::filesystem::create_directories(inputDir, seedErr);
-      if (std::filesystem::is_empty(inputDir, seedErr)) {
-        std::ofstream seed(inputDir + "/seed");
-        seed << "A";
-        if (!seed.good())
-          Map2Check::Log::Warning("could not write the AFL++ placeholder seed");
-      }
-      if (seedErr)
+      if (!prepareAflInputDir(inputDir))
         Map2Check::Log::Warning("could not prepare the AFL++ input dir " +
-                                inputDir + ": " + seedErr.message());
+                                inputDir);
       std::filesystem::remove_all("afl-out", seedErr);
       // The AFL_* settings go on the command line, not only into the dev
       // image's ENV, so that a release install or a benchmark host outside
@@ -959,9 +920,9 @@ void Caller::executeAnalysis(std::string solvername) {
       const std::string aflFindings = "afl-out/default";
 
       // Replay crashes with the witness binary to confirm a real violation.
-      // Standalone, the persistent binary reads its input from stdin (see
-      // NonDetGeneratorAFL.c), so the crash file is redirected in; the names
-      // AFL++ gives them contain ':' and ',', hence the quoting. Stop at the
+      // The crash file is passed as an ARGUMENT: the libFuzzer driver reading
+      // stdin never ends (D1 condition 2). The names AFL++ gives them contain
+      // ':' and ',', hence the quoting (buildReplayCommand). Stop at the
       // first confirmed one: every replay rewrites the recorded property, and
       // a later one that does not reproduce would overwrite the violation.
       // Each replay is capped: a crash that does not reproduce from a fresh
@@ -978,9 +939,9 @@ void Caller::executeAnalysis(std::string solvername) {
         if (entry.path().filename() == "README.txt") continue;
         std::ostringstream commandWitness;
         commandWitness << "timeout -k " << Map2Check::killGracePeriod << " "
-                       << replayBudget << " ./" << programHash
-                       << "-witness-fuzzed.out < '" << entry.path().string()
-                       << "'";
+                       << replayBudget << " "
+                       << buildReplayCommand(programHash,
+                                             entry.path().string());
         system(commandWitness.str().c_str());
         if (isWitnessFileCreated()) break;
       }

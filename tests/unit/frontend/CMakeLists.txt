@@ -25,3 +25,10 @@ add_executable(AnalysisModeTest
     AnalysisModeTest.cpp
 )
 map2check_test(AnalysisModeTest)
+
+add_executable(CallerLinkTest
+    CallerLinkTest.cpp
+    $<TARGET_OBJECTS:CallerLink>
+    $<TARGET_OBJECTS:Log>
+)
+map2check_test(CallerLinkTest)

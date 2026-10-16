@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "../../../modules/backend/pass/RuntimeABI.hpp"
+#include "../../../modules/frontend/caller.hpp"
 #include "../../../modules/frontend/utils/clang.hpp"
 
 using Map2Check::runtimeCall;
@@ -317,6 +318,44 @@ INSTANTIATE_TEST_SUITE_P(
                       ModeCase{"assert", 4}, ModeCase{"target", 5}),
     [](const ::testing::TestParamInfo<ModeCase>& info) {
       return std::string(info.param.option);
+    });
+
+// The option value the frontend passes for each of its modes reaches
+// map2check_set_mode as the right AnalysisMode number.
+struct FrontendModeCase {
+  Map2Check::Map2CheckMode mode;
+  const char* label;
+  int value;
+};
+
+void PrintTo(const FrontendModeCase& c, std::ostream* os) { *os << c.label; }
+
+class FrontendMode : public ::testing::TestWithParam<FrontendModeCase> {};
+
+TEST_P(FrontendMode, SetModeGetsItsNumber) {
+  const FrontendModeCase& c = GetParam();
+  auto m = runPassOn("Map2CheckLibrary", "map2check-library", "main.c",
+                     std::string("-m2c-analysis-mode=") +
+                         Map2Check::runtimeAnalysisMode(c.mode));
+  ASSERT_VALID(m);
+  std::vector<llvm::CallInst*> found = callsTo(*m, "map2check_set_mode");
+  ASSERT_EQ(found.size(), 1u);
+  EXPECT_EQ(intArg(found[0]->getArgOperand(0)), c.value);
+}
+
+using Map2Check::Map2CheckMode;
+INSTANTIATE_TEST_SUITE_P(
+    PassIR, FrontendMode,
+    ::testing::Values(
+        FrontendModeCase{Map2CheckMode::MEMTRACK_MODE, "memtrack", 1},
+        FrontendModeCase{Map2CheckMode::MEMCLEANUP_MODE, "memcleanup", 2},
+        FrontendModeCase{Map2CheckMode::OVERFLOW_MODE, "overflow", 3},
+        FrontendModeCase{Map2CheckMode::ASSERT_MODE, "assert", 4},
+        FrontendModeCase{Map2CheckMode::REACHABILITY_MODE, "reachability", 5},
+        FrontendModeCase{Map2CheckMode::COVER_BRANCHES_MODE, "cover_branches", 0},
+        FrontendModeCase{Map2Check::kDefaultMode, "default", 1}),
+    [](const ::testing::TestParamInfo<FrontendModeCase>& info) {
+      return std::string(info.param.label);
     });
 
 TEST(PassIR, LibraryInitTakesNoArgumentAndSuccessPrecedesExits) {

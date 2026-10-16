@@ -36,6 +36,31 @@ enum class Map2CheckMode {
   COVER_BRANCHES_MODE
 };
 
+/** Mode of a run given no mode flag (map2check.cpp). */
+inline constexpr Map2CheckMode kDefaultMode = Map2CheckMode::MEMTRACK_MODE;
+
+/** Value of opt's -m2c-analysis-mode for `mode`, i.e. the AnalysisMode of
+ *  map2check-library that Map2CheckLibrary passes to map2check_set_mode:
+ *  none=0, memtrack=1, memcleanup=2, overflow=3, assert=4, target=5.
+ *  Cover-branches checks no property; reachability is Target. */
+inline const char* runtimeAnalysisMode(Map2CheckMode mode) {
+  switch (mode) {
+    case Map2CheckMode::MEMTRACK_MODE:
+      return "memtrack";
+    case Map2CheckMode::MEMCLEANUP_MODE:
+      return "memcleanup";
+    case Map2CheckMode::OVERFLOW_MODE:
+      return "overflow";
+    case Map2CheckMode::ASSERT_MODE:
+      return "assert";
+    case Map2CheckMode::REACHABILITY_MODE:
+      return "target";
+    case Map2CheckMode::COVER_BRANCHES_MODE:
+      return "none";
+  }
+  return "none";
+}
+
 /** NonDet generators */
 // TODO(hbgit): Add suport to other nondet like: klee, afl++, afl+klee
 enum class NonDetGenerator {
@@ -54,8 +79,6 @@ class Caller {
                             /** Get optimization flags for original C file
                              *  @return Flags for clang */
   static std::string preOptimizationFlags();
-  /** Value of opt's -m2c-analysis-mode for `mode` (map2check_set_mode). */
-  static const char* runtimeAnalysisMode(Map2CheckMode mode);
   /** Get optimization flags for final bytecode
    *  @return Flags for opt */
   static std::string postOptimizationFlags();

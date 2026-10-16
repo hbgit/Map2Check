@@ -806,7 +806,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
 
     map2check_args args;
     // Default mode
-    args.mode = Map2Check::Map2CheckMode::MEMTRACK_MODE;
+    args.mode = Map2Check::kDefaultMode;
     // Handling with the options
     if (vm.count("version")) {
       std::cout << Map2CheckVersion << "\n";

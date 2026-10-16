@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "test_suite/ktest_reader.hpp"
+#include "utils/clang.hpp"
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/log.hpp"
 #include "utils/slicer.hpp"
@@ -311,6 +312,7 @@ bool Caller::sliceWithRespectToTarget(const std::string &targetFunction,
   }
   std::ostringstream compileStub;
   compileStub << Map2Check::clangBinary << " -Wno-everything -c -emit-llvm -g"
+              << " " << Map2Check::kProgramUnwindFlags
               << " " << Caller::preOptimizationFlags() << " -o " << stubBitcode
               << " " << stubSource << " >> slicer.output 2>&1";
   std::ostringstream linkStub;
@@ -715,6 +717,7 @@ std::string Caller::generateWasmWrapperStatic(const std::string& wasmOutHeaderPa
   }
   std::ostringstream compileCmd;
   compileCmd << Map2Check::clangBinary << " -c -emit-llvm"
+             << " " << Map2Check::kProgramUnwindFlags
              << " -I" << wasmIncludePath
              << " -I" << headerDir
              << " " << wrapperPath << " -o " << wrapperBcPath;
@@ -1116,6 +1119,8 @@ void Caller::compileCFile(bool is_llvm_bc) {
             << " -Wno-everything "
             << " -Winteger-overflow "
             << " -c -emit-llvm -g"
+            // D1 condition 11: the runtime unwinds through these frames.
+            << " " << Map2Check::kProgramUnwindFlags
             << " " << Caller::preOptimizationFlags() << " -o " << compiledFile
             << " " << programHash << "-preprocessed.c "
             << " > " << programHash << "-clang.out 2>&1";

@@ -3,5 +3,8 @@ function(map2check_test EXECUTABLE)
   add_test(NAME ${EXECUTABLE} COMMAND ${EXECUTABLE})
 endfunction(map2check_test)
 
-add_subdirectory(backend-library)
+# backend-library unit tests exercise the C runtime objects, which are no longer
+# built (the runtime is the Rust library). The files stay until their assertions
+# are ported to Rust (plan Task 5.2) and are deleted with the C runtime (Task 6.2).
+# add_subdirectory(backend-library)
 add_subdirectory(frontend)

@@ -7,6 +7,8 @@ BIN_DIR="$(cd "$1" && pwd)"; OUT="$2"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CASES="${CASES:-$ROOT/tests/regression_test/test_cases/sv-benchmarks}"
 GENS="${GENS:-afl symex}"; REPS="${REPS:-5}"; TIMEOUT="${TIMEOUT:-45}"
+# EXTRA_FLAGS: flags acrescentadas às da propriedade (ex.: --btree, Task 4.3).
+EXTRA_FLAGS="${EXTRA_FLAGS:-}"
 
 flags_for() {
   case "$1" in
@@ -24,6 +26,7 @@ while IFS= read -r yml; do
   input="$dir/$(sed -nE "s/^input_files: *'?([^' ]+)'?.*/\1/p" "$yml")"
   while IFS= read -r prp; do
     flags="$(flags_for "$prp")" || continue
+    flags="$flags${EXTRA_FLAGS:+ $EXTRA_FLAGS}"
     for gen in $GENS; do
       for rep in $(seq 1 "$REPS"); do
         work="$(mktemp -d)"

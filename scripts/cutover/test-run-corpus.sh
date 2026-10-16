@@ -102,4 +102,17 @@ echo "VERIFICATION UNKNOWN"
 EOS
 check_rust "violacao com veredito UNKNOWN" UNKNOWN - - -
 
+# EXTRA_FLAGS e acrescentada as flags da propriedade (Task 4.3: --btree).
+cat > "$T/cbin/map2check" <<EOS
+#!/usr/bin/env bash
+printf '%s\n' "\$*" > "$T/args"
+echo "VERIFICATION UNKNOWN"
+EOS
+CASES="$T/cases" GENS=symex REPS=1 "$HERE/run-corpus.sh" "$T/cbin" "$T/x.tsv"
+grep -q -- '--memtrack .*b.c$' "$T/args" && ! grep -q -- '--btree' "$T/args" \
+  || { echo "sem EXTRA_FLAGS: args inesperados: $(cat "$T/args")" >&2; exit 1; }
+EXTRA_FLAGS="--btree" CASES="$T/cases" GENS=symex REPS=1 "$HERE/run-corpus.sh" "$T/cbin" "$T/x.tsv"
+grep -q -- '--memtrack --btree .*b.c$' "$T/args" \
+  || { echo "EXTRA_FLAGS nao repassado: $(cat "$T/args")" >&2; exit 1; }
+
 echo ok

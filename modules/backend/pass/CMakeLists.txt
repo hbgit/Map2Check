@@ -28,3 +28,8 @@ foreach(F ${MAP2CHECK_PASS_LIB})
   install(TARGETS ${F} DESTINATION lib)  
 endforeach()
 
+# TrackBasicBlockPass reads the C source through SourceCodeHelper; without
+# these objects the plugin fails to load (undefined SourceCodeHelper::getLine).
+target_sources(TrackBasicBlockPass PRIVATE
+  ${PROJECT_SOURCE_DIR}/modules/frontend/utils/tools.cpp
+  ${PROJECT_SOURCE_DIR}/modules/frontend/utils/log.cpp)

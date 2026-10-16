@@ -656,10 +656,10 @@ void expectNoNounwind(llvm::Module& m, llvm::StringRef name) {
 
 }  // namespace
 
-// Compiled without -fexceptions every call is nounwind; the assume of the
-// library unwinds, so the pass clears it on the declaration and the calls.
+// A nounwind declaration of __VERIFIER_assume (and calls to it): the assume
+// of the library unwinds, so the pass clears nounwind on both.
 TEST(PassIR, NonDetKeepsVerifierAssumeAndDropsNounwind) {
-  auto m = runPassOn("NonDetPass", "nondet-pass", "assume.c");
+  auto m = runPassOn("NonDetPass", "nondet-pass", "loop_assume.ll");
   ASSERT_VALID(m);
   expectCoreCalls(*m, RuntimeHook::Assume);
   EXPECT_EQ(m->getFunction("map2check_assume"), nullptr);
@@ -715,4 +715,15 @@ TEST(PassIR, NonDetRewritesAbortingAssumes) {
 
   expectNoNounwind(*m, "__VERIFIER_assume");
   expectNoNounwind(*m, "assume_abort_if_not");
+}
+
+// The loop predicate goes to the program's own __VERIFIER_assume declaration
+// when there is one; without -fexceptions that declaration and its calls are
+// nounwind, and the library's assume unwinds through them.
+TEST(PassIR, LoopPredAssumeDropsNounwind) {
+  auto m = runPassOn("LoopPredAssumePass", "loop-pred-assume", "loop_assume.ll");
+  ASSERT_VALID(m);
+  expectCoreCalls(*m, RuntimeHook::Assume);
+  EXPECT_EQ(callsTo(*m, "__VERIFIER_assume").size(), 2u);
+  expectNoNounwind(*m, "__VERIFIER_assume");
 }

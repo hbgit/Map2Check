@@ -28,6 +28,10 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
   BasicBlock* header = L->getHeader();
   this->map2check_assume = Map2Check::getOrInsertRuntime(
       *header->getParent()->getParent(), Map2Check::RuntimeHook::Assume);
+  // The program may already declare __VERIFIER_assume nounwind; the
+  // library's assume unwinds through every call to it.
+  Map2Check::allowUnwind(
+      *llvm::cast<llvm::Function>(this->map2check_assume.getCallee()));
   if (BranchInst* bi = dyn_cast<BranchInst>(header->getTerminator())) {
     if (bi->isConditional()) {
       Value* loopCond = bi->getCondition();

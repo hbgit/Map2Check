@@ -235,7 +235,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: m2c-klee/map2check-klee.bc
-          key: map2check-klee-bc-${{ hashFiles('scripts/runtime/build-map2check-klee-bc.sh') }}
+          key: map2check-klee-bc-${{ hashFiles('scripts/runtime/map2check-klee-bc.sh') }}
 
       - name: Install LLVM 16 tools + rustc 1.72.1
         if: steps.cache.outputs.cache-hit != 'true'
@@ -248,7 +248,7 @@ jobs:
 
       - name: Build map2check-klee.bc
         if: steps.cache.outputs.cache-hit != 'true'
-        run: bash scripts/runtime/build-map2check-klee-bc.sh m2c-klee/map2check-klee.bc
+        run: bash scripts/runtime/map2check-klee-bc.sh m2c-klee/map2check-klee.bc
 
       - name: Upload the bitcode
         uses: actions/upload-artifact@v4

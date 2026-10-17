@@ -402,12 +402,12 @@ RUN ${WASI_SDK_PATH}/bin/clang --version && \
 # The Rust toolchain only serves this build and is removed afterwards.
 # Map2Check's CMake reads MAP2CHECK_RUST_LIB_DIR / MAP2CHECK_RUST_KLEE_BC
 # from the environment (cmake/Map2CheckRustRuntime.cmake).
-COPY scripts/runtime/fetch-map2check-library.sh scripts/runtime/build-map2check-klee-bc.sh /tmp/m2c-runtime/
+COPY scripts/runtime/fetch-map2check-library.sh scripts/runtime/map2check-klee-bc.sh /tmp/m2c-runtime/
 RUN bash /tmp/m2c-runtime/fetch-map2check-library.sh /opt/map2check-library && \
     export RUSTUP_HOME=/tmp/m2c-rustup CARGO_HOME=/tmp/m2c-cargo && \
     curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal \
       --default-toolchain 1.72.1 --no-modify-path && \
-    PATH="/tmp/m2c-cargo/bin:${PATH}" bash /tmp/m2c-runtime/build-map2check-klee-bc.sh \
+    PATH="/tmp/m2c-cargo/bin:${PATH}" bash /tmp/m2c-runtime/map2check-klee-bc.sh \
       /opt/map2check-library/klee/map2check-klee.bc && \
     llvm-dis-16 /opt/map2check-library/klee/map2check-klee.bc -o /dev/null && \
     rm -rf /tmp/m2c-runtime /tmp/m2c-rustup /tmp/m2c-cargo

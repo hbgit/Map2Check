@@ -6,3 +6,4 @@ unusedFunction:modules/backend/pass/*
 unusedFunction:modules/backend/library/*
 uninitMemberVar
 missingReturn:modules/frontend/counter_example/*
+memleakOnRealloc:tests/unit/pass/inputs/memtrack.c

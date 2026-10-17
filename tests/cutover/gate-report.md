@@ -216,3 +216,138 @@ gate: PASS
 ```
 
 O `gate` (critérios 1–8) passa. O critério 9 segue pendente. `test_compare.py`: 6 de 6 testes passam.
+
+## Critério 9 — perfis
+
+Gate run 1 has 18 rows with a wall ratio (Rust/C, medians of 5 reps) above 1.5: **15 symex and 3 afl**. The earlier count of "16 symex + 2 afl" in this report was wrong, because list-ext afl is at 1.56. Every row falls into one of three cause groups.
+
+### How the profiles were taken
+
+- **Same images, installs and caps as the gate:**
+  - `release-gate2` in `cutover-klee-rust-time`;
+  - `release-afl` in `cutover-f01e8c3e-time`;
+  - `--memory 3g --memory-swap 3g --cpus 4`, KLEE `--max-memory=2000`;
+  - `free -g` showed 4 GB or more available before each container.
+- **Phase times:** the overlay install wraps every `bin/*` tool (clang, opt, llvm-link, klee) with a timer, and the `--debug` output is timestamped line by line. The AFL++ phases are read from those timestamps.
+- **KLEE breakdown:**
+  - `klee-stats --to-csv` on `klee-out-0`. The `UserTime` of the first `run.stats` row is the CPU spent before the first instruction runs; the final row gives the exploration `WallTime` and `SolverTime`.
+  - KLEE re-run alone on the kept `-witness-result.bc` with flags removed one at a time.
+  - Host `perf record -g -p` on KLEE inside the container (run as the host uid), with symbols from the image's `libLLVM-16.so.1` via `--symfs`.
+- **Scripts:** `$S/c9/` (`prof.sh`, `kvar2.sh`, `dropbt.sh`, `rssbt.sh`, `perfk.sh`, `ksum.sh`).
+- **Kept run directories:** `$S/c9/runs/` and `$S/c9/runs2/`.
+
+### Group A: KLEE start-up on the 2.3 MB runtime module (15 symex rows)
+
+**Measured.**
+- **What it is:** a fixed cost of about 2.6–2.7 s per KLEE run, before any instruction executes.
+- **What it is not:** path count, the solver, or per-path cost in the runtime.
+- **The C rows that take longer** (1–2.6 s) show a smaller delta, because Rust's exploration is faster there (the 2.7b gain) and absorbs part of the fixed cost.
+
+KLEE profiles (`klee` = wall time of the KLEE process; `pre_exec` = `UserTime` before the first instruction):
+
+| run | side | klee s | pre_exec s | exploration wall s | solver s | instructions | paths |
+|---|---|---|---|---|---|---|---|
+| byte_add_bug | Rust | 2.93 | 2.63 | 0.11 | 0.00 | 46 186 | 1 |
+| byte_add_bug | C | 0.29 | 0.22 | 0.03 | 0.00 | 19 658 | 1 |
+| test-bitfields-3.1-2 | Rust | 3.17 | 2.88 | 0.12 | 0.00 | 34 356 | 1 |
+| test-bitfields-3.1-2 | C | 0.31 | 0.23 | 0.03 | 0.00 | 30 180 | 1 |
+| 960521-1_1-3 | Rust | 3.35 | 2.85 | 0.35 | 0.07 | 471 187 | 15 |
+| 960521-1_1-3 | C | 1.67 | 0.23 | 1.40 | 0.09 | 3 457 247 | 19 |
+| insertionsort-alloca-1 | Rust | 3.35 | 2.90 | 0.29 | 0.05 | 406 655 | 4 |
+| insertionsort-alloca-1 | C | 1.49 | 0.24 | 1.20 | 0.04 | 3 629 574 | 4 |
+| ex01_false | Rust | 4.86 | 2.88 | 1.82 | 1.55 | 233 479 | 165 |
+| ex01_false | C | 2.55 | 0.22 | 2.28 | 2.00 | 317 741 | 199 |
+
+**Other pipeline phases:**
+- clang, opt and the frontend take under 0.1 s on both sides.
+- Rust's single `llvm-link` with `map2check-klee.bc` takes 0.18–0.19 s, against 2 × 0.015 s for C's links of the C `.bc` files.
+
+**Where the start-up goes** (byte_add_bug, KLEE alone on the kept module, 2 runs each):
+
+| variant | Rust s | C s |
+|---|---|---|
+| as in the gate (`--optimize`) | 3.14 | 0.29 |
+| without `--optimize` | 1.22 | 0.27 |
+| without `--optimize`, `--max-instructions=1` | 1.12 | 0.25 |
+| `--optimize`, without `assembly.ll` and `run.istats` | 3.02 | 0.28 |
+| `--optimize`, debug info stripped from the whole module | 3.07–3.14 | – |
+| `--optimize`, internalize + globaldce (2.05 MB) | 2.95–3.07 | – |
+| `--optimize`, **std backtrace symbolizer bodies deleted** (1.44 MB) | **1.47–1.53** | – |
+| same, without `--optimize` | 0.75–0.77 | – |
+
+- **`--optimize` is about 1.9 s.**
+  - The `perf` profile is 81.5% in `libLLVM-16`.
+  - The top symbols are LLVM optimization passes: `ScalarEvolution::getRangeRef`, `InstructionCombiningPass::runOnFunction`, `ValueHandleBase::AddToUseList`, `decomposeBitTestICmp` and `FoldingSet`.
+  - KLEE re-optimizes a runtime that rustc already built at O3 with fat LTO.
+- **Loading, linking with uclibc and module preparation are about 0.9 s.**
+  - Without `--optimize`, 64% of the samples are in `libLLVM-16` (bitcode reader, `TypeFinder`, `IRMover`, `formatted_raw_ostream`) and 29% are in `ld-linux`.
+- **What the module holds:**
+  - The kept `-witness-result.bc` has 583 defined functions, 7 371 branches and an 11 MB `assembly.ll`. C's has 80 functions, 478 branches and 2.2 MB.
+  - Of the runtime's 125 829 IR instructions, about 60 000 are std's backtrace symbolizer, pulled in by the default panic hook: gimli, addr2line and miniz_oxide (52 806) plus rustc_demangle (7 299).
+  - The library itself is 30 896 instructions.
+  - The symbolizer code never runs on a non-panicking path. With its bodies deleted, KLEE's instruction count is unchanged (45 184 against 45 176) and the result is the same.
+- **RSS:** the same deletion lowers KLEE's peak RSS from 221 MB to 161 MB (C: 127 MB). That is about 60 of the 94 MB symex excess behind D4.
+
+**Library defect: reported, not fixed.** See the task-4.3 criterion 9 report in map2check-library for the suggested fix.
+
+### Group B: C skips AFL++ because its link fails; Rust runs it (2 afl rows)
+
+**Measured.** Rows: check_if_bug and ex02_false (unreach-call, afl). Both sides say UNKNOWN.
+
+**C** (0.36 s):
+- All three `afl-clang-fast` links fail with `undefined reference to '__VERIFIER_assert'`. The C runtime does not define it.
+- The frontend prints "the AFL++ binary is unavailable -- skipping the fuzzer phase" at 0.356 s and reports UNKNOWN.
+
+**Rust** (1.48 s):
+- The three AFL++ binaries build: 0.11 s → 0.45 s.
+- `afl-fuzz` then runs for 1.03 s and exits with 256, on "The program took more than 1000 ms to process one of the initial test cases".
+- The seed `AAAAAAAA` makes the loop bound `0x41414141`, so the dry run reaches AFL++'s 1 s timeout.
+
+**Conclusion:** the extra 1.1 s is a fuzzing phase that C never reaches. It is not runtime cost. The C link failure is a C-side defect outside this gate's field comparison, because the verdicts are equal.
+
+### Group C: a different verdict, from extra work that pays off (1 afl row)
+
+**Measured.** Row: list-ext (unreach-call, afl): C UNKNOWN 0.53 s, Rust FAILED 0.79 s. This is the accepted `UB-BENCHMARK-list-ext` delta.
+
+| phase | C | Rust |
+|---|---|---|
+| AFL++ builds | 0.28 s | 0.34 s |
+| `afl-fuzz` | 0.08 s, exit 256 | 0.26 s, exit 0 (finds the target) |
+| report | – | witness and replay |
+
+- The +0.28 s is the work of reaching FAILED TARGET-REACHED.
+- The RSS of 340 MB is the AFL++ process plateau already noted above.
+
+### Per-row table
+
+R−C is the difference of the median wall times. "profiled" marks a row with its own profile above; the other rows are assigned by the same signature.
+- **Group A signature:** Rust at 3.1–3.4 s whatever C's time, and R−C between +1.6 and +2.9 s, falling as C's exploration time grows.
+- **Group B signature:** both UNKNOWN, C at about 0.33 s.
+
+| task | gen | ratio | cause group | evidence |
+|---|---|---|---|---|
+| ldv-memsafety-bitfields/test-bitfields-3.1-2 (memsafety) | symex | 9.17 | A: KLEE start-up | profiled: pre_exec 2.88 s vs 0.23 s; exploration 0.12 s vs 0.03 s; R−C +2.86 s |
+| map2check-assert/byte_add_bug (unreach) | symex | 8.81 | A | profiled: pre_exec 2.63 s vs 0.22 s; 0 queries, 1 path; `perf`, flag ablation and symbolizer deletion done on this row; R−C +2.81 s |
+| ldv-memsafety/memsetNonZero (memsafety) | symex | 8.38 | A | R−C +2.73 s; Rust 3.10 s |
+| ldv-memsafety-bitfields/test-bitfields-1-1 (memsafety) | symex | 7.36 | A | R−C +2.67 s; Rust 3.09 s |
+| list-ext-properties/simple-ext (unreach) | symex | 7.24 | A (verdict differs: C-BUG-property-race) | R−C +2.81 s; Rust 3.26 s; C stops at UNKNOWN in 0.45 s because of the race (SD-20) |
+| ldv-memsafety-bitfields/test-bitfields-2.1-2 (memsafety) | symex | 6.62 | A | R−C +2.64 s; Rust 3.11 s |
+| list-ext-properties/test-0158_1-1 (memsafety) | symex | 6.20 | A | R−C +2.65 s; Rust 3.16 s |
+| list-ext-properties/test-0019_1-1 (memsafety) | symex | 5.46 | A | R−C +2.63 s; Rust 3.22 s |
+| check_if_bug (unreach) | afl | 4.39 | B: C skips AFL++ | profiled: C link fails on `__VERIFIER_assert` at 0.36 s; Rust `afl-fuzz` dry-run timeout of 1.03 s; R−C +1.12 s |
+| ex02_false (unreach) | afl | 4.24 | B | profiled: same as check_if_bug; R−C +1.10 s |
+| list-ext-properties/simple-ext (memcleanup) | symex | 3.46 | A | R−C +2.36 s; Rust 3.32 s |
+| memsafety/960521-1-3 (memsafety) | symex | 3.43 | A | R−C +2.38 s; Rust 3.36 s |
+| memsafety/960521-1-1 (memsafety) | symex | 3.29 | A | R−C +2.29 s; Rust 3.29 s |
+| list-ext-properties/960521-1_1-1 (memsafety) | symex | 2.12 | A | R−C +1.78 s; Rust 3.37 s; same program family as 960521-1_1-3 |
+| list-ext-properties/960521-1_1-3 (memsafety) | symex | 2.01 | A | profiled: pre_exec 2.85 s vs 0.23 s; exploration 0.35 s vs 1.40 s (Rust 7× fewer instructions); R−C +1.73 s |
+| array-memsafety/insertionsort-alloca-1 (memsafety) | symex | 1.97 | A | profiled: pre_exec 2.90 s vs 0.24 s; exploration 0.29 s vs 1.20 s; R−C +1.60 s |
+| map2check-assert/ex01_false (unreach) | symex | 1.88 | A (verdict differs: C-BUG-property-race) | profiled: pre_exec 2.88 s vs 0.22 s; exploration 1.82 s vs 2.28 s, solver 1.55 s vs 2.00 s; R−C +2.27 s |
+| list-ext-properties/list-ext (unreach) | afl | 1.56 | C: extra work for a better verdict | profiled: `afl-fuzz` 0.26 s (finds the target) vs 0.08 s; FAILED vs UNKNOWN (UB-BENCHMARK-list-ext); R−C +0.28 s |
+
+**Totals:** A = 15 rows, B = 2, C = 1.
+- No row shows a per-path or per-call cost in the runtime.
+- No row shows solver time above C's.
+- Every profiled exploration phase is as fast as C's or faster.
+
+**Criterion 9:** criteria 6 and 7 pass, so none of the 18 rows blocks. All 18 now have a recorded cause. The plan names `docs/cutover/perf.md` as the place for these profiles. That file does not exist yet in either repository, so the profiles are recorded here.

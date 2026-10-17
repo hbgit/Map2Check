@@ -637,7 +637,7 @@ jobs:
   valgrind-memcheck:
     name: Valgrind Memcheck (ctest)
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout

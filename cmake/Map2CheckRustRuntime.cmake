@@ -6,6 +6,8 @@
 #
 # The defaults come from the environment variables of the same name, which the
 # map2check-dev image sets (Dockerfile.dev); -D on the command line wins.
+# Being CACHE defaults, they are read only on the first configure of a build
+# directory: after the environment changes, reconfigure in a fresh one.
 set(MAP2CHECK_RUST_LIB_DIR "$ENV{MAP2CHECK_RUST_LIB_DIR}" CACHE PATH "Directory with a prebuilt libmap2check.a (empty = build from MAP2CHECK_RUST_SRC)")
 set(MAP2CHECK_RUST_SRC "$ENV{MAP2CHECK_RUST_SRC}" CACHE PATH "map2check-library checkout used when MAP2CHECK_RUST_LIB_DIR is empty")
 set(MAP2CHECK_RUST_KLEE_BC "$ENV{MAP2CHECK_RUST_KLEE_BC}" CACHE FILEPATH "Prebuilt KLEE runtime bitcode (empty = none, or built from MAP2CHECK_RUST_SRC when rustc 1.72.1 is available)")

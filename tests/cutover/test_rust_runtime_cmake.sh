@@ -3,8 +3,9 @@
 # map2check-klee.bc) is installed, no C runtime bitcode; configure fails loudly
 # without a library or with an unreadable bitcode.
 #
-# Env: MAP2CHECK_RUST_LIB_DIR  directory with libmap2check.a, or the lib/ of
-#                              the release archive (required)
+# Env: MAP2CHECK_RUST_LIB_DIR  directory with the runtime-profile libmap2check.a
+#                              (target/runtime), or the lib/ of the release
+#                              archive (required)
 #      CMAKE_ARGS              extra configure flags (e.g. -G Ninja -DLLVM_DIR=...)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -22,6 +23,8 @@ install_tree() { # <name> <extra cmake args...> ; prints nothing, installs to $W
 }
 
 # 1. Only the Rust static library is installed; no C runtime .bc.
+# The runtime build (features libfuzzer,wasm) in $LIB, whatever its layout.
+if [ -f "$LIB/libmap2check_runtime.a" ]; then RT="$LIB/libmap2check_runtime.a"; else RT="$LIB/libmap2check.a"; fi
 install_tree plain -DMAP2CHECK_RUST_LIB_DIR="$LIB"
 P="$W/plain-p"
 test -f "$P/lib/libmap2check.a" || fail "libmap2check.a not installed"
@@ -34,11 +37,42 @@ fi
 # runtime build, libmap2check_runtime.a, is the one installed as
 # libmap2check.a; the featureless core libmap2check.a next to it is not.
 R="$W/release-lib"; mkdir "$R"
-cp "$LIB/libmap2check.a" "$R/libmap2check_runtime.a"
+cp "$RT" "$R/libmap2check_runtime.a"
 echo 'not the runtime' >"$R/libmap2check.a"
 install_tree release -DMAP2CHECK_RUST_LIB_DIR="$R"
 cmp -s "$W/release-p/lib/libmap2check.a" "$R/libmap2check_runtime.a" ||
   fail "release layout: libmap2check_runtime.a not installed as libmap2check.a"
+
+# 1c. Local build layout (target/runtime): only libmap2check.a, and it is the
+# runtime build, so it is accepted under the plain name.
+T="$W/local-lib"; mkdir "$T"
+cp "$RT" "$T/libmap2check.a"
+install_tree local -DMAP2CHECK_RUST_LIB_DIR="$T"
+cmp -s "$W/local-p/lib/libmap2check.a" "$RT" ||
+  fail "local layout: the runtime-profile libmap2check.a not installed"
+
+# 1d. Only a featureless core libmap2check.a (no libmap2check_runtime.a next
+# to it): configure must fail instead of linking a runtime without the
+# libfuzzer and wasm entry points.
+check_core_rejected() { # <dir> <label>
+  if cmake -S "$ROOT" -B "$W/core-$2" "${EXTRA[@]}" -DMAP2CHECK_RUST_LIB_DIR="$1" >"$W/core-$2.log" 2>&1; then
+    fail "configure should reject the core libmap2check.a ($2)"
+  fi
+  # CMake wraps the message; join its lines before matching.
+  tr -s ' \n' ' ' <"$W/core-$2.log" | grep -q "is not the Map2Check runtime build" ||
+    fail "no clear message for the core libmap2check.a ($2)"
+}
+C="$W/core-synth"; mkdir "$C"
+echo 'int map2check_init(void) { return 0; }' >"$W/core.c"
+cc -c "$W/core.c" -o "$W/core.o"
+ar rcs "$C/libmap2check.a" "$W/core.o"
+check_core_rejected "$C" synth
+if [ -f "$LIB/libmap2check_runtime.a" ] && [ -f "$LIB/libmap2check.a" ]; then
+  # The release archive's own core build, alone in a directory.
+  C2="$W/core-release"; mkdir "$C2"
+  cp "$LIB/libmap2check.a" "$C2/libmap2check.a"
+  check_core_rejected "$C2" release
+fi
 
 # 2. A readable KLEE bitcode is installed as lib/map2check-klee.bc.
 LLVM_DIS="${LLVM_DIS:-llvm-dis-16}"; LLVM_AS="${LLVM_AS:-llvm-as-16}"

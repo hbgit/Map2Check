@@ -385,3 +385,41 @@ No field divergence outside the accepted deltas. Against the first run, no symex
 - Criterion 6 passes (1.011 ≤ 1.10), criterion 7 passes (0 TIMEOUT, 0 Rust OOM), criterion 8 passes (1.081 ≤ 1.36, and also ≤ 1.25).
 - Symex median peak RSS: C 143.7 MB, Rust 225.5 MB → 168.2 MB. Largest Rust peak: 443.6 MB (split_list_test05-1).
 - Criterion 9: 13 rows above 1.5 wall (10 symex, 3 afl), all with C under 1 s and Rust 0.8–1.55 s. The symex ones are the short tasks (C 0.35–0.96 s, Rust 1.35–1.55 s), so the fixed start-up cost of about +1 s remains.
+
+## Gate 2 (Task 5.1, 2026-10-17)
+
+The second consecutive gate, on the branch as it stands for the merge. Only the Rust side was re-run: the C baseline is still `baseline-c-gate.tsv`, because the merge-base (develop `f01e8c3e`) has not changed (`git merge-base` = `origin/develop` = `f01e8c3e`, so the rebase is a no-op).
+
+### Setup
+
+- Map2Check-rust `f7f15e3b` (feat/rust-runtime HEAD, with the M-1 CMake fix and the README/CHANGELOG commits), built from the working tree with no tracked change, into fresh `build-gate5/` and `release-gate5/`, same CMake flags as `release-gate2`.
+- Runtime: the `v1.1.0-rc1` release archive of map2check-library (sha256 `dd90e888…209666`, verified), `MAP2CHECK_RUST_LIB_DIR=<archive>/lib`. `cmp` confirms the installed `lib/libmap2check.a` is the archive's `libmap2check_runtime.a` (sha256 `872caf5f…`).
+- KLEE bitcode: built by the branch's `scripts/runtime/map2check-klee-bc.sh` (tag `v1.1.0-rc1`, commit `49a25e4` checked), 1.2 MB, sha256 `9da42b2c…`; `cmp` confirms it is the installed `map2check-klee.bc`.
+- Image `map2check-dev:cutover-klee-rust-time`, `--memory 3g --memory-swap 3g --cpus 4`, KLEE `--max-memory=2000` through the overlay `bin/klee` wrapper (seen in the container's process list), `GENS="afl symex" REPS=5 TIMEOUT=45`, `free -g` ≥ 4 GB before the container started. Run 13:02–14:07.
+- Output: `baseline-rust-gate2.tsv` (410 rows).
+
+### compare.py
+
+```
+$ python3 scripts/cutover/compare.py tests/cutover/baseline-c-gate.tsv tests/cutover/baseline-rust-gate2.tsv --accepted tests/cutover/deltas-aceitos.tsv
+median wall ratio: 1.026  median rss ratio: 1.017
+
+gate: PASS
+```
+
+No new divergence, and `deltas-aceitos.tsv` is unchanged. Against `baseline-rust-v2.tsv` (gate run 1 + slim symex), no row changed the mode of verdict, tag, line, function or witness.
+
+| gen | median wall Rust/C | median RSS Rust/C | Σ median wall C / Rust | rows >1.5 wall | Rust verdicts (mode) | correct vs `expected_verdict` |
+|---|---|---|---|---|---|---|
+| afl | 1.009 | 0.983 | 165.1 s / 168.6 s | 3 | 12 FAILED, 29 UNKNOWN | 12 |
+| symex | 1.033 | 1.214 | 617.0 s / 534.7 s | 10 | 15 FAILED, 10 SUCCEEDED, 16 UNKNOWN | 24 |
+| all | 1.026 | 1.017 | 782.2 s / 703.4 s | 13 | | 36 (C: 31) |
+
+Criteria 6 (1.026 ≤ 1.10), 7 (no TIMEOUT or OOM verdict in any row's mode) and 8 (1.017 ≤ 1.36) pass.
+
+### Rep variance (not a field divergence)
+
+One row has reps that disagree, which gate run 1 never had: `memsafety-ext/tree_stack` valid-memsafety symex gave UNKNOWN ×3 (33–40 s), **SUCCEEDED** (60.44 s) and TIMEOUT (60.12 s, the runner's outer `timeout 60`). The mode is UNKNOWN, as in C and in every earlier Rust run, so `compare.py` passes. One other rep was slow with the same verdict: `memsafety-ext2/length_test03-1` afl rep 1, 53.6 s against a 1.5 s median.
+
+- A diagnostic re-run of tree_stack symex (5 reps, same install, image and caps) gave UNKNOWN 5/5 at 32.9–33.1 s, so this looks like host contention during the gate (the host was near its memory floor), not the runtime.
+- The SUCCEEDED rep is still a concern, and it is in the frontend, not in the runtime. `Caller` counts only exit code 124 of `timeout -k 10 36 klee …` (`result == 31744`) as a timeout. A KLEE that ignores SIGTERM and is SIGKILLed after the grace period exits 137, which is not caught, and `kleeHaltedOnTimer` cannot fire without a final stats row. The verdict then comes from the property file, and no violation means TRUE. Hypothesis, not reproduced. The same code is in develop (`f01e8c3e`, `caller.cpp:854`), so it applies to the C runtime too.

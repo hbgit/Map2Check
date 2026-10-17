@@ -192,3 +192,27 @@ The 5 MemSafety-Arrays tasks, symex (C-array / C-btree / Rust):
 - The C defects in rows 4–9 need new `SD-xx` entries ("bug do C corrigido") in `docs/semantic-deltas.md` before they can be accepted. The reproductions are given above.
 
 `$S` = `/tmp/claude-1000/-home-rock-Documents-Dev-map2check-library/561b38ab-d0f9-4bb7-a72d-b85b8d5834c3/scratchpad`. It holds the logs, the overlay script, the analysis script (`t42/analyse.py`) and the reproduction dirs.
+
+## Decisões do mantenedor (2026-10-16)
+
+1. **Deltas: "Aceitar tudo".**
+   - As 6 linhas da PROPOSTA (GANHO-ORCAMENTO e UB-BENCHMARK-list-ext) foram aprovadas.
+   - Foram acrescentadas 13 linhas por bugs do runtime C:
+     - `C-BUG-property-race` (10 linhas): o arquivo `map2check_property` compartilhado é truncado por outros estados do KLEE, e o frontend do C dá UNKNOWN (simple-ext, ex01_false) ou lê "Line 0"/função vazia (960521-1_1-1). Os campos verdict/tag/line/function de simple-ext e ex01_false e line/function de 960521-1_1-1.
+     - `C-BUG-oom-afl-nondet` (3 linhas): o C estoura os 3 GB nas três tarefas `standard_*` em afl (Rust, cerca de 341 MB). A causa (crescimento do NonDetLog por chamada) é hipótese, não perfilada.
+   - Todas as divergências de campo listadas neste relatório ficaram cobertas. Nenhuma ficou sem causa. As entradas correspondentes em `docs/semantic-deltas.md` (map2check-library) ainda precisam ser escritas.
+   - `deltas-aceitos-PROPOSTA.tsv` foi removido; `deltas-aceitos.tsv` tem 19 linhas de dados.
+2. **D3:** `--btree` não é portado; continua um no-op com aviso. O `--btree` do C dá SUCCEEDED errado em lis_unsafe, memleaks_test1-1 e memleaks_test17_2-1, então não é referência válida. O mantenedor aprovou se afastar da condição literal da Task 2.6.
+3. **D4:** aceita a razão mediana medida. O limite do critério 8 passa a ser **1,36** (medido 1,36; afl 0,99, symex 1,58). `compare.py` usa `--max-rss` 1.36 por padrão. Causa (KLEE com `.bc` do runtime de 2,2 MB contra 0,13 MB): hipótese, não perfilada.
+4. **Critério 9 continua ABERTO:** as 18 linhas com razão de tempo de parede acima de 1,5 ainda precisam de perfil em `docs/cutover/perf.md`. Não foi feito.
+
+### Novo veredito
+
+```
+$ python3 scripts/cutover/compare.py tests/cutover/baseline-c-gate.tsv tests/cutover/baseline-rust.tsv --accepted tests/cutover/deltas-aceitos.tsv
+median wall ratio: 1.015  median rss ratio: 1.360
+
+gate: PASS
+```
+
+O `gate` (critérios 1–8) passa. O critério 9 segue pendente. `test_compare.py`: 6 de 6 testes passam.

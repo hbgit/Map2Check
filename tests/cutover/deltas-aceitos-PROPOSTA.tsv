@@ -1,7 +1,0 @@
-task	prp	gen	field	c_value	rust_value	sd_ref
-ldv-memsafety/ArraysOfVariableLength.yml	valid-memsafety	symex	verdict	UNKNOWN	SUCCEEDED	GANHO-ORCAMENTO
-memsafety/960521-1-2.yml	valid-memsafety	symex	verdict	UNKNOWN	SUCCEEDED	GANHO-ORCAMENTO
-list-ext-properties/list-ext.yml	unreach-call	afl	verdict	UNKNOWN	FAILED	UB-BENCHMARK-list-ext
-list-ext-properties/list-ext.yml	unreach-call	afl	tag	-	TARGET-REACHED	UB-BENCHMARK-list-ext
-list-ext-properties/list-ext.yml	unreach-call	afl	line	-	556	UB-BENCHMARK-list-ext
-list-ext-properties/list-ext.yml	unreach-call	afl	function	-	main	UB-BENCHMARK-list-ext

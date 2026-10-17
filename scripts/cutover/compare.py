@@ -29,7 +29,7 @@ def main():
     ap.add_argument("c"); ap.add_argument("rust")
     ap.add_argument("--accepted", required=True)
     ap.add_argument("--max-wall", type=float, default=1.10)
-    ap.add_argument("--max-rss", type=float, default=1.25)
+    ap.add_argument("--max-rss", type=float, default=1.36)
     a = ap.parse_args()
     c, r = load(a.c), load(a.rust)
     accepted = set()

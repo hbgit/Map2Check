@@ -29,7 +29,7 @@
 #include <memory>
 
 #include "DebugInfo.hpp"
-#include "NonDetFunctions.hpp"
+#include "RuntimeABI.hpp"
 
 using llvm::BasicBlock;
 using llvm::CallInst;
@@ -38,67 +38,17 @@ using llvm::LLVMContext;
 using llvm::PreservedAnalyses;
 using llvm::Value;
 
-enum class NonDetType {
-  INTEGER,
-  UNSIGNED,
-  POINTER,
-  //  STRING,
-  LONG,
-  ASSUME,
-  USHORT,
-  SHORT,
-  ULONG,
-  CHAR,
-  BOOL,
-  UCHAR,
-  PCHAR,
-  SIZE_T,
-  LOFF_T,
-  SECTOR_T,
-  UINT,
-  CRAB_ASSUME,
-  DOUBLE
-};
-
-namespace InstrumentNonDetS {
-#define INSTRUMENT_HEADER_HELPER(type) \
-  void instrumentNonDet##type(CallInst *callInst, LLVMContext *Ctx);
-}  // namespace InstrumentNonDetS
-
+/// Logs every __VERIFIER_nondet_<t> value through the core
+/// map2check_save_nondet_log_<t> of map2check-library, and turns the
+/// program's assume idioms into the library's __VERIFIER_assume.
 struct NonDetPass : public llvm::PassInfoMixin<NonDetPass> {
   PreservedAnalyses run(Function &F, llvm::FunctionAnalysisManager &AM);
   static bool isRequired() { return true; }
 
- protected:
-  void instrumentInstruction();
-  /**
-   * @brief Checks if current function is a non det call and instruments it
-   */
-  void runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx);
-  Value *getFunctionNameValue() { return this->functionName; }
-
  private:
-  void instrumentNonDet(NonDetType type, Function *calleeFunction);
-  INSTRUMENT_HEADER_HELPER(Integer)
-  INSTRUMENT_HEADER_HELPER(Unsigned)
-  INSTRUMENT_HEADER_HELPER(Char)
-  INSTRUMENT_HEADER_HELPER(Pointer)
-  INSTRUMENT_HEADER_HELPER(Long)
-  INSTRUMENT_HEADER_HELPER(Ushort)
-  INSTRUMENT_HEADER_HELPER(Short)
-  INSTRUMENT_HEADER_HELPER(Ulong)
-  INSTRUMENT_HEADER_HELPER(Bool)
-  INSTRUMENT_HEADER_HELPER(Uchar)
-  INSTRUMENT_HEADER_HELPER(Pchar)
-  INSTRUMENT_HEADER_HELPER(Size_t)
-  INSTRUMENT_HEADER_HELPER(Loff_t)
-  INSTRUMENT_HEADER_HELPER(Sector_t)
-  INSTRUMENT_HEADER_HELPER(Uint)
-  INSTRUMENT_HEADER_HELPER(Double)
-  void instrumentCrabAssume(CallInst *callInst, LLVMContext *Ctx);
-  std::unique_ptr<NonDetFunctions> nonDetFunctions;
-  Value *functionName = NULL;
-  BasicBlock::iterator currentInstruction;
+  void instrumentNonDet(CallInst *callInst, llvm::StringRef type);
+  void instrumentCrabAssume(CallInst *callInst);
+  Value *functionName = nullptr;
 };
 
 class NonDetPassException : public std::runtime_error {

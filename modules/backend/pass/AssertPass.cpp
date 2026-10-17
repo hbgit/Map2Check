@@ -13,6 +13,8 @@
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 
+#include "RuntimeABI.hpp"
+
 using llvm::dyn_cast;
 using llvm::IRBuilder;
 using llvm::FunctionCallee;
@@ -20,10 +22,8 @@ using llvm::PassPluginLibraryInfo;
 
 PreservedAnalyses AssertPass::run(Function& F,
                                   llvm::FunctionAnalysisManager& AM) {
-  this->map2check_assert = F.getParent()->getOrInsertFunction(
-      "map2check_assert", Type::getVoidTy(F.getContext()),
-      Type::getInt32Ty(F.getContext()), Type::getInt32Ty(F.getContext()),
-      PointerType::get(F.getContext(), 0));
+  this->map2check_assert = Map2Check::getOrInsertRuntime(
+      *F.getParent(), Map2Check::RuntimeHook::Assert);
 
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
@@ -47,10 +47,19 @@ void AssertPass::instrumentAssert(CallInst* assertInst, LLVMContext* Ctx) {
   DebugInfo debugInfo(Ctx, assertInst);
 
   Value* condition = assertInst->getArgOperand(0);
+  // The core takes an i32; a program that declares __VERIFIER_assert with
+  // another integer parameter type still passes "condition != 0".
+  if (condition->getType()->isIntegerTy() &&
+      !condition->getType()->isIntegerTy(32)) {
+    condition = builder.CreateZExt(
+        builder.CreateIsNotNull(condition), Type::getInt32Ty(*Ctx));
+  }
   Value* function_llvm =
       builder.CreateGlobalStringPtr(assertInst->getFunction()->getName());
 
-  Value* args[] = {condition, debugInfo.getLineNumberValue(), function_llvm};
+  // map2check_is_valid_assert(line, function, expression): the condition
+  // goes last in the core API.
+  Value* args[] = {debugInfo.getLineNumberValue(), function_llvm, condition};
 
   builder.CreateCall(this->map2check_assert, args);
 }
@@ -65,7 +74,7 @@ void AssertPass::instrumentAssertFail(CallInst* assertInst, LLVMContext* Ctx) {
   Value* line = assertInst->getArgOperand(2);
   Value* function_llvm = assertInst->getArgOperand(3);
 
-  Value* args[] = {condition, line, function_llvm};
+  Value* args[] = {line, function_llvm, condition};
 
   builder.CreateCall(this->map2check_assert, args);
 }

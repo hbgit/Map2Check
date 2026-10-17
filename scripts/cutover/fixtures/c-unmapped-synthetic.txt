@@ -1,0 +1,5 @@
+Violated property:
+	file map2check_property line 42 function foo
+	FALSE-SOMETHING-NEW
+
+VERIFICATION FAILED

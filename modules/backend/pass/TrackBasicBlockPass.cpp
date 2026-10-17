@@ -16,6 +16,8 @@
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 
+#include "RuntimeABI.hpp"
+
 using llvm::CallInst;
 using llvm::dyn_cast;
 using llvm::IRBuilder;
@@ -35,7 +37,8 @@ PreservedAnalyses TrackBasicBlockPass::run(Function& F,
                                             llvm::FunctionAnalysisManager& AM) {
   this->Ctx = &F.getContext();
   this->currentFunction = &F;
-  this->libraryFunctions = make_unique<LibraryFunctions>(&F, &F.getContext());
+  this->trackBB =
+      Map2Check::getOrInsertRuntime(*F.getParent(), Map2Check::RuntimeHook::TrackBB);
 
   int countBB = 1;
   for (auto& B : F) {
@@ -221,7 +224,10 @@ void TrackBasicBlockPass::runOnBasicBlock(BasicBlock& B, LLVMContext* Ctx) {
       unsigned countInst = 1;
       DebugInfo debugInfoAaEmpty(this->Ctx,
                                  BBIteratorToInst(this->st_lastBlockInst));
-      if (this->sourceCodeHelper->getLine(debugInfoAaEmpty.getLineNumberInt())
+      // Without the C source (plugin built with the default constructor, as
+      // opt does) every line counts as non-empty.
+      if (this->sourceCodeHelper != nullptr &&
+          this->sourceCodeHelper->getLine(debugInfoAaEmpty.getLineNumberInt())
               .empty()) {
         flagEmpty = true;
       }
@@ -292,9 +298,6 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT) {
     iT++;
   }
 
-  // Twine track_bb("map2check_track_bb");
-  // Function *calleeFunction;
-  // calleeFunction->setName(track_bb);
   // errs() << "inst 1 \n";
 
   IRBuilder<> builder(BBIteratorToInst(iT));
@@ -305,9 +308,11 @@ void TrackBasicBlockPass::instrumentInstBB(BasicBlock::iterator& iT) {
   // errs() << *debugInfo.getLineNumberValue() << "\n";
   // errs() << function_llvm->getName() << "\n";
 
+  // map2check_save_basic_block_log(line, function); the returned
+  // bbtrack_log_t* is ignored.
   Value* args[] = {debugInfo.getLineNumberValue(), function_llvm};
 
-  builder.CreateCall(this->libraryFunctions->getTrackBBFunction(), args);
+  builder.CreateCall(this->trackBB, args);
   // errs() << "inst 3 \n";
 }
 

@@ -29,7 +29,6 @@ using llvm::IntegerType;
 using llvm::IRBuilder;
 using llvm::isa;
 using llvm::LoadInst;
-using std::make_unique;
 using llvm::MDNode;
 using llvm::StoreInst;
 using llvm::Twine;
@@ -55,9 +54,9 @@ void OverflowPass::listAllUintAssign(BasicBlock &B) {
     if (auto *cI = dyn_cast<CallInst>(&*i)) {
       Value *v = cI->getCalledOperand();
       Function *calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
+      // NonDetPass keeps the core generator name (__VERIFIER_nondet_uint).
       if (calleeFunction &&
-          (calleeFunction->getName() == "__VERIFIER_nondet_uint" ||
-           calleeFunction->getName() == "map2check_non_det_uint")) {
+          calleeFunction->getName() == Map2Check::nonDetGenerator("uint")) {
         DebugInfo debugInfoCi(this->Ctx, cI);
         // errs() << debugInfoCi.getLineNumberInt() << "==================\n";
 
@@ -193,8 +192,17 @@ std::string OverflowPass::getValueNameOperator(Value *Vop) {
 
 PreservedAnalyses OverflowPass::run(Function &F,
                                     llvm::FunctionAnalysisManager &AM) {
-  this->operationsFunctions =
-      make_unique<OperationsFunctions>(&F, &F.getContext());
+  llvm::Module &module = *F.getParent();
+  this->binopAdd = Map2Check::getOrInsertRuntime(
+      module, Map2Check::RuntimeHook::BinopAdd);
+  this->binopSub = Map2Check::getOrInsertRuntime(
+      module, Map2Check::RuntimeHook::BinopSub);
+  this->binopMul = Map2Check::getOrInsertRuntime(
+      module, Map2Check::RuntimeHook::BinopMul);
+  this->binopSDiv = Map2Check::getOrInsertRuntime(
+      module, Map2Check::RuntimeHook::BinopSDiv);
+  this->binopSRem = Map2Check::getOrInsertRuntime(
+      module, Map2Check::RuntimeHook::BinopSRem);
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
 
@@ -212,24 +220,6 @@ PreservedAnalyses OverflowPass::run(Function &F,
 
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
     for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
-      if (this->errorLines.size() != 0) {
-        Instruction *currentInstruction = BBIteratorToInst(i);
-        DebugInfo debugInfo(&F.getContext(), currentInstruction);
-        int line = debugInfo.getLineNumberInt();
-
-        std::vector<int>::iterator it =
-            std::find(this->errorLines.begin(), this->errorLines.end(), line);
-
-        if (it != this->errorLines.end()) {
-          IRBuilder<> builder(currentInstruction);
-          Value *args[] = {debugInfo.getLineNumberValue(), functionName};
-          builder.CreateCall(this->operationsFunctions->getOverflowError(),
-                             args);
-
-          this->errorLines.erase(it);
-        }
-      }
-
       if (StoreInst *storeInst = dyn_cast<StoreInst>(&*i)) {
         Value *firstOperand = storeInst->getValueOperand();
         Value *secondOperand = storeInst->getPointerOperand();
@@ -239,7 +229,7 @@ PreservedAnalyses OverflowPass::run(Function &F,
         std::vector<std::string>::const_iterator iT;
 
         // checking for first operator
-        // TODO(hbgit): search by map2check_non_det_uint
+        // TODO(hbgit): search by the __VERIFIER_nondet_uint generator
 
         bool isUnsignedNonDet = false;
         iT = std::find(this->listUnsignedVars.begin(),
@@ -280,12 +270,12 @@ PreservedAnalyses OverflowPass::run(Function &F,
         std::vector<std::string>::const_iterator iT;
 
         // checking for first operator
-        // TODO(hbgit): search by map2check_non_det_uint
+        // TODO(hbgit): search by the __VERIFIER_nondet_uint generator
         bool isUnsigned = false;
         bool isUnsignedNonDet = false;
         iT = std::find(this->listUnsignedVars.begin(),
                        this->listUnsignedVars.end(), lvaluep);
-        if (rvaluep == "map2check_non_det_uint") {
+        if (rvaluep == Map2Check::nonDetGenerator("uint")) {
           isUnsignedNonDet = true;
         }
 
@@ -339,36 +329,30 @@ PreservedAnalyses OverflowPass::run(Function &F,
 
         switch (binOp->getOpcode()) {
           case (Instruction::Add):
-            if (this->isUnitAssignment) {
-              // instrumentedFunction =
-              // this->operationsFunctions->getOverflowAddUint();
-            } else {
-              instrumentedFunction =
-                  this->operationsFunctions->getOverflowAdd();
+            // Without nsw the operation is unsigned: wraparound is not an
+            // overflow, and the C runtime's _uint checker was a no-op.
+            if (!this->isUnitAssignment) {
+              instrumentedFunction = this->binopAdd;
             }
             break;
           case (Instruction::FAdd):
 
             break;
           case (Instruction::Sub):
-            if (this->isUnitAssignment) {
-              // instrumentedFunction =
-              // this->operationsFunctions->getOverflowSubUint();
-            } else {
-              instrumentedFunction =
-                  this->operationsFunctions->getOverflowSub();
+            // Without nsw the operation is unsigned: wraparound is not an
+            // overflow, and the C runtime's _uint checker was a no-op.
+            if (!this->isUnitAssignment) {
+              instrumentedFunction = this->binopSub;
             }
             break;
           case (Instruction::FSub):
 
             break;
           case (Instruction::Mul):
-            if (this->isUnitAssignment) {
-              // instrumentedFunction =
-              // this->operationsFunctions->getOverflowMulUint();
-            } else {
-              instrumentedFunction =
-                  this->operationsFunctions->getOverflowMul();
+            // Without nsw the operation is unsigned: wraparound is not an
+            // overflow, and the C runtime's _uint checker was a no-op.
+            if (!this->isUnitAssignment) {
+              instrumentedFunction = this->binopMul;
             }
             break;
           case (Instruction::FMul):
@@ -378,7 +362,7 @@ PreservedAnalyses OverflowPass::run(Function &F,
 
             break;
           case (Instruction::SDiv):
-            instrumentedFunction = this->operationsFunctions->getOverflowSDiv();
+            instrumentedFunction = this->binopSDiv;
             break;
           case (Instruction::FDiv):
 
@@ -387,7 +371,7 @@ PreservedAnalyses OverflowPass::run(Function &F,
 
             break;
           case (Instruction::SRem):
-            instrumentedFunction = this->operationsFunctions->getOverflowSRem();
+            instrumentedFunction = this->binopSRem;
             break;
           case (Instruction::FRem):
 
@@ -434,12 +418,10 @@ PreservedAnalyses OverflowPass::run(Function &F,
           Value *width = ConstantInt::get(Type::getInt32Ty(*Ctx),
                                           opType->getBitWidth());
 
-          Value *args[] = {firstOperand64Ty,
-                           secondOperand64Ty,
-                           width,
-                           debugInfo.getLineNumberValue(),
-                           debugInfo.getScopeNumberValue(),
-                           functionName};
+          // Core order: (a, b, bits, line, function); the core takes no
+          // scope.
+          Value *args[] = {firstOperand64Ty, secondOperand64Ty, width,
+                           debugInfo.getLineNumberValue(), functionName};
           builder.CreateCall(instrumentedFunction, args);
 
         } else {

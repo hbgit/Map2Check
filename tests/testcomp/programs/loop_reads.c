@@ -1,6 +1,7 @@
-// Four reads inside a loop. A suite that recovers the values but drops one, or
-// reorders them, cannot reach the error -- so this checks the ordering
-// contract at a length where an off-by-one is visible.
+// Four reads inside a loop. A suite that recovers the values but drops or
+// duplicates one cannot reach the error -- so this checks the count of the
+// input sequence at a length where an off-by-one is visible. It does not
+// check ordering: any order of the same four values gives the same sum.
 extern int __VERIFIER_nondet_int(void);
 extern void reach_error(void);
 

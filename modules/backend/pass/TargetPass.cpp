@@ -15,6 +15,8 @@
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 
+#include "RuntimeABI.hpp"
+
 namespace {
 
 /// Counts the call sites TargetPass will match, across the whole module.
@@ -86,10 +88,8 @@ PreservedAnalyses TargetPass::run(Function& F,
     }
   }
 
-  this->targetFunctionMap2Check = F.getParent()->getOrInsertFunction(
-      "map2check_target_function", Type::getVoidTy(F.getContext()),
-      PointerType::get(F.getContext(), 0), Type::getInt32Ty(F.getContext()),
-      Type::getInt32Ty(F.getContext()));
+  this->targetFunctionMap2Check = Map2Check::getOrInsertRuntime(
+      *F.getParent(), Map2Check::RuntimeHook::TargetReached);
 
   Function::iterator functionIterator = F.begin();
   BasicBlock::iterator instructionIterator = functionIterator->begin();
@@ -132,6 +132,8 @@ void TargetPass::instrumentErrorInstruction(CallInst* callInst,
 
   DebugInfo debugInfo(Ctx, callInst);
 
+  // map2check_reach_target(function, scope, line): records TARGET-REACHED and
+  // returns; the core ignores scope.
   Value* args[] = {name_llvm, debugInfo.getScopeNumberValue(),
                    debugInfo.getLineNumberValue()};
 

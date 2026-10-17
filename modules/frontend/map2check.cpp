@@ -489,15 +489,15 @@ int map2check_execution(map2check_args args) {
   // generator is installed. The old code branched on !is_llvmir_in and so
   // never even looked at the flag for bitcode input -- how the baselines, the
   // CASTLE harness and the BenchExec wrappers all invoke the tool -- which is
-  // why it was ignored without a trace (issue #54).
-  if (!is_llvmir_in && args.invCrabLlvm) {
-    caller->compileWithClam();
+  // why it was ignored without a trace (issue #54). The run was no longer
+  // refused, but bitcode input still took compileCFile and Clam never ran:
+  // test_add_invariants.sh passed only because the C runtime, linked into
+  // the result bitcode, defined map2check_crab_assume. Bitcode input goes
+  // through Clam too.
+  if (args.invCrabLlvm) {
+    caller->compileWithClam(is_llvmir_in);
   } else {
     caller->compileCFile(is_llvmir_in);
-  }
-
-  if (args.btree) {
-    caller->useBTree();
   }
 
   // (2) Instrument functions for current mode
@@ -787,8 +787,8 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("architecture", po::value<std::string>()->default_value("64bit"),
          "\tmachine model recorded in the test-suite metadata")
         ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
-        ("btree", "\tuses btree structure to hold information (experimental, use this "
-        "if you are having memory problems)")
+        ("btree", "\tignored: the Rust runtime has a single container (kept for "
+        "compatibility)")
         ("wasm", "\tverify a WebAssembly (.wasm) binary via wasm2c lifting")
         ("entry-function", po::value<std::string>()->default_value("main"),
                       R"(define the entry function name (default: main))");
@@ -806,7 +806,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
 
     map2check_args args;
     // Default mode
-    args.mode = Map2Check::Map2CheckMode::MEMTRACK_MODE;
+    args.mode = Map2Check::kDefaultMode;
     // Handling with the options
     if (vm.count("version")) {
       std::cout << Map2CheckVersion << "\n";
@@ -865,7 +865,9 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       args.mode = Map2Check::Map2CheckMode::MEMCLEANUP_MODE;
     }
     if (vm.count("btree")) {
+      // Provisional until decision D3: map2check-library has one container.
       args.btree = true;
+      Map2Check::warnBtreeIgnored();
     }
     if (vm.count("add-invariants")) {
       args.invCrabLlvm = true;
@@ -961,6 +963,21 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
           "installed. Crab-LLVM was renamed to Clam and this build does not "
           "ship it; rebuild with -DENABLE_CLAM=ON, or drop the flag. Refusing "
           "to continue rather than silently analysing without invariants.");
+      return ERROR_UNAVAILABLE_CAPABILITY;
+    }
+
+    // The symex generator runs map2check-library's KLEE runtime bitcode,
+    // which a build without -DMAP2CHECK_RUST_KLEE_BC does not install. Asked
+    // for explicitly, that is a missing capability; the hybrid default only
+    // loses its KLEE phase, and linkLLVM says so.
+    if (args.generator == Map2Check::NonDetGenerator::Klee &&
+        !Map2Check::kleeRuntimeInstalled()) {
+      Map2Check::Log::Error(
+          "--nondet-generator symex needs the KLEE runtime of "
+          "map2check-library at " + Map2Check::installedKleeRuntime() +
+          ", which this install does not have. Rebuild Map2Check with "
+          "-DMAP2CHECK_RUST_KLEE_BC=<map2check-klee.bc>, or use "
+          "--nondet-generator afl.");
       return ERROR_UNAVAILABLE_CAPABILITY;
     }
 

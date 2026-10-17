@@ -76,8 +76,10 @@ Results: 5 passed, 1 failed          (exit 1)
 
 The gate goes red, as it must. But note **which** program caught it: only
 `two_guards.c`. The others are structurally insensitive to ordering — one input each,
-or none — and `loop_reads.c`, which has four and would also have caught it, is
-currently undecided by the tool (finding K).
+or none — and `loop_reads.c`, which has four and would also have caught it, was
+then undecided by the tool (finding K). It is COVERED since the Rust runtime
+(see `expected.txt`), so it is now the second witness the next paragraph asks
+for; the run above predates it.
 
 So the ordering guarantee rests on a single program today. Two consequences worth
 keeping in mind: do not remove `two_guards.c` without adding another multi-input

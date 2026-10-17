@@ -32,7 +32,6 @@
 
 #include "../../frontend/utils/tools.hpp"
 #include "DebugInfo.hpp"
-#include "LibraryFunctions.hpp"
 
 namespace Tools = Map2Check;
 

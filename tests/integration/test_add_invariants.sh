@@ -139,11 +139,14 @@ case "$CAPABILITY" in
     # The scratch directory (<sha1>.map2check/) holds every intermediate: the
     # Clam-compiled bitcode carrying verifier.assume, and the instrumented one
     # where NonDetPass has rewritten it to map2check_crab_assume. Either symbol
-    # proves the invariants reached the pipeline.
+    # proves the invariants reached the pipeline -- as a CALL. A bare name
+    # match is not evidence: the C runtime, linked into the result bitcode,
+    # DEFINES map2check_crab_assume, and that definition alone made this
+    # check pass while bitcode input never went through Clam.
     found=""
     while IFS= read -r bc; do
       if llvm-dis-16 -o - "$bc" 2>/dev/null \
-           | grep -q 'verifier\.assume\|map2check_crab_assume'; then
+           | grep -qE 'call [^@]*@(verifier\.assume|map2check_crab_assume)\('; then
         found="$bc"
         break
       fi

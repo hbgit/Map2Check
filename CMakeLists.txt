@@ -78,6 +78,10 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
 
+# Before the tests: they link the runtime library this module resolves
+# (MAP2CHECK_RUST_RUNTIME_LIB).
+include(cmake/Map2CheckRustRuntime.cmake)
+
 if(ENABLE_TEST)
   # include(CTest) em vez de enable_testing(): gera DartConfiguration.tcl,
   # necessário para `ctest -T memcheck` (job Valgrind no CI).

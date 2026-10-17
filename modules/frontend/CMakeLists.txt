@@ -16,11 +16,13 @@ configure_file(map2check_version.hpp.in
   "${CMAKE_CURRENT_BINARY_DIR}/map2check_version.hpp" @ONLY)
 
 add_library(Caller OBJECT caller.cpp)
+add_library(CallerLink OBJECT caller_link.cpp)
 add_library(WasmLifter OBJECT wasm_lifter.cpp)
 #set_target_properties(Caller PROPERTIES COMPILE_FLAGS ${CXX_FLAGS})
 
 add_executable(map2check map2check.cpp 
   $<TARGET_OBJECTS:Caller>
+  $<TARGET_OBJECTS:CallerLink>
   $<TARGET_OBJECTS:WasmLifter>
   $<TARGET_OBJECTS:CounterExample>
   $<TARGET_OBJECTS:Log>

@@ -10,23 +10,16 @@
 
 #include "NonDetPass.hpp"
 
-#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 
-using llvm::CastInst;
 using llvm::dyn_cast;
+using llvm::Instruction;
 using llvm::IRBuilder;
-using std::make_unique;
-using llvm::Twine;
-
-namespace {
-inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
-  Instruction *pointer = reinterpret_cast<Instruction *>(&*i);
-  return pointer;
-}
-}  // namespace
 
 namespace {
 
@@ -42,7 +35,9 @@ namespace {
  * is replaced instead, which reaches every call site at once. */
 const char *const kAssumeByAbort[] = {"assume_abort_if_not",
                                       "assume_abort_if_not_",
-                                      "__VERIFIER_assume",
+                                      // A program's own __VERIFIER_assume is
+                                      // discarded for the library's instead
+                                      // (resolveProgramDefinitions).
                                       // The XCSP family spells it this way,
                                       // and spelling was the whole difference:
                                       // 59 of 59 XCSP tasks answered
@@ -84,17 +79,23 @@ bool rewriteAssumeToPrune(Function &F) {
   if (F.arg_size() != 1 || !F.getArg(0)->getType()->isIntegerTy()) return false;
   if (!F.getReturnType()->isVoidTy()) return false;
 
+  llvm::FunctionCallee assume = Map2Check::getOrInsertRuntime(
+      *F.getParent(), Map2Check::RuntimeHook::Assume);
+
   LLVMContext &ctx = F.getContext();
-  llvm::Type *int32 = llvm::Type::getInt32Ty(ctx);
   llvm::Value *condition = F.getArg(0);
 
   F.deleteBody();
   BasicBlock *entry = BasicBlock::Create(ctx, "entry", &F);
   IRBuilder<> builder(entry);
-  llvm::FunctionCallee assume = F.getParent()->getOrInsertFunction(
-      "map2check_assume", llvm::Type::getVoidTy(ctx), int32);
-  builder.CreateCall(assume, {builder.CreateSExtOrTrunc(condition, int32)});
+  // C reads the int condition as cond != 0.
+  llvm::Value *holds = builder.CreateICmpNE(
+      condition, llvm::Constant::getNullValue(condition->getType()));
+  builder.CreateCall(assume, {builder.CreateZExt(holds, builder.getInt32Ty())});
   builder.CreateRetVoid();
+  // The assume unwinds through this function now.
+  Map2Check::allowUnwind(F);
+  Map2Check::allowUnwind(*llvm::cast<Function>(assume.getCallee()));
   llvm::errs() << "[map2check] rewrote " << F.getName()
                << " to prune the path instead of aborting\n";
   return true;
@@ -102,194 +103,176 @@ bool rewriteAssumeToPrune(Function &F) {
 
 }  // namespace
 
+namespace {
+
+/// The C type suffixes of the __VERIFIER_nondet_<t> generators the pass logs
+/// (abi-mapping.tsv, family map2check_nondet_<t>).
+const char *const kNonDetTypes[] = {
+    "int",   "unsigned", "char",   "pointer", "long",     "ushort",
+    "short", "ulong",    "bool",   "uchar",   "pchar",    "size_t",
+    "loff_t", "sector_t", "uint",  "double"};
+
+/// The C type of a __VERIFIER_nondet_<t> callee, or "" when it is not one.
+llvm::StringRef nonDetType(const Function &callee) {
+  llvm::StringRef name = callee.getName();
+  if (!name.consume_front("__VERIFIER_nondet_")) return "";
+  for (const char *type : kNonDetTypes) {
+    if (name == type) return type;
+  }
+  return "";
+}
+
+/// Converts the generator's value to the C type of the logger's slot, or
+/// returns nullptr when the program declared the generator with a type that
+/// cannot be converted.
+Value *toSlotType(IRBuilder<> &builder, Value *value,
+                  const Map2Check::NonDetValueSlot &slot) {
+  llvm::Type *from = value->getType();
+  llvm::Type *to = slot.type;
+  if (from == to) return value;
+  if (from->isIntegerTy() && to->isIntegerTy()) {
+    // An i1 (_Bool) is 0 or 1 whatever the slot's signedness.
+    bool isSigned = slot.isSigned && !from->isIntegerTy(1);
+    return builder.CreateIntCast(value, to, isSigned);
+  }
+  if (from->isPointerTy() && to->isIntegerTy()) {
+    return builder.CreatePtrToInt(value, to);
+  }
+  if (from->isIntegerTy() && to->isPointerTy()) {
+    return builder.CreateIntToPtr(value, to);
+  }
+  if (from->isFloatingPointTy() && to->isFloatingPointTy()) {
+    return builder.CreateFPCast(value, to);
+  }
+  return nullptr;
+}
+
+}  // namespace
+
 PreservedAnalyses NonDetPass::run(Function &F,
                                   llvm::FunctionAnalysisManager &AM) {
+  // First thing of the first pass: program definitions of library exports
+  // give way to the library's or become internal (RuntimeABI), before any
+  // instrumentation looks at them.
+  bool resolved = Map2Check::resolveProgramDefinitions(*F.getParent());
+
+  // The library's assume rejects an input by unwinding through its callers,
+  // so no declaration of it or call to it may be nounwind (D1 condition 11).
+  if (Function *assume = F.getParent()->getFunction(
+          Map2Check::runtimeCall(Map2Check::RuntimeHook::Assume,
+                                 F.getContext())
+              .name)) {
+    Map2Check::allowUnwind(*assume);
+  }
+
   // Before anything else: this replaces the whole body, so instrumenting the
   // old one first would be work thrown away.
   if (rewriteAssumeToPrune(F)) {
     return PreservedAnalyses::none();
   }
+  if (F.isDeclaration()) return PreservedAnalyses::none();
 
-  this->nonDetFunctions = make_unique<NonDetFunctions>(&F, &F.getContext());
-  bool initializedFunctionName = false;
-  for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
-    for (BasicBlock::iterator i = bb->begin(), e = bb->end(); i != e; ++i) {
-      if (!initializedFunctionName) {
-        IRBuilder<> builder(BBIteratorToInst(i));
-        this->functionName = builder.CreateGlobalStringPtr(F.getName());
-        initializedFunctionName = true;
-      }
-      if (CallInst *callInst = dyn_cast<CallInst>(&*i)) {
-        currentInstruction = i;
-        this->runOnCallInstruction(callInst, &F.getContext());
+  // Collect first, instrument after: the instrumentation inserts and removes
+  // instructions.
+  std::vector<std::pair<CallInst *, llvm::StringRef>> nonDetCalls;
+  std::vector<CallInst *> crabAssumes;
+  for (BasicBlock &bb : F) {
+    for (Instruction &i : bb) {
+      auto *callInst = dyn_cast<CallInst>(&i);
+      if (callInst == nullptr) continue;
+      auto *callee = dyn_cast<Function>(
+          callInst->getCalledOperand()->stripPointerCasts());
+      if (callee == nullptr) continue;
+      llvm::StringRef type = nonDetType(*callee);
+      if (!type.empty()) {
+        nonDetCalls.emplace_back(callInst, type);
+      } else if (callee->getName() == "verifier.assume") {
+        crabAssumes.push_back(callInst);
       }
     }
+  }
+  if (nonDetCalls.empty() && crabAssumes.empty()) {
+    return resolved ? PreservedAnalyses::none() : PreservedAnalyses::all();
+  }
+
+  IRBuilder<> entryBuilder(&*F.getEntryBlock().getFirstInsertionPt());
+  this->functionName = entryBuilder.CreateGlobalStringPtr(F.getName());
+  for (auto &[callInst, type] : nonDetCalls) {
+    this->instrumentNonDet(callInst, type);
+  }
+  for (CallInst *callInst : crabAssumes) {
+    this->instrumentCrabAssume(callInst);
   }
   return PreservedAnalyses::none();
 }
 
-namespace {
-#define CALL_IF_HELPER(type, nondet_type, c_type)                             \
-  if ((calleeFunction->getName() == ("__VERIFIER_nondet_" #c_type))) {        \
-    this->instrumentNonDet(NonDetType::nondet_type, calleeFunction);          \
-    this->instrumentNonDet##type(callInst, Ctx);                              \
-  } else if ((calleeFunction->getName() == ("map2check_non_det_" #c_type))) { \
-    this->instrumentNonDet##type(callInst, Ctx);                              \
-  }
-}  // namespace
+// abi-mapping: map2check_non_det_<t> -> __VERIFIER_nondet_<t>,
+// map2check_nondet_<t> -> map2check_save_nondet_log_<t>.
+void NonDetPass::instrumentNonDet(CallInst *callInst, llvm::StringRef type) {
+  Function &F = *callInst->getFunction();
+  llvm::Module &module = *F.getParent();
+  LLVMContext &ctx = F.getContext();
 
-void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
-  Function *calleeFunction = callInst->getCalledFunction();
-
-  if (calleeFunction == NULL) {
-    Value *v = callInst->getCalledOperand();
-    calleeFunction = dyn_cast<Function>(v->stripPointerCasts());
-    if (calleeFunction == NULL) {
-      return;
-    }
+  // The generator keeps its name, except __VERIFIER_nondet_unsigned, which
+  // the library spells __VERIFIER_nondet_uint. Only this call is retargeted:
+  // the other calls keep naming their own C type, so they are logged as it.
+  std::string generator = Map2Check::nonDetGenerator(type);
+  if (callInst->getCalledOperand()->stripPointerCasts()->getName() !=
+      generator) {
+    llvm::FunctionCallee core = module.getOrInsertFunction(
+        generator, callInst->getFunctionType());
+    callInst->setCalledFunction(callInst->getFunctionType(), core.getCallee());
   }
 
-  // TODO(rafa.sa.xp@gmail.com): Should not rename __VERIFIER functions
-  // clang-format
-  if (true) {
-    CALL_IF_HELPER(Integer, INTEGER, int)
-  }
-  CALL_IF_HELPER(Unsigned, UNSIGNED, unsigned)
-  CALL_IF_HELPER(Char, CHAR, char)
-  CALL_IF_HELPER(Pointer, POINTER, pointer)
-  CALL_IF_HELPER(Long, LONG, long)
-  CALL_IF_HELPER(Ushort, USHORT, ushort)
-  CALL_IF_HELPER(Short, SHORT, short)
-  CALL_IF_HELPER(Ulong, ULONG, ulong)
-  CALL_IF_HELPER(Bool, BOOL, bool)
-  CALL_IF_HELPER(Uchar, UCHAR, uchar)
-  CALL_IF_HELPER(Pchar, PCHAR, pchar)
-  CALL_IF_HELPER(Size_t, SIZE_T, size_t)
-  CALL_IF_HELPER(Loff_t, LOFF_T, loff_t)
-  CALL_IF_HELPER(Sector_t, SECTOR_T, sector_t)
-  CALL_IF_HELPER(Uint, UINT, uint)
-  CALL_IF_HELPER(Double, DOUBLE, double)
+  Map2Check::NonDetValueSlot slot = Map2Check::nonDetValueSlot(type, ctx);
+  if (slot.type == nullptr || callInst->getType()->isVoidTy()) return;
 
-  if ((calleeFunction->getName() == "__VERIFIER_assume")) {
-    this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
-  } else if ((calleeFunction->getName() == "verifier.assume")) {
-    this->instrumentNonDet(NonDetType::CRAB_ASSUME, calleeFunction);
-  } else if ((calleeFunction->getName() == "map2check_assume")) {
-    // TODO(rafa.sa.xp@gmail.com): Implement method
-  }
-  // clang-format on
+  // The logger takes the value by address, in its C type
+  // (docs/api-deltas.md of the library), so it lives in an entry alloca.
+  // map2check.runtime marks the slot as instrumentation, which
+  // MemoryTrackPass does not track as program memory.
+  llvm::MDNode *runtimeTag = llvm::MDNode::get(ctx, {});
+  IRBuilder<> entryBuilder(&*F.getEntryBlock().getFirstInsertionPt());
+  llvm::AllocaInst *valueSlot = entryBuilder.CreateAlloca(
+      slot.type, nullptr, "map2check.nondet." + type);
+  valueSlot->setMetadata(Map2Check::kRuntimeMetadata, runtimeTag);
+
+  IRBuilder<> builder(callInst->getNextNode());
+  Value *value = toSlotType(builder, callInst, slot);
+  if (value == nullptr) return;
+  llvm::StoreInst *store = builder.CreateStore(value, valueSlot);
+  store->setMetadata(Map2Check::kRuntimeMetadata, runtimeTag);
+
+  DebugInfo debugInfo(&ctx, callInst);
+  llvm::FunctionCallee logger = module.getOrInsertFunction(
+      Map2Check::nonDetLogger(type), Map2Check::nonDetLoggerType(ctx));
+  Value *args[] = {debugInfo.getLineNumberValue(),
+                   debugInfo.getScopeNumberValue(),
+                   llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx),
+                                          slot.typeVar),
+                   valueSlot, this->functionName};
+  builder.CreateCall(logger, args);
 }
 
-namespace {
-#define INSTRUMENT_CASE_HELPER(nondet_type, c_type) \
-  case (NonDetType::nondet_type): {                 \
-    Twine non_det("map2check_non_det_" #c_type);    \
-    calleeFunction->setName(non_det);               \
-    break;                                          \
+// abi-mapping: map2check_crab_assume -> __VERIFIER_assume. Clam's
+// verifier.assume(i1) is nounwind; the core assume takes an i32 and unwinds,
+// so the call is replaced instead of renamed.
+void NonDetPass::instrumentCrabAssume(CallInst *callInst) {
+  llvm::Module &module = *callInst->getModule();
+  llvm::FunctionCallee assume =
+      Map2Check::getOrInsertRuntime(module, Map2Check::RuntimeHook::Assume);
+  IRBuilder<> builder(callInst);
+  Value *condition = callInst->getArgOperand(0);
+  if (!condition->getType()->isIntegerTy(1)) {
+    condition = builder.CreateICmpNE(
+        condition, llvm::Constant::getNullValue(condition->getType()));
   }
-}  // namespace
-void NonDetPass::instrumentNonDet(NonDetType nonDetType,
-                                  Function *calleeFunction) {
-  switch (nonDetType) {
-    INSTRUMENT_CASE_HELPER(INTEGER, int)
-    INSTRUMENT_CASE_HELPER(UNSIGNED, unsigned)
-    INSTRUMENT_CASE_HELPER(CHAR, char)
-    INSTRUMENT_CASE_HELPER(POINTER, pointer)
-    INSTRUMENT_CASE_HELPER(LONG, long)
-    INSTRUMENT_CASE_HELPER(USHORT, ushort)
-    INSTRUMENT_CASE_HELPER(SHORT, short)
-    INSTRUMENT_CASE_HELPER(ULONG, ulong)
-    INSTRUMENT_CASE_HELPER(BOOL, bool)
-    INSTRUMENT_CASE_HELPER(UCHAR, uchar)
-    INSTRUMENT_CASE_HELPER(PCHAR, pchar)
-    INSTRUMENT_CASE_HELPER(SIZE_T, size_t)
-    INSTRUMENT_CASE_HELPER(LOFF_T, loff_t)
-    INSTRUMENT_CASE_HELPER(SECTOR_T, sector_t)
-    INSTRUMENT_CASE_HELPER(UINT, uint)
-    INSTRUMENT_CASE_HELPER(DOUBLE, double)
-    case (NonDetType::ASSUME): {
-      Twine assume("map2check_assume");
-      calleeFunction->setName(assume);
-      break;
-    }
-    case (NonDetType::CRAB_ASSUME): {
-      Twine assume("map2check_crab_assume");
-      calleeFunction->setName(assume);
-      break;
-    }
-  }
+  CallInst *replacement = builder.CreateCall(
+      assume, {builder.CreateZExt(condition, builder.getInt32Ty())});
+  replacement->setDebugLoc(callInst->getDebugLoc());
+  callInst->eraseFromParent();
+  Map2Check::allowUnwind(*llvm::cast<Function>(assume.getCallee()));
 }
-
-namespace {
-#define NONDET_IMPL_HELPER_POINTER(type)                                    \
-  void NonDetPass::instrumentNonDet##type(CallInst *callInst,               \
-                                          LLVMContext *Ctx) {               \
-    auto j = this->currentInstruction;                                      \
-    j++;                                                                    \
-    IRBuilder<> builder(BBIteratorToInst(j));                               \
-    Value *function_llvm = this->getFunctionNameValue();                    \
-    Value *cast = builder.CreatePtrToInt(callInst, Type::getInt32Ty(*Ctx)); \
-    DebugInfo debugInfo(Ctx, callInst);                                     \
-    Value *args[] = {debugInfo.getLineNumberValue(),                        \
-                     debugInfo.getScopeNumberValue(), cast, function_llvm}; \
-    FunctionCallee NonDetFunction =                                              \
-        this->nonDetFunctions->getNonDet##type##Function();                 \
-    builder.CreateCall(NonDetFunction, args);                               \
-  }
-
-#define NONDET_IMPL_HELPER_CAST(type)                                        \
-  void NonDetPass::instrumentNonDet##type(CallInst *callInst,                \
-                                          LLVMContext *Ctx) {                \
-    auto j = this->currentInstruction;                                       \
-    j++;                                                                     \
-    IRBuilder<> builder(BBIteratorToInst(j));                                \
-    Value *function_llvm = this->getFunctionNameValue();                     \
-    Twine bitcast("map2check_nondet_cast_" #type);                           \
-    Value *castInteger =                                                     \
-        CastInst::CreateIntegerCast(callInst, Type::getInt32Ty(*Ctx), false, \
-                                    bitcast, BBIteratorToInst(j));           \
-    DebugInfo debugInfo(Ctx, callInst);                                      \
-    Value *args[] = {debugInfo.getLineNumberValue(),                         \
-                     debugInfo.getScopeNumberValue(), castInteger,           \
-                     function_llvm};                                         \
-    FunctionCallee NonDetFunction =                                               \
-        this->nonDetFunctions->getNonDet##type##Function();                  \
-    builder.CreateCall(NonDetFunction, args);                                \
-  }
-
-#define NONDET_IMPL_HELPER(type)                                \
-  void NonDetPass::instrumentNonDet##type(CallInst *callInst,   \
-                                          LLVMContext *Ctx) {   \
-    auto j = this->currentInstruction;                          \
-    j++;                                                        \
-    IRBuilder<> builder(BBIteratorToInst(j));                   \
-    Value *function_llvm = this->getFunctionNameValue();        \
-    DebugInfo debugInfo(Ctx, callInst);                         \
-    Value *args[] = {debugInfo.getLineNumberValue(),            \
-                     debugInfo.getScopeNumberValue(), callInst, \
-                     function_llvm};                            \
-    FunctionCallee NonDetFunction =                                  \
-        this->nonDetFunctions->getNonDet##type##Function();     \
-    builder.CreateCall(NonDetFunction, args);                   \
-  }
-}  // namespace
-
-NONDET_IMPL_HELPER(Integer)
-NONDET_IMPL_HELPER(Unsigned)
-NONDET_IMPL_HELPER(Uint)
-NONDET_IMPL_HELPER(Double)
-NONDET_IMPL_HELPER_CAST(Char)
-NONDET_IMPL_HELPER_CAST(Ushort)
-NONDET_IMPL_HELPER_CAST(Short)
-NONDET_IMPL_HELPER_CAST(Long)
-NONDET_IMPL_HELPER_CAST(Ulong)
-NONDET_IMPL_HELPER_CAST(Bool)
-NONDET_IMPL_HELPER_CAST(Uchar)
-NONDET_IMPL_HELPER_CAST(Size_t)
-NONDET_IMPL_HELPER_CAST(Loff_t)
-NONDET_IMPL_HELPER_CAST(Sector_t)
-NONDET_IMPL_HELPER_POINTER(Pchar)
-NONDET_IMPL_HELPER_POINTER(Pointer)
 
 // --- New Pass Manager plugin registration ---
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo

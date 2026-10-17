@@ -1,0 +1,76 @@
+Adopting z3 solver... 
+Adopting symex nondet-generator... 
+[0;32mStarted Map2Check[0m
+[0;32mCompiling /src/tests/regression_test/test_cases/sv-benchmarks/array-examples/relax-1.c[0m
+[0;32mAdding nondet pass[0m
+[0;32mAdding memtrack pass[0m
+[0;32mAdding map2check pass[0m
+[0;32mLinking with map2check library[0m
+[0;32mApplying optimizations for klee[0m
+[0;32mExecuting Klee with map2check[0m
+[0;32mSolver backend caller: z3[0m
+KLEE: NOTE: Using klee-uclibc : /src/release/lib/klee/runtime/klee-uclibc.bca
+KLEE: output directory is "/tmp/tmp.CKJE0V2SXY/10a8cc7f8ad88ce445fb123804a07fc4ee780c31.map2check/./klee-out-0"
+KLEE: Using Z3 solver backend
+KLEE: Deterministic allocator: Using quarantine queue size 8
+KLEE: Deterministic allocator: globals (start-address=0x7f18e9600000 size=10 GiB)
+KLEE: Deterministic allocator: constants (start-address=0x7f1669600000 size=10 GiB)
+KLEE: Deterministic allocator: heap (start-address=0x7e1669600000 size=1024 GiB)
+KLEE: Deterministic allocator: stack (start-address=0x7df669600000 size=128 GiB)
+KLEE: WARNING: undefined reference to function: close
+KLEE: WARNING: undefined reference to function: fcntl
+KLEE: WARNING: undefined reference to function: fstat
+KLEE: WARNING: undefined reference to function: ioctl
+KLEE: WARNING: undefined reference to function: lseek64
+KLEE: WARNING: undefined reference to function: open
+KLEE: WARNING: undefined reference to function: write
+KLEE: WARNING ONCE: calling external: ioctl(0, 21505, 138542380482560) at libc/termios/tcgetattr.c:43 12
+KLEE: WARNING ONCE: calling __user_main with extra arguments.
+KLEE: WARNING ONCE: calling __map2check_main__ with extra arguments.
+KLEE: WARNING ONCE: Alignment of memory from call "malloc" is not modelled. Using alignment of 8.
+KLEE: WARNING ONCE: Alignment of memory from call "realloc" is not modelled. Using alignment of 8.
+KLEE: NOTE: found huge malloc, returning 0
+KLEE: ERROR: 10a8cc7f8ad88ce445fb123804a07fc4ee780c31.map2check-preprocessed.c:127: concretized symbolic size
+KLEE: NOTE: now ignoring this error at this location
+KLEE: WARNING ONCE: calling external: open(139738663092224, 577, 438) at libc/stdio/_fopen.c:146 8
+KLEE: WARNING ONCE: calling external: write(12, 139499889754112, 8) at libc/stdio/_WRITE.c:52 11
+KLEE: WARNING ONCE: calling external: close(12) at libc/stdio/fclose.c:56 22
+KLEE: NOTE: found huge malloc, returning 0
+KLEE: ERROR: 10a8cc7f8ad88ce445fb123804a07fc4ee780c31.map2check-preprocessed.c:128: concretized symbolic size
+KLEE: NOTE: now ignoring this error at this location
+KLEE: WARNING ONCE: silently concretizing (reason: external call) expression (Extract w8 0 (Add w32 48
+                        (URem w32 (Extract w32 0 (Sub w64 0
+                                                          (SExt w64 (ReadLSB w32 0 non_det_ulong))))
+                                  10))) to value 51 (libc/stdio/_WRITE.c:52)
+KLEE: ERROR: (location information missing) abort failure
+KLEE: NOTE: now ignoring this error at this location
+KLEE: halting execution, dumping remaining states
+
+KLEE: done: total instructions = 4630430
+KLEE: done: completed paths = 0
+KLEE: done: partially completed paths = 115
+KLEE: done: generated tests = 115
+[1;33mExited klee with 0[0m
+[0;32mStarted counter example generation[0m
+[0;32mCounter-example:
+[0m
+[0;32mState 0: file /src/tests/regression_test/test_cases/sv-benchmarks/array-examples/relax-1.c
+------------------------------------------------------------
+>Symbolic log
+  Value          : -3
+  Line Number    : 125
+  Function Scope : main
+[0m
+[0;32mState 1: file /src/tests/regression_test/test_cases/sv-benchmarks/array-examples/relax-1.c
+------------------------------------------------------------
+>Symbolic log
+  Value          : -2
+  Line Number    : 125
+  Function Scope : main
+[0m
+[0;32m----------------------------------------------------
+Violated property:
+	file map2check_property line 108 function is_relaxed_prefix
+	FALSE-DEREF: Reference to pointer was lost
+
+VERIFICATION FAILED[0m

@@ -30,7 +30,6 @@
 
 #include "../../frontend/utils/tools.hpp"
 #include "DebugInfo.hpp"
-#include "LibraryFunctions.hpp"
 
 // using namespace llvm;
 namespace Tools = Map2Check;
@@ -63,7 +62,7 @@ struct TrackBasicBlockPass : public llvm::PassInfoMixin<TrackBasicBlockPass> {
  private:
   std::unique_ptr<Tools::SourceCodeHelper> sourceCodeHelper;
   std::string c_program_path;
-  std::unique_ptr<LibraryFunctions> libraryFunctions;
+  llvm::FunctionCallee trackBB;
   bool initializedFunctionName = false;
   bool isUnreachableInst = false;
   BasicBlock::iterator st_lastBlockInst;

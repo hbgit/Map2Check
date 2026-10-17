@@ -6,6 +6,11 @@
 # Unit tests use -DSKIP_KLEE=ON -DSKIP_AFL_PLUS_PLUS=ON,
 # so the full Dockerfile.dev dependencies are not needed.
 #
+# Runtime: map2check-library (Rust), the pinned release fetched by
+# scripts/runtime/fetch-map2check-library.sh into /opt/map2check-library
+# (-DMAP2CHECK_RUST_LIB_DIR). The C runtime (modules/backend/library) is out
+# of the build and is no longer compiled or analysed here.
+#
 # Phase 1.5 — OpenSSF Best Practices Badge (Analysis section)
 ############################################################
 name: CI
@@ -54,6 +59,9 @@ jobs:
           sudo tar xzf /tmp/wabt.tar.gz -C /opt
           sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
+      - name: Fetch map2check-library (Rust runtime)
+        run: sudo bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+
       - name: Configure CMake
         run: |
           mkdir -p build && cd build
@@ -61,6 +69,7 @@ jobs:
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
             -DSKIP_AFL_PLUS_PLUS=ON \
             -DSKIP_KLEE=ON \
+            -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
             -DENABLE_TEST=ON
         env:
           CC: /usr/bin/clang-16
@@ -99,6 +108,9 @@ jobs:
           sudo tar xzf /tmp/wabt.tar.gz -C /opt
           sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
+      - name: Fetch map2check-library (Rust runtime)
+        run: sudo bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+
       - name: Generate compile_commands.json
         run: |
           mkdir -p build && cd build
@@ -106,6 +118,7 @@ jobs:
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
             -DSKIP_AFL_PLUS_PLUS=ON \
             -DSKIP_KLEE=ON \
+            -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
             -DENABLE_TEST=ON \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
         env:
@@ -128,23 +141,6 @@ jobs:
             -I modules/ \
             modules/frontend/ \
             tests/unit/
-
-      - name: Run cppcheck (C backend)
-        # Blocking since the backend was cleared of all findings
-        # (migration-schedule item 2.0.12 / OpenSSF static_analysis_fixed)
-        run: |
-          cppcheck \
-            --enable=warning,portability \
-            --suppress=missingIncludeSystem \
-            --suppress=unknownMacro \
-            --suppress=unusedFunction \
-            --suppressions-list=.cppcheck-suppressions.txt \
-            --inline-suppr \
-            --error-exitcode=1 \
-            --std=c11 \
-            --language=c \
-            -I modules/ \
-            modules/backend/library/
 
       - name: Build (for clang-tidy)
         run: cd build && ninja
@@ -186,6 +182,9 @@ jobs:
           sudo tar xzf /tmp/wabt.tar.gz -C /opt
           sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
+      - name: Fetch map2check-library (Rust runtime)
+        run: sudo bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+
       - name: Configure CMake with Sanitizers
         run: |
           mkdir -p build && cd build
@@ -193,6 +192,7 @@ jobs:
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
             -DSKIP_AFL_PLUS_PLUS=ON \
             -DSKIP_KLEE=ON \
+            -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
             -DENABLE_TEST=ON \
             -DMAP2CHECK_ENABLE_SANITIZERS=ON
         env:
@@ -215,6 +215,50 @@ jobs:
         run: cd build && ctest --output-on-failure
 
   # ===========================================================
+  # Job: KLEE runtime bitcode of map2check-library
+  # ===========================================================
+  # The release archive does not ship the symex (KLEE) runtime; it is built
+  # from the same pinned tag with rustc 1.72.1 (LLVM 16) and handed to the
+  # Docker jobs below as -DMAP2CHECK_RUST_KLEE_BC. Cached on the script,
+  # which holds the pin.
+  klee-runtime:
+    name: KLEE Runtime Bitcode
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache the bitcode
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: m2c-klee/map2check-klee.bc
+          key: map2check-klee-bc-${{ hashFiles('scripts/runtime/build-map2check-klee-bc.sh') }}
+
+      - name: Install LLVM 16 tools + rustc 1.72.1
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main" | sudo tee /etc/apt/sources.list.d/llvm-16.list
+          sudo apt-get update
+          sudo apt-get install -y llvm-16
+          rustup toolchain install 1.72.1 --profile minimal
+
+      - name: Build map2check-klee.bc
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: bash scripts/runtime/build-map2check-klee-bc.sh m2c-klee/map2check-klee.bc
+
+      - name: Upload the bitcode
+        uses: actions/upload-artifact@v4
+        with:
+          name: map2check-klee-bc
+          path: m2c-klee/map2check-klee.bc
+          if-no-files-found: error
+          retention-days: 7
+
+  # ===========================================================
   # Job 4: WASM End-to-End Tests (Docker)
   # ===========================================================
   # Runs the full pipeline inside the published map2check-dev image,
@@ -225,7 +269,7 @@ jobs:
     name: WASM E2E Tests (Docker)
     runs-on: ubuntu-22.04
     timeout-minutes: 45
-    needs: [build-and-test]
+    needs: [build-and-test, klee-runtime]
 
     steps:
       - name: Checkout
@@ -241,11 +285,26 @@ jobs:
       - name: Pull map2check-dev image
         run: docker pull ghcr.io/hbgit/map2check-dev:latest
 
+      - name: Fetch map2check-library (Rust runtime)
+        run: sudo bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+
+      - name: Download KLEE runtime bitcode
+        uses: actions/download-artifact@v4
+        with:
+          name: map2check-klee-bc
+          path: ${{ runner.temp }}/m2c-klee
+
+      - name: Stage KLEE runtime bitcode
+        run: |
+          sudo install -D -m 644 "${{ runner.temp }}/m2c-klee/map2check-klee.bc" \
+            /opt/map2check-library/klee/map2check-klee.bc
+
       - name: Build + install Map2Check in container
         run: |
           docker run --rm \
             -u root \
             -v "${{ github.workspace }}:/workspace" \
+            -v /opt/map2check-library:/opt/map2check-library:ro \
             -w /workspace \
             -e CC=/usr/bin/clang-16 \
             -e CXX=/usr/bin/clang++-16 \
@@ -266,6 +325,8 @@ jobs:
               mkdir -p build_e2e && cd build_e2e
               cmake .. -G Ninja \
                 -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
+                -DMAP2CHECK_RUST_KLEE_BC=/opt/map2check-library/klee/map2check-klee.bc \
                 -DENABLE_TEST=ON \
                 -DMAP2CHECK_DYNAMIC_LINK=ON \
                 -DCMAKE_INSTALL_PREFIX=/workspace/install_e2e
@@ -310,7 +371,7 @@ jobs:
     name: CASTLE Regression
     runs-on: ubuntu-22.04
     timeout-minutes: 20
-    needs: [build-and-test]
+    needs: [build-and-test, klee-runtime]
 
     steps:
       - name: Checkout
@@ -326,11 +387,26 @@ jobs:
       - name: Pull map2check-dev image
         run: docker pull ghcr.io/hbgit/map2check-dev:latest
 
+      - name: Fetch map2check-library (Rust runtime)
+        run: sudo bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+
+      - name: Download KLEE runtime bitcode
+        uses: actions/download-artifact@v4
+        with:
+          name: map2check-klee-bc
+          path: ${{ runner.temp }}/m2c-klee
+
+      - name: Stage KLEE runtime bitcode
+        run: |
+          sudo install -D -m 644 "${{ runner.temp }}/m2c-klee/map2check-klee.bc" \
+            /opt/map2check-library/klee/map2check-klee.bc
+
       - name: Build + install Map2Check in container
         run: |
           docker run --rm \
             -u root \
             -v "${{ github.workspace }}:/workspace" \
+            -v /opt/map2check-library:/opt/map2check-library:ro \
             -w /workspace \
             -e CC=/usr/bin/clang-16 \
             -e CXX=/usr/bin/clang++-16 \
@@ -339,6 +415,8 @@ jobs:
               mkdir -p build_castle_ci && cd build_castle_ci
               cmake .. -G Ninja \
                 -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
+                -DMAP2CHECK_RUST_KLEE_BC=/opt/map2check-library/klee/map2check-klee.bc \
                 -DENABLE_TEST=ON \
                 -DMAP2CHECK_DYNAMIC_LINK=ON \
                 -DCMAKE_INSTALL_PREFIX=/workspace/install_castle_ci
@@ -387,7 +465,7 @@ jobs:
     name: Invariants (Clam)
     runs-on: ubuntu-22.04
     timeout-minutes: 25
-    needs: [build-and-test]
+    needs: [build-and-test, klee-runtime]
 
     steps:
       - name: Checkout
@@ -403,11 +481,26 @@ jobs:
       - name: Pull map2check-dev image
         run: docker pull ghcr.io/hbgit/map2check-dev:latest
 
+      - name: Fetch map2check-library (Rust runtime)
+        run: sudo bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+
+      - name: Download KLEE runtime bitcode
+        uses: actions/download-artifact@v4
+        with:
+          name: map2check-klee-bc
+          path: ${{ runner.temp }}/m2c-klee
+
+      - name: Stage KLEE runtime bitcode
+        run: |
+          sudo install -D -m 644 "${{ runner.temp }}/m2c-klee/map2check-klee.bc" \
+            /opt/map2check-library/klee/map2check-klee.bc
+
       - name: Build with -DENABLE_CLAM=ON
         run: |
           docker run --rm \
             -u root \
             -v "${{ github.workspace }}:/workspace" \
+            -v /opt/map2check-library:/opt/map2check-library:ro \
             -w /workspace \
             -e CC=/usr/bin/clang-16 \
             -e CXX=/usr/bin/clang++-16 \
@@ -416,6 +509,8 @@ jobs:
               mkdir -p build_clam_ci && cd build_clam_ci
               cmake .. -G Ninja \
                 -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
+                -DMAP2CHECK_RUST_KLEE_BC=/opt/map2check-library/klee/map2check-klee.bc \
                 -DENABLE_CLAM=ON \
                 -DMAP2CHECK_DYNAMIC_LINK=ON \
                 -DCMAKE_INSTALL_PREFIX=/workspace/install_clam_ci
@@ -452,7 +547,7 @@ jobs:
     name: Test-Comp Validation (TestCov)
     runs-on: ubuntu-22.04
     timeout-minutes: 25
-    needs: [build-and-test]
+    needs: [build-and-test, klee-runtime]
 
     steps:
       - name: Checkout
@@ -468,11 +563,26 @@ jobs:
       - name: Pull map2check-dev image
         run: docker pull ghcr.io/hbgit/map2check-dev:latest
 
+      - name: Fetch map2check-library (Rust runtime)
+        run: sudo bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+
+      - name: Download KLEE runtime bitcode
+        uses: actions/download-artifact@v4
+        with:
+          name: map2check-klee-bc
+          path: ${{ runner.temp }}/m2c-klee
+
+      - name: Stage KLEE runtime bitcode
+        run: |
+          sudo install -D -m 644 "${{ runner.temp }}/m2c-klee/map2check-klee.bc" \
+            /opt/map2check-library/klee/map2check-klee.bc
+
       - name: Build + install Map2Check in container
         run: |
           docker run --rm \
             -u root \
             -v "${{ github.workspace }}:/workspace" \
+            -v /opt/map2check-library:/opt/map2check-library:ro \
             -w /workspace \
             -e CC=/usr/bin/clang-16 \
             -e CXX=/usr/bin/clang++-16 \
@@ -481,6 +591,8 @@ jobs:
               mkdir -p build_testcov_ci && cd build_testcov_ci
               cmake .. -G Ninja \
                 -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+                -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
+                -DMAP2CHECK_RUST_KLEE_BC=/opt/map2check-library/klee/map2check-klee.bc \
                 -DMAP2CHECK_DYNAMIC_LINK=ON \
                 -DCMAKE_INSTALL_PREFIX=/workspace/install_testcov_ci
               ninja
@@ -547,6 +659,9 @@ jobs:
           sudo tar xzf /tmp/wabt.tar.gz -C /opt
           sudo ln -sf /opt/wabt-1.0.41/bin/wasm2c /usr/local/bin/wasm2c
 
+      - name: Fetch map2check-library (Rust runtime)
+        run: sudo bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+
       - name: Configure CMake (Debug, sem sanitizers)
         run: |
           mkdir -p build && cd build
@@ -554,6 +669,7 @@ jobs:
             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
             -DSKIP_AFL_PLUS_PLUS=ON \
             -DSKIP_KLEE=ON \
+            -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
             -DENABLE_TEST=ON \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_C_FLAGS="-gdwarf-4" \

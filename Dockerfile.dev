@@ -393,6 +393,29 @@ RUN ${WASI_SDK_PATH}/bin/clang --version && \
     ${WASI_SDK_PATH}/bin/wasm-ld --version
 
 # ============================================================
+# 9b. Map2Check runtime: map2check-library (Rust), pinned release
+# ============================================================
+# The release archive (SHA-256 pinned in the script) holds the static library
+# Map2Check links (lib/libmap2check_runtime.a). The KLEE runtime bitcode is
+# not in the archive: it is built from the same tag (commit pinned in the
+# script) with rustc 1.72.1, whose LLVM is 16, and the LLVM 16 tools above.
+# The Rust toolchain only serves this build and is removed afterwards.
+# Map2Check's CMake reads MAP2CHECK_RUST_LIB_DIR / MAP2CHECK_RUST_KLEE_BC
+# from the environment (cmake/Map2CheckRustRuntime.cmake).
+COPY scripts/runtime/fetch-map2check-library.sh scripts/runtime/build-map2check-klee-bc.sh /tmp/m2c-runtime/
+RUN bash /tmp/m2c-runtime/fetch-map2check-library.sh /opt/map2check-library && \
+    export RUSTUP_HOME=/tmp/m2c-rustup CARGO_HOME=/tmp/m2c-cargo && \
+    curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal \
+      --default-toolchain 1.72.1 --no-modify-path && \
+    PATH="/tmp/m2c-cargo/bin:${PATH}" bash /tmp/m2c-runtime/build-map2check-klee-bc.sh \
+      /opt/map2check-library/klee/map2check-klee.bc && \
+    llvm-dis-16 /opt/map2check-library/klee/map2check-klee.bc -o /dev/null && \
+    rm -rf /tmp/m2c-runtime /tmp/m2c-rustup /tmp/m2c-cargo
+
+ENV MAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib
+ENV MAP2CHECK_RUST_KLEE_BC=/opt/map2check-library/klee/map2check-klee.bc
+
+# ============================================================
 # 10. User setup
 # ============================================================
 RUN useradd -m map2check && \

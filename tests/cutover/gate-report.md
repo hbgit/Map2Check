@@ -351,3 +351,37 @@ R−C is the difference of the median wall times. "profiled" marks a row with it
 - Every profiled exploration phase is as fast as C's or faster.
 
 **Criterion 9:** criteria 6 and 7 pass, so none of the 18 rows blocks. All 18 now have a recorded cause. The plan names `docs/cutover/perf.md` as the place for these profiles. That file does not exist yet in either repository, so the profiles are recorded here.
+
+## Re-execução symex com runtime KLEE reduzido (2026-10-16)
+
+Only the Rust symex side was re-run. The runtime bitcode is now slimmer (std's backtrace symbolizer stubbed out). The afl rows and the C tables are unchanged.
+
+### Setup
+
+- map2check-library `94a17ec` (`ef166d1` + `94a17ec`), built from a `git archive` with a fresh `CARGO_TARGET_DIR`: `cargo build --profile runtime --features libfuzzer,wasm`, and `scripts/build-klee-runtime.sh` (rustc 1.72.1, LLVM 16.0.5) inside `map2check-dev:cutover-klee-rust`.
+- Map2Check-rust `33e3b005`, installed into fresh `build-gate3/` and `release-gate3/` with the same CMake flags as `release-gate2`, pointing `MAP2CHECK_RUST_LIB_DIR` and `MAP2CHECK_RUST_KLEE_BC` at the new artifacts. `cmp` confirms the installed `.a` and `.bc` are the ones built.
+- Installed `map2check-klee.bc`: 1 241 728 bytes (1.24 MB), against 2 296 020 bytes in `release-gate2`.
+- Same image (`cutover-klee-rust-time`), same caps (`--memory 3g --memory-swap 3g --cpus 4`, KLEE `--max-memory=2000` through the overlay `bin/klee` wrapper, confirmed in the process list), `GENS=symex REPS=5 TIMEOUT=45`, and `free -g` showed 4 GB available before the container started.
+- Output: `baseline-rust-symex-slim.tsv` (205 rows). `baseline-rust-v2.tsv` is the afl rows of `baseline-rust.tsv` plus these symex rows (410 rows).
+
+### compare.py (C gate baseline vs v2, with `deltas-aceitos.tsv`)
+
+```
+median wall ratio: 1.011  median rss ratio: 1.081
+
+gate: PASS
+```
+
+No field divergence outside the accepted deltas. Against the first run, no symex row changed verdict, tag, line, function or witness.
+
+### Before and after (Rust/C)
+
+| gen | median wall before → after | median RSS before → after | Σ median wall Rust (C = 617.0 s symex) | rows >1.5 wall | TIMEOUT / OOM |
+|---|---|---|---|---|---|
+| afl | 1.003 → 1.003 | 0.987 → 0.987 | 167.5 s (unchanged) | 3 → 3 | 0 / 0 |
+| symex | 1.091 → 1.035 | 1.582 → 1.224 | 599.7 s → 523.0 s | 15 → 10 | 0 / 0 |
+| all | 1.015 → 1.011 | 1.360 → 1.081 | 767.2 s → 690.6 s (C 782.2 s) | 18 → 13 | 0 / 0 |
+
+- Criterion 6 passes (1.011 ≤ 1.10), criterion 7 passes (0 TIMEOUT, 0 Rust OOM), criterion 8 passes (1.081 ≤ 1.36, and also ≤ 1.25).
+- Symex median peak RSS: C 143.7 MB, Rust 225.5 MB → 168.2 MB. Largest Rust peak: 443.6 MB (split_list_test05-1).
+- Criterion 9: 13 rows above 1.5 wall (10 symex, 3 afl), all with C under 1 s and Rust 0.8–1.55 s. The symex ones are the short tasks (C 0.35–0.96 s, Rust 1.35–1.55 s), so the fixed start-up cost of about +1 s remains.

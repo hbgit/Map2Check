@@ -13,6 +13,14 @@ set(MAP2CHECK_RUST_SRC "$ENV{MAP2CHECK_RUST_SRC}" CACHE PATH "map2check-library 
 set(MAP2CHECK_RUST_KLEE_BC "$ENV{MAP2CHECK_RUST_KLEE_BC}" CACHE FILEPATH "Prebuilt KLEE runtime bitcode (empty = none, or built from MAP2CHECK_RUST_SRC when rustc 1.72.1 is available)")
 
 # --- Static library ---
+# Any nm that can read the archive will do (see Map2CheckRustRuntimeCheck.cmake).
+find_program(M2C_NM nm)
+find_program(M2C_LLVM_NM llvm-nm)
+set(_m2c_nms ${CMAKE_NM} ${M2C_NM} ${M2C_LLVM_NM})
+list(REMOVE_DUPLICATES _m2c_nms)
+set(_m2c_check "${CMAKE_CURRENT_LIST_DIR}/Map2CheckRustRuntimeCheck.cmake")
+set(_m2c_build_hint "Build it with: cargo build --profile runtime --features libfuzzer,wasm")
+
 if(MAP2CHECK_RUST_LIB_DIR)
   # The release archive (lib/ of map2check-library-<ver>-<target>.tar.gz)
   # ships three builds; the one Map2Check links is libmap2check_runtime.a
@@ -21,9 +29,8 @@ if(MAP2CHECK_RUST_LIB_DIR)
   # be a local `cargo build --profile runtime --features libfuzzer,wasm`
   # output (target/runtime), whose libmap2check.a is the runtime build under
   # the plain name. That fallback is accepted only when the archive defines
-  # the symbols of both features (LLVMFuzzerTestOneInput: libfuzzer;
-  # map2check_wasm_malloc: wasm), so the core build, which defines neither,
-  # is never picked by accident.
+  # the symbols of both features, so the core or libfuzzer-only build is
+  # never picked by accident.
   if(EXISTS "${MAP2CHECK_RUST_LIB_DIR}/libmap2check_runtime.a")
     set(_m2c_rust_lib "${MAP2CHECK_RUST_LIB_DIR}/libmap2check_runtime.a")
   else()
@@ -32,46 +39,28 @@ if(MAP2CHECK_RUST_LIB_DIR)
       message(FATAL_ERROR "libmap2check.a not found in ${MAP2CHECK_RUST_LIB_DIR} "
         "(nor libmap2check_runtime.a; build it with: cargo build --profile runtime --features libfuzzer,wasm)")
     endif()
-    # Any nm that can read the archive will do. The members carry bitcode
-    # from rustc's LLVM, newer than 16, which llvm-nm-16 (the CMAKE_NM of a
-    # clang-16 toolchain) rejects, so the other nm programs are tried too.
-    find_program(M2C_NM nm)
-    find_program(M2C_LLVM_NM llvm-nm)
-    set(_m2c_nms ${CMAKE_NM} ${M2C_NM} ${M2C_LLVM_NM})
-    list(REMOVE_DUPLICATES _m2c_nms)
-    set(_m2c_missing LLVMFuzzerTestOneInput map2check_wasm_malloc)
-    foreach(_m2c_nm IN LISTS _m2c_nms)
-      execute_process(COMMAND "${_m2c_nm}" -g --defined-only "${_m2c_rust_lib}"
-        OUTPUT_VARIABLE _m2c_nm_out ERROR_QUIET)
-      set(_m2c_missing_here "")
-      foreach(_m2c_sym LLVMFuzzerTestOneInput map2check_wasm_malloc)
-        if(NOT _m2c_nm_out MATCHES " T ${_m2c_sym}(\n|$)")
-          list(APPEND _m2c_missing_here ${_m2c_sym})
-        endif()
-      endforeach()
-      if(NOT _m2c_missing_here)
-        set(_m2c_missing "")
-        break()
-      endif()
-    endforeach()
-    if(_m2c_missing)
-      list(JOIN _m2c_missing ", " _m2c_missing)
-      message(FATAL_ERROR "${_m2c_rust_lib} is not the Map2Check runtime build: "
-        "it does not define ${_m2c_missing} (the featureless core libmap2check.a "
-        "defines neither). Point MAP2CHECK_RUST_LIB_DIR at the lib/ of the "
-        "map2check-library release archive (it has libmap2check_runtime.a), or at "
-        "the target/runtime of: cargo build --profile runtime --features libfuzzer,wasm")
-    endif()
+    set(M2C_LIB "${_m2c_rust_lib}")
+    set(M2C_NMS "${_m2c_nms}")
+    string(CONCAT M2C_HINT "Point MAP2CHECK_RUST_LIB_DIR at the lib/ of the "
+      "map2check-library release archive (it has libmap2check_runtime.a), or at "
+      "the target/runtime of: cargo build --profile runtime --features libfuzzer,wasm")
+    include("${_m2c_check}")
   endif()
 elseif(MAP2CHECK_RUST_SRC)
   find_program(M2C_CARGO cargo REQUIRED)
   set(_m2c_rust_lib "${MAP2CHECK_RUST_SRC}/target/runtime/libmap2check.a")
-  add_custom_command(OUTPUT "${_m2c_rust_lib}"
+  # Always run: cargo is incremental, so this is cheap when nothing changed,
+  # and an archive already in target/runtime (say, from a build without the
+  # features) is never taken as up to date. The check after cargo fails the
+  # build unless the archive is the runtime build.
+  add_custom_target(Map2CheckRustRuntime ALL
     COMMAND ${M2C_CARGO} build --profile runtime --features libfuzzer,wasm
+    COMMAND ${CMAKE_COMMAND} -DM2C_LIB=${_m2c_rust_lib} "-DM2C_NMS=${_m2c_nms}"
+      "-DM2C_HINT=${_m2c_build_hint} in ${MAP2CHECK_RUST_SRC}" -P "${_m2c_check}"
+    BYPRODUCTS "${_m2c_rust_lib}"
     WORKING_DIRECTORY "${MAP2CHECK_RUST_SRC}"
     COMMENT "Building the Rust runtime (libmap2check.a)"
     VERBATIM)
-  add_custom_target(Map2CheckRustRuntime ALL DEPENDS "${_m2c_rust_lib}")
 else()
   message(FATAL_ERROR "Set MAP2CHECK_RUST_LIB_DIR or MAP2CHECK_RUST_SRC to provide the Rust runtime")
 endif()

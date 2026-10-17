@@ -138,8 +138,9 @@ class Caller {
 
   /** Compiles the input through Clam so the emitted bitcode carries
    * verifier.assume(invariant) calls. Requires Clam dev16 installed; callers
-   * must have checked availability first (main() refuses the run otherwise). */
-  void compileWithClam();
+   * must have checked availability first (main() refuses the run otherwise).
+   * Bitcode input (is_llvm_bc) is handed to Clam as is. */
+  void compileWithClam(bool is_llvm_bc);
 
   /** @brief Function to call pass for current verification mode
    *  (for REACHABILITY mode)

@@ -489,9 +489,13 @@ int map2check_execution(map2check_args args) {
   // generator is installed. The old code branched on !is_llvmir_in and so
   // never even looked at the flag for bitcode input -- how the baselines, the
   // CASTLE harness and the BenchExec wrappers all invoke the tool -- which is
-  // why it was ignored without a trace (issue #54).
-  if (!is_llvmir_in && args.invCrabLlvm) {
-    caller->compileWithClam();
+  // why it was ignored without a trace (issue #54). The run was no longer
+  // refused, but bitcode input still took compileCFile and Clam never ran:
+  // test_add_invariants.sh passed only because the C runtime, linked into
+  // the result bitcode, defined map2check_crab_assume. Bitcode input goes
+  // through Clam too.
+  if (args.invCrabLlvm) {
+    caller->compileWithClam(is_llvmir_in);
   } else {
     caller->compileCFile(is_llvmir_in);
   }

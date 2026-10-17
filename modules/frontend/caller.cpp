@@ -1081,39 +1081,43 @@ void Caller::compileCFile(bool is_llvm_bc) {
   // TODO(hbgit): (3) Check for overflow errors on compilation
 }
 
-void Caller::compileWithClam() {
+void Caller::compileWithClam(bool is_llvm_bc) {
   Map2Check::Log::Info("Compiling with Clam (invariants) in " + this->pathprogram);
 
+  // Bitcode input skips the C clean-up and the clang step below: the module
+  // goes to clam.py as is (clamInput), which skips its own clang step for
+  // bitcode.
   // (1) Remove unsupported functions and clean the C code
-  // TODO(hbgit): improve regex to the next line
-  std::ostringstream commandRemoveExternMalloc;
-  commandRemoveExternMalloc.str("");
-  commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
-  commandRemoveExternMalloc << "sed -e 's/extern void [*].[^_]*lloc.*/ / g' "
-                            << " > " << programHash << "-preprocessed.c ";
-  system(commandRemoveExternMalloc.str().c_str());
+  if (!is_llvm_bc) {
+    // TODO(hbgit): improve regex to the next line
+    std::ostringstream commandRemoveExternMalloc;
+    commandRemoveExternMalloc.str("");
+    commandRemoveExternMalloc << "cat " << this->pathprogram << " | ";
+    commandRemoveExternMalloc << "sed -e 's/extern void [*].[^_]*lloc.*/ / g' "
+                              << " > " << programHash << "-preprocessed.c ";
+    system(commandRemoveExternMalloc.str().c_str());
 
-  std::ostringstream commandRemoveExternMemset;
-  commandRemoveExternMemset.str("");
-  commandRemoveExternMemset << "sed -i 's/extern void [*]memset.*/ / g' "
-                            << " " << programHash << "-preprocessed.c ";
-  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
-  system(commandRemoveExternMemset.str().c_str());
+    std::ostringstream commandRemoveExternMemset;
+    commandRemoveExternMemset.str("");
+    commandRemoveExternMemset << "sed -i 's/extern void [*]memset.*/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveExternMemset.str().c_str());
 
-  std::ostringstream commandRemoveVoidMemset;
-  commandRemoveVoidMemset.str("");
-  commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
-                            << " " << programHash << "-preprocessed.c ";
-  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
-  system(commandRemoveVoidMemset.str().c_str());
+    std::ostringstream commandRemoveVoidMemset;
+    commandRemoveVoidMemset.str("");
+    commandRemoveVoidMemset << "sed -i 's/void [*]memset(void[*], int, size_t);/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveVoidMemset.str().c_str());
 
-  std::ostringstream commandRemoveVoidMemcpy;
-  commandRemoveVoidMemcpy.str("");
-  commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
-                            << " " << programHash << "-preprocessed.c ";
-  // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
-  system(commandRemoveVoidMemcpy.str().c_str());
-
+    std::ostringstream commandRemoveVoidMemcpy;
+    commandRemoveVoidMemcpy.str("");
+    commandRemoveVoidMemcpy << "sed -i 's/void [*]memcpy(void[*], const void [*], size_t);/ / g' "
+                              << " " << programHash << "-preprocessed.c ";
+    // Map2Check::Log::Info(commandRemoveExternMemset.str().c_str());
+    system(commandRemoveVoidMemcpy.str().c_str());
+  }
 
   // (2) Generate .bc file from code
   // TODO(hbgit): -Winteger-overflow should be called only if is on overflow
@@ -1198,8 +1202,14 @@ void Caller::compileWithClam() {
                  << " -I" << clamRoot << "/include"
                  << " -o " << clamInput << " " << programHash
                  << "-preprocessed.c";
-  Map2Check::Log::Debug(compileForClam.str());
-  system(compileForClam.str().c_str());
+  if (is_llvm_bc) {
+    std::ostringstream copyForClam;
+    copyForClam << "cp " << this->pathprogram << " " << clamInput;
+    system(copyForClam.str().c_str());
+  } else {
+    Map2Check::Log::Debug(compileForClam.str());
+    system(compileForClam.str().c_str());
+  }
 
   command << Map2Check::clamBinary() << " -o " << compiledFile << " -m 64 -g"
           << " --crab-inter"

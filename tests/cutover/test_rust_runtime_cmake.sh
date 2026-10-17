@@ -3,7 +3,8 @@
 # map2check-klee.bc) is installed, no C runtime bitcode; configure fails loudly
 # without a library or with an unreadable bitcode.
 #
-# Env: MAP2CHECK_RUST_LIB_DIR  directory with libmap2check.a (required)
+# Env: MAP2CHECK_RUST_LIB_DIR  directory with libmap2check.a, or the lib/ of
+#                              the release archive (required)
 #      CMAKE_ARGS              extra configure flags (e.g. -G Ninja -DLLVM_DIR=...)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -28,6 +29,16 @@ if ls "$P"/lib/*.bc 2>/dev/null | grep .; then fail "bitcode installed without M
 if find "$P" -name '*.bc' | grep -E 'map2check|memtrack|bbtrack|nondet|caller|container|analysis|list|btree|AnalysisMode' ; then
   fail "C runtime bitcode still installed"
 fi
+
+# 1b. Release archive layout (lib/ of the map2check-library tarball): the
+# runtime build, libmap2check_runtime.a, is the one installed as
+# libmap2check.a; the featureless core libmap2check.a next to it is not.
+R="$W/release-lib"; mkdir "$R"
+cp "$LIB/libmap2check.a" "$R/libmap2check_runtime.a"
+echo 'not the runtime' >"$R/libmap2check.a"
+install_tree release -DMAP2CHECK_RUST_LIB_DIR="$R"
+cmp -s "$W/release-p/lib/libmap2check.a" "$R/libmap2check_runtime.a" ||
+  fail "release layout: libmap2check_runtime.a not installed as libmap2check.a"
 
 # 2. A readable KLEE bitcode is installed as lib/map2check-klee.bc.
 LLVM_DIS="${LLVM_DIS:-llvm-dis-16}"; LLVM_AS="${LLVM_AS:-llvm-as-16}"

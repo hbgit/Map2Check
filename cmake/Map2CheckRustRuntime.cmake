@@ -3,16 +3,28 @@
 #
 # Installs ${prefix}/lib/libmap2check.a and, when available,
 # ${prefix}/lib/map2check-klee.bc (KLEE runtime bitcode, LLVM 16).
-set(MAP2CHECK_RUST_LIB_DIR "" CACHE PATH "Directory with a prebuilt libmap2check.a (empty = build from MAP2CHECK_RUST_SRC)")
-set(MAP2CHECK_RUST_SRC "" CACHE PATH "map2check-library checkout used when MAP2CHECK_RUST_LIB_DIR is empty")
-set(MAP2CHECK_RUST_KLEE_BC "" CACHE FILEPATH "Prebuilt KLEE runtime bitcode (empty = none, or built from MAP2CHECK_RUST_SRC when rustc 1.72.1 is available)")
+#
+# The defaults come from the environment variables of the same name, which the
+# map2check-dev image sets (Dockerfile.dev); -D on the command line wins.
+set(MAP2CHECK_RUST_LIB_DIR "$ENV{MAP2CHECK_RUST_LIB_DIR}" CACHE PATH "Directory with a prebuilt libmap2check.a (empty = build from MAP2CHECK_RUST_SRC)")
+set(MAP2CHECK_RUST_SRC "$ENV{MAP2CHECK_RUST_SRC}" CACHE PATH "map2check-library checkout used when MAP2CHECK_RUST_LIB_DIR is empty")
+set(MAP2CHECK_RUST_KLEE_BC "$ENV{MAP2CHECK_RUST_KLEE_BC}" CACHE FILEPATH "Prebuilt KLEE runtime bitcode (empty = none, or built from MAP2CHECK_RUST_SRC when rustc 1.72.1 is available)")
 
 # --- Static library ---
 if(MAP2CHECK_RUST_LIB_DIR)
-  set(_m2c_rust_lib "${MAP2CHECK_RUST_LIB_DIR}/libmap2check.a")
+  # The release archive (lib/ of map2check-library-<ver>-<target>.tar.gz)
+  # ships three builds; the one Map2Check links is libmap2check_runtime.a
+  # (profile runtime, features libfuzzer,wasm). Its libmap2check.a is the
+  # featureless core build. A directory without libmap2check_runtime.a is a
+  # local `cargo build --profile runtime` output (target/runtime).
+  if(EXISTS "${MAP2CHECK_RUST_LIB_DIR}/libmap2check_runtime.a")
+    set(_m2c_rust_lib "${MAP2CHECK_RUST_LIB_DIR}/libmap2check_runtime.a")
+  else()
+    set(_m2c_rust_lib "${MAP2CHECK_RUST_LIB_DIR}/libmap2check.a")
+  endif()
   if(NOT EXISTS "${_m2c_rust_lib}")
     message(FATAL_ERROR "libmap2check.a not found in ${MAP2CHECK_RUST_LIB_DIR} "
-      "(build it with: cargo build --profile runtime --features libfuzzer,wasm)")
+      "(nor libmap2check_runtime.a; build it with: cargo build --profile runtime --features libfuzzer,wasm)")
   endif()
 elseif(MAP2CHECK_RUST_SRC)
   find_program(M2C_CARGO cargo REQUIRED)
@@ -26,7 +38,10 @@ elseif(MAP2CHECK_RUST_SRC)
 else()
   message(FATAL_ERROR "Set MAP2CHECK_RUST_LIB_DIR or MAP2CHECK_RUST_SRC to provide the Rust runtime")
 endif()
-install(FILES "${_m2c_rust_lib}" DESTINATION lib)
+# The path the tests link (tests/unit/pass); installed under the name the
+# frontend expects (kRustRuntimeLibrary).
+set(MAP2CHECK_RUST_RUNTIME_LIB "${_m2c_rust_lib}")
+install(FILES "${_m2c_rust_lib}" DESTINATION lib RENAME libmap2check.a)
 message(STATUS "Rust runtime: ${_m2c_rust_lib}")
 
 # --- KLEE bitcode (optional) ---

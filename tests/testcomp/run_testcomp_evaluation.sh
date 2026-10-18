@@ -92,6 +92,16 @@ case "$PROPERTY" in
 esac
 
 mkdir -p "$RESULTS_DIR/raw"
+
+# Per-task work directories live under one root per results dir and shard, and
+# the root is emptied on start. A task killed by a reboot never reaches the
+# rm -rf at the end of the loop, so its directory -- KLEE output included, up to
+# 4 GB each -- used to stay in /tmp for good. Over the V99c campaign, a handful
+# of reboots left 11 GB in one container and filled the Windows disk under WSL.
+# Only this shard writes here, so nothing that is still running gets swept.
+WORK_ROOT="${TMPDIR:-/tmp}/m2c-eval.$(basename "$RESULTS_DIR").s$SHARD"
+rm -rf "$WORK_ROOT"
+mkdir -p "$WORK_ROOT"
 CSV="$RESULTS_DIR/results.csv"
 if [ ! -f "$CSV" ]; then
   echo "category,program,data_model,expected_unreach,verdict,testcov,coverage,goals,n_tests,elapsed_s" > "$CSV"
@@ -137,7 +147,7 @@ while IFS=$'\t' read -r category program data_model expected <&3; do
   # A private directory per task. map2check names its scratch by the hash of the
   # input, so two tasks with identical content would otherwise share -- and a
   # directory left behind by an aborted run would be reused with stale contents.
-  work=$(mktemp -d)
+  work=$(mktemp -d -p "$WORK_ROOT")
   cp "$src" "$work/" 2>/dev/null || { rm -rf "$work"; continue; }
   cp "$PRP" "$work/prop.prp"
   name=$(basename "$src")

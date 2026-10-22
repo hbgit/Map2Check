@@ -1347,6 +1347,38 @@ else
   fail "nondet log explosion" "$(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/manyreads/many.log" | tail -1); vector: $vec"
 fi
 
+# --- 39. abort() and __VERIFIER_assume in one function share map2check_assume
+# The abort() rewrite declared map2check_assume first; NonDetPass then renamed
+# the program's __VERIFIER_assume onto the occupied name, LLVM made it
+# map2check_assume.1, which the runtime does not define: the native builds
+# failed to link ("undefined reference to `map2check_assume.1'") and a
+# reachable target came back UNKNOWN (review of #73).
+mkdir -p "$WORK/abortassume"
+cat > "$WORK/abortassume/both.c" <<'EOF2'
+extern void abort(void);
+extern void __VERIFIER_assume(int);
+extern int __VERIFIER_nondet_int(void);
+void reach_error(void) {}
+int main(void) {
+  int x = __VERIFIER_nondet_int();
+  if (x < 0) abort();
+  __VERIFIER_assume(x < 100);
+  if (x == 42) { reach_error(); abort(); }
+  return 0;
+}
+EOF2
+echo 'COVER( init(main()), FQL(COVER EDGES(@CALL(reach_error))) )' > "$WORK/abortassume/prop.prp"
+( cd "$WORK/abortassume" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 200 "$MAP2CHECK" \
+    --debug --generate-test-suite --target-function --target-function-name reach_error \
+    --property-file prop.prp --timeout 60 both.c ) > "$WORK/abortassume/run.log" 2>&1
+if grep -rqa "map2check_assume\.[0-9]" "$WORK/abortassume" 2>/dev/null; then
+  fail "abort + assume" "a suffixed map2check_assume was emitted"
+elif grep -q "VERIFICATION FAILED" "$WORK/abortassume/run.log"; then
+  ok "abort() and __VERIFIER_assume in one function share map2check_assume"
+else
+  fail "abort + assume" "$(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/abortassume/run.log" | tail -1)"
+fi
+
 echo "  ---"
 echo "  Results: $PASSED passed, $FAILED failed"
 [ "$FAILED" -eq 0 ] || exit 1

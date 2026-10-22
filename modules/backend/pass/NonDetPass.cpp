@@ -251,11 +251,27 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
 }
 
 namespace {
-#define INSTRUMENT_CASE_HELPER(nondet_type, c_type) \
-  case (NonDetType::nondet_type): {                 \
-    Twine non_det("map2check_non_det_" #c_type);    \
-    calleeFunction->setName(non_det);               \
-    break;                                          \
+/** Gives `callee` the runtime's name `name`. When the module already has a
+ * function by that name of the same type, the calls are redirected to it
+ * instead: renaming onto an occupied name makes LLVM suffix it
+ * (map2check_assume.1), a symbol the runtime does not define. That happens
+ * when rewriteAbortCallsToPrune has declared map2check_assume before the
+ * program's own __VERIFIER_assume is reached: the native builds failed to link
+ * and the run answered UNKNOWN (review of #73). */
+void adoptRuntimeName(Function *callee, const std::string &name) {
+  Function *existing = callee->getParent()->getFunction(name);
+  if (existing != nullptr && existing != callee &&
+      existing->getFunctionType() == callee->getFunctionType()) {
+    callee->replaceAllUsesWith(existing);
+    return;
+  }
+  callee->setName(name);
+}
+
+#define INSTRUMENT_CASE_HELPER(nondet_type, c_type)              \
+  case (NonDetType::nondet_type): {                              \
+    adoptRuntimeName(calleeFunction, "map2check_non_det_" #c_type); \
+    break;                                                       \
   }
 }  // namespace
 void NonDetPass::instrumentNonDet(NonDetType nonDetType,
@@ -285,13 +301,11 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
     INSTRUMENT_CASE_HELPER(U32, u32)
     INSTRUMENT_CASE_HELPER(MEMORY, memory)
     case (NonDetType::ASSUME): {
-      Twine assume("map2check_assume");
-      calleeFunction->setName(assume);
+      adoptRuntimeName(calleeFunction, "map2check_assume");
       break;
     }
     case (NonDetType::CRAB_ASSUME): {
-      Twine assume("map2check_crab_assume");
-      calleeFunction->setName(assume);
+      adoptRuntimeName(calleeFunction, "map2check_crab_assume");
       break;
     }
   }

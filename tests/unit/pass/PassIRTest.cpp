@@ -741,6 +741,27 @@ TEST(PassIR, NonDetRewritesAbortingAssumes) {
   expectNoNounwind(*m, "assume_abort_if_not");
 }
 
+// The program's own abort() calls, inline ones included, prune the path
+// through the library's assume of a false condition (Map2Check 9.0): no abort
+// call is left, and main may unwind through the assume.
+TEST(PassIR, NonDetRewritesInlineAbortsToPrune) {
+  auto m = runPassOn("NonDetPass", "nondet-pass", "abort_inline.c");
+  ASSERT_VALID(m);
+  EXPECT_TRUE(callsTo(*m, "abort").empty());
+  std::vector<llvm::CallInst*> pruned;
+  for (llvm::CallInst* call : callsTo(*m, "__VERIFIER_assume")) {
+    if (call->getFunction()->getName() == "main") pruned.push_back(call);
+  }
+  ASSERT_EQ(pruned.size(), 2u);
+  for (llvm::CallInst* call : pruned) {
+    EXPECT_EQ(intArg(call->getArgOperand(0)), 0);
+  }
+  expectNoNounwind(*m, "__VERIFIER_assume");
+  llvm::Function* main = m->getFunction("main");
+  ASSERT_NE(main, nullptr);
+  EXPECT_FALSE(main->hasFnAttribute(llvm::Attribute::NoUnwind));
+}
+
 // The loop predicate goes to the program's own __VERIFIER_assume declaration
 // when there is one; without -fexceptions that declaration and its calls are
 // nounwind, and the library's assume unwinds through them.

@@ -1273,6 +1273,10 @@ int main(void) {
   if (!heap) return 0;
   strcpy(heap, "abc");
   printf("%s %s %d %.3s %5s\n", buf, "literal", 42, heap, heap);
+  /* %m reads errno, not an argument: the %s is buf, not &byte (review of
+   * #73: counting %m made the check read the one-byte &byte as a string). */
+  char byte = 'x';
+  printf("%m %s %p\n", buf, (void *)&byte);
   puts(buf);
   free(heap);
   return 0;

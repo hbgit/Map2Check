@@ -315,6 +315,9 @@ std::vector<unsigned> stringArgumentsOf(llvm::StringRef format,
       ++i;
     }
     if (i >= format.size()) break;
+    // GNU %m prints strerror(errno) and consumes no argument; the * of its
+    // width or precision, counted above, still does.
+    if (format[i] == 'm') continue;
     if (format[i] == 's' && !precision && !wide) positions.push_back(argument);
     ++argument;
   }

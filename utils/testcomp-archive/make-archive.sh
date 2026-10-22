@@ -24,8 +24,13 @@
 # both are off by default and absent from the competition configuration.
 set -euo pipefail
 
-INSTALL=${1:?install directory}
-OUT=${2:?output zip}
+# Absolute paths: the zip runs from inside the staging directory, where a
+# relative output name would create the archive only to have the cleanup
+# delete it -- after `rm -f "$OUT"` removed the caller's previous one (review
+# of #73).
+INSTALL=$(realpath -m "${1:?install directory}")
+OUT=$(realpath -m "${2:?output zip}")
+[ -d "$(dirname "$OUT")" ] || { echo "no such directory: $(dirname "$OUT")" >&2; exit 2; }
 AFL_ROOT=${AFL_ROOT:-/usr/local}
 LLVM=${LLVM:-/usr/lib/llvm-16}
 KLEE=${KLEE:-/opt/klee}

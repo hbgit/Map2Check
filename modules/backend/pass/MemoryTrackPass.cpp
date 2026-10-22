@@ -16,6 +16,7 @@
 
 #include <vector>
 
+#include <llvm/IR/IntrinsicInst.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 #include <llvm/Support/CommandLine.h>
@@ -421,15 +422,16 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentFree();
   } else if (this->calleeFunction->getName() == "posix_memalign") {
     this->instrumentPosixMemAllign();
-  } else if (this->calleeFunction->getName() == "memset") {
+  } else if (llvm::isa<llvm::MemSetInst>(&*this->currentInstruction) ||
+             calleeName == "memset") {
+    // By the intrinsic's kind, not its name (Map2Check 9.0, 956df7b7e). The
+    // names carried the pointer types -- llvm.memset.p0i8.i64 -- and with
+    // opaque pointers LLVM 16 names them llvm.memset.p0.i64: matched by name,
+    // no memset, memcpy or memmove clang emitted was checked at all
+    // (memset(p, 0, 16) on 8 malloc'd bytes came back UNKNOWN).
     this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memset.p0i8.i64") {
-    this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memset.p0i8.i32") {
-    this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i64") {
-    this->instrumentMemcpy();
-  } else if (this->calleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i32") {
+  } else if (llvm::isa<llvm::MemTransferInst>(&*this->currentInstruction) ||
+             calleeName == "memcpy" || calleeName == "memmove") {
     this->instrumentMemcpy();
   } else if (this->calleeFunction->getName() == "malloc") {
     this->instrumentMalloc();

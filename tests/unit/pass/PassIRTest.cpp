@@ -15,7 +15,9 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/GlobalVariable.h>
+#include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/IntrinsicInst.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
@@ -1011,6 +1013,42 @@ TEST(PassIR, MemoryTrackMapsAllocasGlobalsAndVlas) {
             stripCasts(alloca->getArraySize()));
   EXPECT_EQ(intArg(vla[0]->getArgOperand(3)), 4);
   EXPECT_EQ(intArg(vla[0]->getArgOperand(4)), 10);
+}
+
+// LLVM 16 names the memory intrinsics without pointer types
+// (llvm.memset.p0.i64); the pass dispatches on their kind, so every memset,
+// memcpy and memmove clang emits is checked: one check_load of the
+// destination for memset, of the source and the destination for the copies,
+// right before the call and with its size (Map2Check 9.0, 956df7b7e).
+TEST(PassIR, MemoryTrackChecksEveryMemoryIntrinsic) {
+  auto m = runPassOn("MemoryTrackPass", "memory-track", "mem_intrinsics.c");
+  ASSERT_VALID(m);
+  unsigned intrinsics = 0;
+  for (llvm::Function& f : *m) {
+    for (llvm::Instruction& i : llvm::instructions(f)) {
+      auto* mem = llvm::dyn_cast<llvm::MemIntrinsic>(&i);
+      if (mem == nullptr) continue;
+      ++intrinsics;
+      const unsigned checks = llvm::isa<llvm::MemSetInst>(mem) ? 1 : 2;
+      llvm::Instruction* before = mem->getPrevNode();
+      for (unsigned c = 0; c < checks; ++c) {
+        ASSERT_NE(before, nullptr) << mem->getCalledFunction()->getName().str();
+        auto* check = llvm::dyn_cast<llvm::CallInst>(before);
+        ASSERT_NE(check, nullptr) << "no check before "
+                                  << mem->getCalledFunction()->getName().str();
+        ASSERT_NE(check->getCalledFunction(), nullptr);
+        EXPECT_EQ(check->getCalledFunction()->getName(), "map2check_check_load");
+        EXPECT_EQ(intArg(check->getArgOperand(3)), intArg(mem->getLength()));
+        before = check->getPrevNode();
+        // Casts of the size may sit between the checks.
+        while (before != nullptr && llvm::isa<llvm::CastInst>(before)) {
+          before = before->getPrevNode();
+        }
+      }
+    }
+  }
+  // memset, memcpy and memmove, plus the memset of `q = {0}`.
+  EXPECT_GE(intrinsics, 3u);
 }
 
 // check_load(ptr, i32 line, i32 scope, i32 size, fn) before each load and

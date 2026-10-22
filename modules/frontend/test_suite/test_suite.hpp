@@ -20,10 +20,11 @@
  * module only serializes it -- no new instrumentation is involved, and the
  * emitter is therefore engine-agnostic by construction.
  *
- * Scope: one test case per run. map2check_exit() guards on a static
- * alreadyReleased flag, so the log is flushed once, for the violating
- * execution. That covers Cover-Error. Cover-Branches needs a suite of many
- * test cases and therefore per-input logs, which is separate work.
+ * Cover-Error writes the one violating execution; Cover-Branches writes one
+ * case per KLEE path plus the fuzzer's corpus, under a cap. The format as
+ * Map2Check writes it -- metadata, input encoding, the assumption-pruned
+ * marker, the sources of the vectors -- is documented in
+ * docs/test-suite-format.md.
  ***********************************************************************/
 
 #ifndef MODULES_FRONTEND_TEST_SUITE_TEST_SUITE_HPP_

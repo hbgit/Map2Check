@@ -32,7 +32,8 @@ const char kTestCaseDoctype[] =
     "\"https://sosy-lab.org/test-format/testcase-1.1.dtd\">";
 
 /** Marks a case as an assumption-pruned path (see evictPrunedCase). A comment
- * is outside the test format, so validators and TestCov ignore it. */
+ * is outside the test format, so validators and TestCov ignore it. Written
+ * right before <testcase>; documented in docs/test-suite-format.md. */
 const char kPrunedComment[] = "<!-- map2check: assumption-pruned path -->";
 
 /** Field index of the value in a nondet log row.

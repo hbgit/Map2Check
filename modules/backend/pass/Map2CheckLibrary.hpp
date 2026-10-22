@@ -29,7 +29,6 @@
 #include <memory>
 
 #include "DebugInfo.hpp"
-#include "LibraryFunctions.hpp"
 
 using llvm::BasicBlock;
 using llvm::CallInst;
@@ -42,7 +41,19 @@ using std::make_unique;
 using llvm::Value;
 
 struct Map2CheckLibrary : public llvm::PassInfoMixin<Map2CheckLibrary> {
-  explicit Map2CheckLibrary(bool svcomp = false) : SVCOMP(svcomp) {}
+  /// map2check-library's AnalysisMode, the argument of map2check_set_mode.
+  enum class AnalysisMode : int {
+    None = 0,
+    Memtrack = 1,
+    Memcleanup = 2,
+    Overflow = 3,
+    Assert = 4,
+    Target = 5
+  };
+
+  /// Mode from the -m2c-analysis-mode option (default none).
+  Map2CheckLibrary();
+  explicit Map2CheckLibrary(AnalysisMode mode) : mode(mode) {}
 
   PreservedAnalyses run(Function& F, llvm::FunctionAnalysisManager& AM);
   static bool isRequired() { return true; }
@@ -54,8 +65,10 @@ struct Map2CheckLibrary : public llvm::PassInfoMixin<Map2CheckLibrary> {
   Value* getFunctionNameValue() { return this->functionName; }
 
  private:
-  std::unique_ptr<LibraryFunctions> libraryFunctions;
-  bool SVCOMP = false;
+  AnalysisMode mode = AnalysisMode::None;
+  llvm::FunctionCallee setModeFunction;
+  llvm::FunctionCallee initFunction;
+  llvm::FunctionCallee successFunction;
   Value* functionName = NULL;
   BasicBlock::iterator currentInstruction;
 };

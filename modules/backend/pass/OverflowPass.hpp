@@ -30,7 +30,7 @@
 #include <vector>
 
 #include "DebugInfo.hpp"
-#include "OperationsFunctions.hpp"
+#include "RuntimeABI.hpp"
 
 // using namespace llvm;
 using llvm::BasicBlock;
@@ -39,11 +39,11 @@ using llvm::Function;
 using llvm::Instruction;
 using llvm::LLVMContext;
 using llvm::PreservedAnalyses;
+using llvm::Type;
 using llvm::Value;
 
 struct OverflowPass : public llvm::PassInfoMixin<OverflowPass> {
   OverflowPass() = default;
-  explicit OverflowPass(std::vector<int> lines) : errorLines(std::move(lines)) {}
   PreservedAnalyses run(Function &F, llvm::FunctionAnalysisManager &AM);
   static bool isRequired() { return true; }
 
@@ -51,7 +51,12 @@ struct OverflowPass : public llvm::PassInfoMixin<OverflowPass> {
   Value *getFunctionNameValue() { return this->functionName; }
 
  private:
-  std::unique_ptr<OperationsFunctions> operationsFunctions;
+  // Signed binop checkers of map2check-library (RuntimeHook::Binop*).
+  llvm::FunctionCallee binopAdd;
+  llvm::FunctionCallee binopSub;
+  llvm::FunctionCallee binopMul;
+  llvm::FunctionCallee binopSDiv;
+  llvm::FunctionCallee binopSRem;
   Value *functionName = NULL;
   void hasNonDetUint(Instruction *I);
   void listAllUintAssign(BasicBlock &B);
@@ -59,7 +64,6 @@ struct OverflowPass : public llvm::PassInfoMixin<OverflowPass> {
   std::string getValueNameOperator(Value *Vop);
   void listAllUnsignedVar(Function &F);
 
-  std::vector<int> errorLines;
   std::vector<Value *> valuesThatShouldBeUint;
   std::vector<Value *> storeInstWithUint;
   std::vector<Value *> loadInstWithUint;

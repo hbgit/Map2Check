@@ -97,6 +97,13 @@ search. Measured against the v15 baseline in `docs/reports/tacas-experiment-log.
 
 ### Changed
 
+- Runtime replaced by map2check-library (Rust). The C runtime of
+  `modules/backend/library` is no longer built or installed; Map2Check links
+  map2check-library 1.1.0-rc1 or later (`libmap2check.a`, plus
+  `map2check-klee.bc` for symex), selected with `MAP2CHECK_RUST_LIB_DIR`,
+  `MAP2CHECK_RUST_SRC` and `MAP2CHECK_RUST_KLEE_BC` (see the README build
+  section). The verdict differences from the C runtime are listed in
+  `tests/cutover/deltas-aceitos.tsv`.
 - Replaced LibFuzzer with AFL++ 4.40c (persistent, PCGUARD) as the fuzzing engine.
 - tacasv2a: `--slice` no longer crashes KLEE and its test suites stay valid
   on the original program. The slicer runs with `-cutoff-diverging=false`

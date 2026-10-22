@@ -13,6 +13,8 @@
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 
+#include "RuntimeABI.hpp"
+
 using llvm::IRBuilder;
 
 namespace {
@@ -24,10 +26,12 @@ inline Instruction* BBIteratorToInst(BasicBlock::iterator i) {
 
 void LoopPredAssumePass::getConditionInLoop(Loop* L) {
   BasicBlock* header = L->getHeader();
-  this->map2check_assume =
-      header->getParent()->getParent()->getOrInsertFunction(
-          "map2check_assume_loop", Type::getVoidTy(header->getContext()),
-          Type::getInt1Ty(header->getContext()));
+  this->map2check_assume = Map2Check::getOrInsertRuntime(
+      *header->getParent()->getParent(), Map2Check::RuntimeHook::Assume);
+  // The program may already declare __VERIFIER_assume nounwind; the
+  // library's assume unwinds through every call to it.
+  Map2Check::allowUnwind(
+      *llvm::cast<llvm::Function>(this->map2check_assume.getCallee()));
   if (BranchInst* bi = dyn_cast<BranchInst>(header->getTerminator())) {
     if (bi->isConditional()) {
       Value* loopCond = bi->getCondition();
@@ -50,7 +54,9 @@ void LoopPredAssumePass::getConditionInLoop(Loop* L) {
 
         IRBuilder<> builder(BBIteratorToInst(iT));
 
-        Value* args[] = {new_loop_cond};
+        // __VERIFIER_assume takes an i32; the loop predicate is an i1.
+        Value* args[] = {builder.CreateZExt(
+            new_loop_cond, Type::getInt32Ty(header->getContext()))};
         builder.CreateCall(this->map2check_assume, args);
       }
     }

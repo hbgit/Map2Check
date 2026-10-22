@@ -253,6 +253,20 @@ $ ninja && ninja install
 
 The `Dockerfile.dev` image already builds and installs KLEE 3.1 (to `/opt/klee`) and installs AFL++ 4.40c as a standalone toolchain (found at run time under `/usr/local/bin`), so **do not** pass `-DSKIP_KLEE=ON` or `-DSKIP_AFL_PLUS_PLUS=ON` — those flags skip the `cmake/FindKlee.cmake` / `cmake/FindAFLPlusPlus.cmake` modules entirely. Only pass them `ON` if you deliberately want a build without KLEE/AFL++ support (e.g. `-DSKIP_AFL_PLUS_PLUS=ON -DSKIP_KLEE=ON` for a minimal/CI build).
 
+**Runtime library.** The runtime that Map2Check links into the analysed program is [map2check-library](https://github.com/hbgit/map2check-library) (Rust, C ABI); it replaced the C runtime of `modules/backend/library`. The **minimum supported version is 1.1.0-rc1** (the version pinned in [scripts/runtime/fetch-map2check-library.sh](scripts/runtime/fetch-map2check-library.sh)). CMake takes it from one of these variables (each defaults to the environment variable of the same name, which `Dockerfile.dev` sets, so the build above needs no extra flag):
+
+- `MAP2CHECK_RUST_LIB_DIR`: a directory with a prebuilt library. Use the `lib/` of the release archive `map2check-library-<version>-x86_64-unknown-linux-gnu.tar.gz` (`scripts/runtime/fetch-map2check-library.sh <dest>` downloads and verifies it; pass `<dest>/lib`), whose `libmap2check_runtime.a` is the one linked. A local build directory (`target/runtime` of `cargo build --profile runtime --features libfuzzer,wasm`) also works. Configure fails if the directory only has the featureless core `libmap2check.a`.
+- `MAP2CHECK_RUST_SRC`: a map2check-library checkout, built by the Map2Check build with `cargo build --profile runtime --features libfuzzer,wasm` on every build (cargo is incremental); the build fails if the resulting `target/runtime/libmap2check.a` is not the runtime build. Used only when `MAP2CHECK_RUST_LIB_DIR` is empty. When `MAP2CHECK_RUST_KLEE_BC` is unset, the checkout has `scripts/build-klee-runtime.sh`, and rustc 1.72.1 (through rustup) and `llvm-dis` are available, it also builds the KLEE runtime bitcode.
+- `MAP2CHECK_RUST_KLEE_BC` (optional, needed for `--nondet-generator symex` unless `MAP2CHECK_RUST_SRC` builds it): the KLEE runtime bitcode (LLVM 16). The release archive does not ship it; build it with `scripts/runtime/map2check-klee-bc.sh <out.bc>` (needs rustc 1.72.1 and the LLVM 16 tools).
+
+``` bash
+$ bash scripts/runtime/fetch-map2check-library.sh /opt/map2check-library
+$ bash scripts/runtime/map2check-klee-bc.sh /opt/map2check-library/klee/map2check-klee.bc
+$ cmake .. -G Ninja -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+    -DMAP2CHECK_RUST_LIB_DIR=/opt/map2check-library/lib \
+    -DMAP2CHECK_RUST_KLEE_BC=/opt/map2check-library/klee/map2check-klee.bc
+```
+
 **Building with WASM support** requires **no additional CMake flag** — the `WasmLifter` frontend module is always compiled. The only extra build-time dependency is the WABT 1.0.41 header `wasm-rt.h`: when CMake finds it (searched at `/opt/wabt-1.0.41/include`, `/usr/include`, `/usr/local/include`), it compiles the KLEE-compatible wasm2c runtime `WasmRuntimeStubs.c` to bitcode and installs it as `release/lib/WasmRuntimeStubs.bc`, which is linked into the lifted module when `--wasm` is used. If `wasm-rt.h` is not found, CMake prints a warning and the build proceeds **without** WASM support (the recommended way to get a WASM-enabled build is the Docker image above, which ships WABT and the wasi-sdk out of the box).
 
 Minor test:

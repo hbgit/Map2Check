@@ -17,13 +17,15 @@ no_input.c       COVERED
 char_input.c     COVERED
 unreachable.c    NOT_COVERED
 
-# loop_reads.c -- COVERED since issue #75 (commit 8da579488).
+# loop_reads.c -- COVERED since the Rust runtime (map2check-library
+# v1.1.0-rc1, feat/rust-runtime).
 #
-# It was NOT_COVERED from finding K until then: KLEE reached the target but
-# forked on every symbolic value written to the nondet log (vfprintf), so the
-# run ran out of budget before a test vector came out. Concretizing the log
-# before writing it removed the explosion.
-# Measured at BUDGET=120: install_v99b NOT_COVERED, install_v99c COVERED (2/2).
-# See docs/reports/2026-08-12-castle-juliet-findings.md (finding K) and the
-# issue #75 entry in docs/reports/tacas-experiment-log.md.
+# It was NOT_COVERED from finding K until then. KLEE reached the target, but
+# the C runtime formatted every symbolic nondet value inside uClibc's
+# vfprintf, where each digit forks, so the run spent its budget there and no
+# test vector came out. The Rust KLEE runtime concretizes each value
+# (klee_get_value + klee_assume) before writing it (D1 condition 7; see
+# docs/klee-feasibility.md of map2check-library), which removes the
+# explosion. Observed COVERED at BUDGET=120 in the CI run of PR #76.
+# See docs/reports/2026-08-12-castle-juliet-findings.md, finding K.
 loop_reads.c     COVERED

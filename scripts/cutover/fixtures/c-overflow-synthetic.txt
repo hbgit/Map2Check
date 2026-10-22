@@ -1,0 +1,5 @@
+Violated property:
+	file map2check_property line 42 function foo
+	OVERFLOW
+
+VERIFICATION FAILED

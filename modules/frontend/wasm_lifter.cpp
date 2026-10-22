@@ -13,6 +13,7 @@
 #include <sstream>
 #include <regex>
 
+#include "utils/clang.hpp"
 #include "utils/log.hpp"
 
 namespace Map2Check {
@@ -108,6 +109,8 @@ void WasmLifter::runClang(const std::string& cPath,
   std::ostringstream cmd;
   cmd << config_.clangPath
       << " -c -emit-llvm"
+      // D1 condition 11: the runtime unwinds through the lifted frames.
+      << " " << Map2Check::kProgramUnwindFlags
       << " -I\"" << config_.wasmRtIncludePath << "\""
       << " -I\"" << hPath.substr(0, hPath.find_last_of("/")) << "\""
       << " -Wno-unused-command-line-argument";
@@ -128,6 +131,7 @@ void WasmLifter::runClangEmitLLVM(const std::string& cPath,
   std::ostringstream cmd;
   cmd << config_.clangPath
       << " -S -emit-llvm"
+      << " " << Map2Check::kProgramUnwindFlags
       << " -I\"" << config_.wasmRtIncludePath << "\""
       << " -I\"" << hPath.substr(0, hPath.find_last_of("/")) << "\"";
   

@@ -44,7 +44,7 @@ std::vector<RuntimeHook> allHooks() {
 const std::vector<std::string> kNonDetTypes = {
     "int",   "unsigned", "char",   "pointer", "long",   "ushort",
     "short", "ulong",    "bool",   "uchar",   "pchar",  "size_t",
-    "loff_t", "sector_t", "uint",  "double"};
+    "loff_t", "sector_t", "uint",  "double", "float"};
 
 }  // namespace
 
@@ -206,6 +206,8 @@ TEST(RuntimeABI, NonDetValueSlotsFollowApiDeltas) {
       {"size_t", i64, false, 10},   {"loff_t", i64, true, 11},
       {"sector_t", i64, false, 12}, {"uint", i32, false, 13},
       {"short", i16, true, 14},     {"double", dbl, true, 15},
+      // Map2Check 9.0's FLOAT (issue #74): logged as a float, not a double.
+      {"float", llvm::Type::getFloatTy(ctx), true, 16},
   };
   for (const Expected& e : expected) {
     Map2Check::NonDetValueSlot slot = Map2Check::nonDetValueSlot(e.cType, ctx);
@@ -216,7 +218,7 @@ TEST(RuntimeABI, NonDetValueSlotsFollowApiDeltas) {
     EXPECT_FALSE(nonDetLogger(e.cType).empty()) << e.cType;
     EXPECT_FALSE(nonDetGenerator(e.cType).empty()) << e.cType;
   }
-  EXPECT_EQ(Map2Check::nonDetValueSlot("float", ctx).type, nullptr);
+  EXPECT_EQ(Map2Check::nonDetValueSlot("longlong", ctx).type, nullptr);
 }
 
 // The lists of program definitions that give way or become internal: the
@@ -238,7 +240,7 @@ TEST(RuntimeABI, ProgramDefinitionLists) {
   // Every generator the pass logs is discarded when the program defines it.
   for (const char* type : {"int", "uint", "char", "uchar", "short", "ushort",
                            "long", "ulong", "bool", "pointer", "pchar",
-                           "size_t", "loff_t", "sector_t", "double"}) {
+                           "size_t", "loff_t", "sector_t", "double", "float"}) {
     EXPECT_TRUE(std::count(discarded.begin(), discarded.end(),
                            Map2Check::nonDetGenerator(type)))
         << type;

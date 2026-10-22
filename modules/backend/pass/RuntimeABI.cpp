@@ -136,6 +136,7 @@ std::string nonDetGenerator(llvm::StringRef cType) {
                                .Case("loff_t", "loff_t")
                                .Case("sector_t", "sector_t")
                                .Case("double", "double")
+                               .Case("float", "float")
                                .Default("");
   return suffix.empty() ? "" : ("__VERIFIER_nondet_" + suffix).str();
 }
@@ -145,7 +146,7 @@ std::string nonDetLogger(llvm::StringRef cType) {
                    .Cases("int", "unsigned", "uint", "char", "uchar", true)
                    .Cases("short", "ushort", "long", "ulong", "bool", true)
                    .Cases("pointer", "pchar", "size_t", "loff_t", true)
-                   .Cases("sector_t", "double", true)
+                   .Cases("sector_t", "double", "float", true)
                    .Default(false);
   return known ? ("map2check_save_nondet_log_" + cType).str() : "";
 }
@@ -164,9 +165,11 @@ NonDetValueSlot nonDetValueSlot(llvm::StringRef cType,
   llvm::Type* i64 = llvm::Type::getInt64Ty(ctx);
   llvm::Type* p = llvm::PointerType::get(ctx, 0);
   llvm::Type* dbl = llvm::Type::getDoubleTy(ctx);
+  llvm::Type* flt = llvm::Type::getFloatTy(ctx);
   // enum NONDET_TYPE: INTEGER 0, CHAR 1, POINTER 2, USHORT 3, LONG 4,
   // UNSIGNED 5, ULONG 6, BOOL 7, UCHAR 8, PCHAR 9, SIZE_T 10, LOFF_T 11,
-  // SECTOR_T 12, UINT 13, SHORT 14, DOUBLE 15.
+  // SECTOR_T 12, UINT 13, SHORT 14, DOUBLE 15, and Map2Check 9.0's FLOAT 16
+  // (issue #74).
   return llvm::StringSwitch<NonDetValueSlot>(cType)
       .Case("int", {i32, true, 0})
       .Case("char", {i8, true, 1})
@@ -184,6 +187,7 @@ NonDetValueSlot nonDetValueSlot(llvm::StringRef cType,
       .Case("uint", {i32, false, 13})
       .Case("short", {i16, true, 14})
       .Case("double", {dbl, true, 15})
+      .Case("float", {flt, true, 16})
       .Default({nullptr, false, -1});
 }
 

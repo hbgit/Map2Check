@@ -625,7 +625,8 @@ INSTANTIATE_TEST_SUITE_P(
                       NonDetCase{"ulong", 26}, NonDetCase{"bool", 27},
                       NonDetCase{"pointer", 28}, NonDetCase{"pchar", 29},
                       NonDetCase{"size_t", 30}, NonDetCase{"loff_t", 31},
-                      NonDetCase{"sector_t", 32}, NonDetCase{"double", 33}),
+                      NonDetCase{"sector_t", 32}, NonDetCase{"double", 33},
+                      NonDetCase{"float", 34}),
     [](const ::testing::TestParamInfo<NonDetCase>& info) {
       return std::string(info.param.cType);
     });

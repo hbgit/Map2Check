@@ -110,7 +110,7 @@ namespace {
 const char *const kNonDetTypes[] = {
     "int",   "unsigned", "char",   "pointer", "long",     "ushort",
     "short", "ulong",    "bool",   "uchar",   "pchar",    "size_t",
-    "loff_t", "sector_t", "uint",  "double"};
+    "loff_t", "sector_t", "uint",  "double", "float"};
 
 /// The C type of a __VERIFIER_nondet_<t> callee, or "" when it is not one.
 llvm::StringRef nonDetType(const Function &callee) {

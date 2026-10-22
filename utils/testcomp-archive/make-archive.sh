@@ -102,6 +102,34 @@ for elf in $(find "$T" -type f -exec sh -c 'head -c4 "$1" | grep -q "ELF"' _ {} 
   fi
 done
 
+# --- smoke test, README, licenses ------------------------------------------
+# What the FM-Tools CI and the Test-Comp rules ask of the archive: a
+# smoketest.sh that runs the tool on examples shipped with it, a README, and a
+# LICENSE that allows anybody to reproduce the evaluation -- here Map2Check's
+# own plus one for every third-party component it carries.
+cp "$HERE/smoketest.sh" "$T/" && chmod +x "$T/smoketest.sh"
+cp -r "$HERE/examples" "$T/"
+cp "$HERE/README.txt" "$T/README"
+cp "$HERE/../../LICENSE" "$T/LICENSE"
+mkdir -p "$T/licenses"
+cp "$HERE"/licenses/* "$T/licenses/"
+cp /opt/klee-uclibc/COPYING.LIB "$T/licenses/klee-uclibc.COPYING.LIB"
+# The Debian copyright file of every bundled library and LLVM tool that came
+# from an Ubuntu package (the ones built from source are in licenses/ above).
+# dpkg records some libraries under /lib, the merged-/usr path under /usr/lib.
+for f in "$T"/lib/*.so* clang opt llvm-link; do
+  name=$(basename "$f")
+  for dir in /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu "$LLVM/lib" "$LLVM/bin"; do
+    [ -f "$dir/$name" ] || continue
+    real=$(readlink -f "$dir/$name")
+    pkg=$( { dpkg -S "$real" 2>/dev/null || dpkg -S "${real/#\/usr\/lib/\/lib}" 2>/dev/null; } | cut -d: -f1 | head -1)
+    if [ -n "$pkg" ] && [ -f "/usr/share/doc/$pkg/copyright" ]; then
+      cp "/usr/share/doc/$pkg/copyright" "$T/licenses/$pkg.copyright"
+    fi
+    break
+  done
+done
+
 # --- check and zip ---------------------------------------------------------
 missing=$(for elf in "$T"/map2check "$T"/bin/* "$T"/lib/*.so* "$T"/lib/afl/*.so; do
   [ -f "$elf" ] || continue

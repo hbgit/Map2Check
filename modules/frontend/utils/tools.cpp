@@ -195,6 +195,30 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
     return;
   }
 
+  // TARGET-REACHED in its own file, which no state that ends normally
+  // writes. Under KLEE every state writes the same map2check_property through
+  // external calls, and KLEE switches states between batches of instructions:
+  // a state that ended normally renamed its NONE over the violation before the
+  // violating state's abort halted the search, and a reachable target came
+  // back UNKNOWN (integration section 13 on the Rust runtime). The other
+  // violations already had a file of their own.
+  ifstream target("map2check_property_target");
+  if (target.is_open()) {
+    this->propertyViolated = Tools::PropertyViolated::TARGET_REACHED;
+    getline(target, line);
+    getline(target, line);
+    if (std::regex_search(line, match, reLineNumber) && match.size() > 1) {
+      this->line = std::stoi(match.str(1));
+      Map2Check::Log::Debug("Line number: " + match.str(1));
+    }
+    getline(target, line);
+    if (std::regex_search(line, match, reFunctionName) && match.size() > 1) {
+      this->function_name = match.str(1);
+      Map2Check::Log::Debug("Function name: " + match.str(1));
+    }
+    return;
+  }
+
   ifstream memtrack("map2check_property_memtrack");
   if (memtrack.is_open()) {
     this->propertyViolated = Tools::PropertyViolated::FALSE_MEMTRACK;

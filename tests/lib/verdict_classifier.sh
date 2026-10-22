@@ -72,6 +72,13 @@ classify_map2check_verdict() {
   if echo "$output" | grep -E "undefined reference to" | grep -qv "KLEE: WARNING"; then
     echo "ERROR"; return
   fi
+  # The outer process itself died on SIGSEGV (139) or SIGABRT (134): that is
+  # Map2Check crashing, whatever phase the log was in. Checked before the
+  # replay filter below, which would otherwise hide a crash of the tool during
+  # replay processing, suite generation or cleanup (review of #73).
+  if [ "$exit_code" = "139" ] || [ "$exit_code" = "134" ]; then
+    echo "ERROR"; return
+  fi
   # A crash counts where the TOOL crashed. After "Exited fuzzer with" and
   # before the next phase, the process that dumps core is the program under
   # test, replayed on the fuzzer's crash to confirm it -- that is the program

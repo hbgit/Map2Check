@@ -76,6 +76,18 @@ VERIFICATION UNKNOWN'
 check "a crash replayed from the fuzzer is not ERROR" \
     UNKNOWN "$AFL_REPLAY_CRASH" 0 13 60
 
+# Map2Check itself dying after the fuzzer phase: the replay filter must not
+# hide it -- the outer process's own SIGSEGV/SIGABRT says the tool crashed.
+TOOL_CRASH_AFTER_FUZZER='Executing AFL++ with map2check
+Exited fuzzer with 0
+Segmentation fault'
+check "the tool crashing after the fuzzer phase is ERROR (SIGSEGV)" \
+    ERROR "$TOOL_CRASH_AFTER_FUZZER" 139 13 60
+check "the tool aborting after the fuzzer phase is ERROR (SIGABRT)" \
+    ERROR "$TOOL_CRASH_AFTER_FUZZER" 134 13 60
+check "the same log with the tool exiting normally stays UNKNOWN" \
+    UNKNOWN "$TOOL_CRASH_AFTER_FUZZER" 0 13 60
+
 # A definitive verdict still wins even when a phase died along the way.
 check "verdict survives a crash in the other phase" \
     FALSE-OVERFLOW "$HYBRID_CRASH

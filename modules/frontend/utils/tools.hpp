@@ -230,11 +230,42 @@ class SourceCodeHelper {
   std::vector<std::string> cFileLines;
 };
 
-enum class KleeLogType { INTEGER, CHAR, POINTER, USHORT, LONG, UNSIGNED };
+/** The type column of klee_log.csv: enum NONDET_TYPE of the runtime
+ * (Map2CheckTypes.h), in the same order, so a row's number casts to it.
+ * UNKNOWN is any other number. */
+enum class KleeLogType {
+  INTEGER,
+  CHAR,
+  POINTER,
+  USHORT,
+  LONG,
+  UNSIGNED,
+  ULONG,
+  BOOL,
+  UCHAR,
+  PCHAR,
+  SIZE_T,
+  LOFF_T,
+  SECTOR_T,
+  UINT,
+  SHORT,
+  DOUBLE,
+  FLOAT,
+  LONGLONG,
+  ULONGLONG,
+  U8,
+  U16,
+  U32,
+  MEMORY_BYTE,
+  UNKNOWN
+};
+
+/** The KleeLogType of a type number of klee_log.csv. */
+KleeLogType kleeLogTypeFromId(int id);
 
 struct KleeLogRow {
   string id;
-  KleeLogType type;
+  KleeLogType type = KleeLogType::UNKNOWN;
 
   string line;
   string scope;
@@ -254,37 +285,10 @@ struct KleeLogRow {
   operator std::string() const {
     std::ostringstream cnvt;
     cnvt.str("");
-    switch (type) {
-      case KleeLogType::INTEGER:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_int()"
-             << "\n";
-        break;
-      case KleeLogType::CHAR:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_char()"
-             << "\n";
-        break;
-      case KleeLogType::POINTER:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_pointer()"
-             << "\n";
-        break;
-      case KleeLogType::USHORT:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_ushort()"
-             << "\n";
-        break;
-      case KleeLogType::LONG:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_long()"
-             << "\n";
-        break;
-      case KleeLogType::UNSIGNED:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_uint()"
-             << "\n";
-        break;
+    const std::string function = generateWitnessFunctionName();
+    if (!function.empty()) {
+      cnvt << "  Call Function  : " << function << "()"
+           << "\n";
     }
     cnvt << "  Value          : " << this->value << "\n";
     cnvt << "  Line Number    : " << this->line << "\n";
@@ -293,7 +297,9 @@ struct KleeLogRow {
     return cnvt.str();
   }
 
-  std::string generateWitnessFunctionName() {
+  /** The __VERIFIER_nondet_* function that produced the value, or "" for an
+   * UNKNOWN type. The unsigned family keeps the name it always had. */
+  std::string generateWitnessFunctionName() const {
     switch (type) {
       case KleeLogType::INTEGER:
         return "__VERIFIER_nondet_int";
@@ -306,8 +312,44 @@ struct KleeLogRow {
       case KleeLogType::LONG:
         return "__VERIFIER_nondet_long";
       case KleeLogType::UNSIGNED:
+      case KleeLogType::UINT:
         return "__VERIFIER_nondet_uint";
+      case KleeLogType::ULONG:
+        return "__VERIFIER_nondet_ulong";
+      case KleeLogType::BOOL:
+        return "__VERIFIER_nondet_bool";
+      case KleeLogType::UCHAR:
+        return "__VERIFIER_nondet_uchar";
+      case KleeLogType::PCHAR:
+        return "__VERIFIER_nondet_pchar";
+      case KleeLogType::SIZE_T:
+        return "__VERIFIER_nondet_size_t";
+      case KleeLogType::LOFF_T:
+        return "__VERIFIER_nondet_loff_t";
+      case KleeLogType::SECTOR_T:
+        return "__VERIFIER_nondet_sector_t";
+      case KleeLogType::SHORT:
+        return "__VERIFIER_nondet_short";
+      case KleeLogType::DOUBLE:
+        return "__VERIFIER_nondet_double";
+      case KleeLogType::FLOAT:
+        return "__VERIFIER_nondet_float";
+      case KleeLogType::LONGLONG:
+        return "__VERIFIER_nondet_longlong";
+      case KleeLogType::ULONGLONG:
+        return "__VERIFIER_nondet_ulonglong";
+      case KleeLogType::U8:
+        return "__VERIFIER_nondet_u8";
+      case KleeLogType::U16:
+        return "__VERIFIER_nondet_u16";
+      case KleeLogType::U32:
+        return "__VERIFIER_nondet_u32";
+      case KleeLogType::MEMORY_BYTE:
+        return "__VERIFIER_nondet_memory";
+      case KleeLogType::UNKNOWN:
+        break;
     }
+    return "";
   }
 };
 

@@ -280,6 +280,13 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
 
 // int Tools::CheckViolatedProperty::getListLogFromCSV(string path) {
 
+Tools::KleeLogType Tools::kleeLogTypeFromId(int id) {
+  if (id < 0 || id >= static_cast<int>(KleeLogType::UNKNOWN)) {
+    return KleeLogType::UNKNOWN;
+  }
+  return static_cast<KleeLogType>(id);
+}
+
 std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
     string path) {
   std::vector<Tools::KleeLogRow> listLog;
@@ -314,26 +321,15 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
       string value = tokens[5];
       string type = tokens[6];
       Log::Debug(tokens[6]);
-      switch (stoi(type)) {
-        case 0:
-          row.type = KleeLogType::INTEGER;
-          break;
-        case 1:
-          row.type = KleeLogType::CHAR;
-          break;
-        case 2:
-          row.type = KleeLogType::POINTER;
-          break;
-        case 3:
-          row.type = KleeLogType::USHORT;
-          break;
-        case 4:
-          row.type = KleeLogType::LONG;
-          break;
-        case 5:
-          row.type = KleeLogType::UNSIGNED;
-          break;
+      // Every row whose type column is not a number of enum NONDET_TYPE
+      // used to keep an uninitialized type, which the witness then read.
+      int typeId = -1;
+      try {
+        typeId = stoi(type);
+      } catch (const std::exception &) {
+        typeId = -1;
       }
+      row.type = kleeLogTypeFromId(typeId);
       row.id = id;
       row.line = lineNumber;
       row.scope = scope;

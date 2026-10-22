@@ -30,3 +30,10 @@ add_executable(AlternationTest
     AlternationTest.cpp
 )
 map2check_test(AlternationTest)
+
+add_executable(KleeLogTest
+    KleeLogTest.cpp
+    $<TARGET_OBJECTS:Tools>
+    $<TARGET_OBJECTS:Log>
+)
+map2check_test(KleeLogTest)

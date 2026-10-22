@@ -86,6 +86,9 @@ RuntimeCall runtimeCall(RuntimeHook hook, llvm::LLVMContext& ctx) {
     // abi-mapping: map2check_load (now with line, scope, size, function)
     case RuntimeHook::Load:
       return {"map2check_check_load", fn(v, {p, i32, i32, i32, p})};
+    // abi-mapping: map2check_check_cstring (Map2Check 9.0, e3a25009d)
+    case RuntimeHook::CheckCString:
+      return {"map2check_check_cstring", fn(v, {p, i32, i32, p})};
     // abi-mapping: map2check_free -> map2check_check_free+map2check_map_free
     // (name, pointer-variable slot, loaded value, scope, line, function)
     case RuntimeHook::CheckFree:

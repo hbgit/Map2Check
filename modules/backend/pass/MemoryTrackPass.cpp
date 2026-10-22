@@ -14,8 +14,12 @@
 
 #include "MemoryTrackPass.hpp"
 
+#include <cctype>
+#include <cstdlib>
+#include <string>
 #include <vector>
 
+#include <llvm/Analysis/ValueTracking.h>
 #include <llvm/IR/IntrinsicInst.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
@@ -206,6 +210,108 @@ void MemoryTrackPass::instrumentMemcpy() {
 }
 
 // alloca(n) called as a function: a static block of n bytes.
+namespace {
+/** Behind MAP2CHECK_CHECK_CSTRINGS=1 until measured on more of Juliet
+ * (Map2Check 9.0, f18be7722). The check fixes a wrong TRUE (CWE193 "cpy" bad:
+ * the buffer is full, the read always overruns it) and makes a wrong FALSE on
+ * the matching good tasks, whose terminator is a byte never initialized --
+ * which SV-COMP counts as a terminator and a native or KLEE run does not (R21:
+ * one of each in 50). */
+bool cstringChecksEnabled() {
+  const char *knob = std::getenv("MAP2CHECK_CHECK_CSTRINGS");
+  return knob != nullptr && std::string(knob) == "1";
+}
+
+/** The argument positions a constant printf format reads as strings: each
+ * %s without a precision (a %.Ns may legitimately point at an unterminated
+ * buffer). `first` is the position of the first variadic argument. Returns
+ * nothing for a format it cannot follow (%n$ positional arguments). */
+std::vector<unsigned> stringArgumentsOf(llvm::StringRef format,
+                                        unsigned first) {
+  std::vector<unsigned> positions;
+  unsigned argument = first;
+  for (size_t i = 0; i < format.size(); ++i) {
+    if (format[i] != '%') continue;
+    ++i;
+    if (i < format.size() && format[i] == '%') continue;
+    // flags
+    while (i < format.size() && llvm::StringRef("-+ #0'").contains(format[i]))
+      ++i;
+    // width
+    if (i < format.size() && format[i] == '*') {
+      ++argument;
+      ++i;
+    }
+    while (i < format.size() && isdigit(static_cast<unsigned char>(format[i])))
+      ++i;
+    if (i < format.size() && format[i] == '$') return {};
+    // precision
+    bool precision = false;
+    if (i < format.size() && format[i] == '.') {
+      precision = true;
+      ++i;
+      if (i < format.size() && format[i] == '*') {
+        ++argument;
+        ++i;
+      }
+      while (i < format.size() &&
+             isdigit(static_cast<unsigned char>(format[i])))
+        ++i;
+    }
+    // length modifiers
+    bool wide = false;
+    while (i < format.size() && llvm::StringRef("hlLqjzt").contains(format[i])) {
+      if (format[i] == 'l') wide = true;
+      ++i;
+    }
+    if (i >= format.size()) break;
+    if (format[i] == 's' && !precision && !wide) positions.push_back(argument);
+    ++argument;
+  }
+  return positions;
+}
+}  // namespace
+
+/* KLEE's uClibc declares printf without defining it, so KLEE runs it as a
+ * native external call: whatever it reads is read outside every check. An
+ * unterminated buffer printed with %s -- Juliet's CWE121 CWE193 "cpy" tasks --
+ * came back TRUE. The strings the call will read are checked here, before it,
+ * by the library's map2check_check_cstring: the format's %s arguments when the
+ * format is a constant, the first argument of puts/fputs (Map2Check 9.0,
+ * e3a25009d). */
+void MemoryTrackPass::instrumentCStringArguments() {
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  llvm::StringRef name = this->calleeFunction->getName();
+
+  std::vector<unsigned> strings;
+  if (name == "puts" || name == "fputs") {
+    strings.push_back(0);
+  } else {
+    const unsigned formatIndex =
+        name == "printf" ? 0 : (name == "snprintf" ? 2 : 1);
+    if (callInst->arg_size() <= formatIndex) return;
+    llvm::StringRef format;
+    if (!llvm::getConstantStringInfo(callInst->getArgOperand(formatIndex),
+                                     format)) {
+      return;
+    }
+    strings = stringArgumentsOf(format, formatIndex + 1);
+  }
+  if (strings.empty()) return;
+
+  llvm::FunctionCallee checkCString = Map2Check::getOrInsertRuntime(
+      *callInst->getModule(), RuntimeHook::CheckCString);
+  IRBuilder<> builder(callInst);
+  for (unsigned position : strings) {
+    if (position >= callInst->arg_size()) continue;
+    Value *argument = callInst->getArgOperand(position);
+    if (!argument->getType()->isPointerTy()) continue;
+    Value *args[] = {argument, this->line_value, this->scope_value,
+                     this->functionName()};
+    builder.CreateCall(checkCString, args);
+  }
+}
+
 void MemoryTrackPass::instrumentAlloca() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
   IRBuilder<> builder(callInst->getNextNode());
@@ -433,6 +539,11 @@ void MemoryTrackPass::switchCallInstruction() {
   } else if (llvm::isa<llvm::MemTransferInst>(&*this->currentInstruction) ||
              calleeName == "memcpy" || calleeName == "memmove") {
     this->instrumentMemcpy();
+  } else if ((calleeName == "printf" || calleeName == "fprintf" ||
+              calleeName == "sprintf" || calleeName == "snprintf" ||
+              calleeName == "puts" || calleeName == "fputs") &&
+             cstringChecksEnabled()) {
+    this->instrumentCStringArguments();
   } else if (this->calleeFunction->getName() == "malloc") {
     this->instrumentMalloc();
   } else if (this->calleeFunction->getName() == "valloc") {

@@ -64,7 +64,9 @@ enum class RuntimeHook {
   WasmMalloc,       // map2check_wasm_malloc(i64 offset, i64 size)
   WasmFree,         // map2check_wasm_free(i64 offset, i64 line)
   WasmCheckAccess,  // map2check_wasm_check_access(i64 offset, i64 size)
-  Last = WasmCheckAccess
+  CheckCString,     // map2check_check_cstring(ptr string, i32 line, i32 scope,
+                    //   ptr fn), Map2Check 9.0
+  Last = CheckCString
 };
 
 /// A function of the core runtime API: name + type, for getOrInsertFunction.

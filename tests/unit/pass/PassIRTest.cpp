@@ -1015,6 +1015,40 @@ TEST(PassIR, MemoryTrackMapsAllocasGlobalsAndVlas) {
   EXPECT_EQ(intArg(vla[0]->getArgOperand(4)), 10);
 }
 
+// Under MAP2CHECK_CHECK_CSTRINGS=1 the strings a printf %s (without a
+// precision) or a puts will read are checked to their terminator by the
+// library's check_cstring, right before the call (Map2Check 9.0); a %.3s and
+// a %d are not. Off by default: no check without the variable.
+TEST(PassIR, MemoryTrackChecksTheStringsPrintfAndPutsRead) {
+  ASSERT_EQ(setenv("MAP2CHECK_CHECK_CSTRINGS", "1", 1), 0);
+  auto m = runPassOn("MemoryTrackPass", "memory-track", "cstring_printf.c");
+  unsetenv("MAP2CHECK_CHECK_CSTRINGS");
+  ASSERT_VALID(m);
+  std::vector<llvm::CallInst*> checks = callsTo(*m, "map2check_check_cstring");
+  ASSERT_EQ(checks.size(), 2u) << "the %s of printf and the string of puts";
+  for (llvm::CallInst* check : checks) {
+    EXPECT_EQ(check->getFunctionType(),
+              runtimeCall(RuntimeHook::CheckCString, m->getContext()).type);
+    EXPECT_EQ(stringArg(check->getArgOperand(3)), "main");
+    // Before the call that reads the string.
+    llvm::Instruction* next = check->getNextNode();
+    while (next != nullptr && !llvm::isa<llvm::CallInst>(next)) next = next->getNextNode();
+    ASSERT_NE(next, nullptr);
+    auto* reader = llvm::cast<llvm::CallInst>(next);
+    if (reader->getCalledFunction() != nullptr &&
+        reader->getCalledFunction()->getName() == "map2check_check_cstring") {
+      continue;  // the next check of the same call
+    }
+    ASSERT_NE(reader->getCalledFunction(), nullptr);
+    llvm::StringRef name = reader->getCalledFunction()->getName();
+    EXPECT_TRUE(name == "printf" || name == "puts") << name.str();
+  }
+
+  auto off = runPassOn("MemoryTrackPass", "memory-track", "cstring_printf.c");
+  ASSERT_VALID(off);
+  EXPECT_TRUE(callsTo(*off, "map2check_check_cstring").empty());
+}
+
 // LLVM 16 names the memory intrinsics without pointer types
 // (llvm.memset.p0.i64); the pass dispatches on their kind, so every memset,
 // memcpy and memmove clang emits is checked: one check_load of the

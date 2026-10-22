@@ -163,6 +163,7 @@ TEST(RuntimeABI, TypesMatchCoreSignatures) {
       {RuntimeHook::WasmMalloc, "map2check_wasm_malloc", fn(v, {i64, i64})},
       {RuntimeHook::WasmFree, "map2check_wasm_free", fn(v, {i64, i64})},
       {RuntimeHook::WasmCheckAccess, "map2check_wasm_check_access", fn(v, {i64, i64})},
+      {RuntimeHook::CheckCString, "map2check_check_cstring", fn(v, {p, i32, i32, p})},
   };
   ASSERT_EQ(expected.size(), allHooks().size());
   for (const Expected& e : expected) {

@@ -60,6 +60,12 @@ map2check_non_det_sector_t	__VERIFIER_nondet_sector_t	2.5	idem primeira linha da
 map2check_non_det_uint	__VERIFIER_nondet_uint	-	idem primeira linha da família
 map2check_non_det_double	__VERIFIER_nondet_double	-	idem primeira linha da família
 map2check_non_det_float	__VERIFIER_nondet_float	-	idem primeira linha da família (FLOAT da 9.0, issue #74)
+map2check_non_det_longlong	__VERIFIER_nondet_longlong	-	idem primeira linha da família (Map2Check 9.0, issue #74)
+map2check_non_det_ulonglong	__VERIFIER_nondet_ulonglong	-	idem primeira linha da família (Map2Check 9.0, issue #74)
+map2check_non_det_u8	__VERIFIER_nondet_u8	-	idem primeira linha da família (Map2Check 9.0, issue #74)
+map2check_non_det_u16	__VERIFIER_nondet_u16	-	idem primeira linha da família (Map2Check 9.0, issue #74)
+map2check_non_det_u32	__VERIFIER_nondet_u32	-	idem primeira linha da família (Map2Check 9.0, issue #74)
+map2check_non_det_memory	__VERIFIER_nondet_memory	-	Map2Check 9.0 (issue #74); void(ptr, size_t), a biblioteca registra um MEMORY_BYTE por byte
 map2check_nondet_int	map2check_save_nondet_log_int	-	tipos de NonDetFunctions.hpp:77-92 (NON_DET_FUNCTIONS_HELPER); C: (i32 line,i32 scope,i32 value,ptr fn) (double: valor double; pointer: ptrtoint; char/short/long/etc.: cast para i32) → núcleo (ffi.rs:305): (line:i32,scope:i32,type_var:i32,value:T*,function_name) → non_det_log_t*; o passe grava o valor num alloca e passa o ponteiro + type_var
 map2check_nondet_unsigned	map2check_save_nondet_log_unsigned	2.5	idem primeira linha da família; o passe grava o valor num alloca e passa o ponteiro + type_var; sem equivalente núcleo; export novo
 map2check_nondet_char	map2check_save_nondet_log_char	-	idem primeira linha da família; o passe grava o valor num alloca e passa o ponteiro + type_var
@@ -77,3 +83,8 @@ map2check_nondet_sector_t	map2check_save_nondet_log_sector_t	2.5	idem primeira l
 map2check_nondet_uint	map2check_save_nondet_log_uint	-	idem primeira linha da família; o passe grava o valor num alloca e passa o ponteiro + type_var
 map2check_nondet_double	map2check_save_nondet_log_double	-	idem primeira linha da família; o passe grava o valor num alloca e passa o ponteiro + type_var
 map2check_nondet_float	map2check_save_nondet_log_float	-	idem primeira linha da família; FLOAT 16 da 9.0 (issue #74), valor float no alloca
+map2check_nondet_longlong	map2check_save_nondet_log_longlong	-	idem primeira linha da família; tipo 17 da 9.0 (issue #74)
+map2check_nondet_ulonglong	map2check_save_nondet_log_ulonglong	-	idem primeira linha da família; tipo 18 da 9.0 (issue #74)
+map2check_nondet_u8	map2check_save_nondet_log_u8	-	idem primeira linha da família; tipo 19 da 9.0 (issue #74)
+map2check_nondet_u16	map2check_save_nondet_log_u16	-	idem primeira linha da família; tipo 20 da 9.0 (issue #74)
+map2check_nondet_u32	map2check_save_nondet_log_u32	-	idem primeira linha da família; tipo 21 da 9.0 (issue #74)

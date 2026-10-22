@@ -13,7 +13,7 @@ extern char *__VERIFIER_nondet_pchar(void);
 extern unsigned long __VERIFIER_nondet_size_t(void);
 extern long long __VERIFIER_nondet_loff_t(void);
 extern unsigned long __VERIFIER_nondet_sector_t(void);
-extern double __VERIFIER_nondet_double(void); extern float __VERIFIER_nondet_float(void);
+extern double __VERIFIER_nondet_double(void); extern float __VERIFIER_nondet_float(void); extern long long __VERIFIER_nondet_longlong(void); extern unsigned long long __VERIFIER_nondet_ulonglong(void); extern unsigned char __VERIFIER_nondet_u8(void); extern unsigned short __VERIFIER_nondet_u16(void); extern unsigned int __VERIFIER_nondet_u32(void);
 int main(void) {
   int v_int = __VERIFIER_nondet_int();
   unsigned v_unsigned = __VERIFIER_nondet_unsigned();
@@ -32,8 +32,14 @@ int main(void) {
   unsigned long v_sector_t = __VERIFIER_nondet_sector_t();
   double v_double = __VERIFIER_nondet_double();
   float v_float = __VERIFIER_nondet_float();
+  long long v_longlong = __VERIFIER_nondet_longlong();
+  unsigned long long v_ulonglong = __VERIFIER_nondet_ulonglong();
+  unsigned char v_u8 = __VERIFIER_nondet_u8();
+  unsigned short v_u16 = __VERIFIER_nondet_u16();
+  unsigned int v_u32 = __VERIFIER_nondet_u32();
   return (v_int + (int)v_unsigned + (int)v_uint + v_char + v_uchar + v_short +
           v_ushort + (int)v_long + (int)v_ulong + v_bool + (v_pointer != 0) +
           (v_pchar != 0) + (int)v_size_t + (int)v_loff_t + (int)v_sector_t +
-          (int)v_double + (int)v_float) & 1;
+          (int)v_double + (int)v_float + (int)v_longlong + (int)v_ulonglong + v_u8 +
+          v_u16 + (int)v_u32) & 1;
 }

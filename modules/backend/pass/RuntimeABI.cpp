@@ -137,6 +137,15 @@ std::string nonDetGenerator(llvm::StringRef cType) {
                                .Case("sector_t", "sector_t")
                                .Case("double", "double")
                                .Case("float", "float")
+                               // Map2Check 9.0 (issue #74).
+                               .Case("longlong", "longlong")
+                               .Case("ulonglong", "ulonglong")
+                               .Case("u8", "u8")
+                               .Case("u16", "u16")
+                               .Case("u32", "u32")
+                               // void(ptr, size_t): not logged by the pass,
+                               // the library logs each byte.
+                               .Case("memory", "memory")
                                .Default("");
   return suffix.empty() ? "" : ("__VERIFIER_nondet_" + suffix).str();
 }
@@ -147,6 +156,7 @@ std::string nonDetLogger(llvm::StringRef cType) {
                    .Cases("short", "ushort", "long", "ulong", "bool", true)
                    .Cases("pointer", "pchar", "size_t", "loff_t", true)
                    .Cases("sector_t", "double", "float", true)
+                   .Cases("longlong", "ulonglong", "u8", "u16", "u32", true)
                    .Default(false);
   return known ? ("map2check_save_nondet_log_" + cType).str() : "";
 }
@@ -168,8 +178,8 @@ NonDetValueSlot nonDetValueSlot(llvm::StringRef cType,
   llvm::Type* flt = llvm::Type::getFloatTy(ctx);
   // enum NONDET_TYPE: INTEGER 0, CHAR 1, POINTER 2, USHORT 3, LONG 4,
   // UNSIGNED 5, ULONG 6, BOOL 7, UCHAR 8, PCHAR 9, SIZE_T 10, LOFF_T 11,
-  // SECTOR_T 12, UINT 13, SHORT 14, DOUBLE 15, and Map2Check 9.0's FLOAT 16
-  // (issue #74).
+  // SECTOR_T 12, UINT 13, SHORT 14, DOUBLE 15, and Map2Check 9.0's FLOAT 16,
+  // LONGLONG 17, ULONGLONG 18, U8 19, U16 20, U32 21 (issue #74).
   return llvm::StringSwitch<NonDetValueSlot>(cType)
       .Case("int", {i32, true, 0})
       .Case("char", {i8, true, 1})
@@ -188,6 +198,11 @@ NonDetValueSlot nonDetValueSlot(llvm::StringRef cType,
       .Case("short", {i16, true, 14})
       .Case("double", {dbl, true, 15})
       .Case("float", {flt, true, 16})
+      .Case("longlong", {i64, true, 17})
+      .Case("ulonglong", {i64, false, 18})
+      .Case("u8", {i8, false, 19})
+      .Case("u16", {i16, false, 20})
+      .Case("u32", {i32, false, 21})
       .Default({nullptr, false, -1});
 }
 
@@ -204,11 +219,13 @@ void allowUnwind(llvm::Function& fn) {
 const std::vector<std::string>& discardedProgramDefinitions() {
   static const std::vector<std::string> names = [] {
     std::vector<std::string> all = {"__VERIFIER_assume"};
-    // The 16 generators the library exports (feature libfuzzer and klee).
+    // The 22 generators the library exports (feature libfuzzer and klee),
+    // with Map2Check 9.0's longlong .. memory (issue #74).
     for (const char* type :
          {"bool", "char", "uchar", "short", "ushort", "int", "uint", "long",
           "ulong", "float", "double", "size_t", "loff_t", "sector_t",
-          "pointer", "pchar"}) {
+          "pointer", "pchar", "longlong", "ulonglong", "u8", "u16", "u32",
+          "memory"}) {
       all.push_back(std::string("__VERIFIER_nondet_") + type);
     }
     return all;

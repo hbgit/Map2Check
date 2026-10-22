@@ -167,7 +167,10 @@ namespace {
 const char *const kNonDetTypes[] = {
     "int",   "unsigned", "char",   "pointer", "long",     "ushort",
     "short", "ulong",    "bool",   "uchar",   "pchar",    "size_t",
-    "loff_t", "sector_t", "uint",  "double", "float"};
+    "loff_t", "sector_t", "uint",  "double", "float",
+    // Map2Check 9.0 (issue #74). __VERIFIER_nondet_memory is not here: it
+    // returns nothing, and the library logs its bytes itself.
+    "longlong", "ulonglong", "u8", "u16", "u32"};
 
 /// The C type of a __VERIFIER_nondet_<t> callee, or "" when it is not one.
 llvm::StringRef nonDetType(const Function &callee) {

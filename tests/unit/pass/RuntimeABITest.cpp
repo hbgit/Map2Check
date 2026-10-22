@@ -44,7 +44,8 @@ std::vector<RuntimeHook> allHooks() {
 const std::vector<std::string> kNonDetTypes = {
     "int",   "unsigned", "char",   "pointer", "long",   "ushort",
     "short", "ulong",    "bool",   "uchar",   "pchar",  "size_t",
-    "loff_t", "sector_t", "uint",  "double", "float"};
+    "loff_t", "sector_t", "uint",  "double", "float",
+    "longlong", "ulonglong", "u8", "u16", "u32"};
 
 }  // namespace
 
@@ -208,6 +209,9 @@ TEST(RuntimeABI, NonDetValueSlotsFollowApiDeltas) {
       {"short", i16, true, 14},     {"double", dbl, true, 15},
       // Map2Check 9.0's FLOAT (issue #74): logged as a float, not a double.
       {"float", llvm::Type::getFloatTy(ctx), true, 16},
+      {"longlong", i64, true, 17},  {"ulonglong", i64, false, 18},
+      {"u8", i8, false, 19},        {"u16", i16, false, 20},
+      {"u32", i32, false, 21},
   };
   for (const Expected& e : expected) {
     Map2Check::NonDetValueSlot slot = Map2Check::nonDetValueSlot(e.cType, ctx);
@@ -218,17 +222,17 @@ TEST(RuntimeABI, NonDetValueSlotsFollowApiDeltas) {
     EXPECT_FALSE(nonDetLogger(e.cType).empty()) << e.cType;
     EXPECT_FALSE(nonDetGenerator(e.cType).empty()) << e.cType;
   }
-  EXPECT_EQ(Map2Check::nonDetValueSlot("longlong", ctx).type, nullptr);
+  EXPECT_EQ(Map2Check::nonDetValueSlot("uint128", ctx).type, nullptr);
 }
 
 // The lists of program definitions that give way or become internal: the
-// assume and the 16 generators the library exports; the SV-COMP and
+// assume and the 22 generators the library exports; the SV-COMP and
 // unprefixed runtime names. No name is in both.
 TEST(RuntimeABI, ProgramDefinitionLists) {
   const std::vector<std::string>& discarded = Map2Check::discardedProgramDefinitions();
   const std::vector<std::string>& internalized =
       Map2Check::internalizedProgramDefinitions();
-  EXPECT_EQ(discarded.size(), 17u);
+  EXPECT_EQ(discarded.size(), 23u);
   EXPECT_EQ(internalized.size(), 8u);
   std::set<std::string> all(discarded.begin(), discarded.end());
   all.insert(internalized.begin(), internalized.end());
@@ -240,7 +244,8 @@ TEST(RuntimeABI, ProgramDefinitionLists) {
   // Every generator the pass logs is discarded when the program defines it.
   for (const char* type : {"int", "uint", "char", "uchar", "short", "ushort",
                            "long", "ulong", "bool", "pointer", "pchar",
-                           "size_t", "loff_t", "sector_t", "double", "float"}) {
+                           "size_t", "loff_t", "sector_t", "double", "float",
+                           "longlong", "ulonglong", "u8", "u16", "u32"}) {
     EXPECT_TRUE(std::count(discarded.begin(), discarded.end(),
                            Map2Check::nonDetGenerator(type)))
         << type;

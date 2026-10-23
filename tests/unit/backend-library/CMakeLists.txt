@@ -44,9 +44,16 @@ add_executable(MemTrackTest
     $<TARGET_OBJECTS:WitnessGenerationNoneLib>
 )
 
+add_executable(NonDetLogTest
+    NonDetLogTest.cpp
+    $<TARGET_OBJECTS:NonDetLogLib>
+    ${DEFAULT_CONTAINER_LIB}
+)
+
 map2check_test(AllocationLogTest)
 map2check_test(HeapLogTest)
 map2check_test(ContainerReallocTest)
 map2check_test(BTreeTest)
 map2check_test(ContainerBTreeTest)
 map2check_test(MemTrackTest)
+map2check_test(NonDetLogTest)

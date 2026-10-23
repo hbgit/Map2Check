@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -87,6 +88,18 @@ std::vector<uint8_t> le32(int32_t value) {
 std::vector<uint8_t> leDouble(double value) {
   std::vector<uint8_t> bytes(8);
   std::memcpy(bytes.data(), &value, 8);
+  return bytes;
+}
+
+std::vector<uint8_t> le64(int64_t value) {
+  std::vector<uint8_t> bytes(8);
+  std::memcpy(bytes.data(), &value, 8);
+  return bytes;
+}
+
+std::vector<uint8_t> leFloat(float value) {
+  std::vector<uint8_t> bytes(4);
+  std::memcpy(bytes.data(), &value, 4);
   return bytes;
 }
 
@@ -252,6 +265,63 @@ TEST(ReadKtestVectors, DropsVectorsWithNoObjects) {
   fs::remove_all(d);
 }
 
+// A path a failed assumption pruned carries the marker object. The marker is
+// not an input, and such paths come after every other one, so shallow pruned
+// paths cannot crowd deep ones out of a capped suite.
+TEST(ReadKtestFile, StripsThePrunedPathMarker) {
+  fs::path d = freshDir("marker");
+  KtestBuilder()
+      .object("non_det_int", le32(5))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000001.ktest");
+  bool pruned = false;
+  auto objects =
+      Map2Check::readKtestFile((d / "test000001.ktest").string(), &pruned);
+  EXPECT_TRUE(pruned);
+  ASSERT_EQ(objects.size(), 1u);
+  EXPECT_EQ(objects[0].name, "non_det_int");
+  fs::remove_all(d);
+}
+
+TEST(ReadKtestVectors, PrunedPathsComeLast) {
+  fs::path d = freshDir("pruned");
+  KtestBuilder()
+      .object("non_det_int", le32(1))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000001.ktest");
+  KtestBuilder().object("non_det_int", le32(2)).writeTo(d / "test000002.ktest");
+  KtestBuilder()
+      .object("non_det_int", le32(3))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000003.ktest");
+  KtestBuilder().object("non_det_int", le32(4)).writeTo(d / "test000004.ktest");
+
+  auto all = Map2Check::readKtestVectors(d.string(), 100);
+  ASSERT_EQ(all.size(), 4u);
+  EXPECT_EQ(all[0], std::vector<std::string>{"2"});
+  EXPECT_EQ(all[1], std::vector<std::string>{"4"});
+  EXPECT_EQ(all[2], std::vector<std::string>{"1"});
+  EXPECT_EQ(all[3], std::vector<std::string>{"3"});
+
+  auto capped = Map2Check::readKtestVectors(d.string(), 3);
+  ASSERT_EQ(capped.size(), 3u);
+  EXPECT_EQ(capped[2], std::vector<std::string>{"1"});
+  fs::remove_all(d);
+}
+
+// Only pruned paths: they are the whole suite rather than none of it.
+TEST(ReadKtestVectors, OnlyPrunedPathsStillMakeASuite) {
+  fs::path d = freshDir("onlypruned");
+  KtestBuilder()
+      .object("non_det_int", le32(7))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000001.ktest");
+  auto vectors = Map2Check::readKtestVectors(d.string(), 100);
+  ASSERT_EQ(vectors.size(), 1u);
+  EXPECT_EQ(vectors[0], std::vector<std::string>{"7"});
+  fs::remove_all(d);
+}
+
 TEST(ReadKtestVectors, MissingDirectoryYieldsNothing) {
   EXPECT_TRUE(Map2Check::readKtestVectors("/nonexistent/klee-last", 10).empty());
 }
@@ -305,5 +375,229 @@ TEST(KleeHaltedOnTimer, AFinishedRunIsNotHalted) {
   std::ofstream(d / "messages.txt") << "KLEE: output directory is \"x\"\n";
   EXPECT_FALSE(Map2Check::kleeHaltedOnTimer(d.string()));
   EXPECT_FALSE(Map2Check::kleeHaltedOnTimer("/nonexistent/klee-last"));
+  fs::remove_all(d);
+}
+
+// KLEE also exits 0 after dropping paths without running out of them: a
+// symbolic double concretized to 0 (float-benchs/sin_interpolated_index-1: one
+// path, answered TRUE), or states killed by its own errors (a VLA of symbolic
+// size in loops/insertion_sort-1-2: "partially completed paths = 2", TRUE).
+TEST(KleeDroppedPaths, ConcretizingAnInputDropsPaths) {
+  fs::path d = freshDir("concretized");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: silently concretizing (reason: floating point) "
+         "expression (ReadLSB w64 0 non_det_double) to value 0 (x.c:155)\n";
+  std::ofstream(d / "info") << "KLEE: done: partially completed paths = 0\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, AStateKilledByAnErrorDropsPaths) {
+  fs::path d = freshDir("killed");
+  std::ofstream(d / "test000001.ktest") << "";
+  std::ofstream(d / "test000001.model.err") << "Error: concretized symbolic size\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, AStateTerminatedEarlyDropsPaths) {
+  fs::path d = freshDir("early");
+  std::ofstream(d / "test000002.early") << "Memory limit exceeded\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// KLEE that died -- a solver crash, an LLVM assertion, the OOM killer --
+// writes no HaltTimer, no .err and no "done" lines, and may leave NONE in the
+// property file from the paths it did finish.
+TEST(KleeDroppedPaths, ARunThatNeverFinishedDropsPaths) {
+  fs::path d = freshDir("crashed");
+  std::ofstream(d / "info") << "KLEE: output directory is \"x\"\n";
+  std::ofstream(d / "test000001.ktest") << "";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// Near --max-memory KLEE stops forking and follows one side of each branch
+// at random; it logs that once and can still exit 0.
+TEST(KleeDroppedPaths, SkippingForksDropsPaths) {
+  fs::path d = freshDir("skipfork");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: skipping fork (memory cap exceeded)\n";
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 3\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// A path pruned by an assumption is not a dropped path, and KLEE counts it
+// among the "partially completed" all the same (klee_silent_exit and a failed
+// klee_assume alike). Reading that counter made every program with an
+// assume_abort_if_not unprovable: TRUE became UNKNOWN.
+TEST(KleeDroppedPaths, AnAssumptionPrunedPathDropsNothing) {
+  fs::path d = freshDir("pruned");
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 1\n"
+                               "KLEE: done: partially completed paths = 1\n";
+  std::ofstream(d / "test000001.ktest") << "";
+  EXPECT_TRUE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, TheHaltTimerDropsPaths) {
+  fs::path d = freshDir("halted");
+  std::ofstream(d / "messages.txt") << "KLEE: HaltTimer invoked\n";
+  EXPECT_FALSE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+TEST(KleeDroppedPaths, AnExhaustedRunDropsNothing) {
+  fs::path d = freshDir("exhausted");
+  std::ofstream(d / "warnings.txt")
+      << "KLEE: WARNING ONCE: calling external: close(12)\n";
+  std::ofstream(d / "info") << "KLEE: done: completed paths = 7\n"
+                               "KLEE: done: partially completed paths = 0\n";
+  std::ofstream(d / "messages.txt") << "KLEE: output directory is \"x\"\n";
+  EXPECT_TRUE(Map2Check::kleeDroppedPaths(d.string()).empty());
+  fs::remove_all(d);
+}
+
+// --- the nondet log as seeds -------------------------------------------------
+
+// KLEE matches a seed's objects to its symbolic inputs by POSITION. A read the
+// converter cannot express (a pchar, a loff_t) must end the seed there: skipping
+// it shifted every later object onto the wrong input.
+TEST(ReadNonDetLogAsObjects, StopsAtTheFirstUnsupportedRead) {
+  fs::path d = freshDir("nondetlog");
+  std::ofstream(d / "klee_log.csv")
+      << "1;0;main;0;x;7;0\n"      // int 7
+      << "2;0;main;0;s;0;9\n"      // pchar: unsupported
+      << "3;0;main;0;y;9;0\n";     // int 9, must not be taken
+  const auto objects =
+      Map2Check::readNonDetLogAsObjects((d / "klee_log.csv").string());
+  ASSERT_EQ(objects.size(), 1u);
+  EXPECT_EQ(objects[0].name, "non_det_int");
+  fs::remove_all(d);
+}
+
+TEST(ReadKtestVectors, FlagsThePrunedVectors) {
+  fs::path d = freshDir("prunedflags");
+  KtestBuilder()
+      .object("non_det_int", le32(1))
+      .object("map2check_pruned", {0})
+      .writeTo(d / "test000001.ktest");
+  KtestBuilder().object("non_det_int", le32(2)).writeTo(d / "test000002.ktest");
+  std::vector<bool> pruned;
+  auto vectors = Map2Check::readKtestVectors(d.string(), 100, &pruned);
+  ASSERT_EQ(vectors.size(), 2u);
+  ASSERT_EQ(pruned.size(), 2u);
+  EXPECT_FALSE(pruned[0]);
+  EXPECT_TRUE(pruned[1]);
+  EXPECT_EQ(vectors[1], std::vector<std::string>{"1"});
+  fs::remove_all(d);
+}
+
+// --- the types issue #74 added ------------------------------------------------
+
+// Intel-TDX reads __VERIFIER_nondet_ulonglong, and its values span all 64
+// bits: one decoded through the 32-bit path is a different input.
+TEST(DecodeKtestObject, DecodesSixtyFourBitTypes) {
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_longlong", le64(-5))),
+            "-5");
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_ulonglong", le64(-1))),
+            "18446744073709551615");
+}
+
+TEST(DecodeKtestObject, DecodesTheFixedWidthUnsignedTypes) {
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_u8", {0xff})), "255");
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_u16", {0xff, 0xff})),
+            "65535");
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_u32", le32(-1))),
+            "4294967295");
+}
+
+// Four bytes read as an integer is the failure mode a float has without its
+// own name. The text must also round-trip: the validator parses it with %f,
+// and a fixed six decimals turns 1e-30 into 0.
+TEST(DecodeKtestObject, DecodesFloatsSoTheyRoundTrip) {
+  EXPECT_EQ(Map2Check::decodeKtestObject(obj("non_det_float", leFloat(1.5f))),
+            "1.5");
+  const std::string tiny =
+      Map2Check::decodeKtestObject(obj("non_det_float", leFloat(1e-30f)));
+  EXPECT_EQ(std::strtof(tiny.c_str(), nullptr), 1e-30f) << "got " << tiny;
+}
+
+// The validators' harness reads __VERIFIER_nondet_memory(p, n) as n uchar
+// inputs, one per byte; KLEE holds it as one object of n bytes.
+TEST(DecodeKtestInputs, ExpandsMemoryIntoOneUcharPerByte) {
+  EXPECT_EQ(Map2Check::decodeKtestInputs(obj("non_det_memory", {1, 0, 255})),
+            (std::vector<std::string>{"1", "0", "255"}));
+  EXPECT_EQ(Map2Check::decodeKtestInputs(obj("non_det_int", le32(-2))),
+            std::vector<std::string>{"-2"});
+}
+
+TEST(ReadKtestVectors, ExpandsMemoryObjectsInPlace) {
+  fs::path d = freshDir("memory");
+  KtestBuilder()
+      .object("non_det_int", le32(7))
+      .object("non_det_memory", {9, 8})
+      .object("non_det_ulonglong", le64(3))
+      .writeTo(d / "test000001.ktest");
+  auto vectors = Map2Check::readKtestVectors(d.string(), 100);
+  ASSERT_EQ(vectors.size(), 1u);
+  EXPECT_EQ(vectors[0], (std::vector<std::string>{"7", "9", "8", "3"}));
+  fs::remove_all(d);
+}
+
+TEST(ReadViolatingKtest, ExpandsMemoryObjectsInPlace) {
+  fs::path d = freshDir("memoryerr");
+  KtestBuilder()
+      .object("non_det_memory", {4, 5})
+      .writeTo(d / "test000001.ktest");
+  std::ofstream(d / "test000001.abort.err") << "abort";
+  EXPECT_EQ(Map2Check::readViolatingKtest(d.string()),
+            (std::vector<std::string>{"4", "5"}));
+  fs::remove_all(d);
+}
+
+// Enumerators 16-21 of NONDET_TYPE (Map2CheckTypes.h).
+TEST(ReadNonDetLogAsObjects, ConvertsTheTypesIssue74Added) {
+  fs::path d = freshDir("nondetlog74");
+  std::ofstream(d / "klee_log.csv")
+      << "0;1;0;main;0;1.5;16\n"
+      << "1;1;0;main;1;-3;17\n"
+      << "2;1;0;main;2;18446744073709551615;18\n"
+      << "3;1;0;main;3;200;19\n"
+      << "4;1;0;main;4;60000;20\n"
+      << "5;1;0;main;5;4000000000;21\n";
+  const auto objects =
+      Map2Check::readNonDetLogAsObjects((d / "klee_log.csv").string());
+  ASSERT_EQ(objects.size(), 6u);
+  EXPECT_EQ(objects[0].name, "non_det_float");
+  EXPECT_EQ(objects[0].bytes, leFloat(1.5f));
+  EXPECT_EQ(objects[1].name, "non_det_longlong");
+  EXPECT_EQ(objects[1].bytes, le64(-3));
+  EXPECT_EQ(objects[2].name, "non_det_ulonglong");
+  EXPECT_EQ(objects[2].bytes, le64(-1));
+  EXPECT_EQ(objects[3].name, "non_det_u8");
+  EXPECT_EQ(objects[3].bytes, std::vector<uint8_t>{200});
+  EXPECT_EQ(objects[4].name, "non_det_u16");
+  EXPECT_EQ(objects[4].bytes, (std::vector<uint8_t>{0x60, 0xea}));
+  EXPECT_EQ(objects[5].name, "non_det_u32");
+  EXPECT_EQ(objects[5].bytes, le32(static_cast<int32_t>(4000000000u)));
+  fs::remove_all(d);
+}
+
+// The runtime logs __VERIFIER_nondet_memory(p, n) as n MEMORY_BYTE rows while
+// KLEE makes one n-byte object, and the log does not mark where a call ends.
+// n one-byte seed objects would not match it, so the seed stops there.
+TEST(ReadNonDetLogAsObjects, StopsAtAMemoryByte) {
+  fs::path d = freshDir("nondetlogmem");
+  std::ofstream(d / "klee_log.csv")
+      << "0;1;0;main;0;7;0\n"
+      << "1;0;0;__VERIFIER_nondet_memory;1;3;22\n"
+      << "2;1;0;main;2;9;0\n";
+  const auto objects =
+      Map2Check::readNonDetLogAsObjects((d / "klee_log.csv").string());
+  ASSERT_EQ(objects.size(), 1u);
+  EXPECT_EQ(objects[0].name, "non_det_int");
   fs::remove_all(d);
 }

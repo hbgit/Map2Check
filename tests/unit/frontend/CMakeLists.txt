@@ -20,3 +20,20 @@ add_executable(SlicerTest
     SlicerTest.cpp
 )
 map2check_test(SlicerTest)
+
+add_executable(SeedStoreTest
+    SeedStoreTest.cpp
+)
+map2check_test(SeedStoreTest)
+
+add_executable(AlternationTest
+    AlternationTest.cpp
+)
+map2check_test(AlternationTest)
+
+add_executable(KleeLogTest
+    KleeLogTest.cpp
+    $<TARGET_OBJECTS:Tools>
+    $<TARGET_OBJECTS:Log>
+)
+map2check_test(KleeLogTest)

@@ -262,3 +262,76 @@ TEST(IsoUtcNow, MatchesTheFormatTheFormatExpects) {
   EXPECT_EQ(now[16], ':');
   EXPECT_EQ(now[19], 'Z');
 }
+
+// Engines alternate (tacas 3b): more than one phase writes test cases into the
+// same suite. A writer counting from 1 again overwrote the earlier phase's.
+TEST(TestSuiteWriter, NumbersAfterTheCasesAlreadyThere) {
+  fs::path d = freshDir("tc_continue");
+  {
+    Map2Check::TestSuiteWriter first(d.string());
+    ASSERT_TRUE(first.writeTestCase({"1"}, false));
+    ASSERT_TRUE(first.writeTestCase({"2"}, false));
+  }
+  Map2Check::TestSuiteWriter second(d.string());
+  ASSERT_TRUE(second.writeTestCase({"3"}, false));
+  EXPECT_NE(slurp(d / "testcase-1.xml").find("<input>1</input>"),
+            std::string::npos);
+  EXPECT_NE(slurp(d / "testcase-3.xml").find("<input>3</input>"),
+            std::string::npos);
+}
+
+// Under alternation every KLEE phase adds Cover-Branches cases: the cap and
+// the duplicates are counted across phases, not per phase.
+TEST(TestSuiteWriter, KnowsTheCasesAnEarlierWriterLeft) {
+  fs::path d = freshDir("tc_known");
+  {
+    Map2Check::TestSuiteWriter first(d.string());
+    ASSERT_TRUE(first.writeTestCase({"1", "a<b"}, false));
+    EXPECT_TRUE(first.hasTestCase({"1", "a<b"}));
+  }
+  Map2Check::TestSuiteWriter second(d.string());
+  EXPECT_EQ(second.caseCount(), 1u);
+  EXPECT_TRUE(second.hasTestCase({"1", "a<b"}));
+  EXPECT_FALSE(second.hasTestCase({"1"}));
+}
+
+// A run starts from an empty suite: re-running in the same directory must not
+// keep the previous run's cases, possibly of another program.
+TEST(TestSuiteWriter, RemoveTestCasesKeepsTheMetadata) {
+  fs::path d = freshDir("tc_remove");
+  Map2Check::TestSuiteWriter w(d.string());
+  ASSERT_TRUE(w.writeMetadata(Map2Check::TestSuiteMetadata{}));
+  ASSERT_TRUE(w.writeTestCase({"1"}, false));
+  Map2Check::TestSuiteWriter::removeTestCases(d.string());
+  EXPECT_FALSE(fs::exists(d / "testcase-1.xml"));
+  EXPECT_TRUE(fs::exists(d / "metadata.xml"));
+  EXPECT_EQ(Map2Check::TestSuiteWriter(d.string()).caseCount(), 0u);
+}
+
+// A case from an assumption-pruned path is remembered as such across phases,
+// and only such a case is evicted to make room for a deeper path.
+TEST(TestSuiteWriter, EvictsOnlyPrunedCasesAcrossPhases) {
+  fs::path d = freshDir("tc_pruned");
+  {
+    Map2Check::TestSuiteWriter first(d.string());
+    ASSERT_TRUE(first.writeTestCase({"1"}, false));
+    ASSERT_TRUE(first.writeTestCase({"2"}, false, true));
+    EXPECT_EQ(first.prunedCount(), 1u);
+  }
+  Map2Check::TestSuiteWriter second(d.string());
+  EXPECT_EQ(second.caseCount(), 2u);
+  EXPECT_EQ(second.prunedCount(), 1u);
+  EXPECT_TRUE(second.hasTestCase({"2"}));
+
+  EXPECT_TRUE(second.evictPrunedCase());
+  EXPECT_FALSE(fs::exists(d / "testcase-2.xml"));
+  EXPECT_TRUE(fs::exists(d / "testcase-1.xml"));
+  EXPECT_EQ(second.caseCount(), 1u);
+  EXPECT_FALSE(second.hasTestCase({"2"}));
+  EXPECT_FALSE(second.evictPrunedCase());
+
+  ASSERT_TRUE(second.writeTestCase({"3"}, false));
+  EXPECT_TRUE(fs::exists(d / "testcase-3.xml"));
+  EXPECT_EQ(slurp(d / "testcase-3.xml").find("pruned"), std::string::npos);
+  fs::remove_all(d);
+}

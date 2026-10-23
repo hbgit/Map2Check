@@ -9,6 +9,7 @@
 #include "ktest_reader.hpp"
 
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -80,6 +81,16 @@ NonDetTypeInfo nonDetTypeInfo(int type) {
     case 13: return {"non_det_uint", sizeof(unsigned), false, true};
     case 14: return {"non_det_short", sizeof(short), false, false};
     case 15: return {"non_det_double", sizeof(double), true, false};
+    case 16: return {"non_det_float", sizeof(float), true, false};
+    case 17: return {"non_det_longlong", sizeof(int64_t), false, false};
+    case 18: return {"non_det_ulonglong", sizeof(uint64_t), false, true};
+    case 19: return {"non_det_u8", sizeof(uint8_t), false, true};
+    case 20: return {"non_det_u16", sizeof(uint16_t), false, true};
+    case 21: return {"non_det_u32", sizeof(uint32_t), false, true};
+    // 22 (MEMORY_BYTE) is deliberately absent: the runtime logs a
+    // __VERIFIER_nondet_memory call as one row per byte, KLEE holds it as ONE
+    // object, and the log does not say where one call's bytes end. The seed
+    // stops there, as it does at a pchar.
     default: return {nullptr, 0, false, false};
   }
 }
@@ -87,6 +98,16 @@ NonDetTypeInfo nonDetTypeInfo(int type) {
 /** Encodes a logged decimal value into the object's little-endian bytes. */
 void encodeValue(const std::string& text, const NonDetTypeInfo& info,
                  std::vector<uint8_t>* out) {
+  if (info.isFloating && info.width == sizeof(float)) {
+    float value = 0.0f;
+    try {
+      value = std::stof(text);
+    } catch (const std::exception&) {
+      value = 0.0f;
+    }
+    std::memcpy(out->data(), &value, std::min(out->size(), sizeof(float)));
+    return;
+  }
   if (info.isFloating) {
     double value = 0.0;
     try {
@@ -146,10 +167,11 @@ int64_t signExtend(uint64_t value, size_t byteWidth) {
 }
 
 bool isUnsignedName(const std::string& name) {
-  static const char* kUnsigned[] = {"non_det_unsigned", "non_det_uint",
-                                    "non_det_ulong",    "non_det_ushort",
-                                    "non_det_uchar",    "non_det_size_t",
-                                    "non_det_bool",     "non_det_pointer"};
+  static const char* kUnsigned[] = {
+      "non_det_unsigned", "non_det_uint",      "non_det_ulong",
+      "non_det_ushort",   "non_det_uchar",     "non_det_size_t",
+      "non_det_bool",     "non_det_pointer",   "non_det_ulonglong",
+      "non_det_u8",       "non_det_u16",       "non_det_u32"};
   for (const char* candidate : kUnsigned) {
     if (name == candidate) return true;
   }
@@ -158,8 +180,9 @@ bool isUnsignedName(const std::string& name) {
 
 }  // namespace
 
-std::vector<KtestObject> readKtestFile(const std::string& path) {
+std::vector<KtestObject> readKtestFile(const std::string& path, bool* pruned) {
   std::vector<KtestObject> objects;
+  if (pruned != nullptr) *pruned = false;
   std::ifstream in(path, std::ios::binary);
   if (!in.is_open()) return objects;
 
@@ -212,6 +235,10 @@ std::vector<KtestObject> readKtestFile(const std::string& path) {
     // A partial object is dropped, but the ones already read are kept: a
     // .ktest truncated by a kill still describes a usable prefix of the path,
     // and the same forgiving rule governs the CSV log.
+    if (name == kPrunedPathMarker) {
+      if (pruned != nullptr) *pruned = true;
+      continue;
+    }
     objects.push_back(KtestObject{name, std::move(bytes)});
   }
 
@@ -231,6 +258,17 @@ std::string decodeKtestObject(const KtestObject& object) {
     return text;
   }
 
+  if (object.name == "non_det_float") {
+    float value = 0.0f;
+    const size_t width = std::min<size_t>(object.bytes.size(), sizeof(float));
+    std::memcpy(&value, object.bytes.data(), width);
+    // %.9g round-trips any float, as the CSV log prints it; the validators
+    // parse it with %f.
+    char text[32];
+    std::snprintf(text, sizeof(text), "%.9g", static_cast<double>(value));
+    return text;
+  }
+
   const uint64_t raw = leBytesToUnsigned(object.bytes);
   if (isUnsignedName(object.name)) {
     return std::to_string(raw);
@@ -239,6 +277,14 @@ std::string decodeKtestObject(const KtestObject& object) {
   // signedness wrong turns -1 into 4294967295, which a validator rejects as
   // out of range far more visibly than it would a wrong-but-plausible value.
   return std::to_string(signExtend(raw, object.bytes.size()));
+}
+
+std::vector<std::string> decodeKtestInputs(const KtestObject& object) {
+  if (object.name != kMemoryObject) return {decodeKtestObject(object)};
+  std::vector<std::string> inputs;
+  inputs.reserve(object.bytes.size());
+  for (uint8_t byte : object.bytes) inputs.push_back(std::to_string(byte));
+  return inputs;
 }
 
 std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir) {
@@ -280,7 +326,8 @@ std::vector<std::string> readViolatingKtest(const std::string& kleeOutDir) {
     std::vector<std::string> inputs;
     inputs.reserve(objects.size());
     for (const KtestObject& object : objects) {
-      inputs.push_back(decodeKtestObject(object));
+      const std::vector<std::string> decoded = decodeKtestInputs(object);
+      inputs.insert(inputs.end(), decoded.begin(), decoded.end());
     }
     return inputs;
   }
@@ -318,9 +365,63 @@ bool kleeHaltedOnTimer(const std::string& kleeOutDir) {
   return false;
 }
 
+std::string kleeDroppedPaths(const std::string& kleeOutDir) {
+  if (kleeHaltedOnTimer(kleeOutDir)) return "halted on its timer";
+
+  const std::filesystem::path dir(kleeOutDir);
+  std::string line;
+  std::ifstream warnings((dir / "warnings.txt").string());
+  while (std::getline(warnings, line)) {
+    if (line.find("silently concretizing") != std::string::npos) {
+      return "concretized a symbolic value";
+    }
+    // Near --max-memory KLEE stops forking and follows one side of each
+    // branch at random, or kills states outright; either way it can still
+    // empty its queue and exit 0.
+    if (line.find("skipping fork") != std::string::npos ||
+        line.find("over memory cap") != std::string::npos) {
+      return "hit its memory cap";
+    }
+  }
+
+  // KLEE that died (a solver crash, an LLVM assertion, the OOM killer) writes
+  // none of the marks below and no "done" lines -- while the paths it did
+  // finish may have written NONE to the property file.
+  bool finished = false;
+  std::ifstream info((dir / "info").string());
+  while (std::getline(info, line)) {
+    if (line.find("KLEE: done: completed paths") != std::string::npos) {
+      finished = true;
+      break;
+    }
+  }
+  if (!finished) return "did not finish its run";
+
+  // A state KLEE killed leaves a test with the reason: <test>.<kind>.err for
+  // an error (a model limit, a memory error, an abort that halted the search),
+  // <test>.early for an early termination (memory cap, depth, ...). Not
+  // "partially completed paths" in info: that counts the paths an assumption
+  // pruned too, and read that way no program with an assume_abort_if_not
+  // could ever be proved.
+  std::error_code error;
+  for (const auto& entry : std::filesystem::directory_iterator(dir, error)) {
+    const std::string name = entry.path().filename().string();
+    auto endsWith = [&name](const std::string& suffix) {
+      return name.size() > suffix.size() &&
+             name.compare(name.size() - suffix.size(), suffix.size(),
+                          suffix) == 0;
+    };
+    if (endsWith(".err") || endsWith(".early")) {
+      return "terminated states early (" + name + ")";
+    }
+  }
+  return "";
+}
+
 std::vector<std::vector<std::string>> readKtestVectors(
-    const std::string& kleeOutDir, size_t limit) {
+    const std::string& kleeOutDir, size_t limit, std::vector<bool>* pruned) {
   std::vector<std::vector<std::string>> vectors;
+  if (pruned != nullptr) pruned->clear();
   std::error_code error;
   if (!std::filesystem::is_directory(kleeOutDir, error)) return vectors;
 
@@ -336,17 +437,27 @@ std::vector<std::vector<std::string>> readKtestVectors(
   }
   std::sort(paths.begin(), paths.end());
 
+  std::vector<std::vector<std::string>> prunedVectors;
   for (const std::string& path : paths) {
     if (vectors.size() >= limit) break;
-    std::vector<KtestObject> objects = readKtestFile(path);
+    bool isPruned = false;
+    std::vector<KtestObject> objects = readKtestFile(path, &isPruned);
     if (objects.empty()) continue;
+    if (isPruned && prunedVectors.size() >= limit) continue;
 
     std::vector<std::string> inputs;
     inputs.reserve(objects.size());
     for (const KtestObject& object : objects) {
-      inputs.push_back(decodeKtestObject(object));
+      const std::vector<std::string> decoded = decodeKtestInputs(object);
+      inputs.insert(inputs.end(), decoded.begin(), decoded.end());
     }
+    (isPruned ? prunedVectors : vectors).push_back(std::move(inputs));
+  }
+  if (pruned != nullptr) pruned->assign(vectors.size(), false);
+  for (std::vector<std::string>& inputs : prunedVectors) {
+    if (vectors.size() >= limit) break;
     vectors.push_back(std::move(inputs));
+    if (pruned != nullptr) pruned->push_back(true);
   }
   return vectors;
 }
@@ -402,14 +513,17 @@ std::vector<KtestObject> readNonDetLogAsObjects(const std::string& csvPath) {
     if (fields.size() < 7) continue;
 
     const std::string& value = fields[5];
+    // KLEE matches a seed's objects to its inputs by POSITION: a read this
+    // cannot express (pchar, loff_t, sector_t, or a malformed row) ends the
+    // seed here. Skipping it shifted every later value onto the wrong input.
     int type = 0;
     try {
       type = std::stoi(fields[6]);
     } catch (const std::exception&) {
-      continue;
+      break;
     }
     const NonDetTypeInfo info = nonDetTypeInfo(type);
-    if (info.name == nullptr) continue;
+    if (info.name == nullptr) break;
 
     KtestObject object;
     object.name = info.name;

@@ -198,6 +198,53 @@ long long kleeCoveredInstructions(const std::string &statsPath) {
   return -1;
 #endif
 }
+
+/** One field of afl-fuzz's fuzzer_stats ("name : value" lines), which it
+ * rewrites while fuzzing and once more on exit; -1 when the file or the field
+ * is missing, as when afl-fuzz exited before fuzzing anything. */
+long long aflFuzzerStat(const std::string &statsPath, const std::string &name) {
+  std::ifstream stats(statsPath);
+  std::string line;
+  while (std::getline(stats, line)) {
+    const size_t colon = line.find(':');
+    if (colon == std::string::npos) continue;
+    std::string field = line.substr(0, colon);
+    field.erase(field.find_last_not_of(' ') + 1);
+    if (field != name) continue;
+    try {
+      return std::stoll(line.substr(colon + 1));
+    } catch (const std::exception &) {
+      return -1;
+    }
+  }
+  return -1;
+}
+
+/** The .ktest files KLEE wrote, one per path it terminated. */
+size_t kleeTestCount(const std::string &outputDir) {
+  size_t count = 0;
+  std::error_code error;
+  for (const auto &entry :
+       std::filesystem::directory_iterator(outputDir, error)) {
+    if (entry.path().extension() == ".ktest") ++count;
+  }
+  return count;
+}
+
+/** The last `count` lines of a file. For the log: the scratch directory that
+ * holds an engine's own output is removed at the end of the run. */
+std::string lastLines(const std::string &path, size_t count) {
+  std::ifstream file(path);
+  std::vector<std::string> lines;
+  std::string line;
+  while (std::getline(file, line)) {
+    lines.push_back(line);
+    if (lines.size() > count) lines.erase(lines.begin());
+  }
+  std::string tail;
+  for (const std::string &kept : lines) tail += "  " + kept + "\n";
+  return tail.empty() ? "  (no output)\n" : tail;
+}
 }  // namespace
 
 int Caller::runKleeWatched(const std::string &command) {
@@ -1446,6 +1493,16 @@ void Caller::executeAnalysis(std::string solvername) {
         exportKleeVectorsAsSeeds();
       }
       Map2Check::Log::Warning("Exited klee with " + std::to_string(result));
+      // "Executing Klee" is printed before KLEE starts, so it does not say
+      // that KLEE ran. The tests it wrote do, and this line is what the
+      // archive's smoke test requires.
+      const size_t kleeTests = kleeTestCount(Map2Check::kleeOutputDir);
+      if (kleeTests > 0) {
+        Map2Check::Log::Info("KLEE ran: " + std::to_string(kleeTests) +
+                             " tests generated");
+      } else {
+        Map2Check::Log::Warning("KLEE generated no tests");
+      }
       // KLEE found nothing: its vectors, run on natively. Not for
       // Cover-Branches, whose goal is no violation.
       if (map2checkMode != Map2CheckMode::COVER_BRANCHES_MODE &&
@@ -1576,6 +1633,26 @@ void Caller::executeAnalysis(std::string solvername) {
       // A single instance without -M/-S is named "default" by afl-fuzz, and
       // its findings live under afl-out/default/, not afl-out/.
       const std::string aflFindings = "afl-out/default";
+
+      // As for KLEE, "Executing AFL++" precedes the launch. The execution
+      // count afl-fuzz recorded is the evidence that it fuzzed, and this line
+      // is what the archive's smoke test requires. When there is none, what
+      // afl-fuzz said goes to the log: fuzzer.output is removed with the
+      // scratch directory.
+      const long long aflExecs =
+          aflFuzzerStat(aflFindings + "/fuzzer_stats", "execs_done");
+      if (aflExecs > 0) {
+        const long long corpus =
+            aflFuzzerStat(aflFindings + "/fuzzer_stats", "corpus_count");
+        Map2Check::Log::Info("AFL++ ran: " + std::to_string(aflExecs) +
+                             " executions, " +
+                             std::to_string(std::max(0LL, corpus)) +
+                             " inputs in the corpus");
+      } else {
+        Map2Check::Log::Warning(
+            "AFL++ recorded no executions; its output ended with:\n" +
+            lastLines("fuzzer.output", 15));
+      }
 
       // Replay crashes with the witness binary to confirm a real violation.
       // Standalone, the persistent binary reads its input from stdin (see

@@ -44,12 +44,15 @@ fail() { # <work> <message>
   exit 1
 }
 
-# The run log must show that <engine> ran: map2check prints this line only
-# after the engine's binary (AFL++) or bitcode (KLEE) was built.
+# The run log must show that <engine> ran. Not the "Executing ..." banners:
+# map2check prints those before launching the engine, so they appear when it
+# fails to start too, and the other engine can still produce the suite (review
+# of #86). These lines are printed after the run, from what the engine itself
+# wrote: afl-fuzz's execution count in fuzzer_stats, KLEE's .ktest files.
 ran() { # <work> <program> <engine>
   case "$3" in
-    AFL++) line="Executing AFL++ with map2check" ;;
-    KLEE) line="Executing Klee with map2check" ;;
+    AFL++) line="AFL++ ran: [1-9][0-9]* executions" ;;
+    KLEE) line="KLEE ran: [1-9][0-9]* tests generated" ;;
   esac
   grep -q "$line" "$1/run.log" || fail "$1" "$2: $3 did not run"
 }

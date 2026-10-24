@@ -45,6 +45,10 @@ runs until the budget ends or KLEE has explored every path, and writes at most
 50 test cases: up to half from the fuzzer's corpus (the inputs that found new
 edges), the rest one per path KLEE explored.
 
+The log records what each engine did, from its own output after the run:
+"AFL++ ran: N executions, M inputs in the corpus" and "KLEE ran: N tests
+generated". ./smoketest.sh requires both lines.
+
 Bundled components
 ------------------
   Map2Check            GPL-2.0                         LICENSE

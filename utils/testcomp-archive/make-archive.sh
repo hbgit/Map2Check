@@ -2,6 +2,8 @@
 # Builds the Test-Comp tool archive: a self-contained Map2Check directory that
 # runs on the competition machines (Ubuntu 24.04, clang 18, no LLVM 16, no KLEE,
 # no AFL++), zipped as the competition expects (one top-level directory).
+# The host provides only python3 and gcc-multilib, the linker and C runtime
+# that AFL++'s native build needs (required_ubuntu_packages in FM-Tools).
 #
 # Run inside the development image, where the install and its dependencies
 # live (Dockerfile.dev, or map2check-dev:aflpp):

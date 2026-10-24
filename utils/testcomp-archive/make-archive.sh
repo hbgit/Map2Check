@@ -115,20 +115,82 @@ mkdir -p "$T/licenses"
 cp "$HERE"/licenses/* "$T/licenses/"
 cp /opt/klee-uclibc/COPYING.LIB "$T/licenses/klee-uclibc.COPYING.LIB"
 # The Debian copyright file of every bundled library and LLVM tool that came
-# from an Ubuntu package (the ones built from source are in licenses/ above).
-# dpkg records some libraries under /lib, the merged-/usr path under /usr/lib.
-for f in "$T"/lib/*.so* clang opt llvm-link; do
+# from an Ubuntu package (the ones built from source are in licenses/ above),
+# and of clang's resource headers (lib/clang/16, include/). dpkg records some
+# libraries under /lib, the merged-/usr path under /usr/lib.
+declare -A DEB_PKG # file in the archive -> its Debian package
+debian_package() { # <absolute path on this system>
+  local real; real=$(readlink -f "$1")
+  { dpkg -S "$real" 2>/dev/null || dpkg -S "${real/#\/usr\/lib/\/lib}" 2>/dev/null; } | cut -d: -f1 | head -1
+}
+for f in "$T"/lib/*.so* "$T"/bin/clang "$T"/bin/opt "$T"/bin/llvm-link; do
   name=$(basename "$f")
   for dir in /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu "$LLVM/lib" "$LLVM/bin"; do
     [ -f "$dir/$name" ] || continue
-    real=$(readlink -f "$dir/$name")
-    pkg=$( { dpkg -S "$real" 2>/dev/null || dpkg -S "${real/#\/usr\/lib/\/lib}" 2>/dev/null; } | cut -d: -f1 | head -1)
+    pkg=$(debian_package "$dir/$name")
     if [ -n "$pkg" ] && [ -f "/usr/share/doc/$pkg/copyright" ]; then
       cp "/usr/share/doc/$pkg/copyright" "$T/licenses/$pkg.copyright"
+      DEB_PKG[${f#"$T"/}]=$pkg
     fi
     break
   done
 done
+headers_pkg=$(debian_package "$LLVM/lib/clang/16/include/stddef.h")
+cp "/usr/share/doc/$headers_pkg/copyright" "$T/licenses/$headers_pkg.copyright"
+# Debian copyright files name their licenses and point to the full text in
+# /usr/share/common-licenses; the texts travel with them.
+mkdir -p "$T/licenses/common-licenses"
+for name in $(grep -oh "/usr/share/common-licenses/[A-Za-z0-9.+_-]*" "$T"/licenses/*.copyright \
+              | sed 's#.*/##; s/[.,]*$//' | sort -u); do
+  if [ -f "/usr/share/common-licenses/$name" ]; then
+    cp "/usr/share/common-licenses/$name" "$T/licenses/common-licenses/"
+  else
+    echo "a Debian copyright file names /usr/share/common-licenses/$name, which is missing" >&2
+    exit 1
+  fi
+done
+
+# --- license coverage ------------------------------------------------------
+# Every file in the archive belongs to a component, and every component's
+# license texts are in it: the archive is not built otherwise. The table is
+# licenses/README.md; this is its executable form.
+need() { for l in "$@"; do [ -f "$T/$l" ] || { echo "missing license $l" >&2; return 1; }; done; }
+uncovered=()
+while IFS= read -r -d '' file; do
+  rel=${file#"$T"/}
+  case "$rel" in
+    licenses/*) continue ;;
+    LICENSE|README|smoketest.sh|map2check|map2check-testcomp-wrapper.py|examples/*|lib/*Pass.so|lib/libMap2CheckLibrary.so|lib/*.bc)
+      need LICENSE ;;
+    bin/klee|bin/kleaver|bin/ktest-tool)
+      need licenses/KLEE-3.1.LICENSE.TXT ;;
+    lib/klee/runtime/klee-uclibc.bca)
+      need licenses/klee-uclibc.COPYING.LIB ;;
+    lib/klee/runtime/*)
+      need licenses/KLEE-3.1.LICENSE.TXT licenses/KLEE-3.1-runtime-NOTICES.txt licenses/LLVM-16.LICENSE.TXT ;;
+    bin/afl-*|lib/afl/*)
+      need licenses/AFLplusplus-4.40c.LICENSE licenses/AFLplusplus-4.40c-THIRD-PARTY.txt licenses/LLVM-16.LICENSE.TXT ;;
+    lib/libstp.so*)
+      need licenses/STP-2.3.4.LICENSE licenses/STP-2.3.4.LICENSE_COMPONENTS licenses/Artistic-1.0-Perl.txt licenses/LGPL-2.0.txt ;;
+    lib/libminisat.so*)
+      need licenses/MiniSat.LICENSE ;;
+    lib/clang/*|include/*)
+      need "licenses/$headers_pkg.copyright" licenses/LLVM-16.LICENSE.TXT ;;
+    *)
+      if [ -n "${DEB_PKG[$rel]:-}" ]; then
+        need "licenses/${DEB_PKG[$rel]}.copyright"
+        case "${DEB_PKG[$rel]}" in clang-*|llvm-*|libllvm*|libclang*) need licenses/LLVM-16.LICENSE.TXT ;; esac
+      else
+        uncovered+=("$rel")
+      fi ;;
+  esac || exit 1
+done < <(find "$T" -type f -print0)
+if [ "${#uncovered[@]}" -gt 0 ]; then
+  echo "files with no license component (add a rule above and to licenses/README.md):" >&2
+  printf '  %s\n' "${uncovered[@]}" >&2
+  exit 1
+fi
+echo "license coverage: $(find "$T" -type f ! -path "$T/licenses/*" | wc -l) files, each with its license"
 
 # --- check and zip ---------------------------------------------------------
 missing=$(for elf in "$T"/map2check "$T"/bin/* "$T"/lib/*.so* "$T"/lib/afl/*.so; do

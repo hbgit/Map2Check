@@ -12,8 +12,17 @@ TOOL="$HERE/map2check-testcomp-wrapper.py"
 
 run() { # <program> <property> <budget>
   work=$(mktemp -d)
+  # The wrapper exits 0 whenever Map2Check ran (a verdict, no verdict, or the
+  # budget spent): any other status is a failure, even with a suite on disk.
+  status=0
   (cd "$work" && "$TOOL" -p "$HERE/examples/$2" --data-model LP64 --budget "$3" \
-    "$HERE/examples/$1") > "$work/run.log" 2>&1 || true
+    "$HERE/examples/$1") > "$work/run.log" 2>&1 || status=$?
+  if [ "$status" -ne 0 ]; then
+    echo "FAIL $1: the wrapper exited with status $status" >&2
+    cat "$work/run.log" >&2
+    rm -rf "$work"
+    exit 1
+  fi
   if [ ! -f "$work/test-suite/metadata.xml" ]; then
     echo "FAIL $1: no test-suite/metadata.xml" >&2
     cat "$work/run.log" >&2

@@ -1,8 +1,13 @@
 #!/bin/sh
 # Smoke test of the Test-Comp archive (required by the FM-Tools CI): runs
 # Map2Check on the two examples in examples/, one per Test-Comp property, and
-# checks that each run writes a test suite in the exchange format. Exits 0
-# only if both do.
+# checks that each run writes a test suite in the exchange format and that the
+# engines ran: AFL++ in both, KLEE in Cover-Branches. Exits 0 only if all do.
+#
+# The engine checks matter because a missing host package does not stop the
+# tool: without a native linker and C runtime (gcc-multilib) the AFL++ binary
+# fails to build, Map2Check gives the whole budget to KLEE, and a suite is
+# still written.
 set -eu
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -32,26 +37,41 @@ run() { # <program> <property> <budget>
   echo "$work"
 }
 
-# Cover-Error: the suite must hold a test case with the input that reaches
-# reach_error (x == 42).
-work=$(run cover_error.c coverage-error-call.prp 60)
-if ! grep -q "<input>42</input>" "$work"/test-suite/testcase-*.xml 2>/dev/null; then
-  echo "FAIL cover_error.c: no test case with the input 42" >&2
-  cat "$work/run.log" >&2
-  rm -rf "$work"
+fail() { # <work> <message>
+  echo "FAIL $2" >&2
+  cat "$1/run.log" >&2
+  rm -rf "$1"
   exit 1
-fi
+}
+
+# The run log must show that <engine> ran: map2check prints this line only
+# after the engine's binary (AFL++) or bitcode (KLEE) was built.
+ran() { # <work> <program> <engine>
+  case "$3" in
+    AFL++) line="Executing AFL++ with map2check" ;;
+    KLEE) line="Executing Klee with map2check" ;;
+  esac
+  grep -q "$line" "$1/run.log" || fail "$1" "$2: $3 did not run"
+}
+
+# Cover-Error: the suite must hold a test case with the input that reaches
+# reach_error (x == 42). AFL++ finds it in its first window, so KLEE is not
+# required here.
+work=$(run cover_error.c coverage-error-call.prp 60)
+ran "$work" cover_error.c AFL++
+grep -q "<input>42</input>" "$work"/test-suite/testcase-*.xml 2>/dev/null ||
+  fail "$work" "cover_error.c: no test case with the input 42"
 echo "ok cover_error.c"
 rm -rf "$work"
 
-# Cover-Branches: the suite must hold at least one test case.
-work=$(run cover_branches.c coverage-branches.prp 30)
-if ! ls "$work"/test-suite/testcase-*.xml > /dev/null 2>&1; then
-  echo "FAIL cover_branches.c: no test case" >&2
-  cat "$work/run.log" >&2
-  rm -rf "$work"
-  exit 1
-fi
+# Cover-Branches: both engines take a turn, and the suite must hold at least
+# one test case. A smaller budget leaves no window for KLEE after AFL++'s;
+# the run still ends in seconds, once KLEE has explored the four paths.
+work=$(run cover_branches.c coverage-branches.prp 60)
+ran "$work" cover_branches.c AFL++
+ran "$work" cover_branches.c KLEE
+ls "$work"/test-suite/testcase-*.xml > /dev/null 2>&1 ||
+  fail "$work" "cover_branches.c: no test case"
 echo "ok cover_branches.c"
 rm -rf "$work"
 

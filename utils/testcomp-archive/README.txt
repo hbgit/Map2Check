@@ -21,10 +21,29 @@ it so that the suite is complete.
   ./map2check-testcomp-wrapper.py --version   prints the version
   ./smoketest.sh                              runs the two examples in examples/
 
-The archive is self-contained for x86_64 Ubuntu 24.04: it carries LLVM 16
-(clang, opt, llvm-link), KLEE 3.1 with klee-uclibc, AFL++ 4.40c and every
-shared library they need except glibc; it needs python3 on the host.
+The archive runs on x86_64 Ubuntu 24.04: it carries LLVM 16 (clang, opt,
+llvm-link), KLEE 3.1 with klee-uclibc, AFL++ 4.40c and every shared library
+they need except glibc. The host needs two packages:
+
+  apt-get install python3 gcc-multilib
+
+python3 runs the wrapper. gcc-multilib brings the linker, the C runtime and
+libgcc, for both 64 and 32 bits (ILP32 tasks): the bundled clang links the
+AFL++ binary of the program with them. Without them the tool still runs and
+writes a suite, but skips the fuzzer and leaves the whole budget to KLEE
+(the log says "the AFL++ binary failed to build"); ./smoketest.sh fails.
 The tool can be run from any directory.
+
+How it runs
+-----------
+Map2Check alternates the two engines in windows until the budget ends, each
+seeding the other: AFL++ fuzzes a natively compiled, instrumented binary of
+the program, and KLEE explores its bitcode symbolically, starting from the
+fuzzer's inputs. Cover-Error stops at the first input that reaches
+reach_error, replays it and writes it as the only test case. Cover-Branches
+runs until the budget ends or KLEE has explored every path, and writes at most
+50 test cases: up to half from the fuzzer's corpus (the inputs that found new
+edges), the rest one per path KLEE explored.
 
 Bundled components
 ------------------

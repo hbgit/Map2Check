@@ -15,10 +15,12 @@ Contract with the competition harness:
     directory reads as a crashed tool, an empty suite as an honest zero
   * exit 0 means "I ran"; it does not claim the suite covers anything
 
-Both Test-Comp goals are supported, from two different sources:
+Both Test-Comp goals are supported, with AFL++ and KLEE taking turns:
 
-  cover-error     klee_log.csv, the violating input vector
-  cover-branches  klee-last/*.ktest, one input vector per path KLEE explored
+  cover-error     one test case, the violating input vector of whichever
+                  engine reached reach_error first
+  cover-branches  up to 50 test cases: the fuzzer's corpus (at most half) and
+                  one input vector per path KLEE explored
 """
 
 import argparse
@@ -105,10 +107,10 @@ def main(argv):
     prop = read_property(args.propertyfile)
 
     if COVER_ERROR in prop:
-        # One test case: the violating vector, from klee_log.csv.
+        # One test case: the violating vector.
         goal_flags = ["--target-function", "--target-function-name", "reach_error"]
     elif COVER_BRANCHES in prop:
-        # One test case per path KLEE explored, from its own .ktest output.
+        # The fuzzer's corpus and one test case per path KLEE explored.
         # No target function: the goal is to cover branches, and asking the
         # tool to hunt for reach_error would make it stop at the first error
         # instead of exploring.

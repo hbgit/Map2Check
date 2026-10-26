@@ -1,110 +1,121 @@
-"""
-BenchExec is a framework for reliable benchmarking.
-This file is part of BenchExec.
+# This file is part of BenchExec, a framework for reliable benchmarking:
+# https://github.com/sosy-lab/benchexec
+#
+# SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
+#
+# SPDX-License-Identifier: Apache-2.0
 
-Copyright (C) 2007-2015  Dirk Beyer
-
-All rights reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+import functools
 import os
-import benchexec.util as Util
-import benchexec.tools.template
-import benchexec.result as result
+import re
 
-class Tool(benchexec.tools.template.BaseTool):
+import benchexec.tools.template
+from benchexec import result
+from benchexec.tools.sv_benchmarks_util import ILP32, LP64, get_data_model_from_task
+from benchexec.tools.template import ToolNotFoundException
+
+
+class Tool(benchexec.tools.template.BaseTool2):
     """
-    This class serves as tool adaptor for Map2Check (https://github.com/hbgit/Map2Check)
+    This class serves as tool adaptor for Map2Check
+    (https://github.com/hbgit/Map2Check).
+
+    Map2Check is both a verifier and a test generator; its wrapper decides from
+    the property file which one is asked for. For a coverage property it
+    writes the test suite to ./test-suite/ and prints DONE.
+
+    Since Map2Check 9, the task's data model (--data-model) and the time limit
+    (--budget, the tool stops shortly before it so that the test suite is
+    complete) are passed to the wrapper. Older wrappers do not accept them.
     """
 
     REQUIRED_PATHS_6 = [
-                  "__init__.py",
-                  "map2check.py",
-                  "map2check-wrapper.sh",
-                  "modules"
-                  ]
+        "__init__.py",
+        "map2check.py",
+        "map2check-wrapper.sh",
+        "modules",
+    ]
 
-    REQUIRED_PATHS_7_1 = [
-                  "map2check",
-                  "map2check-wrapper.py",
-                  "bin",
-                  "include",
-                  "lib"
-                  ]
+    REQUIRED_PATHS_7_1 = ["map2check", "map2check-wrapper.py", "bin", "include", "lib"]
 
-    def executable(self):
-        #Relative path to map2check wrapper
-        if self._get_version() == 6:
-            return Util.find_executable('map2check-wrapper.sh')
-        elif self._get_version() > 6:
-            return Util.find_executable('map2check-wrapper.py')
+    def executable(self, tool_locator):
+        try:
+            executable = tool_locator.find_executable("map2check-wrapper.sh")
+            self._version = 6
+        except ToolNotFoundException:
+            executable = tool_locator.find_executable("map2check-wrapper.py")
+            self._version = 7
 
+        return executable
 
     def program_files(self, executable):
         """
         Determine the file paths to be adopted
         """
-        if self._get_version() == 6:
+        if self._version == 6:
             paths = self.REQUIRED_PATHS_6
-        elif self._get_version() > 6:
+        elif self._version > 6:
             paths = self.REQUIRED_PATHS_7_1
 
         return paths
-
-    def _get_version(self):
-        """
-        Determine the version based on map2check-wrapper.sh file
-        """
-        exe_v6 = Util.find_executable('map2check-wrapper.sh', exitOnError=False)
-        if exe_v6:
-            return 6
-        else:
-            return 7
-
 
     def working_directory(self, executable):
         executableDir = os.path.dirname(executable)
         return executableDir
 
     def version(self, executable):
-        return self._version_from_tool(executable)
+        # Map2Check prints "v9.0.0-Songbirds:2026-10-13".
+        return self._version_from_tool(executable).removeprefix("v")
 
     def name(self):
-        return 'Map2Check'
+        return "Map2Check"
 
-    def cmdline(self, executable, options, sourcefiles, propertyfile, rlimits):
-        assert len(sourcefiles) == 1, "only one sourcefile supported"
-        assert propertyfile, "property file required"
-        sourcefile = sourcefiles[0]
-        if self._get_version() == 6:
-            return [executable] + options + ['-c', propertyfile, sourcefile]
-        elif self._get_version() > 6:
-            return [executable] + options + ['-p', propertyfile, sourcefile]
+    def project_url(self):
+        return "https://github.com/hbgit/Map2Check"
 
+    def cmdline(self, executable, options, task, rlimits):
+        if task.property_file is None:
+            raise benchexec.tools.template.UnsupportedFeatureException(
+                "Map2Check requires a property file"
+            )
 
-    def determine_result(self, returncode, returnsignal, output, isTimeout):
+        if self._version == 6:
+            return (
+                [executable]
+                + options
+                + ["-c", task.property_file, task.single_input_file]
+            )
+        elif self._version > 6:
+            cmd = [executable] + options + ["-p", task.property_file]
+            if _major_version(executable) >= 9:
+                data_model = get_data_model_from_task(
+                    task, {ILP32: "ILP32", LP64: "LP64"}
+                )
+                if data_model:
+                    cmd += ["--data-model", data_model]
+                budget = rlimits.walltime or rlimits.cputime
+                if budget:
+                    cmd += ["--budget", str(budget)]
+            return cmd + [task.single_input_file]
+        assert False, f"Unexpected version {self._version}"
+
+    def determine_result(self, run):
+        output = run.output
         if not output:
             return result.RESULT_UNKNOWN
         output = output[-1].strip()
         status = result.RESULT_UNKNOWN
 
-        if self._get_version() > 6:
-            if output.endswith('TRUE'):
+        if self._version > 6:
+            if output == "DONE":
+                status = result.RESULT_DONE
+            elif output.endswith("TRUE"):
                 status = result.RESULT_TRUE_PROP
-            elif 'FALSE' in output:
+            elif "FALSE" in output:
                 if "FALSE_MEMTRACK" in output:
                     status = result.RESULT_FALSE_MEMTRACK
+                elif "FALSE_MEMCLEANUP" in output:
+                    status = result.RESULT_FALSE_MEMCLEANUP
                 elif "FALSE_DEREF" in output:
                     status = result.RESULT_FALSE_DEREF
                 elif "FALSE_FREE" in output:
@@ -113,28 +124,36 @@ class Tool(benchexec.tools.template.BaseTool):
                     status = result.RESULT_FALSE_OVERFLOW
                 else:
                     status = result.RESULT_FALSE_REACH
-            elif output.endswith('UNKNOWN'):
+            elif output.endswith("UNKNOWN"):
                 status = result.RESULT_UNKNOWN
-            elif isTimeout:
-                status = 'TIMEOUT'
+            elif run.was_timeout:
+                status = result.RESULT_TIMEOUT
             else:
-                status = 'ERROR'
+                status = "ERROR"
 
-        elif self._get_version() == 6:
-            if output.endswith('TRUE'):
+        elif self._version == 6:
+            if output.endswith("TRUE"):
                 status = result.RESULT_TRUE_PROP
-            elif 'FALSE' in output:
+            elif "FALSE" in output:
                 if "FALSE(valid-memtrack)" in output:
                     status = result.RESULT_FALSE_MEMTRACK
                 elif "FALSE(valid-deref)" in output:
                     status = result.RESULT_FALSE_DEREF
                 elif "FALSE(valid-free)" in output:
                     status = result.RESULT_FALSE_FREE
-            elif output.endswith('UNKNOWN'):
+            elif output.endswith("UNKNOWN"):
                 status = result.RESULT_UNKNOWN
-            elif isTimeout:
-                status = 'TIMEOUT'
+            elif run.was_timeout:
+                status = result.RESULT_TIMEOUT
             else:
-                status = 'ERROR'
+                status = "ERROR"
 
         return status
+
+
+@functools.lru_cache
+def _major_version(executable):
+    """The major version of Map2Check, or 0 if the wrapper does not tell."""
+    version = Tool._version_from_tool(executable)
+    match = re.match(r"v?(\d+)\.", version)
+    return int(match.group(1)) if match else 0

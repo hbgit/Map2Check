@@ -49,8 +49,8 @@ mkdir -p "$T"/{bin,lib,include,lib/afl}
 cp -a "$INSTALL/map2check" "$T/"
 cp -aL "$INSTALL/lib/." "$T/lib/" 2>/dev/null || true
 rm -rf "$T/lib/clang" "$T/lib/klee" "$T/lib/libz3*"
-cp "$HERE/../map2check-testcomp-wrapper.py" "$T/"
-chmod +x "$T/map2check-testcomp-wrapper.py"
+cp "$HERE/../map2check-wrapper.py" "$T/"
+chmod +x "$T/map2check-wrapper.py"
 
 # --- LLVM 16 ---------------------------------------------------------------
 for tool in clang opt llvm-link; do cp -L "$LLVM/bin/$tool" "$T/bin/"; done
@@ -162,7 +162,7 @@ while IFS= read -r -d '' file; do
   rel=${file#"$T"/}
   case "$rel" in
     licenses/*) continue ;;
-    LICENSE|README|smoketest.sh|map2check|map2check-testcomp-wrapper.py|examples/*|lib/*Pass.so|lib/libMap2CheckLibrary.so|lib/*.bc)
+    LICENSE|README|smoketest.sh|map2check|map2check-wrapper.py|examples/*|lib/*Pass.so|lib/libMap2CheckLibrary.so|lib/*.bc)
       need LICENSE ;;
     bin/klee|bin/kleaver|bin/ktest-tool)
       need licenses/KLEE-3.1.LICENSE.TXT ;;

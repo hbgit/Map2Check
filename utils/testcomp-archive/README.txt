@@ -10,16 +10,17 @@ License: GPL-2.0 (LICENSE); third-party components under licenses/
 
 Usage (Test-Comp)
 -----------------
-  ./map2check-testcomp-wrapper.py -p <property.prp> [--data-model ILP32|LP64] \
+  ./map2check-wrapper.py -p <property.prp> [--data-model ILP32|LP64] \
       [--budget <seconds>] <program.c>
 
 The test suite is written to ./test-suite/ in the current directory, in the
 Test-Comp exchange format. Supported properties: coverage-error-call and
 coverage-branches. --budget defaults to 900 s; the tool stops shortly before
-it so that the suite is complete.
+it so that the suite is complete. The same wrapper verifies when given an
+SV-COMP property (CHECK(...)) and then prints a verdict instead.
 
-  ./map2check-testcomp-wrapper.py --version   prints the version
-  ./smoketest.sh                              runs the two examples in examples/
+  ./map2check-wrapper.py --version   prints the version
+  ./smoketest.sh                     runs the two examples in examples/
 
 The archive runs on x86_64 Ubuntu 24.04: it carries LLVM 16 (clang, opt,
 llvm-link), KLEE 3.1 with klee-uclibc, AFL++ 4.40c and every shared library

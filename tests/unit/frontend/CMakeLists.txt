@@ -1,0 +1,39 @@
+add_executable(Sha256Test
+    Sha256Test.cpp
+    $<TARGET_OBJECTS:Sha256>
+)
+map2check_test(Sha256Test)
+
+add_executable(TestSuiteTest
+    TestSuiteTest.cpp
+    $<TARGET_OBJECTS:TestSuite>
+)
+map2check_test(TestSuiteTest)
+
+add_executable(KtestReaderTest
+    KtestReaderTest.cpp
+    $<TARGET_OBJECTS:TestSuite>
+)
+map2check_test(KtestReaderTest)
+
+add_executable(SlicerTest
+    SlicerTest.cpp
+)
+map2check_test(SlicerTest)
+
+add_executable(SeedStoreTest
+    SeedStoreTest.cpp
+)
+map2check_test(SeedStoreTest)
+
+add_executable(AlternationTest
+    AlternationTest.cpp
+)
+map2check_test(AlternationTest)
+
+add_executable(KleeLogTest
+    KleeLogTest.cpp
+    $<TARGET_OBJECTS:Tools>
+    $<TARGET_OBJECTS:Log>
+)
+map2check_test(KleeLogTest)

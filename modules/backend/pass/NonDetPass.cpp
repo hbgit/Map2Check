@@ -28,8 +28,142 @@ inline Instruction *BBIteratorToInst(BasicBlock::iterator i) {
 }
 }  // namespace
 
+namespace {
+
+/** Names the benchmarks use for "prune this path", implemented as an abort.
+ *
+ * `__VERIFIER_assume` is usually only declared, and the call-site rewriting
+ * below handles that. These are DEFINED in the program -- the SV-COMP sources
+ * carry their own body:
+ *
+ *     void assume_abort_if_not(int cond) { if (!cond) abort(); }
+ *
+ * so renaming them would collide with the runtime's own definition. The body
+ * is replaced instead, which reaches every call site at once. */
+const char *const kAssumeByAbort[] = {"assume_abort_if_not",
+                                      "assume_abort_if_not_",
+                                      "__VERIFIER_assume",
+                                      // The XCSP family spells it this way,
+                                      // and spelling was the whole difference:
+                                      // 59 of 59 XCSP tasks answered
+                                      // "program correct" in two seconds
+                                      // because the first failing assumption
+                                      // aborted the run, and every one of
+                                      // those programs has a reachable bug.
+                                      // Same defect as the name above, missed
+                                      // for being one word shorter.
+                                      "assume"};
+
+/** Rewrites such a function to a real assume. Returns true if it rewrote.
+ *
+ * Aborting on a failed assumption is not merely slow, it is wrong twice over.
+ * KLEE runs here with --exit-on-error-type=Abort, so the FIRST path that
+ * violates an assumption halts the whole search -- discarding every path not
+ * yet explored. And the abort leaves an abort.err behind that looks exactly
+ * like a real violation, which is how a path the competition considers out of
+ * scope came back as a test case: one measured suite carried 25 inputs and
+ * covered 0.0%.
+ *
+ * Measured over the 818-task Cover-Error corpus, the categories saturated with
+ * this idiom are the ones with no recall at all -- Sequentialized 86% of tasks
+ * and 0 confirmed, Floats 82% and 0, Arrays 71% and 1. */
+bool rewriteAssumeToPrune(Function &F) {
+  if (F.isDeclaration()) return false;
+  bool named = false;
+  for (const char *candidate : kAssumeByAbort) {
+    if (F.getName() == candidate) {
+      named = true;
+      break;
+    }
+  }
+  if (!named) return false;
+  // The signature check carries more weight now that a name as generic as
+  // "assume" is on the list: void(int) is the assumption idiom's shape, and a
+  // function called assume with any other shape is something else and is left
+  // alone.
+  if (F.arg_size() != 1 || !F.getArg(0)->getType()->isIntegerTy()) return false;
+  if (!F.getReturnType()->isVoidTy()) return false;
+
+  LLVMContext &ctx = F.getContext();
+  llvm::Type *int32 = llvm::Type::getInt32Ty(ctx);
+  llvm::Value *condition = F.getArg(0);
+
+  F.deleteBody();
+  BasicBlock *entry = BasicBlock::Create(ctx, "entry", &F);
+  IRBuilder<> builder(entry);
+  llvm::FunctionCallee assume = F.getParent()->getOrInsertFunction(
+      "map2check_assume", llvm::Type::getVoidTy(ctx), int32);
+  builder.CreateCall(assume, {builder.CreateSExtOrTrunc(condition, int32)});
+  builder.CreateRetVoid();
+  llvm::errs() << "[map2check] rewrote " << F.getName()
+               << " to prune the path instead of aborting\n";
+  return true;
+}
+
+/** Rewrites the program's own calls to abort() into path pruning. Returns how
+ * many it rewrote.
+ *
+ * In SV-COMP, abort() is not an error -- reach_error is the only one -- it is
+ * how a program discards a path, and the benchmarks write that assumption
+ * inline as well as through assume_abort_if_not:
+ *
+ *     i2 = init();
+ *     if(!(i2)) {abort();}
+ *
+ * KLEE runs with --exit-on-error-type=Abort, so the first path violating such
+ * an assumption ended the whole search, with exit status 0, and the run
+ * answered TRUE for a program whose bug lay further on. Measured: every wrong
+ * TRUE of the tacasv2 control arm in the R15 Cover-Error sample (the
+ * seq-mthreaded/pals_* family and float-benchs/sin_interpolated_index-1).
+ *
+ * This runs on the user's module before the runtime is linked, so every abort
+ * here is the program's; the runtime's own abort (the one that signals a
+ * recorded violation) is never touched. A violation is still reported the same
+ * way: TargetPass instruments reach_error itself, so a `{reach_error();
+ * abort();}` records the violation before the rewritten abort is reached. */
+unsigned rewriteAbortCallsToPrune(Function &F) {
+  std::vector<CallInst *> aborts;
+  for (BasicBlock &block : F) {
+    for (Instruction &instruction : block) {
+      if (CallInst *call = dyn_cast<CallInst>(&instruction)) {
+        Function *callee = call->getCalledFunction();
+        if (callee != nullptr && callee->getName() == "abort" &&
+            call->arg_size() == 0) {
+          aborts.push_back(call);
+        }
+      }
+    }
+  }
+  if (aborts.empty()) return 0;
+
+  LLVMContext &ctx = F.getContext();
+  llvm::Type *int32 = llvm::Type::getInt32Ty(ctx);
+  llvm::FunctionCallee assume = F.getParent()->getOrInsertFunction(
+      "map2check_assume", llvm::Type::getVoidTy(ctx), int32);
+  for (CallInst *call : aborts) {
+    IRBuilder<> builder(call);
+    llvm::CallInst *pruned =
+        builder.CreateCall(assume, {llvm::ConstantInt::get(int32, 0)});
+    pruned->setDebugLoc(call->getDebugLoc());
+    call->eraseFromParent();
+  }
+  llvm::errs() << "[map2check] rewrote " << aborts.size() << " abort() call(s)"
+               << " in " << F.getName() << " to prune the path\n";
+  return aborts.size();
+}
+
+}  // namespace
+
 PreservedAnalyses NonDetPass::run(Function &F,
                                   llvm::FunctionAnalysisManager &AM) {
+  // Before anything else: this replaces the whole body, so instrumenting the
+  // old one first would be work thrown away.
+  if (rewriteAssumeToPrune(F)) {
+    return PreservedAnalyses::none();
+  }
+
+  rewriteAbortCallsToPrune(F);
+
   this->nonDetFunctions = make_unique<NonDetFunctions>(&F, &F.getContext());
   bool initializedFunctionName = false;
   for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
@@ -89,6 +223,22 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
   CALL_IF_HELPER(Sector_t, SECTOR_T, sector_t)
   CALL_IF_HELPER(Uint, UINT, uint)
   CALL_IF_HELPER(Double, DOUBLE, double)
+  // Issue #74. Unmodeled, each of these stayed an external call KLEE could
+  // not resolve ("failed external call: __VERIFIER_nondet_ulonglong"), which
+  // killed every path through it: all of Intel-TDX and most of Floats came
+  // back UNKNOWN with zero completed paths.
+  CALL_IF_HELPER(Float, FLOAT, float)
+  CALL_IF_HELPER(Longlong, LONGLONG, longlong)
+  CALL_IF_HELPER(Ulonglong, ULONGLONG, ulonglong)
+  CALL_IF_HELPER(U8, U8, u8)
+  CALL_IF_HELPER(U16, U16, u16)
+  CALL_IF_HELPER(U32, U32, u32)
+
+  // Renamed only: it returns nothing to log at the call site, so the runtime
+  // logs the bytes it writes (map2check_non_det_memory).
+  if (calleeFunction->getName() == "__VERIFIER_nondet_memory") {
+    this->instrumentNonDet(NonDetType::MEMORY, calleeFunction);
+  }
 
   if ((calleeFunction->getName() == "__VERIFIER_assume")) {
     this->instrumentNonDet(NonDetType::ASSUME, calleeFunction);
@@ -101,11 +251,27 @@ void NonDetPass::runOnCallInstruction(CallInst *callInst, LLVMContext *Ctx) {
 }
 
 namespace {
-#define INSTRUMENT_CASE_HELPER(nondet_type, c_type) \
-  case (NonDetType::nondet_type): {                 \
-    Twine non_det("map2check_non_det_" #c_type);    \
-    calleeFunction->setName(non_det);               \
-    break;                                          \
+/** Gives `callee` the runtime's name `name`. When the module already has a
+ * function by that name of the same type, the calls are redirected to it
+ * instead: renaming onto an occupied name makes LLVM suffix it
+ * (map2check_assume.1), a symbol the runtime does not define. That happens
+ * when rewriteAbortCallsToPrune has declared map2check_assume before the
+ * program's own __VERIFIER_assume is reached: the native builds failed to link
+ * and the run answered UNKNOWN (review of #73). */
+void adoptRuntimeName(Function *callee, const std::string &name) {
+  Function *existing = callee->getParent()->getFunction(name);
+  if (existing != nullptr && existing != callee &&
+      existing->getFunctionType() == callee->getFunctionType()) {
+    callee->replaceAllUsesWith(existing);
+    return;
+  }
+  callee->setName(name);
+}
+
+#define INSTRUMENT_CASE_HELPER(nondet_type, c_type)              \
+  case (NonDetType::nondet_type): {                              \
+    adoptRuntimeName(calleeFunction, "map2check_non_det_" #c_type); \
+    break;                                                       \
   }
 }  // namespace
 void NonDetPass::instrumentNonDet(NonDetType nonDetType,
@@ -127,14 +293,19 @@ void NonDetPass::instrumentNonDet(NonDetType nonDetType,
     INSTRUMENT_CASE_HELPER(SECTOR_T, sector_t)
     INSTRUMENT_CASE_HELPER(UINT, uint)
     INSTRUMENT_CASE_HELPER(DOUBLE, double)
+    INSTRUMENT_CASE_HELPER(FLOAT, float)
+    INSTRUMENT_CASE_HELPER(LONGLONG, longlong)
+    INSTRUMENT_CASE_HELPER(ULONGLONG, ulonglong)
+    INSTRUMENT_CASE_HELPER(U8, u8)
+    INSTRUMENT_CASE_HELPER(U16, u16)
+    INSTRUMENT_CASE_HELPER(U32, u32)
+    INSTRUMENT_CASE_HELPER(MEMORY, memory)
     case (NonDetType::ASSUME): {
-      Twine assume("map2check_assume");
-      calleeFunction->setName(assume);
+      adoptRuntimeName(calleeFunction, "map2check_assume");
       break;
     }
     case (NonDetType::CRAB_ASSUME): {
-      Twine assume("map2check_crab_assume");
-      calleeFunction->setName(assume);
+      adoptRuntimeName(calleeFunction, "map2check_crab_assume");
       break;
     }
   }
@@ -192,12 +363,36 @@ namespace {
         this->nonDetFunctions->getNonDet##type##Function();     \
     builder.CreateCall(NonDetFunction, args);                   \
   }
+/* Widened to double: the log keeps one floating-point member. */
+#define NONDET_IMPL_HELPER_FLOAT(type)                                      \
+  void NonDetPass::instrumentNonDet##type(CallInst *callInst,               \
+                                          LLVMContext *Ctx) {               \
+    auto j = this->currentInstruction;                                      \
+    j++;                                                                    \
+    IRBuilder<> builder(BBIteratorToInst(j));                               \
+    Value *function_llvm = this->getFunctionNameValue();                    \
+    Value *widened =                                                        \
+        builder.CreateFPExt(callInst, Type::getDoubleTy(*Ctx));             \
+    DebugInfo debugInfo(Ctx, callInst);                                     \
+    Value *args[] = {debugInfo.getLineNumberValue(),                        \
+                     debugInfo.getScopeNumberValue(), widened,              \
+                     function_llvm};                                        \
+    FunctionCallee NonDetFunction =                                         \
+        this->nonDetFunctions->getNonDet##type##Function();                 \
+    builder.CreateCall(NonDetFunction, args);                               \
+  }
 }  // namespace
 
 NONDET_IMPL_HELPER(Integer)
 NONDET_IMPL_HELPER(Unsigned)
 NONDET_IMPL_HELPER(Uint)
 NONDET_IMPL_HELPER(Double)
+NONDET_IMPL_HELPER_FLOAT(Float)
+NONDET_IMPL_HELPER(Longlong)
+NONDET_IMPL_HELPER(Ulonglong)
+NONDET_IMPL_HELPER(U32)
+NONDET_IMPL_HELPER_CAST(U8)
+NONDET_IMPL_HELPER_CAST(U16)
 NONDET_IMPL_HELPER_CAST(Char)
 NONDET_IMPL_HELPER_CAST(Ushort)
 NONDET_IMPL_HELPER_CAST(Short)

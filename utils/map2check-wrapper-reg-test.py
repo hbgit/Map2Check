@@ -72,6 +72,11 @@ if is_memsafety:
 elif is_memcleanup:
   command_line += " --memcleanup-property --generate-witness "
 elif is_reachability:
+  # --add-invariants needs Clam (the renamed crab-llvm), which this build does
+  # not ship. map2check exits 3 rather than ignoring the flag, so this branch
+  # fails until Clam lands -- deliberately. The fix is to build with
+  # -DENABLE_CLAM=ON, not to drop the flag.
+  # See docs/reports/2026-08-16-crabllvm-review.md.
   command_line += " --smt-solver yices2 --add-invariants --target-function --generate-witness "
 elif is_overflow:
   command_line += " --check-overflow --generate-witness "

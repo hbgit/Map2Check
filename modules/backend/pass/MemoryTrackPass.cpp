@@ -10,8 +10,12 @@
 
 #include "MemoryTrackPass.hpp"
 
+#include <cstdlib>
+#include <string>
 #include <vector>
 
+#include <llvm/Analysis/ValueTracking.h>
+#include <llvm/IR/IntrinsicInst.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 #include <llvm/Support/CommandLine.h>
@@ -98,6 +102,35 @@ void MemoryTrackPass::instrumentPointer() {
   builder.CreateCall(this->map2check_pointer, args);
 }
 
+/** Widens or narrows a size operand to the type the runtime call declares.
+ *
+ * The allocation size is taken straight from the program's own call, and its
+ * type is whatever that program declared. The runtime helpers are registered
+ * with an i64 size, so any program allocating with a narrower integer produced
+ * a call whose argument type did not match its signature -- and LLVM rejects
+ * the module outright:
+ *
+ *   Call parameter type does not match function signature!
+ *   LLVM ERROR: Broken module found, compilation aborted!
+ *
+ * Not a corner case. On the Test-Comp corpus this killed all 110 ProductLines
+ * tasks, two seconds into a sixty-second budget, plus a share of ECA -- the
+ * CIL-processed sources there allocate with i32. It went unseen because the
+ * Juliet and CASTLE programs allocate with i64, so every benchmark this tool
+ * is regularly run against happened to match. */
+static Value *coerceToParamType(IRBuilder<> &builder, Value *value,
+                                FunctionCallee callee, unsigned argIndex) {
+  Type *wanted = callee.getFunctionType()->getParamType(argIndex);
+  if (value->getType() == wanted) return value;
+  if (value->getType()->isIntegerTy() && wanted->isIntegerTy()) {
+    // Signed: an allocation size is non-negative in practice, but a program is
+    // free to compute one in a signed type, and truncating a sign-extended
+    // value back is what preserves it either way.
+    return builder.CreateSExtOrTrunc(value, wanted);
+  }
+  return value;
+}
+
 void MemoryTrackPass::instrumentPosixMemAllign() {
   CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
 
@@ -116,7 +149,8 @@ void MemoryTrackPass::instrumentPosixMemAllign() {
   Value *varPointerCast = CastInst::CreatePointerCast(
       pointer, PointerType::get(*this->Ctx, 0), bitcast, BBIteratorToInst(j));
 
-  Value *args[] = {varPointerCast, size};
+  Value *args[] = {varPointerCast,
+                   coerceToParamType(builder, size, map2check_posix, 1)};
   builder.CreateCall(map2check_posix, args);
 }
 
@@ -132,7 +166,8 @@ void MemoryTrackPass::instrumentMalloc() {
   Twine bitcast("bitcast");
   // if (size == NULL) {
   // }
-  Value *args[] = {callInst, size};
+  Value *args[] = {callInst,
+                   coerceToParamType(builder, size, map2check_malloc, 1)};
   builder.CreateCall(map2check_malloc, args);
 }
 
@@ -155,7 +190,8 @@ void MemoryTrackPass::instrumentRealloc() {
   // Adds map2check_malloc with allocated address and size
   IRBuilder<> builder(BBIteratorToInst(j));
   auto size = callInst->getArgOperand(1);
-  Value *args[] = {callInst, size};
+  Value *args[] = {callInst,
+                   coerceToParamType(builder, size, map2check_malloc, 1)};
   builder.CreateCall(map2check_malloc, args);
 }
 
@@ -177,8 +213,10 @@ void MemoryTrackPass::instrumentMemset() {
   IRBuilder<> builder(BBIteratorToInst(j));
   Value *function_llvm = builder.CreateGlobalStringPtr(function_name);
 
-  // Value *args[] = {varPointerCast, size};
-  Value *args[] = {pointer, size};
+  // map2check_load takes an i64 size; the intrinsic's may be i32.
+  Value *sizeCast = CastInst::CreateIntegerCast(
+      size, Type::getInt64Ty(*this->Ctx), false, bitcast, BBIteratorToInst(j));
+  Value *args[] = {varPointerCast, sizeCast};
   builder.CreateCall(map2check_load, args);
 
   Value *args2[] = {this->line_value, function_llvm};
@@ -221,6 +259,109 @@ void MemoryTrackPass::instrumentMemcpy() {
   builder.CreateCall(map2check_load, args);
   builder.CreateCall(map2check_load, args2);
   builder.CreateCall(map2check_check_deref, args3);
+}
+
+namespace {
+/** Behind MAP2CHECK_CHECK_CSTRINGS=1 until measured on more of Juliet. The
+ * check fixes a wrong TRUE (CWE193 "cpy" bad: the buffer is full, the read
+ * always overruns it) and makes a wrong FALSE on the matching good tasks, whose
+ * terminator is a byte never initialized -- which SV-COMP counts as a
+ * terminator and a native or KLEE run does not (R21: one of each in 50). */
+bool cstringChecksEnabled() {
+  const char *knob = std::getenv("MAP2CHECK_CHECK_CSTRINGS");
+  return knob != nullptr && std::string(knob) == "1";
+}
+
+/** The argument positions a constant printf format reads as strings: each
+ * %s without a precision (a %.Ns may legitimately point at an unterminated
+ * buffer). `first` is the position of the first variadic argument. Returns
+ * nothing for a format it cannot follow (%n$ positional arguments). */
+std::vector<unsigned> stringArgumentsOf(llvm::StringRef format,
+                                        unsigned first) {
+  std::vector<unsigned> positions;
+  unsigned argument = first;
+  for (size_t i = 0; i < format.size(); ++i) {
+    if (format[i] != '%') continue;
+    ++i;
+    if (i < format.size() && format[i] == '%') continue;
+    // flags
+    while (i < format.size() && llvm::StringRef("-+ #0'").contains(format[i]))
+      ++i;
+    // width
+    if (i < format.size() && format[i] == '*') {
+      ++argument;
+      ++i;
+    }
+    while (i < format.size() && isdigit(static_cast<unsigned char>(format[i])))
+      ++i;
+    if (i < format.size() && format[i] == '$') return {};
+    // precision
+    bool precision = false;
+    if (i < format.size() && format[i] == '.') {
+      precision = true;
+      ++i;
+      if (i < format.size() && format[i] == '*') {
+        ++argument;
+        ++i;
+      }
+      while (i < format.size() &&
+             isdigit(static_cast<unsigned char>(format[i])))
+        ++i;
+    }
+    // length modifiers
+    bool wide = false;
+    while (i < format.size() && llvm::StringRef("hlLqjzt").contains(format[i])) {
+      if (format[i] == 'l') wide = true;
+      ++i;
+    }
+    if (i >= format.size()) break;
+    // GNU %m prints strerror(errno) and consumes no argument; the * of its
+    // width or precision, counted above, still does.
+    if (format[i] == 'm') continue;
+    if (format[i] == 's' && !precision && !wide) positions.push_back(argument);
+    ++argument;
+  }
+  return positions;
+}
+}  // namespace
+
+/* KLEE's uClibc declares printf without defining it, so KLEE runs it as a
+ * native external call: whatever it reads is read outside every check. An
+ * unterminated buffer printed with %s -- Juliet's CWE121 CWE193 "cpy" tasks --
+ * came back TRUE. The strings the call will read are checked here, before it:
+ * the format's %s arguments when the format is a constant, the first argument
+ * of puts/fputs. */
+void MemoryTrackPass::instrumentCStringArguments() {
+  CallInst *callInst = dyn_cast<CallInst>(&*this->currentInstruction);
+  llvm::StringRef name = this->calleeFunction->getName();
+
+  std::vector<unsigned> strings;
+  if (name == "puts" || name == "fputs") {
+    strings.push_back(0);
+  } else {
+    const unsigned formatIndex =
+        name == "printf" ? 0 : (name == "snprintf" ? 2 : 1);
+    if (callInst->arg_size() <= formatIndex) return;
+    llvm::StringRef format;
+    if (!llvm::getConstantStringInfo(callInst->getArgOperand(formatIndex),
+                                     format)) {
+      return;
+    }
+    strings = stringArgumentsOf(format, formatIndex + 1);
+  }
+  if (strings.empty()) return;
+
+  IRBuilder<> builder(&*this->currentInstruction);
+  Value *function_llvm =
+      builder.CreateGlobalStringPtr(this->currentFunction->getName());
+  for (unsigned position : strings) {
+    if (position >= callInst->arg_size()) continue;
+    Value *argument = callInst->getArgOperand(position);
+    if (!argument->getType()->isPointerTy()) continue;
+    builder.CreateCall(map2check_check_cstring, {argument});
+  }
+  Value *args[] = {this->line_value, function_llvm};
+  builder.CreateCall(map2check_check_deref, args);
 }
 
 void MemoryTrackPass::instrumentAlloca() {
@@ -470,16 +611,22 @@ void MemoryTrackPass::switchCallInstruction() {
     this->instrumentFree();
   } else if (this->calleeFunction->getName() == "posix_memalign") {
     this->instrumentPosixMemAllign();
-  } else if (this->calleeFunction->getName() == "memset") {
+  } else if (llvm::isa<llvm::MemSetInst>(&*this->currentInstruction) ||
+             calleeName == "memset") {
+    // By the intrinsic's kind, not its name. The names carried the pointer
+    // types -- llvm.memset.p0i8.i64 -- and with opaque pointers LLVM 16 names
+    // them llvm.memset.p0.i64: matched by name, no memset, memcpy or memmove
+    // clang emitted was checked at all (memset(p, 0, 16) on 8 malloc'd bytes
+    // came back UNKNOWN, found only by KLEE's own bounds check).
     this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memset.p0i8.i64") {
-    this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memset.p0i8.i32") {
-    this->instrumentMemset();
-  } else if (this->calleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i64") {
+  } else if (llvm::isa<llvm::MemTransferInst>(&*this->currentInstruction) ||
+             calleeName == "memcpy" || calleeName == "memmove") {
     this->instrumentMemcpy();
-  } else if (this->calleeFunction->getName() == "llvm.memcpy.p0i8.p0i8.i32") {
-    this->instrumentMemcpy();
+  } else if ((calleeName == "printf" || calleeName == "fprintf" ||
+              calleeName == "sprintf" || calleeName == "snprintf" ||
+              calleeName == "puts" || calleeName == "fputs") &&
+             cstringChecksEnabled()) {
+    this->instrumentCStringArguments();
   } else if (this->calleeFunction->getName() == "malloc") {
     this->instrumentMalloc();
   } else if (this->calleeFunction->getName() == "valloc") {
@@ -749,6 +896,10 @@ void MemoryTrackPass::prepareMap2CheckInstructions() {
       PointerType::get(*this->Ctx, 0), PointerType::get(*this->Ctx, 0),
       Type::getInt64Ty(*this->Ctx), PointerType::get(*this->Ctx, 0),
       Type::getInt64Ty(*this->Ctx), PointerType::get(*this->Ctx, 0));
+
+  this->map2check_check_cstring = F.getParent()->getOrInsertFunction(
+      "map2check_check_cstring", Type::getVoidTy(*this->Ctx),
+      PointerType::get(*this->Ctx, 0));
 
   this->map2check_check_deref = F.getParent()->getOrInsertFunction(
       "map2check_check_deref", Type::getVoidTy(*this->Ctx),

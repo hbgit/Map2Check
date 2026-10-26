@@ -16,7 +16,9 @@
 
 #include "map2check.hpp"
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -28,8 +30,12 @@
 
 #include "caller.hpp"
 #include "counter_example/counter_example.hpp"
+#include "test_suite/ktest_reader.hpp"
+#include "test_suite/test_suite.hpp"
 #include "utils/gen_crypto_hash.hpp"
+#include "utils/alternation.hpp"
 #include "utils/log.hpp"
+#include "utils/sha256.hpp"
 #include "witness/witness_include.hpp"
 #include "wasm_lifter.hpp"
 
@@ -43,11 +49,282 @@ namespace {
 
 const size_t SUCCESS = 0;
 const size_t ERROR_IN_COMMAND_LINE = 1;
+/** A syntactically valid option asked for a capability this build does not
+ * have. Distinct from ERROR_IN_COMMAND_LINE so callers can tell "you typed it
+ * wrong" from "this binary cannot do that", and act differently. */
+const size_t ERROR_UNAVAILABLE_CAPABILITY = 3;
+/** --expected-result recorded a verdict different from the one asked for.
+ *
+ * This used to be signalled with abort(), i.e. SIGABRT (exit 134). A signal
+ * tells BenchExec "the tool crashed", which is the opposite of the truth: the
+ * tool ran to a definitive verdict and that verdict disagreed with the
+ * harness's expectation. A distinct exit code lets the harness distinguish
+ * "wrong answer" from "broken run". Kept at 4 so it never collides with the
+ * command-line (1) and capability (3) codes, and never looks like success. */
+const size_t ERROR_EXPECTED_RESULT = 4;
 // A helper function to simplify the main part.
 template <class T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
   copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
   return os;
+}
+
+/** Whether an invariant generator is installed alongside this build.
+ *
+ * Clam (formerly crab-llvm) is an external tool invoked as a subprocess, so
+ * this is a filesystem question rather than a compile-time one: a binary built
+ * with -DENABLE_CLAM=ON still has to find the installed driver at run time.
+ * Both conditions are checked, because neither implies the other. */
+bool invariantGeneratorAvailable() {
+#ifndef MAP2CHECK_ENABLE_CLAM
+  return false;
+#else
+  // Same resolver the invocation uses, so the check and the command can never
+  // disagree about where Clam is.
+  return fs::exists(Map2Check::clamBinary());
+#endif
+}
+
+/** The <specification> field of the test-suite metadata.
+ *
+ * BenchExec always hands the tool a property file, and copying it verbatim is
+ * what keeps the metadata correct when the competition revises a property
+ * string -- guessing it here would silently drift. The fallbacks exist only so
+ * a manual run without --property-file still produces a valid suite.
+ *
+ * `invocationDir` is not optional decoration. This runs AFTER the pipeline has
+ * chdir'd into the scratch directory, so a relative --property-file -- which is
+ * what BenchExec and every harness here pass -- resolved against the wrong
+ * directory and silently fell through to the guess below. Measured on the
+ * Test-Comp corpus: "could not read property file: prop.prp" on every task.
+ *
+ * It went unnoticed because the guess HAPPENS to match the real property text
+ * for both categories today, so no output differed and no test could see it.
+ * The drift the comment above warns about was therefore already in place. */
+std::string resolveSpecification(const std::string &propertyFile,
+                                 const std::string &invocationDir,
+                                 Map2Check::Map2CheckMode mode) {
+  if (!propertyFile.empty()) {
+    std::string path = propertyFile;
+    if (!fs::path(path).is_absolute() && !invocationDir.empty()) {
+      path = invocationDir + "/" + path;
+    }
+    std::ifstream in(path);
+    if (in.is_open()) {
+      std::ostringstream buffer;
+      buffer << in.rdbuf();
+      std::string text = buffer.str();
+      // Property files end with a newline that does not belong in an element.
+      while (!text.empty() && (text.back() == '\n' || text.back() == '\r')) {
+        text.pop_back();
+      }
+      if (!text.empty()) return text;
+    }
+    Map2Check::Log::Warning("could not read property file: " + path);
+  }
+  if (mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+    return "COVER( init(main()), FQL(COVER EDGES(@CALL(reach_error))) )";
+  }
+  return "COVER( init(main()), FQL(COVER EDGES(@DECISIONEDGE)) )";
+}
+
+/** Serializes the violating execution's nondet log as a Test-Comp test suite.
+ *
+ * Must run before Caller::cleanGarbage(): klee_log.csv lives in the scratch
+ * directory that cleanGarbage() deletes, and the suite must not. */
+/** Upper bound on a Cover-Branches suite.
+ *
+ * KLEE can terminate tens of thousands of paths, and every test case costs the
+ * validator a compile-and-run. The competition scores coverage, not volume, so
+ * past a few dozen vectors the marginal branch is rare and the validation cost
+ * is not. The bound is here rather than in the runtime because this is the
+ * side that knows what the suite is for.
+ *
+ * Lowered from 500 after measuring what 500 does: of 116 tasks whose
+ * validation failed outright on the Test-Comp corpus, 115 had at least 100
+ * test cases and the median was exactly 500 -- suites so large that TestCov
+ * could not finish validating them, so the extra vectors scored nothing and
+ * cost everything. Generating them was work spent to make the result
+ * unmeasurable. */
+constexpr size_t kMaxBranchTestCases = 50;
+
+void emitTestSuite(const std::string &outputDir, const std::string &programFile,
+                   const std::string &entryFunction,
+                   const std::string &architecture,
+                   const std::string &specification, bool foundViolation,
+                   bool coverBranches, Map2Check::Map2CheckMode mode,
+                   const std::vector<std::vector<std::string>> &fuzzerVectors) {
+  Map2Check::TestSuiteMetadata metadata;
+  metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
+  metadata.specification = specification;
+  metadata.programFile = programFile;
+  metadata.programHash = Map2Check::sha256File(programFile);
+  metadata.entryFunction = entryFunction;
+  metadata.architecture = architecture;
+  metadata.creationTime = Map2Check::isoUtcNow();
+
+  Map2Check::TestSuiteWriter writer(outputDir);
+  if (!writer.writeMetadata(metadata)) {
+    Map2Check::Log::Warning("could not write test-suite metadata to " +
+                            outputDir);
+    return;
+  }
+  // Cover-Branches: one test case per path KLEE explored, taken from its own
+  // .ktest output. Nothing is asked of the instrumented program -- measured,
+  // when it was: making it write a log per state turned a 1-second run that
+  // answered FALSE into a 100-second run that exhausted its budget and
+  // answered TRUE, because each write is an external call KLEE executes
+  // concretely. Reading afterwards costs the finished search nothing.
+  //
+  // coversError is false throughout: these vectors are paths, not violations.
+  // The violating one, when there is one, is still in klee_log.csv and still
+  // goes out under Cover-Error.
+  //
+  // The cap is on the SUITE, not on this phase: with the engines alternating,
+  // every KLEE phase adds cases, and later phases replay the vectors earlier
+  // ones already wrote (seeds) -- those are skipped.
+  if (coverBranches) {
+    // The fuzzer's share first, at most half the suite, so KLEE's paths still
+    // find room: its corpus is ranked by new edges, the cases a coverage
+    // metric rewards by construction (on by default; MAP2CHECK_FUZZER_SUITE=0).
+    // Cases from assumption-pruned paths (see evictPrunedCase) hold no claim
+    // on the suite: they count toward neither share and give way when full.
+    size_t fromFuzzer = 0;
+    for (const std::vector<std::string> &inputs : fuzzerVectors) {
+      if (writer.caseCount() - writer.prunedCount() >=
+          kMaxBranchTestCases / 2) {
+        break;
+      }
+      if (writer.hasTestCase(inputs)) continue;
+      if (writer.caseCount() >= kMaxBranchTestCases &&
+          !writer.evictPrunedCase()) {
+        break;
+      }
+      if (!writer.writeTestCase(inputs, false)) {
+        Map2Check::Log::Warning("could not write test case to " + outputDir);
+        return;
+      }
+      ++fromFuzzer;
+    }
+    if (!fuzzerVectors.empty()) {
+      Map2Check::Log::Info("Test suite: " + std::to_string(fromFuzzer) +
+                           " test cases from the fuzzer's corpus");
+    }
+    constexpr size_t kMaxKtestsRead = 5000;
+    std::vector<bool> pruned;
+    std::vector<std::vector<std::string>> vectors = Map2Check::readKtestVectors(
+        Map2Check::kleeOutputDir, kMaxKtestsRead, &pruned);
+    size_t written = 0;
+    for (size_t i = 0; i < vectors.size(); ++i) {
+      const std::vector<std::string> &inputs = vectors[i];
+      if (writer.hasTestCase(inputs)) continue;
+      // Pruned vectors come last, so once one finds the suite full, all do.
+      if (writer.caseCount() >= kMaxBranchTestCases &&
+          (pruned[i] || !writer.evictPrunedCase())) {
+        break;
+      }
+      if (!writer.writeTestCase(inputs, false, pruned[i])) {
+        Map2Check::Log::Warning("could not write test case to " + outputDir);
+        return;
+      }
+      ++written;
+    }
+    Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                         std::to_string(written) +
+                         " test cases from KLEE paths, " +
+                         std::to_string(writer.caseCount()) + " in the suite)");
+    return;
+  }
+
+  // Last chance to find a vector before declaring the suite empty.
+  //
+  // A run can reach the target and still not record it: the state that reaches
+  // it aborts, an aborted KLEE state runs no exit handler, and
+  // map2check_property is written by that handler. So foundViolation being
+  // false does not mean nothing was found -- it means nothing was WRITTEN
+  // DOWN. Measured: twelve tasks whose suites covered the error came back with
+  // no verdict at all.
+  //
+  // Safe to consult now, and only now, because NonDetPass rewrites the
+  // abort-based assumptions into path pruning: an abort.err can no longer be
+  // an assumption failure, so its presence in reachability mode is evidence
+  // the target really was hit.
+  if (!foundViolation && mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+    std::vector<std::string> recovered =
+        Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
+    if (!recovered.empty()) {
+      Map2Check::Log::Warning(
+          "the runtime recorded no violation, but KLEE reported an aborting "
+          "path -- emitting its input vector (" +
+          std::to_string(recovered.size()) + " inputs)");
+      if (writer.writeTestCase(recovered, true)) {
+        Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                             std::to_string(recovered.size()) + " inputs)");
+        return;
+      }
+    }
+  }
+
+  // No violation means no test case, but the suite still has to exist. A
+  // missing test-suite/ directory reads to the competition harness as a tool
+  // that crashed; a suite carrying metadata and zero test cases says the tool
+  // ran and found nothing, which is a legitimate and scoreable outcome.
+  if (!foundViolation) {
+    Map2Check::Log::Info("Test suite written to " + outputDir +
+                         " (no violation found -- 0 test cases)");
+    return;
+  }
+
+  std::vector<std::string> inputs =
+      Map2Check::readNonDetLog(Map2Check::kleeLogCSV);
+
+  // Fall back to KLEE's record of the failing path when the runtime's log is
+  // empty, which is the common case rather than the exception. The state that
+  // reaches the target aborts; an aborted state runs no exit handler; the
+  // flush that writes klee_log.csv never happens. Measured on the Test-Comp
+  // corpus: 290 of 376 runs that reported FAILED emitted a test case with zero
+  // <input> elements, and TestCov scored every one of them as covering
+  // nothing -- the tool had found the bug and could not prove it.
+  //
+  // The log stays the first choice where it exists: it records values in the
+  // order the program consumed them, straight from the instrumented run, while
+  // the .ktest is KLEE's view of the same path.
+  //
+  // Deliberately NOT gated on the runtime having recorded the violation, and
+  // that took two measurements to get right.
+  //
+  // The danger this fallback had was picking up an assumption failure: the
+  // sv-benchmarks idiom is `void assume_abort_if_not(int c){ if(!c) abort(); }`
+  // and an aborting assumption leaves an abort.err indistinguishable from a
+  // real one. A suite built from it carried 25 inputs and covered 0.0%.
+  //
+  // The first attempt at a defence was to require foundViolation. It cost
+  // more than it saved: measured pairwise against the previous run, twelve
+  // tasks that HAD been covered stopped being covered, every one of them a
+  // case where the target really was reached and the runtime simply never
+  // recorded it -- the state that reaches the target aborts, and an aborted
+  // state runs no exit handler, so map2check_property stays empty exactly
+  // when it matters most.
+  //
+  // The real defence is upstream: NonDetPass now rewrites the abort-based
+  // assumptions into path pruning, so an abort.err can no longer come from
+  // one. With the source of false aborts removed, requiring foundViolation
+  // only blocks legitimate recoveries.
+  if (inputs.empty()) {
+    inputs = Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
+    if (!inputs.empty()) {
+      Map2Check::Log::Info(
+          "nondet log was empty; recovered the violating input vector from "
+          "KLEE's test output (" + std::to_string(inputs.size()) + " inputs)");
+    }
+  }
+
+  if (!writer.writeTestCase(inputs, true)) {
+    Map2Check::Log::Warning("could not write test case to " + outputDir);
+    return;
+  }
+  Map2Check::Log::Info("Test suite written to " + outputDir + " (" +
+                       std::to_string(inputs.size()) + " inputs)");
 }
 
 inline void help_msg() {
@@ -97,7 +374,26 @@ inline void fixPath(char *map2check_bin_string) {
   klee_env_var += "/lib/klee/runtime";
   setenv("KLEE_RUNTIME_LIBRARY_PATH", klee_env_var.c_str(), 1);
 
-  std::string ld_env_var("$LD_LIBRARY_PATH:");
+  // The previous value has to be read, not spelled. This was
+  //
+  //     std::string ld_env_var("$LD_LIBRARY_PATH:");
+  //
+  // and setenv does no shell expansion, so the environment ended up with the
+  // literal seven-plus characters "$LD_LIBRARY_PATH" as its first component --
+  // a path that does not exist. Everything the image had put there was gone
+  // for every child process map2check spawns.
+  //
+  // It went unnoticed because the install prefix appended below carries the
+  // libraries the tool itself needs, so nothing map2check owns ever missed
+  // them. It surfaced the moment an external tool was added: sbt-slicer links
+  // dg's shared libraries from /opt/dg/lib, which the image puts on the path,
+  // and every invocation died with "libdganalysis.so: cannot open shared
+  // object file".
+  std::string ld_env_var;
+  const char *previous_ld_path = getenv("LD_LIBRARY_PATH");
+  if (previous_ld_path != nullptr && previous_ld_path[0] != '\0') {
+    ld_env_var = std::string(previous_ld_path) + ":";
+  }
   ld_env_var += pBuf;
   ld_env_var += "/lib/";
   setenv("LD_LIBRARY_PATH", ld_env_var.c_str(), 1);
@@ -150,11 +446,100 @@ struct map2check_args {
   bool printCounterExample = false;
   bool btree = false;
   bool invCrabLlvm = false;
+  bool generateTestSuite = false;
+  bool coverBranches = false;
+  bool seedExchange = false;
+  // 1..3 on the hybrid path (fuzzer, KLEE, fuzzer), 0 for a single engine.
+  int phase = 0;
+  // --alternate-engines (tacas 3b): the engines take turns, each phase bounded
+  // by its window and stopped when it stagnates. 0 keeps the fixed shares.
+  bool alternateEngines = false;
+  double engineWindow = 0;
+  unsigned stagnationLimit = 0;
+  // Whether this phase's fuzzer corpus is converted into seeds for a KLEE
+  // phase that follows; -1: the fixed hybrid's rule (the first phase only).
+  int feedsKlee = -1;
+  bool sliceProgram = false;
+  std::string testSuiteDir = "test-suite";
+  std::string propertyFile;
+  std::string architecture = "64bit";
   Map2Check::NonDetGenerator generator;
   std::string spectTrue = "safetyMemory";
 };
 
 bool foundViolation = false;
+// Set when a phase proved the property (TRUE). Like a violation, a proof is
+// the run's answer: no later phase may run and print a verdict after it.
+bool provedSafe = false;
+// The seed store of the last phase, removed by main once every phase ran.
+static std::string lastSeedStore;
+// The slice cache of the last phase, removed by main with the seed store.
+static std::string lastSliceCache;
+// The AFL++ build cache of the last phase, removed by main likewise.
+static std::string lastBuildCache;
+// How long the last phase's engine ran; the rest of the phase is setup
+// (compile, instrument, link) that no engine window accounts for.
+static double lastEngineSeconds = 0;
+
+int map2check_execution(map2check_args args);
+
+/** The hybrid under --alternate-engines (tacas 3b spec): the fuzzer and KLEE
+ * take turns, fuzzer first, until a violation, a proof, or too little time
+ * for another phase. Each phase is bounded by its window -- doubled every
+ * round of that engine -- and ends earlier when its engine stagnates, handing
+ * the rest back. The fixed 0.2/0.6/0.2 split held an engine that had stopped
+ * progressing to the end of its share, and cut one that still was. */
+int alternateEngines(map2check_args args) {
+  const double budget = args.timeout;
+  const unsigned quiet = Map2Check::stagnationSeconds(budget);
+  unsigned rounds[2] = {0, 0};
+  // The setup each engine's phase needed last time (compile, instrument,
+  // link -- time no window covers): a phase starts only if what is left
+  // covers its setup plus a stagnation period of engine time, and its window
+  // leaves the setup out. Per engine and latest, not the maximum: the first
+  // fuzzer phase builds the AFL++ binaries, the later ones reuse them.
+  double setup[2] = {0, 0};
+  for (int phase = 1;; ++phase) {
+    const bool klee = (phase % 2 == 0);
+    const int self = klee ? 1 : 0;
+    const double left = Map2Check::Caller::remainingOf(args.timeout);
+    if (phase > 1 && left < quiet + setup[self]) break;
+    const Map2Check::Engine engine =
+        klee ? Map2Check::Engine::Klee : Map2Check::Engine::Fuzzer;
+    const unsigned round = ++rounds[self];
+    args.generator = klee ? Map2Check::NonDetGenerator::Klee
+                          : Map2Check::NonDetGenerator::AFLPlusPlus;
+    args.phase = phase;
+    args.engineWindow = Map2Check::alternationWindow(
+        engine, round, budget, std::max(1.0, left - setup[self]));
+    // Both engines' patience grows with their rounds. KLEE: coverage stops
+    // rising well before it finishes the paths of a proof. The fuzzer: on the
+    // eca-* state machines it finds new paths in bursts, and a fixed 15 s cut
+    // ended its turns at ~17 s where the fixed split gave it 60.
+    args.stagnationLimit = Map2Check::stagnationSeconds(budget, round);
+    // Replaying the corpus for a KLEE phase that will not get to run is
+    // pure cost.
+    args.feedsKlee = (!klee && left - setup[self] - args.engineWindow >=
+                                   quiet + setup[1])
+                         ? 1
+                         : 0;
+    Map2Check::Log::Info("Alternation phase " + std::to_string(phase) + ": " +
+                         (klee ? "KLEE" : "AFL++") + ", window " +
+                         std::to_string(static_cast<unsigned>(
+                             args.engineWindow)) + " s");
+    const auto started = std::chrono::steady_clock::now();
+    lastEngineSeconds = 0;
+    const int result = map2check_execution(args);
+    if (result != SUCCESS) return result;
+    const double took = std::chrono::duration<double>(
+                            std::chrono::steady_clock::now() - started)
+                            .count();
+    setup[self] = std::max(0.0, took - lastEngineSeconds);
+    if (foundViolation || provedSafe) break;
+  }
+  return SUCCESS;
+}
+
 int map2check_execution(map2check_args args) {
   Map2Check::Log::Info("Started Map2Check");
   // TODO(rafa.sa.xp@gmail.com): Check current mode
@@ -219,17 +604,58 @@ int map2check_execution(map2check_args args) {
   caller = std::make_unique<Map2Check::Caller>(args.inputFile, args.mode,
                                                   generator);
   caller->c_program_fullpath = args.inputFile;
+  caller->seedExchange = args.seedExchange;
+  // The store is named after the program's content, so one left by an earlier
+  // run (kept by --debug, or leaked by a kill) would feed that run's seeds into
+  // this one: every run starts from an empty store.
+  if (args.seedExchange && args.phase <= 1) {
+    std::error_code storeError;
+    std::filesystem::remove_all(caller->seedStorePath(), storeError);
+  }
+  // The slice cache likewise: a slice left by an earlier run is keyed by
+  // content and would be correct, but a ".failed" mark from a run with a
+  // shorter budget would refuse this one a slice it could afford.
+  if (args.sliceProgram && args.phase <= 1) {
+    std::error_code cacheError;
+    std::filesystem::remove_all(caller->sliceCachePath(), cacheError);
+  }
+  if (args.phase <= 1) {
+    std::error_code cacheError;
+    std::filesystem::remove_all(caller->buildCachePath(), cacheError);
+  }
+  // A run starts from an empty suite. Its phases then add to it (see
+  // TestSuiteWriter), and a suite left in this directory by an earlier run --
+  // possibly of another program -- must not be added to.
+  if (args.generateTestSuite && args.phase <= 1) {
+    std::string suiteDir = args.testSuiteDir;
+    if (!fs::path(suiteDir).is_absolute()) {
+      suiteDir = caller->getOriginalPath() + "/" + suiteDir;
+    }
+    Map2Check::TestSuiteWriter::removeTestCases(suiteDir);
+  }
+  // Recorded now, not at the end: an exception in this phase must not leak
+  // the store or the slice cache past the cleanup in main.
+  lastSeedStore = caller->seedStorePath();
+  lastSliceCache = caller->sliceCachePath();
+  lastBuildCache = caller->buildCachePath();
+  caller->engineSeconds = &lastEngineSeconds;
+  caller->feedsKleePhase =
+      args.feedsKlee >= 0 ? (args.feedsKlee == 1) : (args.phase == 1);
+  caller->engineWindow = args.engineWindow;
+  caller->stagnationLimit = args.stagnationLimit;
+  caller->sliceProgram = args.sliceProgram;
   caller->setTimeout(args.timeout);
   caller->entryFunction = args.entryFunction;
   caller->wasmMode = args.wasmMode;
 
-  if (!is_llvmir_in) {
-    if (args.invCrabLlvm) {
-      // cout << "crab  \n";
-      caller->compileToCrabLlvm();
-    } else {
-      caller->compileCFile(is_llvmir_in);
-    }
+  // Availability was settled in main(), which refuses the run outright when
+  // the generator is missing. Reaching here with invCrabLlvm set means the
+  // generator is installed. The old code branched on !is_llvmir_in and so
+  // never even looked at the flag for bitcode input -- how the baselines, the
+  // CASTLE harness and the BenchExec wrappers all invoke the tool -- which is
+  // why it was ignored without a trace (issue #54).
+  if (!is_llvmir_in && args.invCrabLlvm) {
+    caller->compileWithClam();
   } else {
     caller->compileCFile(is_llvmir_in);
   }
@@ -239,7 +665,54 @@ int map2check_execution(map2check_args args) {
   }
 
   // (2) Instrument functions for current mode
+  // BEFORE instrumentation, and the order was learned the hard way.
+  //
+  // Slicing after callPass fatally removes the instrumentation: the slicer
+  // keeps what the target depends on, and the runtime calls that RECORD the
+  // violation do not influence whether the target is reachable, so they are
+  // exactly what gets dropped. Measured -- two tasks went from FAILED to
+  // UNKNOWN while the bitcode shrank by 70% and 38%: the analysis still
+  // reached the bug and no longer had the machinery to say so.
+  //
+  // Slicing the user's program first and instrumenting the slice keeps both
+  // properties: the search space is smaller and the instrumentation is added
+  // to what survives.
+  //
+  // Slicing needs a criterion, and Cover-Branches has none -- every branch is
+  // the goal. Asking there is refused, not ignored. Reachability slices towards
+  // the target and assert towards the two functions AssertPass instruments,
+  // both here, before instrumentation; memory and overflow slice after it
+  // (below), towards the runtime calls the instrumentation inserted.
+  if (args.sliceProgram) {
+    if (args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE) {
+      caller->sliceWithRespectToTarget(args.function, {args.function});
+    } else if (args.mode == Map2Check::Map2CheckMode::ASSERT_MODE) {
+      caller->sliceWithRespectToTarget("__VERIFIER_assert",
+                                       {"__VERIFIER_assert", "__assert_fail"});
+    } else {
+      if (args.mode != Map2Check::Map2CheckMode::MEMTRACK_MODE &&
+          args.mode != Map2Check::Map2CheckMode::MEMCLEANUP_MODE &&
+          args.mode != Map2Check::Map2CheckMode::OVERFLOW_MODE) {
+        Map2Check::Log::Warning(
+            "--slice applies to reachability, assert, memory and overflow "
+            "properties only: there is no criterion to slice towards when the "
+            "goal is branch coverage. Analysing the whole program.");
+      }
+    }
+  }
+
   caller->callPass(args.function);
+
+  // Memory and overflow slice the INSTRUMENTED module (see
+  // sliceInstrumented): their criterion is the runtime calls the
+  // instrumentation inserted -- map2check_malloc/check_deref/... for memory,
+  // map2check_binop_* for overflow.
+  if (args.sliceProgram &&
+      (args.mode == Map2Check::Map2CheckMode::MEMTRACK_MODE ||
+       args.mode == Map2Check::Map2CheckMode::MEMCLEANUP_MODE ||
+       args.mode == Map2Check::Map2CheckMode::OVERFLOW_MODE)) {
+    caller->sliceInstrumented();
+  }
   caller->linkLLVM();
 
   // (3) Apply nondeterministic mode and execute analysis
@@ -254,16 +727,92 @@ int map2check_execution(map2check_args args) {
 
   Map2Check::PropertyViolated propertyViolated;
 
-  // HACK: Fix this!!!
-  if (caller->isTimeout()) {
+  // What the analysis actually recorded on disk, in map2check_property.
+  Map2Check::PropertyViolated recorded = counterExample->getProperty();
+  bool recordedAViolation =
+      (recorded != Map2Check::PropertyViolated::NONE) &&
+      (recorded != Map2Check::PropertyViolated::UNKNOWN);
+
+  // A violation that was found and written down survives the budget expiring.
+  //
+  // KLEE keeps exploring other states after recording an error, so it is
+  // routinely killed by `timeout` on a run that already succeeded. The timeout
+  // check used to come first and overwrite the verdict, discarding a FALSE
+  // whose counterexample was sitting in map2check_property. The budget running
+  // out AFTER the tool did its job is not "unable to decide" -- it is a
+  // decision plus a slow shutdown. See finding K in
+  // docs/reports/2026-08-12-castle-juliet-findings.md.
+  //
+  // Scope is deliberately narrow, and the narrowing has to be spelled out in
+  // the CONDITION and not merely in a comment: the timeout branch runs before
+  // the AFL++ arm, so without this guard an AFL++ run whose crash could
+  // not be replayed would have its property file trusted anyway -- the exact
+  // evidence that should not be trusted. That is not hypothetical: under the
+  // hybrid default every case runs AFL++ first with 0.2x the budget, and
+  // "Forcing timeout" appears in 2031 of the 2526 raw logs of the v5 Juliet
+  // baseline.
+  bool evidenceIsTrustworthy =
+      recordedAViolation &&
+      (generator != Map2Check::NonDetGenerator::AFLPlusPlus ||
+       caller->isVerified());
+
+  if (evidenceIsTrustworthy && caller->isTimeout()) {
+    Map2Check::Log::Warning(
+        "Note: budget expired after a violation was already found -- keeping "
+        "the violation");
+    propertyViolated = recorded;
+  } else if (caller->isTimeout()) {
     Map2Check::Log::Warning("Note: Forcing timeout");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else if (!caller->isVerified() &&
-             (generator == Map2Check::NonDetGenerator::LibFuzzer)) {
+             (generator == Map2Check::NonDetGenerator::AFLPlusPlus)) {
     Map2Check::Log::Warning("Note: Could not replicate error");
     propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
   } else {
-    propertyViolated = counterExample->getProperty();
+    propertyViolated = recorded;
+  }
+
+  // A violation nobody can demonstrate is not a violation worth reporting.
+  //
+  // KLEE can burn its whole budget, halt on the timer, and still leave
+  // TARGET-REACHED in map2check_property: some state wrote the file through an
+  // external call and was then terminated by --dump-states-on-halt without
+  // ever running to the abort. The verdict logic above trusts that file, so
+  // the run answers FAILED while emitting a suite with zero <input> elements.
+  //
+  // Measured on reducercommutativity/rangesum05.i with --nondet-generator
+  // symex: 1446 paths explored, HaltTimer, zero .err files, klee_log.csv
+  // empty, verdict FAILED, suite empty, TestCov UNKNOWN. This is where the
+  // FAILED-but-NOT_COVERED cases come from -- 21% of the control arm's FAILED
+  // verdicts in the v11 factorial.
+  //
+  // Downgrading costs nothing that was ever scored. Test-Comp scores the
+  // SUITE, not the verdict, and a suite with no inputs covers nothing whether
+  // the tool called it FAILED or UNKNOWN. What it buys is a precision number
+  // that means something.
+  //
+  // Gated on generating a suite at all, and on the two sources emitTestSuite
+  // itself consults -- so the check can never disagree with what gets written.
+  //
+  // "Recovered" includes the EMPTY vector of an aborting path: a program that
+  // reads no input reaches its error with zero <input> elements, and that
+  // test case covers it (tests/testcomp/programs/no_input.c). Counting only
+  // non-empty vectors downgraded exactly that case to UNKNOWN.
+  if (args.generateTestSuite && !args.coverBranches &&
+      args.mode == Map2Check::Map2CheckMode::REACHABILITY_MODE &&
+      generator == Map2Check::NonDetGenerator::Klee &&
+      propertyViolated != Map2Check::PropertyViolated::NONE &&
+      propertyViolated != Map2Check::PropertyViolated::UNKNOWN) {
+    const bool haveVector =
+        !Map2Check::readNonDetLog(Map2Check::kleeLogCSV).empty() ||
+        Map2Check::hasViolatingKtest(Map2Check::kleeOutputDir);
+    if (!haveVector) {
+      Map2Check::Log::Warning(
+          "the property file records a violation but no input vector could be "
+          "recovered -- reporting UNKNOWN rather than a FAILED nothing can "
+          "reproduce");
+      propertyViolated = Map2Check::PropertyViolated::UNKNOWN;
+    }
   }
 
   if (propertyViolated ==
@@ -280,16 +829,26 @@ int map2check_execution(map2check_args args) {
       } else {
         Map2Check::Log::Info("");
         Map2Check::Log::Info("VERIFICATION SUCCEEDED");
+        provedSafe = true;
         if (args.generateWitness)
           generate_witness(args.inputFile, propertyViolated, args.spectTrue);
       }
     }
 
   } else if (propertyViolated == Map2Check::PropertyViolated::UNKNOWN) {
-    if (generator == Map2Check::NonDetGenerator::Klee) {
-      Map2Check::Log::Info("Unable to prove or falsify the program.");
-      Map2Check::Log::Info("VERIFICATION UNKNOWN");
-      if (args.debugMode) counterExample->generateTestCase();
+    // Printed for every generator, not just KLEE. Guarded on Klee, an
+    // undecided AFL++ run ended with NO verdict line at all, and a caller
+    // that parses stdout for one -- every harness here, and the BenchExec
+    // tool-info -- reads that silence as the tool having crashed. It is the
+    // same defect as the discarded exit code (finding G), one layer up: the
+    // analysis reached a conclusion and did not say so.
+    //
+    // Visible in the numbers: the fuzzer arm of the engine comparison recorded
+    // ERROR for whole categories that had simply come back undecided.
+    Map2Check::Log::Info("Unable to prove or falsify the program.");
+    Map2Check::Log::Info("VERIFICATION UNKNOWN");
+    if (args.debugMode && generator == Map2Check::NonDetGenerator::Klee) {
+      counterExample->generateTestCase();
     }
   } else {
     Map2Check::Log::Info("Started counter example generation");
@@ -300,14 +859,59 @@ int map2check_execution(map2check_args args) {
       generate_witness(args.inputFile, propertyViolated, args.spectTrue);
   }
 
+  // Emitted for every outcome, not only for a violation. Test-Comp scores the
+  // suite, and a run that decides nothing still has to hand one over: the
+  // competition harness reads an absent test-suite/ as a crashed tool rather
+  // than as an empty result. The `foundViolation` flag decides whether the
+  // suite carries a test case, not whether the suite exists.
+  if (args.generateTestSuite) {
+    // Relative paths resolve against the directory map2check was invoked
+    // from, not the scratch directory the pipeline chdir'd into -- the suite
+    // has to outlive cleanGarbage().
+    std::string outputDir = args.testSuiteDir;
+    if (!fs::path(outputDir).is_absolute()) {
+      outputDir = caller->getOriginalPath() + "/" + outputDir;
+    }
+    // Cover-Branches used only KLEE's paths: the fuzzer's corpus, the inputs
+    // that reached new edges, was thrown away with the scratch directory.
+    // On by default since 9.0 (R22: 49.7% against 44.7% on the fixed hybrid;
+    // R26: 53.5% with the alternation); MAP2CHECK_FUZZER_SUITE=0 turns it off.
+    std::vector<std::vector<std::string>> fuzzerVectors;
+    const char *fuzzerSuite = std::getenv("MAP2CHECK_FUZZER_SUITE");
+    if (args.coverBranches &&
+        !(fuzzerSuite != nullptr && std::string(fuzzerSuite) == "0") &&
+        generator == Map2Check::NonDetGenerator::AFLPlusPlus) {
+      fuzzerVectors = caller->fuzzerCorpusVectors(kMaxBranchTestCases);
+    }
+    emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
+                  args.architecture,
+                  resolveSpecification(args.propertyFile,
+                                       caller->getOriginalPath(), args.mode),
+                  foundViolation, args.coverBranches, args.mode,
+                  fuzzerVectors);
+  }
+
   // (6) Clean map2check execution (folders and temp files)
-  Map2Check::Log::Debug("Removing temp files");
-  caller->cleanGarbage();
+  // Kept under --debug: every intermediate artefact of a run lives in that
+  // scratch directory -- the compiled bitcode, the instrumented bitcode, the
+  // nondet log -- and deleting it unconditionally makes the pipeline
+  // impossible to inspect after the fact. Debug runs are already opting into
+  // verbosity and disk use.
+  lastSeedStore = caller->seedStorePath();
+  lastSliceCache = caller->sliceCachePath();
+  if (args.debugMode) {
+    Map2Check::Log::Info("Debug mode: keeping temp files in " +
+                         caller->getScratchDir());
+    caller->restoreWorkingDirectory();
+  } else {
+    Map2Check::Log::Debug("Removing temp files");
+    caller->cleanGarbage();
+  }
 
   if (args.expectedResult != "") {
     if (args.expectedResult != counterExample->getViolatedProperty()) {
       Map2Check::Log::Fatal("Expected result failed");
-      abort();
+      return ERROR_EXPECTED_RESULT;
     }
   }
 
@@ -325,7 +929,7 @@ int main(int argc, char **argv) {
         ("input-file", po::value<std::vector<std::string>>(),
                       "\tspecifies the files")
         ("nondet-generator", po::value<std::string>(),
-                      R"(specifies the nondet-generator, valid values are fuzzer (libFuzzer),
+                      R"(specifies the nondet-generator, valid values are afl (AFL++),
 symex (Klee))")
         ("smt-solver", po::value<std::string>()->default_value("z3"),
                       R"(specifies the smt-solver, valid values are stp (STP),
@@ -343,6 +947,33 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
         ("check-asserts", "\tanalyze program and verify assert failures")
         ("add-invariants", "\tadding program invariants adopting Crab-LLVM")
         ("generate-witness", "\tgenerates witness file")
+        ("generate-test-suite",
+         "\temits a Test-Comp test suite reproducing the violation found")
+        ("test-suite-dir", po::value<std::string>()->default_value("test-suite"),
+         "\tdirectory to write the test suite into")
+        ("slice",
+         "\tslice the program with respect to the target (reachability), "
+         "the assertions (--check-asserts) or the runtime checks (--memtrack, "
+         "--memcleanup-property, --check-overflow) before analysing it; needs "
+         "sbt-slicer")
+        ("alternate-engines",
+         "\tthe default hybrid (needs --timeout): the fuzzer and KLEE take "
+         "turns, each stopped once it stops finding coverage, with windows "
+         "that double every round, handing each other seeds")
+        ("fixed-hybrid",
+         "\tthe 8.x hybrid instead: the fuzzer for 0.2 of the budget, then "
+         "KLEE (with --seed-exchange: 0.2 / 0.6 / 0.2 and a last fuzzer phase)")
+        ("seed-exchange",
+         "\tlet the two engines hand each other input vectors through a shared "
+         "seed corpus (implied by the default hybrid; with --fixed-hybrid, off "
+         "unless given)")
+        ("cover-branches",
+         "\temit one test case per path KLEE explored, from its .ktest output, "
+         "instead of the single violating vector (Test-Comp Cover-Branches)")
+        ("property-file", po::value<std::string>(),
+         "\tproperty file whose contents go verbatim into <specification>")
+        ("architecture", po::value<std::string>()->default_value("64bit"),
+         "\tmachine model recorded in the test-suite metadata")
         ("expected-result", po::value<string>(), "\tspecifies type of violation expected")
         ("btree", "\tuses btree structure to hold information (experimental, use this "
         "if you are having memory problems)")
@@ -439,6 +1070,62 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
     if (vm.count("generate-witness")) {
       args.generateWitness = true;
     }
+    if (vm.count("generate-test-suite")) {
+      args.generateTestSuite = true;
+    }
+    if (vm.count("test-suite-dir")) {
+      args.testSuiteDir = vm["test-suite-dir"].as<std::string>();
+    }
+    if (vm.count("slice")) {
+      args.sliceProgram = true;
+    }
+    if (vm.count("seed-exchange")) {
+      args.seedExchange = true;
+    }
+    // The hybrid is the alternation by default since 9.0: measured on the
+    // 213-task Cover-Error sample it ties the seed-exchange hybrid (157 each,
+    // against 128 for the 8.x fixed hybrid) and leads Cover-Branches (53.5%
+    // against 46.5%, R26). --fixed-hybrid keeps the 8.x schedule.
+    const bool hybrid = !vm.count("nondet-generator");
+    const bool budgeted =
+        vm.count("timeout") && vm["timeout"].as<unsigned>() > 0;
+    if (vm.count("fixed-hybrid")) {
+      if (vm.count("alternate-engines")) {
+        Map2Check::Log::Warning(
+            "--fixed-hybrid and --alternate-engines both given -- using the "
+            "fixed hybrid");
+      }
+    } else if (hybrid && budgeted) {
+      args.alternateEngines = true;
+      args.seedExchange = true;
+    } else if (vm.count("alternate-engines")) {
+      // Windows and stagnation are fractions of the budget, and turns only
+      // exist on the hybrid path: without either, say so instead of running
+      // something else under the flag's name.
+      Map2Check::Log::Warning(
+          !budgeted ? "--alternate-engines needs --timeout: its windows are "
+                      "fractions of the budget -- running the fixed hybrid "
+                      "instead"
+                    : "--alternate-engines applies to the hybrid only -- "
+                      "ignored with --nondet-generator");
+    }
+    if (vm.count("cover-branches")) {
+      args.coverBranches = true;
+      // The mode has to change too, not just the emitter. Without this the run
+      // falls through to the MEMTRACK default and instruments memory tracking
+      // for a task that checks no property -- which on the Test-Comp corpus
+      // produced a broken module and an empty suite on all 110 ProductLines
+      // tasks. Set here rather than beside the other mode flags because
+      // --cover-branches is a goal, and the other flags are properties; this
+      // is the one goal that implies the absence of a property.
+      args.mode = Map2Check::Map2CheckMode::COVER_BRANCHES_MODE;
+    }
+    if (vm.count("property-file")) {
+      args.propertyFile = vm["property-file"].as<std::string>();
+    }
+    if (vm.count("architecture")) {
+      args.architecture = vm["architecture"].as<std::string>();
+    }
     if (vm.count("generate-testcase")) {
       args.generateTestCase = true;
     }
@@ -454,7 +1141,7 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
                      generatorname.begin(), [](unsigned char c){
                      return std::tolower(c); });
 
-      std::vector<std::string> available_generators = {"fuzzer", "symex"};
+      std::vector<std::string> available_generators = {"afl", "symex"};
 
       if ( !std::count(available_generators.begin(), available_generators.end(), generatorname) ) {
         std::cout << "Selected generator don't exist, available: ";
@@ -466,13 +1153,32 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       } else {
         std::cout << "Adopting " + generatorname + " nondet-generator... \n";
         if(generatorname == available_generators[0])
-          args.generator = Map2Check::NonDetGenerator::LibFuzzer;
+          args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
         if(generatorname == available_generators[1])
           args.generator = Map2Check::NonDetGenerator::Klee;
       }
     } else {
       args.generator = Map2Check::NonDetGenerator::None;
     }
+    // Validated here, next to the other option checks, rather than inside
+    // map2check_execution: main() is the only place whose return value becomes
+    // the process exit code, and asking for a capability the build does not
+    // have is an argument problem, not an analysis outcome. Doing it once here
+    // also avoids repeating it per generator on the hybrid path below.
+    //
+    // The exit code matters more than the message. A warning on stderr is what
+    // this used to be, and on a BenchExec cluster it disappears into the run
+    // log -- which is how --add-invariants stayed dead and unnoticed through
+    // an entire baseline (issue #54).
+    if (args.invCrabLlvm && !invariantGeneratorAvailable()) {
+      Map2Check::Log::Error(
+          "--add-invariants was requested but no invariant generator is "
+          "installed. Crab-LLVM was renamed to Clam and this build does not "
+          "ship it; rebuild with -DENABLE_CLAM=ON, or drop the flag. Refusing "
+          "to continue rather than silently analysing without invariants.");
+      return ERROR_UNAVAILABLE_CAPABILITY;
+    }
+
     if (vm.count("input-file")) {
       std::string pathfile;
       pathfile = accumulate(
@@ -483,16 +1189,71 @@ z3 (Z3 is default), btor (Boolector), and yices2 (Yices))")
       // std::cout << pathfile << std::endl;
       fs::path absolute_path = fs::absolute(pathfile);
       args.inputFile = absolute_path.string();
+      // The store outlives the phases, not the run: removed on every way out
+      // of this block (returns and exceptions alike), unless --debug keeps it.
+      struct SeedStoreCleanup {
+        const map2check_args &args;
+        ~SeedStoreCleanup() {
+          if (args.seedExchange && !args.debugMode && !lastSeedStore.empty()) {
+            std::error_code storeError;
+            std::filesystem::remove_all(lastSeedStore, storeError);
+          }
+          if (args.sliceProgram && !args.debugMode && !lastSliceCache.empty()) {
+            std::error_code cacheError;
+            std::filesystem::remove_all(lastSliceCache, cacheError);
+          }
+          if (!args.debugMode && !lastBuildCache.empty()) {
+            std::error_code cacheError;
+            std::filesystem::remove_all(lastBuildCache, cacheError);
+          }
+        }
+      } seedStoreCleanup{args};
+      if (args.generator == Map2Check::NonDetGenerator::None &&
+          args.alternateEngines) {
+        return alternateEngines(args);
+      }
       if(args.generator == Map2Check::NonDetGenerator::None) {
-        args.generator = Map2Check::NonDetGenerator::LibFuzzer;
-        map2check_execution(args);
+        args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
+        args.phase = 1;
+        int result = map2check_execution(args);
+        if (result != SUCCESS) {
+          return result;
+        }
         if (!foundViolation) {
           args.generator = Map2Check::NonDetGenerator::Klee;
-          map2check_execution(args);
+          args.phase = 2;
+          result = map2check_execution(args);
+          if (result != SUCCESS) {
+            return result;
+          }
+        }
+        // A third phase, and it is what closes the exchange loop.
+        //
+        // The order is fuzzer then KLEE, so KLEE's vectors -- written into the
+        // seed corpus at the end of its phase -- have no consumer inside the
+        // same run. Without this the exchange only ever paid off on a LATER
+        // run. Handing them straight back to the fuzzer is what turns two
+        // engines running in sequence into two engines that cooperate: KLEE
+        // solves the guard the fuzzer could not reach by mutation, and the
+        // fuzzer mutates outward from there far faster than KLEE can fork.
+        //
+        // Behind the flag: the hybrid was measured at 45% covered over 372
+        // tasks in its current shape, and that number should keep meaning what
+        // it means until this one is measured beside it.
+        if (args.seedExchange && !foundViolation && !provedSafe) {
+          args.generator = Map2Check::NonDetGenerator::AFLPlusPlus;
+          args.phase = 3;
+          result = map2check_execution(args);
+          if (result != SUCCESS) {
+            return result;
+          }
         }
       }
       else {
-        map2check_execution(args);
+        int result = map2check_execution(args);
+        if (result != SUCCESS) {
+          return result;
+        }
       }
     }
   } catch (std::exception &e) {

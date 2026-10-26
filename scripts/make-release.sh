@@ -21,7 +21,7 @@ cd build
 export LLVM_DIR=$LLVM_DIR_BASE/lib/cmake/llvm
 export CXX=$LLVM_DIR_BASE/bin/clang++
 export CC=$LLVM_DIR_BASE/bin/clang
-cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON  -DCMAKE_INSTALL_PREFIX=../release/
+cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_AFL_PLUS_PLUS=ON -DSKIP_KLEE=ON  -DCMAKE_INSTALL_PREFIX=../release/
 
 ninja
 ninja install
@@ -60,8 +60,7 @@ cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 ./lib/
 
 echo ""
 echo "Copying external tools"
-# LibFuzzer
-cp /deps/install/fuzzer/libFuzzer.a ./lib
+# AFL++ is provided by the image (standalone at /usr/local/bin), not copied here.
 
 # Z3
 if [ ! -d "./z3" ]; then

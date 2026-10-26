@@ -1,0 +1,29 @@
+# Expected TestCov verdict per program. Format: <program> <verdict>
+#
+# Legal verdicts: COVERED, NOT_COVERED, ERROR.
+#
+# This file makes the gate bidirectional. A program that stops being COVERED is
+# a regression. A program that STARTS being COVERED when this file says
+# otherwise is also a failure -- it means the tool improved and nobody recorded
+# it, and an unrecorded improvement is indistinguishable from a broken harness.
+# Change a line here deliberately, in the commit that causes the change.
+#
+# Every verdict below was measured, not assumed, at BUDGET=120 against the
+# build of 2026-08-16.
+
+single_int.c     COVERED
+two_guards.c     COVERED
+no_input.c       COVERED
+char_input.c     COVERED
+unreachable.c    NOT_COVERED
+
+# loop_reads.c -- COVERED since issue #75 (commit 8da579488).
+#
+# It was NOT_COVERED from finding K until then: KLEE reached the target but
+# forked on every symbolic value written to the nondet log (vfprintf), so the
+# run ran out of budget before a test vector came out. Concretizing the log
+# before writing it removed the explosion.
+# Measured at BUDGET=120: install_v99b NOT_COVERED, install_v99c COVERED (2/2).
+# See docs/reports/2026-08-12-castle-juliet-findings.md (finding K) and the
+# issue #75 entry in docs/reports/tacas-experiment-log.md.
+loop_reads.c     COVERED

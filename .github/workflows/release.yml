@@ -1,7 +1,7 @@
 ############################################################
 # Map2Check Release — Draft Release automático no master
 #
-# Build completo (KLEE 3.1 + LibFuzzer) dentro da imagem
+# Build completo (KLEE 3.1 + AFL++) dentro da imagem
 # ghcr.io/hbgit/map2check-dev, empacota release/ em .zip e
 # publica Draft Release via semantic-release.
 ############################################################

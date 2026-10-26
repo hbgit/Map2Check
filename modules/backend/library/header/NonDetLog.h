@@ -86,5 +86,29 @@ void map2check_nondet_short(unsigned line, unsigned scope, int value,
 void map2check_nondet_double(unsigned line, unsigned scope, double value,
                            const char *function_name);
 
+void map2check_nondet_float(unsigned line, unsigned scope, double value,
+                            const char *function_name);
+
+void map2check_nondet_longlong(unsigned line, unsigned scope, long long value,
+                               const char *function_name);
+
+void map2check_nondet_ulonglong(unsigned line, unsigned scope,
+                                unsigned long long value,
+                                const char *function_name);
+
+void map2check_nondet_u8(unsigned line, unsigned scope, int value,
+                         const char *function_name);
+
+void map2check_nondet_u16(unsigned line, unsigned scope, int value,
+                          const char *function_name);
+
+void map2check_nondet_u32(unsigned line, unsigned scope, int value,
+                          const char *function_name);
+
+/** Logs one byte of a __VERIFIER_nondet_memory call. Called by the runtime's
+ * map2check_non_det_memory, not by NonDetPass: the bytes are read inside it. */
+void map2check_nondet_memory_byte(unsigned line, unsigned scope, int value,
+                                  const char *function_name);
+
 
 #endif

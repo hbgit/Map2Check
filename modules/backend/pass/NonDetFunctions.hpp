@@ -53,6 +53,12 @@ using llvm::Type;
       Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getDoubleTy(*Ctx), \
       PointerType::get(*Ctx, 0));
 
+#define NON_DET_FUNCTIONS_HELPER_I64(type, c_type)                           \
+  this->NonDet##type = F->getParent()->getOrInsertFunction(                   \
+      "map2check_nondet_" #c_type, Type::getVoidTy(*Ctx),                     \
+      Type::getInt32Ty(*Ctx), Type::getInt32Ty(*Ctx), Type::getInt64Ty(*Ctx), \
+      PointerType::get(*Ctx, 0));
+
 class NonDetFunctions {
   CONSTANT_GENERATOR(Integer)
   CONSTANT_GENERATOR(Unsigned)
@@ -70,6 +76,12 @@ class NonDetFunctions {
   CONSTANT_GENERATOR(Sector_t)
   CONSTANT_GENERATOR(Uint)
   CONSTANT_GENERATOR(Double)
+  CONSTANT_GENERATOR(Float)
+  CONSTANT_GENERATOR(Longlong)
+  CONSTANT_GENERATOR(Ulonglong)
+  CONSTANT_GENERATOR(U8)
+  CONSTANT_GENERATOR(U16)
+  CONSTANT_GENERATOR(U32)
   // Constant* NonDetAssume = NULL;
 
  public:
@@ -90,6 +102,13 @@ class NonDetFunctions {
     NON_DET_FUNCTIONS_HELPER(Sector_t, sector_t)
     NON_DET_FUNCTIONS_HELPER(Uint, uint)
     NON_DET_FUNCTIONS_HELPER_DOUBLE(Double, double)
+    // A float is logged widened to double (instrumentNonDetFloat).
+    NON_DET_FUNCTIONS_HELPER_DOUBLE(Float, float)
+    NON_DET_FUNCTIONS_HELPER_I64(Longlong, longlong)
+    NON_DET_FUNCTIONS_HELPER_I64(Ulonglong, ulonglong)
+    NON_DET_FUNCTIONS_HELPER(U8, u8)
+    NON_DET_FUNCTIONS_HELPER(U16, u16)
+    NON_DET_FUNCTIONS_HELPER(U32, u32)
   }
 };
 

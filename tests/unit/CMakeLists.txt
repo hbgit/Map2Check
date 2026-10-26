@@ -4,3 +4,4 @@ function(map2check_test EXECUTABLE)
 endfunction(map2check_test)
 
 add_subdirectory(backend-library)
+add_subdirectory(frontend)

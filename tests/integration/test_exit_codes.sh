@@ -5,9 +5,10 @@
 # three call sites, so the exit code was always 0 (or SIGABRT from the
 # --expected-result path). Two consequences:
 #
-#   1. The Test-Comp tool-info (utils/moduleBenchExec/map2check_testcomp.py)
-#      decides DONE vs ERROR from `exit_code == 0`, so an internally failed run
-#      was reported DONE.
+#   1. The Test-Comp tool-info (then utils/moduleBenchExec/map2check_testcomp.py)
+#      decided DONE vs ERROR from `exit_code == 0`, so an internally failed run
+#      was reported DONE. The wrapper now prints DONE only for an exit code it
+#      accepts, so the exit code still decides.
 #   2. --expected-result signalled a wrong answer with abort() (SIGABRT, 134),
 #      which BenchExec reads as "the tool crashed" -- the opposite of the truth.
 #

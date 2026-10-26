@@ -988,3 +988,41 @@ com 300 s.
 - **Campanha:** em 13/10 às 00h43, o `v99c-campaign.sh` iniciou as 256 Intel-TDX `SKIPPED`
   no `install_v99c` (`v99c-ce-tdx-s0/1`). O Cover-Branches (4 shards, 3 500 tarefas,
   `install_v99c`) começa sozinho quando todo o CE terminar.
+
+## Um módulo tool-info só: o Test-Comp dentro do `map2check.py` (2026-10-26)
+
+**Motivação:** a revisão do benchexec#1352 (Philipp Wendler) e do fm-tools!1245 (Dirk Beyer)
+pediu que o suporte ao Test-Comp entrasse no módulo `benchexec/tools/map2check.py` que já
+existe, em vez de um `map2check-testcomp.py` à parte.
+
+**Mudança:**
+- `utils/map2check-wrapper.py` passa a ser o único wrapper. Ele despacha pela propriedade:
+  `COVER(...)` gera testes e termina com a linha `DONE`; `CHECK(...)` segue o caminho
+  SV-COMP de antes.
+- O wrapper agora usa o caminho absoluto do binário e repassa o `--data-model` também no
+  modo SV-COMP.
+- O `utils/map2check-testcomp-wrapper.py` e o `utils/moduleBenchExec/map2check_testcomp.py`
+  saem.
+- O módulo (cópia do upstream editado) faz quatro coisas novas:
+  - reconhece `DONE` como `RESULT_DONE`;
+  - troca o `assert` por `UnsupportedFeatureException`;
+  - passa `--data-model` e `--budget` só se `--version` do wrapper indicar v9 ou mais,
+    porque os wrappers v7 do SV-COMP 2018–2020 rejeitam essas flags;
+  - mantém o `working_directory` do upstream (diretório da ferramenta). Os `resultfiles`
+    são resolvidos relativos a ele, então a `test-suite/` é coletada.
+
+**Verificação:**
+- `tests/integration/test_benchexec_toolinfo.py`: 24/24. O teste cobre as versões v9, v7 e
+  sem versão, os veredictos do SV-COMP e DONE/ERROR/TIMEOUT.
+- Pacote regenerado do `install_v99c` (99 MB, 641 arquivos) e execução real do BenchExec
+  (`tests/testcomp/official/run.sh`), 120 s e 4 GB, em `simple_2-2` e `gcd_1` (ILP32):
+
+| propriedade | tarefa | status | casos | arquitetura no metadata |
+|---|---|---|---|---|
+| Cover-Error | simple_2-2 | done | 2 | 32bit |
+| Cover-Branches | simple_2-2 | done | 50 | 32bit |
+| Cover-Branches | gcd_1 | done | 7 | 32bit |
+
+- `32bit` mostra que o `--data-model ILP32` chegou ao wrapper (o padrão dele é LP64).
+- TestCov (gcc, formatado e não formatado) na suíte do Cover-Error de `simple_2-2`: `true`
+  nos dois, ou seja, a suíte pontua.

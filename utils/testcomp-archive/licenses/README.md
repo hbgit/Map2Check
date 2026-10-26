@@ -7,7 +7,7 @@ with a license file of a row missing.
 
 | Component | Version / source | Files in the archive | License | Texts in `licenses/` |
 |---|---|---|---|---|
-| Map2Check | this repository | `map2check`, `map2check-testcomp-wrapper.py`, `smoketest.sh`, `examples/`, `README`, `lib/lib*Pass.so`, `lib/libMap2CheckLibrary.so`, `lib/*.bc` (runtime) | GPL-2.0 | `../LICENSE` |
+| Map2Check | this repository | `map2check`, `map2check-wrapper.py`, `smoketest.sh`, `examples/`, `README`, `lib/lib*Pass.so`, `lib/libMap2CheckLibrary.so`, `lib/*.bc` (runtime) | GPL-2.0 | `../LICENSE` |
 | KLEE | 3.1 (`fe22b90`) | `bin/klee`, `bin/kleaver`, `bin/ktest-tool` | NCSA | `KLEE-3.1.LICENSE.TXT` |
 | KLEE runtime | 3.1 (`runtime/`) | `lib/klee/runtime/libkleeRuntime*.bca`, `libkleeUBSan64*.bca` | NCSA; 9 files of klee-libc and Freestanding under BSD (University of California, FreeBSD); the UBSan runtime from LLVM compiler-rt | `KLEE-3.1.LICENSE.TXT`, `KLEE-3.1-runtime-NOTICES.txt` (the 9 notices, verbatim), `LLVM-16.LICENSE.TXT` |
 | klee-uclibc | `klee/klee-uclibc` | `lib/klee/runtime/klee-uclibc.bca` | LGPL-2.1 | `klee-uclibc.COPYING.LIB` |

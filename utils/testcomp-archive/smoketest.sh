@@ -11,7 +11,7 @@
 set -eu
 
 HERE=$(cd "$(dirname "$0")" && pwd)
-TOOL="$HERE/map2check-testcomp-wrapper.py"
+TOOL="$HERE/map2check-wrapper.py"
 
 "$TOOL" --version
 

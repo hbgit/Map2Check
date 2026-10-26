@@ -4,8 +4,8 @@
      is no map2check.xml in the testcomp26 tag. Modelled on the definitions of
      the tools that are there (klee.xml, fusebmc.xml, symbiotic.xml): the same
      limits, the same result files and the same run definitions. The tool-info
-     module is utils/moduleBenchExec/map2check_testcomp.py. -->
-<benchmark tool="moduleBenchExec.map2check_testcomp" displayName="Map2Check" timelimit="15 min" memlimit="15 GB" cpuCores="4">
+     module is utils/moduleBenchExec/map2check.py. -->
+<benchmark tool="moduleBenchExec.map2check" displayName="Map2Check" timelimit="15 min" memlimit="15 GB" cpuCores="4">
 
   <require cpuModel="Intel Xeon E3-1230 v5 @ 3.40 GHz" />
 

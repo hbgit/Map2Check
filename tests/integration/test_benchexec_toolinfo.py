@@ -172,8 +172,8 @@ def main():
 
     silent_tool, silent_executable = fake_tool("")
     silent_cmd = silent_tool.cmdline(silent_executable, [], task, limits)
-    check("a wrapper that does not tell its version gets no new options",
-          "--budget" not in silent_cmd, silent_cmd)
+    check("a wrapper that does not tell its version is taken as the current one",
+          "--budget" in silent_cmd, silent_cmd)
 
     # --- determine_result ----------------------------------------------------
     check("DONE as the last line is DONE",

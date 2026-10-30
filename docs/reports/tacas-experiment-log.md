@@ -989,6 +989,293 @@ com 300 s.
   no `install_v99c` (`v99c-ce-tdx-s0/1`). O Cover-Branches (4 shards, 3 500 tarefas,
   `install_v99c`) começa sozinho quando todo o CE terminar.
 
+## Encerramento da campanha V99/V99c (2026-10-21)
+
+- **Parada:** os contêineres `v99c-cb-s0/1` foram parados com `docker stop`. A restart
+  policy é `unless-stopped`, então eles não voltam no boot. Os dois tinham reiniciado com o
+  boot em 22/10 00h33.
+- **Cover-Error (900 s/8 GB/4 núcleos, corpus oficial de 1 902 tarefas).** Na fusão,
+  V99 + re-rodada das Floats (`install_v99b`) + Intel-TDX (`install_v99c`):
+  - **730 `FAILED`** (erro alcançado), 1 010 `UNKNOWN` e 162 TDX não rodadas;
+  - **sem a Intel-TDX** (658 tarefas, 0 alcançadas): **730/1 244 (58,7 %)**;
+  - tempo mediano das alcançadas: 3 s;
+  - categorias em 100 %: ProductLines 169/169, coreutils 29/29, BitVectors 9/9 e
+    ControlFlow 5/5; Floats chega a 33/33;
+  - fraca: Hardware 51/497.
+- **Cover-Branches (`install_v99c`, 900 s, `TESTCOV_S=0`):** **818 de 3 500** tarefas
+  geradas (shards 0 e 1). As suítes estão em `tacas-results/V99c-suites/`, ainda **sem
+  validação**, portanto ainda sem cobertura medida. Os shards 2 e 3 não rodaram. A
+  referência de cobertura segue sendo a da 9.0 a 300 s: 41,4 % (v15) → 47,0 % (projeção).
+
+### Validação oficial do Cover-Error da V99 (2026-10-21)
+
+Validei as 682 suítes `FAILED` do V99 que ainda não tinham validação, nos 3 validadores
+oficiais: TestCov 3.11 com gcc e com clang (unformatted) e TestCoCa, sob BenchExec, na
+imagem oficial. Os dados estão em `tacas-results/V99-val/ce/scores.csv`.
+
+- **Resultado:** 673/682 suítes deram `true` em pelo menos um validador.
+- **Total:** com as 48 suítes já validadas da re-rodada das Floats, são **721 de 730
+  (98,8 %) confirmadas**. Isso dá **721/1 244 (58,0 %) sem a Intel-TDX**.
+- **Rejeitadas (9):**
+  - 7 da família `freire2_valuebound*` (nla-digbench-scaling), `unknown` nos 3 validadores;
+  - `cdaudio.i.cil-1` e `parport.i.cil-1` (ntdrivers), `unknown` no gcc e no TestCoCa e
+    `ERROR (1)` no clang.
+  - Nessas 9, o Map2Check alcançou o erro, mas o teste não o reproduz fora da ferramenta.
+    Falta investigar.
+
+## Portes da 9.0 para o runtime Rust: medição contra a v99c (2026-10-21/22)
+
+**Contexto.** A `develop` passou a linkar só o runtime Rust (`map2check-library`
+v1.1.0-rc1), inclusive sob o KLEE. Com isso, as correções que a 9.0 fez no runtime C deixam
+de valer depois do merge com o #73. Três builds comparados, nas mesmas sondas e condições
+(300 s por tarefa, TestCov 3.7 com 300 s, 2 CPUs, 4 GB, imagem `map2check-dev-rust:eval`):
+
+- `install_v99c`: a 9.0 com o runtime C;
+- `install_m73`: o merge sem nenhum porte;
+- `install_p*`: o merge com os portes. O p2 tem float, assume e `abort()`; o p5 tem todos.
+
+**Ressalva.** O host ficou com mais carga do que núcleos (validação oficial + 3 a 5
+contêineres de sonda). Os veredictos são comparáveis; os tempos, não.
+
+**Cover-Error, 30 sondas** (contagem de suítes confirmadas pelo TestCov):
+
+| | v99c | m73 | p2 |
+|---|---|---|---|
+| confirmadas | 24 | 19 | **25** |
+
+- **m73 perde as 5 Floats.** O `NonDetPass` da develop não registra `float`, então a suíte
+  sai com `<input>` vazio: o FAILED é anunciado, mas a cobertura é 0 %.
+- **m73 perde também `Problem06_label00` e `Problem11_label00` (ECA).**
+- **p2 recupera as 7** e ganha `standard_copy7_ground-1`. Perde
+  `pals_opt-floodmax.4.2`, que o m73 tinha achado; é uma execução só, então pode ser ruído.
+
+**Floats, 33 tarefas de CE** (p1, só o porte do float): 17 FAILED e confirmadas, 5 UNKNOWN,
+nas 22 que terminaram.
+
+**Portes:**
+
+| Porte | Branches | PR na library | PR no Map2Check |
+|---|---|---|---|
+| float | `port/nondet-float` + `port/nondet-float-pass` | hbgit/map2check-library#47 | #79 |
+| assume e `abort()` | `port/assume-prune` + `port/abort-prune` | #48 | #80 |
+| tipos do #74 | `port/nondet-types` + `port/nondet-types-pass` | #49 | #81 |
+| AFL++ lê zeros após o fim | `port/afl-zero-tail` | #50 | — |
+| limite de 1024 linhas | `port/klee-log-cap` | #51 | — |
+| `SEED_REPLAY` | `port/seed-replay-log` | #52 | — |
+| memset/memcpy | — | — | `port/memtrack-intrinsics`, #82 |
+| `check_cstring` | `port/check-cstring` | #53 | `port/check-cstring-pass`, #83 |
+
+- O merge é o #78 (`feat/9.0-merge-develop`).
+- Todos os PRs estão em draft. Os commits da library ainda não estão assinados, e o repositório
+  exige assinatura.
+
+**Pendente:**
+- Cover-Branches das sondas (v99c, m73, p2, p5);
+- p5 nas 30 de CE e nas 60 do #74;
+- regressão de integração da 9.0 (`test_testcomp_regressions.sh`) contra v99c e p5.
+
+### Regressão de integração da 9.0 (`test_testcomp_regressions.sh`, 51 seções) (2026-10-22)
+
+| build | PASS | FAIL |
+|---|---|---|
+| v99c (runtime C) | 50 | 1 (fuzzer on a nondet loop) |
+| p5 (todos os portes) | 48 | 3 |
+| p6 (p5 + regravação antes do abort) | 49 | 2 |
+| **p7** (p6 + `map2check_property_target`) | **51** | **0** |
+
+**Defeito novo do runtime Rust sob o KLEE (seção 13).**
+- **Sintoma:** os estados que terminam normalmente renomeavam o seu `NONE` por cima do
+  `TARGET-REACHED`. Isso acontecia enquanto o estado da violação ainda gravava os arquivos
+  auxiliares, antes de o abort encerrar a busca. O resultado era UNKNOWN num alvo alcançável;
+  o rastreamento foi feito com strace.
+- **Por que a regravação não bastou:** a regravação imediatamente antes do abort (p6) não
+  resolve, porque ainda há janela.
+- **Correção:** o `TARGET-REACHED` passa a ter arquivo próprio, como as outras violações já
+  tinham. São os PRs library#54 e Map2Check#84.
+
+**As outras falhas eram carga do host.** "Fuzzer on a nondet loop" e "alternation" passam no p7.
+
+### Sondas completas e repetições: v99c × portes (2026-10-22, madrugada)
+
+**Cover-Branches, 20 sondas:**
+
+| | v99c (C) | m73 | p2 | p7 |
+|---|---|---|---|---|
+| cobertura média | 64,6 % | 64,8 % | 64,8 % | 64,8 % |
+| testes nas suítes | 803 | 343 | 786 | 787 |
+
+O porte da poda devolve à suíte os vetores dos caminhos podados.
+
+**#74, 60 tarefas, p7 a 300 s** (v99b a 900 s):
+- Floats: 31/33 confirmadas, contra 33/33;
+- guarda: 15/15;
+- Intel-TDX: 0/12 nos dois.
+- As 2 Floats perdidas (`sine_1`, `sin_interpolated_index-1`) eram carga do host: isolada, a
+  `sine_1` sai FAILED em 3 s.
+
+**Repetições, 3 × 3 tarefas divergentes** (`array_3-2`, `insertion_sort-1-2`,
+`Problem11_label00`), 300 s, confirmadas pelo TestCov:
+
+| v99c | p2 | p7 | p8 |
+|---|---|---|---|
+| 9/9 | 8/9 | 3/9 | 6/9 |
+
+- **p2.** Ganha `array_3-2` em 2 s por acaso: a releitura da entrada faz a semente `A…`
+  disparar o erro já no dry-run do AFL++ (sai com 256). Com o porte dos zeros (p4+), esse
+  atalho some, como na 9.0.
+- **p7 → p8.** O runtime Rust concretizava o log nondet em todo fim de caminho, enquanto a 9.0
+  concretiza só no da violação. Com 1 024 leituras, o KLEE completava 1 caminho na fase 1,
+  contra 263 da v99c. A correção é a library#55.
+- **Diferença restante: 1,5 a 2× mais lento no KLEE e `insertion_sort` 0/3.**
+  - A alocação por leitura não foi portada (#51).
+  - O AFL++ do runtime Rust entrega 1 vetor ao KLEE, contra 9 a 16 do runtime C. O leitor
+    Rust não é instrumentado (decisão D1 da develop), então entradas de tamanhos diferentes
+    não geram arestas novas e o corpus não cresce.
+  - Esta última é uma frente de arquitetura, não um porte.
+
+### Validação oficial do Cover-Branches da V99c (818 tarefas, 2026-10-22)
+
+**Condições.**
+- Geração: `install_v99c`, 900 s, corpus `cover-branches-3500`, shards 0 e 1.
+- Validação: 3 validadores oficiais (TestCov 3.11 gcc e clang unformatted, TestCoCa), com 4
+  shards e `MAP2CHECK_KEEP_RESULTS=1`.
+- Pontuação como na competição: a melhor cobertura entre os validadores.
+
+**Resultado.**
+- Cobertura média de **46,5 %**; mediana de **50,1 %**.
+- No TestCov gcc: 772 `done`, 27 `ERROR (1)` e 19 `TIMEOUT`.
+- O melhor validador foi o TestCov gcc em 655 tarefas, o TestCoCa em 77 e o TestCov clang em
+  23. Em 63 tarefas nenhum validador mediu cobertura.
+
+**Por categoria** (média):
+
+| Categoria | n | Cobertura |
+|---|---|---|
+| XCSP | 10 | 99,0 % |
+| Termination-MainControlFlow | 50 | 96,3 % |
+| Termination-MainHeap | 26 | 88,1 % |
+| Arrays | 58 | 76,9 % |
+| Loops | 71 | 75,5 % |
+| Hardware | 68 | 72,4 % |
+| BitVectors | 11 | 72,1 % |
+| Recursive | 18 | 66,4 % |
+| Sequentialized | 17 | 63,4 % |
+| Heap | 49 | 56,7 % |
+| ControlFlow | 15 | 53,1 % |
+| Floats | 76 | 44,6 % |
+| Combinations | 72 | 23,3 % |
+| ProductLines | 29 | 22,1 % |
+| DeviceDriversLinux64 | 29 | 19,9 % |
+| coreutils | 15 | 15,4 % |
+| Hardness | 63 | 11,2 % |
+| AWS-C-Common | 49 | 9,7 % |
+| Intel-TDX | 68 | 5,4 % |
+| BusyBox | 13 | 0,0 % |
+
+**Comparação.** Não é diretamente comparável aos 47,0 % da 9.0 (projeção a 300 s com TestCov
+3.7 sobre o recorte da v15 de 2 765 tarefas): o corpus, o orçamento e o validador são outros.
+
+### Fechamento da madrugada: p8 (todos os portes + library#54/#55) × v99c
+
+| | v99c | m73 | p8 |
+|---|---|---|---|
+| CE 30 sondas (confirmadas) | 25 | 20 | **25** |
+| CB 20 sondas (cobertura média) | 64,6 % | 64,8 % | **64,8 %** |
+| CB (testes nas suítes) | 803 | 343 | 770 |
+| repetições (3 tarefas × 3) | 9/9 | — | 6/9 |
+
+O resumo completo e a ordem de merge estão no comentário do Map2Check#78.
+
+## Rodada controlada de desempenho: v99c × p8, com validação oficial (2026-10-22)
+
+**Condições.**
+- Máquina dedicada: 4 execuções simultâneas, cada uma presa a 2 núcleos (`--cpuset-cpus`, núcleos
+  0 a 7). A validação rodou nos núcleos 8 a 15.
+- 3 repetições por build, com v99c e p8 intercalados.
+- 30 sondas de CE e 20 de CB, 300 s por tarefa.
+- Pontuação pelos 3 validadores oficiais (TestCov 3.11 gcc e clang, TestCoCa), como na
+  competição. Dados em `tacas-results/PERF/`.
+
+**Cover-Error:**
+
+| | v99c | p8 |
+|---|---|---|
+| confirmadas (por repetição) | 26 / 27 / 28 | 25 / 26 / 26 |
+| soma das medianas de tempo (24 tarefas confirmadas nas 6 execuções) | 454 s | 612 s (1,35×) |
+
+- **Por tarefa:** o p8 é mais rápido em 4, parecido em 5 e mais lento em 15.
+  - Nas triviais, +~1 s fixo.
+  - Nas pesadas, ~1,5× (`Problem06` 148 → 241 s, `array_3-2` 94 → 141 s).
+  - Um ganho grande: `dll-rb-cnstr_1-2`, de 62 s para 2 s.
+- **Confirmações que diferem:**
+  - o p8 não confirma `pals_floodmax.4.2.BOUNDED-8` em nenhuma repetição (a v99c, em 2/3);
+  - o p8 confirma `Problem11` em 3/3 (a v99c, em 2/3).
+
+**Cover-Branches** (melhor cobertura entre os validadores oficiais):
+
+| | v99c | p8 |
+|---|---|---|
+| cobertura média (por repetição) | 70,3 / 70,7 / 71,1 % | 65,2 / 65,2 / 65,2 % |
+| testes nas suítes | 828 / 829 / 811 | 770 / 770 / 770 |
+
+- **Onde o p8 perde:** `sum_multi_array` 70 → 11, `relax-2-2` 83 → 36, `zstd` 43 → 32,
+  `memleaks_test9` 17 → 8, `Problem15_label52` 21 → 18.
+- **Onde o p8 ganha:** `openSCFixed` 49 → 63.
+- **O TestCov 3.7 interno dizia empate** (64,6 × 64,8). Os validadores oficiais separam os
+  dois builds.
+- **O p8 é idêntico nas 3 repetições:** a parte aleatória, o AFL++, quase não contribui. Isso
+  bate com o achado do corpus pobre (leitor Rust não instrumentado).
+
+**Conclusão:** o runtime Rust com os portes **não é mais rápido**. Ele é ~35 % mais lento no CE
+e perde ~5,5 p.p. de cobertura no CB na métrica oficial. A causa provável principal é o AFL++
+sem feedback do leitor de entrada; depois vem a alocação por leitura não portada.
+
+## Pacote da Test-Comp num Ubuntu limpo: o AFL++ não rodava (2026-10-24)
+
+Pergunta do orientador: os testes do pacote exercitam de fato o Map2Check, e o README explica
+direito como rodá-lo? O pacote foi executado seguindo o README, num `ubuntu:24.04` limpo, só
+com `python3` (o que o `map2check.yml` pedia).
+
+**Achado:** o binário AFL++ do programa não linkava, e o fuzzer nunca rodava. O clang empacotado
+não acha `ld`, `crt1.o`/`crti.o`, `libc`/`libm` nem `libgcc`. O Map2Check não para por isso: pula
+a fase do fuzzer, entrega o budget inteiro ao KLEE e escreve a suíte. O smoke test passava, e na
+competição todas as execuções seriam só KLEE.
+
+**Conjunto mínimo de pacotes** (sem *recommends*, LP64 e ILP32):
+
+| pacotes no host | AFL++ |
+|---|---|
+| `python3` | falha (sem `ld`) |
+| `python3 binutils` | falha (sem `-lc`, `-lgcc`) |
+| `python3 gcc` | falha (sem `Scrt1.o`, `crti.o`) |
+| `python3 gcc-multilib` | roda, em 64 e 32 bits |
+
+**Segundo achado:** o exemplo `cover_error.c` declarava `reach_error` só como `extern`. O KLEE
+aceita; o link nativo do AFL++ não. No sv-benchmarks, `reach_error` é sempre definida.
+
+**Correções** (branch `fix/testcomp27-archive-toolchain`, `7609c3bf2`):
+- `gcc-multilib` em `required_ubuntu_packages` no `map2check.yml`;
+- README do pacote com os dois pacotes e com como os motores alternam;
+- o smoke test exige no log que o AFL++ rodou (nos dois exemplos) e que o KLEE rodou
+  (Cover-Branches); o budget do Cover-Branches sobe de 30 para 60 s, porque com 30 o KLEE não
+  ganha janela;
+- `reach_error` definida no exemplo.
+
+**Verificação no pacote regenerado** (`map2check-v2.zip`, md5 `a01c28c5…`):
+- o smoke test falha no `ubuntu:24.04` só com `python3`;
+- passa com `python3 gcc-multilib` no `ubuntu:24.04` e no `ubuntu:26.04` (imagem do CI do
+  FM-Tools), em 6–8 s;
+- TestCov 3.11 (o pacote oficial do Zenodo) nas suítes dos exemplos:
+
+| exemplo | LP64 | ILP32 |
+|---|---|---|
+| Cover-Error | TRUE, 1 caso | TRUE, 1 caso |
+| Cover-Branches | 100 % de branches, 14 casos | 100 % de branches, 12 casos |
+
+**Consequência para os números já medidos:** as validações oficiais anteriores (V99, V99c)
+rodaram em imagens com `gcc`, então refletem o AFL++ ativo. Sem a correção, a submissão teria
+rodado só com o KLEE.
+
 ## Um módulo tool-info só: o Test-Comp dentro do `map2check.py` (2026-10-26)
 
 **Motivação:** a revisão do benchexec#1352 (Philipp Wendler) e do fm-tools!1245 (Dirk Beyer)

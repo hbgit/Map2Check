@@ -513,7 +513,7 @@ jobs:
               # only shows up days after submission as every task erroring out.
               python3 tests/integration/test_benchexec_toolinfo.py
               # The wrapper turns core dumps off: under BenchExec a core lands
-              # in a tmpfs that counts toward the run's memory limit.
+              # in a tmpfs that counts toward the memory limit of the run.
               bash tests/integration/test_wrapper_core_dumps.sh
               # Cover-Branches: the other competition category, and the one
               # whose suite has more than one test case. Validated by TestCov,

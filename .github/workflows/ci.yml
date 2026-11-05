@@ -502,7 +502,12 @@ jobs:
               # zip for the suite archive, gcc/lcov for coverage measurement.
               apt-get update -qq
               apt-get install -y -qq python3-pip zip gcc lcov
-              pip3 install --quiet testcov
+              # Not --quiet, and checked right here: when the install leaves no
+              # testcov on PATH, the tests below only say "not installed",
+              # with the reason hidden.
+              pip3 install testcov 2>&1 | tail -20
+              command -v testcov && pip3 show testcov | head -2 \
+                || { echo "FATAL: pip3 install testcov left no testcov on PATH"; pip3 list 2>/dev/null | grep -iE "testcov|benchexec|tsbuilder"; ls -la /usr/local/bin | head -30; exit 2; }
               # The tool-info module is what BenchExec loads on competition
               # infrastructure. Nothing else here exercises it, and a wrong one
               # only shows up days after submission as every task erroring out.

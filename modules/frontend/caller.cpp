@@ -1440,6 +1440,24 @@ void Caller::executeAnalysis(std::string solvername) {
               ? ""
               : " --exit-on-error-type=Abort";
 
+      // Cover-Branches: a .ktest only for a path that covered new code. KLEE
+      // applies the same filter to the states it dumps when it halts, which
+      // is where most of the files came from.
+      //
+      // Each .ktest holds every symbolic object whole. On the Intel-TDX tasks
+      // that is ~770 KB a test: one cover-branches phase wrote 2651 of them
+      // (2.0 GB) for a suite that took 36, the next 2470 that it took none of.
+      // Under BenchExec the files sit in a tmpfs counted toward the memory
+      // limit, and Test-Comp 2027 reported runs ended by the OOM killer. A
+      // path covering nothing new adds nothing to a branch-coverage suite.
+      //
+      // The property modes keep every test: there a partial path completed
+      // with zeros can still reach the violation natively.
+      std::string outputPolicy =
+          (map2checkMode == Map2CheckMode::COVER_BRANCHES_MODE)
+              ? " --only-output-states-covering-new"
+              : "";
+
       std::vector<std::string> kleebackendsolver = {"z3", "stp"};
       std::vector<std::string> kleemetasolver = {"btor", "yices2"};
 
@@ -1452,7 +1470,7 @@ void Caller::executeAnalysis(std::string solvername) {
         //  --allow-external-sym-calls
         //  -use-cache
         kleeCommand << " --external-calls=all"
-                    << stopPolicy << searchPolicy << seedFlag
+                    << stopPolicy << searchPolicy << outputPolicy << seedFlag
                     << " --optimize"
                     << " --use-cex-cache"
                     << " --solver-backend=" + solvername + " "
@@ -1465,7 +1483,7 @@ void Caller::executeAnalysis(std::string solvername) {
         Map2Check::Log::Info("Solver metaSMT caller: " + solvername);
 
         kleeCommand << " --external-calls=all"
-                    << stopPolicy << searchPolicy << seedFlag
+                    << stopPolicy << searchPolicy << outputPolicy << seedFlag
                     << " --optimize"
                     << " --use-cex-cache"
                     << " --solver-backend=metasmt "

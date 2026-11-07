@@ -1443,3 +1443,25 @@ existe, em vez de um `map2check-testcomp.py` à parte.
       quase não explora. Um teto no número ou no tamanho das sementes fica como próximo
       passo;
     - o SIGHUP não foi reproduzido localmente.
+- **Braço mg2** (com `killLeftoverTargets`, mesmas tarefas e limites): as 6 tarefas `done`.
+
+| tarefa | CPU / parede (s) | cobertura |
+|---|---|---|
+| `data_structures_set_multi_proc_ground-2` | 465 / 865 | 65,22 % |
+| `btor2c-lazyMod.h_segments` | 436 / 839 | 84,21 % |
+| `partial_mod_count_limited_1` | 863 / 860 (era TIMEOUT) | 92,86 % |
+| `Problem05_label40+token_ring.01.cil-1` | 888 / 866 | 3,90 % |
+| TDX havoc_object (ce) | 436 / 833 | 0 testes |
+| TDX havoc_memory (ce) | 470 / 886 | 0 testes |
+
+- **CPU acima da parede:**
+  - nenhuma das 14 507 execuções oficiais do binário antigo tem isso;
+  - numa sonda `runexec` do Problem05 sozinho, com amostras do `ps` a cada 1 s: 844,5 s de
+    CPU para 838,6 s de parede, e só o `map2check` vivo no fim. O excesso grande vinha dos
+    alvos que sobravam;
+  - o que resta (até 22 s com a máquina carregada) levou a `SHUTDOWN_MARGIN` do wrapper de
+    20 para 30 s: o Map2Check recebe 870 s de parede.
+- **Pacote final** (`map2check-mg3.zip`, md5 `c53d5053072baf2461e132ad1a0944ee`):
+  - em relação ao mg2, pelo CRC, só o wrapper muda;
+  - smoke test num `ubuntu:24.04` limpo, com `python3` e `gcc-multilib`: passou;
+  - BenchExec com 120 s: `done`.

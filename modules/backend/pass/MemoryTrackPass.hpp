@@ -49,6 +49,9 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   void instrumentRealloc();
   void instrumentMemset();
   void instrumentMemcpy();
+  /** Checks, before a printf-family call or puts/fputs, every string the call
+   * will read to its terminator (see the definition). */
+  void instrumentCStringArguments();
   void instrumentPosixMemAllign();
   void instrumentFree();
   void instrumentInit();
@@ -92,6 +95,7 @@ struct MemoryTrackPass : public llvm::PassInfoMixin<MemoryTrackPass> {
   FunctionCallee map2check_non_static_alloca;
   FunctionCallee map2check_posix;
   FunctionCallee map2check_load;
+  FunctionCallee map2check_check_cstring;
   FunctionCallee map2check_check_deref;
   FunctionCallee map2check_function;
   FunctionCallee map2check_free_resolved_address;

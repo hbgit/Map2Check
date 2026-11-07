@@ -391,13 +391,15 @@ Esta fase é uma **extensão da Fase 1** (Fundação), não uma fase separada no
 ### Fase 3: Hibridização e Coordenador (Meses 6-8)
 
 #### Passo 3.1 — Integrar AFL++
-- [ ] Adicionar `FindAFLPlusPlus.cmake` para compilar/instalar AFL++ 4.40c
-- [ ] Configurar instrumentação AFL++ com LLVM 16 (modo PCGUARD)
-- [ ] Criar wrapper para compilação de programas com instrumentação AFL++
-- [ ] Validar fuzzing standalone em programas de teste
+- [x] Adicionar `FindAFLPlusPlus.cmake` para compilar/instalar AFL++ 4.40c
+- [x] Configurar instrumentação AFL++ com LLVM 16 (modo PCGUARD)
+- [x] Criar wrapper para compilação de programas com instrumentação AFL++
+- [x] Validar fuzzing standalone em programas de teste
 
 #### Passo 3.2 — Desenvolver o Coordenador
-- [ ] Criar módulo `modules/coordinator/` (Python + C++ via pybind11 ou subprocess)
+
+> **Nota (tacasv1):** o coordenador **permanece no Caller C++** (`modules/frontend/caller.cpp`), que dispara o AFL++ via `system()` (afl-clang-fast / afl-fuzz). Não foi criado um módulo `modules/coordinator/` em Python/pybind11.
+
 - [ ] Implementar interface IPC POSIX (shared memory + semáforos)
 - [ ] Implementar ciclo de vida:
   1. Iniciar AFL++ com sementes iniciais

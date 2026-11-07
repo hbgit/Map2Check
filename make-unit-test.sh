@@ -16,6 +16,6 @@ cd build
 export LLVM_DIR=$LLVM_DIR_BASE/lib/cmake/llvm
 export CXX=$LLVM_DIR_BASE/bin/clang++
 export CC=$LLVM_DIR_BASE/bin/clang
-cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_LIB_FUZZER=ON -DSKIP_KLEE=ON -DENABLE_TEST=ON
+cmake .. -G Ninja -DLLVM_DIR=$LLVM_DIR -DSKIP_AFL_PLUS_PLUS=ON -DSKIP_KLEE=ON -DENABLE_TEST=ON
 
 ninja && ninja install && ctest

@@ -127,9 +127,233 @@ ENV PATH="/opt/klee/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/opt/klee/lib"
 
 # ============================================================
-# 7. LibFuzzer (already included in LLVM 16 compiler-rt)
+# 7. AFL++ 4.40c (LLVM 16, PCGUARD)
 # ============================================================
-# No extra install needed — available via clang-16 -fsanitize=fuzzer
+# Tag-pinned like KLEE above: AFL++ has versioned releases, so -b v4.40c is
+# the reproducible pin (the SHA pins in 7b/7c are for projects with none).
+# PCGUARD is AFL++'s own SanitizerCoveragePCGUARD pass plugin, built against
+# the image's LLVM 16 and loaded by afl-clang-fast; it is the default and most
+# robust LLVM mode, lighter than the LTO one.
+RUN git clone --depth 1 -b v4.40c https://github.com/AFLplusplus/AFLplusplus.git /tmp/afl++ && \
+    cd /tmp/afl++ && \
+    make -j"$(nproc)" && \
+    make install && \
+    rm -rf /tmp/afl++
+
+ENV PATH="/usr/local/bin:${PATH}"
+# afl-cc locates its runtime relative to its own install; AFL_PATH is a safety
+# net for the non-LLVM modes.
+ENV AFL_PATH=/usr/local/lib/afl
+# Headless, container-safe defaults: afl-fuzz aborts under CI/containers on the
+# UI, CPU-affinity, cpufreq-governor and core-pattern checks. PCGUARD is the
+# instrumentation mode afl-clang-fast must use everywhere.
+ENV AFL_NO_UI=1 \
+    AFL_NO_AFFINITY=1 \
+    AFL_SKIP_CPUFREQ=1 \
+    AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 \
+    AFL_LLVM_INSTRUMENT=PCGUARD
+
+# Fail the image build if AFL++ cannot actually instrument — the same failure
+# mode section 7c guards against for sbt-slicer. afl-showmap exits non-zero on
+# an uninstrumented binary, and the map is empty, so both checks must pass.
+RUN printf 'int main(void){return 0;}\n' > /tmp/aflcheck.c && \
+    /usr/local/bin/afl-clang-fast -o /tmp/aflcheck /tmp/aflcheck.c && \
+    /usr/local/bin/afl-showmap -q -o /tmp/aflmap -- /tmp/aflcheck && \
+    test -s /tmp/aflmap && \
+    echo "AFL++ instruments: OK" && rm -f /tmp/aflcheck.c /tmp/aflcheck /tmp/aflmap
+
+# ============================================================
+# 7b. Clam (formerly crab-llvm) — abstract-interpretation invariants
+# ============================================================
+# Clam rewrites the bitcode, inserting verifier.assume(inv) calls that
+# NonDetPass rewrites to map2check_crab_assume and the runtime forwards to
+# klee_assume. Branch dev16 targets LLVM 16, which is this image's LLVM.
+#
+# Built here rather than as a CMake ExternalProject: it is a subprocess tool,
+# not a linked library, and building it per configure would add tens of minutes
+# to every clean Map2Check build for a capability that is off by default
+# (-DENABLE_CLAM=ON). See docs/reports/2026-08-16-crabllvm-review.md.
+#
+# libzstd-dev is required, not optional: LLVM 16 from apt.llvm.org exports
+# zstd::libzstd_shared, so Clam's find_package(LLVM) fails outright without it.
+# libflint-dev is NOT needed -- that belongs to the PPLite domain, and no
+# optional domain is enabled here. Clam's default domain is zones (a DBM,
+# built into Crab), the same default the crab-llvm of the SV-COMP builds had;
+# what LDD, Apron, Elina and PPLite would add is boxes, oct and pk, which the
+# old engine shipped (Apron) and --add-invariants never selected. Whether they
+# are worth building is part of the pending --add-invariants study
+# (docs/backlog.md).
+RUN apt-get update && apt-get install -y \
+    libmpfr-dev \
+    libzstd-dev \
+    libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# CLAM_INCLUDE_TESTS=OFF: Clam's own lit suite needs `lit` from pip and adds
+# build time for tests of a dependency, not of Map2Check.
+#
+# The compilers are named explicitly rather than left to the ENV CC/CXX set in
+# section 11: those are declared 88 lines BELOW this RUN, and a Docker ENV only
+# applies to later instructions, so Clam would silently build with the default
+# cc/c++ (GCC 11). That is not a cosmetic difference -- sea-dsa defines
+# seadsa::mkTLIGetter with a redundant namespace qualification inside its own
+# namespace, which clang accepts as -Wextra-qualification but GCC rejects
+# outright, and the image build dies at 34%. Upstream's own docker/clam.Dockerfile
+# passes these same two flags; clang is the toolchain Clam is built against.
+#
+# Every one of these four repositories is tracked upstream on a MOVING branch:
+# clam, sea-dsa and llvm-seahorn on dev16, Crab on dev. Left unpinned, the
+# contents of this image change without any change on our side -- crab@dev
+# moved on 2026-08-21, while this section was being written. Pinning makes the
+# image reproducible and turns an upstream break into a deliberate bump with a
+# diff, instead of a red build nobody caused.
+#
+# To bump one: replace the SHA, and let the pull_request job in
+# .github/workflows/docker-publish.yml prove the new combination still
+# compiles and still injects invariants before it reaches develop.
+ARG CLAM_SHA=302bf49a8847697f8f16e2c2548ccbc14c226640          # dev16 @ 2026-08-07
+ARG SEADSA_SHA=661855a334c8fda45f45ae74d4e21bbd4e838835        # dev16 @ 2026-08-12
+ARG LLVM_SEAHORN_SHA=8e7e6c62c9f23718973ef9f60d30a593d044287c  # dev16 @ 2026-07-04
+ARG CRAB_SHA=5c740fcc9afcc951844d35e20592af81d8d94604          # dev   @ 2026-08-21
+
+# The dependencies are placed by hand instead of via Clam's `crab` and `extra`
+# targets. Those targets are plain `git clone -b dev<N>` custom commands
+# (cmake/{crab,seadsa,llvm-seahorn}-git.cmake) with nowhere to pass a SHA, so
+# pinning means not using them. Clam's CMakeLists already prefers a dependency
+# that is present in-tree over cloning one, which is what makes this work --
+# and because everything is in place before the first configure, the
+# configure/clone/reconfigure dance the targets required collapses to a single
+# `cmake ..`.
+#
+# `git init` + `fetch --depth 1 <sha>` rather than `clone -b <branch>`: it is
+# the only shallow form that takes a commit, so pinning costs no extra history.
+RUN set -eux; \
+    pin() { \
+      git init -q "$2" && \
+      git -C "$2" remote add origin "$1" && \
+      git -C "$2" fetch -q --depth 1 origin "$3" && \
+      git -C "$2" checkout -q FETCH_HEAD; \
+    }; \
+    pin https://github.com/seahorn/clam.git         /tmp/clam              "$CLAM_SHA"; \
+    pin https://github.com/seahorn/sea-dsa.git      /tmp/clam/sea-dsa      "$SEADSA_SHA"; \
+    pin https://github.com/seahorn/llvm-seahorn.git /tmp/clam/llvm-seahorn "$LLVM_SEAHORN_SHA"; \
+    pin https://github.com/seahorn/crab.git         /tmp/clam/crab         "$CRAB_SHA"; \
+    mkdir /tmp/clam/build && cd /tmp/clam/build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCLAM_LLVM_VERSION=16 \
+             -DCLAM_INCLUDE_TESTS=OFF \
+             -DCMAKE_C_COMPILER=/usr/bin/clang-16 \
+             -DCMAKE_CXX_COMPILER=/usr/bin/clang++-16 \
+             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+             -DCMAKE_INSTALL_PREFIX=/opt/clam && \
+    cmake --build . -j"$(nproc)" && \
+    cmake --build . --target install && \
+    rm -rf /tmp/clam
+
+ENV CLAM_DIR=/opt/clam
+
+# Fail the image build if Clam cannot inject invariants. The flag combination
+# below is measured, not assumed: --llvm-pp-loops and --crab-promote-assume
+# were both in the legacy crab-llvm invocation and both defeat injection (the
+# first drops it to zero, the second rewrites verifier.assume into the
+# llvm.assume intrinsic that NonDetPass does not match). A silent zero here is
+# what kept --add-invariants dead for years.
+RUN printf 'int main(){int i=0,s=0;while(i<10){s+=i;i++;}return s;}\n' > /tmp/clamcheck.c && \
+    /opt/clam/bin/clam.py -o /tmp/clamcheck.bc -m 64 -g --crab-inter \
+      --crab-track=num --crab-opt=add-invariants \
+      --crab-opt-invariants-loc=block-entry /tmp/clamcheck.c && \
+    test "$(llvm-dis-16 -o - /tmp/clamcheck.bc | grep -c 'verifier\.assume')" -gt 0 && \
+    echo "Clam injects invariants: OK" && rm -f /tmp/clamcheck.c /tmp/clamcheck.bc
+
+# ============================================================
+# 7c. DG + sbt-slicer — program slicing with respect to an error site
+# ============================================================
+# Phase 2 of docs/map2check_migration_plan.md, and the same pipeline Symbiotic
+# uses: build a System Dependence Graph, keep only what the error site depends
+# on, hand the smaller program to KLEE.
+#
+# What it is for, in numbers from this repository: finding K2 measured the cost
+# of a nondeterministic read at 1 -> 21 -> 114 -> 861 partial paths for 2 -> 4
+# reads. Most of that forking happens in code that cannot influence the target,
+# and slicing removes it before KLEE ever sees it.
+#
+# Two limits worth knowing before relying on it. Slicing needs a criterion, so
+# it serves Cover-Error and does nothing for Cover-Branches, where every branch
+# matters and there is no error site to slice towards. And a slice taken with
+# respect to one error can remove another -- fine for a tool answering one
+# property, a hazard for a baseline that scores precision per CWE.
+#
+# Built with clang-16 for the reason section 7b spells out: the ENV CC below is
+# declared later in this file and would not apply here, and these are LLVM
+# projects that expect the LLVM toolchain.
+#
+# DG is taken from llvm-latest, NOT master, and the difference is the same one
+# crab-llvm taught: the maintained version was somewhere else. master calls
+# llvm::Function::getBasicBlockList(), which LLVM 16 made private, so it simply
+# does not compile here. llvm-latest's newest commit is literally "Fix build
+# for LLVM < 18".
+#
+# Pinned to SHAs. Neither project has had a versioned release since 2020, so
+# without a pin the image changes when upstream does -- what crab@dev
+# demonstrated by moving the day before it was needed.
+ARG DG_SHA=b34da890694f5210e475f34018239fc9d126d1ee         # llvm-latest @ 2023-11-29
+ARG SBT_SLICER_SHA=e350116b39be215277803fe2f5e5ac4a161c16b8 # master @ 2025-03-27
+
+RUN set -eux; \
+    pin() { \
+      git init -q "$2" && \
+      git -C "$2" remote add origin "$1" && \
+      git -C "$2" fetch -q --depth 1 origin "$3" && \
+      git -C "$2" checkout -q FETCH_HEAD; \
+    }; \
+    # Both projects pin C++14 with a plain set(), which overrides anything
+    # passed on the command line, and LLVM 16's headers use std::is_unsigned_v
+    # -- C++17. Patching the two lines is the smallest change that builds; the
+    # alternative is carrying a fork.
+    bump() { \
+      sed -i 's/set(CMAKE_CXX_STANDARD 14)/set(CMAKE_CXX_STANDARD 17)/; \
+              s/-std=c++14/-std=c++17/' "$1/CMakeLists.txt"; \
+    }; \
+    pin https://github.com/mchalupa/dg.git /tmp/dg "$DG_SHA"; \
+    bump /tmp/dg; \
+    # IN-SOURCE, deliberately. sbt-slicer's CMakeLists documents DG_PATH as
+    # "a path to an in-source build of dg" and derives both the include path
+    # and the library path from it; an out-of-tree build satisfies neither
+    # (the headers stay in the source tree, the libraries land in the build
+    # tree) and sbt-slicer fails to find dg/tools/llvm-slicer-opts.h.
+    cd /tmp/dg && \
+    cmake . -DCMAKE_BUILD_TYPE=Release \
+             -DCMAKE_C_COMPILER=/usr/bin/clang-16 \
+             -DCMAKE_CXX_COMPILER=/usr/bin/clang++-16 \
+             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+             -DCMAKE_INSTALL_PREFIX=/opt/dg && \
+    make -j"$(nproc)" && make install && \
+    pin https://github.com/staticafi/sbt-slicer.git /tmp/sbt-slicer \
+        "$SBT_SLICER_SHA"; \
+    bump /tmp/sbt-slicer; \
+    mkdir /tmp/sbt-slicer/build && cd /tmp/sbt-slicer/build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release \
+             -DCMAKE_C_COMPILER=/usr/bin/clang-16 \
+             -DCMAKE_CXX_COMPILER=/usr/bin/clang++-16 \
+             -DLLVM_DIR=/usr/lib/llvm-16/lib/cmake/llvm \
+             -DDG_PATH=/tmp/dg \
+             -DCMAKE_INSTALL_PREFIX=/opt/sbt-slicer && \
+    make -j"$(nproc)" && make install && \
+    rm -rf /tmp/dg /tmp/sbt-slicer
+
+ENV SBT_SLICER=/opt/sbt-slicer/bin/sbt-slicer
+# dg installs shared libraries, and sbt-slicer links against them without an
+# rpath: without this the binary exists, builds, and dies on every invocation
+# with "libdganalysis.so: cannot open shared object file".
+ENV LD_LIBRARY_PATH="/opt/dg/lib:${LD_LIBRARY_PATH}"
+
+# Fail the image build if the slicer cannot actually slice. A binary that
+# exists and refuses every input is the failure mode section 7b was written
+# about: --add-invariants stayed dead for years behind exactly that.
+RUN printf 'extern int __VERIFIER_nondet_int(void);\nvoid reach_error(void);\nint main(){int a=__VERIFIER_nondet_int();int junk=__VERIFIER_nondet_int();int s=0;for(int i=0;i<50;i++){s+=junk*i;}if(a==7){reach_error();}return s;}\n' > /tmp/slicecheck.c && \
+    clang-16 -c -emit-llvm -g -O0 -o /tmp/slicecheck.bc /tmp/slicecheck.c && \
+    /opt/sbt-slicer/bin/sbt-slicer -c reach_error -o /tmp/sliced.bc /tmp/slicecheck.bc && \
+    test -s /tmp/sliced.bc && \
+    echo "sbt-slicer slices: OK" && rm -f /tmp/slicecheck.c /tmp/slicecheck.bc /tmp/sliced.bc
 
 # ============================================================
 # 8. WABT (WebAssembly Binary Toolkit) — wasm2c, wasm2wat, wasm-ld

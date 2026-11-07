@@ -153,6 +153,18 @@ void analysis_generate_aux_witness_files() {
 
 // TODO: FIX THIS, not working for static array
 #include <stdio.h>
+/* Every byte a %s or puts will read, up to the terminator: each must lie in
+ * a live allocation. Stops at the first invalid byte (ERROR_DEREF is set and
+ * the caller's map2check_check_deref reports it), before reading it. */
+void map2check_check_cstring(const char *string) {
+  if (string == NULL) return;
+  for (unsigned long i = 0;; ++i) {
+    map2check_load((void *)(string + i), 1);
+    if (ERROR_DEREF) return;
+    if (string[i] == '\0') return;
+  }
+}
+
 void map2check_load(void *ptr, int size) {
   if (!is_valid_heap_address(&heap_log, ptr, size)) {
     if (!is_valid_allocation_address(&allocation_log, ptr, size)) {

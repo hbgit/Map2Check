@@ -12,6 +12,7 @@
 #define MODULES_FRONTEND_UTILS_TOOLS_HPP_
 
 #include <algorithm>  // copy
+#include <cstdlib>    // getenv
 #include <fstream>    // fstream
 #include <iostream>   // cout, endl
 #include <iterator>   // ostream_operator
@@ -33,9 +34,24 @@ namespace Map2Check {
 constexpr char const* ktestBinary = "${MAP2CHECK_PATH}/bin/ktest-tool";
 /** Path to clang binary (from llvm) */
 constexpr char const* clangBinary = "${MAP2CHECK_PATH}/bin/clang";
-/** Path to crab-llvm path binary (from crab-llvm) */
-constexpr char const* crabBinary =
-    "${MAP2CHECK_PATH}/bin/crabllvm/bin/crabllvm.py";
+/** Default Clam installation root, used when CLAM_DIR is not set. */
+constexpr char const* clamDefaultRoot = "/opt/clam";
+
+/** Absolute path to the Clam driver, the abstract-interpretation invariant
+ * generator. Clam is the current name of crab-llvm: the project was renamed,
+ * not abandoned. It installs outside the Map2Check prefix because it is an
+ * independent tool with its own LLVM-versioned build, so it keys off CLAM_DIR
+ * rather than MAP2CHECK_PATH.
+ *
+ * Resolved in C++ rather than left as a "${CLAM_DIR}" string for the shell to
+ * expand, so that the availability check and the command that gets run cannot
+ * disagree about where Clam is -- with shell expansion an unset CLAM_DIR
+ * silently becomes "/bin/clam.py" while the check looks at the default root. */
+inline std::string clamBinary() {
+  const char* dir = getenv("CLAM_DIR");
+  return (dir != nullptr ? std::string(dir) : std::string(clamDefaultRoot)) +
+         "/bin/clam.py";
+}
 /** Path to clang include folder (usually
  * $(PATH_TO_CLANG)/lib/clang/$(LLVM_VERSION)/include) */
 constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";
@@ -43,8 +59,57 @@ constexpr char const* clangIncludeFolder = "${MAP2CHECK_PATH}/include/";
 constexpr char const* listLogCSV = "list_log.csv";
 /** Path to klee binary */
 constexpr char const* kleeBinary = "${MAP2CHECK_PATH}/bin/klee";
+/** Default root of the AFL++ install (Dockerfile.dev section 7). */
+constexpr char const* aflDefaultRoot = "/usr/local";
+/** Path to the afl-clang-fast wrapper (symlink to afl-cc), overridable.
+ *
+ * Resolved like the slicer and the invariant generator: an environment
+ * override first, a documented default second. AFL++ is a subprocess tool,
+ * invoked by caller.cpp at run time, so it is not copied into MAP2CHECK_PATH
+ * the way clang and klee are.
+ *
+ * MAP2CHECK_AFL_CC, not AFL_CC: AFL_CC is AFL++'s own variable for the real
+ * compiler afl-cc wraps, so reusing it would either recurse afl-clang-fast into
+ * itself or silently build the fuzzer uninstrumented. */
+inline std::string aflClangFastBinary() {
+  const char* override_path = getenv("MAP2CHECK_AFL_CC");
+  if (override_path != nullptr) return std::string(override_path);
+  return std::string(aflDefaultRoot) + "/bin/afl-clang-fast";
+}
+/** Path to the afl-fuzz binary, overridable with MAP2CHECK_AFL_FUZZ. */
+inline std::string aflFuzzBinary() {
+  const char* override_path = getenv("MAP2CHECK_AFL_FUZZ");
+  if (override_path != nullptr) return std::string(override_path);
+  return std::string(aflDefaultRoot) + "/bin/afl-fuzz";
+}
+/** Default root of the sbt-slicer install (Dockerfile.dev section 7c). */
+constexpr char const* slicerDefaultRoot = "/opt/sbt-slicer";
+/** Path to the sbt-slicer binary, overridable with SBT_SLICER.
+ *
+ * Resolved like the invariant generator: an environment override first, a
+ * documented default second, and the caller checks the file exists before
+ * relying on it -- a missing slicer must refuse the run, not silently analyse
+ * the unsliced program (issue #54's failure mode). */
+inline std::string slicerBinary() {
+  const char* override_path = getenv("SBT_SLICER");
+  if (override_path != nullptr) return std::string(override_path);
+  return std::string(slicerDefaultRoot) + "/bin/sbt-slicer";
+}
+/** Seconds granted between SIGTERM and SIGKILL when a backend overruns its
+ * slice (`timeout -k`). Both KLEE and AFL++ catch SIGTERM to shut down
+ * gracefully, and both can miss it while wedged -- KLEE inside the solver,
+ * AFL++ inside a hung target. Without the escalation `timeout` waits
+ * forever on a child that will not die and the whole run hangs past its
+ * budget. Long enough for a real graceful exit, short enough not to distort
+ * the budget. */
+constexpr int killGracePeriod = 10;
 /** Path to generated klee log file (check MemoryUtils implementation) */
 constexpr char const* kleeLogCSV = "klee_log.csv";
+/** KLEE's own output directory, relative to the scratch directory the run
+ * executes in. It is a symlink KLEE maintains to the latest klee-out-N, and it
+ * holds one testNNNNNN.ktest per explored path -- the input vectors a
+ * Cover-Branches suite is built from. */
+constexpr char const* kleeOutputDir = "klee-last";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
 constexpr char const* stateTrueLogCSV = "automata_list_log.st";
 /** Path to generated Correctness log file (check MemoryUtils implementation) */
@@ -62,6 +127,7 @@ constexpr char const* llvmLinkBinary = "${MAP2CHECK_PATH}/bin/llvm-link";
 /** Represents what kind of property was violated */
 enum class PropertyViolated {
   FALSE_OVERFLOW,
+  FALSE_DIVBYZERO,
   TARGET_REACHED,
   FALSE_FREE,
   FALSE_DEREF,
@@ -74,10 +140,25 @@ enum class PropertyViolated {
 
 /** Class used to check violated property */
 struct CheckViolatedProperty {
-  /** Current violated property */
-  PropertyViolated propertyViolated;
+  /** Current violated property.
+   *
+   * Defaulted, and the default matters more than it looks. The constructor
+   * assigns this on several paths but NOT when map2check_property exists and
+   * is empty, nor when it holds a line the parser does not recognise -- the
+   * `else` that would have caught that is commented out. Both cases used to
+   * leave the field holding whatever was on the stack, and that value decided
+   * the tool's verdict.
+   *
+   * It is reachable: a KLEE state that aborts early creates the file without
+   * writing a verdict into it. Observed as the same program answering FAILED,
+   * SUCCEEDED and nothing across three runs, and as the ERROR/UNKNOWN churn
+   * that shows up in every baseline comparison.
+   *
+   * UNKNOWN is the honest default: no readable verdict means the tool did not
+   * decide, which is exactly what the missing-file path already reports. */
+  PropertyViolated propertyViolated = PropertyViolated::UNKNOWN;
   /** Line where property was violated */
-  unsigned line;
+  unsigned line = 0;
   /** Name of the function where the property was violated */
   string function_name;
   string path_name;
@@ -149,11 +230,42 @@ class SourceCodeHelper {
   std::vector<std::string> cFileLines;
 };
 
-enum class KleeLogType { INTEGER, CHAR, POINTER, USHORT, LONG, UNSIGNED };
+/** The type column of klee_log.csv: enum NONDET_TYPE of the runtime
+ * (Map2CheckTypes.h), in the same order, so a row's number casts to it.
+ * UNKNOWN is any other number. */
+enum class KleeLogType {
+  INTEGER,
+  CHAR,
+  POINTER,
+  USHORT,
+  LONG,
+  UNSIGNED,
+  ULONG,
+  BOOL,
+  UCHAR,
+  PCHAR,
+  SIZE_T,
+  LOFF_T,
+  SECTOR_T,
+  UINT,
+  SHORT,
+  DOUBLE,
+  FLOAT,
+  LONGLONG,
+  ULONGLONG,
+  U8,
+  U16,
+  U32,
+  MEMORY_BYTE,
+  UNKNOWN
+};
+
+/** The KleeLogType of a type number of klee_log.csv. */
+KleeLogType kleeLogTypeFromId(int id);
 
 struct KleeLogRow {
   string id;
-  KleeLogType type;
+  KleeLogType type = KleeLogType::UNKNOWN;
 
   string line;
   string scope;
@@ -173,37 +285,10 @@ struct KleeLogRow {
   operator std::string() const {
     std::ostringstream cnvt;
     cnvt.str("");
-    switch (type) {
-      case KleeLogType::INTEGER:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_int()"
-             << "\n";
-        break;
-      case KleeLogType::CHAR:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_char()"
-             << "\n";
-        break;
-      case KleeLogType::POINTER:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_pointer()"
-             << "\n";
-        break;
-      case KleeLogType::USHORT:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_ushort()"
-             << "\n";
-        break;
-      case KleeLogType::LONG:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_long()"
-             << "\n";
-        break;
-      case KleeLogType::UNSIGNED:
-        cnvt << "  Call Function  : "
-             << "__VERIFIER_nondet_uint()"
-             << "\n";
-        break;
+    const std::string function = generateWitnessFunctionName();
+    if (!function.empty()) {
+      cnvt << "  Call Function  : " << function << "()"
+           << "\n";
     }
     cnvt << "  Value          : " << this->value << "\n";
     cnvt << "  Line Number    : " << this->line << "\n";
@@ -212,7 +297,9 @@ struct KleeLogRow {
     return cnvt.str();
   }
 
-  std::string generateWitnessFunctionName() {
+  /** The __VERIFIER_nondet_* function that produced the value, or "" for an
+   * UNKNOWN type. The unsigned family keeps the name it always had. */
+  std::string generateWitnessFunctionName() const {
     switch (type) {
       case KleeLogType::INTEGER:
         return "__VERIFIER_nondet_int";
@@ -225,8 +312,44 @@ struct KleeLogRow {
       case KleeLogType::LONG:
         return "__VERIFIER_nondet_long";
       case KleeLogType::UNSIGNED:
+      case KleeLogType::UINT:
         return "__VERIFIER_nondet_uint";
+      case KleeLogType::ULONG:
+        return "__VERIFIER_nondet_ulong";
+      case KleeLogType::BOOL:
+        return "__VERIFIER_nondet_bool";
+      case KleeLogType::UCHAR:
+        return "__VERIFIER_nondet_uchar";
+      case KleeLogType::PCHAR:
+        return "__VERIFIER_nondet_pchar";
+      case KleeLogType::SIZE_T:
+        return "__VERIFIER_nondet_size_t";
+      case KleeLogType::LOFF_T:
+        return "__VERIFIER_nondet_loff_t";
+      case KleeLogType::SECTOR_T:
+        return "__VERIFIER_nondet_sector_t";
+      case KleeLogType::SHORT:
+        return "__VERIFIER_nondet_short";
+      case KleeLogType::DOUBLE:
+        return "__VERIFIER_nondet_double";
+      case KleeLogType::FLOAT:
+        return "__VERIFIER_nondet_float";
+      case KleeLogType::LONGLONG:
+        return "__VERIFIER_nondet_longlong";
+      case KleeLogType::ULONGLONG:
+        return "__VERIFIER_nondet_ulonglong";
+      case KleeLogType::U8:
+        return "__VERIFIER_nondet_u8";
+      case KleeLogType::U16:
+        return "__VERIFIER_nondet_u16";
+      case KleeLogType::U32:
+        return "__VERIFIER_nondet_u32";
+      case KleeLogType::MEMORY_BYTE:
+        return "__VERIFIER_nondet_memory";
+      case KleeLogType::UNKNOWN:
+        break;
     }
+    return "";
   }
 };
 

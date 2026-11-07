@@ -9,6 +9,8 @@
 
 #include "counter_example.hpp"
 
+#include "../test_suite/ktest_reader.hpp"
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -93,6 +95,10 @@ std::string CounterExample::getViolatedProperty() {
   if (this->property == Tools::PropertyViolated::FALSE_OVERFLOW) {
     return "OVERFLOW";
   }
+
+  if (this->property == Tools::PropertyViolated::FALSE_DIVBYZERO) {
+    return "FALSE-DIVBYZERO";
+  }
   // FIXME: Throw exception
   return "";
 }
@@ -157,15 +163,35 @@ void CounterExample::generateTestCase() {
 
   sourceFile << "\n"
              << "unsigned map2check_counter = 0;";
+  // The runtime's nondet log first, as it always was. Past 1024 reads the KLEE
+  // runtime writes no log (issue #75), and an aborted KLEE state writes none
+  // either; the violating .ktest carries the same vector in the same order,
+  // as for the Test-Comp suite (emitTestSuite). Without it the array came out
+  // empty -- not even valid C -- and the testcase replayed nothing (review of
+  // #73).
+  std::vector<std::string> values;
+  for (const Tools::KleeLogRow &row : this->kleeLogRows) {
+    values.push_back(row.value);
+  }
+  if (values.empty()) {
+    values = Map2Check::readViolatingKtest(Map2Check::kleeOutputDir);
+    if (!values.empty()) {
+      Log::Info("nondet log was empty; the testcase takes the violating input "
+                "vector from KLEE's test output (" +
+                std::to_string(values.size()) + " inputs)");
+    }
+  }
+
   sourceFile << "\n"
              << "long map2check_input_array[] = {";
-
-  for (int i = 0; i < (this->kleeLogRows.size()); i++) {
-    sourceFile << this->kleeLogRows[i].value;
-    if (i != (this->kleeLogRows.size() - 1)) {
+  for (size_t i = 0; i < values.size(); i++) {
+    sourceFile << values[i];
+    if (i + 1 != values.size()) {
       sourceFile << ",";
     }
   }
+  // C has no empty initializer list.
+  if (values.empty()) sourceFile << "0";
 
   sourceFile << "};\n";
 

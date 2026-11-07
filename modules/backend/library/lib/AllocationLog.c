@@ -104,12 +104,12 @@ MEMORY_ALLOCATIONS_ROW *
 find_row_with_address(MAP2CHECK_CONTAINER *allocation_log, void *ptr) {
   int i = allocation_log->size - 1;
 
-  unsigned addressToCheck = (unsigned)ptr;
+  unsigned long addressToCheck = (unsigned long)ptr;
   for (; i >= 0; i--) {
     MEMORY_ALLOCATIONS_ROW *iRow =
         (MEMORY_ALLOCATIONS_ROW *)get_element_at(i, *allocation_log);
 
-    unsigned addr = (unsigned)iRow->addr;
+    unsigned long addr = (unsigned long)iRow->addr;
     if (addressToCheck == addr) {
       return iRow;
     }

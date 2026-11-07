@@ -52,8 +52,13 @@ COVER_BRANCHES = "COVER EDGES(@DECISIONEDGE)"
 # 900s is the Test-Comp per-task budget. The tool gets slightly less so that it
 # is Map2Check that stops and writes its suite, rather than the harness killing
 # it mid-write and leaving a truncated metadata.xml behind.
+#
+# The budget is CPU time and Map2Check counts wall time. Under BenchExec with
+# one core the run's CPU time came out up to 22 s above its wall time (900 s,
+# 3 GB: 888 s of CPU for 866 s of wall), so 20 s of margin left the run 12 s
+# from a TIMEOUT. 30 s keeps it clear.
 DEFAULT_BUDGET = 900
-SHUTDOWN_MARGIN = 20
+SHUTDOWN_MARGIN = 30
 
 
 def parse_args(argv):

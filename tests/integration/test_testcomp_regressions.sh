@@ -159,22 +159,23 @@ fi
 # cost everything.
 mkdir -p "$WORK/cap"
 cp "$WORK/lean/branches.prp" "$WORK/cap/"
-# Six independent branches: 64 terminating paths, comfortably more than the cap
-# and few enough that KLEE finishes them well inside the budget. The assertion
-# is EQUALITY, not "at most 50" -- a suite that came out empty would satisfy an
+# 64 paths, each through code of its own: comfortably more than the cap and
+# few enough that KLEE finishes them well inside the budget. Its own code,
+# because KLEE writes a Cover-Branches test only for a path that covers
+# something new (test 40) -- 64 paths over the same few instructions now yield
+# a handful of tests, and the cap would never be reached. The assertion is
+# EQUALITY, not "at most 50" -- a suite that came out empty would satisfy an
 # upper bound while proving nothing, which is exactly how the first version of
 # this test passed against a run that produced zero test cases.
-cat > "$WORK/cap/many.c" <<'EOF'
-extern int __VERIFIER_nondet_int(void);
-int main(void) {
-  int total = 0;
-  for (int i = 0; i < 6; i++) {
-    int x = __VERIFIER_nondet_int();
-    if (x > i) { total += 1; } else { total -= 1; }
-  }
-  return total;
-}
-EOF
+{
+  echo 'extern int __VERIFIER_nondet_int(void);'
+  for k in $(seq 0 63); do echo "int g$k;"; done
+  echo 'int main(void) {'
+  echo '  int x = __VERIFIER_nondet_int();'
+  for k in $(seq 0 63); do echo "  if (x == $((k * 7 + 3))) { g$k = $((k + 1)); return $k; }"; done
+  echo '  return 64;'
+  echo '}'
+} > "$WORK/cap/many.c"
 ( cd "$WORK/cap" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 250 "$MAP2CHECK" \
     --nondet-generator symex --generate-test-suite --cover-branches \
     --property-file branches.prp --timeout 120 many.c ) \
@@ -1381,6 +1382,42 @@ elif grep -q "VERIFICATION FAILED" "$WORK/abortassume/run.log"; then
   ok "abort() and __VERIFIER_assume in one function share map2check_assume"
 else
   fail "abort + assume" "$(grep -aoE 'VERIFICATION [A-Z]+' "$WORK/abortassume/run.log" | tail -1)"
+fi
+
+# --- 40. Cover-Branches: KLEE writes only the paths that cover new code ------
+# Every terminated state wrote a .ktest, and at the end of a phase every live
+# state was dumped as one. On the Intel-TDX tasks each .ktest carries the whole
+# havoc object (~770 KB): one cover-branches KLEE phase wrote 2651 of them
+# (2.0 GB) for a suite that took 36, and the next wrote 2470 that it took none
+# of. Under BenchExec those files sit in a tmpfs that counts toward the memory
+# limit, and the OS OOM killer ended runs in the Test-Comp 2027 pre-run.
+# A path that covers no new code adds nothing to a branch-coverage suite.
+#
+# The program is test 5's shape: 64 paths through the same few instructions,
+# all of them covered by the first two or three.
+mkdir -p "$WORK/covernew"
+cp "$WORK/lean/branches.prp" "$WORK/covernew/"
+cat > "$WORK/covernew/same.c" <<'EOF2'
+extern int __VERIFIER_nondet_int(void);
+int main(void) {
+  int total = 0;
+  for (int i = 0; i < 6; i++) {
+    int x = __VERIFIER_nondet_int();
+    if (x > i) { total += 1; } else { total -= 1; }
+  }
+  return total;
+}
+EOF2
+( cd "$WORK/covernew" && MAP2CHECK_PATH="$MAP2CHECK_DIR" timeout -k 10 250 "$MAP2CHECK" \
+    --nondet-generator symex --generate-test-suite --cover-branches \
+    --property-file branches.prp --timeout 120 same.c ) > "$WORK/covernew/run.log" 2>&1
+written=$(grep -aoE "KLEE ran: [0-9]+ tests" "$WORK/covernew/run.log" | grep -oE '[0-9]+' | tail -1)
+n_cn=$(ls "$WORK/covernew/test-suite"/testcase-*.xml 2>/dev/null | wc -l)
+if [ "${written:-0}" -ge 1 ] && [ "${written:-0}" -lt 16 ] && [ "$n_cn" -ge 1 ]; then
+  ok "cover-branches KLEE writes only new-coverage paths ($written of 64, $n_cn in the suite)"
+else
+  fail "only new coverage" "KLEE wrote ${written:-no} tests for 64 paths over the same code (want 1..15), suite $n_cn"
+  tail -3 "$WORK/covernew/run.log" | sed 's/^/    /'
 fi
 
 echo "  ---"

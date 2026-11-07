@@ -22,6 +22,7 @@ Both Test-Comp goals are supported, with AFL++ and KLEE taking turns:
 
 import argparse
 import os
+import resource
 import shlex
 import subprocess
 import sys
@@ -88,6 +89,18 @@ def tool_environment():
         for key, value in bundled.items():
             env.setdefault(key, value)
     return env
+
+
+def disable_core_dumps():
+    """No core files from map2check or anything it starts.
+
+    BenchExec keeps what the tool writes in a tmpfs that counts toward the
+    run's memory limit, and leaves RLIMIT_CORE as it found it -- unlimited in
+    the containers measured. Map2Check replays vectors natively, and a replay
+    that reaches abort() could then write a core the size of the process into
+    that tmpfs. Only the soft limit is lowered; children inherit it."""
+    _, hard = resource.getrlimit(resource.RLIMIT_CORE)
+    resource.setrlimit(resource.RLIMIT_CORE, (0, hard))
 
 
 def architecture(data_model):
@@ -272,6 +285,8 @@ def main(argv):
 
     with open(args.propertyfile, "r") as handle:
         prop = handle.read()
+
+    disable_core_dumps()
 
     if COVER_ERROR in prop or COVER_BRANCHES in prop:
         return generate_tests(args, prop)

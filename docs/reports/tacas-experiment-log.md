@@ -1026,3 +1026,67 @@ existe, em vez de um `map2check-testcomp.py` à parte.
 - `32bit` mostra que o `--data-model ILP32` chegou ao wrapper (o padrão dele é LP64).
 - TestCov (gcc, formatado e não formatado) na suíte do Cover-Error de `simple_2-2`: `true`
   nos dois, ou seja, a suíte pontua.
+
+## OOM na pré-rodada da Test-Comp 2027: disco do KLEE e core dumps (2026-11-05)
+
+- **Motivo:** o Dirk Beyer relatou no Zulip (31/10) execuções do Map2Check mortas pelo OOM
+  killer do sistema. A análise do Philipp Wendler foi que a ferramenta enche o disco de
+  arquivos e esgota a memória. Não temos a lista das tarefas afetadas.
+- **Mecanismo, confirmado no código do BenchExec 3.34:** o que a ferramenta escreve fica em
+  um tmpfs, "a RAM disk that is included in the memory limit" (`containerexecutor.py`).
+  Encher o disco e esgotar a memória são o mesmo sintoma. O BenchExec não mexe em
+  `RLIMIT_CORE`; dentro do contêiner, `ulimit -c` é `unlimited`.
+- **Sonda:** o archive exato do Zenodo (23672409, md5 conferido) no
+  `map2check-testcomp-env`, com contêiner de 7 GB e 900 s. A cada 5 s, amostra do diretório
+  de trabalho, de `/tmp` e do `memory.current` do cgroup. Ressalva: a sonda grava em bind
+  mount, não em tmpfs.
+- **Causa:** cada `.ktest` carrega todos os objetos simbólicos inteiros. No Intel-TDX
+  (havoc), isso dá ~770 KB por teste, e o KLEE despeja no fim de cada fase todos os estados
+  vivos. Em cover-branches, a TDX gerou 2 651 testes (2,0 GB em `klee-out-0`) para uma suíte
+  que aproveitou 36, e depois mais 2 470, dos quais nenhum entrou. Os vetores ainda são
+  copiados para `seeds/afl` e `seeds/kleeprev`. O Intel-TDX tem 658 das 1 902 tarefas do
+  Cover-Error oficial e também entra no Cover-Branches.
+- **Correção** (branch `fix/testcomp-klee-disk`, a partir do `develop` `0bca42eb8`):
+  - `--only-output-states-covering-new` no KLEE, **só** em cover-branches. O filtro também
+    vale para o despejo no fim da fase. Cover-error, SV-COMP, alternância e exportação de
+    sementes não mudam.
+  - O wrapper zera o `RLIMIT_CORE` (soft) antes de iniciar o `map2check`, nos dois modos.
+  - Ficaram de fora, por risco de desempenho: `--dump-states-on-halt` só na última fase,
+    teto em bytes na exportação de sementes, guarda de disco e `--max-memory`.
+- **Testes:**
+  - novo teste 40 em `test_testcomp_regressions.sh`: RED com 64 testes para 64 caminhos
+    sobre o mesmo código, GREEN com 5;
+  - o programa do teste 5 (teto de 50) foi reescrito com 64 caminhos de código próprio,
+    porque o antigo passou a gerar 5;
+  - novo `test_wrapper_core_dumps.sh`: RED `unlimited`, GREEN `0`;
+  - todas as suítes de integração do CI passam no `install_kd`, inclusive o
+    `test_cover_branches.sh` (TestCov 100,0 %).
+- **A/B de consumo:** o archive do Zenodo contra um archive gerado pelo `make-archive.sh` a
+  partir do `install_kd`. Pelo CRC, só `map2check` e `map2check-wrapper.py` diferem.
+  Uma execução por tarefa, 900 s:
+
+| tarefa | disco (base → correção) | memória do cgroup | testes do KLEE por fase | suíte |
+|---|---|---|---|---|
+| TDX `tdh_sys_config…havoc_object`, cb | 2,31 → **0,20 GB** | 5,08 → **1,64 GB** | 2 651 / 2 470 → 116 / 134 | 50 → 50 |
+| TDX (mesma), ce — não alterado | 0,98 → 1,16 GB | 3,83 → 4,66 GB | 772 / 1 085 / 1 → 1 009 / 1 304 | 0 → 0 |
+| seq `pals_lcr.6…BOUNDED-12`, cb | ~0 → ~0 | 0,39 → 0,38 GB | 292 → 51 | 50 → 50 |
+| ECA `Problem10_label22`, cb | 0,06 → 0,01 GB | 2,24 → 2,29 GB | 854 / 1 009 / 1 080 → 14 / 43 / 86 | 50 → 50 |
+| Loops `fermat1-ll_valuebound2`, cb | ~0 → ~0 | 0,36 → 0,36 GB | 7 → 5 | 7 → 5 |
+
+- **A/B de cobertura** (novas execuções de 900 s com as suítes guardadas, TestCov 3.11 em
+  `--no-isolation`, 50 s por teste):
+
+| tarefa | base | correção |
+|---|---|---|
+| Loops `fermat1-ll_valuebound2` | 7 casos, 37,5 % | 5 casos, **37,5 %** |
+| ECA `Problem10_label22` | 50 casos, 37,81 % | 50 casos, **51,24 %** |
+| ECA `Problem05_label57` | 50 casos, 2,57 % | 50 casos, **3,85 %** |
+
+- **Leitura:**
+  - O consumo da TDX em cover-branches cai uma ordem de grandeza, sem mudar a suíte.
+  - Nenhuma tarefa perdeu cobertura. As ECA ganham porque a suíte é preenchida por ordem
+    de chegada: sem os caminhos redundantes, a fase 4 passa a ter vaga (na ECA 10, 25
+    casos novos).
+  - Ressalvas: uma execução por braço, com a variância do fuzzer; nenhuma sonda local
+    chegou aos 15 GB; não sabemos quais tarefas foram mortas. A seleção da suíte por
+    ordem de chegada e o teto de 50 ficaram na issue #92.

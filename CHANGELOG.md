@@ -16,6 +16,11 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
     seeding, which KLEE's own cap does not cover;
   - the afl-fuzz target (`-m`) and the native replays (`ulimit -v`) get a
     third of the limit.
+- No fuzzing target outlives afl-fuzz: its forkservers run in sessions of their
+  own (`setsid()`), and a target left running when `timeout -k` killed afl-fuzz
+  kept spending the run's CPU time after Map2Check finished (a TIMEOUT).
+- The wrapper leaves 30 s, not 20, between Map2Check's wall-clock budget and
+  the CPU limit: under BenchExec the CPU time came out up to 22 s above it.
 - Cover-Branches: KLEE writes only the tests of paths that covered new code
   (`--only-output-states-covering-new`), and the wrapper starts Map2Check with
   core dumps off.

@@ -31,6 +31,11 @@ add_executable(AlternationTest
 )
 map2check_test(AlternationTest)
 
+add_executable(MemoryBudgetTest
+    MemoryBudgetTest.cpp
+)
+map2check_test(MemoryBudgetTest)
+
 add_executable(KleeLogTest
     KleeLogTest.cpp
     $<TARGET_OBJECTS:Tools>

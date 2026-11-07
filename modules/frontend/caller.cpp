@@ -43,6 +43,7 @@
 #include "utils/gen_crypto_hash.hpp"
 #include "utils/alternation.hpp"
 #include "utils/log.hpp"
+#include "utils/memory_budget.hpp"
 #include "utils/seed_store.hpp"
 #include "utils/slicer.hpp"
 #include "utils/tools.hpp"
@@ -171,6 +172,66 @@ std::string Caller::postOptimizationFlags() {
 }
 
 namespace {
+/** SIGKILLs every process whose program is one of `names` (argv[0] ending in
+ * it): what afl-fuzz left of its targets. Returns how many it killed.
+ *
+ * afl-fuzz starts each forkserver with setsid() (afl-forkserver.c in 4.40c),
+ * so the targets live in sessions of their own, outside the process group
+ * `timeout` signals. When `timeout -k` has to SIGKILL afl-fuzz, a target that
+ * is running stays alive and keeps burning the run's CPU time after Map2Check
+ * is done -- measured: 870 s of wall time, 908 s of CPU, TIMEOUT -- and a
+ * persistent-mode target stopped in raise(SIGSTOP) is left in an orphaned
+ * process group. The names carry the program's hash, so nothing else
+ * matches. */
+unsigned killLeftoverTargets(const std::vector<std::string> &names) {
+  unsigned killed = 0;
+  std::error_code error;
+  for (const auto &entry :
+       std::filesystem::directory_iterator("/proc", error)) {
+    const std::string pid = entry.path().filename().string();
+    if (pid.empty() || pid.find_first_not_of("0123456789") != std::string::npos)
+      continue;
+    std::ifstream cmdline(entry.path() / "cmdline");
+    std::string program;
+    std::getline(cmdline, program, '\0');
+    for (const std::string &name : names) {
+      if (program.size() >= name.size() &&
+          program.compare(program.size() - name.size(), name.size(), name) ==
+              0) {
+        if (kill(static_cast<pid_t>(std::stol(pid)), SIGKILL) == 0) ++killed;
+        break;
+      }
+    }
+  }
+  return killed;
+}
+}  // namespace
+
+namespace {
+/** The cgroup whose memory.max limits this run, found once (empty: none). */
+const std::string &runCgroup() {
+  static const std::string cgroup = Map2Check::limitingCgroup();
+  return cgroup;
+}
+
+/** The run's memory limit in MB, 0 when unknown (see memory_budget.hpp). */
+long long runLimitMB() {
+  static const long long limit = Map2Check::runMemoryLimitMB(runCgroup());
+  return limit;
+}
+
+/** A shell prefix that caps the address space of a program run natively at
+ * nativeMemoryLimitMB, or nothing when the run's limit is unknown. A replay
+ * that allocates past it fails its malloc instead of crossing the limit that
+ * ends the whole run. */
+std::string nativeMemoryPrefix() {
+  const long long megabytes = Map2Check::nativeMemoryLimitMB(runLimitMB());
+  if (megabytes <= 0) return "";
+  return "ulimit -v " + std::to_string(megabytes * 1024) + " 2>/dev/null; ";
+}
+}  // namespace
+
+namespace {
 /** KLEE's covered-instruction count, from the last row of the SQLite stats
  * database it rewrites every second; -1 when it cannot be read (not created
  * yet, busy, or a build without SQLite). */
@@ -249,10 +310,18 @@ std::string lastLines(const std::string &path, size_t count) {
 
 int Caller::runKleeWatched(const std::string &command) {
   this->stoppedOnStagnation = false;
-#ifndef MAP2CHECK_HAVE_SQLITE
-  return system(command.c_str());
+  this->stoppedForMemory = false;
+  // Two reasons to stop KLEE before its own deadline: no new coverage
+  // (needs the SQLite stats) and the run's memory, read from the cgroup
+  // BenchExec limits. Neither available: KLEE runs unwatched, as before.
+  const std::string &cgroup = runCgroup();
+  const long long limitMB = runLimitMB();
+#ifdef MAP2CHECK_HAVE_SQLITE
+  const bool watchCoverage = this->stagnationLimit > 0;
 #else
-  if (this->stagnationLimit == 0) return system(command.c_str());
+  const bool watchCoverage = false;
+#endif
+  if (!watchCoverage && limitMB <= 0) return system(command.c_str());
 
   // The shell's pid becomes the pid of `timeout` through exec, and `timeout`
   // forwards a SIGINT to KLEE -- whose handler halts the search cleanly and
@@ -267,22 +336,10 @@ int Caller::runKleeWatched(const std::string &command) {
     done = true;
   });
 
-  Map2Check::CoverageWatch watch(this->stagnationLimit);
-  const auto started = std::chrono::steady_clock::now();
-  const std::string stats = std::string(Map2Check::kleeOutputDir) + "/run.stats";
-  while (!done) {
-    for (int tick = 0; tick < 4 && !done; ++tick) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-    if (done) break;
-    const double now = std::chrono::duration<double>(
-                           std::chrono::steady_clock::now() - started)
-                           .count();
-    if (!watch.stagnated(kleeCoveredInstructions(stats), now)) continue;
-
-    // To KLEE itself, the child of `timeout`: signalled, `timeout` forwards
-    // to the child AND its process group, KLEE gets two SIGINTs, and the
-    // second one exits before the halt dump of the live states is written.
+  // To KLEE itself, the child of `timeout`: signalled, `timeout` forwards
+  // to the child AND its process group, KLEE gets two SIGINTs, and the
+  // second one exits before the halt dump of the live states is written.
+  auto signalKlee = [](int signal) {
     pid_t pid = 0;
     std::ifstream("klee.pid") >> pid;
     pid_t klee = 0;
@@ -292,30 +349,84 @@ int Caller::runKleeWatched(const std::string &command) {
       children >> klee;
     }
     if (klee > 0) {
-      kill(klee, SIGINT);
+      kill(klee, signal);
     } else if (pid > 0) {
-      kill(pid, SIGINT);
+      kill(pid, signal);
     }
-    this->stoppedOnStagnation = true;
-    Map2Check::Log::Warning("KLEE stagnated: no new coverage for " +
-                            std::to_string(this->stagnationLimit) +
-                            " s -- stopping it");
+  };
+  // What the whole run uses now -- KLEE, the frontend and every file in the
+  // tmpfs -- against the limit BenchExec kills the whole run at.
+  auto memoryNow = [&cgroup, limitMB]() {
+    if (limitMB <= 0 || cgroup.empty()) return Map2Check::MemoryAction::None;
+    return Map2Check::memoryAction(
+        Map2Check::readCgroupBytes(cgroup + "/memory.current"), limitMB);
+  };
+  auto killForMemory = [&]() {
+    signalKlee(SIGKILL);
+    this->stoppedForMemory = true;
+    Map2Check::Log::Warning(
+        "KLEE killed: the run reached 92% of its memory limit (" +
+        std::to_string(limitMB) + " MB)");
+  };
+
+  Map2Check::CoverageWatch watch(this->stagnationLimit);
+  const auto started = std::chrono::steady_clock::now();
+  const std::string stats = std::string(Map2Check::kleeOutputDir) + "/run.stats";
+  while (!done) {
+    // Memory is read every half second: KLEE's seeding loop can add
+    // hundreds of MB in a second, and it never checks --max-memory itself.
+    Map2Check::MemoryAction memory = Map2Check::MemoryAction::None;
+    for (int tick = 0; tick < 4 && !done; ++tick) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      memory = memoryNow();
+      if (memory != Map2Check::MemoryAction::None) break;
+    }
+    if (done) break;
+    if (memory == Map2Check::MemoryAction::Kill) {
+      killForMemory();
+      break;
+    }
+    bool stagnated = false;
+    if (memory == Map2Check::MemoryAction::None) {
+      if (!watchCoverage) continue;
+      const double now = std::chrono::duration<double>(
+                             std::chrono::steady_clock::now() - started)
+                             .count();
+      stagnated = watch.stagnated(kleeCoveredInstructions(stats), now);
+      if (!stagnated) continue;
+    }
+
+    signalKlee(SIGINT);
+    if (stagnated) {
+      this->stoppedOnStagnation = true;
+      Map2Check::Log::Warning("KLEE stagnated: no new coverage for " +
+                              std::to_string(this->stagnationLimit) +
+                              " s -- stopping it");
+    } else {
+      this->stoppedForMemory = true;
+      Map2Check::Log::Warning(
+          "KLEE halted: the run reached 80% of its memory limit (" +
+          std::to_string(limitMB) + " MB)");
+    }
     // A KLEE blocked inside a native external call (Juliet's fscanf variants:
     // __isoc99_fscanf handed a uClibc FILE*) never looks at the interrupt
     // flag -- nor at its own --max-time -- and used to hold the rest of its
     // window until timeout's SIGKILL. Not stopped within the grace, it is
     // killed now and the time goes to the next phase. Nothing is lost: a run
-    // that stagnated is already counted incomplete.
+    // that stagnated is already counted incomplete. Writing the tests of the
+    // live states takes memory too: past 92% it is killed at once.
     constexpr int kInterruptGraceSeconds = 10;
+    bool killed = false;
     for (int tick = 0; tick < 2 * kInterruptGraceSeconds && !done; ++tick) {
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-    if (!done) {
-      if (klee > 0) {
-        kill(klee, SIGKILL);
-      } else if (pid > 0) {
-        kill(pid, SIGKILL);
+      if (!done && memoryNow() == Map2Check::MemoryAction::Kill) {
+        killForMemory();
+        killed = true;
+        break;
       }
+    }
+    if (!done && !killed) {
+      signalKlee(SIGKILL);
       Map2Check::Log::Warning(
           "KLEE did not stop within " +
           std::to_string(kInterruptGraceSeconds) +
@@ -325,7 +436,6 @@ int Caller::runKleeWatched(const std::string &command) {
   }
   runner.join();
   return result;
-#endif
 }
 
 bool Caller::replayKleeVectorsForViolation() {
@@ -377,7 +487,8 @@ bool Caller::replayKleeVectorsForViolation() {
                   static_cast<std::streamsize>(bytes.size()));
     }
     std::ostringstream command;
-    command << "cd '" << replay << "' && timeout -k 1 2 '" << witness
+    command << nativeMemoryPrefix() << "cd '" << replay
+            << "' && timeout -k 1 2 '" << witness
             << "' < input > /dev/null 2>&1";
     system(command.str().c_str());
     ++replayed;
@@ -519,7 +630,8 @@ unsigned Caller::exportFuzzerCorpusAsKtests() {
     const std::string input =
         std::filesystem::absolute(queue + "/" + name, error).string();
     std::ostringstream command;
-    command << "cd '" << replay << "' && MAP2CHECK_SEED_REPLAY=1 timeout -k 1 2 '" << witness
+    command << nativeMemoryPrefix() << "cd '" << replay
+            << "' && MAP2CHECK_SEED_REPLAY=1 timeout -k 1 2 '" << witness
             << "' < '" << input << "' > /dev/null 2>&1";
     system(command.str().c_str());
 
@@ -583,7 +695,7 @@ std::vector<std::vector<std::string>> Caller::fuzzerCorpusVectors(
     const std::string input =
         std::filesystem::absolute(queue + "/" + name, error).string();
     std::ostringstream command;
-    command << "cd '" << replay
+    command << nativeMemoryPrefix() << "cd '" << replay
             << "' && MAP2CHECK_SEED_REPLAY=1 timeout -k 1 2 '" << witness
             << "' < '" << input << "' > /dev/null 2>&1";
     system(command.str().c_str());
@@ -1353,12 +1465,22 @@ void Caller::executeAnalysis(std::string solvername) {
       // KLEE's own default cap is 2,000 MB, well under what a Test-Comp run
       // gets; past it KLEE kills states and stops forking, and the run can no
       // longer be TRUE. MAP2CHECK_KLEE_MAX_MEMORY (MB) raises it.
+      //
+      // Without the knob the cap follows the run's limit (kleeMaxMemoryMB):
+      // 1,200 MB of a 3 GB run, KLEE's own 2,000 MB from 5 GB up. KLEE checks
+      // it only outside seeding; runKleeWatched covers the rest.
+      bool maxMemorySet = false;
       if (const char *maxMemory = std::getenv("MAP2CHECK_KLEE_MAX_MEMORY")) {
         const std::string megabytes(maxMemory);
         if (!megabytes.empty() &&
             megabytes.find_first_not_of("0123456789") == std::string::npos) {
           kleeCommand << " --max-memory=" << megabytes;
+          maxMemorySet = true;
         }
+      }
+      if (!maxMemorySet) {
+        const long long megabytes = Map2Check::kleeMaxMemoryMB(runLimitMB());
+        if (megabytes > 0) kleeCommand << " --max-memory=" << megabytes;
       }
 
 
@@ -1532,6 +1654,8 @@ void Caller::executeAnalysis(std::string solvername) {
         gotTimeout = true;
       // Stopped by us for want of progress: states were left, nothing proved.
       if (this->stoppedOnStagnation) gotTimeout = true;
+      // Stopped by us for memory: the same, states were left.
+      if (this->stoppedForMemory) gotTimeout = true;
       // KLEE exits 0 when its queue empties, like a run that explored every
       // path -- also after its timer, a concretized input or states it killed
       // itself. None of those proves anything. Treated as the timeout it is: a
@@ -1632,12 +1756,28 @@ void Caller::executeAnalysis(std::string solvername) {
       command << Map2Check::aflFuzzBinary()
               << " -i '" << inputDir << "'"
               << " -o afl-out";
+      // afl-fuzz runs its target with no memory limit by default, and one
+      // execution that allocates gigabytes crosses the run's limit: the
+      // Test-Comp 2027 pre-run (3 GB) lost 239 runs in the first fuzzer
+      // phase. With -m such an allocation fails inside the target, as on a
+      // smaller machine.
+      {
+        const long long megabytes =
+            Map2Check::nativeMemoryLimitMB(runLimitMB());
+        if (megabytes > 0) command << " -m " << megabytes;
+      }
       if (hasCmplog) command << " -c ./" << programHash << "-cmplog.out";
       command << " -- ./" << programHash << "-fuzzed.out"
               << " > fuzzer.output 2>&1";
 
       const auto engineStarted = std::chrono::steady_clock::now();
       int result = system(command.str().c_str());
+      // No target outlives its fuzzer (see killLeftoverTargets).
+      if (const unsigned leftover = killLeftoverTargets(
+              {programHash + "-fuzzed.out", programHash + "-cmplog.out"})) {
+        Map2Check::Log::Warning("killed " + std::to_string(leftover) +
+                                " fuzzing target(s) afl-fuzz left behind");
+      }
       if (this->engineSeconds != nullptr) {
         *this->engineSeconds = std::chrono::duration<double>(
                                    std::chrono::steady_clock::now() -

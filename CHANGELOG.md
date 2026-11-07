@@ -5,6 +5,26 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The run stays below its memory limit** (Test-Comp 2027 pre-run: 1,747 runs
+  ended as OUT OF MEMORY at 3 GB). The limit is read from the run's cgroup
+  (`memory.max`; `MAP2CHECK_MEMORY_LIMIT_MB` overrides it):
+  - KLEE's `--max-memory` is 40% of the limit, at most KLEE's default
+    2,000 MB (a 15 GB run is unchanged);
+  - a watchdog halts KLEE at 80% of the limit and kills it at 92%, also during
+    seeding, which KLEE's own cap does not cover;
+  - the afl-fuzz target (`-m`) and the native replays (`ulimit -v`) get a
+    third of the limit.
+- No fuzzing target outlives afl-fuzz: its forkservers run in sessions of their
+  own (`setsid()`), and a target left running when `timeout -k` killed afl-fuzz
+  kept spending the run's CPU time after Map2Check finished (a TIMEOUT).
+- The wrapper leaves 30 s, not 20, between Map2Check's wall-clock budget and
+  the CPU limit: under BenchExec the CPU time came out up to 22 s above it.
+- Cover-Branches: KLEE writes only the tests of paths that covered new code
+  (`--only-output-states-covering-new`), and the wrapper starts Map2Check with
+  core dumps off.
+
 ## [9.0.0] - Unreleased
 
 A major version: the fuzzing engine changed (LibFuzzer → AFL++ 4.40c), the

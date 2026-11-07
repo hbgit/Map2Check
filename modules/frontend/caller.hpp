@@ -203,6 +203,8 @@ class Caller {
   unsigned stagnationLimit = 0;
   /** Whether this phase's KLEE was stopped for stagnating: incomplete. */
   bool stoppedOnStagnation = false;
+  /** Whether this phase's KLEE was stopped for the run's memory: incomplete. */
+  bool stoppedForMemory = false;
   /** Where to report how long this phase's engine ran (main sizes the next
    * alternating phase with it); null: not reported. */
   double* engineSeconds = nullptr;

@@ -1377,3 +1377,91 @@ existe, em vez de um `map2check-testcomp.py` à parte.
   - Ressalvas: uma execução por braço, com a variância do fuzzer; nenhuma sonda local
     chegou aos 15 GB; não sabemos quais tarefas foram mortas. A seleção da suíte por
     ordem de chegada e o teto de 50 ficaram na issue #92.
+
+## Pré-rodada da Test-Comp 2027: memória contra o limite do cgroup (2026-11-07)
+
+- **Motivo:** os resultados da pré-rodada `map2check.2026-10-29_21-07-49` (BenchExec
+  3.35-331, 900 s, **3 GB, 1 núcleo**, VerifierCloud) e os 16 288 logs, todos públicos em
+  `test-comp.sosy-lab.org/2027/results/results-verified/`:
+  - 14 507 `ERROR`, 1 747 `OUT OF MEMORY` e 34 `FAILED (KILLED BY SIGNAL 1)`, sem nenhum
+    `DONE`;
+  - **os 14 507 `ERROR` terminam com a linha `DONE`.** O módulo tool-info usado era anterior
+    ao benchexec#1352, mergeado em 02/11.
+- **Onde morreram os 1 747 OOM** (última linha e última fase de cada log):
+  - 1 386 em Cover-Branches e 361 em Cover-Error, espalhados por 22 conjuntos, não só no
+    TDX (Hardware 671, Combinations 225, Arrays 173, DeviceDrivers 129…);
+  - **821 no seeding do KLEE.** No KLEE 3.1, o laço de seeding (`Executor::run`) não chama
+    `checkMemoryUsage()`, então o `--max-memory` não vale ali;
+  - cerca de 200 com o KLEE no teto de 2 000 MB, o que, somado ao tmpfs, passa de 3 GB;
+  - **239 na fase 1 do AFL++.** O afl-fuzz roda o alvo sem limite de memória.
+- **Os 34 SIGHUP:** todos `*_havoc_memory` do TDX em Cover-Error, em 31 máquinas, com cerca
+  de 889 s. Os logs param na fase 8 (KLEE), no despejo dos estados após o `HaltTimer`. Sem
+  medições, o que é compatível com o OOM killer do sistema derrubando o BenchExec (leitura
+  do Dirk).
+- **Sonda de cgroup:** dentro do `runexec` 3.34, `/proc/self/cgroup` mostra `0::/`, e
+  `/sys/fs/cgroup/memory.max` = 2 999 996 416 (o limite), além de `memory.current`.
+- **Correção** (branch `fix/testcomp-memory-governor`, a partir do `develop` `d4f465b47`):
+  - `utils/memory_budget.hpp` lê o limite do cgroup (`MAP2CHECK_MEMORY_LIMIT_MB` sobrepõe);
+  - `--max-memory` do KLEE = 40 % do limite, no máximo 2 000 MB (com 3 GB, 1 144 MB; com
+    15 GB, igual a antes);
+  - o vigia do KLEE lê `memory.current` a cada 0,5 s: SIGINT a 80 %, SIGKILL a 92 %. A fase
+    conta como incompleta;
+  - o alvo do afl-fuzz (`-m`) e os replays nativos (`ulimit -v`) ficam com um terço do
+    limite;
+  - depois de cada fase do AFL++, mata os alvos que sobraram. O afl-fuzz faz `setsid()` no
+    forkserver (`afl-forkserver.c:1066`), então os alvos ficam fora do grupo do `timeout`.
+- **A/B no BenchExec 3.34** (`run.sh generate`, 900 s / 3 GB / 1 núcleo, uma execução por
+  braço; base = archive do Zenodo 23672409, md5 conferido; correção = `make-archive.sh` do
+  `install_mg`; pelo CRC, só `map2check` e o wrapper diferem). Cobertura pelo TestCov
+  (gcc, sem formatação):
+
+| tarefa | prop. | base | correção (mg) |
+|---|---|---|---|
+| `data_structures_set_multi_proc_ground-2` | cb | OOM (6 s), suíte inválida | done (328 s), **65,22 %** |
+| `btor2c-lazyMod.h_segments` | cb | OOM (79 s), 57,89 % | done (820 s), **84,21 %** |
+| `partial_mod_count_limited_1` | cb | OOM (61 s), 85,71 % | TIMEOUT (CPU 909 s, parede 871 s), **92,86 %** |
+| `Problem05_label40+token_ring.01.cil-1` | cb | done (612 s), 3,68 % | done (797 s), 3,81 % |
+| TDX `tdg_servtd_wr__expected__cover_exit_havoc_object` | ce | OOM (182 s), 0 testes | done (260 s), 0 testes |
+| TDX `tdg_mr_report__unconstrained__cover_exit_success_havoc_memory` | ce | done (423 s), 0 testes | done (500 s), 0 testes |
+
+- **O TIMEOUT:** CPU acima do tempo de parede, com 1 núcleo, indica um processo vivo depois
+  do wrapper. Numa sonda `runexec` da mesma tarefa, com amostras do `ps` a cada 5 s:
+  - os forkservers do AFL++ aparecem como líderes de sessão (`Ss`), e os alvos persistentes
+    ficam parados (`T`);
+  - nessa execução: `DONE`, 875 s de parede, 558 s de CPU, pico de **2,42 GB**;
+  - o vigia parou o KLEE nas fases 2, 4 e 6 ("80% of its memory limit"), sempre no seeding.
+  - Daí o `killLeftoverTargets` e o teste `test_fuzzer_leftovers.sh` (afl-fuzz falso que
+    deixa um alvo numa sessão nova). RED: o processo sobrevive ao map2check. GREEN: some.
+- **Leitura:**
+  - nas 3 tarefas em que o base dá OOM em Cover-Branches, a correção termina e cobre mais;
+  - o OOM do TDX havoc_object em Cover-Error desaparece. Nenhum braço acha a violação nessas
+    duas tarefas, como na rodada de 05/11;
+  - nada piora.
+  - Ressalvas:
+    - uma execução por braço, e a máquina estava em swap ("System has swapped");
+    - nesta tarefa, o seeding do KLEE enche a memória em toda fase. O KLEE sobrevive, mas
+      quase não explora. Um teto no número ou no tamanho das sementes fica como próximo
+      passo;
+    - o SIGHUP não foi reproduzido localmente.
+- **Braço mg2** (com `killLeftoverTargets`, mesmas tarefas e limites): as 6 tarefas `done`.
+
+| tarefa | CPU / parede (s) | cobertura |
+|---|---|---|
+| `data_structures_set_multi_proc_ground-2` | 465 / 865 | 65,22 % |
+| `btor2c-lazyMod.h_segments` | 436 / 839 | 84,21 % |
+| `partial_mod_count_limited_1` | 863 / 860 (era TIMEOUT) | 92,86 % |
+| `Problem05_label40+token_ring.01.cil-1` | 888 / 866 | 3,90 % |
+| TDX havoc_object (ce) | 436 / 833 | 0 testes |
+| TDX havoc_memory (ce) | 470 / 886 | 0 testes |
+
+- **CPU acima da parede:**
+  - nenhuma das 14 507 execuções oficiais do binário antigo tem isso;
+  - numa sonda `runexec` do Problem05 sozinho, com amostras do `ps` a cada 1 s: 844,5 s de
+    CPU para 838,6 s de parede, e só o `map2check` vivo no fim. O excesso grande vinha dos
+    alvos que sobravam;
+  - o que resta (até 22 s com a máquina carregada) levou a `SHUTDOWN_MARGIN` do wrapper de
+    20 para 30 s: o Map2Check recebe 870 s de parede.
+- **Pacote final** (`map2check-mg3.zip`, md5 `c53d5053072baf2461e132ad1a0944ee`):
+  - em relação ao mg2, pelo CRC, só o wrapper muda;
+  - smoke test num `ubuntu:24.04` limpo, com `python3` e `gcc-multilib`: passou;
+  - BenchExec com 120 s: `done`.

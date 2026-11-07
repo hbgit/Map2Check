@@ -172,6 +172,42 @@ std::string Caller::postOptimizationFlags() {
 }
 
 namespace {
+/** SIGKILLs every process whose program is one of `names` (argv[0] ending in
+ * it): what afl-fuzz left of its targets. Returns how many it killed.
+ *
+ * afl-fuzz starts each forkserver with setsid() (afl-forkserver.c in 4.40c),
+ * so the targets live in sessions of their own, outside the process group
+ * `timeout` signals. When `timeout -k` has to SIGKILL afl-fuzz, a target that
+ * is running stays alive and keeps burning the run's CPU time after Map2Check
+ * is done -- measured: 870 s of wall time, 908 s of CPU, TIMEOUT -- and a
+ * persistent-mode target stopped in raise(SIGSTOP) is left in an orphaned
+ * process group. The names carry the program's hash, so nothing else
+ * matches. */
+unsigned killLeftoverTargets(const std::vector<std::string> &names) {
+  unsigned killed = 0;
+  std::error_code error;
+  for (const auto &entry :
+       std::filesystem::directory_iterator("/proc", error)) {
+    const std::string pid = entry.path().filename().string();
+    if (pid.empty() || pid.find_first_not_of("0123456789") != std::string::npos)
+      continue;
+    std::ifstream cmdline(entry.path() / "cmdline");
+    std::string program;
+    std::getline(cmdline, program, '\0');
+    for (const std::string &name : names) {
+      if (program.size() >= name.size() &&
+          program.compare(program.size() - name.size(), name.size(), name) ==
+              0) {
+        if (kill(static_cast<pid_t>(std::stol(pid)), SIGKILL) == 0) ++killed;
+        break;
+      }
+    }
+  }
+  return killed;
+}
+}  // namespace
+
+namespace {
 /** The cgroup whose memory.max limits this run, found once (empty: none). */
 const std::string &runCgroup() {
   static const std::string cgroup = Map2Check::limitingCgroup();
@@ -1736,6 +1772,12 @@ void Caller::executeAnalysis(std::string solvername) {
 
       const auto engineStarted = std::chrono::steady_clock::now();
       int result = system(command.str().c_str());
+      // No target outlives its fuzzer (see killLeftoverTargets).
+      if (const unsigned leftover = killLeftoverTargets(
+              {programHash + "-fuzzed.out", programHash + "-cmplog.out"})) {
+        Map2Check::Log::Warning("killed " + std::to_string(leftover) +
+                                " fuzzing target(s) afl-fuzz left behind");
+      }
       if (this->engineSeconds != nullptr) {
         *this->engineSeconds = std::chrono::duration<double>(
                                    std::chrono::steady_clock::now() -

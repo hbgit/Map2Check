@@ -9,6 +9,7 @@
 #include "../header/NonDetGenerator.h"
 #include "../header/NonDetLog.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <setjmp.h>
@@ -28,7 +29,31 @@ void nondet_destroy() { nondet_log_destroy(); }
 
 static jmp_buf map2check_reject_env;
 
-void nondet_cancel() { longjmp(map2check_reject_env, 1); }
+/* The replay that turns a queue entry into a test case (MAP2CHECK_SEED_REPLAY)
+ * needs the inputs read so far even when the path ends in a failed
+ * assumption: a reactive `while (1)` program ends no other way, and without
+ * the log every one of its entries was dropped.
+ *
+ * The last value read -- the one the assumption rejected -- is left out. With
+ * it, the validator's harness reproduces the abort(), and a test that ends in
+ * abort() counts nothing: gcov writes its data only on a normal exit (TestCov
+ * measured 2.38% for 44 such tests where 21 ending in exit gave 62.7%).
+ * Without it, the harness runs out of inputs at that read and exits.
+ *
+ * The marker file tells the frontend the vector is a pruned prefix: it may
+ * fill the suite but must give way to an input that ran to the end. */
+void nondet_cancel() {
+  static int replay = -1;
+  if (replay < 0) replay = getenv("MAP2CHECK_SEED_REPLAY") != NULL;
+  if (replay) {
+    MAP2CHECK_CONTAINER log = map2check_nondet_get_log();
+    if (log.size > 0) log.size--;
+    nondet_log_to_file(log);
+    FILE *marker = fopen("map2check_pruned", "w");
+    if (marker != NULL) fclose(marker);
+  }
+  longjmp(map2check_reject_env, 1);
+}
 
 void nondet_assume(int expr) {
   if (!expr) {

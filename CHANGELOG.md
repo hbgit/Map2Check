@@ -7,6 +7,19 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ### Fixed
 
+- **Cover-Branches: the fuzzer's corpus reaches the suite on reactive
+  programs.** In a `while (1)` program that reads its inputs under
+  `assume_abort_if_not`, every execution ends in a failed assumption. The
+  witness replay that turns a queue entry into a test case jumped out on it
+  without writing the nondet log, and every entry was dropped. In the
+  Test-Comp 2027 pre-run, the median Hardness suite had 2 tests while AFL++
+  held hundreds of inputs. The replay now writes the inputs read before the
+  rejected one; the seed exchange (fuzzer → KLEE) gets the same vectors.
+  These prefixes enter the suite as assumption-pruned cases, after the inputs
+  that ran to the end, and give way to them when the suite is full (otherwise
+  they took all 50 places: `hardness_kloop_100_1loop_file-32` fell from 62.7%
+  to 2.4%).
+
 - **The run stays below its memory limit** (Test-Comp 2027 pre-run: 1,747 runs
   ended as OUT OF MEMORY at 3 GB). The limit is read from the run's cgroup
   (`memory.max`; `MAP2CHECK_MEMORY_LIMIT_MB` overrides it):

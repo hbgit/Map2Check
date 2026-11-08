@@ -153,7 +153,8 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
                    const std::string &architecture,
                    const std::string &specification, bool foundViolation,
                    bool coverBranches, Map2Check::Map2CheckMode mode,
-                   const std::vector<std::vector<std::string>> &fuzzerVectors) {
+                   const std::vector<std::vector<std::string>> &fuzzerVectors,
+                   const std::vector<bool> &fuzzerPruned) {
   Map2Check::TestSuiteMetadata metadata;
   metadata.producer = std::string("Map2Check ") + Map2CheckVersion;
   metadata.specification = specification;
@@ -189,18 +190,22 @@ void emitTestSuite(const std::string &outputDir, const std::string &programFile,
     // metric rewards by construction (on by default; MAP2CHECK_FUZZER_SUITE=0).
     // Cases from assumption-pruned paths (see evictPrunedCase) hold no claim
     // on the suite: they count toward neither share and give way when full.
+    // The corpus's own pruned prefixes come last (fuzzerCorpusVectors) and
+    // are written as pruned cases, under the same rule as KLEE's.
     size_t fromFuzzer = 0;
-    for (const std::vector<std::string> &inputs : fuzzerVectors) {
+    for (size_t i = 0; i < fuzzerVectors.size(); ++i) {
+      const std::vector<std::string> &inputs = fuzzerVectors[i];
+      const bool isPruned = i < fuzzerPruned.size() && fuzzerPruned[i];
       if (writer.caseCount() - writer.prunedCount() >=
           kMaxBranchTestCases / 2) {
         break;
       }
       if (writer.hasTestCase(inputs)) continue;
       if (writer.caseCount() >= kMaxBranchTestCases &&
-          !writer.evictPrunedCase()) {
+          (isPruned || !writer.evictPrunedCase())) {
         break;
       }
-      if (!writer.writeTestCase(inputs, false)) {
+      if (!writer.writeTestCase(inputs, false, isPruned)) {
         Map2Check::Log::Warning("could not write test case to " + outputDir);
         return;
       }
@@ -877,18 +882,20 @@ int map2check_execution(map2check_args args) {
     // On by default since 9.0 (R22: 49.7% against 44.7% on the fixed hybrid;
     // R26: 53.5% with the alternation); MAP2CHECK_FUZZER_SUITE=0 turns it off.
     std::vector<std::vector<std::string>> fuzzerVectors;
+    std::vector<bool> fuzzerPruned;
     const char *fuzzerSuite = std::getenv("MAP2CHECK_FUZZER_SUITE");
     if (args.coverBranches &&
         !(fuzzerSuite != nullptr && std::string(fuzzerSuite) == "0") &&
         generator == Map2Check::NonDetGenerator::AFLPlusPlus) {
-      fuzzerVectors = caller->fuzzerCorpusVectors(kMaxBranchTestCases);
+      fuzzerVectors =
+          caller->fuzzerCorpusVectors(kMaxBranchTestCases, &fuzzerPruned);
     }
     emitTestSuite(outputDir, caller->c_program_fullpath, args.entryFunction,
                   args.architecture,
                   resolveSpecification(args.propertyFile,
                                        caller->getOriginalPath(), args.mode),
                   foundViolation, args.coverBranches, args.mode,
-                  fuzzerVectors);
+                  fuzzerVectors, fuzzerPruned);
   }
 
   // (6) Clean map2check execution (folders and temp files)

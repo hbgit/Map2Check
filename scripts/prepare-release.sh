@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Fase "prepare" do semantic-release: builda o Map2Check completo (KLEE 3.1 +
-# LibFuzzer) dentro da imagem map2check-dev, injetando a versão calculada no
+# AFL++) dentro da imagem map2check-dev, injetando a versão calculada no
 # binário via -DMAP2CHECK_VERSION, e empacota release/ em .zip.
 # Chamado pelo @semantic-release/exec: scripts/prepare-release.sh 8.1.0
 set -euo pipefail

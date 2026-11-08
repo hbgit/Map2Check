@@ -74,4 +74,59 @@ target_wrapper.*
 
 # QtCreator CMake
 CMakeLists.txt.user*
-test-comp2026/simulation/release/*
+
+# Local Test-Comp workspace: benchmark preparation, paper material and run
+# artifacts. Kept out of the repository deliberately. The Juliet evaluation
+# harness that used to live under test-comp2026/simulation/ now sits in
+# tests/juliet/, next to tests/castle/, so the two benchmark harnesses share
+# one layout and neither depends on this directory.
+test-comp2026/
+
+# CASTLE/Juliet evaluation artifacts
+build_castle_ci/
+install_castle_ci/
+build_dev/
+install_dev/
+tests/castle/results/
+tests/castle/results_v*/
+tests/juliet/results*/
+tests/baseline-logs/
+
+# Clam invariants build (Phase B)
+build_clam_ci/
+install_clam_ci/
+build_clam/
+install_clam/
+build_ut/
+install_ut/
+build_testcov_ci/
+install_testcov_ci/
+
+# Local agent tooling and scratch material: ai-memory skill installs, editor
+# agent configs, CLAUDE.md backups and the local Test-Comp planning document.
+# Same reasoning as test-comp2026/ above -- preparation material, not product.
+.agents/
+.claude/
+.opencode/
+CLAUDE.md.bak-*
+
+# Test-Comp benchmark corpus (sv-benchmarks, ~13 GB). Cloned on demand for the
+# stratified runs; never committed. The pre-existing "sv-benchmarks/*" rule
+# above ignores the CONTENTS of such a directory but not the directory entry
+# itself, which is why this line names the path we actually clone into.
+tests/testcomp/bench/
+
+# Diretórios de build e instalação por campanha.
+# Cada install_* tem ~42 MB de binários (map2check, klee, clang) e cada build_*
+# ~17 MB de objetos. Eles existem para permitir bissecção entre versões do
+# binário sem recompilar -- foi assim que o defeito do --max-time fracionário
+# foi localizado -- mas são artefatos locais, não conteúdo do repositório.
+build_*/
+install_*/
+release/
+
+# Resultados de campanha do Test-Comp. Ficam no disco de quem rodou, não no
+# repositório -- mesma escolha já aplicada a tests/juliet/results*/ e
+# tests/castle/results_v*/. Os três corpora passam a ser tratados igual.
+# Os números que importam estão no relatório em docs/.
+tests/testcomp/results_*/

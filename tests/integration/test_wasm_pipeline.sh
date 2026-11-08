@@ -4,7 +4,7 @@
 # Must run inside the Docker container or with map2check-dev environment.
 set -e
 
-MAP2CHECK_DIR="${MAP2CHECK_PATH:-/workspace/test-comp2026/simulation/release}"
+MAP2CHECK_DIR="${MAP2CHECK_PATH:-/workspace/install_e2e}"
 MAP2CHECK="$MAP2CHECK_DIR/map2check"
 WASI_CLANG="${WASI_SDK_PATH:-/opt/wasi-sdk-33.0-x86_64-linux}/bin/clang"
 TMPDIR=$(mktemp -d)

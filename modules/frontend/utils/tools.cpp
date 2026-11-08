@@ -228,6 +228,9 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
         } else if (line == "OVERFLOW") {
           Map2Check::Log::Debug("OVERFLOW found");
           this->propertyViolated = Tools::PropertyViolated::FALSE_OVERFLOW;
+        } else if (line == "FALSE-DIVBYZERO") {
+          Map2Check::Log::Debug("FALSE-DIVBYZERO found");
+          this->propertyViolated = Tools::PropertyViolated::FALSE_DIVBYZERO;
         } else if (line == "UNKNOWN") {
           Map2Check::Log::Debug("UNKNOWN found");
           this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
@@ -238,7 +241,15 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
           Map2Check::Log::Debug("ASSERT found");
           this->propertyViolated = Tools::PropertyViolated::ASSERT;
         } else {
-          // throw Tools::CheckViolatedPropertyException("Invalid Property");
+          // Unrecognised, including the empty-file case where this loop never
+          // runs at all. Left silent for years while the field was
+          // uninitialised, so the verdict came from the stack. Saying so is
+          // cheap and the difference between a bug that is found and one that
+          // is not.
+          Map2Check::Log::Debug(
+              "map2check_property holds no verdict this parser recognises "
+              "(\"" + line + "\") -- treating the run as undecided");
+          this->propertyViolated = Tools::PropertyViolated::UNKNOWN;
         }
         break;
       case 1:
@@ -268,6 +279,13 @@ Tools::CheckViolatedProperty::CheckViolatedProperty(string path) {
 }
 
 // int Tools::CheckViolatedProperty::getListLogFromCSV(string path) {
+
+Tools::KleeLogType Tools::kleeLogTypeFromId(int id) {
+  if (id < 0 || id >= static_cast<int>(KleeLogType::UNKNOWN)) {
+    return KleeLogType::UNKNOWN;
+  }
+  return static_cast<KleeLogType>(id);
+}
 
 std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
     string path) {
@@ -303,26 +321,15 @@ std::vector<Tools::KleeLogRow> Tools::KleeLogHelper::getListLogFromCSV(
       string value = tokens[5];
       string type = tokens[6];
       Log::Debug(tokens[6]);
-      switch (stoi(type)) {
-        case 0:
-          row.type = KleeLogType::INTEGER;
-          break;
-        case 1:
-          row.type = KleeLogType::CHAR;
-          break;
-        case 2:
-          row.type = KleeLogType::POINTER;
-          break;
-        case 3:
-          row.type = KleeLogType::USHORT;
-          break;
-        case 4:
-          row.type = KleeLogType::LONG;
-          break;
-        case 5:
-          row.type = KleeLogType::UNSIGNED;
-          break;
+      // Every row whose type column is not a number of enum NONDET_TYPE
+      // used to keep an uninitialized type, which the witness then read.
+      int typeId = -1;
+      try {
+        typeId = stoi(type);
+      } catch (const std::exception &) {
+        typeId = -1;
       }
+      row.type = kleeLogTypeFromId(typeId);
       row.id = id;
       row.line = lineNumber;
       row.scope = scope;

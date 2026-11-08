@@ -54,7 +54,19 @@ enum NONDET_TYPE {
   SECTOR_T = 12,
   UINT = 13,
   SHORT = 14,
-  DOUBLE = 15
+  DOUBLE = 15,
+  /* Issue #74: SV-COMP names NonDetPass did not model. Each was an external
+   * call KLEE could not resolve, which killed every path through it. */
+  FLOAT = 16,
+  LONGLONG = 17,
+  ULONGLONG = 18,
+  U8 = 19,
+  U16 = 20,
+  U32 = 21,
+  /* One byte of a __VERIFIER_nondet_memory(p, n) call, logged by the runtime:
+   * the validators read that call as n uchar inputs. Its own type, not UCHAR,
+   * so the seed converter can tell that n rows are one KLEE object. */
+  MEMORY_BYTE = 22
 };
 
 enum Container_Type {
@@ -74,7 +86,8 @@ enum ViolatedProperty {
   TARGET_REACHED = 5,
   FALSE_OVERFLOW = 6,
   ASSERT = 7,
-  FALSE_MEMCLEANUP = 8
+  FALSE_MEMCLEANUP = 8,
+  FALSE_DIVBYZERO = 9
 };
 
 typedef
@@ -134,10 +147,26 @@ typedef
   unsigned step_on_execution;
   /** Current scope number (llvm ir uses numbered scopes) */
   unsigned scope;
-  // TODO(rafa.sa.xp@gmail.com) Should update to work with a union
-  /** Pointer where the generated value is stored */
-  //long value;
-  void *value;
+  /** The generated value, stored INLINE.
+   *
+   * This was a `void *value` holding the address of the caller's `value`
+   * parameter -- a stack slot already dead by the time the log is flushed at
+   * exit. Reading it was a use-after-scope: natively it usually printed
+   * something plausible, and under KLEE it terminated the state with a pointer
+   * error, which is why klee_log.csv came out EMPTY on every symbolic run and
+   * no counterexample ever carried nondet values.
+   *
+   * A pointer cannot be made to work here even by pointing into the row: the
+   * containers memcpy rows into a reallocated array, so any self-referential
+   * pointer is stale after the first append. The value has to live inline.
+   * (The TODO asking for exactly this union has been here since 2020.) */
+  union {
+    int as_int;
+    unsigned as_unsigned;
+    double as_double;
+    long long as_longlong;
+    unsigned long long as_ulonglong;
+  } value;
   /** Name of the function where operation took place */
   char function_name[FUNCTION_MAX_LENGTH_NAME];
 } NONDET_CALL;

@@ -667,8 +667,13 @@ std::string environmentKnob(const char *name) {
 }  // namespace
 
 std::vector<std::vector<std::string>> Caller::fuzzerCorpusVectors(
-    size_t cap) {
+    size_t cap, std::vector<bool> *pruned) {
+  // Inputs that ran to the end first, then the prefixes of paths a failed
+  // assumption ended (the replay leaves a marker): a prefix stops before the
+  // code a full input reaches, and in the suite it must not take the place of
+  // one (hardness_kloop_100_1loop_file-32: 62.7% -> 2.4% when it did).
   std::vector<std::vector<std::string>> vectors;
+  std::vector<std::vector<std::string>> prefixes;
   std::error_code error;
   const std::string queue = "afl-out/default/queue";
   const std::string replay =
@@ -702,9 +707,18 @@ std::vector<std::vector<std::string>> Caller::fuzzerCorpusVectors(
     std::vector<std::string> values =
         Map2Check::readNonDetLog(replay + "/" + Map2Check::kleeLogCSV);
     if (values.empty() || !seen.insert(values).second) continue;
-    vectors.push_back(values);
+    if (std::filesystem::exists(replay + "/map2check_pruned", error)) {
+      prefixes.push_back(values);
+    } else {
+      vectors.push_back(values);
+    }
   }
   std::filesystem::remove_all(replay, error);
+  if (pruned != nullptr) {
+    pruned->assign(vectors.size(), false);
+    pruned->resize(vectors.size() + prefixes.size(), true);
+  }
+  vectors.insert(vectors.end(), prefixes.begin(), prefixes.end());
   return vectors;
 }
 

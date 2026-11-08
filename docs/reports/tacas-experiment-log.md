@@ -1465,3 +1465,25 @@ existe, em vez de um `map2check-testcomp.py` à parte.
   - em relação ao mg2, pelo CRC, só o wrapper muda;
   - smoke test num `ubuntu:24.04` limpo, com `python3` e `gcc-multilib`: passou;
   - BenchExec com 120 s: `done`.
+
+## Rodada CP-corpus (2026-11-08): corpus do fuzzer em caminhos podados (mg4 → mg5 → mg6)
+
+24 tarefas de Cover-Branches (`tacas-results/MEM/cp.tsv`: 14 Hardness, 6 Floats, 2 Loops,
+2 Arrays), 900 s / 3 GB / 1 núcleo, TestCov gcc. Base: Zenodo 24031752. Uma execução por
+braço, com a máquina disputada (o BenchExec avisou de swap).
+
+| Braço | Mudança | Soma | Pior que a base |
+|---|---|---|---|
+| base | — | 7,81 | — |
+| mg4 | o replay grava o log em caminho podado | 13,71 | kloop_100-32: 62,7 → 2,4 |
+| mg5 | + tira o valor rejeitado do vetor | 13,14 | kloop_100-32: 2,4 |
+| mg6 | + prefixos podados do fuzzer cedem lugar (`189de2c6a`) | 13,56 | nenhuma |
+
+- **Causa da regressão do mg4:** os prefixos curtos do fuzzer ocupavam as 50 vagas da suíte e
+  as entradas completas (17 leituras) ficavam de fora. No mg6 eles entram como casos podados,
+  depois das entradas completas: kloop_100-32 volta a 62,7.
+- **A hipótese do mg5** (o `abort()` no fim do teste) estava errada; o mg6 mantém o corte
+  do valor rejeitado.
+- **mg6 em relação ao mg4:** steplocals (74,7 → 4,0) e filler_pr_ci-166 (41,6 → 2,0) caíram
+  até o nível da base; softmax e cartpole ficaram abaixo do mg4. Com uma execução só, não
+  dá para separar o efeito do ruído.

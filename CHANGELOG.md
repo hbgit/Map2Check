@@ -13,7 +13,8 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
   witness replay that turns a queue entry into a test case jumped out on it
   without writing the nondet log, and every entry was dropped. In the
   Test-Comp 2027 pre-run, the median Hardness suite had 2 tests while AFL++
-  held hundreds of inputs. The replay now writes the inputs read so far; the
+  held hundreds of inputs. The replay now writes the inputs read before the
+  rejected one (a test ending in `abort()` counts nothing under gcov); the
   seed exchange (fuzzer → KLEE) gets the same vectors.
 
 - **The run stays below its memory limit** (Test-Comp 2027 pre-run: 1,747 runs

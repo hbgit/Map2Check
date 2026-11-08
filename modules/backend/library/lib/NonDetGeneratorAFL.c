@@ -28,7 +28,17 @@ void nondet_destroy() { nondet_log_destroy(); }
 
 static jmp_buf map2check_reject_env;
 
-void nondet_cancel() { longjmp(map2check_reject_env, 1); }
+/* The replay that turns a queue entry into a test case (MAP2CHECK_SEED_REPLAY)
+ * needs the inputs read so far even when the path ends in a failed
+ * assumption: a reactive `while (1)` program ends no other way, and without
+ * the log every one of its entries was dropped. The validator's harness
+ * aborts at the same assumption, after covering the same branches. */
+void nondet_cancel() {
+  static int replay = -1;
+  if (replay < 0) replay = getenv("MAP2CHECK_SEED_REPLAY") != NULL;
+  if (replay) nondet_generate_aux_witness_files();
+  longjmp(map2check_reject_env, 1);
+}
 
 void nondet_assume(int expr) {
   if (!expr) {
